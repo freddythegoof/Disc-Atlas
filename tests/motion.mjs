@@ -7,9 +7,10 @@ import assert from 'node:assert/strict';
 
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 const zoomProfile=process.argv.includes('--zoom-profile');
-const profiling=process.argv.includes('--profile')||zoomProfile;
+const selectionProfile=process.argv.includes('--selection-profile');
+const profiling=process.argv.includes('--profile')||zoomProfile||selectionProfile;
 const baseline=new Map();
-if(profiling)for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/cosmic.css']){
+if(profiling)for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css']){
  baseline.set(file,execFileSync('git',['show','HEAD:'+file]));
 }
 let revision='working';
@@ -40,7 +41,7 @@ try{
    await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);
    await page.waitForTimeout(400);
    const box=await page.locator('.atlas-marker.is-selected').boundingBox(),x=box.x+box.width/2,y=box.y+box.height/2;
-   await page.mouse.move(x,y);if(!zoomProfile)await page.mouse.down();
+   await page.mouse.move(x,y);if(!zoomProfile&&!selectionProfile)await page.mouse.down();
    await cdp.send('Emulation.setCPUThrottlingRate',{rate});await cdp.send('Profiler.enable');await cdp.send('Profiler.setSamplingInterval',{interval:500});
    const events=[];cdp.on('Tracing.dataCollected',d=>events.push(...d.value));
    await cdp.send('Tracing.start',{categories:'devtools.timeline,v8,disabled-by-default-devtools.timeline',transferMode:'ReportEvents'});await cdp.send('Profiler.start');
@@ -51,16 +52,62 @@ try{
     function tick(t){if(measure.last)measure.frames.push(t-measure.last);measure.last=t;if(measure.active)requestAnimationFrame(tick);}requestAnimationFrame(tick);
    });
    const start=Date.now();
-   for(let i=0;i<90;i++){if(zoomProfile)await page.mouse.wheel(0,i%30<15?-15:15);else await page.mouse.move(x+Math.sin(i/16)*110,y+Math.sin(i/19)*25);await page.waitForTimeout(12);}
+   if(selectionProfile){for(let i=0;i<8;i++){await page.evaluate(i=>select(filtered.filter(d=>d.speed!=null)[i*5]),i);await page.waitForTimeout(500);}}
+   else for(let i=0;i<90;i++){if(zoomProfile)await page.mouse.wheel(0,i%30<15?-15:15);else await page.mouse.move(x+Math.sin(i/16)*110,y+Math.sin(i/19)*25);await page.waitForTimeout(12);}
    const elapsed=Date.now()-start;
    const observed=await page.evaluate(()=>{measure.active=false;measure.observer.disconnect();const f=measure.frames.sort((a,b)=>a-b);return {frames:f.length,p95:f[Math.floor(f.length*.95)],max:f.at(-1),over25:f.filter(n=>n>25).length,added:measure.added,removed:measure.removed};});
    const {profile}=await cdp.send('Profiler.stop');const done=new Promise(r=>cdp.once('Tracing.tracingComplete',r));await cdp.send('Tracing.end');await done;
    const sums={},counts={};for(const e of events)if(e.ph==='X'&&e.dur){sums[e.name]=(sums[e.name]||0)+e.dur/1000;counts[e.name]=(counts[e.name]||0)+1;}
    const nodes=new Map(profile.nodes.map(n=>[n.id,n])),parents=new Map(),inclusive={},self={};for(const n of profile.nodes)for(const c of n.children||[])parents.set(c,n.id);
-   for(let i=0;i<profile.samples.length;i++){let id=profile.samples[i];const frame=nodes.get(id).callFrame,key=(frame.functionName||'(anonymous)')+' '+frame.url.split('/').pop()+':'+(frame.lineNumber+1);self[key]=(self[key]||0)+profile.timeDeltas[i]/1000;while(id){const name=nodes.get(id).callFrame.functionName;if(['draw','renderMarkers','buildClusters','focus'].includes(name))inclusive[name]=(inclusive[name]||0)+profile.timeDeltas[i]/1000;id=parents.get(id);}}
-   console.log(JSON.stringify({revision,scenario:zoomProfile?'wheel-zoom':'marker-pan',rate,elapsed,observed,cpuInclusive:inclusive,cpuSelf:Object.entries(self).sort((a,b)=>b[1]-a[1]).slice(0,12),timeline:Object.fromEntries(['UpdateLayoutTree','Layout','Paint','ParseHTML','RasterTask'].map(k=>[k,{ms:sums[k]||0,count:counts[k]||0}]))}));
+   for(let i=0;i<profile.samples.length;i++){let id=profile.samples[i];const frame=nodes.get(id).callFrame,key=(frame.functionName||'(anonymous)')+' '+frame.url.split('/').pop()+':'+(frame.lineNumber+1);self[key]=(self[key]||0)+profile.timeDeltas[i]/1000;while(id){const name=nodes.get(id).callFrame.functionName;if(['draw','renderMarkers','buildClusters','focus','select','detail','renderList'].includes(name))inclusive[name]=(inclusive[name]||0)+profile.timeDeltas[i]/1000;id=parents.get(id);}}
+   console.log(JSON.stringify({revision,scenario:selectionProfile?'disc-selection':zoomProfile?'wheel-zoom':'marker-pan',rate,elapsed,observed,cpuInclusive:inclusive,cpuSelf:Object.entries(self).sort((a,b)=>b[1]-a[1]).slice(0,12),timeline:Object.fromEntries(['UpdateLayoutTree','Layout','Paint','ParseHTML','RasterTask'].map(k=>[k,{ms:sums[k]||0,count:counts[k]||0}]))}));
    if(!zoomProfile)await page.mouse.up();await context.close();
   }
+ }else if(process.argv.includes('--game-feel')){
+  const page=await browser.newPage({viewport:{width:1440,height:900},colorScheme:'dark'});
+  fs.mkdirSync('outputs/motion',{recursive:true});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();
+  await page.evaluate(()=>{window.firstRow=document.querySelector('#rows').firstChild;select(selected);});
+  assert.ok(await page.evaluate(()=>firstRow===document.querySelector('#rows').firstChild),'Map selection leaves the hidden directory intact');
+  await page.evaluate(()=>{window.originalClose=document.querySelector('#closeDetail');select(filtered.find(d=>d.speed===5));});
+  assert.ok(await page.evaluate(()=>originalClose===document.querySelector('#closeDetail')),'Changing discs preserves sidebar controls');
+  await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+  for(const size of [2,3])for(const level of [2.8,12]){
+   const expected=await page.evaluate(({size,level})=>{
+    const items=discs.filter(d=>d.speed===12).slice(0,size);filtered=items;selected=null;
+    for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});
+    const camera=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,level);
+    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();return items.map(d=>d.name);
+   },{size,level});
+   await page.locator('.atlas-marker').first().click();
+   await page.locator('#detail [data-choose-disc]').first().waitFor();
+   assert.equal(await page.locator('#detail [data-choose-disc]').count(),size,'Small stacks open every member in the sidebar');
+   assert.equal(await page.locator('#detail .comparison-route').count(),size,'Small stacks automatically overlay flight paths');
+   assert.equal(await page.locator('#clusterPopover').isVisible(),false);
+   await page.locator('#detail [data-choose-disc]').last().click();
+   assert.equal(await page.locator('#detail h2').innerText(),expected.at(-1).trim(),'Choosing a disc opens that disc');
+   assert.equal(await page.locator('.atlas-marker').count(),1,'Choosing a stack member does not reshuffle the graph');
+   await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
+  }
+  await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+  const groupId=await page.evaluate(()=>mapClusters.find(g=>g.members.length===2)?.key);
+  if(groupId){
+   await page.locator(`[data-cluster="${groupId}"]`).click();await page.waitForTimeout(250);
+   fs.mkdirSync('outputs/motion',{recursive:true});await page.screenshot({path:'outputs/motion/stack-sidebar.png'});
+   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+  }
+  await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
+  assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Expanded graph fits the entire catalog');
+  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+  await page.evaluate(()=>{const items=filtered.filter(d=>d.speed===12).slice(0,2);filtered=items;selected=null;for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});const c=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,12);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});
+  await page.locator('.atlas-marker').first().click();await page.locator('#detail [data-choose-disc]').first().waitFor();
+  await page.locator('#expandDetail').click();await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
+  await page.screenshot({path:'outputs/motion/stack-mobile.png'});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#detail [data-choose-disc]').first().click();
+  assert.ok(await page.locator('#detail h2').isVisible());assert.deepEqual(errors,[]);
+  console.log('PASS: stable directory, small stack chooser at normal/max zoom, graph coverage, mobile and reduced motion.');
  }else{
   const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'dark'});
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));

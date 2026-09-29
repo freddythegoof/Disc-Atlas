@@ -19,8 +19,8 @@ window.AtlasLayout = (() => {
     return result;
   }
   function bounds(width, height, immersive = true) {
-    const top = immersive ? Math.min(135, height * .26) : 36;
-    const bottom = immersive ? Math.min(width < 700 ? 285 : 260, height * .40) : 70;
+    const top = immersive ? 100 : 36;
+    const bottom = immersive ? (width < 700 ? 185 : 135) : 70;
     const usableWidth = Math.max(80, width - 96), usableHeight = Math.max(60, height - top - bottom);
     // Include the entire scatter envelope and room for disc names at the edges.
     return {left:48 + usableWidth * .06, bottom:height - bottom - usableHeight * .06,

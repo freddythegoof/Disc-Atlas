@@ -72,7 +72,10 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .map-controls button{width:42px;height:42px;border-radius:8px;font-size:21px}.map-controls #zoomReset{width:auto;padding:0 12px;font-size:12px;border-left:1px solid var(--line)}
 .clean-disc{position:relative;display:inline-block;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 35% 25%,color-mix(in srgb,var(--disc-color) 65%,white),var(--disc-color) 55%,color-mix(in srgb,var(--disc-color) 72%,black));border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:inset 0 2px 3px #ffffff50,inset 0 -3px 5px #0002,0 6px 16px #0002;overflow:visible}
 .clean-disc::after{content:"";position:absolute;inset:9%;border-radius:50%;border:2px solid #ffffff30;box-shadow:0 1px 2px #0002,inset 0 1px 3px #ffffff20}
-.atlas-marker{left:0;top:0;transition:none!important;width:48px;height:48px;padding:0;min-height:0;touch-action:none;contain:layout style;will-change:transform}
+.marker-position{position:absolute;left:0;top:0;width:0;height:0;contain:layout style;will-change:transform}
+.marker-position:hover,.marker-position:focus-within{z-index:6!important}
+.atlas-marker{left:0;top:0;transform:translate(-50%,-50%);transition:none!important;width:48px;height:48px;padding:0;min-height:0;touch-action:none;contain:layout style}
+.atlas-marker:hover,.atlas-marker:focus-visible,.atlas-marker.is-open{transform:translate(-50%,-50%)}
 .atlas-marker.is-large.overview,.atlas-marker.is-large.brand-view{width:54px;height:54px}
 .atlas-marker.is-large .disc-art,.atlas-marker.is-large.overview .disc-art{width:54px;height:54px}
 .atlas-marker .marker-stack{display:block}.atlas-marker .stack-0{position:absolute;inset:0;transform:none}.atlas-marker .marker-halo{inset:-8px;border:1px solid var(--lime);background:none;box-shadow:none;opacity:0}
@@ -92,6 +95,26 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .detail .disc-photo{float:none;width:100%;min-height:190px;height:auto;margin:16px 0 22px;background:none}.detail .detail-art{width:152px!important;height:152px!important}.detail h2,.detail-top,.detail .numbers,.detail .index-row,.detail .index-track{max-width:none}
 .detail .illustration-caption{font-size:10px;margin-top:12px}.detail .wide{display:block;width:100%;margin-right:0}.detail .flight{height:185px}.detail h2{font-size:32px}.detail .numbers{background:var(--surface);border-color:var(--line);border-radius:12px}.detail .brand-name{color:var(--lime)}
 .detail-open .coach-launch{visibility:hidden}
+.detail{contain:strict;will-change:transform;isolation:isolate}
+.detail[hidden]{display:block!important;visibility:hidden;pointer-events:none}
+.detail .disc-photo{min-height:120px;margin:10px 0 14px}
+.detail .detail-art{width:104px!important;height:104px!important}
+.detail .flight{height:260px;margin:12px 0}
+.stack-matchup h2{font-size:30px;line-height:1.12;margin:10px 0}
+.stack-matchup .cluster-flight{display:block;padding:14px 0 8px;border:0;background:none}
+.stack-matchup .cluster-flight svg{display:block;width:100%;height:240px;max-height:none}
+.stack-matchup .cluster-specs{display:none}
+.stack-choices{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.stack-choice{display:flex;align-items:center;gap:14px;width:100%;padding:14px 10px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:background .15s,border-color .15s}
+.stack-choice:hover{background:var(--accent-soft);border-color:var(--lime)}
+.stack-choice{border-left:3px solid var(--flight-color)}
+.stack-choice:active{transform:scale(.98)}
+.stack-choice .disc-art{width:42px;height:42px}
+.stack-choice>span:nth-child(2){flex:1;min-width:0}
+.stack-choice strong,.stack-choice small{display:block}
+.stack-choice small{font-size:11px;color:var(--muted)}
+.stack-ratings{display:block;margin-top:6px;font-variant-numeric:tabular-nums}
+.stack-ratings small{font-size:9px}
 .nearby-discs{background:var(--surface);border:1px solid var(--line);font-size:12px;padding:9px}
 body[data-view="map"]:not(.my-bag-mode) #compareBar{position:fixed;z-index:25;left:20px;bottom:90px;width:min(720px,calc(100vw - 40px));max-height:55dvh;overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:16px;box-shadow:0 10px 40px var(--shadow)}
 .compare-item,.bag-gap,.bag-empty,.profile-strip{border-radius:14px;background:var(--panel)}.compare-item>.disc-art{width:64px;height:64px}.compare-items{gap:14px}.cluster-popover{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 80px var(--shadow)}

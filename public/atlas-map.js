@@ -10,14 +10,16 @@ function featuredRank(d){const n=featuredMolds.indexOf(d.name.toLowerCase());ret
 let atlasPositions = new Map();
 let groupCache=null;
 const markerNodes=new Map();
+let mapViewport=null;
+function measureMap(){mapViewport=canvas.getBoundingClientRect();}
 function buildClusters(items,w,h){
  const immersive=!document.body.classList.contains('my-bag-mode'),area=window.AtlasLayout.bounds(w,h,immersive);
  // Group in world space at discrete zoom levels. Panning never changes a disc's group.
  const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:Math.round(Math.log2(zoom)*3),groupZoom=2**(level/3);
- if(!groupCache||groupCache.items!==items||groupCache.selected!==selected||groupCache.w!==w||groupCache.h!==h||groupCache.level!==level||groupCache.immersive!==immersive){
+ if(!groupCache||groupCache.items!==items||groupCache.w!==w||groupCache.h!==h||groupCache.level!==level||groupCache.immersive!==immersive){
   const groups=[],cells=new Map(),size=65;
   const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:featuredRank(d)}))
-   .sort((a,b)=>Number(b.d===selected)-Number(a.d===selected)||a.rank-b.rank||a.d.id.localeCompare(b.d.id));
+   .sort((a,b)=>a.rank-b.rank||a.d.id.localeCompare(b.d.id));
   for(const {d} of ordered){
    const pos=atlasPositions.get(d.id);if(!pos)continue;
    const x=pos.x*area.width*groupZoom,y=pos.y*area.height*groupZoom,cx=Math.floor(x/size),cy=Math.floor(y/size);
@@ -31,12 +33,12 @@ function buildClusters(items,w,h){
   }
   const large=[],clearance=w<700?105:155;
   for(const g of groups)if(large.every(other=>(other.px-g.px)**2+(other.py-g.py)**2>clearance**2)){g.large=true;large.push(g);}
-  groupCache={items,selected,w,h,level,immersive,groups};
+  groupCache={items,w,h,level,immersive,groups};
  }
  const result=[];
  for(const g of groupCache.groups){
   const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
-  if(x<40||x>w-40||y<(immersive?Math.min(125,h*.24):24)||y>h-(immersive?Math.min(w<700?245:210,h*.34):54))continue;
+  if(x<40||x>w-40||y<(immersive?82:24)||y>h-(immersive?(w<700?160:110):54))continue;
   result.push({...g,x,y,actualX:x,actualY:y});
  }
  return result;
@@ -50,7 +52,7 @@ function focusFeatured(){
 }
 function draw(){
  if(view!=='map')return;
- const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;if(!w||!h)return;
+ if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
@@ -61,7 +63,7 @@ function draw(){
  mapClusters=buildClusters(filtered,w,h);
  // A subtle tether preserves the underlying mean coordinate when markers separate.
  for(const g of mapClusters){if(Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
- renderMarkers();setMapText($('#zoomLabel'),zoom.toFixed(1)+'×');const hasRated=filtered.some(d=>d.speed!=null);$('#empty').hidden=mapClusters.length>0;$('#empty').firstChild.textContent=hasRated?'You have wandered beyond these discs.':'No discs match these filters.';$('#emptyReset').textContent=hasRated?'Show all discs':'Clear filters';
+ renderMarkers();setMapText($('#zoomLabel'),zoom.toFixed(1)+'×');const hasRated=filtered.some(d=>d.speed!=null);$('#empty').hidden=mapClusters.length>0;setMapText($('#empty').firstChild,hasRated?'You have wandered beyond these discs.':'No discs match these filters.');setMapText($('#emptyReset'),hasRated?'Show all discs':'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
@@ -73,17 +75,21 @@ function renderMarkers(){
    node=document.createElement('button');node.type='button';node.dataset.cluster=g.key;node.className='atlas-marker';
    node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
-   node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);layer.append(node);window.AtlasMotion?.enter(node);
+   node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';node.position.append(node);layer.append(node.position);window.AtlasMotion?.enter(node);
   }
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
-  const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
-  for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
-  node.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0) translate(-50%,-50%)';
+  if(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected){
+   const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
+   for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
+   node.groupVersion=groupCache;node.brandView=brandView;node.selection=selected;
+   node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
+  }
+  if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
  }
  for(const [key,node] of markerNodes)if(!live.has(key)){
   if(document.activeElement===node)$('#map').focus({preventScroll:true});
-  window.gsap?.killTweensOf([node,...node.children]);node.remove();markerNodes.delete(key);
+  window.gsap?.killTweensOf([node,...node.children]);node.position.remove();markerNodes.delete(key);
  }
 }
 function clearClusterTimers(){clearTimeout(clusterHoverTimer);clearTimeout(clusterCloseTimer);clusterHoverTimer=null;clusterCloseTimer=null;}
@@ -110,8 +116,9 @@ function positionCluster(){
  if(left+width>innerWidth-12){left=a.left-width-16;if(left<12){left=Math.max(12,Math.min(innerWidth-width-12,a.left-width/2));top=a.bottom+16;if(top+height>innerHeight-12)top=a.top-height-16;}}
  pop.style.left=Math.max(12,Math.min(innerWidth-width-12,left))+'px';pop.style.top=Math.max(12,Math.min(innerHeight-height-12,top))+'px';
 }
+function comparisonPalette(){return document.documentElement.dataset.theme!=='light'?['#92b8ff','#ffab7a','#66d9bf']:['#265bad','#984216','#126852'];}
 function comparisonMarkup(items){
- const palette=document.documentElement.dataset.theme!=='light'?['#92b8ff','#ffab7a','#66d9bf']:['#265bad','#984216','#126852'];
+ const palette=comparisonPalette();
  return `<div class="cluster-flight"><div class="flight-overlay-label"><span>FLIGHT OVERLAY</span><span>${hand} · ${power}% power</span></div><svg viewBox="0 0 250 180" role="img" aria-label="Illustrative flight comparison"><path d="M125 155V12 M30 50H220 M30 100H220 M30 150H220" stroke="${themePalette.grid}" fill="none" stroke-dasharray="3 5"/>${items.map((d,i)=>`<path class="comparison-route" d="${path(d)}" fill="none" stroke="${palette[i]}" stroke-width="3" stroke-linecap="round" ${i===1?'stroke-dasharray="8 4"':i===2?'stroke-dasharray="2 4"':''}/>`).join('')}<circle cx="125" cy="155" r="4" fill="${themePalette.text}"/></svg><p class="micro">Flat release · illustrative paths</p></div><div class="cluster-specs">${items.map((d,i)=>`<div class="cluster-stat"><strong><i class="dot" style="background:${palette[i]}"></i>${esc(d.name)}</strong><small>${esc(d.brand)}</small><div class="mini-numbers">${['speed','glide','turn','fade'].map(k=>`<span><b>${d[k]}</b><small>${k[0].toUpperCase()}</small></span>`).join('')}</div><span class="micro">${stability(d)} · index ${score(d)}</span></div>`).join('')}</div>`;
 }
 function renderCluster(){
@@ -120,8 +127,9 @@ function renderCluster(){
 }
 function initAtlasMap(){
  const map=$('#map'),layer=$('#mapMarkers'),pop=$('#clusterPopover');
+ map.addEventListener('pointerenter',measureMap);
  layer.addEventListener('pointerout',e=>{const button=e.target.closest('[data-cluster]');if(button&&!button.contains(e.relatedTarget))scheduleClusterClose();});
- layer.addEventListener('click',e=>{const button=e.target.closest('[data-cluster]');if(!button)return;e.stopPropagation();if(mapMoved&&e.detail!==0)return;const group=mapClusters.find(g=>g.key===button.dataset.cluster);if(group)select(group.lead);});
+ layer.addEventListener('click',e=>{const button=e.target.closest('[data-cluster]');if(!button)return;e.stopPropagation();if(mapMoved&&e.detail!==0)return;const group=mapClusters.find(g=>g.key===button.dataset.cluster);if(group){if(group.members.length>1&&group.members.length<=3)openStackDetail(group,button);else select(group.lead);}});
  pop.addEventListener('pointerenter',()=>clearClusterTimers());pop.addEventListener('pointerleave',()=>scheduleClusterClose());
  pop.addEventListener('focusin',()=>{clusterPinned=true;clearClusterTimers();});
  pop.addEventListener('click',e=>{
@@ -137,7 +145,7 @@ function initAtlasMap(){
  const pointers=new Map();let pinchDistance=0,velocity={x:0,y:0},lastMove=0;
  map.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('.map-controls'))return;
-  stopCamera();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  measureMap();stopCamera();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   mapDrag={x:e.clientX,y:e.clientY};
   if(!e.target.closest('button'))map.setPointerCapture(e.pointerId);
   map.classList.add('is-dragging');
@@ -146,7 +154,7 @@ function initAtlasMap(){
  map.addEventListener('pointermove',e=>{
   if(!pointers.has(e.pointerId))return;
   const previous=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a.x-b.x,a.y-b.y),r=map.getBoundingClientRect();
+  if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a.x-b.x,a.y-b.y),r=mapViewport;
    if(pinchDistance)changeZoom(distance/pinchDistance,{x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top});
    pinchDistance=distance;velocity={x:0,y:0};mapMoved=true;
   }else{const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
@@ -160,28 +168,28 @@ function initAtlasMap(){
   if(!pointers.size){map.classList.remove('is-dragging');
    if(e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
     const vx=Math.max(-1.5,Math.min(1.5,velocity.x)),vy=Math.max(-1.5,Math.min(1.5,velocity.y));
-    if(Math.hypot(vx,vy)>.025)tweenCamera({zoom,x:pan.x+vx*180,y:pan.y+vy*180},.55);
+    if(Math.hypot(vx,vy)>.025)tweenCamera({zoom,x:pan.x+vx*70,y:pan.y+vy*70},.24);
    }
   }else{velocity={x:0,y:0};lastMove=performance.now();}
   if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);
   if(!pointers.size&&!cameraTween)scheduleMapDraw();
  };
  map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);
- map.addEventListener('wheel',e=>{e.preventDefault();animateZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-map.getBoundingClientRect().left,y:e.clientY-map.getBoundingClientRect().top});},{passive:false});
+ map.addEventListener('wheel',e=>{e.preventDefault();animateZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});},{passive:false});
  map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]},.22);}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
- window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
+ window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(e.target===document)measureMap();if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
 }
 let mapMoved=false,mapFrame=0,cameraTween=null,cameraDestination=null;
 function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(()=>{mapFrame=0;draw();});}
 function stopCamera(){cameraTween?.kill();cameraTween=null;cameraDestination=null;}
-function tweenCamera(target,duration=.3){
+function tweenCamera(target,duration=.16){
  stopCamera();closeCluster();
  if(!window.AtlasMotion?.enabled()){zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
  cameraDestination=target;const camera={zoom,x:pan.x,y:pan.y};
  cameraTween=gsap.to(camera,{...target,duration,ease:'power3.out',onUpdate:()=>{zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();},onComplete:()=>{cameraTween=null;cameraDestination=null;draw();}});
 }
 function zoomDestination(next,anchor){
- const w=canvas.clientWidth,h=canvas.clientHeight,at=anchor||{x:w/2,y:h/2},ratio=next/zoom;
+ const {width:w,height:h}=mapViewport,at=anchor||{x:w/2,y:h/2},ratio=next/zoom;
  const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
  return {zoom:next,x:next===1?0:at.x-area.left-(at.x-area.left-pan.x)*ratio,
   y:next===1?0:at.y-area.bottom-(at.y-area.bottom-pan.y)*ratio};
@@ -192,5 +200,5 @@ function changeZoom(factor,anchor){
 }
 function animateZoom(factor,anchor){
  const target=zoomDestination(Math.min(12,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor);
- tweenCamera(target,.3);
+ tweenCamera(target,.16);
 }

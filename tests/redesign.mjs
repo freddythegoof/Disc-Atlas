@@ -31,6 +31,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   await page.locator('.disc-row').filter({hasText:'Destroyer'}).first().click();
   assert.ok(await page.locator('#detail').isVisible());
   assert.match(await page.locator('#detail h2').innerText(),/Destroyer/);
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#detail')).opacity==='1');
   await page.screenshot({animations:'disabled',path:'outputs/redesign/detail.png'});
   await page.locator('#compare').click();assert.ok(await page.locator('#compareBar').isVisible());
   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
@@ -63,6 +64,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   await page.locator('#search').fill('Destroyer');await page.locator('#listTab').click();
   await page.locator('.disc-row').filter({hasText:'Destroyer'}).first().click();
   const sheet=await page.locator('#detail').boundingBox();assert.ok(sheet.y>200);
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#detail')).opacity==='1');
   await page.screenshot({animations:'disabled',path:'outputs/redesign/mobile-sheet.png'});
   await page.locator('#expandDetail').click();assert.equal(await page.locator('#expandDetail').getAttribute('aria-expanded'),'true');
   await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
