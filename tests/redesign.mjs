@@ -1,0 +1,73 @@
+/* Run with PLAYWRIGHT_MODULE pointing to Playwright, and an existing local server. */
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'dark'});
+ const page=await context.newPage();const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ const base=process.env.ATLAS_URL||'http://localhost:5173';
+ fs.mkdirSync('outputs/redesign',{recursive:true});
+ try{
+  await page.goto(base);await page.locator('.atlas-marker').first().waitFor();await page.evaluate(()=>document.fonts.ready); 
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'midnight');
+  assert.equal(await page.locator('#filters').isVisible(),false);
+  assert.equal(await page.locator('#detail').isVisible(),false);
+  assert.match(await page.locator('.atlas-marker.is-selected').innerText(),/Destroyer/);
+  await page.locator('.atlas-marker.is-selected').click();
+  assert.ok(await page.locator('#detail').isVisible(),'Clicking the featured disc opens its details directly');
+  await page.locator('#closeDetail').click();
+  await page.locator('#search').fill('Buzzz');
+  assert.ok(await page.locator('.atlas-marker').count()>0,'Searching a different flight region brings the results into view');
+  await page.locator('#search').fill('');
+  await page.reload();await page.locator('.atlas-marker').first().waitFor();
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/midnight.png'});
+  await page.locator('#filtersToggle').click();assert.ok(await page.locator('#filters').isVisible());
+  await page.keyboard.press('Escape');assert.equal(await page.locator('#filters').isVisible(),false);
+  await page.locator('#search').fill('Destroyer');
+  await page.locator('#listTab').click();
+  await page.locator('.disc-row').filter({hasText:'Destroyer'}).first().click();
+  assert.ok(await page.locator('#detail').isVisible());
+  assert.match(await page.locator('#detail h2').innerText(),/Destroyer/);
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/detail.png'});
+  await page.locator('#compare').click();assert.ok(await page.locator('#compareBar').isVisible());
+  await page.locator('#closeDetail').click();
+  await page.locator('#search').fill('');await page.locator('#mapTab').click();
+  await page.locator('#themeSelect').selectOption('charcoal');
+  await page.reload();await page.locator('.atlas-marker').first().waitFor();
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'charcoal');
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/charcoal.png'});
+  await page.locator('#themeSelect').selectOption('light');
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/light.png'});
+  await page.locator('#zoomReset').click();
+  assert.equal(await page.locator('#zoomLabel').innerText(),'1.0×');
+  const coverage=await page.evaluate(()=>({mapped:mapClusters.reduce((n,g)=>n+g.members.length,0),rated:filtered.filter(d=>d.speed!=null).length}));
+  assert.equal(coverage.mapped,coverage.rated,'Show all fits every rated disc inside the usable map area');
+  await page.locator('#map').focus();await page.keyboard.press('+');
+  await page.waitForFunction(()=>document.querySelector('#zoomLabel').textContent!=='1.0×');
+  await page.locator('#bagTab').click();assert.ok(await page.locator('#playerHub').isVisible());
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/bag.png',fullPage:true});
+  for(const name of ['about','privacy','terms']){
+   await page.goto(`${base}/${name}.html`);
+   assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
+   assert.ok(await page.locator('h1').isVisible());
+  }
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/info.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});await page.goto(base);
+  await page.locator('.atlas-marker').first().waitFor();
+  await page.locator('#themeSelect').selectOption('midnight');
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/mobile.png'});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.locator('#search').fill('Destroyer');await page.locator('#listTab').click();
+  await page.locator('.disc-row').filter({hasText:'Destroyer'}).first().click();
+  const sheet=await page.locator('#detail').boundingBox();assert.ok(sheet.y>200);
+  await page.screenshot({animations:'disabled',path:'outputs/redesign/mobile-sheet.png'});
+  await page.locator('#expandDetail').click();assert.equal(await page.locator('#expandDetail').getAttribute('aria-expanded'),'true');
+  const expanded=await page.locator('#detail').boundingBox();assert.equal(expanded.y,0);
+  await page.locator('#closeDetail').click();assert.equal(await page.locator('#detail').isVisible(),false);
+  assert.deepEqual(errors,[]);
+  console.log('Desktop/mobile redesign interactions passed; screenshots saved in outputs/redesign.');
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

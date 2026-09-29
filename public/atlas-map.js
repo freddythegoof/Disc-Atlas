@@ -1,64 +1,64 @@
-// Photo-led, zoom-aware clusters. All hit targets remain native keyboard buttons.
+// Stable scattered flight positions, grouped only where screen space is limited.
 let mapClusters=[],activeCluster=null,clusterPinned=false,clusterAnchor=null,clusterPicks=new Set(),clusterCompared=false;
 let clusterHoverTimer=null,clusterCloseTimer=null,markerSignature='',mapDrag=null;
 function photoMarkup(d,extra=''){
  const label=d.catalogName||d.name;
- const hue=[...d.brand].reduce((n,c)=>(n*31+c.charCodeAt(0))%360,0);
- return `<span class="disc-art atlas-illustration ${extra}" style="--disc-color:${discColor(d)};--art-hue:${hue}deg" role="img" aria-label="${esc(d.brand+' '+label)} — generic disc illustration, not a product photo"><img src="/art/disc-base.png" alt="" loading="lazy" decoding="async"><span class="art-label"><small>${esc(d.brand)}</small><b>${esc(label)}</b><em>DISC ATLAS</em></span></span>`;
+ return `<span class="disc-art clean-disc ${extra}" style="--disc-color:${discColor(d)}" role="img" aria-label="${esc(d.brand+' '+label)} — representative disc illustration"></span>`;
 }
 const featuredMolds=['destroyer','wraith','buzzz','zone','hex','crave','envy','luna','teebird'];
 function featuredRank(d){const n=featuredMolds.indexOf(d.name.toLowerCase());return n>=0?n:99;}
+let atlasPositions = new Map();
 function buildClusters(items,w,h){
- const step=(selectedBrands.size||window.BagApp?.isMapActive())?76:28,left=46,top=39,cols=Math.max(1,Math.floor((w-84)/step)),rows=Math.max(1,Math.floor((h-78)/step)),dx=(w-84)/cols,dy=(h-78)/rows;
- const bins=new Map();
- for(const d of items){if(d.speed==null)continue;const px=left+(score(d)/100)*(w-92)*zoom+pan.x,py=h-40-((d.speed-1)/14)*(h-84)*zoom+pan.y;
-  if(px<-step||px>w+step||py<-step||py>h+step)continue;
-  const gx=Math.round((px-42)/dx),gy=Math.round((py-top)/dy),key=gx+':'+gy;
-  if(!bins.has(key))bins.set(key,{key,x:42+gx*dx,y:top+gy*dy,members:[],sumX:0,sumY:0});
-  const g=bins.get(key);g.members.push(d);g.sumX+=px;g.sumY+=py;
+ const groups=[],immersive=!document.body.classList.contains('my-bag-mode'),area=window.AtlasLayout.bounds(w,h,immersive);
+ const ordered=items.filter(d=>d.speed!=null).sort((a,b)=>Number(b===selected)-Number(a===selected)||featuredRank(a)-featuredRank(b)||a.id.localeCompare(b.id));
+ for(const d of ordered){
+  const pos=atlasPositions.get(d.id);if(!pos)continue;
+  const px=area.left+pos.x*area.width*zoom+pan.x,py=area.bottom-pos.y*area.height*zoom+pan.y;
+  if(px<40||px>w-40||py<(immersive?Math.min(125,h*.24):24)||py>h-(immersive?Math.min(w<700?245:210,h*.34):54))continue;
+  const nearby=groups.find(g=>Math.hypot(g.x-px,g.y-py)<65);
+  if(nearby){nearby.members.push(d);continue;}
+  groups.push({key:d.id,x:px,y:py,actualX:px,actualY:py,members:[d],lead:d,large:false});
  }
- const groups=[...bins.values()].map(g=>({...g,x:Math.max(38,Math.min(w-38,g.x)),y:Math.max(39,Math.min(h-38,g.y)),actualX:g.sumX/g.members.length,actualY:g.sumY/g.members.length})).filter(g=>g.actualX>=12&&g.actualX<=w-12&&g.actualY>=15&&g.actualY<=h-10);
  const large=[];
- for(const g of [...groups].sort((a,b)=>Math.min(...a.members.map(featuredRank))-Math.min(...b.members.map(featuredRank)))){
-  const photos=[...g.members].sort((a,b)=>featuredRank(a)-featuredRank(b));
-  g.lead=photos[0]||g.members[0];g.large=false;
-  const featured=featuredRank(g.lead)<99;
-  // A sparse set of familiar molds anchors the full map. Brand views use a richer mix.
-  const candidate=(selectedBrands.size||window.BagApp?.isMapActive())?(photos.length>0||g.members.length>=4):featured;
-  if(candidate){const clearance=(selectedBrands.size||window.BagApp?.isMapActive())?72:62;
-   const offsets=(selectedBrands.size||window.BagApp?.isMapActive())?[0]:[0,-30,30,-60,60];
-   for(const offset of offsets){const xx=g.x+offset;if(xx<34||xx>w-34)continue;if(large.every(p=>Math.hypot(p.x-xx,p.y-g.y)>clearance)){g.x=xx;g.large=true;large.push(g);break;}}
+ for(const g of groups){
+  if(large.every(other=>Math.hypot(other.x-g.x,other.y-g.y)>155)){
+   g.large=true;large.push(g);
   }
  }
- // Fold dots covered by a featured photo into that photo's hover gallery.
- const covered=new Set();
- for(const g of groups.filter(g=>!g.large)){
-  const target=large.find(p=>Math.hypot(p.x-g.x,p.y-g.y)<((selectedBrands.size||window.BagApp?.isMapActive())?40:35));
-  if(target){target.members.push(...g.members);target.sumX+=g.sumX;target.sumY+=g.sumY;target.actualX=target.sumX/target.members.length;target.actualY=target.sumY/target.members.length;covered.add(g);}
- }
- return groups.filter(g=>!covered.has(g));
+ return groups;
+}
+function focusFeatured(){
+ const d=filtered.find(d=>d.name.toLowerCase()==='destroyer'&&/innova/i.test(d.brand)&&d.speed!=null)||filtered.find(d=>d.speed!=null);
+ if(!d)return;
+ selected=d;const p=atlasPositions.get(d.id);if(!p)return;
+ const camera=window.AtlasLayout.camera(p,canvas.clientWidth,canvas.clientHeight,innerWidth<700?4:2.8);
+ zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
 }
 function draw(){
  if(view!=='map')return;
  const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;if(!w||!h)return;
  const dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
- const x=s=>46+(s/100)*(w-92)*zoom+pan.x,y=s=>h-40-((s-1)/14)*(h-84)*zoom+pan.y;
+ const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
+ const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
  ctx.lineWidth=1;ctx.font='12px DM Sans, sans-serif';
- for(let n=1;n<=15;n++){const yy=y(n);if(yy<26||yy>h-18)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
- for(let n=0;n<=100;n+=10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,24);ctx.lineTo(xx,h-15);ctx.stroke();}ctx.setLineDash([]);
+ ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
+ for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<26||yy>h-18)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
+ for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,24);ctx.lineTo(xx,h-15);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
  mapClusters=buildClusters(filtered,w,h);
  // A subtle tether preserves the underlying mean coordinate when markers separate.
  for(const g of mapClusters){if(Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
- renderMarkers();$('#zoomLabel').textContent=zoom.toFixed(1)+'×';$('#empty').hidden=filtered.some(d=>d.speed!=null);
+ renderMarkers();$('#zoomLabel').textContent=zoom.toFixed(1)+'×';const hasRated=filtered.some(d=>d.speed!=null);$('#empty').hidden=mapClusters.length>0;$('#empty').firstChild.textContent=hasRated?'You have wandered beyond these discs.':'No discs match these filters.';$('#emptyReset').textContent=hasRated?'Show all discs':'Clear filters';
  $('#mapSummary').textContent=`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`;
 }
 function renderMarkers(){
  const signature=JSON.stringify([zoom,Math.round(pan.x),Math.round(pan.y),selected?.id,document.documentElement.dataset.theme,[...selectedBrands],mapClusters.map(g=>[g.key,g.x,g.y,g.members.map(d=>d.id)])]);
  if(markerSignature===signature)return;markerSignature=signature;
+ const focused=document.activeElement?.dataset?.cluster;
  $('#mapMarkers').innerHTML=mapClusters.map(g=>{
-  const pictures=[...g.members],lead=g.lead||pictures[0]||g.members[0],stack=[lead,...pictures.filter(d=>d!==lead)].slice(0,3),active=g.members.includes(selected),n=g.members.length;
-  return `<button type="button" class="atlas-marker ${g.large?'is-large':'is-dot'} ${selectedBrands.size||window.BagApp?.isMapActive()?'brand-view':'overview'} ${n>1?'is-stack':''} ${active?'is-selected':''}" data-cluster="${esc(g.key)}" style="left:${g.x}px;top:${g.y}px;--disc-color:${discColor(lead)}" aria-label="${n===1?esc(lead.name):n+' discs with nearby flight ratings'} — ${n<=3?'preview and automatically compare':'open disc gallery'}" aria-haspopup="dialog"><span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">${stack.slice().reverse().map((d,i)=>photoMarkup(d,'stack-'+(stack.length-i-1))).join('')}</span>${n>1?`<span class="cluster-count">${n}</span>`:''}<span class="marker-name">${esc(lead.name)}${n>1?` <small>+${n-1}</small>`:''}</span></button>`;
+  const pictures=[...g.members],lead=g.lead||pictures[0]||g.members[0],stack=[lead],active=g.members.includes(selected),n=g.members.length;
+  return `<button type="button" class="atlas-marker ${g.large?'is-large':'is-dot'} ${selectedBrands.size||window.BagApp?.isMapActive()?'brand-view':'overview'} ${n>1?'is-stack':''} ${active?'is-selected':''}" data-cluster="${esc(g.key)}" style="left:${g.x}px;top:${g.y}px;--disc-color:${discColor(lead)}" aria-label="${esc(lead.name)}${n>1?' and '+(n-1)+' nearby discs':''} — view disc details" aria-haspopup="dialog"><span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">${stack.slice().reverse().map((d,i)=>photoMarkup(d,'stack-'+(stack.length-i-1))).join('')}</span>${n>1?`<span class="cluster-count">${n}</span>`:''}<span class="marker-name">${esc(lead.catalogName||lead.name)}<small>${esc(lead.brand)}</small></span></button>`;
  }).join('');
+ if(focused){const next=[...$('#mapMarkers').querySelectorAll('[data-cluster]')].find(n=>n.dataset.cluster===focused);(next||$('#map')).focus({preventScroll:true});}
 }
 function clearClusterTimers(){clearTimeout(clusterHoverTimer);clearTimeout(clusterCloseTimer);clusterHoverTimer=null;clusterCloseTimer=null;}
 function scheduleClusterClose(){clearTimeout(clusterHoverTimer);if(clusterPinned)return;clearTimeout(clusterCloseTimer);clusterCloseTimer=setTimeout(()=>closeCluster(),420);}
@@ -85,7 +85,7 @@ function positionCluster(){
  pop.style.left=Math.max(12,Math.min(innerWidth-width-12,left))+'px';pop.style.top=Math.max(12,Math.min(innerHeight-height-12,top))+'px';
 }
 function comparisonMarkup(items){
- const palette=document.documentElement.dataset.theme==='dark'?['#92b8ff','#ffab7a','#66d9bf']:['#265bad','#984216','#126852'];
+ const palette=document.documentElement.dataset.theme!=='light'?['#92b8ff','#ffab7a','#66d9bf']:['#265bad','#984216','#126852'];
  return `<div class="cluster-flight"><div class="flight-overlay-label"><span>FLIGHT OVERLAY</span><span>${hand} · ${power}% power</span></div><svg viewBox="0 0 250 180" role="img" aria-label="Illustrative flight comparison"><path d="M125 155V12 M30 50H220 M30 100H220 M30 150H220" stroke="${themePalette.grid}" fill="none" stroke-dasharray="3 5"/>${items.map((d,i)=>`<path class="comparison-route" d="${path(d)}" fill="none" stroke="${palette[i]}" stroke-width="3" stroke-linecap="round" ${i===1?'stroke-dasharray="8 4"':i===2?'stroke-dasharray="2 4"':''}/>`).join('')}<circle cx="125" cy="155" r="4" fill="${themePalette.text}"/></svg><p class="micro">Flat release · illustrative paths</p></div><div class="cluster-specs">${items.map((d,i)=>`<div class="cluster-stat"><strong><i class="dot" style="background:${palette[i]}"></i>${esc(d.name)}</strong><small>${esc(d.brand)}</small><div class="mini-numbers">${['speed','glide','turn','fade'].map(k=>`<span><b>${d[k]}</b><small>${k[0].toUpperCase()}</small></span>`).join('')}</div><span class="micro">${stability(d)} · index ${score(d)}</span></div>`).join('')}</div>`;
 }
 function renderCluster(){
@@ -94,9 +94,8 @@ function renderCluster(){
 }
 function initAtlasMap(){
  const map=$('#map'),layer=$('#mapMarkers'),pop=$('#clusterPopover');
- layer.addEventListener('pointerover',e=>{const button=e.target.closest('[data-cluster]');if(!button||button.contains(e.relatedTarget)||e.pointerType==='touch'||clusterPinned)return;clearClusterTimers();const g=mapClusters.find(x=>x.key===button.dataset.cluster);clusterHoverTimer=setTimeout(()=>openCluster(g,button),160);});
  layer.addEventListener('pointerout',e=>{const button=e.target.closest('[data-cluster]');if(button&&!button.contains(e.relatedTarget))scheduleClusterClose();});
- layer.addEventListener('click',e=>{const button=e.target.closest('[data-cluster]');if(!button)return;e.stopPropagation();openCluster(mapClusters.find(g=>g.key===button.dataset.cluster),button,true);});
+ layer.addEventListener('click',e=>{const button=e.target.closest('[data-cluster]');if(!button)return;e.stopPropagation();if(mapMoved&&e.detail!==0)return;const group=mapClusters.find(g=>g.key===button.dataset.cluster);if(group)select(group.lead);});
  pop.addEventListener('pointerenter',()=>clearClusterTimers());pop.addEventListener('pointerleave',()=>scheduleClusterClose());
  pop.addEventListener('focusin',()=>{clusterPinned=true;clearClusterTimers();});
  pop.addEventListener('click',e=>{
@@ -109,15 +108,49 @@ function initAtlasMap(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&activeCluster){e.preventDefault();closeCluster(true);}});
  document.addEventListener('pointerdown',e=>{if(activeCluster&&!pop.contains(e.target)&&!e.target.closest('[data-cluster]'))closeCluster();});
  document.addEventListener('error',e=>{if(e.target.tagName==='IMG'&&e.target.closest('.disc-art')){e.target.hidden=true;const fallback=e.target.closest('.disc-art').querySelector('.disc-symbol');if(fallback)fallback.hidden=false;}},true);
- map.addEventListener('pointerdown',e=>{if(e.target.closest('button')||e.button!==0)return;closeCluster();mapDrag={x:e.clientX,y:e.clientY};map.setPointerCapture(e.pointerId);map.classList.add('is-dragging');});
- map.addEventListener('pointermove',e=>{if(!mapDrag)return;pan.x+=e.clientX-mapDrag.x;pan.y+=e.clientY-mapDrag.y;mapDrag={x:e.clientX,y:e.clientY};draw();});
- const stop=e=>{mapDrag=null;map.classList.remove('is-dragging');if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);};map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);
- map.addEventListener('wheel',e=>{e.preventDefault();changeZoom(e.deltaY<0?1.18:1/1.18,{x:e.clientX-map.getBoundingClientRect().left,y:e.clientY-map.getBoundingClientRect().top});},{passive:false});
+ const pointers=new Map();let pinchDistance=0;
+ map.addEventListener('pointerdown',e=>{
+  if(e.button!==0||e.target.closest('.map-controls'))return;
+  closeCluster();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  mapDrag={x:e.clientX,y:e.clientY};
+  if(!e.target.closest('button'))map.setPointerCapture(e.pointerId);
+  map.classList.add('is-dragging');
+  if(pointers.size===2){const [a,b]=[...pointers.values()];pinchDistance=Math.hypot(a.x-b.x,a.y-b.y);}
+ });
+ map.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId))return;
+  const previous=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a.x-b.x,a.y-b.y),r=map.getBoundingClientRect();
+   if(pinchDistance)changeZoom(distance/pinchDistance,{x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top});
+   pinchDistance=distance;mapMoved=true;
+  }else{const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
+   if(!mapMoved&&Math.hypot(e.clientX-mapDrag.x,e.clientY-mapDrag.y)<5)return;
+   mapMoved=true;map.setPointerCapture(e.pointerId);pan.x+=dx;pan.y+=dy;scheduleMapDraw();
+  }
+ });
+ const stop=e=>{pointers.delete(e.pointerId);pinchDistance=0;mapDrag=pointers.size?[...pointers.values()][0]:null;
+  if(!pointers.size)map.classList.remove('is-dragging');if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);
+ };
+ map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);
+ map.addEventListener('wheel',e=>{e.preventDefault();changeZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-map.getBoundingClientRect().left,y:e.clientY-map.getBoundingClientRect().top});},{passive:false});
  map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();pan.x+=commands[e.key][0];pan.y+=commands[e.key][1];draw();}else if(e.key==='+'||e.key==='='){e.preventDefault();changeZoom(1.3);}else if(e.key==='-'){e.preventDefault();changeZoom(1/1.3);}});
  window.addEventListener('resize',()=>closeCluster());window.addEventListener('scroll',e=>{if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
 }
 function changeZoom(factor,anchor){
- closeCluster();const old=zoom;zoom=Math.min(8,Math.max(1,zoom*factor));const w=canvas.clientWidth,h=canvas.clientHeight,at=anchor||{x:w/2,y:h/2},ratio=zoom/old;
- pan.x=at.x-46-(at.x-46-pan.x)*ratio;pan.y=at.y-(h-40)-(at.y-(h-40)-pan.y)*ratio;
- if(zoom===1)pan={x:0,y:0};draw();
+ closeCluster();const old=zoom;zoom=Math.min(12,Math.max(1,zoom*factor));const w=canvas.clientWidth,h=canvas.clientHeight,at=anchor||{x:w/2,y:h/2},ratio=zoom/old;
+ const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
+ pan.x=at.x-area.left-(at.x-area.left-pan.x)*ratio;pan.y=at.y-area.bottom-(at.y-area.bottom-pan.y)*ratio;
+ if(zoom===1)pan={x:0,y:0};scheduleMapDraw();
+}
+
+let mapMoved=false,mapFrame=0;
+function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(()=>{mapFrame=0;draw();});}
+
+let zoomAnimation=0;
+function animateZoom(factor){
+ cancelAnimationFrame(zoomAnimation);
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){changeZoom(factor);return;}
+ const from=zoom,to=Math.min(12,Math.max(1,from*factor)),start=performance.now();
+ const tick=now=>{const t=Math.min(1,(now-start)/180),next=from+(to-from)*(1-Math.pow(1-t,3));changeZoom(next/zoom);if(t<1)zoomAnimation=requestAnimationFrame(tick);};
+ zoomAnimation=requestAnimationFrame(tick);
 }
