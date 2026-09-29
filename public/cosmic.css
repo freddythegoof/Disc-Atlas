@@ -1,19 +1,19 @@
 /* Quiet cosmic: shared surfaces and the immersive flight atlas. */
 :root {
   color-scheme: light;
-  --bg:#f5f6fa;--panel:#ffffff;--surface:#edf0f6;--selected:#dce6f8;
-  --line:#d5dce8;--muted:#52627a;--text:#182337;--lime:#395fba;
-  --accent-soft:#e8effe;--on-accent:#fff;--map-bg:#f5f6fa;--grid:#a7b5cc;
+  --bg:#f7f8fa;--panel:#ffffff;--surface:#eef0f3;--selected:#e2e9f4;
+  --line:#dfe3e9;--muted:#687384;--text:#202731;--lime:#395fba;
+  --accent-soft:#e8effe;--on-accent:#fff;--map-bg:#f7f8fa;--grid:#b2bdcc;
   --center-line:#8297b9;--shadow:#15234016;
   --putter:#8961cb;--mid:#238c78;--fairway:#397ed2;--distance:#ca7253;--unknown:#637088;
   --header-height:68px;--ambient:#809bea12;
 }
 :root[data-theme="midnight"] {
   color-scheme:dark;
-  --bg:#0c1424;--panel:#121e32;--surface:#19273d;--selected:#263958;
-  --line:#2b3b55;--muted:#a2b1cb;--text:#edf2fc;--lime:#9bbaff;
-  --accent-soft:#203456;--on-accent:#101b31;--map-bg:#0c1424;--grid:#3c5273;
-  --center-line:#617ca7;--shadow:#03081566;--ambient:#6674dd12;
+  --bg:#080b10;--panel:#13171e;--surface:#1c222c;--selected:#28354a;
+  --line:#282f3a;--muted:#97a3b5;--text:#edf2fc;--lime:#9bbaff;
+  --accent-soft:#1c2a40;--on-accent:#101b31;--map-bg:#080b10;--grid:#38475b;
+  --center-line:#536681;--shadow:#00000066;--ambient:#526c9820;
   --putter:#b894ef;--mid:#65d3b2;--fairway:#6bb2f2;--distance:#f29d83;--unknown:#9aa7bd;
 }
 :root[data-theme="charcoal"] {
@@ -185,3 +185,79 @@ header nav button.active::after{transform:scaleX(1)}
  .atlas-marker .marker-halo,.atlas-marker .marker-name,header nav button::after{transition:none}
  .explore-tools button:hover,.map-controls button:hover,.coach-launch:hover,.pill-button:hover{transform:none}
 }
+
+/* Product finish: a quiet frame around the flight data. */
+header{background:var(--bg);border-bottom-color:color-mix(in srgb,var(--line) 65%,transparent)}
+.logo{gap:10px;letter-spacing:-.55px;font:600 19px/1 -apple-system,BlinkMacSystemFont,'DM Sans',sans-serif}
+.logo .wordmark{font-weight:600;color:var(--text)}
+.atlas-logo{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.35;flex-shrink:0}
+.atlas-logo path{opacity:.35;stroke-width:1}.atlas-logo circle{fill:currentColor;stroke:none}
+header>nav{align-self:center;gap:3px;border-radius:11px;background:var(--surface);padding:4px}
+header>nav button{border:0;border-radius:8px;padding:7px 17px;font-size:12px;min-height:32px}
+header>nav button::after{display:none}
+header>nav button.active{background:var(--panel);box-shadow:0 1px 4px var(--shadow);color:var(--text)}
+.header-actions{gap:10px}.header-actions #accountButton{font-size:12px;border:0;background:none;padding:8px 10px;order:0}
+.theme-toggle,.atlas-info>summary{width:38px;height:38px;min-height:38px;display:grid;place-items:center;padding:8px;border:0;border-radius:50%;background:none;color:var(--muted);cursor:pointer}
+.theme-toggle:hover,.atlas-info>summary:hover{background:var(--surface);color:var(--text)}
+.theme-toggle svg,.atlas-info summary svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .theme-sun{display:none}:root:not([data-theme="light"]) .theme-toggle .theme-sun{display:block}:root:not([data-theme="light"]) .theme-toggle .theme-moon{display:none}
+.atlas-info{position:relative}.atlas-info>summary{list-style:none}.atlas-info>summary::-webkit-details-marker{display:none}
+.atlas-info-panel{position:absolute;right:0;top:calc(100% + 14px);width:min(340px,calc(100vw - 32px));max-height:calc(100dvh - 100px);overflow:auto;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 16px 60px var(--shadow);color:var(--muted);font-size:12px;line-height:1.7}
+.atlas-info-panel h2{font-size:21px;font-weight:600;letter-spacing:-.6px;color:var(--text);margin:0 0 12px}.atlas-info-panel h3{font-size:13px;color:var(--text);margin:18px 0 6px}.atlas-info-panel p{margin:8px 0}.atlas-info-panel hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+.atlas-info-panel #unratedBtn{padding:0;font-size:12px;color:var(--lime);text-align:left}
+.atlas-info-panel #methodBtn{display:block;font-size:12px;padding:8px 0;color:var(--text)}
+.atlas-info-panel nav{display:flex;gap:18px;flex-wrap:wrap;border:0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none;padding:16px 0 0;margin-top:14px;font-size:11px}
+.atlas-info-panel a{color:var(--muted);text-decoration:none}.atlas-info-panel a:hover{text-decoration:underline}
+body[data-view="map"]:not(.my-bag-mode) .workspace-head,body[data-view="map"]:not(.my-bag-mode)>footer{display:none}
+.explore-tools .search,#filtersToggle{box-shadow:0 2px 8px var(--shadow);border-color:color-mix(in srgb,var(--line) 75%,transparent);background:color-mix(in srgb,var(--panel) 92%,transparent)}
+.explore-tools .search input{font-size:13px}#filtersToggle{font-size:12px}
+body[data-view="map"]:not(.my-bag-mode) .graph-dock{left:50%;right:auto;bottom:18px;width:480px;max-width:calc(100% - 480px);transform:translateX(-50%);padding:14px 0 0;border:0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none;display:flex;flex-direction:column;gap:12px}
+.stability-axis{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--muted);font-size:10px;letter-spacing:0}
+.stability-axis>strong{font-size:12px;line-height:1.4;font-weight:500;text-align:center;color:var(--text)}
+.stability-axis small{display:block;font-size:9px;font-weight:400;color:var(--muted);letter-spacing:.3px;margin-top:2px}
+.graph-dock .legend{justify-content:center;gap:16px;font-size:10px;max-height:44px;overflow:auto;scrollbar-width:thin;max-width:100%}.graph-dock .legend .dot{width:7px;height:7px;margin-right:5px}
+body[data-view="list"] .stability-axis{display:none}
+body[data-view="list"] .graph-dock{background:none}
+.my-bag-mode .graph-dock{display:flex;flex-direction:column;gap:14px;max-width:600px;margin:0 auto 20px}
+.map-caption{top:108px;left:52px;right:auto;letter-spacing:0;text-transform:none;font-size:11px;font-weight:500;color:var(--muted)}
+.map-caption small{display:block;font-size:9px;font-weight:400;letter-spacing:.3px;margin-top:3px}
+.map-controls{right:24px;bottom:22px;align-items:center;gap:2px;padding:4px;border-radius:12px;box-shadow:0 3px 12px var(--shadow)}
+.map-controls button{width:36px;height:36px;min-height:36px;font-size:19px}.map-controls #zoomReset{font-size:11px;padding:0 10px}
+#zoomLabel{padding:0 9px;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.coach-launch{bottom:88px;right:24px;padding:9px 13px;box-shadow:none;font-size:11px;background:var(--bg)}
+.clean-disc{background:radial-gradient(ellipse at 30% 18%,#ffffff70,transparent 46%),radial-gradient(circle at 42% 32%,color-mix(in srgb,var(--disc-color) 86%,white) 10%,var(--disc-color) 48%,color-mix(in srgb,var(--disc-color) 64%,black) 85%);border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:inset 0 1px 2px #ffffff80,inset 0 -3px 6px #0003,0 5px 9px #1523401c,0 13px 23px #15234016}
+.clean-disc::after{inset:8%;border:1px solid #ffffff35;box-shadow:0 1px 2px #0002,inset 0 1px 3px #ffffff15}
+:root:not([data-theme="light"]) .clean-disc{box-shadow:inset 0 1px 3px #ffffff65,inset 0 -4px 8px #0005,0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
+.atlas-marker .stack-0{scale:1;transition:scale .2s ease}
+.atlas-marker.is-selected .stack-0{scale:1.09}
+.atlas-marker .marker-halo{inset:-15px;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--disc-color) 24%,transparent),transparent 70%);box-shadow:none;transition:opacity .2s ease}
+.atlas-marker.is-selected .marker-halo{opacity:1;inset:-18px;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--disc-color) 38%,transparent),transparent 72%)}
+.atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{background:radial-gradient(circle at 32% 25%,color-mix(in srgb,var(--disc-color) 70%,white),var(--disc-color) 55%,color-mix(in srgb,var(--disc-color) 70%,black));opacity:.9;border:0;box-shadow:inset 0 1px 2px #ffffff40,0 3px 8px var(--shadow)}
+.atlas-marker.is-dot.is-selected .map-dot{scale:1.12;box-shadow:0 0 20px color-mix(in srgb,var(--disc-color) 40%,transparent)}
+.atlas-marker .marker-name{font-size:13px;font-weight:600;letter-spacing:-.2px;line-height:1.25}
+.atlas-marker .marker-name small{margin-top:5px;font-size:8px;font-weight:400;letter-spacing:1.2px;color:var(--muted)}
+.atlas-marker.is-dot .marker-name{top:auto;bottom:46px;max-width:170px;font-size:12px;box-shadow:0 4px 14px var(--shadow)}
+.atlas-marker .cluster-count,.atlas-marker.is-large.overview .cluster-count{top:auto;right:-3px;bottom:-2px;height:18px;min-width:18px;padding:0 4px;border:1px solid color-mix(in srgb,var(--disc-color) 40%,var(--panel));background:color-mix(in srgb,var(--disc-color) 18%,var(--panel));color:var(--text);font-size:9px;font-weight:500;box-shadow:0 1px 3px var(--shadow);pointer-events:none}
+.atlas-marker.is-dot .cluster-count{bottom:4px;right:0}
+.detail h2{font-weight:600;letter-spacing:-1.1px}.detail .brand-name{color:var(--muted);font-size:10px;font-weight:400;letter-spacing:1.5px;text-transform:uppercase}
+.row-identity strong,.inspect-disc strong{font-weight:600}.row-identity small,.inspect-disc small,.stack-choice>span>small,.cluster-stat>small{font-size:10px;font-weight:400;letter-spacing:.8px;color:var(--muted)}
+#map{background:radial-gradient(ellipse at 55% 35%,var(--ambient),transparent 65%),radial-gradient(ellipse at 12% 82%,color-mix(in srgb,var(--fairway) 3%,transparent),transparent 60%),var(--map-bg)}
+@media(max-width:1100px){
+ body[data-view="map"]:not(.my-bag-mode) .graph-dock{width:390px;max-width:calc(100% - 350px)}
+ .header-actions{gap:5px}header>nav{gap:2px}header>nav button{padding:7px 13px}
+}
+@media(max-width:700px){
+ :root{--header-height:112px}header{padding:10px 16px 8px;gap:4px 8px}.logo{font-size:17px;gap:7px}.atlas-logo{width:28px;height:28px}.header-actions{gap:2px}.header-actions #accountButton{padding:6px;font-size:11px!important}
+ header>nav{align-self:center;width:auto;justify-self:center;gap:3px;padding:3px}header>nav button{font-size:12px;padding:6px 15px;flex:none}
+ .theme-toggle,.atlas-info>summary{width:34px;height:34px;min-height:34px;padding:7px}
+ .atlas-info-panel{right:0;max-height:calc(100dvh - 80px);padding:20px}
+ .explore-tools .search input{font-size:16px}
+ body[data-view="map"]:not(.my-bag-mode) .graph-dock{left:16px;right:16px;bottom:80px;width:auto;max-width:none;transform:none;padding:10px 0 0;gap:10px}
+ .graph-dock .legend{gap:12px;font-size:9px}.stability-axis{gap:8px;font-size:9px}.stability-axis>strong{font-size:11px}.stability-axis small{font-size:8px}
+ .map-caption{top:84px;left:22px;font-size:10px}.map-caption small{font-size:8px}
+ .map-controls{right:16px;bottom:18px}.map-controls button{width:32px;height:36px}.map-controls #zoomReset{font-size:10px;padding:0 8px}#zoomLabel{font-size:9px;padding:0 5px}
+ .coach-launch{left:16px;right:auto;bottom:22px;min-height:36px;padding:7px 10px;font-size:10px}
+ .atlas-marker .marker-name{font-size:12px;max-width:125px}.atlas-marker .marker-name small{font-size:8px;letter-spacing:1px}
+}
+@media(max-width:360px){#zoomLabel{display:none}.logo{font-size:16px}.header-actions #accountButton{padding:4px}.coach-launch{padding:7px 9px}}
+@media(prefers-reduced-motion:reduce){.atlas-marker .stack-0,.atlas-marker .marker-halo{transition:none}}

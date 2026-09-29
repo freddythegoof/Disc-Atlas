@@ -41,7 +41,7 @@ function buildClusters(items,w,h){
  const result=[];
  for(const g of groupCache.groups){
   const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
-  if(x<40||x>w-40||y<(immersive?82:24)||y>h-(immersive?(w<700?160:110):54))continue;
+  if(x<40||x>w-40||y<(immersive?82:24)||y>h-(immersive?(w<700?210:180):54))continue;
   const original=atlasPositions.get(g.lead.id);
   result.push({...g,x,y,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
  }
@@ -58,16 +58,17 @@ function draw(){
  if(view!=='map')return;
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
- const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
+ const immersive=!document.body.classList.contains('my-bag-mode');
+ const area=window.AtlasLayout.bounds(w,h,immersive),plotBottom=h-(immersive?(w<700?155:110):16);
  mapClusters=buildClusters(filtered,w,h);
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
  ctx.lineWidth=1;ctx.font='12px DM Sans, sans-serif';
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
- for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<26||yy>h-18)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
- for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,24);ctx.lineTo(xx,h-15);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
+ for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
+ for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,immersive?82:24);ctx.lineTo(xx,plotBottom);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
  // A subtle tether preserves the underlying mean coordinate when markers separate.
  for(const g of mapClusters){if(Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
- renderMarkers();setMapText($('#zoomLabel'),zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
+ renderMarkers();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
@@ -114,11 +115,15 @@ function openCluster(g,anchor,pinned=false){
 function positionCluster(){
  if(!activeCluster)return;const pop=$('#clusterPopover'),a=clusterAnchor?.getBoundingClientRect()||$('#map').getBoundingClientRect();
  const width=Math.min(680,innerWidth-24);pop.style.width=width+'px';
- if(innerWidth<700){pop.style.left='12px';pop.style.top='';pop.style.bottom='12px';return;}
- pop.style.bottom='';const height=Math.min(pop.getBoundingClientRect().height,innerHeight*.8);
+ // Reserve the entire control band, including when the popover is a mobile sheet.
+ const controlTop=$('.map-controls').getBoundingClientRect().top,coach=$('#coachButton');
+ const ceiling=Math.min(controlTop,getComputedStyle(coach).visibility==='hidden'?controlTop:coach.getBoundingClientRect().top)-16;
+ pop.style.maxHeight=Math.max(120,ceiling-16)+'px';
+ if(innerWidth<700){pop.style.left='12px';pop.style.top='';pop.style.bottom=(innerHeight-ceiling)+'px';return;}
+ pop.style.bottom='';const height=Math.min(pop.getBoundingClientRect().height,ceiling-16);
  let left=a.right+16,top=a.top-24;
  if(left+width>innerWidth-12){left=a.left-width-16;if(left<12){left=Math.max(12,Math.min(innerWidth-width-12,a.left-width/2));top=a.bottom+16;if(top+height>innerHeight-12)top=a.top-height-16;}}
- pop.style.left=Math.max(12,Math.min(innerWidth-width-12,left))+'px';pop.style.top=Math.max(12,Math.min(innerHeight-height-12,top))+'px';
+ pop.style.left=Math.max(12,Math.min(innerWidth-width-12,left))+'px';pop.style.top=Math.max(12,Math.min(ceiling-height,top))+'px';
 }
 function comparisonPalette(){return document.documentElement.dataset.theme!=='light'?['#92b8ff','#ffab7a','#66d9bf']:['#265bad','#984216','#126852'];}
 function comparisonMarkup(items){
@@ -182,12 +187,24 @@ function initAtlasMap(){
   if(!pointers.size&&!cameraTween)scheduleMapDraw();
  };
  map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);map.addEventListener('lostpointercapture',stop);
+ let trackpadUntil=0;
  map.addEventListener('wheel',e=>{
+  if(e.target.closest('.map-controls'))return;
   e.preventDefault();measureMap();
-  if(e.ctrlKey||e.metaKey){resetEdge();animateZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});return;}
-  stopCamera();closeCluster();const unit=e.deltaMode===1?16:e.deltaMode===2?mapViewport.height:1;
-  panMap(-(e.shiftKey&&!e.deltaX?e.deltaY:e.deltaX)*unit,-(e.shiftKey&&!e.deltaX?0:e.deltaY)*unit);
-  clearTimeout(edgeReleaseTimer);edgeReleaseTimer=setTimeout(releaseEdge,120);
+  // WheelEvent has no device type. Fine pixel deltas / horizontal gestures identify
+  // trackpad drags; keep that classification through the gesture's momentum tail.
+  // Coarse, line and page deltas are mouse wheels. Ctrl/Meta always means pinch zoom.
+  const now=performance.now(),pinch=e.ctrlKey||e.metaKey;
+  const fine=e.deltaMode===0&&(e.deltaX!==0||Math.abs(e.deltaY)<40||!Number.isInteger(e.deltaY));
+  if(!pinch&&e.deltaMode===0&&(fine||now<trackpadUntil)){
+   trackpadUntil=now+180;stopCamera();closeCluster();
+   panMap(-e.deltaX,-e.deltaY);
+   clearTimeout(edgeReleaseTimer);edgeReleaseTimer=setTimeout(releaseEdge,120);return;
+  }
+  trackpadUntil=0;resetEdge();
+  const unit=e.deltaMode===1?16:e.deltaMode===2?mapViewport.height:1;
+  const delta=Math.max(-600,Math.min(600,e.deltaY*unit));
+  animateZoom(Math.exp(-delta*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});
  },{passive:false});
  map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]},.22);}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
  window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(e.target===document)measureMap();if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);

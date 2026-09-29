@@ -14,7 +14,7 @@ export async function checkAtlasInteractions(browser,base){
   const edge=await page.evaluate(()=>({...pan}));
   await page.mouse.wheel(100000,100000);await page.waitForTimeout(40);
   assert.deepEqual(await page.evaluate(()=>({...pan})),edge,'Pushing farther cannot move the camera past the data');
-  assert.equal(await page.evaluate(()=>zoom),initialZoom,'Ordinary wheel input pans');
+  assert.equal(await page.evaluate(()=>zoom),initialZoom,'Two-finger trackpad gestures pan');
   assert.equal(await page.locator('#empty').isVisible(),false);
   assert.ok(await page.evaluate(()=>Number(getComputedStyle(document.querySelector('.map-edge-feedback .right')).opacity)>0),'The pushed edge glows');
   await page.waitForFunction(()=>!edgeTween&&Math.abs(edgeFeedback.x)<.001&&Math.abs(edgeFeedback.y)<.001);

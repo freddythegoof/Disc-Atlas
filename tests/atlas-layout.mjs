@@ -22,7 +22,7 @@ test('scatter is stable across catalog order and ignores unrated records',()=>{
 });
 test('opening camera centers the featured disc at desktop and phone sizes',()=>{
  assert.ok(layout,'Atlas layout is available');
- for(const [w,h,left,bottom,width,height] of [[1440,780,128.64,612.3,1182.72,479.6],[390,620,65.64,414.9,258.72,294.8]]){
+ for(const [w,h,left,bottom,width,height] of [[1440,780,128.64,546.5,1182.72,418],[390,620,65.64,363.2,258.72,246.4]]){
   const target={x:.72,y:.79},camera=layout.camera(target,w,h,2.8);
   assert.ok(Math.abs(left+target.x*width*camera.zoom+camera.x-w*.5)<1);
   assert.ok(Math.abs(bottom-target.y*height*camera.zoom+camera.y-h*.48)<1);

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 (async()=>{
- const browser=await chromium.launch({headless:true});
+ const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
  const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'dark'});
  const page=await context.newPage();const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
@@ -36,18 +36,18 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   await page.locator('#compare').click();assert.ok(await page.locator('#compareBar').isVisible());
   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   await page.locator('#search').fill('');await page.locator('#mapTab').click();
-  await page.locator('#themeSelect').selectOption('charcoal');
+  await page.evaluate(()=>localStorage.setItem('disc-atlas-theme','charcoal'));
   await page.reload();await page.locator('.atlas-marker').first().waitFor();
   assert.equal(await page.locator('html').getAttribute('data-theme'),'charcoal');
   await page.screenshot({animations:'disabled',path:'outputs/redesign/charcoal.png'});
-  await page.locator('#themeSelect').selectOption('light');
+  await page.getByRole('button',{name:'Switch to light mode'}).click();
   await page.screenshot({animations:'disabled',path:'outputs/redesign/light.png'});
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>Math.abs(zoom-1)<.001);
-  assert.equal(await page.locator('#zoomLabel').innerText(),'1.0×');
+  assert.equal(await page.locator('#zoomLabel').innerText(),'Zoom 1.0×');
   const coverage=await page.evaluate(()=>({mapped:mapClusters.reduce((n,g)=>n+g.members.length,0),rated:filtered.filter(d=>d.speed!=null).length}));
   assert.equal(coverage.mapped,coverage.rated,'Show all fits every rated disc inside the usable map area');
   await page.locator('#map').focus();await page.keyboard.press('+');
-  await page.waitForFunction(()=>document.querySelector('#zoomLabel').textContent!=='1.0×');
+  await page.waitForFunction(()=>document.querySelector('#zoomLabel').textContent!=='Zoom 1.0×');
   await page.locator('#bagTab').click();assert.ok(await page.locator('#playerHub').isVisible());
   await page.screenshot({animations:'disabled',path:'outputs/redesign/bag.png',fullPage:true});
   for(const name of ['about','privacy','terms']){
@@ -58,7 +58,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   await page.screenshot({animations:'disabled',path:'outputs/redesign/info.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});await page.goto(base);
   await page.locator('.atlas-marker').first().waitFor();
-  await page.locator('#themeSelect').selectOption('midnight');
+  await page.getByRole('button',{name:'Switch to dark mode'}).click();
   await page.screenshot({animations:'disabled',path:'outputs/redesign/mobile.png'});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await page.locator('#search').fill('Destroyer');await page.locator('#listTab').click();

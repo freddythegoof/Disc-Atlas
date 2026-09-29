@@ -34,7 +34,10 @@ window.AtlasMotion = (() => {
     slide(node,from,0,node.id==='filters'?'left':'right',.12,finish);
   }
   function expand(node, change) {
-    cancel(node); const before = node.getBoundingClientRect().height;
+    cancel(node); panels.delete(node);
+    // Expanding during the reveal must finish the reveal's opacity and offset.
+    node.style.transform = ''; node.style.opacity = '';
+    const before = node.getBoundingClientRect().height;
     node.style.height = ''; change();
     if (enabled()) gsap.fromTo(node,{height:before},{height:node.getBoundingClientRect().height,
       duration:.35,ease:'power3.inOut',clearProps:'height',overwrite:true});

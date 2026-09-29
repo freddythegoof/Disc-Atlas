@@ -10,7 +10,7 @@ const zoomProfile=process.argv.includes('--zoom-profile');
 const selectionProfile=process.argv.includes('--selection-profile');
 const profiling=process.argv.includes('--profile')||zoomProfile||selectionProfile;
 const baseline=new Map();
-if(profiling)for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css']){
+if(profiling)for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css','public/theme.js']){
  baseline.set(file,execFileSync('git',['show','HEAD:'+file]));
 }
 let revision='working';
@@ -25,10 +25,13 @@ const server=http.createServer((req,res)=>{
  }catch{res.writeHead(404);res.end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--boundaries')){
+ if(process.argv.includes('--premium')){
+  const {checkPremium}=await import('./premium.mjs');
+  await checkPremium(browser,base);
+ }else if(process.argv.includes('--boundaries')){
   const {checkAtlasInteractions}=await import('./atlas-interactions.mjs');
   await checkAtlasInteractions(browser,base);
  }else if(process.argv.includes('--regression')){
