@@ -18,14 +18,14 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   assert.match(await page.locator('.atlas-marker.is-selected').innerText(),/Destroyer/);
   await page.locator('.atlas-marker.is-selected').click();
   assert.ok(await page.locator('#detail').isVisible(),'Clicking the featured disc opens its details directly');
-  await page.locator('#closeDetail').click();
+  await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   await page.locator('#search').fill('Buzzz');
   assert.ok(await page.locator('.atlas-marker').count()>0,'Searching a different flight region brings the results into view');
   await page.locator('#search').fill('');
   await page.reload();await page.locator('.atlas-marker').first().waitFor();
   await page.screenshot({animations:'disabled',path:'outputs/redesign/midnight.png'});
   await page.locator('#filtersToggle').click();assert.ok(await page.locator('#filters').isVisible());
-  await page.keyboard.press('Escape');assert.equal(await page.locator('#filters').isVisible(),false);
+  await page.keyboard.press('Escape');await page.locator('#filters').waitFor({state:'hidden'});assert.equal(await page.locator('#filters').isVisible(),false);
   await page.locator('#search').fill('Destroyer');
   await page.locator('#listTab').click();
   await page.locator('.disc-row').filter({hasText:'Destroyer'}).first().click();
@@ -33,7 +33,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   assert.match(await page.locator('#detail h2').innerText(),/Destroyer/);
   await page.screenshot({animations:'disabled',path:'outputs/redesign/detail.png'});
   await page.locator('#compare').click();assert.ok(await page.locator('#compareBar').isVisible());
-  await page.locator('#closeDetail').click();
+  await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   await page.locator('#search').fill('');await page.locator('#mapTab').click();
   await page.locator('#themeSelect').selectOption('charcoal');
   await page.reload();await page.locator('.atlas-marker').first().waitFor();
@@ -41,7 +41,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   await page.screenshot({animations:'disabled',path:'outputs/redesign/charcoal.png'});
   await page.locator('#themeSelect').selectOption('light');
   await page.screenshot({animations:'disabled',path:'outputs/redesign/light.png'});
-  await page.locator('#zoomReset').click();
+  await page.locator('#zoomReset').click();await page.waitForFunction(()=>Math.abs(zoom-1)<.001);
   assert.equal(await page.locator('#zoomLabel').innerText(),'1.0×');
   const coverage=await page.evaluate(()=>({mapped:mapClusters.reduce((n,g)=>n+g.members.length,0),rated:filtered.filter(d=>d.speed!=null).length}));
   assert.equal(coverage.mapped,coverage.rated,'Show all fits every rated disc inside the usable map area');
@@ -65,8 +65,9 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   const sheet=await page.locator('#detail').boundingBox();assert.ok(sheet.y>200);
   await page.screenshot({animations:'disabled',path:'outputs/redesign/mobile-sheet.png'});
   await page.locator('#expandDetail').click();assert.equal(await page.locator('#expandDetail').getAttribute('aria-expanded'),'true');
+  await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
   const expanded=await page.locator('#detail').boundingBox();assert.equal(expanded.y,0);
-  await page.locator('#closeDetail').click();assert.equal(await page.locator('#detail').isVisible(),false);
+  await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});assert.equal(await page.locator('#detail').isVisible(),false);
   assert.deepEqual(errors,[]);
   console.log('Desktop/mobile redesign interactions passed; screenshots saved in outputs/redesign.');
  }finally{await browser.close();}

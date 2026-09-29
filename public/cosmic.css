@@ -72,7 +72,7 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .map-controls button{width:42px;height:42px;border-radius:8px;font-size:21px}.map-controls #zoomReset{width:auto;padding:0 12px;font-size:12px;border-left:1px solid var(--line)}
 .clean-disc{position:relative;display:inline-block;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 35% 25%,color-mix(in srgb,var(--disc-color) 65%,white),var(--disc-color) 55%,color-mix(in srgb,var(--disc-color) 72%,black));border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:inset 0 2px 3px #ffffff50,inset 0 -3px 5px #0002,0 6px 16px #0002;overflow:visible}
 .clean-disc::after{content:"";position:absolute;inset:9%;border-radius:50%;border:2px solid #ffffff30;box-shadow:0 1px 2px #0002,inset 0 1px 3px #ffffff20}
-.atlas-marker{transition:none!important;width:48px;height:48px;padding:0;min-height:0;touch-action:none}
+.atlas-marker{left:0;top:0;transition:none!important;width:48px;height:48px;padding:0;min-height:0;touch-action:none;contain:layout style;will-change:transform}
 .atlas-marker.is-large.overview,.atlas-marker.is-large.brand-view{width:54px;height:54px}
 .atlas-marker.is-large .disc-art,.atlas-marker.is-large.overview .disc-art{width:54px;height:54px}
 .atlas-marker .marker-stack{display:block}.atlas-marker .stack-0{position:absolute;inset:0;transform:none}.atlas-marker .marker-halo{inset:-8px;border:1px solid var(--lime);background:none;box-shadow:none;opacity:0}
@@ -121,3 +121,36 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
  .info-page header{height:68px;display:flex;padding:0 18px}.info-page main{padding:32px 22px 60px}.info-page h1{font-size:36px}.cluster-popover{max-height:80dvh}.inspect-disc .disc-art{width:68px;height:68px}.cluster-gallery{gap:20px 12px}.cluster-specs{grid-template-columns:1fr}.cluster-flight{display:block}.coach-dialog{inset:10px;margin:0;width:calc(100vw - 20px);height:calc(100dvh - 20px);padding:20px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Interaction feedback lives on the artwork, separate from camera transforms. */
+@keyframes atlas-arrive{from{opacity:0}to{opacity:1}}
+.atlas-marker .marker-stack{position:absolute;inset:0;transform-origin:50% 50%}
+.atlas-marker .marker-halo{transition:opacity .22s ease,transform .45s cubic-bezier(.2,.8,.2,1)}
+.atlas-marker:hover .marker-halo{opacity:.5;transform:scale(1.07)}
+.atlas-marker .marker-name{transition:opacity .2s ease;color:var(--text)}
+.atlas-marker.is-dot{width:44px;height:44px}
+.atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{inset:16px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.atlas-marker.is-dot .marker-name{top:44px}
+#map.is-dragging .atlas-marker{cursor:grabbing}
+#map.is-dragging .atlas-marker:hover .marker-halo{opacity:0}
+#map.is-dragging .atlas-marker.is-selected .marker-halo{opacity:1}
+.explore-tools button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide{
+ transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s;
+}
+@media(hover:hover) and (pointer:fine){
+ .explore-tools button:hover,.map-controls button:hover,.coach-launch:hover,.pill-button:hover{transform:translateY(-2px)}
+ .detail-actions button:hover,.wide:hover{background:var(--accent-soft);color:var(--text)}
+}
+.explore-tools button:active,.map-controls button:active,.detail-actions button:active,.coach-launch:active,.pill-button:active,.wide:active{transform:scale(.96)}
+header nav button{position:relative;border-bottom-color:transparent!important}
+header nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:center;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+header nav button.active::after{transform:scaleX(1)}
+.disc-row,.inspect-disc{transition:background .2s ease}
+.disc-row:hover{background:var(--accent-soft)}
+.clean-disc{transition:filter .3s ease}
+.inspect-disc:hover .clean-disc,.atlas-marker:hover .clean-disc{filter:brightness(1.08)}
+#map{background:radial-gradient(ellipse at 62% 28%,var(--ambient),transparent 65%),radial-gradient(ellipse at 18% 76%,color-mix(in srgb,var(--fairway) 4%,transparent),transparent 55%),var(--map-bg)}
+@media(prefers-reduced-motion:reduce){
+ .atlas-marker .marker-halo,.atlas-marker .marker-name,header nav button::after{transition:none}
+ .explore-tools button:hover,.map-controls button:hover,.coach-launch:hover,.pill-button:hover{transform:none}
+}

@@ -1,6 +1,6 @@
 // Stable scattered flight positions, grouped only where screen space is limited.
 let mapClusters=[],activeCluster=null,clusterPinned=false,clusterAnchor=null,clusterPicks=new Set(),clusterCompared=false;
-let clusterHoverTimer=null,clusterCloseTimer=null,markerSignature='',mapDrag=null;
+let clusterHoverTimer=null,clusterCloseTimer=null,mapDrag=null;
 function photoMarkup(d,extra=''){
  const label=d.catalogName||d.name;
  return `<span class="disc-art clean-disc ${extra}" style="--disc-color:${discColor(d)}" role="img" aria-label="${esc(d.brand+' '+label)} — representative disc illustration"></span>`;
@@ -8,24 +8,38 @@ function photoMarkup(d,extra=''){
 const featuredMolds=['destroyer','wraith','buzzz','zone','hex','crave','envy','luna','teebird'];
 function featuredRank(d){const n=featuredMolds.indexOf(d.name.toLowerCase());return n>=0?n:99;}
 let atlasPositions = new Map();
+let groupCache=null;
+const markerNodes=new Map();
 function buildClusters(items,w,h){
- const groups=[],immersive=!document.body.classList.contains('my-bag-mode'),area=window.AtlasLayout.bounds(w,h,immersive);
- const ordered=items.filter(d=>d.speed!=null).sort((a,b)=>Number(b===selected)-Number(a===selected)||featuredRank(a)-featuredRank(b)||a.id.localeCompare(b.id));
- for(const d of ordered){
-  const pos=atlasPositions.get(d.id);if(!pos)continue;
-  const px=area.left+pos.x*area.width*zoom+pan.x,py=area.bottom-pos.y*area.height*zoom+pan.y;
-  if(px<40||px>w-40||py<(immersive?Math.min(125,h*.24):24)||py>h-(immersive?Math.min(w<700?245:210,h*.34):54))continue;
-  const nearby=groups.find(g=>Math.hypot(g.x-px,g.y-py)<65);
-  if(nearby){nearby.members.push(d);continue;}
-  groups.push({key:d.id,x:px,y:py,actualX:px,actualY:py,members:[d],lead:d,large:false});
- }
- const large=[];
- for(const g of groups){
-  if(large.every(other=>Math.hypot(other.x-g.x,other.y-g.y)>155)){
-   g.large=true;large.push(g);
+ const immersive=!document.body.classList.contains('my-bag-mode'),area=window.AtlasLayout.bounds(w,h,immersive);
+ // Group in world space at discrete zoom levels. Panning never changes a disc's group.
+ const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:Math.round(Math.log2(zoom)*3),groupZoom=2**(level/3);
+ if(!groupCache||groupCache.items!==items||groupCache.selected!==selected||groupCache.w!==w||groupCache.h!==h||groupCache.level!==level||groupCache.immersive!==immersive){
+  const groups=[],cells=new Map(),size=65;
+  const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:featuredRank(d)}))
+   .sort((a,b)=>Number(b.d===selected)-Number(a.d===selected)||a.rank-b.rank||a.d.id.localeCompare(b.d.id));
+  for(const {d} of ordered){
+   const pos=atlasPositions.get(d.id);if(!pos)continue;
+   const x=pos.x*area.width*groupZoom,y=pos.y*area.height*groupZoom,cx=Math.floor(x/size),cy=Math.floor(y/size);
+   let nearby=null,best=size*size;
+   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const g of cells.get((cx+dx)+':'+(cy+dy))||[]){
+    const distance=(g.px-x)**2+(g.py-y)**2;if(distance<best){best=distance;nearby=g;}
+   }
+   if(nearby){nearby.members.push(d);continue;}
+   const g={key:d.id,pos,px:x,py:y,members:[d],lead:d,large:false};groups.push(g);
+   const key=cx+':'+cy;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(g);
   }
+  const large=[],clearance=w<700?105:155;
+  for(const g of groups)if(large.every(other=>(other.px-g.px)**2+(other.py-g.py)**2>clearance**2)){g.large=true;large.push(g);}
+  groupCache={items,selected,w,h,level,immersive,groups};
  }
- return groups;
+ const result=[];
+ for(const g of groupCache.groups){
+  const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
+  if(x<40||x>w-40||y<(immersive?Math.min(125,h*.24):24)||y>h-(immersive?Math.min(w<700?245:210,h*.34):54))continue;
+  result.push({...g,x,y,actualX:x,actualY:y});
+ }
+ return result;
 }
 function focusFeatured(){
  const d=filtered.find(d=>d.name.toLowerCase()==='destroyer'&&/innova/i.test(d.brand)&&d.speed!=null)||filtered.find(d=>d.speed!=null);
@@ -37,7 +51,7 @@ function focusFeatured(){
 function draw(){
  if(view!=='map')return;
  const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;if(!w||!h)return;
- const dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
  ctx.lineWidth=1;ctx.font='12px DM Sans, sans-serif';
@@ -47,18 +61,30 @@ function draw(){
  mapClusters=buildClusters(filtered,w,h);
  // A subtle tether preserves the underlying mean coordinate when markers separate.
  for(const g of mapClusters){if(Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
- renderMarkers();$('#zoomLabel').textContent=zoom.toFixed(1)+'×';const hasRated=filtered.some(d=>d.speed!=null);$('#empty').hidden=mapClusters.length>0;$('#empty').firstChild.textContent=hasRated?'You have wandered beyond these discs.':'No discs match these filters.';$('#emptyReset').textContent=hasRated?'Show all discs':'Clear filters';
- $('#mapSummary').textContent=`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`;
+ renderMarkers();setMapText($('#zoomLabel'),zoom.toFixed(1)+'×');const hasRated=filtered.some(d=>d.speed!=null);$('#empty').hidden=mapClusters.length>0;$('#empty').firstChild.textContent=hasRated?'You have wandered beyond these discs.':'No discs match these filters.';$('#emptyReset').textContent=hasRated?'Show all discs':'Clear filters';
+ setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
+function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
 function renderMarkers(){
- const signature=JSON.stringify([zoom,Math.round(pan.x),Math.round(pan.y),selected?.id,document.documentElement.dataset.theme,[...selectedBrands],mapClusters.map(g=>[g.key,g.x,g.y,g.members.map(d=>d.id)])]);
- if(markerSignature===signature)return;markerSignature=signature;
- const focused=document.activeElement?.dataset?.cluster;
- $('#mapMarkers').innerHTML=mapClusters.map(g=>{
-  const pictures=[...g.members],lead=g.lead||pictures[0]||g.members[0],stack=[lead],active=g.members.includes(selected),n=g.members.length;
-  return `<button type="button" class="atlas-marker ${g.large?'is-large':'is-dot'} ${selectedBrands.size||window.BagApp?.isMapActive()?'brand-view':'overview'} ${n>1?'is-stack':''} ${active?'is-selected':''}" data-cluster="${esc(g.key)}" style="left:${g.x}px;top:${g.y}px;--disc-color:${discColor(lead)}" aria-label="${esc(lead.name)}${n>1?' and '+(n-1)+' nearby discs':''} — view disc details" aria-haspopup="dialog"><span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">${stack.slice().reverse().map((d,i)=>photoMarkup(d,'stack-'+(stack.length-i-1))).join('')}</span>${n>1?`<span class="cluster-count">${n}</span>`:''}<span class="marker-name">${esc(lead.catalogName||lead.name)}<small>${esc(lead.brand)}</small></span></button>`;
- }).join('');
- if(focused){const next=[...$('#mapMarkers').querySelectorAll('[data-cluster]')].find(n=>n.dataset.cluster===focused);(next||$('#map')).focus({preventScroll:true});}
+ const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||window.BagApp?.isMapActive());
+ for(const g of mapClusters){
+  live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=discColor(lead);
+  if(!node){
+   node=document.createElement('button');node.type='button';node.dataset.cluster=g.key;node.className='atlas-marker';
+   node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
+   node.querySelector('.disc-art').style.removeProperty('--disc-color');
+   node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);layer.append(node);window.AtlasMotion?.enter(node);
+  }
+  if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
+  if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
+  const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
+  for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
+  node.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0) translate(-50%,-50%)';
+ }
+ for(const [key,node] of markerNodes)if(!live.has(key)){
+  if(document.activeElement===node)$('#map').focus({preventScroll:true});
+  window.gsap?.killTweensOf([node,...node.children]);node.remove();markerNodes.delete(key);
+ }
 }
 function clearClusterTimers(){clearTimeout(clusterHoverTimer);clearTimeout(clusterCloseTimer);clusterHoverTimer=null;clusterCloseTimer=null;}
 function scheduleClusterClose(){clearTimeout(clusterHoverTimer);if(clusterPinned)return;clearTimeout(clusterCloseTimer);clusterCloseTimer=setTimeout(()=>closeCluster(),420);}
@@ -108,10 +134,10 @@ function initAtlasMap(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&activeCluster){e.preventDefault();closeCluster(true);}});
  document.addEventListener('pointerdown',e=>{if(activeCluster&&!pop.contains(e.target)&&!e.target.closest('[data-cluster]'))closeCluster();});
  document.addEventListener('error',e=>{if(e.target.tagName==='IMG'&&e.target.closest('.disc-art')){e.target.hidden=true;const fallback=e.target.closest('.disc-art').querySelector('.disc-symbol');if(fallback)fallback.hidden=false;}},true);
- const pointers=new Map();let pinchDistance=0;
+ const pointers=new Map();let pinchDistance=0,velocity={x:0,y:0},lastMove=0;
  map.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('.map-controls'))return;
-  closeCluster();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  stopCamera();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   mapDrag={x:e.clientX,y:e.clientY};
   if(!e.target.closest('button'))map.setPointerCapture(e.pointerId);
   map.classList.add('is-dragging');
@@ -122,35 +148,49 @@ function initAtlasMap(){
   const previous=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a.x-b.x,a.y-b.y),r=map.getBoundingClientRect();
    if(pinchDistance)changeZoom(distance/pinchDistance,{x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top});
-   pinchDistance=distance;mapMoved=true;
+   pinchDistance=distance;velocity={x:0,y:0};mapMoved=true;
   }else{const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
    if(!mapMoved&&Math.hypot(e.clientX-mapDrag.x,e.clientY-mapDrag.y)<5)return;
+   const now=performance.now(),dt=Math.max(8,now-lastMove);lastMove=now;
+   velocity={x:velocity.x*.55+dx/dt*.45,y:velocity.y*.55+dy/dt*.45};
    mapMoved=true;map.setPointerCapture(e.pointerId);pan.x+=dx;pan.y+=dy;scheduleMapDraw();
   }
  });
  const stop=e=>{pointers.delete(e.pointerId);pinchDistance=0;mapDrag=pointers.size?[...pointers.values()][0]:null;
-  if(!pointers.size)map.classList.remove('is-dragging');if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);
+  if(!pointers.size){map.classList.remove('is-dragging');
+   if(e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
+    const vx=Math.max(-1.5,Math.min(1.5,velocity.x)),vy=Math.max(-1.5,Math.min(1.5,velocity.y));
+    if(Math.hypot(vx,vy)>.025)tweenCamera({zoom,x:pan.x+vx*180,y:pan.y+vy*180},.55);
+   }
+  }else{velocity={x:0,y:0};lastMove=performance.now();}
+  if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);
+  if(!pointers.size&&!cameraTween)scheduleMapDraw();
  };
  map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);
- map.addEventListener('wheel',e=>{e.preventDefault();changeZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-map.getBoundingClientRect().left,y:e.clientY-map.getBoundingClientRect().top});},{passive:false});
- map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();pan.x+=commands[e.key][0];pan.y+=commands[e.key][1];draw();}else if(e.key==='+'||e.key==='='){e.preventDefault();changeZoom(1.3);}else if(e.key==='-'){e.preventDefault();changeZoom(1/1.3);}});
- window.addEventListener('resize',()=>closeCluster());window.addEventListener('scroll',e=>{if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
+ map.addEventListener('wheel',e=>{e.preventDefault();animateZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-map.getBoundingClientRect().left,y:e.clientY-map.getBoundingClientRect().top});},{passive:false});
+ map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]},.22);}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
+ window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
+}
+let mapMoved=false,mapFrame=0,cameraTween=null,cameraDestination=null;
+function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(()=>{mapFrame=0;draw();});}
+function stopCamera(){cameraTween?.kill();cameraTween=null;cameraDestination=null;}
+function tweenCamera(target,duration=.3){
+ stopCamera();closeCluster();
+ if(!window.AtlasMotion?.enabled()){zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
+ cameraDestination=target;const camera={zoom,x:pan.x,y:pan.y};
+ cameraTween=gsap.to(camera,{...target,duration,ease:'power3.out',onUpdate:()=>{zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();},onComplete:()=>{cameraTween=null;cameraDestination=null;draw();}});
+}
+function zoomDestination(next,anchor){
+ const w=canvas.clientWidth,h=canvas.clientHeight,at=anchor||{x:w/2,y:h/2},ratio=next/zoom;
+ const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
+ return {zoom:next,x:next===1?0:at.x-area.left-(at.x-area.left-pan.x)*ratio,
+  y:next===1?0:at.y-area.bottom-(at.y-area.bottom-pan.y)*ratio};
 }
 function changeZoom(factor,anchor){
- closeCluster();const old=zoom;zoom=Math.min(12,Math.max(1,zoom*factor));const w=canvas.clientWidth,h=canvas.clientHeight,at=anchor||{x:w/2,y:h/2},ratio=zoom/old;
- const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
- pan.x=at.x-area.left-(at.x-area.left-pan.x)*ratio;pan.y=at.y-area.bottom-(at.y-area.bottom-pan.y)*ratio;
- if(zoom===1)pan={x:0,y:0};scheduleMapDraw();
+ stopCamera();closeCluster();const target=zoomDestination(Math.min(12,Math.max(1,zoom*factor)),anchor);
+ zoom=target.zoom;pan={x:target.x,y:target.y};scheduleMapDraw();
 }
-
-let mapMoved=false,mapFrame=0;
-function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(()=>{mapFrame=0;draw();});}
-
-let zoomAnimation=0;
-function animateZoom(factor){
- cancelAnimationFrame(zoomAnimation);
- if(matchMedia('(prefers-reduced-motion: reduce)').matches){changeZoom(factor);return;}
- const from=zoom,to=Math.min(12,Math.max(1,from*factor)),start=performance.now();
- const tick=now=>{const t=Math.min(1,(now-start)/180),next=from+(to-from)*(1-Math.pow(1-t,3));changeZoom(next/zoom);if(t<1)zoomAnimation=requestAnimationFrame(tick);};
- zoomAnimation=requestAnimationFrame(tick);
+function animateZoom(factor,anchor){
+ const target=zoomDestination(Math.min(12,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor);
+ tweenCamera(target,.3);
 }
