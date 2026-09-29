@@ -1,0 +1,265 @@
+{
+  "checkedAt": "2026-09-24",
+  "note": "Manufacturer plastic families, not a guarantee that every mold was made in every listed plastic. Other allows legacy and special runs. Unverified brands have no suggested plastics.",
+  "brands": {
+    "Innova": {
+      "options": [
+        "Star",
+        "Halo Star",
+        "GStar",
+        "Champion",
+        "Metal Flake Champion",
+        "Blizzard Champion",
+        "Nexus",
+        "XT",
+        "Driver Pro",
+        "KC Pro",
+        "R-Pro",
+        "JK Pro",
+        "DX"
+      ],
+      "source": "https://www.innovadiscs.com/home/disc-golf-faq/plastic-types-overview/"
+    },
+    "Discraft": {
+      "options": [
+        "Z",
+        "ESP",
+        "Titanium",
+        "Big Z",
+        "Jawbreaker",
+        "Pro D",
+        "X",
+        "GLO",
+        "Z FLX",
+        "Z Lite"
+      ],
+      "source": "https://www.team.discraft.com/plastics"
+    },
+    "Discmania": {
+      "options": [
+        "D-Line Flex 1",
+        "D-Line Flex 2",
+        "D-Line Flex 3",
+        "P-Line",
+        "C-Line",
+        "S-Line",
+        "Glow C-Line",
+        "Glow D-Line",
+        "Color Glow C-Line",
+        "Metal Flake C-Line",
+        "Swirl D-Line",
+        "Swirl S-Line",
+        "Special Blend S-Line",
+        "Chroma",
+        "Horizon",
+        "Soft Exo",
+        "Hard Exo",
+        "Geo",
+        "Neo",
+        "Lux",
+        "Meta",
+        "Active",
+        "Active Premium"
+      ],
+      "source": "https://europe.discmania.net/pages/plastics"
+    },
+    "Dynamic Discs": {
+      "options": [
+        "Supreme",
+        "Lucid",
+        "Fuzion",
+        "Moonshine",
+        "Lucid Hybrid",
+        "Lucid Air",
+        "Lava",
+        "Fluid",
+        "BioFuzion",
+        "Drift",
+        "Classic",
+        "Classic Blend",
+        "Classic Soft",
+        "Prime"
+      ],
+      "source": "https://www.dynamicdiscs.com/pages/disc-golf-plastics"
+    },
+    "Latitude 64": {
+      "options": [
+        "Opto",
+        "Gold",
+        "Opto Air",
+        "Opto Moonshine",
+        "Royal Grand",
+        "Royal Clear",
+        "Zero Gravity"
+      ],
+      "source": "https://latitude64.com/pages/plastic-guide"
+    },
+    "Kastaplast": {
+      "options": [
+        "K1",
+        "K1 Soft",
+        "K1 Glow",
+        "K1 Grind",
+        "K1 Hard",
+        "K2",
+        "K3",
+        "K3 Hard",
+        "K3 Glow",
+        "K4"
+      ],
+      "source": "https://www.kastaplast.com/en-us/pages/plastic-guide"
+    },
+    "MVP": {
+      "options": [
+        "Neutron",
+        "Cosmic Neutron",
+        "Proton",
+        "Plasma",
+        "Electron",
+        "Electron Soft",
+        "Electron Firm",
+        "Eclipse",
+        "Fission",
+        "R2 Neutron"
+      ],
+      "source": "https://mvpdiscsports.com/plastics/"
+    },
+    "Axiom": {
+      "options": [
+        "Neutron",
+        "Proton",
+        "Plasma",
+        "Electron",
+        "Fission"
+      ],
+      "source": "https://axiomdiscs.com/plastics/"
+    },
+    "Streamline": {
+      "options": [
+        "Neutron",
+        "Proton",
+        "Electron"
+      ],
+      "source": "https://streamlinediscs.com/plastics/"
+    },
+    "Prodigy": {
+      "options": [
+        "200",
+        "300",
+        "300 Firm",
+        "300 Ultra Soft",
+        "400",
+        "500",
+        "750",
+        "AIR",
+        "300 Spectrum",
+        "400 Spectrum",
+        "500 Spectrum",
+        "750 Spectrum",
+        "AIR Spectrum"
+      ],
+      "source": "https://prodigydisc.com/blogs/news/prodigy-disc-plastics-explained-what-is-the-difference-which-is-the-best"
+    },
+    "DGA": {
+      "options": [
+        "ProLine",
+        "SP Line",
+        "D-Line",
+        "Signature Line",
+        "SP Flex",
+        "Glow"
+      ],
+      "source": "https://store.discgolf.com/pages/disc-plastics"
+    },
+    "Gateway": {
+      "options": [
+        "Suregrip",
+        "Diamond",
+        "Platinum",
+        "NXT"
+      ],
+      "source": "https://gatewaydiscsports.com/collections/all"
+    },
+    "Westside Discs": {
+      "options": [
+        "BT Hard",
+        "BT Hybrid",
+        "BT Medium",
+        "BT Megasoft",
+        "BT Soft",
+        "Elasto",
+        "Origio",
+        "Revive",
+        "Tournament",
+        "Tournament-X",
+        "VIP",
+        "VIP Hybrid",
+        "VIP-Ice",
+        "VIP-X"
+      ],
+      "source": "https://westsidediscs.com/collections/discs"
+    },
+    "Mint Discs": {
+      "options": [
+        "Apex",
+        "Eternal",
+        "Sublime",
+        "Royal"
+      ],
+      "source": "https://mintdiscs.com/pages/mint-plastics"
+    },
+    "Clash Discs": {
+      "options": [
+        "Steady",
+        "Hardy",
+        "Softy",
+        "Planty"
+      ],
+      "source": "https://www.clashdiscs.com/plastics"
+    },
+    "Legacy": {
+      "options": [
+        "Excel",
+        "Gravity",
+        "Prot\u00e9g\u00e9",
+        "Pinnacle",
+        "Icon",
+        "Legend",
+        "Skyline"
+      ],
+      "source": "https://legacydiscs.com/plastics/"
+    },
+    "Millennium": {
+      "options": [
+        "Millennium Standard",
+        "Quantum",
+        "Sirius",
+        "Delta-T",
+        "ET",
+        "SuperSoft",
+        "Quantum Zero-G",
+        "Lunar",
+        "Helio"
+      ],
+      "source": "https://www.golfdisc.com/plastic/"
+    },
+    "Lone Star Discs": {
+      "options": [
+        "Alpha",
+        "Bravo",
+        "Lima",
+        "Glow"
+      ],
+      "source": "https://www.lonestardiscs.com/pages/downloads"
+    },
+    "Infinite Discs": {
+      "options": [
+        "I-Blend",
+        "S-Blend",
+        "C-Blend",
+        "D-Blend"
+      ],
+      "source": "https://blog.infinitediscs.com/infinite-discs-plastic-types/"
+    }
+  }
+}

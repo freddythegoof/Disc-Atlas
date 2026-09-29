@@ -1,0 +1,585 @@
+{
+  "method": "Reviewed manufacturer model to specific PDGA approval matches. Never remove version suffixes globally or transfer current status to older approvals.",
+  "overrides": [
+    {
+      "id": "a5ca585ab070",
+      "brand": "Discmania",
+      "approvalName": "DD3 (new)",
+      "catalogName": "DD3",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 5,
+        "turn": -1,
+        "fade": 3
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/dd3",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/dd3",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "90ca1c9ae3b3",
+      "brand": "Discmania",
+      "approvalName": "PD (new)",
+      "catalogName": "PD",
+      "flightNumbers": {
+        "speed": 10,
+        "glide": 4,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/pd",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/pd",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "c655cf548ff6",
+      "brand": "Discmania",
+      "approvalName": "PD2 (new)",
+      "catalogName": "PD2",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 4,
+        "turn": 0,
+        "fade": 4
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/pd2",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/pd2",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "b52c5cb1753a",
+      "brand": "Discmania",
+      "approvalName": "Premier DD3",
+      "catalogName": "Premier DD3",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/premier-dd3",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/premier-dd3",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "9554f962a394",
+      "brand": "Discmania",
+      "approvalName": "Premier DD1",
+      "catalogName": "Premier DD1",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 6,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/premier-dd1",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/premier-dd1",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "0dc8d1cbf7b6",
+      "brand": "Discmania",
+      "approvalName": "Premier Essence",
+      "catalogName": "Premier Essence",
+      "flightNumbers": {
+        "speed": 8,
+        "glide": 7,
+        "turn": -1,
+        "fade": 1
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/premier-essence",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/premier-essence",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "3d70ef38ff0e",
+      "brand": "Discmania",
+      "approvalName": "FD2 (new)",
+      "catalogName": "FD2",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 4,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/fd2",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/fd2",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "b2e2f2337782",
+      "brand": "Discmania",
+      "approvalName": "DD2 (2025)",
+      "catalogName": "DD2",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 5,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/dd2",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/dd2",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "ea3ae9405e70",
+      "brand": "Discmania",
+      "approvalName": "P1x (new)",
+      "catalogName": "P1x",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 0
+      },
+      "category": "Putter",
+      "source": "https://www.discmania.net/collections/p1x",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/p1x",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "8938df2dcab1",
+      "brand": "Discmania",
+      "approvalName": "MD4 (new)",
+      "catalogName": "MD4",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 4,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Midrange",
+      "source": "https://www.discmania.net/collections/md4",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/md4",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "e6f2e32bd1dd",
+      "brand": "Discmania",
+      "approvalName": "TD (new)",
+      "catalogName": "TD",
+      "flightNumbers": {
+        "speed": 10,
+        "glide": 5,
+        "turn": -2,
+        "fade": 1
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/td",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/td",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "7d0887d80cae",
+      "brand": "Discmania",
+      "approvalName": "P3x (new)",
+      "catalogName": "P3x",
+      "flightNumbers": {
+        "speed": 3,
+        "glide": 2,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Putter",
+      "source": "https://www.discmania.net/collections/p3x",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/p3x",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "e6a64f9c717b",
+      "brand": "Discmania",
+      "approvalName": "DD (new)",
+      "catalogName": "DD",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 6,
+        "turn": -3,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/dd",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/dd",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "d84293d8328b",
+      "brand": "Discmania",
+      "approvalName": "MD5 (new)",
+      "catalogName": "MD5",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 3,
+        "turn": 0,
+        "fade": 4
+      },
+      "category": "Midrange",
+      "source": "https://www.discmania.net/collections/md5",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/md5",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "25df77601a40",
+      "brand": "Discmania",
+      "approvalName": "P1 (new)",
+      "catalogName": "P1",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 0
+      },
+      "category": "Putter",
+      "source": "https://www.discmania.net/collections/p1",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/p1",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "b2c132ff6485",
+      "brand": "Discmania",
+      "approvalName": "FD3 (new)",
+      "catalogName": "FD3",
+      "flightNumbers": {
+        "speed": 9,
+        "glide": 4,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/fd3",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/fd3",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "8b061e21ed26",
+      "brand": "Discmania",
+      "approvalName": "New MD1",
+      "catalogName": "MD1",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 6,
+        "turn": 0,
+        "fade": 0
+      },
+      "category": "Midrange",
+      "source": "https://www.discmania.net/collections/md1",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/md1",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "9da761f79bd2",
+      "brand": "Discmania",
+      "approvalName": "FD (new)",
+      "catalogName": "FD",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 6,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/fd",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/fd",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "88a46cb35be1",
+      "brand": "Discmania",
+      "approvalName": "P2 (new)",
+      "catalogName": "P2",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://www.discmania.net/collections/p2",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/p2",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "37de0f920924",
+      "brand": "Discmania",
+      "approvalName": "MD3 (new)",
+      "catalogName": "MD3",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 5,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Midrange",
+      "source": "https://www.discmania.net/collections/md3",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/md3",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "142786245500",
+      "brand": "Discmania",
+      "approvalName": "Sensei (Discmania Active, originally Guardian Lion)",
+      "catalogName": "Sensei",
+      "flightNumbers": {
+        "speed": 3,
+        "glide": 3,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://www.discmania.net/collections/sensei",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/sensei",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "0fc906f52ad5",
+      "brand": "Discmania",
+      "approvalName": "Magician (originally Fox Spirit)",
+      "catalogName": "Magician",
+      "flightNumbers": {
+        "speed": 6,
+        "glide": 4,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/magician",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/magician",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "4d2c9833e8ea",
+      "brand": "Discmania",
+      "approvalName": "Mentor (originally Sea Serpent)",
+      "catalogName": "Mentor",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 5,
+        "turn": -2,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/mentor",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/mentor",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "76d780690bb6",
+      "brand": "Discmania",
+      "approvalName": "Maestro (originally Spring Ox)",
+      "catalogName": "Maestro",
+      "flightNumbers": {
+        "speed": 4,
+        "glide": 3,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Midrange",
+      "source": "https://www.discmania.net/collections/maestro",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/maestro",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "a569104028fe",
+      "brand": "Discmania",
+      "approvalName": "Genius (originally Sun Crow)",
+      "catalogName": "Genius",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 5,
+        "turn": -4,
+        "fade": 1
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/genius",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/genius",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "6d63e6972109",
+      "brand": "Discmania",
+      "approvalName": "Instinct (150-175g)",
+      "catalogName": "Instinct",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 5,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/instinct",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/instinct",
+        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "80667f6b7d05",
+      "brand": "Discmania",
+      "approvalName": "PD3",
+      "catalogName": "PD3",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 3,
+        "turn": 0,
+        "fade": 5
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/pd3",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "retired_date_unknown",
+        "source": "https://www.discmania.net/collections/pd3",
+        "note": "Listed in the manufacturer out-of-production section; retirement date unverified."
+      }
+    },
+    {
+      "id": "16fb32710af1",
+      "brand": "Discmania",
+      "approvalName": "PDx (Power Driver)",
+      "catalogName": "PDx",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 4,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Distance Driver",
+      "source": "https://www.discmania.net/collections/pdx",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "retired_date_unknown",
+        "source": "https://www.discmania.net/collections/pdx",
+        "note": "Listed in the manufacturer out-of-production section; retirement date unverified."
+      }
+    },
+    {
+      "id": "86cca3bb507c",
+      "brand": "Discraft",
+      "approvalName": "Cigarra (modified overstable Cicada)",
+      "catalogName": "Cigarra",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 6,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Fairway Driver",
+      "source": "https://www.team.discraft.com/post/anthony-barela-first-run-cigarra-dropping-march-21st-on-the-discraft-factory-store",
+      "checkedAt": "2026-09-24",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discraft.com/disc-golf/?count=288",
+        "note": "Manufacturer catalog lists the Cigarra. Matched to its full PDGA approval name."
+      }
+    }
+  ]
+}

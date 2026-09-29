@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-09-24",
+  "source": "https://www.pdga.com/technical-standards/equipment-certification/discs/export",
+  "previousCount": 2434,
+  "currentCount": 2434,
+  "added": [],
+  "removed": [],
+  "catalogModelsReviewed": 1366,
+  "catalogBrandsReviewed": 49,
+  "newFlightMatches": 255,
+  "incorrectVariantMatchesRemoved": 4,
+  "method": "Full PDGA CSV compared field-for-field; exact brand/model and reviewed unique aliases matched against Infinite Discs and DiscIt/Marshall Street. Manufacturer flight fields used; reviewer averages retained only in audit comparisons."
+}

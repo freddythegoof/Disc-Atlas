@@ -1,0 +1,15 @@
+{
+  "asOf": "2026-09-24",
+  "publicLaunchReady": false,
+  "blockingItems": [
+    "PDGA commercial dataset permission or reviewed replacement",
+    "Flight-catalog source permissions",
+    "Confirmed operator and monitored public contact",
+    "Final legal/privacy/provider-retention review",
+    "Public authentication and operational review"
+  ],
+  "affiliateActive": false,
+  "outreachSent": false,
+  "businessFilingsSubmitted": false,
+  "dataRightsNote": "Private preview is not a substitute for licensing."
+}

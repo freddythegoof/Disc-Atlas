@@ -1,0 +1,238 @@
+{
+  "checkedAt": "2026-09-24",
+  "matchedDiscs": 1199,
+  "counts": {
+    "infinite": 1199,
+    "reaper": 118
+  },
+  "searchForms": [
+    {
+      "host": "otbdiscs.com",
+      "forms": [
+        {
+          "form": {
+            "role": "search",
+            "method": "get",
+            "class": "woocommerce-product-search",
+            "action": "https://otbdiscs.com/"
+          },
+          "inputs": [
+            {
+              "type": "search",
+              "id": "woocommerce-product-search-field-0",
+              "class": "search-field",
+              "placeholder": "Search products\u2026",
+              "value": "",
+              "name": "s"
+            },
+            {
+              "type": "hidden",
+              "name": "post_type",
+              "value": "product"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "1010discs.com",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "host": "discgolfdealsusa.com",
+      "forms": [
+        {
+          "form": {
+            "role": "search",
+            "method": "get",
+            "action": "/search"
+          },
+          "inputs": [
+            {
+              "id": "header-search-input",
+              "type": "search",
+              "class": "search-field",
+              "placeholder": "Search for anything",
+              "value": "",
+              "name": "q",
+              "autocorrect": "off",
+              "autocomplete": "off",
+              "autocapitalize": "off",
+              "spellcheck": "false"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "gottagogottathrow.com",
+      "forms": [
+        {
+          "form": {
+            "class": "main-search__form",
+            "action": "/search",
+            "method": "get",
+            "autocomplete": "off"
+          },
+          "inputs": [
+            {
+              "class": "main-search__input",
+              "type": "text",
+              "name": "q",
+              "autocomplete": "off",
+              "placeholder": "Search our store",
+              "aria-label": "Search",
+              "aria-autocomplete": "list",
+              "aria-controls": "HeaderSearchResults",
+              "aria-expanded": "false",
+              "aria-activedescendant": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "reaperdiscs.com",
+      "forms": [
+        {
+          "form": {
+            "action": "/search",
+            "method": "get",
+            "role": "search",
+            "class": "site-header__search-form",
+            "data-dark": "false"
+          },
+          "inputs": [
+            {
+              "type": "hidden",
+              "name": "type",
+              "value": "product"
+            },
+            {
+              "type": "hidden",
+              "name": "options[prefix]",
+              "value": "last"
+            },
+            {
+              "type": "search",
+              "name": "q",
+              "value": "",
+              "placeholder": "Search...",
+              "class": "site-header__search-input",
+              "aria-label": "Search..."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "foundationdiscs.com",
+      "forms": [
+        {
+          "form": {
+            "class": "search relative search--speech search--product-types",
+            "role": "search",
+            "action": "/search",
+            "method": "get"
+          },
+          "inputs": [
+            {
+              "type": "hidden",
+              "name": "options[prefix]",
+              "value": "last"
+            },
+            {
+              "type": "search",
+              "class": "search__input w-full input js-search-input",
+              "id": "header-search",
+              "name": "q",
+              "placeholder": "Search for discs by plastic type",
+              "data-placeholder-one": "Search for discs by plastic type",
+              "data-placeholder-two": "Search for discs by stability",
+              "data-placeholder-three": "Search for discs by color",
+              "data-placeholder-prompts-mob": "true",
+              "data-typing-speed": "100",
+              "data-deleting-speed": "60",
+              "data-delay-after-deleting": "500",
+              "data-delay-before-first-delete": "2000",
+              "data-delay-after-word-typed": "2400",
+              "role": "combobox",
+              "autocomplete": "off",
+              "aria-autocomplete": "list",
+              "aria-controls": "predictive-search-results",
+              "aria-owns": "predictive-search-results",
+              "aria-haspopup": "listbox",
+              "aria-expanded": "false",
+              "spellcheck": "false"
+            },
+            {
+              "type": "hidden",
+              "id": "product_type_input",
+              "name": "filter.p.product_type"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "www.marshallstreetdiscgolf.com",
+      "forms": [
+        {
+          "form": {
+            "role": "search",
+            "method": "get",
+            "class": "woocommerce-product-search",
+            "action": "https://www.marshallstreetdiscgolf.com/"
+          },
+          "inputs": [
+            {
+              "type": "search",
+              "id": "woocommerce-product-search-field-0",
+              "class": "search-field",
+              "placeholder": "Search products\u2026",
+              "value": "",
+              "name": "s"
+            },
+            {
+              "type": "submit",
+              "value": "Search"
+            },
+            {
+              "type": "hidden",
+              "name": "post_type",
+              "value": "product"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "www.discstore.com",
+      "forms": [
+        {
+          "form": {
+            "action": "/search",
+            "method": "get"
+          },
+          "inputs": [
+            {
+              "class": "form-input !pl-8 color__text !min-h-0\n            !color__border-transparent",
+              "type": "text",
+              "placeholder": "Search by products, colors, or more..."
+            },
+            {
+              "id": "search-mobile",
+              "class": "form-input !pl-8 color__text !min-h-0\n            !color__border-transparent",
+              "type": "text",
+              "name": "q",
+              "placeholder": "Search by products, colors, or more...",
+              "x-ref": "searchInputMobile",
+              "@focus": "search_active = true;",
+              "@input.debounce": "fetchAndUpdateSearch($event,params)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

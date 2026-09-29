@@ -1,0 +1,3 @@
+import {authenticated,body,database,json,unavailable} from '../../../lib/server';
+import {validateProfile} from '../../../lib/validation';
+export async function PUT(req:Request){const a=await authenticated(req,true);if(a.error)return a.error;let p;try{p=validateProfile(await body(req));}catch(e){return json({error:(e as Error).message},400);}try{await database().prepare('INSERT INTO profiles(user_id,profile,updated_at) VALUES (?,?,?) ON CONFLICT(user_id) DO UPDATE SET profile=excluded.profile,updated_at=excluded.updated_at').bind(a.user!.userId,JSON.stringify(p),new Date().toISOString()).run();return json({profile:p});}catch{return unavailable();}}

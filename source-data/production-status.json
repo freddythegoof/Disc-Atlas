@@ -1,0 +1,503 @@
+{
+  "checkedAt": "2026-09-23",
+  "retirementWindowMonths": 24,
+  "overrides": [
+    {
+      "brand": "Latitude 64",
+      "name": "Macana",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Caltrop",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Gladiator",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Spark",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Recoil",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Knight",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Culverin",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Sinus AP",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Sinus SP",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Cutlass",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Falchion",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Latitude 64",
+      "name": "Gauntlet",
+      "retirementAnnouncedAt": "2025-01-22",
+      "source": "https://latitude64.com/blogs/the-latest-from-latitude-64/mold-retirement-announcement-2025",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Limit",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Amp",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Shock",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Switch",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Axis",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Vector",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Vertex",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Tangent",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Tensor",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "MVP",
+      "name": "Particle",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Axiom",
+      "name": "Thrill",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Axiom",
+      "name": "Clash",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Axiom",
+      "name": "Inspire",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Axiom",
+      "name": "Alias",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Axiom",
+      "name": "Theory",
+      "retirementAnnouncedAt": "2019-08-29",
+      "source": "https://mvpdiscsports.com/?p=15812",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Proof",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Gavel",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Evidence",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Patrol",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Thief",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Witness",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Renegade",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Freedom",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Criminal",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Suspect",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Warrant",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Dynamic Discs",
+      "name": "Slammer",
+      "retirementAnnouncedAt": "2019-06-12",
+      "source": "https://blog.dynamicdiscs.com/2019/06/dynamic-discs-retired-molds-official-announcement.html",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Sensei",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Shogun",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Maestro",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Magician",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Genius",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Mermaid",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Rockstar",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Mentor",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Astronaut",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Majesty",
+      "retirementAnnouncedAt": "2024-07-30",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "status": "retired",
+      "note": "Retirement announcement; limited runs or remaining stock may still exist."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Rainmaker",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "P3",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Razor Claw Tactic",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "MD",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "MD2",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "GM",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "Tilt",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "CD",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "CD2",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "CD3",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "PD3",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "PDx",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "DDx",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "TD2",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    },
+    {
+      "brand": "Discmania",
+      "name": "TDx",
+      "status": "retired_date_unknown",
+      "source": "https://www.discmania.net/blogs/discover/behind-the-shield-reinventing-our-game",
+      "note": "Listed in the manufacturer\u2019s out-of-production menu; retirement date unverified."
+    }
+  ]
+}

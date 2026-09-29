@@ -1,0 +1,13 @@
+
+.atlas-illustration{position:relative;isolation:isolate;background:transparent!important;box-shadow:none!important;overflow:visible!important;border:0!important;container-type:inline-size}
+.atlas-illustration>img{width:100%!important;height:100%!important;object-fit:contain;filter:hue-rotate(var(--art-hue));border-radius:0!important;mix-blend-mode:normal!important}
+.art-label{position:absolute;inset:24% 17%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#071b26;gap:3%;pointer-events:none;line-height:1.1}
+.art-label small{font:600 clamp(6px,6cqi,14px)/1.15 'DM Sans',sans-serif;max-width:100%;overflow-wrap:anywhere;color:#071b26!important}
+.art-label b{font:700 clamp(8px,11cqi,26px)/1.06 'Space Grotesk',sans-serif;max-width:100%;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.art-label em{font:600 clamp(5px,4cqi,10px)/1.2 'DM Sans',sans-serif;letter-spacing:.12em;font-style:normal;margin-top:6%;color:#12333e}
+.disc-photo.illustration-detail{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:auto!important;min-height:230px;background:none}
+.illustration-detail .detail-art{display:block;width:220px!important;height:220px!important;max-width:100%}
+.illustration-caption{font-size:12px;text-align:center;line-height:1.4;color:var(--muted)}
+.row-identity .art-label,.bag-item>.disc-art .art-label,.gap-options .art-label,.marker-stack .art-label{inset:24% 15%}.row-identity .art-label small,.row-identity .art-label em,.bag-item>.disc-art .art-label small,.bag-item>.disc-art .art-label em,.gap-options .art-label small,.gap-options .art-label em,.marker-stack .art-label small,.marker-stack .art-label em{display:none}
+footer{flex-wrap:wrap;gap:15px}.legal-links{display:flex;gap:18px;flex-wrap:wrap;font-size:14px}.legal-links a{color:var(--text)}.data-controls{padding:15px 0;margin:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px}.data-controls summary{cursor:pointer}.data-controls p{line-height:1.6;max-width:680px}.data-controls a{display:inline-block;margin:4px 14px 4px 0;color:var(--text)}
+.atlas-illustration>img{background:transparent!important}

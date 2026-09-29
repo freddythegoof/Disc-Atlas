@@ -1,0 +1,2785 @@
+[
+  {
+    "url": "https://infinitediscs.com/above-ground-level-acacia",
+    "title": "Above Ground Level Acacia",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/above-ground-level-cypress",
+    "title": "Above Ground Level Cypress",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/alfa-discs-apollo",
+    "title": "Alfa Discs Apollo",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/alfa-discs-atlantis",
+    "title": "Alfa Discs Atlantis",
+    "manufacturerFlightNumbers": [
+      9.0,
+      6.0,
+      -4.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/alfa-discs-cosmic",
+    "title": "Alfa Discs Cosmic",
+    "manufacturerFlightNumbers": [
+      8.0,
+      6.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/alfa-discs-fjord",
+    "title": "Alfa Discs Fjord",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/alfa-discs-snoopy",
+    "title": "Alfa Discs Theios",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/axiom-alias",
+    "title": "Axiom Alias",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/axiom-aspect",
+    "title": "Axiom Aspect",
+    "manufacturerFlightNumbers": [
+      9.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/axiom-clash",
+    "title": "Axiom Clash",
+    "manufacturerFlightNumbers": [
+      6.5,
+      4.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/axiom-inspire",
+    "title": "Axiom Inspire",
+    "manufacturerFlightNumbers": [
+      6.5,
+      4.0,
+      -1.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/axiom-theory",
+    "title": "Axiom Theory",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      -1.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/bernoulli-disc-golf-bernoulli",
+    "title": "Bernoulli Disc Golf Bernoulli",
+    "manufacturerFlightNumbers": [
+      2.0,
+      5.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/bernoulli-disc-golf-webb",
+    "title": "Bernoulli Disc Golf Webb",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/climo-disc-golf-cliff",
+    "title": "Climo Disc Golf Cliff",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      -1.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/climo-disc-golf-osprey-climo",
+    "title": "Climo Disc Golf Osprey",
+    "manufacturerFlightNumbers": [
+      10.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/crosslap-company",
+    "title": "Crosslap Company",
+    "manufacturerFlightNumbers": [
+      13.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dga-blowfly-ii",
+    "title": "DGA Blowfly II",
+    "manufacturerFlightNumbers": [
+      2.0,
+      2.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dga-hurricane-x",
+    "title": "DGA Hurricane X",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dga-reef",
+    "title": "DGA Reef",
+    "manufacturerFlightNumbers": [
+      2.0,
+      2.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dga-typhoon",
+    "title": "DGA Typhoon",
+    "manufacturerFlightNumbers": [
+      12.0,
+      6.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-ares",
+    "title": "Discraft Ares",
+    "manufacturerFlightNumbers": [
+      12.0,
+      6.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-captains-caliper",
+    "title": "Discraft Captains Caliber",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-captains-raptor",
+    "title": "Discraft Captains Raptor",
+    "manufacturerFlightNumbers": [
+      9.0,
+      3.0,
+      1.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-captains-thrasher",
+    "title": "Discraft Captains Thrasher",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-eclipse",
+    "title": "Discraft Eclipse",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-focus",
+    "title": "Discraft Focus",
+    "manufacturerFlightNumbers": [
+      2.0,
+      2.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-fossil",
+    "title": "Discraft Fossil",
+    "manufacturerFlightNumbers": [
+      3.0,
+      1.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-glide",
+    "title": "Discraft Glide",
+    "manufacturerFlightNumbers": [
+      6.0,
+      5.0,
+      -3.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-hallux",
+    "title": "Discraft Hallux",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-heat",
+    "title": "Discraft Heat",
+    "manufacturerFlightNumbers": [
+      9.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-hornet",
+    "title": "Discraft Hornet",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-impact",
+    "title": "Discraft Impact",
+    "manufacturerFlightNumbers": [
+      6.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-joy",
+    "title": "Discraft Joy",
+    "manufacturerFlightNumbers": [
+      4.0,
+      5.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-malita",
+    "title": "Discraft Malita",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-malta",
+    "title": "Discraft Malta",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-mantis",
+    "title": "Discraft Mantis",
+    "manufacturerFlightNumbers": [
+      8.0,
+      4.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-meteor",
+    "title": "Discraft Meteor",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-nebula",
+    "title": "Discraft Nebula",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      -0.5,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-roach",
+    "title": "Discraft Roach",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-roost",
+    "title": "Discraft Roost",
+    "manufacturerFlightNumbers": [
+      2.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-sled",
+    "title": "Discraft Sled",
+    "manufacturerFlightNumbers": [
+      3.0,
+      2.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-sol",
+    "title": "Discraft Sol",
+    "manufacturerFlightNumbers": [
+      4.0,
+      5.0,
+      -3.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-spectra",
+    "title": "Discraft Spectra",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-sting",
+    "title": "Discraft Sting",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-terminator",
+    "title": "Discraft Terminator",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      -1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-tracker",
+    "title": "Discraft Tracker",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      -1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-ultraluna",
+    "title": "Discraft UltraLuna",
+    "manufacturerFlightNumbers": [
+      3.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-zeppelin",
+    "title": "Discraft Zeppelin",
+    "manufacturerFlightNumbers": [
+      2.5,
+      6.0,
+      -1.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-zeus",
+    "title": "Discraft Zeus",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      -1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-zombee",
+    "title": "Discraft Zombee",
+    "manufacturerFlightNumbers": [
+      6.0,
+      4.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/discraft-zone-ss",
+    "title": "Discraft Zone SS",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/disctroyer-nightjar",
+    "title": "Disctroyer Nightjar",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      -0.5,
+      2.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/disctroyer-skylark",
+    "title": "Disctroyer Skylark",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/disctroyer-sparrow",
+    "title": "Disctroyer Sparrow",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/disctroyer-starling",
+    "title": "Disctroyer Starling",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/disctroyer-stork",
+    "title": "Disctroyer Stork",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/disctroyer-woodpecker",
+    "title": "Disctroyer Woodpecker",
+    "manufacturerFlightNumbers": [
+      4.0,
+      3.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-alpas",
+    "title": "Divergent Discs Alpas",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-basilisk",
+    "title": "Divergent Discs Basilisk",
+    "manufacturerFlightNumbers": [
+      12.0,
+      6.0,
+      -4.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-golem",
+    "title": "Divergent Discs Golem",
+    "manufacturerFlightNumbers": [
+      4.0,
+      2.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-kapre",
+    "title": "Divergent Discs Kapre",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-kataw",
+    "title": "Divergent Discs Kataw",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-kraken",
+    "title": "Divergent Discs Kraken",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-lawin",
+    "title": "Divergent Discs Lawin",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      -3.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-leviathan",
+    "title": "Divergent Discs Leviathan",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      -4.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-minotaur",
+    "title": "Divergent Discs Minotaur",
+    "manufacturerFlightNumbers": [
+      8.0,
+      3.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-narwhal",
+    "title": "Divergent Discs Narwhal",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      -2.0,
+      0.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-nuno",
+    "title": "Divergent Discs Nuno",
+    "manufacturerFlightNumbers": [
+      3.0,
+      4.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-tiyanak",
+    "title": "Divergent Discs Tiyanak",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      -5.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/divergent-discs-wyrm",
+    "title": "Divergent Discs Wyrm",
+    "manufacturerFlightNumbers": [
+      8.0,
+      1.0,
+      1.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-abomination",
+    "title": "Doomsday Discs Abomination",
+    "manufacturerFlightNumbers": [
+      9.0,
+      5.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-apocalypse",
+    "title": "Doomsday Discs Apocalypse",
+    "manufacturerFlightNumbers": [
+      13.0,
+      1.0,
+      1.0,
+      6.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-blight",
+    "title": "Doomsday Discs Blight",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-bunkerbuster",
+    "title": "Doomsday Discs Bunker Buster",
+    "manufacturerFlightNumbers": [
+      7.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-frag",
+    "title": "Doomsday Discs Frag",
+    "manufacturerFlightNumbers": [
+      5.0,
+      2.0,
+      0.0,
+      5.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-gloom",
+    "title": "Doomsday Discs Gloom",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-lockdown",
+    "title": "Doomsday Discs Lockdown",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-proximity-mine",
+    "title": "Doomsday Discs Proximity Mine",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      1.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-scope",
+    "title": "Doomsday Discs Scope",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/doomsday-discs-wasteland",
+    "title": "Doomsday Discs Wasteland",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-cavalry",
+    "title": "Dynamic Discs Cavalry",
+    "manufacturerFlightNumbers": [
+      9.0,
+      6.0,
+      -2.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-emac-truth",
+    "title": "Dynamic Discs EMac Truth",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-freedom",
+    "title": "Dynamic Discs Freedom",
+    "manufacturerFlightNumbers": [
+      14.0,
+      5.0,
+      -3.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-gavel",
+    "title": "Dynamic Discs Gavel",
+    "manufacturerFlightNumbers": [
+      3.0,
+      5.0,
+      -2.0,
+      0.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-mutiny",
+    "title": "Dynamic Discs Mutiny",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-proof",
+    "title": "Dynamic Discs Proof",
+    "manufacturerFlightNumbers": [
+      5.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/dynamic-discs-warrant",
+    "title": "Dynamic Discs Warrant",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -2.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/elevation-disc-golf-binx",
+    "title": "Elevation Disc Golf Binx",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/gateway-ghoul",
+    "title": "Gateway Ghoul",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/gateway-javelin",
+    "title": "Gateway Javelin",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/gateway-karma",
+    "title": "Gateway Karma",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/gateway-siren",
+    "title": "Gateway Siren",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/hooligan-discs-cash",
+    "title": "Hooligan Discs Cash",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/hooligan-discs-dime",
+    "title": "Hooligan Discs Dime",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/infinite-discs-cavalier",
+    "title": "Infinite Discs Cavalier",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/infinite-discs-squire",
+    "title": "Infinite Discs Squire",
+    "manufacturerFlightNumbers": [
+      8.0,
+      6.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-ace",
+    "title": "Innova Ace",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-aviar",
+    "title": "Innova Aviar",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-barracuda",
+    "title": "Innova Barracuda",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      -2.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-bulldog",
+    "title": "Innova Bulldog",
+    "manufacturerFlightNumbers": [
+      4.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-commander",
+    "title": "Innova Commander",
+    "manufacturerFlightNumbers": [
+      5.0,
+      3.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-coupe",
+    "title": "Innova Coupe",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-dominator",
+    "title": "Innova Dominator",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-fairway-disc",
+    "title": "Innova Fairway Disc",
+    "manufacturerFlightNumbers": [
+      7.0,
+      6.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-foxbat",
+    "title": "Innova Foxbat",
+    "manufacturerFlightNumbers": [
+      5.0,
+      6.0,
+      -1.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-gargoyle",
+    "title": "Innova Gargoyle",
+    "manufacturerFlightNumbers": [
+      6.0,
+      3.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-grenade",
+    "title": "Innova Grenade",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -2.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-griffin",
+    "title": "Innova Griffin",
+    "manufacturerFlightNumbers": [
+      5.0,
+      3.0,
+      1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-hammer",
+    "title": "Innova Hammer",
+    "manufacturerFlightNumbers": [
+      2.0,
+      2.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-jaguar",
+    "title": "Innova Jaguar",
+    "manufacturerFlightNumbers": [
+      5.5,
+      6.0,
+      -3.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-khan",
+    "title": "Innova Khan",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-kite",
+    "title": "Innova Kite",
+    "manufacturerFlightNumbers": [
+      5.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-lycan",
+    "title": "Innova Lycan",
+    "manufacturerFlightNumbers": [
+      4.0,
+      5.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-makani",
+    "title": "Innova Makani",
+    "manufacturerFlightNumbers": [
+      2.0,
+      7.0,
+      -2.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-max",
+    "title": "Innova Max",
+    "manufacturerFlightNumbers": [
+      11.0,
+      3.0,
+      0.0,
+      5.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-mid-disc3",
+    "title": "Innova MID-DISC3",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-monster",
+    "title": "Innova Monster",
+    "manufacturerFlightNumbers": [
+      10.0,
+      3.0,
+      0.0,
+      5.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-power-disc",
+    "title": "Innova Power Disc",
+    "manufacturerFlightNumbers": [
+      10.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-power-disc-2",
+    "title": "Innova Power Disc2",
+    "manufacturerFlightNumbers": [
+      12.0,
+      4.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-raven",
+    "title": "Innova Raven",
+    "manufacturerFlightNumbers": [
+      6.0,
+      4.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-rhynox",
+    "title": "Innova RhynoX",
+    "manufacturerFlightNumbers": [
+      2.0,
+      1.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-spider",
+    "title": "Innova Spider",
+    "manufacturerFlightNumbers": [
+      5.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-warhog",
+    "title": "Innova Warhog",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/innova-wombat",
+    "title": "Innova Wombat",
+    "manufacturerFlightNumbers": [
+      5.0,
+      6.0,
+      -1.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/jester-disc-golf-crazy-hawk",
+    "title": "Jester Disc Golf Crazy Hawk",
+    "manufacturerFlightNumbers": [
+      9.0,
+      4.0,
+      0.0,
+      3.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/jester-disc-golf-cryptid",
+    "title": "Jester Disc Golf Cryptid",
+    "manufacturerFlightNumbers": [
+      7.0,
+      3.0,
+      -3.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/kastaplast-grym",
+    "title": "Kastaplast Grym",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/kastaplast-grym-x",
+    "title": "Kastaplast Grym X",
+    "manufacturerFlightNumbers": [
+      12.5,
+      5.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/kastaplast-kaxe-z",
+    "title": "Kastaplast Kaxe Z",
+    "manufacturerFlightNumbers": [
+      6.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-blitz",
+    "title": "Latitude 64 Blitz",
+    "manufacturerFlightNumbers": [
+      11.0,
+      3.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-bryce",
+    "title": "Latitude 64 Bryce",
+    "manufacturerFlightNumbers": [
+      9.0,
+      6.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-caltrop",
+    "title": "Latitude 64 Caltrop",
+    "manufacturerFlightNumbers": [
+      2.0,
+      2.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-falchion",
+    "title": "Latitude 64 Falchion",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-fuji",
+    "title": "Latitude 64 Fuji",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-gauntlet",
+    "title": "Latitude 64 Gauntlet",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-gobi",
+    "title": "Latitude 64 Gobi",
+    "manufacturerFlightNumbers": [
+      6.0,
+      5.0,
+      -0.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-macana",
+    "title": "Latitude 64 Macana",
+    "manufacturerFlightNumbers": [
+      2.0,
+      5.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-medius",
+    "title": "Latitude 64 Medius",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-missilen",
+    "title": "Latitude 64 Missilen",
+    "manufacturerFlightNumbers": [
+      15.0,
+      3.0,
+      -0.5,
+      4.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-pain",
+    "title": "Latitude 64 Pain",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-raketen",
+    "title": "Latitude 64 Raketen",
+    "manufacturerFlightNumbers": [
+      15.0,
+      4.0,
+      -2.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-recoil",
+    "title": "Latitude 64 Recoil",
+    "manufacturerFlightNumbers": [
+      12.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-riot",
+    "title": "Latitude 64 Riot",
+    "manufacturerFlightNumbers": [
+      11.0,
+      4.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-river-pro",
+    "title": "Latitude 64 River Pro",
+    "manufacturerFlightNumbers": [
+      6.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-sarek",
+    "title": "Latitude 64 Sarek",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-scythe",
+    "title": "Latitude 64 Scythe",
+    "manufacturerFlightNumbers": [
+      12.0,
+      3.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-spike",
+    "title": "Latitude 64 Spike",
+    "manufacturerFlightNumbers": [
+      4.0,
+      3.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-villain",
+    "title": "Latitude 64 Villain",
+    "manufacturerFlightNumbers": [
+      12.0,
+      4.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-vision",
+    "title": "Latitude 64 Vision",
+    "manufacturerFlightNumbers": [
+      8.0,
+      6.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/latitude-64-zion",
+    "title": "Latitude 64 Zion",
+    "manufacturerFlightNumbers": [
+      9.0,
+      4.0,
+      -0.5,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/millennium-es1",
+    "title": "Millennium ES1",
+    "manufacturerFlightNumbers": [
+      11.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/millennium-mars-rover",
+    "title": "Millennium Mars Rover",
+    "manufacturerFlightNumbers": [
+      5.0,
+      6.0,
+      -4.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/millennium-sentinel-mf",
+    "title": "Millennium Sentinel MF",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/millennium-taurus",
+    "title": "Millennium Taurus",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/millennium-zodiac",
+    "title": "Millennium Zodiac",
+    "manufacturerFlightNumbers": [
+      10.0,
+      6.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mint-discs-goat-(aka-goat)",
+    "title": "Mint Discs Goat",
+    "manufacturerFlightNumbers": [
+      12.0,
+      4.0,
+      -1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mint-discs-pizza",
+    "title": "Mint Discs Pizza",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-amp",
+    "title": "MVP Amp",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      -1.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-anode",
+    "title": "MVP Anode",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      0.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-axis",
+    "title": "MVP Axis",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-beam",
+    "title": "MVP Beam",
+    "manufacturerFlightNumbers": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-cypher",
+    "title": "MVP Cypher",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-limit",
+    "title": "MVP Limit",
+    "manufacturerFlightNumbers": [
+      14.5,
+      3.5,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-particle",
+    "title": "MVP Particle",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      2.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-shock",
+    "title": "MVP Shock",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      0.0,
+      2.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-switch",
+    "title": "MVP Switch",
+    "manufacturerFlightNumbers": [
+      6.5,
+      5.0,
+      -1.5,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-tangent",
+    "title": "MVP Tangent",
+    "manufacturerFlightNumbers": [
+      4.0,
+      4.0,
+      -0.5,
+      0.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-uplink",
+    "title": "MVP Uplink",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -3.0,
+      0.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/mvp-vector",
+    "title": "MVP Vector",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodigy-good-boy",
+    "title": "Prodigy Good Boy",
+    "manufacturerFlightNumbers": [
+      3.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodigy-m2",
+    "title": "Prodigy M2",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodigy-mx-2",
+    "title": "Prodigy MX-2",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-jokerix",
+    "title": "Prodiscus JokeriX",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-legion",
+    "title": "Prodiscus Legion",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-midarix",
+    "title": "Prodiscus MidariX",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-pyramid",
+    "title": "Prodiscus Pyramid",
+    "manufacturerFlightNumbers": [
+      5.0,
+      3.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-rocket",
+    "title": "Prodiscus Rocket",
+    "manufacturerFlightNumbers": [
+      9.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-totem",
+    "title": "Prodiscus Totem",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-troija",
+    "title": "Prodiscus Troija",
+    "manufacturerFlightNumbers": [
+      5.0,
+      3.0,
+      1.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/prodiscus-unicorn",
+    "title": "Prodiscus Unicorn",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-huia",
+    "title": "RPM Discs Huia",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-kahu",
+    "title": "RPM Discs Kahu",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-kotuku",
+    "title": "RPM Discs Kotuku",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-pekapeka",
+    "title": "RPM Discs Pekapeka",
+    "manufacturerFlightNumbers": [
+      9.0,
+      5.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-piwakawaka",
+    "title": "RPM Discs Piwakawaka",
+    "manufacturerFlightNumbers": [
+      6.0,
+      6.0,
+      -3.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-ruru",
+    "title": "RPM Discs Ruru",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-takapu",
+    "title": "RPM Discs Takapu",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-taniwha",
+    "title": "RPM Discs Taniwha",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-tara-iti",
+    "title": "RPM Discs Tara Iti",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-temoko",
+    "title": "RPM Discs TeMoko",
+    "manufacturerFlightNumbers": [
+      3.0,
+      4.0,
+      0.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/rpm-discs-tui",
+    "title": "RPM Discs Tui",
+    "manufacturerFlightNumbers": [
+      3.0,
+      4.0,
+      -1.0,
+      0.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/sacred-discs-seed",
+    "title": "Sacred Discs Seed",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/trash-panda-disc-golf-dune",
+    "title": "Trash Panda Disc Golf Dune",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/trash-panda-disc-golf-inner-core",
+    "title": "Trash Panda Disc Golf Inner Core",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      -0.5,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/trash-panda-disc-golf-outer-core",
+    "title": "Trash Panda Disc Golf Outer Core",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/trash-panda-disc-golf-ozone",
+    "title": "Trash Panda Disc Golf Ozone",
+    "manufacturerFlightNumbers": [
+      8.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/trash-panda-disc-golf-procyon",
+    "title": "Trash Panda Disc Golf Procyon",
+    "manufacturerFlightNumbers": [
+      11.5,
+      4.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-arch",
+    "title": "Vibram Arch",
+    "manufacturerFlightNumbers": [
+      8.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-ascent",
+    "title": "Vibram Ascent",
+    "manufacturerFlightNumbers": [
+      8.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-crag",
+    "title": "Vibram Crag",
+    "manufacturerFlightNumbers": [
+      4.0,
+      3.0,
+      0.0,
+      3.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-ibex",
+    "title": "Vibram Ibex",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-lace",
+    "title": "Vibram Lace",
+    "manufacturerFlightNumbers": [
+      14.0,
+      6.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-launch",
+    "title": "Vibram Launch",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-notch",
+    "title": "Vibram Notch",
+    "manufacturerFlightNumbers": [
+      7.0,
+      3.0,
+      0.0,
+      4.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-o-lace",
+    "title": "Vibram o-Lace",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-obex",
+    "title": "Vibram Obex",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-onyx",
+    "title": "Vibram Onyx",
+    "manufacturerFlightNumbers": [
+      8.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-ridge",
+    "title": "Vibram Ridge",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-solace",
+    "title": "Vibram Solace",
+    "manufacturerFlightNumbers": [
+      13.0,
+      4.0,
+      0.0,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-sole",
+    "title": "Vibram Sole",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-summit",
+    "title": "Vibram Summit",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      -1.0,
+      0.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-trak",
+    "title": "Vibram Trak",
+    "manufacturerFlightNumbers": [
+      7.0,
+      4.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-unlace",
+    "title": "Vibram UnLace",
+    "manufacturerFlightNumbers": [
+      14.0,
+      6.0,
+      -5.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-valley",
+    "title": "Vibram Valley",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -1.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-vamp",
+    "title": "Vibram Vamp",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/vibram-vp",
+    "title": "Vibram V.P.",
+    "manufacturerFlightNumbers": [
+      2.0,
+      3.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-bard",
+    "title": "Westside Bard",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-boatman",
+    "title": "Westside Boatman",
+    "manufacturerFlightNumbers": [
+      11.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-catapult",
+    "title": "Westside Catapult",
+    "manufacturerFlightNumbers": [
+      14.0,
+      4.0,
+      -0.5,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-crown",
+    "title": "Westside Crown",
+    "manufacturerFlightNumbers": [
+      3.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-destiny",
+    "title": "Westside Destiny",
+    "manufacturerFlightNumbers": [
+      14.0,
+      6.0,
+      -2.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-fortress",
+    "title": "Westside Fortress",
+    "manufacturerFlightNumbers": [
+      10.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-giant",
+    "title": "Westside Giant",
+    "manufacturerFlightNumbers": [
+      13.0,
+      4.0,
+      0.0,
+      3.5
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-harp",
+    "title": "Westside Harp",
+    "manufacturerFlightNumbers": [
+      4.0,
+      3.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-hatchet",
+    "title": "Westside Hatchet",
+    "manufacturerFlightNumbers": [
+      9.0,
+      6.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-king",
+    "title": "Westside King",
+    "manufacturerFlightNumbers": [
+      14.0,
+      5.0,
+      -1.5,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-longbowman",
+    "title": "Westside Longbowman",
+    "manufacturerFlightNumbers": [
+      9.0,
+      4.0,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-northman",
+    "title": "Westside Northman",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-pine",
+    "title": "Westside Pine",
+    "manufacturerFlightNumbers": [
+      5.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-queen",
+    "title": "Westside Queen",
+    "manufacturerFlightNumbers": [
+      14.0,
+      5.0,
+      -3.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-seer",
+    "title": "Westside Seer",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-shield",
+    "title": "Westside Shield",
+    "manufacturerFlightNumbers": [
+      3.0,
+      3.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-sling",
+    "title": "Westside Sling",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-sorcerer",
+    "title": "Westside Sorcerer",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -0.5,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-stag",
+    "title": "Westside Stag",
+    "manufacturerFlightNumbers": [
+      8.0,
+      6.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-sword",
+    "title": "Westside Sword",
+    "manufacturerFlightNumbers": [
+      12.0,
+      5.0,
+      -0.5,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-tursas",
+    "title": "Westside Tursas",
+    "manufacturerFlightNumbers": [
+      5.0,
+      5.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-underworld",
+    "title": "Westside Underworld",
+    "manufacturerFlightNumbers": [
+      7.0,
+      6.0,
+      -3.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-warship",
+    "title": "Westside Warship",
+    "manufacturerFlightNumbers": [
+      5.0,
+      6.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/westside-world",
+    "title": "Westside World",
+    "manufacturerFlightNumbers": [
+      14.0,
+      4.0,
+      -0.5,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/wild-discs-great-white",
+    "title": "Wild Discs Great White",
+    "manufacturerFlightNumbers": [
+      13.0,
+      5.0,
+      -1.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/wild-discs-hummingbird",
+    "title": "Wild Discs Hummingbird",
+    "manufacturerFlightNumbers": [
+      2.0,
+      4.0,
+      0.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/wild-discs-tasmanian-devil",
+    "title": "Wild Discs Tasmanian Devil",
+    "manufacturerFlightNumbers": [
+      7.0,
+      4.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-bi",
+    "title": "Yikun Bi",
+    "manufacturerFlightNumbers": [
+      9.0,
+      5.0,
+      -1.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-crossbow",
+    "title": "Yikun Crossbow",
+    "manufacturerFlightNumbers": [
+      4.0,
+      1.5,
+      0.5,
+      4.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-erlang",
+    "title": "Yikun Erlang",
+    "manufacturerFlightNumbers": [
+      7.0,
+      3.0,
+      -3.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-fu",
+    "title": "Yikun FU",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-hammer-(chui)",
+    "title": "Yikun Hammer (Chui)",
+    "manufacturerFlightNumbers": [
+      2.0,
+      2.5,
+      0.0,
+      3.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-qi",
+    "title": "Yikun QI",
+    "manufacturerFlightNumbers": [
+      13.0,
+      6.0,
+      -2.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-shu",
+    "title": "Yikun Shu",
+    "manufacturerFlightNumbers": [
+      4.0,
+      5.0,
+      -2.0,
+      1.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-wu-kong",
+    "title": "Yikun Wu Kong",
+    "manufacturerFlightNumbers": [
+      10.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  },
+  {
+    "url": "https://infinitediscs.com/yikun-zhu",
+    "title": "Yikun Zhu",
+    "manufacturerFlightNumbers": [
+      7.0,
+      5.0,
+      0.0,
+      2.0
+    ],
+    "checkedAt": "2026-09-24"
+  }
+]
