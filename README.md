@@ -1,5 +1,22 @@
 # Disc Atlas
 
+## Public Cloudflare Workers deployment
+
+Public URL: https://disc-atlas-public.disc-atlas-explorer.workers.dev
+
+Run `pnpm build:workers` to package the public atlas, or `pnpm deploy:workers`
+to build and deploy with `wrangler.public.jsonc` after `wrangler login`.
+The public entry is plain `web/index.html` plus `public/`, so this deployment
+needs no framework adapter or new dependencies. The existing Vinext/Sites build
+remains available separately.
+
+This deployment uses static assets and a tiny fallback Worker, with no secrets,
+AI connection, database, or storage bindings. Accounts, saved bags, and the coach
+depend on Sites and return an explicit unavailable response here. Incoming Sites
+identity headers grant no access. Use a Cloudflare Workers Free account; no paid
+services are provisioned by this configuration. Validate with `node tests/workers.mjs`
+and `pnpm exec wrangler deploy --config wrangler.public.jsonc --dry-run`.
+
 A static, private Sites application built around a canvas flight atlas and a fully searchable directory.
 
 ## Source coverage
