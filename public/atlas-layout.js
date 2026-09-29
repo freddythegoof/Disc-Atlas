@@ -31,5 +31,42 @@ window.AtlasLayout = (() => {
     return {zoom, x: width * .5 - area.left - point.x * area.width * zoom,
       y: height * .48 - area.bottom + point.y * area.height * zoom};
   }
-  return {positions, camera, bounds};
+  function extent(points) {
+    const values = [...points.values()];
+    if (!values.length) return null;
+    return {minX:Math.min(...values.map(p=>p.x)),maxX:Math.max(...values.map(p=>p.x)),
+      minY:Math.min(...values.map(p=>p.y)),maxY:Math.max(...values.map(p=>p.y))};
+  }
+  function constrain(camera, area, extent, padding = 36) {
+    if (!extent) return {...camera, x:0, y:0};
+    const axis = (value, low, high) => low > high ? (low + high) / 2 : Math.max(low, Math.min(high, value));
+    return {...camera,
+      x:axis(camera.x,area.width-extent.maxX*area.width*camera.zoom-padding,-extent.minX*area.width*camera.zoom+padding),
+      y:axis(camera.y,extent.minY*area.height*camera.zoom-padding,extent.maxY*area.height*camera.zoom-area.height+padding)};
+  }
+  // Only separate a population that can fit comfortably at this zoom level.
+  // The stable search starts at each rating coordinate and uses nearby free space.
+  function spread(items, base, width, height) {
+    const rated=items.filter(d=>base.has(d.id));
+    if (!rated.length || rated.length*76*76 > width*height*.72) return null;
+    const spacing=Math.min(112,Math.max(76,Math.sqrt(width*height/rated.length)*.65));
+    const cells=new Map(),result=new Map();
+    for(const d of [...rated].sort((a,b)=>a.id.localeCompare(b.id))){
+      const origin=base.get(d.id);let chosen=origin;
+      for(let i=0;i<2400;i++){
+        const angle=i*2.399963229728653+seed(d.id)*Math.PI*2,radius=12*Math.sqrt(i);
+        const x=origin.x*width+Math.cos(angle)*radius,y=origin.y*height+Math.sin(angle)*radius;
+        if(x<0||x>width||y<0||y>height)continue;
+        const cx=Math.floor(x/spacing),cy=Math.floor(y/spacing);let clear=true;
+        for(let dx=-1;dx<=1&&clear;dx++)for(let dy=-1;dy<=1&&clear;dy++)
+          for(const p of cells.get((cx+dx)+':'+(cy+dy))||[])if(Math.hypot(x-p.x,y-p.y)<spacing){clear=false;break;}
+        if(clear){chosen={x:x/width,y:y/height};break;}
+      }
+      result.set(d.id,chosen);
+      const x=chosen.x*width,y=chosen.y*height,key=Math.floor(x/spacing)+':'+Math.floor(y/spacing);
+      if(!cells.has(key))cells.set(key,[]);cells.get(key).push({x,y});
+    }
+    return result;
+  }
+  return {positions, camera, bounds, extent, constrain, spread};
 })();

@@ -18,10 +18,11 @@ function buildClusters(items,w,h){
  const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:Math.round(Math.log2(zoom)*3),groupZoom=2**(level/3);
  if(!groupCache||groupCache.items!==items||groupCache.w!==w||groupCache.h!==h||groupCache.level!==level||groupCache.immersive!==immersive){
   const groups=[],cells=new Map(),size=65;
+  const scattered=window.AtlasLayout.spread(items,atlasPositions,area.width*groupZoom,area.height*groupZoom);
   const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:featuredRank(d)}))
    .sort((a,b)=>a.rank-b.rank||a.d.id.localeCompare(b.d.id));
   for(const {d} of ordered){
-   const pos=atlasPositions.get(d.id);if(!pos)continue;
+   const pos=(scattered||atlasPositions).get(d.id);if(!pos)continue;
    const x=pos.x*area.width*groupZoom,y=pos.y*area.height*groupZoom,cx=Math.floor(x/size),cy=Math.floor(y/size);
    let nearby=null,best=size*size;
    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const g of cells.get((cx+dx)+':'+(cy+dy))||[]){
@@ -31,15 +32,18 @@ function buildClusters(items,w,h){
    const g={key:d.id,pos,px:x,py:y,members:[d],lead:d,large:false};groups.push(g);
    const key=cx+':'+cy;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(g);
   }
-  const large=[],clearance=w<700?105:155;
+  const large=[],clearance=scattered?72:w<700?105:155;
   for(const g of groups)if(large.every(other=>(other.px-g.px)**2+(other.py-g.py)**2>clearance**2)){g.large=true;large.push(g);}
-  groupCache={items,w,h,level,immersive,groups};
+  groupCache={items,w,h,level,immersive,groups,extent:window.AtlasLayout.extent(new Map(groups.map(g=>[g.key,g.pos])))};
  }
+ const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
+ pan={x:bounded.x,y:bounded.y};
  const result=[];
  for(const g of groupCache.groups){
   const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
   if(x<40||x>w-40||y<(immersive?82:24)||y>h-(immersive?(w<700?160:110):54))continue;
-  result.push({...g,x,y,actualX:x,actualY:y});
+  const original=atlasPositions.get(g.lead.id);
+  result.push({...g,x,y,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
  }
  return result;
 }
@@ -55,15 +59,15 @@ function draw(){
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
+ mapClusters=buildClusters(filtered,w,h);
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
  ctx.lineWidth=1;ctx.font='12px DM Sans, sans-serif';
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
  for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<26||yy>h-18)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
  for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,24);ctx.lineTo(xx,h-15);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
- mapClusters=buildClusters(filtered,w,h);
  // A subtle tether preserves the underlying mean coordinate when markers separate.
  for(const g of mapClusters){if(Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
- renderMarkers();setMapText($('#zoomLabel'),zoom.toFixed(1)+'×');const hasRated=filtered.some(d=>d.speed!=null);$('#empty').hidden=mapClusters.length>0;setMapText($('#empty').firstChild,hasRated?'You have wandered beyond these discs.':'No discs match these filters.');setMapText($('#emptyReset'),hasRated?'Show all discs':'Clear filters');
+ renderMarkers();setMapText($('#zoomLabel'),zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
@@ -127,6 +131,8 @@ function renderCluster(){
 }
 function initAtlasMap(){
  const map=$('#map'),layer=$('#mapMarkers'),pop=$('#clusterPopover');
+ const glow=document.createElement('div');glow.className='map-edge-feedback';glow.setAttribute('aria-hidden','true');
+ for(const side of ['left','right','top','bottom']){const edge=document.createElement('i');edge.className=side;glow.append(edge);}map.append(glow);
  map.addEventListener('pointerenter',measureMap);
  layer.addEventListener('pointerout',e=>{const button=e.target.closest('[data-cluster]');if(button&&!button.contains(e.relatedTarget))scheduleClusterClose();});
  layer.addEventListener('click',e=>{const button=e.target.closest('[data-cluster]');if(!button)return;e.stopPropagation();if(mapMoved&&e.detail!==0)return;const group=mapClusters.find(g=>g.key===button.dataset.cluster);if(group){if(group.members.length>1&&group.members.length<=3)openStackDetail(group,button);else select(group.lead);}});
@@ -145,7 +151,7 @@ function initAtlasMap(){
  const pointers=new Map();let pinchDistance=0,velocity={x:0,y:0},lastMove=0;
  map.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('.map-controls'))return;
-  measureMap();stopCamera();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  measureMap();stopCamera();resetEdge();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   mapDrag={x:e.clientX,y:e.clientY};
   if(!e.target.closest('button'))map.setPointerCapture(e.pointerId);
   map.classList.add('is-dragging');
@@ -161,12 +167,13 @@ function initAtlasMap(){
    if(!mapMoved&&Math.hypot(e.clientX-mapDrag.x,e.clientY-mapDrag.y)<5)return;
    const now=performance.now(),dt=Math.max(8,now-lastMove);lastMove=now;
    velocity={x:velocity.x*.55+dx/dt*.45,y:velocity.y*.55+dy/dt*.45};
-   mapMoved=true;map.setPointerCapture(e.pointerId);pan.x+=dx;pan.y+=dy;scheduleMapDraw();
+   mapMoved=true;map.setPointerCapture(e.pointerId);panMap(dx,dy);
   }
  });
- const stop=e=>{pointers.delete(e.pointerId);pinchDistance=0;mapDrag=pointers.size?[...pointers.values()][0]:null;
+ const stop=e=>{if(!pointers.has(e.pointerId))return;pointers.delete(e.pointerId);pinchDistance=0;mapDrag=pointers.size?[...pointers.values()][0]:null;
   if(!pointers.size){map.classList.remove('is-dragging');
-   if(e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
+   const hitEdge=!!(edgeFeedback.x||edgeFeedback.y);releaseEdge();
+   if(!hitEdge&&e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
     const vx=Math.max(-1.5,Math.min(1.5,velocity.x)),vy=Math.max(-1.5,Math.min(1.5,velocity.y));
     if(Math.hypot(vx,vy)>.025)tweenCamera({zoom,x:pan.x+vx*70,y:pan.y+vy*70},.24);
    }
@@ -174,16 +181,50 @@ function initAtlasMap(){
   if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);
   if(!pointers.size&&!cameraTween)scheduleMapDraw();
  };
- map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);
- map.addEventListener('wheel',e=>{e.preventDefault();animateZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});},{passive:false});
+ map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);map.addEventListener('lostpointercapture',stop);
+ map.addEventListener('wheel',e=>{
+  e.preventDefault();measureMap();
+  if(e.ctrlKey||e.metaKey){resetEdge();animateZoom(Math.exp(-e.deltaY*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});return;}
+  stopCamera();closeCluster();const unit=e.deltaMode===1?16:e.deltaMode===2?mapViewport.height:1;
+  panMap(-(e.shiftKey&&!e.deltaX?e.deltaY:e.deltaX)*unit,-(e.shiftKey&&!e.deltaX?0:e.deltaY)*unit);
+  clearTimeout(edgeReleaseTimer);edgeReleaseTimer=setTimeout(releaseEdge,120);
+ },{passive:false});
  map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]},.22);}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
  window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(e.target===document)measureMap();if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
 }
 let mapMoved=false,mapFrame=0,cameraTween=null,cameraDestination=null;
+const edgeFeedback={x:0,y:0};let edgeTween=null,edgeReleaseTimer=null;
+function boundedCamera(target){
+ const {width:w,height:h}=mapViewport;
+ return window.AtlasLayout.constrain(target,window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode')),groupCache?.extent);
+}
+function paintEdge(){
+ const map=$('#map'),x=edgeFeedback.x,y=edgeFeedback.y;
+ for(const [side,value] of [['left',x],['right',-x],['top',y],['bottom',-y]])map.style.setProperty('--edge-'+side,Math.max(0,value/12));
+ const offset=window.AtlasMotion?.enabled()?`${x}px ${y}px`:'0px 0px';
+ canvas.style.translate=offset;$('#mapMarkers').style.translate=offset;
+}
+function resetEdge(){clearTimeout(edgeReleaseTimer);edgeTween?.kill();edgeTween=null;edgeFeedback.x=0;edgeFeedback.y=0;paintEdge();}
+function releaseEdge(){
+ clearTimeout(edgeReleaseTimer);edgeTween?.kill();
+ if(!window.AtlasMotion?.enabled()){resetEdge();return;}
+ edgeTween=gsap.to(edgeFeedback,{x:0,y:0,duration:.55,ease:'elastic.out(1,0.55)',onUpdate:paintEdge,onComplete:()=>{edgeTween=null;}});
+}
+function panMap(dx,dy){
+ edgeTween?.kill();edgeTween=null;
+ const target={zoom,x:pan.x+dx,y:pan.y+dy},bounded=boundedCamera(target);
+ pan={x:bounded.x,y:bounded.y};
+ for(const axis of ['x','y']){
+  const excess=target[axis]-bounded[axis];
+  edgeFeedback[axis]=excess?Math.sign(excess)*Math.min(12,Math.abs(edgeFeedback[axis])*.65+Math.abs(excess)*.18):0;
+ }
+ paintEdge();scheduleMapDraw();
+}
 function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(()=>{mapFrame=0;draw();});}
 function stopCamera(){cameraTween?.kill();cameraTween=null;cameraDestination=null;}
 function tweenCamera(target,duration=.16){
  stopCamera();closeCluster();
+ target=boundedCamera(target);
  if(!window.AtlasMotion?.enabled()){zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
  cameraDestination=target;const camera={zoom,x:pan.x,y:pan.y};
  cameraTween=gsap.to(camera,{...target,duration,ease:'power3.out',onUpdate:()=>{zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();},onComplete:()=>{cameraTween=null;cameraDestination=null;draw();}});

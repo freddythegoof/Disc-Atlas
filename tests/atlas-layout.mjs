@@ -28,3 +28,26 @@ test('opening camera centers the featured disc at desktop and phone sizes',()=>{
   assert.ok(Math.abs(bottom-target.y*height*camera.zoom+camera.y-h*.48)<1);
  }
 });
+test('camera stops at every data edge and centers data smaller than the viewport',()=>{
+ assert.equal(typeof layout.constrain,'function');
+ const area={left:0,bottom:100,width:100,height:100},extent={minX:0,maxX:1,minY:0,maxY:1};
+ for(const [x,y,wantX,wantY] of [[500,500,0,100],[-500,-500,-100,0],[-30,40,-30,40]]){
+  const camera=layout.constrain({zoom:2,x,y},area,extent,0);
+  assert.equal(camera.x,wantX);assert.equal(camera.y,wantY);
+ }
+ const small=layout.constrain({zoom:1,x:900,y:-900},area,{minX:.4,maxX:.6,minY:.4,maxY:.6},0);
+ assert.equal(small.x,0);assert.equal(small.y,0);
+});
+test('sparse overlapping discs spread into stable separated positions; dense catalogs keep their layout',()=>{
+ assert.equal(typeof layout.spread,'function');
+ const items=fixtures.slice(0,12),base=layout.positions(items);
+ const spread=layout.spread(items,base,1000,600);
+ assert.equal(spread.size,12);
+ for(const [id,p] of spread)for(const [other,q] of spread)if(id!==other)
+  assert.ok(Math.hypot((p.x-q.x)*1000,(p.y-q.y)*600)>=75,'individual discs have room');
+ const reversed=layout.spread([...items].reverse(),base,1000,600);
+ for(const [id,p] of spread)assert.deepEqual(p,reversed.get(id));
+ const dense=Array.from({length:500},(_,i)=>({...fixtures[0],id:`dense-${i}`})),denseBase=layout.positions(dense);
+ assert.equal(layout.spread(dense,denseBase,1000,600),null);
+ assert.equal(layout.spread([],new Map(),1000,600),null);
+});

@@ -157,6 +157,14 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 #map.is-dragging .atlas-marker{cursor:grabbing}
 #map.is-dragging .atlas-marker:hover .marker-halo{opacity:0}
 #map.is-dragging .atlas-marker.is-selected .marker-halo{opacity:1}
+.map-edge-feedback{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit;z-index:4}
+.map-edge-feedback i{position:absolute;pointer-events:none}
+.map-edge-feedback .left,.map-edge-feedback .right{top:0;bottom:0;width:32px}
+.map-edge-feedback .top,.map-edge-feedback .bottom{left:0;right:0;height:32px}
+.map-edge-feedback .left{left:0;background:linear-gradient(90deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-left,0)}
+.map-edge-feedback .right{right:0;background:linear-gradient(-90deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-right,0)}
+.map-edge-feedback .top{top:0;background:linear-gradient(180deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-top,0)}
+.map-edge-feedback .bottom{bottom:0;background:linear-gradient(0deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-bottom,0)}
 .explore-tools button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide{
  transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s;
 }

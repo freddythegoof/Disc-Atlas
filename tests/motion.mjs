@@ -28,7 +28,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--regression')){
+ if(process.argv.includes('--boundaries')){
+  const {checkAtlasInteractions}=await import('./atlas-interactions.mjs');
+  await checkAtlasInteractions(browser,base);
+ }else if(process.argv.includes('--regression')){
   await new Promise((resolve,reject)=>{
    const child=spawn(process.execPath,['tests/redesign.mjs'],{env:{...process.env,ATLAS_URL:base},stdio:'inherit'});
    child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(new Error('Redesign regression failed: '+code)));
@@ -53,7 +56,7 @@ try{
    });
    const start=Date.now();
    if(selectionProfile){for(let i=0;i<8;i++){await page.evaluate(i=>select(filtered.filter(d=>d.speed!=null)[i*5]),i);await page.waitForTimeout(500);}}
-   else for(let i=0;i<90;i++){if(zoomProfile)await page.mouse.wheel(0,i%30<15?-15:15);else await page.mouse.move(x+Math.sin(i/16)*110,y+Math.sin(i/19)*25);await page.waitForTimeout(12);}
+   else {if(zoomProfile)await page.keyboard.down('Control');for(let i=0;i<90;i++){if(zoomProfile)await page.mouse.wheel(0,i%30<15?-15:15);else await page.mouse.move(x+Math.sin(i/16)*110,y+Math.sin(i/19)*25);await page.waitForTimeout(12);}if(zoomProfile)await page.keyboard.up('Control');}
    const elapsed=Date.now()-start;
    const observed=await page.evaluate(()=>{measure.active=false;measure.observer.disconnect();const f=measure.frames.sort((a,b)=>a-b);return {frames:f.length,p95:f[Math.floor(f.length*.95)],max:f.at(-1),over25:f.filter(n=>n>25).length,added:measure.added,removed:measure.removed};});
    const {profile}=await cdp.send('Profiler.stop');const done=new Promise(r=>cdp.once('Tracing.tracingComplete',r));await cdp.send('Tracing.end');await done;
@@ -78,22 +81,22 @@ try{
     const items=discs.filter(d=>d.speed===12).slice(0,size);filtered=items;selected=null;
     for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});
     const camera=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,level);
-    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();return items.map(d=>d.name);
+    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();return mapClusters[0].lead.name;
    },{size,level});
    await page.locator('.atlas-marker').first().click();
-   await page.locator('#detail [data-choose-disc]').first().waitFor();
-   assert.equal(await page.locator('#detail [data-choose-disc]').count(),size,'Small stacks open every member in the sidebar');
-   assert.equal(await page.locator('#detail .comparison-route').count(),size,'Small stacks automatically overlay flight paths');
+   await page.locator('#detail h2').waitFor();
+   assert.equal(await page.locator('#detail [data-choose-disc]').count(),0,'Sparse identical ratings open individual discs');
    assert.equal(await page.locator('#clusterPopover').isVisible(),false);
-   await page.locator('#detail [data-choose-disc]').last().click();
-   assert.equal(await page.locator('#detail h2').innerText(),expected.at(-1).trim(),'Choosing a disc opens that disc');
-   assert.equal(await page.locator('.atlas-marker').count(),1,'Choosing a stack member does not reshuffle the graph');
+   assert.equal(await page.locator('#detail h2').innerText(),expected.trim(),'Choosing a disc opens that disc');
+   assert.equal(await page.locator('.atlas-marker').count(),size,'Selecting a sparse disc preserves its neighbors');
    await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
   }
   await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
   const groupId=await page.evaluate(()=>mapClusters.find(g=>g.members.length===2)?.key);
   if(groupId){
    await page.locator(`[data-cluster="${groupId}"]`).click();await page.waitForTimeout(250);
+   assert.equal(await page.locator('#detail [data-choose-disc]').count(),2,'Dense views retain the small stack chooser');
+   assert.equal(await page.locator('#detail .comparison-route').count(),2,'Dense stacks retain automatic flight comparisons');
    fs.mkdirSync('outputs/motion',{recursive:true});await page.screenshot({path:'outputs/motion/stack-sidebar.png'});
    await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   }
@@ -101,13 +104,13 @@ try{
   assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Expanded graph fits the entire catalog');
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
   await page.evaluate(()=>{const items=filtered.filter(d=>d.speed===12).slice(0,2);filtered=items;selected=null;for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});const c=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,12);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});
-  await page.locator('.atlas-marker').first().click();await page.locator('#detail [data-choose-disc]').first().waitFor();
+  await page.locator('.atlas-marker').first().click();await page.locator('#detail h2').waitFor();
   await page.locator('#expandDetail').click();await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
   await page.screenshot({path:'outputs/motion/stack-mobile.png'});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#detail [data-choose-disc]').first().click();
+  await page.emulateMedia({reducedMotion:'reduce'});
   assert.ok(await page.locator('#detail h2').isVisible());assert.deepEqual(errors,[]);
-  console.log('PASS: stable directory, small stack chooser at normal/max zoom, graph coverage, mobile and reduced motion.');
+  console.log('PASS: stable directory, sparse discs at normal/max zoom, dense stack chooser, graph coverage, mobile and reduced motion.');
  }else{
   const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'dark'});
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
