@@ -47,10 +47,10 @@ test('worker structured-clone payload preserves measured footprints and priority
  assert.equal(reply.groups[0].key,'aaa');
 });
 
-test('deep zoom releases separated discs and only absorbs immediate neighbors',()=>{
+test('deep zoom releases separated discs and absorbs inaccessible satellites',()=>{
  for(const level of [6,7]){
-  const {positions,result}=build(10,level);
-  assert.equal(result.groups.length,2,'40–50px apart is enough room for distinct markers');
+  const {positions,result}=build(20,level);
+  assert.equal(result.groups.length,2,'80–100px neighbors remain distinct');
   for(const g of result.groups)assert.deepEqual(g.pos,positions.get(g.key));
   assert.equal(build(2,level).result.groups.length,1,'8–10px neighbors still stack');
  }
@@ -62,7 +62,7 @@ test('deep zoom merges close pairs while preserving breathing room and honest le
   const {positions,result}=build(4,level);
   assert.equal(result.groups.length,1,'16–20px neighbors share a stack');
   assert.deepEqual(result.groups[0].pos,positions.get('zzz'));
-  assert.equal(build(7,level).result.groups.length,2,'28–35px neighbors remain distinct');
+  assert.equal(build(10,level).result.groups.length,1,'A satellite beside a primary joins its accessible stack');
  }
 });
 
@@ -80,6 +80,23 @@ test('capacity grows toward overview, retains all discs and caps deep stacks at 
   assert.equal(new Set(groups.flatMap(g=>g.members)).size,100,'No disc is dropped');
   previous=largest;
  }
+});
+
+test('satellite absorption preserves primary positions, caps stacks, and keeps overflow accessible',()=>{
+ const discs=['a','b','c','d'].map(id=>({id,name:id,speed:9}));
+ const points=[[100,100],[109,100],[91,100],[100,109]];
+ const positions=new Map(discs.map((d,i)=>[d.id,{x:points[i][0]/area.width,y:points[i][1]/area.height}]));
+ const labels=new Map(discs.map(d=>[d.id,label]));
+ const {groups}=runtime.AtlasGroups.build(discs,positions,1000,800,7,false,labels,[{id:'a'}]);
+ assert.equal(groups[0].key,'a');assert.equal(groups[0].members.length,3);
+ assert.equal(groups.length,2,'A fourth disc remains separately reachable');
+ assert.equal(new Set(groups.flatMap(g=>g.members)).size,4);
+ assert.deepEqual(groups[0].pos,positions.get('a'));
+ // Primaries with room for their labels must never be absorbed by this pass.
+ const narrow=new Map(discs.map(d=>[d.id,{x:-5,y:12,w:10,h:10,radius:8}]));
+ const separate=runtime.AtlasGroups.build(discs,positions,1000,800,7,false,narrow);
+ assert.equal(separate.groups.length,4);
+ assert.ok(separate.groups.every(g=>g.large));
 });
 
 test('shared featured IDs determine leads; unranked discs follow Directory alphabetical order',()=>{

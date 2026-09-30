@@ -13,6 +13,9 @@ const markerNodes=new Map();
 const MAX_MAP_ZOOM=5;
 const planetLabels=new Map();
 const planetNameWidths=new Map();
+const satelliteLabelShifts=[];
+for(let dx=-60;dx<=60;dx+=12)for(let dy=-60;dy<=60;dy+=12)satelliteLabelShifts.push([dx,dy]);
+satelliteLabelShifts.sort((a,b)=>a[0]*a[0]+a[1]*a[1]-b[0]*b[0]-b[1]*b[1]);
 let labelFrameTime=0;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
@@ -162,10 +165,53 @@ function draw(){
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
 // Growth settles before the deepest regroup boundary; only artwork scales.
 function mapMarkerScale(){return 1+.08*(Math.min(4,zoom)-1);}
+function drawDeepPlanetLabels(){
+ planetLabels.clear();
+ const scale=mapMarkerScale(),immersive=!document.body.classList.contains('my-bag-mode');
+ const top=immersive?70:0,bottom=mapViewport.height-(immersive?(mapViewport.width<700?155:110):24);
+ const occupied=mapClusters.flatMap(g=>{
+  const f=groupCache.footprints.get(g.key),r=g.large?(f?.radius||27)*scale:10;
+  return [{key:g.key,x:g.x-r,y:g.y-r,w:r*2,h:r*2},...(g.large&&f?[{x:g.x+f.x,y:g.y+f.y,w:f.w,h:f.h}]:[])];
+ });
+ const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+ // Query nearby obstacles instead of scanning the entire band for every nudge.
+ const cells=new Map(),cellSize=96;
+ const visitCells=(box,visit)=>{
+  for(let x=Math.floor(box.x/cellSize);x<=Math.floor((box.x+box.w)/cellSize);x++)
+   for(let y=Math.floor(box.y/cellSize);y<=Math.floor((box.y+box.h)/cellSize);y++)if(visit(x+':'+y))return true;
+  return false;
+ };
+ const reserve=box=>visitCells(box,key=>{if(!cells.has(key))cells.set(key,new Set());cells.get(key).add(box);});
+ for(const box of occupied)reserve(box);
+ const collides=(box,skip)=>visitCells(box,key=>{for(const other of cells.get(key)||[])if(other!==skip&&overlaps(box,other))return true;return false;});
+ ctx.save();ctx.beginPath();ctx.rect(0,top,mapViewport.width,bottom-top);ctx.clip();
+ ctx.font='11px DM Sans, sans-serif';ctx.fillStyle=themePalette.muted;ctx.globalAlpha=.9;
+ // Singles need a name most; stacks already expose their count and comparison.
+ for(const g of mapClusters.filter(g=>!g.large).sort((a,b)=>a.members.length-b.members.length)){
+  if(g.x<0||g.x>mapViewport.width||g.y<top||g.y>bottom)continue;
+  const name=g.lead.catalogName||g.lead.name;
+  if(!planetNameWidths.has(name))planetNameWidths.set(name,ctx.measureText(name).width);
+  const w=planetNameWidths.get(name),h=14;
+  // A satellite may move a little to make its name usable. Primaries never move.
+  const marker=occupied.find(o=>o.key===g.key);
+  let box;
+  for(const [dx,dy] of satelliteLabelShifts){
+   const x=g.x+dx,y=g.y+dy,moved={x:x-10,y:y-10,w:20,h:20};
+   if(collides(moved,marker))continue;
+   const candidates=[[x+14,y-7],[x-w-14,y-7],[x-w/2,y+14],[x-w/2,y-28]];
+   box=candidates.map(([x,y])=>({x,y,w,h})).find(b=>b.x>4&&b.x+b.w<mapViewport.width-4&&b.y>top&&b.y+b.h<bottom&&!collides(b,marker));
+   if(box){g.x=x;g.y=y;visitCells(marker,key=>{cells.get(key)?.delete(marker);});Object.assign(marker,moved);reserve(marker);break;}
+  }
+  if(!box)continue;
+  reserve({x:box.x-3,y:box.y-3,w:w+6,h:h+6});
+  planetLabels.set(g.key,{...box,opacity:1,name,leader:false});
+  ctx.fillText(name,box.x,box.y+11);
+ }
+ ctx.restore();
+}
 function drawPlanetLabels(){
- // Deep views reserve text for measured primary labels. Remove canvas labels
- // immediately, including cached leaders from the previous zoom level.
- if(zoom>3.3){planetLabels.clear();groupCache.labelPlacements?.clear();return;}
+ // Compact deep labels sit beside dots, without the old leader-line thicket.
+ if(zoom>3.3){groupCache.labelPlacements?.clear();drawDeepPlanetLabels();return;}
  const now=performance.now(),dt=Math.min(1,(now-labelFrameTime)/140);labelFrameTime=now;
  const live=new Set();
  const occupied=mapClusters.filter(g=>g.large).map(g=>({x:g.x-76,y:g.y-38,w:152,h:112}));
@@ -213,7 +259,7 @@ function renderMarkers(){
  const current=new Map(mapClusters.map(g=>[g.key,g]));
  for(const [key,node] of markerNodes){
   const g=current.get(key);
-  const visible=g?.large&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
+  const visible=g&&(g.large||zoom>3.3)&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
   node.querySelector('.marker-name').style.visibility=visible?'':'hidden';
  }
  let updated=0,pendingMarkers=false;
@@ -246,7 +292,7 @@ function renderMarkers(){
    node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
-  node.querySelector('.marker-name').style.visibility=g.large?'':'hidden';
+  node.querySelector('.marker-name').style.visibility=g.large||zoom>3.3?'':'hidden';
   const selectedScale=g.members.includes(selected)?1.12:1;
   if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
    if(g.large)node.art.style.scale=scaleValue;
@@ -330,21 +376,27 @@ function initAtlasMap(){
  for(const side of ['left','right','top','bottom']){const edge=document.createElement('i');edge.className=side;glow.append(edge);}map.append(glow);
  map.addEventListener('pointerenter',measureMap);
  layer.addEventListener('pointerout',e=>{const button=e.target.closest('[data-cluster]');if(button&&!button.contains(e.relatedTarget))scheduleClusterClose();});
- layer.addEventListener('click',e=>{
-  const button=e.target.closest('[data-cluster]');if(!button)return;e.stopPropagation();if(mapMoved&&e.detail!==0)return;
-  let group=mapClusters.find(g=>g.key===button.dataset.cluster);
+ map.addEventListener('click',e=>{
+  if(e.target.closest('.map-controls,#clusterPopover,a')||mapMoved&&e.detail!==0)return;
+  const button=e.target.closest('[data-cluster]');
+  if(!button&&(zoom<=3.3||e.target.closest('button')))return;
+  let group=button?mapClusters.find(g=>g.key===button.dataset.cluster):null;
   // Dot buttons have generous invisible targets. In a dense deep view those
   // can cover a neighbor's visible center; resolve pointer clicks spatially.
   // Keyboard activation keeps the focused button's identity.
   if(zoom>3.3&&e.detail!==0){
    const x=e.clientX-mapViewport.left,y=e.clientY-mapViewport.top;let best=Infinity;
+   // Compact names are actual pointer targets, including where no button lies.
+   const labeled=mapClusters.find(g=>{const p=planetLabels.get(g.key);return p?.opacity>.5&&x>=p.x&&x<=p.x+p.w&&y>=p.y&&y<=p.y+p.h;});
+   group=labeled||null;
    for(const g of mapClusters){
+    if(labeled)break;
     const node=markerNodes.get(g.key);if(!node||node.position.inert)continue;
     const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?27*mapMarkerScale()+8:22;
     if(distance<=radius&&distance<best){best=distance;group=g;}
    }
   }
-  if(group){if(group.members.length>1&&group.members.length<=3)openStackDetail(group,markerNodes.get(group.key));else select(group.lead);}
+  if(group){e.stopPropagation();if(group.members.length>1&&group.members.length<=3)openStackDetail(group,markerNodes.get(group.key));else select(group.lead);}
  });
  pop.addEventListener('pointerenter',()=>clearClusterTimers());pop.addEventListener('pointerleave',()=>scheduleClusterClose());
  pop.addEventListener('focusin',()=>{clusterPinned=true;clearClusterTimers();});

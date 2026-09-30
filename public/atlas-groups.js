@@ -47,6 +47,24 @@ globalThis.AtlasGroups = {
    const key=cx+':'+cy;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(g);
   }
   globalThis.AtlasGroups.promote(groups,footprints,groupZoom,groupZoom);
+  // At deep zoom, a dot beside a primary is easier to reach through its stack.
+  // Only absorb satellites: established primary positions and priority survive.
+  if(groupZoom>3.3){
+   const absorbed=new Set(),radius=64*groupZoom/5;
+   for(const satellite of groups){
+    if(satellite.large)continue;
+    let nearest=null,best=radius*radius;
+    for(const primary of groups){
+     if(!primary.large||primary.members.length+satellite.members.length>3)continue;
+     const distance=(primary.px-satellite.px)**2+(primary.py-satellite.py)**2;
+     if(distance>=best)continue;
+     if(!satellite.members.every(id=>{const p=positions.get(id);return Math.hypot(p.x*area.width*groupZoom-primary.px,p.y*area.height*groupZoom-primary.py)<=radius;}))continue;
+     nearest=primary;best=distance;
+    }
+    if(nearest){nearest.members.push(...satellite.members);absorbed.add(satellite);}
+   }
+   for(let i=groups.length-1;i>=0;i--)if(absorbed.has(groups[i]))groups.splice(i,1);
+  }
   return {groups,extent:globalThis.AtlasLayout.extent(new Map(groups.map(g=>[g.key,g.pos])))};
  }
 };
