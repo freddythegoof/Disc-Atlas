@@ -61,7 +61,7 @@ export async function checkDeepZoom(browser,base){
   await page.evaluate(()=>changeZoom(100));await page.waitForTimeout(250);
   assert.ok(await page.evaluate(()=>zoom<=5),'Immediate pinch zoom uses the same ceiling');
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween&&groupCache.level===0&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
-  assert.ok(await page.evaluate(()=>[...planetLabels.values()].every(n=>n.opacity===0)),'Overview has no leader labels');
+  assert.ok(await page.evaluate(()=>mapClusters.every(g=>g.members.length===1&&!g.large?planetLabels.get(g.key)?.opacity>.99:!planetLabels.get(g.key)?.opacity)),'Overview labels identify single-disc dots without labeling stacks or duplicating full names');
   await page.getByRole('button',{name:'Switch to light mode'}).click();
   await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===7&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
   await page.screenshot({path:`${dir}/light-labels.png`});

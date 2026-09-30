@@ -172,7 +172,8 @@ function drawPlanetLabels(){
  ctx.save();ctx.beginPath();ctx.rect(0,top,mapViewport.width,bottom-top);ctx.clip();ctx.font='11px DM Sans, sans-serif';ctx.lineWidth=1;
  for(const g of mapClusters){
   live.add(g.key);
-  const target=(g.large?54:12)*scale<32?fade:0,previous=planetLabels.get(g.key)?.opacity||0;
+  // A single disc needs its name even before deep zoom; stacks keep the zoom fade.
+  const target=(g.large?54:12)*scale<32?(g.members.length===1?1:fade):0,previous=planetLabels.get(g.key)?.opacity||0;
   const opacity=window.AtlasMotion?.enabled()?previous+Math.sign(target-previous)*Math.min(Math.abs(target-previous),dt):target;
   if(Math.abs(opacity-target)>.001)scheduleMapDraw();
   if(opacity<=.001){planetLabels.set(g.key,{opacity:0});continue;}
