@@ -30,7 +30,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--label-prominence')){
+ if(process.argv.includes('--grouping-zoom')){
+  const {checkGroupingZoom}=await import('./grouping-zoom.mjs');
+  await checkGroupingZoom(browser,base);
+ }else if(process.argv.includes('--label-prominence')){
   const {checkLabelProminence}=await import('./label-prominence.mjs');
   await checkLabelProminence(browser,base);
  }else if(process.argv.includes('--deep-zoom')){

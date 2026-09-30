@@ -24,17 +24,22 @@ globalThis.AtlasGroups = {
    }));
   }
  },
- build(items, positions, width, height, level, immersive, footprints=new Map()) {
+ build(items, positions, width, height, level, immersive, footprints=new Map(), featured=[]) {
   const area=globalThis.AtlasLayout.bounds(width,height,immersive);
-  const groupZoom=2**(level/3),groups=[],cells=new Map(),size=65;
-  const featured=['destroyer','wraith','buzzz','zone','hex','crave','envy','luna','teebird'];
-  const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:featured.indexOf(d.name.toLowerCase())}))
-   .sort((a,b)=>(a.rank<0?99:a.rank)-(b.rank<0?99:b.rank)||a.d.id.localeCompare(b.d.id));
+  const groupZoom=2**(level/3),groups=[],cells=new Map();
+  // Overview keeps its coarse, unlimited stacks. At 4–5x only near-touching
+  // small markers stack (13–16px), so absorption cannot move a disc far away.
+  const size=65/Math.max(1,groupZoom);
+  const capacity=level<=0?Infinity:Math.max(3,Math.ceil(48/(groupZoom*groupZoom)));
+  const ranks=new Map(featured.map((disc,index)=>[disc.id,index]));
+  const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:ranks.get(d.id)??Infinity}))
+   .sort((a,b)=>a.rank-b.rank||a.d.name.localeCompare(b.d.name)||(a.d.brand||'').localeCompare(b.d.brand||'')||a.d.id.localeCompare(b.d.id));
   for(const {d} of ordered){
    const pos=positions.get(d.id);if(!pos)continue;
    const x=pos.x*area.width*groupZoom,y=pos.y*area.height*groupZoom,cx=Math.floor(x/size),cy=Math.floor(y/size);
    let nearby=null,best=size*size;
    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const g of cells.get((cx+dx)+':'+(cy+dy))||[]){
+    if(g.members.length>=capacity)continue;
     const distance=(g.px-x)**2+(g.py-y)**2;if(distance<best){best=distance;nearby=g;}
    }
    if(nearby){nearby.members.push(d.id);continue;}
