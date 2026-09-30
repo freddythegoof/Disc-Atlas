@@ -315,10 +315,10 @@ header>.header-actions{flex:1 1 0;justify-content:flex-end;min-width:max-content
 }
 
 /* Directory controls: compact, with the score column kept clear at every width. */
-#sortBar{display:flex;flex-wrap:wrap;gap:4px}
+#sortBar{display:flex;flex-wrap:wrap;gap:4px;min-width:0;max-width:100%}
 body[data-view="map"] #sortBar{display:none}
 #sortBar button{padding:6px 10px;border-radius:8px;font-size:12px;color:var(--muted);white-space:nowrap}
-#sortBar button[aria-pressed="true"]{color:var(--text);background:var(--selected)}
+#sortBar button[aria-pressed="true"]{color:var(--on-accent);background:var(--lime);font-weight:600;box-shadow:0 2px 8px var(--shadow)}
 body[data-view="list"] .coach-launch{left:16px;right:auto;bottom:max(22px,env(safe-area-inset-bottom));width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:20px;background:var(--panel);box-shadow:0 4px 18px var(--shadow)}
 body[data-view="list"] .coach-label{display:none}
 
