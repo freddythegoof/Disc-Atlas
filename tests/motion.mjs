@@ -10,7 +10,7 @@ const zoomProfile=process.argv.includes('--zoom-profile');
 const selectionProfile=process.argv.includes('--selection-profile');
 const profiling=process.argv.includes('--profile')||zoomProfile||selectionProfile;
 const baseline=new Map();
-if(profiling||process.argv.includes('--baseline'))for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css','public/theme.js']){
+if(profiling||process.argv.includes('--baseline'))for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-groups.js','public/atlas-groups-worker.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css','public/theme.js']){
  baseline.set(file,execFileSync('git',['show','HEAD:'+file]));
 }
 let revision=process.argv.includes('--baseline')?'HEAD':'working';

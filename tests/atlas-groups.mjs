@@ -57,6 +57,15 @@ test('deep zoom releases separated discs and only absorbs immediate neighbors',(
  assert.equal(build(60,0).result.groups.length,1,'Overview keeps its 65px radius');
 });
 
+test('deep zoom merges close pairs while preserving breathing room and honest leads',()=>{
+ for(const level of [6,7]){
+  const {positions,result}=build(4,level);
+  assert.equal(result.groups.length,1,'16–20px neighbors share a stack');
+  assert.deepEqual(result.groups[0].pos,positions.get('zzz'));
+  assert.equal(build(7,level).result.groups.length,2,'28–35px neighbors remain distinct');
+ }
+});
+
 test('capacity grows toward overview, retains all discs and caps deep stacks at three',()=>{
  const crowded=Array.from({length:100},(_,i)=>({id:String(i).padStart(3,'0'),name:`Disc ${i}`,speed:9}));
  const positions=new Map(crowded.map(d=>[d.id,{x:.5,y:.5}]));

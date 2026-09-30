@@ -50,7 +50,7 @@ export async function checkDeepZoom(browser,base){
   await page.waitForFunction(()=>!cameraTween&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
   await page.waitForTimeout(300);
   const labels=await page.evaluate(()=>[...planetLabels.values()].filter(n=>n.opacity>.5).length);
-  assert.ok(labels>0,'Small deep-zoom markers have readable leader labels');
+  assert.equal(labels,0,'Deep satellites stay quiet without leader labels');
   assert.ok(await page.evaluate(()=>mapClusters.filter(g=>g.large).every(g=>!planetLabels.get(g.key)?.opacity)),'Readable large discs do not get duplicate planet labels');
   assert.ok(await page.locator('.atlas-marker.is-large .disc-art').first().evaluate(n=>n.getBoundingClientRect().width)>60,'Deep zoom enlarges disc art');
   await page.screenshot({path:`${dir}/leader-labels.png`});

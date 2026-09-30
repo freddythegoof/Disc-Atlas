@@ -27,9 +27,9 @@ globalThis.AtlasGroups = {
  build(items, positions, width, height, level, immersive, footprints=new Map(), featured=[]) {
   const area=globalThis.AtlasLayout.bounds(width,height,immersive);
   const groupZoom=2**(level/3),groups=[],cells=new Map();
-  // Overview keeps its coarse, unlimited stacks. At 4–5x only near-touching
-  // small markers stack (13–16px), so absorption cannot move a disc far away.
-  const size=65/Math.max(1,groupZoom);
+  // Keep overview grouping; deep views merge neighbors within about 25px.
+  // Leads stay anchored and the capacity below still caps deep stacks at three.
+  const size=Math.max(25,65/Math.max(1,groupZoom));
   const capacity=level<=0?Infinity:Math.max(3,Math.ceil(48/(groupZoom*groupZoom)));
   const ranks=new Map(featured.map((disc,index)=>[disc.id,index]));
   const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:ranks.get(d.id)??Infinity}))
