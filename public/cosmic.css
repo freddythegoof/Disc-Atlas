@@ -261,3 +261,12 @@ body[data-view="list"] .graph-dock{background:none}
 }
 @media(max-width:360px){#zoomLabel{display:none}.logo{font-size:16px}.header-actions #accountButton{padding:4px}.coach-launch{padding:7px 9px}}
 @media(prefers-reduced-motion:reduce){.atlas-marker .stack-0,.atlas-marker .marker-halo{transition:none}}
+
+/* Regrouped discs settle into their new density while the camera stays responsive. */
+#mapMarkers.is-regrouping .marker-position{transition:transform .18s ease-out,opacity .18s ease-out}
+#mapMarkers .marker-position.is-new,#mapMarkers .marker-position.is-retiring{opacity:0;pointer-events:none}
+#mapMarkers.is-regrouping .marker-stack{display:block;opacity:1;transition:opacity .18s ease-out,scale .18s ease-out}
+#mapMarkers.is-regrouping .is-dot .marker-stack{opacity:0;scale:.25}
+#mapMarkers.is-regrouping .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
+#mapMarkers.is-regrouping .is-dot .map-dot{opacity:.9}
+@media(prefers-reduced-motion:reduce){#mapMarkers.is-regrouping .marker-position{transition:none}}

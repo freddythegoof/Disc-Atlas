@@ -10,10 +10,10 @@ const zoomProfile=process.argv.includes('--zoom-profile');
 const selectionProfile=process.argv.includes('--selection-profile');
 const profiling=process.argv.includes('--profile')||zoomProfile||selectionProfile;
 const baseline=new Map();
-if(profiling)for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css','public/theme.js']){
+if(profiling||process.argv.includes('--baseline'))for(const file of ['web/index.html','public/app.js','public/atlas-map.js','public/atlas-layout.js','public/atlas-motion.js','public/cosmic.css','public/theme.js']){
  baseline.set(file,execFileSync('git',['show','HEAD:'+file]));
 }
-let revision='working';
+let revision=process.argv.includes('--baseline')?'HEAD':'working';
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');
  const file=url.pathname==='/'?'web/index.html':'public'+url.pathname;
@@ -28,7 +28,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--premium')){
+ if(process.argv.includes('--zoom-boundary')){
+  const {checkZoomBoundary}=await import('./zoom-boundary.mjs');
+  await checkZoomBoundary(browser,base);
+ }else if(process.argv.includes('--premium')){
   const {checkPremium}=await import('./premium.mjs');
   await checkPremium(browser,base);
  }else if(process.argv.includes('--boundaries')){

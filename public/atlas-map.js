@@ -5,36 +5,71 @@ function photoMarkup(d,extra=''){
  const label=d.catalogName||d.name;
  return `<span class="disc-art clean-disc ${extra}" style="--disc-color:${discColor(d)}" role="img" aria-label="${esc(d.brand+' '+label)} — representative disc illustration"></span>`;
 }
-const featuredMolds=['destroyer','wraith','buzzz','zone','hex','crave','envy','luna','teebird'];
-function featuredRank(d){const n=featuredMolds.indexOf(d.name.toLowerCase());return n>=0?n:99;}
 let atlasPositions = new Map();
 let groupCache=null;
+let groupRevision=0,groupWorker=null,groupContext=null,regrouping=false,retirementTimer=null,retirementFrame=0,regroupToken=0,hasPaintedMarkers=false;
+const preparedGroups=new Map(),pendingGroups=new Set();
 const markerNodes=new Map();
 let mapViewport=null;
 function measureMap(){mapViewport=canvas.getBoundingClientRect();}
+function cancelRegroup(){
+ regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
+ retirementTimer=null;retirementFrame=0;regrouping=false;
+ $('#mapMarkers').classList.remove('is-regrouping');
+}
+function hydrateGroups(raw,items,w,h,level,immersive){
+ const byId=new Map(items.map(d=>[d.id,d]));
+ return {items,w,h,level,immersive,extent:raw.extent,groups:raw.groups.map(g=>({
+  ...g,members:g.members.map(id=>byId.get(id)),lead:byId.get(g.key)
+ }))};
+}
+function prepareGroups(level,items,w,h,immersive){
+ if(preparedGroups.has(level)||pendingGroups.has(level)||!groupWorker)return;
+ pendingGroups.add(level);
+ groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,
+  items:items.map(d=>({id:d.id,name:d.name,speed:d.speed})),
+  positions:items.filter(d=>atlasPositions.has(d.id)).map(d=>[d.id,atlasPositions.get(d.id)])});
+}
+function ensureGroupWorker(){
+ if(groupWorker||!window.Worker)return;
+ try{
+  groupWorker=new Worker('atlas-groups-worker.js');
+  groupWorker.onmessage=event=>{
+   const {revision,level,...raw}=event.data;
+   if(revision!==groupRevision||!groupContext)return;
+   pendingGroups.delete(level);
+   const {items,w,h,immersive}=groupContext;
+   preparedGroups.set(level,hydrateGroups(raw,items,w,h,level,immersive));
+   if(!cameraTween&&Math.round(Math.log2(zoom)*3)===level)scheduleMapDraw();
+  };
+  groupWorker.onerror=()=>{groupWorker.terminate();groupWorker=null;pendingGroups.clear();scheduleMapDraw();};
+ }catch{groupWorker=null;}
+}
+function prepareZoomLevel(nextZoom){
+ if(!groupContext)return;
+ const level=Math.round(Math.log2(nextZoom)*3);
+ if(level!==groupCache?.level){const {items,w,h,immersive}=groupContext;prepareGroups(level,items,w,h,immersive);}
+}
 function buildClusters(items,w,h){
  const immersive=!document.body.classList.contains('my-bag-mode'),area=window.AtlasLayout.bounds(w,h,immersive);
- // Group in world space at discrete zoom levels. Panning never changes a disc's group.
- const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:Math.round(Math.log2(zoom)*3),groupZoom=2**(level/3);
- if(!groupCache||groupCache.items!==items||groupCache.w!==w||groupCache.h!==h||groupCache.level!==level||groupCache.immersive!==immersive){
-  const groups=[],cells=new Map(),size=65;
-  const scattered=window.AtlasLayout.spread(items,atlasPositions,area.width*groupZoom,area.height*groupZoom);
-  const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:featuredRank(d)}))
-   .sort((a,b)=>a.rank-b.rank||a.d.id.localeCompare(b.d.id));
-  for(const {d} of ordered){
-   const pos=(scattered||atlasPositions).get(d.id);if(!pos)continue;
-   const x=pos.x*area.width*groupZoom,y=pos.y*area.height*groupZoom,cx=Math.floor(x/size),cy=Math.floor(y/size);
-   let nearby=null,best=size*size;
-   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const g of cells.get((cx+dx)+':'+(cy+dy))||[]){
-    const distance=(g.px-x)**2+(g.py-y)**2;if(distance<best){best=distance;nearby=g;}
-   }
-   if(nearby){nearby.members.push(d);continue;}
-   const g={key:d.id,pos,px:x,py:y,members:[d],lead:d,large:false};groups.push(g);
-   const key=cx+':'+cy;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(g);
+ const changed=!groupContext||groupContext.items!==items||groupContext.w!==w||groupContext.h!==h||groupContext.immersive!==immersive;
+ if(changed){
+  cancelRegroup();
+  for(const node of markerNodes.values()){node.position.classList.remove('is-new','is-retiring');node.position.inert=false;}
+  groupRevision++;groupContext={items,w,h,immersive};preparedGroups.clear();pendingGroups.clear();
+  const initial=Math.round(Math.log2(zoom)*3);
+  groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive),items,w,h,initial,immersive);
+  preparedGroups.set(initial,groupCache);ensureGroupWorker();
+ }
+ // Keep the current map intact while a different density is prepared in a worker.
+ const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:Math.round(Math.log2(zoom)*3);
+ if(level!==groupCache.level){
+  if(preparedGroups.has(level)){
+   cancelRegroup();groupCache=preparedGroups.get(level);regrouping=true;
+   $('#mapMarkers').classList.add('is-regrouping');
   }
-  const large=[],clearance=scattered?72:w<700?105:155;
-  for(const g of groups)if(large.every(other=>(other.px-g.px)**2+(other.py-g.py)**2>clearance**2)){g.large=true;large.push(g);}
-  groupCache={items,w,h,level,immersive,groups,extent:window.AtlasLayout.extent(new Map(groups.map(g=>[g.key,g.pos])))};
+  else if(groupWorker)prepareGroups(level,items,w,h,immersive);
+  else groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive),items,w,h,level,immersive);
  }
  const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
  pan={x:bounded.x,y:bounded.y};
@@ -66,22 +101,33 @@ function draw(){
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
  for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
  for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,immersive?82:24);ctx.lineTo(xx,plotBottom);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
- // A subtle tether preserves the underlying mean coordinate when markers separate.
- for(const g of mapClusters){if(Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
+ // Explain the selected disc's offset without turning a dense view into a web of lines.
+ for(const g of mapClusters){if(g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  renderMarkers();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
 function renderMarkers(){
  const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||window.BagApp?.isMapActive());
+ let updated=0,pendingMarkers=false;
  for(const g of mapClusters){
   live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=discColor(lead);
+  // Existing markers can change size and label priority too; budget those updates
+  // together with additions so the browser does not repaint a whole level at once.
+  if(regrouping&&(!node||node.groupVersion!==groupCache)){
+   if(updated>=8){pendingMarkers=true;continue;}updated++;
+  }
   if(!node){
    node=document.createElement('button');node.type='button';node.dataset.cluster=g.key;node.className='atlas-marker';
    node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
-   node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';node.position.append(node);layer.append(node.position);window.AtlasMotion?.enter(node);
+   node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';
+   if(regrouping){node.position.classList.add('is-new');node.position.inert=true;}
+   node.position.append(node);layer.append(node.position);
+   if(!hasPaintedMarkers)window.AtlasMotion?.enter(node);
+   if(regrouping)requestAnimationFrame(()=>requestAnimationFrame(()=>{node.position.classList.remove('is-new');if(!node.position.classList.contains('is-retiring'))node.position.inert=false;}));
   }
+  if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
   if(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected){
@@ -92,6 +138,34 @@ function renderMarkers(){
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
  }
+ if(mapClusters.length)hasPaintedMarkers=true;
+ if(pendingMarkers){scheduleMapDraw();return;}
+ if(regrouping){
+  regrouping=false;
+  for(const [key,node] of markerNodes)if(!live.has(key)){
+   if(document.activeElement===node)$('#map').focus({preventScroll:true});
+   node.position.classList.add('is-retiring');node.position.inert=true;
+  }
+  const token=regroupToken;
+  retirementTimer=setTimeout(()=>{
+   if(token!==regroupToken)return;
+   retirementTimer=null;
+   const removeBatch=()=>{
+    if(token!==regroupToken)return;
+    let removed=0;
+    for(const [key,node] of markerNodes)if(node.position.classList.contains('is-retiring')){
+     if(document.activeElement===node)$('#map').focus({preventScroll:true});
+     window.gsap?.killTweensOf([node,...node.children]);node.position.remove();markerNodes.delete(key);
+     if(++removed===8)break;
+    }
+    if([...markerNodes.values()].some(node=>node.position.classList.contains('is-retiring')))retirementFrame=requestAnimationFrame(removeBatch);
+    else{retirementFrame=0;layer.classList.remove('is-regrouping');}
+   };
+   removeBatch();
+  },200);
+  return;
+ }
+ if(retirementTimer||retirementFrame)return;
  for(const [key,node] of markerNodes)if(!live.has(key)){
   if(document.activeElement===node)$('#map').focus({preventScroll:true});
   window.gsap?.killTweensOf([node,...node.children]);node.position.remove();markerNodes.delete(key);
@@ -258,5 +332,6 @@ function changeZoom(factor,anchor){
 }
 function animateZoom(factor,anchor){
  const target=zoomDestination(Math.min(12,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor);
+ prepareZoomLevel(target.zoom);
  tweenCamera(target,.16);
 }

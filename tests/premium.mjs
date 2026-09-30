@@ -44,11 +44,24 @@ export async function checkPremium(browser, base) {
     for(const viewport of [{width:1440,height:900},{width:1024,height:768},{width:390,height:844},{width:320,height:640}]) {
       await page.setViewportSize(viewport);
       await page.waitForTimeout(250);
+      await page.waitForFunction(()=>!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
       const dock=await page.locator('.graph-dock').boundingBox(),controls=await page.locator('.map-controls').boundingBox(),coach=await page.locator('#coachButton').boundingBox();
       const separate=(a,b)=>a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;
       assert.ok(separate(controls,coach),'Zoom controls and coach do not overlap');
       assert.ok(separate(dock,controls),'Graph legend and zoom controls do not overlap');
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
+      const nearControls=await page.evaluate(()=>{
+        const r=document.querySelector('#map').getBoundingClientRect(),c=document.querySelector('.map-controls').getBoundingClientRect();
+        return mapClusters.filter(g=>!g.large).sort((a,b)=>Math.hypot(a.x+r.left-c.left,a.y+r.top-c.top)-Math.hypot(b.x+r.left-c.left,b.y+r.top-c.top)).slice(0,4).map(g=>g.key);
+      });
+      for(const key of nearControls){
+        const marker=page.locator(`[data-cluster="${key}"]`);
+        await marker.hover();await page.waitForTimeout(220);
+        const tooltip=await marker.locator('.marker-name').boundingBox();
+        assert.ok(separate(tooltip,controls)&&separate(tooltip,coach),'Bubble hover labels stay clear of both control groups');
+      }
+      if(viewport.width===1440)await page.screenshot({path:'outputs/premium/bottom-right-hover.png'});
+      await page.mouse.move(0,0);
       await page.locator('#atlasInfo summary').click();
       assert.ok(await page.locator('#atlasInfo a[href="/privacy.html"]').isVisible(),'Legal links are reachable in the information menu');
       await page.keyboard.press('Escape');
@@ -59,7 +72,13 @@ export async function checkPremium(browser, base) {
       const preview=await page.locator('#clusterPopover').boundingBox();
       assert.ok(separate(preview,controls)&&separate(preview,coach),'Disc previews reserve space for both zoom and coach controls');
       await page.keyboard.press('Escape');
+      await page.evaluate(()=>document.activeElement.blur());
       await page.screenshot({path:`outputs/premium/light-${viewport.width}.png`});
+      if(viewport.width===390){
+        await page.getByRole('button',{name:'Switch to dark mode'}).click();await page.waitForTimeout(350);
+        await page.mouse.move(0,0);await page.screenshot({path:'outputs/premium/dark-mobile.png'});
+        await page.getByRole('button',{name:'Switch to light mode'}).click();await page.waitForTimeout(350);
+      }
     }
     await page.setViewportSize({width:1440,height:900});
     await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
