@@ -270,3 +270,25 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers.is-regrouping .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
 #mapMarkers.is-regrouping .is-dot .map-dot{opacity:.9}
 @media(prefers-reduced-motion:reduce){#mapMarkers.is-regrouping .marker-position{transition:none}}
+
+/* Filter context takes the wordmark's place, leaving the atlas its full height. */
+header>.header-identity{flex:1 1 0;min-width:0}
+header>nav{flex-shrink:0}
+header>.header-actions{flex:1 1 0;justify-content:flex-end;min-width:max-content}
+.header-identity .logo,.context-title{min-height:44px;max-width:100%;width:fit-content}
+.context-title{display:flex;align-items:center;gap:10px;padding:5px 8px;margin-left:-8px;border:0;border-radius:10px;background:transparent;color:var(--text);text-align:left;cursor:pointer;transition:background .16s ease,color .16s ease}
+.context-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.context-title .wordmark{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 19px/1.15 -apple-system,BlinkMacSystemFont,'DM Sans',sans-serif;letter-spacing:-.55px}
+.context-subtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:1.2;font-weight:400;letter-spacing:.15px;color:var(--muted)}
+.context-clear{flex-shrink:0;white-space:nowrap;font-size:15px;font-weight:400;line-height:1;color:var(--muted)}
+.context-clear>span{font-size:10px}
+.context-title:hover,.context-title:focus-visible{background:var(--surface)}
+.context-title:hover .context-clear,.context-title:focus-visible .context-clear{color:var(--text)}
+.context-title:focus-visible,.header-identity .logo:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+@media(max-width:1100px){.context-clear>span{display:none}}
+@media(max-width:700px){
+ header{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:50px 1fr}
+ .context-title{gap:7px;padding:4px 6px;margin-left:-6px}
+ .context-title .wordmark{font-size:17px}
+ .context-subtitle{font-size:10px;letter-spacing:0}
+}

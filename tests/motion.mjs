@@ -28,7 +28,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--filter-regroup')){
+ if(process.argv.includes('--context-header')){
+  const {checkContextHeader}=await import('./context-header.mjs');
+  await checkContextHeader(browser,base);
+ }else if(process.argv.includes('--filter-regroup')){
   const {checkFilterRegroup}=await import('./filter-regroup.mjs');
   await checkFilterRegroup(browser,base);
  }else if(process.argv.includes('--zoom-boundary')){
