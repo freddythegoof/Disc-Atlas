@@ -71,8 +71,9 @@ export async function checkDirectory(browser,base){
     if(action==='click')await button.click();else{await button.focus();await page.keyboard.press(action);}
     assert.equal(await button.getAttribute('aria-pressed'),'true');
     assert.match(await button.innerText(),direction==='ascending'?/↑/:/↓/);
+    if(sort==='new')assert.equal((await button.innerText()).trim(),direction==='ascending'?'Oldest ↑':'Newest ↓');
     const current=sort==='stability'?(direction==='ascending'?'most understable first':'most overstable first'):(direction==='ascending'?'oldest first':'newest first');
-    assert.equal(await button.getAttribute('aria-label'),`${label}: ${current}`);
+    assert.equal(await button.getAttribute('aria-label'),`${sort==='new'&&direction==='ascending'?'Oldest':label}: ${current}`);
     assert.ok((await button.getAttribute('title')).toLowerCase().startsWith(current+'.'));
     assert.equal(await page.locator('#sortBar [aria-pressed="true"]').count(),1);
     assert.ok(await page.evaluate(({sort,direction})=>{

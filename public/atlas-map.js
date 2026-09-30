@@ -15,6 +15,30 @@ const planetLabels=new Map();
 const planetNameWidths=new Map();
 let labelFrameTime=0;
 let mapViewport=null;
+const fullLabelFootprints=new Map();
+function measureFullLabels(items){
+ const mobile=innerWidth<700,keyPrefix=mobile?'mobile:':'desktop:',pending=[];
+ const host=document.createElement('div');host.style.cssText='position:absolute;visibility:hidden;pointer-events:none';
+ for(const d of items){
+  const key=keyPrefix+d.id;if(fullLabelFootprints.has(key))continue;
+  const node=document.createElement('div');node.className='atlas-marker is-large overview';
+  node.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'<small>'+esc(d.brand)+'</small></span>';
+  host.append(node);pending.push({key,node});
+ }
+ if(pending.length){
+  $('#mapMarkers').append(host);
+  // Batch writes before reads; this runs only for new labels/breakpoints/fonts.
+  for(const {key,node} of pending){
+   const marker=node.getBoundingClientRect(),label=node.firstChild.getBoundingClientRect();
+   const gap=parseFloat(getComputedStyle(node.firstChild).lineHeight)/4;
+   fullLabelFootprints.set(key,{x:label.x-marker.x-marker.width/2-gap,y:label.y-marker.y-marker.height/2-gap,
+    w:label.width+gap*2,h:label.height+gap*2,radius:marker.width/2});
+  }
+  host.remove();
+ }
+ return new Map(items.map(d=>[d.id,fullLabelFootprints.get(keyPrefix+d.id)]));
+}
+document.fonts.ready.then(()=>{fullLabelFootprints.clear();groupContext=null;scheduleMapDraw();});
 function measureMap(){mapViewport=canvas.getBoundingClientRect();}
 function cancelRegroup(){
  regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
@@ -24,14 +48,14 @@ function cancelRegroup(){
 }
 function hydrateGroups(raw,items,w,h,level,immersive){
  const byId=new Map(items.map(d=>[d.id,d]));
- return {items,w,h,level,immersive,extent:raw.extent,groups:raw.groups.map(g=>({
+ return {items,w,h,level,immersive,footprints:measureFullLabels(items),extent:raw.extent,groups:raw.groups.map(g=>({
   ...g,members:g.members.map(id=>byId.get(id)),lead:byId.get(g.key)
  }))};
 }
 function prepareGroups(level,items,w,h,immersive){
  if(preparedGroups.has(level)||pendingGroups.has(level)||!groupWorker)return;
  pendingGroups.add(level);
- groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,
+ groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,footprints:groupContext.footprints,
   items:items.map(d=>({id:d.id,name:d.name,speed:d.speed})),
   positions:items.filter(d=>atlasPositions.has(d.id)).map(d=>[d.id,atlasPositions.get(d.id)])});
 }
@@ -61,13 +85,14 @@ function buildClusters(items,w,h){
  if(changed){
   cancelRegroup();
   for(const node of markerNodes.values()){node.position.classList.remove('is-new','is-retiring');node.position.inert=false;}
-  groupRevision++;groupContext={items,w,h,immersive};preparedGroups.clear();pendingGroups.clear();
+  groupRevision++;groupContext={items,w,h,immersive,footprints:measureFullLabels(items)};preparedGroups.clear();pendingGroups.clear();
+  if(groupCache){groupCache.footprints=measureFullLabels(groupCache.items);groupCache.prominenceZoom=null;}
   ensureGroupWorker();
   // The initial map has no previous frame to retain. Later filter/size changes
   // use the same worker and staged swap as zoom changes, even at the same level.
   if(!groupCache||!hasPaintedMarkers){
    const initial=Math.round(Math.log2(zoom)*3);
-   groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive),items,w,h,initial,immersive);
+   groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive,groupContext.footprints),items,w,h,initial,immersive);
    preparedGroups.set(initial,groupCache);
   }
  }
@@ -81,7 +106,13 @@ function buildClusters(items,w,h){
    $('#mapMarkers').classList.add('is-regrouping');
   }
   else if(groupWorker)prepareGroups(level,items,w,h,immersive);
-  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive),items,w,h,level,immersive);appliedContext=contextPending;}
+  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive,groupContext.footprints),items,w,h,level,immersive);appliedContext=contextPending;}
+ }
+ // Labels do not scale with the camera. Recheck at the actual zoom, including
+ // intermediate animation frames and while a new worker level is pending.
+ if(groupCache.prominenceZoom!==zoom){
+  window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3));
+  groupCache.prominenceZoom=zoom;
  }
  const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
  pan={x:bounded.x,y:bounded.y};
@@ -172,6 +203,14 @@ function renderMarkers(){
  const scale=mapMarkerScale();
  const scaleValue=scale.toFixed(3);
  const filterPending=groupCache.items!==filtered;
+ // Artwork can retire in batches, but obsolete full labels must disappear
+ // before a newly promoted neighbor paints. Do not fade colliding text out.
+ const current=new Map(mapClusters.map(g=>[g.key,g]));
+ for(const [key,node] of markerNodes){
+  const g=current.get(key);
+  const visible=g?.large&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
+  node.querySelector('.marker-name').style.visibility=visible?'':'hidden';
+ }
  let updated=0,pendingMarkers=false;
  for(const g of mapClusters){
   live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=filterPending&&node?node.discColor:discColor(lead);
@@ -194,7 +233,7 @@ function renderMarkers(){
   if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+', '+lead.brand+', '+({putter:'Putter',mid:'Midrange',fairway:'Fairway driver',distance:'Distance driver',unknown:'Unrated'}[typeOf(lead)])+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
-  if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected)){
+  if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected||node.scaleLarge!==g.large)){
    if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
    const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
    for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
@@ -202,6 +241,7 @@ function renderMarkers(){
    node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
+  node.querySelector('.marker-name').style.visibility=g.large?'':'hidden';
   const selectedScale=g.members.includes(selected)?1.12:1;
   if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
    if(g.large)node.art.style.scale=scaleValue;

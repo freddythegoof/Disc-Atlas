@@ -2,7 +2,7 @@
 self.window=self;
 importScripts('atlas-layout.js','atlas-groups.js');
 self.onmessage=event=>{
- const {revision,level,items,positions,width,height,immersive}=event.data;
- const result=AtlasGroups.build(items,new Map(positions),width,height,level,immersive);
+ const {revision,level,items,positions,width,height,immersive,footprints}=event.data;
+ const result=AtlasGroups.build(items,new Map(positions),width,height,level,immersive,new Map(footprints));
  self.postMessage({revision,level,...result});
 };

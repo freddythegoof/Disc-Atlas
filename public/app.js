@@ -140,9 +140,10 @@ $('#sortBar').onclick=e=>{
   const config={speed:['Speed',speedAscending,'fastest first','slowest first'],stability:['Stability',stabilityAscending,'most overstable first','most understable first'],new:['Newest',newestAscending,'newest first','oldest first']}[option.dataset.sort];
   if(config){
    const [label,ascending,descendingText,ascendingText]=config,current=ascending?ascendingText:descendingText,other=ascending?descendingText:ascendingText;
-   option.textContent=label+(ascending?' ↑':' ↓');
+   const displayLabel=option.dataset.sort==='new'&&ascending?'Oldest':label;
+   option.textContent=displayLabel+(ascending?' ↑':' ↓');
    option.title=current[0].toUpperCase()+current.slice(1)+'. Click for '+other+'.';
-   option.setAttribute('aria-label',label+': '+current);
+   option.setAttribute('aria-label',displayLabel+': '+current);
   }
  }
  $('#sort').dispatchEvent(new Event('change'));

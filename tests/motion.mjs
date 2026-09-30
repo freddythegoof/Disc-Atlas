@@ -14,13 +14,15 @@ if(profiling||process.argv.includes('--baseline'))for(const file of ['web/index.
  baseline.set(file,execFileSync('git',['show','HEAD:'+file]));
 }
 let revision=process.argv.includes('--baseline')?'HEAD':'working';
+const labelBaseline=new Map();
+if(process.argv.includes('--labels-before'))for(const file of ['public/atlas-map.js','public/atlas-groups.js','public/atlas-groups-worker.js'])labelBaseline.set(file,execFileSync('git',['show','HEAD:'+file]));
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');
  const file=url.pathname==='/'?'web/index.html':'public'+url.pathname;
  if(file.includes('..')){res.writeHead(400);res.end();return;}
  if(url.pathname.startsWith('/api/')){res.writeHead(503,{'Content-Type':'application/json'});res.end('{"error":"Frontend test: backend excluded"}');return;}
  try{
-  const data=revision==='HEAD'&&baseline.has(file)?baseline.get(file):fs.readFileSync(file);
+  const data=labelBaseline.get(file)||(revision==='HEAD'&&baseline.has(file)?baseline.get(file):fs.readFileSync(file));
   res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.json':'application/json','.ttf':'font/ttf'})[path.extname(file)]||'application/octet-stream'});res.end(data);
  }catch{res.writeHead(404);res.end();}
 });
@@ -28,7 +30,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--deep-zoom')){
+ if(process.argv.includes('--label-prominence')){
+  const {checkLabelProminence}=await import('./label-prominence.mjs');
+  await checkLabelProminence(browser,base);
+ }else if(process.argv.includes('--deep-zoom')){
   const {checkDeepZoom}=await import('./deep-zoom.mjs');
   await checkDeepZoom(browser,base);
  }else if(process.argv.includes('--directory')){
@@ -105,10 +110,12 @@ try{
    const expected=await page.evaluate(()=>mapClusters[0].lead.name);
    await page.locator('.atlas-marker').first().click();
    await page.locator('#detail h2').waitFor();
-   assert.equal(await page.locator('#detail [data-choose-disc]').count(),0,'Sparse identical ratings open individual discs');
+   assert.equal(await page.locator('#detail [data-choose-disc]').count(),size,'Coincident discs remain accessible through the stack chooser');
    assert.equal(await page.locator('#clusterPopover').isVisible(),false);
+   await page.locator('#detail [data-choose-disc]').first().click();
    assert.equal(await page.locator('#detail h2').innerText(),expected.trim(),'Choosing a disc opens that disc');
-   assert.equal(await page.locator('.atlas-marker').count(),size,'Selecting a sparse disc preserves its neighbors');
+   assert.equal(await page.locator('.atlas-marker').count(),1,'Coincident markers stay grouped instead of being displaced');
+   assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>g.pos.x===.5&&g.pos.y===.5)),'Selecting a stack preserves its true position');
    await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
   }
   await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
