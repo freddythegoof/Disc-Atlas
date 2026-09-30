@@ -43,7 +43,7 @@ export async function checkAtlasInteractions(browser,base){
   assert.ok(await page.evaluate(()=>canvas.style.translate.split(' ').every(value=>parseFloat(value)===0)),'Reduced motion keeps the map still at the edge');
   await page.waitForTimeout(180);assert.equal(await page.evaluate(()=>!!edgeTween),false);
   await page.locator('#search').fill('no-such-disc-123456');assert.equal(await page.locator('#empty').isVisible(),true,'Genuine empty filters retain their empty state');
-  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
   assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Mobile overview retains every rated disc');
   await page.evaluate(()=>{selectedBrands.add('Axiom');filter();});

@@ -85,7 +85,7 @@ export async function checkPremium(browser, base) {
     await page.waitForTimeout(250);
     await page.screenshot({path:'outputs/premium/overview.png'});
     await page.setViewportSize({width:390,height:844});
-    await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+    await page.reload();await page.locator('#mapTab').click();await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
     const cdp=await context.newCDPSession(page),touchZoom=await page.evaluate(()=>zoom);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:140,y:400,id:1},{x:240,y:400,id:2}]});
     await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:110,y:400,id:1},{x:270,y:400,id:2}]});

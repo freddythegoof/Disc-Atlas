@@ -25,6 +25,9 @@
   --putter:#bca2e7;--mid:#77cbb2;--fairway:#86b7eb;--distance:#e9a38e;--unknown:#a4a9b3;
 }
 [hidden]{display:none!important}
+/* Set before the catalog loads so mobile never paints the map on entry. */
+body[data-view="list"] #mapWrap{display:none}
+body[data-view="list"] #directory{display:block!important}
 body{font:14px/1.5 'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 button,input,select,textarea{font:inherit}button,a,input,select,summary{touch-action:manipulation}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,#map:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
@@ -292,3 +295,11 @@ header>.header-actions{flex:1 1 0;justify-content:flex-end;min-width:max-content
  .context-title .wordmark{font-size:17px}
  .context-subtitle{font-size:10px;letter-spacing:0}
 }
+
+/* Directory controls: compact, with the score column kept clear at every width. */
+#sortBar{display:flex;flex-wrap:wrap;gap:4px}
+body[data-view="map"] #sortBar{display:none}
+#sortBar button{padding:6px 10px;border-radius:8px;font-size:12px;color:var(--muted);white-space:nowrap}
+#sortBar button[aria-pressed="true"]{color:var(--text);background:var(--selected)}
+body[data-view="list"] .coach-launch{left:16px;right:auto;bottom:max(22px,env(safe-area-inset-bottom));width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:20px;background:var(--panel);box-shadow:0 4px 18px var(--shadow)}
+body[data-view="list"] .coach-label{display:none}

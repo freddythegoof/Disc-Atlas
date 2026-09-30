@@ -28,7 +28,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--context-header')){
+ if(process.argv.includes('--directory')){
+  const {checkDirectory}=await import('./directory.mjs');
+  await checkDirectory(browser,base);
+ }else if(process.argv.includes('--context-header')){
   const {checkContextHeader}=await import('./context-header.mjs');
   await checkContextHeader(browser,base);
  }else if(process.argv.includes('--filter-regroup')){
@@ -116,7 +119,7 @@ try{
   }
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
   assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Expanded graph fits the entire catalog');
-  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
   await page.evaluate(()=>{const items=filtered.filter(d=>d.speed===12).slice(0,2);filtered=items;selected=null;for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});const c=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,12);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});
   await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
   await page.locator('.atlas-marker').first().click();await page.locator('#detail h2').waitFor();
@@ -160,7 +163,7 @@ try{
   const area=await page.locator('#map').boundingBox();await page.mouse.move(area.x+500,area.y+110);await page.mouse.down();await page.mouse.move(area.x+610,area.y+110,{steps:8});await page.mouse.up();
   const released=await page.evaluate(()=>({x:pan.x,y:pan.y}));await page.waitForTimeout(250);
   assert.deepEqual(await page.evaluate(()=>({x:pan.x,y:pan.y})),released,'Reduced motion disables release inertia');
-  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+  await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
   await page.locator('.atlas-marker.is-selected').click();await page.locator('#detail').waitFor({state:'visible'});
   await page.locator('#expandDetail').click();await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});

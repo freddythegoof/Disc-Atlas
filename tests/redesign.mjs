@@ -56,7 +56,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
    assert.ok(await page.locator('h1').isVisible());
   }
   await page.screenshot({animations:'disabled',path:'outputs/redesign/info.png',fullPage:true});
-  await page.setViewportSize({width:390,height:844});await page.goto(base);
+  await page.setViewportSize({width:390,height:844});await page.goto(base);await page.locator('#mapTab').click();
   await page.locator('.atlas-marker').first().waitFor();
   await page.getByRole('button',{name:'Switch to dark mode'}).click();
   await page.screenshot({animations:'disabled',path:'outputs/redesign/mobile.png'});
