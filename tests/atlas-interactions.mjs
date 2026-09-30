@@ -32,6 +32,7 @@ export async function checkAtlasInteractions(browser,base){
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
   assert.ok(await page.evaluate(()=>mapClusters.some(g=>g.members.length>1)),'The dense catalog still groups');
   await page.evaluate(()=>{selectedBrands.clear();selectedBrands.add('Axiom');filter();});
+  await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
   assert.ok(await page.evaluate(()=>mapClusters.length===filtered.filter(d=>d.speed!=null).length&&mapClusters.every(g=>g.members.length===1&&g.large)),'A sparse brand gets individual visible disc illustrations');
   const positions=await page.evaluate(()=>groupCache.groups.map(g=>[g.key,g.pos.x,g.pos.y]));
   await page.mouse.move(600,300);await page.mouse.wheel(50,50);await page.waitForTimeout(750);

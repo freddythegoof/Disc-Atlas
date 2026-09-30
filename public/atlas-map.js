@@ -57,19 +57,26 @@ function buildClusters(items,w,h){
   cancelRegroup();
   for(const node of markerNodes.values()){node.position.classList.remove('is-new','is-retiring');node.position.inert=false;}
   groupRevision++;groupContext={items,w,h,immersive};preparedGroups.clear();pendingGroups.clear();
-  const initial=Math.round(Math.log2(zoom)*3);
-  groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive),items,w,h,initial,immersive);
-  preparedGroups.set(initial,groupCache);ensureGroupWorker();
+  ensureGroupWorker();
+  // The initial map has no previous frame to retain. Later filter/size changes
+  // use the same worker and staged swap as zoom changes, even at the same level.
+  if(!groupCache||!hasPaintedMarkers){
+   const initial=Math.round(Math.log2(zoom)*3);
+   groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive),items,w,h,initial,immersive);
+   preparedGroups.set(initial,groupCache);
+  }
  }
  // Keep the current map intact while a different density is prepared in a worker.
  const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:Math.round(Math.log2(zoom)*3);
- if(level!==groupCache.level){
+ const contextPending=groupCache.items!==items||groupCache.w!==w||groupCache.h!==h||groupCache.immersive!==immersive;
+ let appliedContext=false;
+ if(contextPending||level!==groupCache.level){
   if(preparedGroups.has(level)){
-   cancelRegroup();groupCache=preparedGroups.get(level);regrouping=true;
+   cancelRegroup();groupCache=preparedGroups.get(level);regrouping=true;appliedContext=contextPending;
    $('#mapMarkers').classList.add('is-regrouping');
   }
   else if(groupWorker)prepareGroups(level,items,w,h,immersive);
-  else groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive),items,w,h,level,immersive);
+  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive),items,w,h,level,immersive);appliedContext=contextPending;}
  }
  const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
  pan={x:bounded.x,y:bounded.y};
@@ -79,6 +86,11 @@ function buildClusters(items,w,h){
   if(x<40||x>w-40||y<(immersive?82:24)||y>h-(immersive?(w<700?210:180):54))continue;
   const original=atlasPositions.get(g.lead.id);
   result.push({...g,x,y,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
+ }
+ // Evaluate offscreen filter results only after their worker result is applied.
+ // Keeping the old groups visible must not suppress the existing Show all fallback.
+ if(appliedContext&&!result.length&&items.some(d=>d.speed!=null)&&zoom!==1){
+  zoom=1;pan={x:0,y:0};return buildClusters(items,w,h);
  }
  return result;
 }
@@ -109,9 +121,10 @@ function draw(){
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
 function renderMarkers(){
  const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||window.BagApp?.isMapActive());
+ const filterPending=groupCache.items!==filtered;
  let updated=0,pendingMarkers=false;
  for(const g of mapClusters){
-  live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=discColor(lead);
+  live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=filterPending&&node?node.discColor:discColor(lead);
   // Existing markers can change size and label priority too; budget those updates
   // together with additions so the browser does not repaint a whole level at once.
   if(regrouping&&(!node||node.groupVersion!==groupCache)){
@@ -130,7 +143,7 @@ function renderMarkers(){
   if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
-  if(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected){
+  if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected)){
    const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
    for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
    node.groupVersion=groupCache;node.brandView=brandView;node.selection=selected;

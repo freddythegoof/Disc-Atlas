@@ -28,7 +28,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--zoom-boundary')){
+ if(process.argv.includes('--filter-regroup')){
+  const {checkFilterRegroup}=await import('./filter-regroup.mjs');
+  await checkFilterRegroup(browser,base);
+ }else if(process.argv.includes('--zoom-boundary')){
   const {checkZoomBoundary}=await import('./zoom-boundary.mjs');
   await checkZoomBoundary(browser,base);
  }else if(process.argv.includes('--premium')){
@@ -83,12 +86,14 @@ try{
   assert.ok(await page.evaluate(()=>originalClose===document.querySelector('#closeDetail')),'Changing discs preserves sidebar controls');
   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   for(const size of [2,3])for(const level of [2.8,12]){
-   const expected=await page.evaluate(({size,level})=>{
+   await page.evaluate(({size,level})=>{
     const items=discs.filter(d=>d.speed===12).slice(0,size);filtered=items;selected=null;
     for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});
     const camera=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,level);
-    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();return mapClusters[0].lead.name;
+    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
    },{size,level});
+   await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
+   const expected=await page.evaluate(()=>mapClusters[0].lead.name);
    await page.locator('.atlas-marker').first().click();
    await page.locator('#detail h2').waitFor();
    assert.equal(await page.locator('#detail [data-choose-disc]').count(),0,'Sparse identical ratings open individual discs');
@@ -110,6 +115,7 @@ try{
   assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Expanded graph fits the entire catalog');
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
   await page.evaluate(()=>{const items=filtered.filter(d=>d.speed===12).slice(0,2);filtered=items;selected=null;for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});const c=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,12);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});
+  await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
   await page.locator('.atlas-marker').first().click();await page.locator('#detail h2').waitFor();
   await page.locator('#expandDetail').click();await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
   await page.screenshot({path:'outputs/motion/stack-mobile.png'});
