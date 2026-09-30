@@ -266,13 +266,21 @@ body[data-view="list"] .graph-dock{background:none}
 @media(prefers-reduced-motion:reduce){.atlas-marker .stack-0,.atlas-marker .marker-halo{transition:none}}
 
 /* Regrouped discs settle into their new density while the camera stays responsive. */
-#mapMarkers.is-regrouping .marker-position{transition:transform .18s ease-out,opacity .18s ease-out}
+#mapMarkers .marker-position{transition:opacity .18s ease-out}
+#mapMarkers .marker-position.is-updating{transition:transform .18s ease-out,opacity .18s ease-out}
 #mapMarkers .marker-position.is-new,#mapMarkers .marker-position.is-retiring{opacity:0;pointer-events:none}
-#mapMarkers.is-regrouping .marker-stack{display:block;opacity:1;transition:opacity .18s ease-out,scale .18s ease-out}
-#mapMarkers.is-regrouping .is-dot .marker-stack{opacity:0;scale:.25}
-#mapMarkers.is-regrouping .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
-#mapMarkers.is-regrouping .is-dot .map-dot{opacity:.9}
-@media(prefers-reduced-motion:reduce){#mapMarkers.is-regrouping .marker-position{transition:none}}
+#mapMarkers .is-updating .marker-stack{display:block;opacity:1;transition:opacity .18s ease-out,scale .18s ease-out}
+#mapMarkers .is-updating .is-dot .marker-stack{opacity:0;scale:.25}
+#mapMarkers .is-updating .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
+#mapMarkers .is-updating .is-dot .map-dot{opacity:.9}
+@media(prefers-reduced-motion:reduce){#mapMarkers .marker-position,#mapMarkers .marker-position.is-updating,#mapMarkers .is-updating .marker-stack,#mapMarkers .is-updating .map-dot{transition:none}}
+
+/* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
+/* Clip painting at the chrome while retaining overscan nodes through edge reversals. */
+#mapMarkers{clip-path:inset(70px 0 110px)}
+.my-bag-mode #mapMarkers{clip-path:inset(0 0 24px)}
+@media(max-width:699px){#mapMarkers{clip-path:inset(70px 0 155px)}}
+.atlas-marker.is-large::before{content:"";position:absolute;inset:-8px;border-radius:50%}
 
 /* Filter context takes the wordmark's place, leaving the atlas its full height. */
 header>.header-identity{flex:1 1 0;min-width:0}

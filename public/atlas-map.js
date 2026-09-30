@@ -10,11 +10,16 @@ let groupCache=null;
 let groupRevision=0,groupWorker=null,groupContext=null,regrouping=false,retirementTimer=null,retirementFrame=0,regroupToken=0,hasPaintedMarkers=false;
 const preparedGroups=new Map(),pendingGroups=new Set();
 const markerNodes=new Map();
+const MAX_MAP_ZOOM=5;
+const planetLabels=new Map();
+const planetNameWidths=new Map();
+let labelFrameTime=0;
 let mapViewport=null;
 function measureMap(){mapViewport=canvas.getBoundingClientRect();}
 function cancelRegroup(){
  regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
  retirementTimer=null;retirementFrame=0;regrouping=false;
+ for(const node of markerNodes.values())node.position.classList.remove('is-updating');
  $('#mapMarkers').classList.remove('is-regrouping');
 }
 function hydrateGroups(raw,items,w,h,level,immersive){
@@ -83,7 +88,11 @@ function buildClusters(items,w,h){
  const result=[];
  for(const g of groupCache.groups){
   const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
-  if(x<40||x>w-40||y<(immersive?82:24)||y>h-(immersive?(w<700?210:180):54))continue;
+  // Keep the entire enlarged disc beyond the clipped plot viewport.
+  // A 48px entry band covers its radius; the wider exit band prevents DOM churn.
+  const margin=markerNodes.has(g.key)?80:48;
+  const top=immersive?70:0,bottom=h-(immersive?(w<700?155:110):24);
+  if(x < -margin||x>w+margin||y<top-margin||y>bottom+margin)continue;
   const original=atlasPositions.get(g.lead.id);
   result.push({...g,x,y,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
  }
@@ -104,23 +113,64 @@ function focusFeatured(){
 function draw(){
  if(view!=='map')return;
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
- const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.font='12px DM Sans, sans-serif';}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const immersive=!document.body.classList.contains('my-bag-mode');
  const area=window.AtlasLayout.bounds(w,h,immersive),plotBottom=h-(immersive?(w<700?155:110):16);
  mapClusters=buildClusters(filtered,w,h);
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
- ctx.lineWidth=1;ctx.font='12px DM Sans, sans-serif';
+ ctx.lineWidth=1;
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
  for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
  for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,immersive?82:24);ctx.lineTo(xx,plotBottom);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
  // Explain the selected disc's offset without turning a dense view into a web of lines.
  for(const g of mapClusters){if(g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
+ drawPlanetLabels();
  renderMarkers();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
+// Growth settles before the deepest regroup boundary; only artwork scales.
+function mapMarkerScale(){return 1+.08*(Math.min(4,zoom)-1);}
+function drawPlanetLabels(){
+ const now=performance.now(),dt=Math.min(1,(now-labelFrameTime)/140);labelFrameTime=now;
+ const scale=mapMarkerScale(),fade=Math.max(0,Math.min(1,(zoom-3.3)/.9)),live=new Set();
+ const occupied=mapClusters.filter(g=>g.large).map(g=>({x:g.x-76,y:g.y-38,w:152,h:112}));
+ const placements=groupCache.labelPlacements||(groupCache.labelPlacements=new Map());
+ for(const g of mapClusters){const p=placements.get(g.key);if(p&&!g.large)occupied.push({x:g.x+p.dx,y:g.y+p.dy,w:p.width,h:14});}
+ const immersive=!document.body.classList.contains('my-bag-mode'),top=immersive?70:0,bottom=mapViewport.height-(immersive?(mapViewport.width<700?155:110):24);
+ ctx.save();ctx.beginPath();ctx.rect(0,top,mapViewport.width,bottom-top);ctx.clip();ctx.font='11px DM Sans, sans-serif';ctx.lineWidth=1;
+ for(const g of mapClusters){
+  live.add(g.key);
+  const target=(g.large?54:12)*scale<32?fade:0,previous=planetLabels.get(g.key)?.opacity||0;
+  const opacity=window.AtlasMotion?.enabled()?previous+Math.sign(target-previous)*Math.min(Math.abs(target-previous),dt):target;
+  if(Math.abs(opacity-target)>.001)scheduleMapDraw();
+  if(opacity<=.001){planetLabels.set(g.key,{opacity:0});continue;}
+  const name=g.lead.catalogName||g.lead.name;
+  if(!planetNameWidths.has(name))planetNameWidths.set(name,ctx.measureText(name).width);
+  const width=planetNameWidths.get(name);
+  // Choose the quietest of four short leaders, avoiding prominent disc names.
+  let placement=placements.get(g.key);
+  if(!placement){const candidates=[[1,-1],[-1,-1],[1,1],[-1,1]].map(([sx,sy])=>{
+   const x=g.x+sx*38-(sx<0?width:0),y=g.y+sy*25-6,box={x,y,w:width,h:14};
+   const overlap=occupied.reduce((sum,b)=>sum+Math.max(0,Math.min(x+width,b.x+b.w)-Math.max(x,b.x))*Math.max(0,Math.min(y+14,b.y+b.h)-Math.max(y,b.y)),0);
+   return {sx,sy,box,overlap};
+  });
+   const best=candidates.reduce((a,b)=>b.overlap<a.overlap?b:a);occupied.push(best.box);
+   placement={sx:best.sx,sy:best.sy,dx:best.box.x-g.x,dy:best.box.y-g.y,width};placements.set(g.key,placement);
+  }
+  const {sx,sy,dx,dy}=placement;
+  planetLabels.set(g.key,{opacity,name,x:g.x+dx,y:g.y+dy,w:width,h:14});
+  ctx.globalAlpha=opacity*.42;ctx.strokeStyle=themePalette.muted;ctx.beginPath();
+  ctx.moveTo(g.x+sx*9,g.y+sy*5);ctx.lineTo(g.x+sx*23,g.y+sy*23);ctx.lineTo(g.x+sx*34,g.y+sy*23);ctx.stroke();
+  ctx.globalAlpha=opacity*.9;ctx.fillStyle=themePalette.muted;ctx.fillText(name,g.x+dx,g.y+dy+11);
+ }
+ for(const key of planetLabels.keys())if(!live.has(key))planetLabels.delete(key);
+ ctx.restore();
+}
 function renderMarkers(){
  const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||window.BagApp?.isMapActive());
+ const scale=mapMarkerScale();
+ const scaleValue=scale.toFixed(3);
  const filterPending=groupCache.items!==filtered;
  let updated=0,pendingMarkers=false;
  for(const g of mapClusters){
@@ -133,6 +183,7 @@ function renderMarkers(){
   if(!node){
    node=document.createElement('button');node.type='button';node.dataset.cluster=g.key;node.className='atlas-marker';
    node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
+   node.art=node.querySelector('.marker-stack');node.dot=node.querySelector('.map-dot');
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
    node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';
    if(regrouping){node.position.classList.add('is-new');node.position.inert=true;}
@@ -144,12 +195,19 @@ function renderMarkers(){
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
   if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected)){
+   if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
    const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
    for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
    node.groupVersion=groupCache;node.brandView=brandView;node.selection=selected;
    node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
+  const selectedScale=g.members.includes(selected)?1.12:1;
+  if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
+   if(g.large)node.art.style.scale=scaleValue;
+   else{node.art.style.removeProperty('scale');node.dot.style.scale=(scale*selectedScale).toFixed(3);}
+   node.markerScale=scaleValue;node.dotSelection=selectedScale;node.scaleLarge=g.large;
+  }
  }
  if(mapClusters.length)hasPaintedMarkers=true;
  if(pendingMarkers){scheduleMapDraw();return;}
@@ -172,7 +230,7 @@ function renderMarkers(){
      if(++removed===8)break;
     }
     if([...markerNodes.values()].some(node=>node.position.classList.contains('is-retiring')))retirementFrame=requestAnimationFrame(removeBatch);
-    else{retirementFrame=0;layer.classList.remove('is-regrouping');}
+    else{retirementFrame=0;layer.classList.remove('is-regrouping');for(const node of markerNodes.values())node.position.classList.remove('is-updating');}
    };
    removeBatch();
   },200);
@@ -308,7 +366,7 @@ function paintEdge(){
  const offset=window.AtlasMotion?.enabled()?`${x}px ${y}px`:'0px 0px';
  canvas.style.translate=offset;$('#mapMarkers').style.translate=offset;
 }
-function resetEdge(){clearTimeout(edgeReleaseTimer);edgeTween?.kill();edgeTween=null;edgeFeedback.x=0;edgeFeedback.y=0;paintEdge();}
+function resetEdge(){clearTimeout(edgeReleaseTimer);edgeTween?.kill();edgeTween=null;if(!edgeFeedback.x&&!edgeFeedback.y)return;edgeFeedback.x=0;edgeFeedback.y=0;paintEdge();}
 function releaseEdge(){
  clearTimeout(edgeReleaseTimer);edgeTween?.kill();
  if(!window.AtlasMotion?.enabled()){resetEdge();return;}
@@ -340,11 +398,11 @@ function zoomDestination(next,anchor){
   y:next===1?0:at.y-area.bottom-(at.y-area.bottom-pan.y)*ratio};
 }
 function changeZoom(factor,anchor){
- stopCamera();closeCluster();const target=zoomDestination(Math.min(12,Math.max(1,zoom*factor)),anchor);
+ stopCamera();closeCluster();const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,zoom*factor)),anchor);
  zoom=target.zoom;pan={x:target.x,y:target.y};scheduleMapDraw();
 }
 function animateZoom(factor,anchor){
- const target=zoomDestination(Math.min(12,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor);
+ const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor);
  prepareZoomLevel(target.zoom);
  tweenCamera(target,.16);
 }

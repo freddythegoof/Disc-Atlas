@@ -32,6 +32,33 @@ export async function checkDirectory(browser,base){
   await page.evaluate(()=>{$('#collection').value='all';filter();});
   await speed.click();
   assert.ok(await page.evaluate(()=>{const firstUnknown=filtered.findIndex(d=>d.speed==null);return firstUnknown>0&&filtered.slice(firstUnknown).every(d=>d.speed==null);}), 'Unrated discs remain last in ascending order');
+  for(const [sort,label] of [['stability','Stability'],['new','Newest']]){
+   const button=page.locator(`[data-sort="${sort}"]`);
+   // Include absent dates and scores: neither may jump ahead of real values.
+   await page.evaluate(()=>{window.sortFixtures=[{...discs[0],id:'sort-undated',date:null,speed:null,turn:null,fade:null},{...discs[0],id:'sort-empty-date',date:'',speed:null,turn:null,fade:null}];discs.push(...sortFixtures);});
+   for(const [direction,action] of [['descending','click'],['ascending','Enter'],['descending','Space']]){
+    if(action==='click')await button.click();else{await button.focus();await page.keyboard.press(action);}
+    assert.equal(await button.getAttribute('aria-pressed'),'true');
+    assert.match(await button.innerText(),direction==='ascending'?/↑/:/↓/);
+    const current=sort==='stability'?(direction==='ascending'?'most understable first':'most overstable first'):(direction==='ascending'?'oldest first':'newest first');
+    assert.equal(await button.getAttribute('aria-label'),`${label}: ${current}`);
+    assert.ok((await button.getAttribute('title')).toLowerCase().startsWith(current+'.'));
+    assert.equal(await page.locator('#sortBar [aria-pressed="true"]').count(),1);
+    assert.ok(await page.evaluate(({sort,direction})=>{
+     const values=filtered.map(d=>sort==='stability'?score(d):d.date?Date.parse(d.date):null);
+     let missing=false,previous=null;
+     return values.every(v=>{if(v==null||!Number.isFinite(v)){missing=true;return true;}if(missing)return false;const ordered=previous==null||(direction==='ascending'?v>=previous:v<=previous);previous=v;return ordered;});
+    },{sort,direction}),`${label} ${direction} orders values with missing values last`);
+    if(action!=='Space'){
+     await page.evaluate(()=>{discs=discs.filter(d=>!sortFixtures.includes(d));filter();});
+     await capture(`${sort}-${direction}`);
+     await page.evaluate(()=>{discs.push(...sortFixtures);filter();});
+    }
+   }
+   await button.click();await speed.click();await button.click();
+   assert.match(await button.innerText(),/↓/,'Switching sorts restores default direction');
+   await page.evaluate(()=>{discs=discs.filter(d=>!sortFixtures.includes(d));filter();});
+  }
   for(const width of [320,390,700,701,1440]){
    await page.setViewportSize({width,height:844});
    for(const y of [0,600,2400]){
@@ -49,6 +76,6 @@ export async function checkDirectory(browser,base){
   await page.getByRole('button',{name:'Atlas Coach',exact:true}).click();
   assert.ok(await page.locator('#coachDialog').isVisible());
   assert.deepEqual(errors,[]);
-  console.log('PASS: mobile defaults/reload/breakpoint, both speed directions, keyboard, unrated-last, coach/score separation at five widths and three scroll positions.');
+  console.log('PASS: mobile defaults/reload/breakpoint, Speed/Stability/Newest directions, Enter/Space, missing values last, direction resets, accessible labels, coach/score separation at five widths and three scroll positions.');
  }finally{await context.close();}
 }

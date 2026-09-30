@@ -28,7 +28,10 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--directory')){
+ if(process.argv.includes('--deep-zoom')){
+  const {checkDeepZoom}=await import('./deep-zoom.mjs');
+  await checkDeepZoom(browser,base);
+ }else if(process.argv.includes('--directory')){
   const {checkDirectory}=await import('./directory.mjs');
   await checkDirectory(browser,base);
  }else if(process.argv.includes('--context-header')){

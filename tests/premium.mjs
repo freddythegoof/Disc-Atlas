@@ -52,7 +52,8 @@ export async function checkPremium(browser, base) {
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
       const nearControls=await page.evaluate(()=>{
         const r=document.querySelector('#map').getBoundingClientRect(),c=document.querySelector('.map-controls').getBoundingClientRect();
-        return mapClusters.filter(g=>!g.large).sort((a,b)=>Math.hypot(a.x+r.left-c.left,a.y+r.top-c.top)-Math.hypot(b.x+r.left-c.left,b.y+r.top-c.top)).slice(0,4).map(g=>g.key);
+        // Overscan retains clipped and chrome-covered discs; hover only hit-testable centers.
+        return mapClusters.filter(g=>!g.large&&document.elementFromPoint(g.x+r.left,g.y+r.top)?.closest('[data-cluster]')?.dataset.cluster===g.key).sort((a,b)=>Math.hypot(a.x+r.left-c.left,a.y+r.top-c.top)-Math.hypot(b.x+r.left-c.left,b.y+r.top-c.top)).slice(0,4).map(g=>g.key);
       });
       for(const key of nearControls){
         const marker=page.locator(`[data-cluster="${key}"]`);
