@@ -2,15 +2,17 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const selectedBrands=new Set();
 let manufacturers=[],stackDiscs=[],speedAscending=false,stabilityAscending=false,newestAscending=false;
 let discs=[],meta={},filtered=[],selected=null,hover=null,type='all',view=document.body.dataset.view,limit=80,zoom=1,pan={x:0,y:0},points=[],comparison=[],hand='RHBH',power=100,drag=null,moved=false;
-const colors={putter:'#c7b0ff',mid:'#66d9bf',fairway:'#92b8ff',distance:'#ffab7a',unknown:'#79838b'},typeOf=d=>d.speed==null?'unknown':d.category==='Putter'?'putter':d.category==='Midrange'?'mid':d.category==='Control Driver'?'fairway':d.category==='Distance Driver'?'distance':d.speed<=3?'putter':d.speed<=5?'mid':d.speed<=9?'fairway':'distance',score=d=>d.speed==null?null:Math.max(0,Math.min(100,50+10*(d.turn+d.fade))),stability=d=>score(d)==null?'Not rated':score(d)<40?'Understable':score(d)>60?'Overstable':'Neutral';
+const colors={putter:'',mid:'',fairway:'',distance:'',unknown:''},typeOf=d=>d.speed==null?'unknown':d.category==='Putter'?'putter':d.category==='Midrange'?'mid':d.category==='Control Driver'?'fairway':d.category==='Distance Driver'?'distance':d.speed<=3?'putter':d.speed<=5?'mid':d.speed<=9?'fairway':'distance',score=d=>d.speed==null?null:Math.max(0,Math.min(100,50+10*(d.turn+d.fade))),stability=d=>score(d)==null?'Not rated':score(d)<40?'Understable':score(d)>60?'Overstable':'Neutral';
 const canvas=$('#canvas'),ctx=canvas.getContext('2d');
 let themePalette={};
+let brandPalette=[];
 function applyTheme(theme,persist=false){
  document.documentElement.dataset.theme=theme;
  if(persist){try{localStorage.setItem('disc-atlas-theme',theme);}catch{}}
  const css=getComputedStyle(document.documentElement),token=n=>css.getPropertyValue('--'+n).trim();
  themePalette={text:token('text'),muted:token('muted'),background:token('map-bg'),grid:token('grid'),center:token('center-line')};
  for(const kind of Object.keys(colors))colors[kind]=token(kind);
+ brandPalette=['blue','orange','green','purple','sky','yellow','vermillion'].map(hue=>token('palette-'+hue));
 
  document.querySelector('meta[name="theme-color"]').setAttribute('content',token('bg'));
  draw();if(selected&&selected.speed!=null)flight();renderCompare();renderLegend();renderContextTitle();if(activeCluster)renderCluster();if(stackDiscs.length&&!$('#detail').hidden)renderStackDetail();
@@ -87,7 +89,7 @@ function productionLabel(d){const p=d.production||{};if(p.status==='active')retu
 function updateCollectionNote(){const current=discs.filter(isCurrentOrRecent).length;$('#coverage').innerHTML=`<strong>${current.toLocaleString()} current + recent</strong><br>${discs.length.toLocaleString()} total approval records<br>Original labeled disc illustrations`;const all=$('#collection').value==='all';$('#collectionNote').textContent=all?'All approval records, including historical molds and unverified production status.':'Catalog-listed + retirements since Sep 23, 2024. Production status is not fully verified.';}
 function toggleBrand(brand){if(selectedBrands.has(brand))selectedBrands.delete(brand);else selectedBrands.add(brand);filter();renderCompare();if(selected)detail();}
 function renderBrands(){if(!manufacturers.length)return;const query=$('#brandSearch').value.toLowerCase().trim(),counts=new Map();for(const d of discs)if(inCollection(d))counts.set(d.brand,(counts.get(d.brand)||0)+1);const shown=manufacturers.filter(b=>!query||b.toLowerCase().includes(query)).sort((a,b)=>Number(selectedBrands.has(b))-Number(selectedBrands.has(a))||(counts.get(b)||0)-(counts.get(a)||0)||a.localeCompare(b));$('#brandOptions').innerHTML=shown.length?shown.map(b=>`<label class="brand-option"><input type="checkbox" value="${esc(b)}" ${selectedBrands.has(b)?'checked':''}><span>${esc(b)}</span><small>${counts.get(b)||0}</small></label>`).join(''):'<p class="micro">No manufacturers found.</p>';$('#brandSummary').textContent=selectedBrands.size?`${selectedBrands.size} selected`:'All manufacturers';$('#clearBrands').disabled=!selectedBrands.size;}
-function brandColor(brand){const names=[...selectedBrands],i=Math.max(0,names.indexOf(brand)),dark=document.documentElement.dataset.theme!=='light',palette=dark?['#92b8ff','#ffab7a','#66d9bf','#c7b0ff','#f6a8d5','#e5d27c','#a1d9f2']:['#265bad','#984216','#126852','#6940b3','#963966','#695808','#21617c'];return palette[i%palette.length];}
+function brandColor(brand){const i=Math.max(0,[...selectedBrands].indexOf(brand));return brandPalette[i%brandPalette.length];}
 function discColor(d){return selectedBrands.size>1?(selectedBrands.has(d.brand)?brandColor(d.brand):colors.unknown):colors[typeOf(d)];}
 function renderContextTitle(){
  const brands=[...selectedBrands],active=brands.length>0,brand=active?brands.join(' + '):'Disc Atlas';

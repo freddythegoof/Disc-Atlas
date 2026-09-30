@@ -192,7 +192,7 @@ function renderMarkers(){
    if(regrouping)requestAnimationFrame(()=>requestAnimationFrame(()=>{node.position.classList.remove('is-new');if(!node.position.classList.contains('is-retiring'))node.position.inert=false;}));
   }
   if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
-  if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
+  if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',lead.name+', '+lead.brand+', '+({putter:'Putter',mid:'Midrange',fairway:'Fairway driver',distance:'Distance driver',unknown:'Unrated'}[typeOf(lead)])+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
   if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected)){
    if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
@@ -270,7 +270,7 @@ function positionCluster(){
  if(left+width>innerWidth-12){left=a.left-width-16;if(left<12){left=Math.max(12,Math.min(innerWidth-width-12,a.left-width/2));top=a.bottom+16;if(top+height>innerHeight-12)top=a.top-height-16;}}
  pop.style.left=Math.max(12,Math.min(innerWidth-width-12,left))+'px';pop.style.top=Math.max(12,Math.min(ceiling-height,top))+'px';
 }
-function comparisonPalette(){return document.documentElement.dataset.theme!=='light'?['#92b8ff','#ffab7a','#66d9bf']:['#265bad','#984216','#126852'];}
+function comparisonPalette(){return brandPalette.slice(0,3);}
 function comparisonMarkup(items){
  const palette=comparisonPalette();
  return `<div class="cluster-flight"><div class="flight-overlay-label"><span>FLIGHT OVERLAY</span><span>${hand} · ${power}% power</span></div><svg viewBox="0 0 250 180" role="img" aria-label="Illustrative flight comparison"><path d="M125 155V12 M30 50H220 M30 100H220 M30 150H220" stroke="${themePalette.grid}" fill="none" stroke-dasharray="3 5"/>${items.map((d,i)=>`<path class="comparison-route" d="${path(d)}" fill="none" stroke="${palette[i]}" stroke-width="3" stroke-linecap="round" ${i===1?'stroke-dasharray="8 4"':i===2?'stroke-dasharray="2 4"':''}/>`).join('')}<circle cx="125" cy="155" r="4" fill="${themePalette.text}"/></svg><p class="micro">Flat release · illustrative paths</p></div><div class="cluster-specs">${items.map((d,i)=>`<div class="cluster-stat"><strong><i class="dot" style="background:${palette[i]}"></i>${esc(d.name)}</strong><small>${esc(d.brand)}</small><div class="mini-numbers">${['speed','glide','turn','fade'].map(k=>`<span><b>${d[k]}</b><small>${k[0].toUpperCase()}</small></span>`).join('')}</div><span class="micro">${stability(d)} · index ${score(d)}</span></div>`).join('')}</div>`;

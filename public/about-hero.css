@@ -1,10 +1,13 @@
-/* About-only stage. The existing distance color supplies the terracotta. */
+/* About-only stage. Terracotta stays independent of categorical disc colors. */
 .about-page {
   --hero-amber: #e5b875;
+  --hero-link: #f29d83;
   --hero-ink: #08090b;
 }
+:root[data-theme="charcoal"] .about-page { --hero-link: #e9a38e; }
 :root[data-theme="light"] .about-page {
   --bg: #f7f3ec;
+  --hero-link: #ca7253;
   --text: #302b27;
   --muted: #73675e;
   --lime: #944b34;
@@ -50,7 +53,7 @@
   margin: 42px 0 20px;
 }
 .about-hero-copy > p { max-width: 590px; font-size: 20px; line-height: 1.7; margin: 26px 0 0; }
-.about-hero-copy > a { font-size: 13px; text-decoration: none; color: var(--distance); }
+.about-hero-copy > a { font-size: 13px; text-decoration: none; color: var(--hero-link); }
 .about-hero-copy > small { font-size: 12px; }
 .about-body { max-width: 780px; margin: auto; padding: 8px 28px 0; }
 :root[data-theme="light"] .about-hero {

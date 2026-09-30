@@ -5,7 +5,13 @@
   --line:#dfe3e9;--muted:#687384;--text:#202731;--lime:#395fba;
   --accent-soft:#e8effe;--on-accent:#fff;--map-bg:#f7f8fa;--grid:#b2bdcc;
   --center-line:#8297b9;--shadow:#15234016;
-  --putter:#8961cb;--mid:#238c78;--fairway:#397ed2;--distance:#ca7253;--unknown:#637088;
+  /* Okabe-Ito hue families, tuned for the atlas. Keep the yellow light;
+     its neutral edge supplies contrast without turning it into orange.
+     Reference: https://jfly.uni-koeln.de/color/#pallet */
+  --palette-blue:#0072b2;--palette-orange:#ce8a00;--palette-green:#008c67;
+  --palette-purple:#bc719b;--palette-sky:#56b4e9;--palette-yellow:#e8d66a;--palette-vermillion:#bd5019;
+  --putter:var(--palette-purple);--mid:var(--palette-green);--fairway:var(--palette-blue);--distance:var(--palette-orange);--unknown:#637088;
+  --marker-edge:#625b50;
   --header-height:68px;--ambient:#809bea12;
 }
 :root[data-theme="midnight"] {
@@ -14,7 +20,9 @@
   --line:#282f3a;--muted:#97a3b5;--text:#edf2fc;--lime:#9bbaff;
   --accent-soft:#1c2a40;--on-accent:#101b31;--map-bg:#080b10;--grid:#38475b;
   --center-line:#536681;--shadow:#00000066;--ambient:#526c9820;
-  --putter:#b894ef;--mid:#65d3b2;--fairway:#6bb2f2;--distance:#f29d83;--unknown:#9aa7bd;
+  --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
+  --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
+  --marker-edge:#c1c1bc;--unknown:#9aa7bd;
 }
 :root[data-theme="charcoal"] {
   color-scheme:dark;
@@ -22,7 +30,9 @@
   --line:#373b43;--muted:#aeb3bf;--text:#f1f2f5;--lime:#b9c9ed;
   --accent-soft:#2a3344;--on-accent:#151922;--map-bg:#101113;--grid:#484c55;
   --center-line:#707785;--shadow:#0005;--ambient:#ffffff03;
-  --putter:#bca2e7;--mid:#77cbb2;--fairway:#86b7eb;--distance:#e9a38e;--unknown:#a4a9b3;
+  --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
+  --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
+  --marker-edge:#c1c1bc;--unknown:#a4a9b3;
 }
 [hidden]{display:none!important}
 /* Set before the catalog loads so mobile never paints the map on entry. */
@@ -272,7 +282,7 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers .is-updating .marker-stack{display:block;opacity:1;transition:opacity .18s ease-out,scale .18s ease-out}
 #mapMarkers .is-updating .is-dot .marker-stack{opacity:0;scale:.25}
 #mapMarkers .is-updating .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
-#mapMarkers .is-updating .is-dot .map-dot{opacity:.9}
+#mapMarkers .is-updating .is-dot .map-dot{opacity:1}
 @media(prefers-reduced-motion:reduce){#mapMarkers .marker-position,#mapMarkers .marker-position.is-updating,#mapMarkers .is-updating .marker-stack,#mapMarkers .is-updating .map-dot{transition:none}}
 
 /* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
@@ -311,3 +321,7 @@ body[data-view="map"] #sortBar{display:none}
 #sortBar button[aria-pressed="true"]{color:var(--text);background:var(--selected)}
 body[data-view="list"] .coach-launch{left:16px;right:auto;bottom:max(22px,env(safe-area-inset-bottom));width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:20px;background:var(--panel);box-shadow:0 4px 18px var(--shadow)}
 body[data-view="list"] .coach-label{display:none}
+
+/* Small categorical marks retain a visible boundary, including pale yellow. */
+.legend .dot,.types .dot{border:1px solid var(--marker-edge)}
+.atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{border:1px solid var(--marker-edge);opacity:1}
