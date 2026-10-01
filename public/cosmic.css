@@ -332,7 +332,6 @@ body[data-view="list"] .coach-label{display:none}
 .atlas-marker.is-dot.is-satellite .disc-art{width:28px;height:28px;inset:0}
 .atlas-marker.is-dot.is-satellite .marker-name{top:40px;bottom:auto;max-width:116px;font-size:11px;line-height:1.25;opacity:1;background:none;border:0;border-radius:0;padding:0;box-shadow:none;transition:none;translate:var(--satellite-label-x,0px) var(--satellite-label-y,0px)}
 .atlas-marker.is-dot.is-satellite .marker-name small{display:none}
-
 /* The site menu shares the header's quiet theme-aware controls. */
 .site-menu-button[aria-expanded="true"]{background:var(--surface);color:var(--text)}
 .site-menu-button:focus-visible,.site-menu [role="menuitem"]:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
