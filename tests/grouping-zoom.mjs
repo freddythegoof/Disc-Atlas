@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {frameBand,measureBand,settleMap} from './zoom-candidates.mjs';
+import {frameBand,measureBand,settleMap,verifySatelliteFallbacks} from './zoom-candidates.mjs';
 
 export async function checkGroupingZoom(browser,base){
  const before=process.argv.includes('--baseline'),suffix=before?'before':'after',dir='outputs/grouping-zoom';
@@ -75,6 +75,7 @@ export async function checkGroupingZoom(browser,base){
     if(suppressed)assert.equal(count,0,'No stale satellite text or leaders');
     else assert.ok(count>0,'Overview single-dot labels return below the exit threshold');
    }
+   await page.getByRole('button',{name:'Switch to dark mode'}).click();
    await page.mouse.move(10,80);
    await frameBand(page,5);const five=await measureBand(page);
    await page.mouse.move(720,430);await page.mouse.wheel(0,-1800);await settled();
@@ -85,11 +86,61 @@ export async function checkGroupingZoom(browser,base){
    assert.equal(five.putters.labeledSatellites,0,'Putter satellites have no canvas or DOM names at 5x');
    assert.ok(max.crowdedDotPairs<five.crowdedDotPairs,'Crowded satellite pairs thin out');
    assert.ok(max.satellites>0);
-   assert.equal(max.labeledSatellites,max.unstackedSatellites-1,'All fitting unstacked satellites in the dense 9x putter view have DOM labels');
-   assert.deepEqual(max.unlabeledSingles,['Scarab'],'Only the genuinely blocked satellite remains unlabeled');
-   assert.equal(max.leaders,0);assert.deepEqual(max.overlaps,[]);
-   assert.ok(max.honest,'Satellites and primaries keep their atlas coordinates');
-   await page.screenshot({path:`${dir}/putter-9x-satellite-labels.png`});
+   const deepBands=[];
+   for(const z of [7,8,9]){
+    await frameBand(page,z);await page.mouse.move(10,80);
+    const state=await measureBand(page);state.fallbacks=await verifySatelliteFallbacks(page);deepBands.push(state);
+    await page.screenshot({path:`${dir}/putter-${z}x-satellite-markers.png`});
+   }
+   fs.writeFileSync(`${dir}/satellite-markers-metrics.json`,JSON.stringify(deepBands,null,2));
+   console.log('Deep satellite markers',deepBands);
+   for(const state of deepBands){
+    const z=state.zoom;
+    assert.ok(state.readableSatellites>0,`${z}x satellites use readable markers`);
+    assert.equal(state.readableSatellites+state.fallbacks.length,state.unstackedSatellites,`${z}x every fitting unstacked satellite gets a labeled marker`);
+    assert.ok(state.fallbacks.every(f=>f.noCleanPlacement),`${z}x fallback dots have no clean nearby placement`);
+    const expectedFallbacks={7:['Rot','Xero'],8:[],9:['Bluebonnet','Scarab']};
+    assert.deepEqual(state.unlabeledSingles,expectedFallbacks[z],`${z}x remaining dots are only the genuinely blocked singles`);
+    assert.deepEqual(state.overlaps,[],`${z}x DOM labels never overlap`);
+    assert.deepEqual(state.markerOverlaps,[],`${z}x markers and labels never overlap`);
+    assert.deepEqual(state.leaderCollisions,[],`${z}x leaders avoid labels and one another`);
+    assert.ok(state.honest,`${z}x any displaced marker has a vector to its true position`);
+    assert.ok(state.maxOffset<=56,`${z}x leaders remain short`);
+   }
+   // A selected displaced satellite must not acquire the legacy center-to-dot
+   // vector on top of its subtle rim-to-coordinate leader.
+   await frameBand(page,9);
+   const selectedVectors=await page.evaluate(()=>{
+    const g=mapClusters.find(g=>g.satellite&&g.leader&&g.x>100&&g.x<900&&g.y>150&&g.y<650);
+    if(!g)return null;
+    const move=ctx.moveTo.bind(ctx),line=ctx.lineTo.bind(ctx),segments=[];let previous=null;
+    ctx.moveTo=(x,y)=>{previous={x,y};move(x,y);};
+    ctx.lineTo=(x,y)=>{if(previous)segments.push({x1:previous.x,y1:previous.y,x2:x,y2:y});previous={x,y};line(x,y);};
+    try{select(g.lead);segments.length=0;draw();return segments.filter(s=>
+     Math.hypot(s.x1-g.actualX,s.y1-g.actualY)<.01||Math.hypot(s.x2-g.actualX,s.y2-g.actualY)<.01).length;
+    }finally{ctx.moveTo=move;ctx.lineTo=line;}
+   });
+   assert.equal(selectedVectors,1,'Selecting a displaced marker paints exactly one honest vector');
+   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+   for(const state of deepBands){
+    if(!state.fallbacks.length)continue;
+    await frameBand(page,state.zoom);
+    for(const fallback of state.fallbacks){
+     const node=page.locator(`[data-cluster="${fallback.key}"]`);
+     const point=await page.evaluate(key=>{const g=mapClusters.find(g=>g.key===key);return {x:mapViewport.left+g.x,y:mapViewport.top+g.y};},fallback.key);
+     await node.hover();await page.waitForTimeout(250);
+     assert.ok(await node.locator('.marker-name').evaluate(n=>getComputedStyle(n).visibility==='visible'&&Number(getComputedStyle(n).opacity)>.9),'Fallback hover reveals its name');
+     await page.mouse.move(10,80);await page.keyboard.press('Tab');await node.focus();await page.waitForTimeout(250);
+     assert.ok(await node.locator('.marker-name').evaluate(n=>getComputedStyle(n).visibility==='visible'&&Number(getComputedStyle(n).opacity)>.9),'Fallback keyboard focus reveals its name');
+     await page.keyboard.press('Enter');await page.locator('#detail').waitFor({state:'visible'});
+     assert.equal(await page.evaluate(()=>selected.id),fallback.key,'Fallback keyboard activation preserves identity');
+     await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});await page.evaluate(()=>document.activeElement.blur());
+     await page.touchscreen.tap(point.x,point.y);await page.locator('#detail').waitFor({state:'visible'});
+     assert.equal(await page.evaluate(()=>selected.id),fallback.key,'Fallback dots remain clickable at their true positions');
+     await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+    }
+   }
+   await frameBand(page,9);await page.mouse.move(10,80);
    assert.equal(max.scale,1.24);assert.equal(max.totalDiscs,five.totalDiscs);
    for(const stack of [false,true]){
     const hit=await page.evaluate(stack=>{
@@ -110,6 +161,13 @@ export async function checkGroupingZoom(browser,base){
     assert.ok(await page.evaluate(()=>groupCache===topGroupCache),'No regroup flicker near the ceiling');
     assert.ok(await page.evaluate(()=>[...markerNodes].every(([key,node])=>!topNodes.has(key)||topNodes.get(key)===node)),'Retained markers preserve DOM identity');
    }
+   for(const z of [6.99,7,6.99,7]){
+    await frameBand(page,z);const state=await measureBand(page);
+    if(z<7){assert.equal(state.labeledSatellites,0);assert.equal(state.leaders,0);assert.equal(state.readableSatellites,0);assert.ok(state.honest);}
+    else assert.ok(state.readableSatellites>0,'Satellite markers return at exactly 7x');
+    assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);assert.deepEqual(state.leaderCollisions,[]);
+   }
+   await frameBand(page,9);
    await page.locator('#zoomIn').click();await settled();assert.equal(await page.evaluate(()=>zoom),9);
    await page.evaluate(()=>changeZoom(100));await settled();assert.equal(await page.evaluate(()=>zoom),9,'Pinch shares the ceiling');
    await frameBand(page,5);

@@ -167,7 +167,6 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 .atlas-marker.is-dot{width:44px;height:44px}
 .atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{inset:16px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 .atlas-marker.is-dot .marker-name{top:44px}
-.atlas-marker.is-dot.has-auto-label .marker-name{opacity:1;background:none;border:0;border-radius:0;padding:0;transition:none;translate:var(--satellite-label-x,0px) var(--satellite-label-y,0px);box-shadow:none}
 #map.is-dragging .atlas-marker{cursor:grabbing}
 #map.is-dragging .atlas-marker:hover .marker-halo{opacity:0}
 #map.is-dragging .atlas-marker.is-selected .marker-halo{opacity:1}
@@ -326,3 +325,10 @@ body[data-view="list"] .coach-label{display:none}
 /* Small categorical marks retain a visible boundary, including pale yellow. */
 .legend .dot,.types .dot{border:1px solid var(--marker-edge)}
 .atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{border:1px solid var(--marker-edge);opacity:1}
+
+/* Deep satellites retain a clear size hierarchy; labels use measured DOM boxes. */
+.atlas-marker.is-dot.is-satellite .map-dot{display:none}
+.atlas-marker.is-dot.is-satellite .marker-stack{display:block;position:absolute;left:8px;top:8px;width:28px;height:28px}
+.atlas-marker.is-dot.is-satellite .disc-art{width:28px;height:28px;inset:0}
+.atlas-marker.is-dot.is-satellite .marker-name{top:40px;bottom:auto;max-width:116px;font-size:11px;line-height:1.25;opacity:1;background:none;border:0;border-radius:0;padding:0;box-shadow:none;transition:none;translate:var(--satellite-label-x,0px) var(--satellite-label-y,0px)}
+.atlas-marker.is-dot.is-satellite .marker-name small{display:none}

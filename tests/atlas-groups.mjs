@@ -40,23 +40,38 @@ test('vertical neighbors use their label height rather than a circular distance'
  assert.deepEqual(Array.from(result.groups,g=>g.large),[true,true]);
 });
 
-test('deep satellite labels share measured contention without changing prominence or positions',()=>{
- const groups=[
-  {key:'primary',px:0,py:0,members:['primary']},
-  {key:'satellite',px:90,py:0,members:['satellite']},
-  {key:'blocked',px:0,py:0,members:['blocked']},
-  {key:'stack',px:300,py:0,members:['stack','member']}
- ];
+test('deep satellites get measured smaller markers, with honest bounded offsets',()=>{
+ const groups=[{key:'p',px:0,py:0,members:['p']},{key:'s',px:80,py:0,members:['s']},
+  {key:'blocked',px:0,py:0,members:['blocked']},{key:'stack',px:80,py:100,members:['stack','member']}];
  const full=new Map(groups.map(g=>[g.key,{x:-60,y:37,w:120,h:32,radius:27}]));
- const dots=new Map(groups.map(g=>[g.key,{x:-20,y:22,w:40,h:32,radius:6}]));
- runtime.AtlasGroups.promote(groups,full,9,9,dots);
- assert.equal(groups[1].large,false,'A labeled satellite remains a dot');
- assert.equal(groups[1].labelVisible,true,'Its smaller measured footprint fits');
- assert.equal(groups[2].labelVisible,false,'A colliding satellite remains accessible without a label');
- assert.deepEqual(Array.from(groups,g=>[g.px,g.py]),[[0,0],[90,0],[0,0],[300,0]]);
- runtime.AtlasGroups.promote(groups,full,8,8);
- assert.equal(groups[1].labelVisible,false,'Automatic satellite labels clear outside the deepest level');
+ const small=new Map(groups.map(g=>[g.key,{x:-25,y:18,w:50,h:19,radius:14}]));
+ runtime.AtlasGroups.promote(groups,full,7,7,small);
+ assert.equal(groups[1].large,false,'Satellite hierarchy remains smaller than primary');
+ assert.equal(groups[1].satellite,true,'A fitting single becomes a proper marker');
+ assert.equal(groups[1].labelVisible,true);
+ assert.ok(Math.hypot(groups[1].markerOffset.x,groups[1].markerOffset.y)<=56,'Offsets stay local');
+ if(groups[1].leader){
+  const g=groups[1],mx=g.px+g.markerOffset.x,my=-g.py+g.markerOffset.y;
+  assert.equal(runtime.AtlasGroups.segmentHitsBox(g.leader,{x:mx-14,y:my-14,w:28,h:28}),false,'Leader starts outside its own artwork');
+  assert.deepEqual([g.leader.x2,g.leader.y2],[g.px,-g.py],'Vector ends at the true atlas coordinate');
+ }
+ assert.equal(groups[2].satellite,false,'A true position obstructed in every direction falls back to a dot');
+ assert.deepEqual(Array.from(groups,g=>[g.px,g.py]),[[0,0],[80,0],[0,0],[80,100]],'Atlas coordinates never mutate');
+ assert.equal(groups[3].satellite,false,'A satellite stack retains its badge');
+ runtime.AtlasGroups.promote(groups,full,6.99,6.99);
+ assert.equal(groups[1].satellite,false,'Below 7x returns to the shipped clickable dots');
+ assert.equal(groups[1].markerOffset,null);
 });
+
+test('leader geometry rejects crossings, including collinear webs and label intersections',()=>{
+ const segment={x1:0,y1:0,x2:40,y2:40};
+ assert.equal(runtime.AtlasGroups.segmentHitsBox(segment,{x:15,y:15,w:10,h:10}),true);
+ assert.equal(runtime.AtlasGroups.segmentHitsBox(segment,{x:15,y:30,w:3,h:3}),false);
+ assert.equal(runtime.AtlasGroups.segmentsCross(segment,{x1:0,y1:40,x2:40,y2:0}),true);
+ assert.equal(runtime.AtlasGroups.segmentsCross(segment,{x1:10,y1:10,x2:20,y2:20}),true);
+ assert.equal(runtime.AtlasGroups.segmentsCross(segment,{x1:0,y1:10,x2:20,y2:30}),false);
+});
+
 test('worker structured-clone payload preserves measured footprints and priority',()=>{
  const {positions,result}=build(180);
  const worker={};worker.self=worker;

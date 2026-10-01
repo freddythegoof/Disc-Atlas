@@ -24,7 +24,7 @@ function measureFullLabels(items){
   const key=keyPrefix+d.id;if(fullLabelFootprints.has(key))continue;
   const node=document.createElement('div');node.className='atlas-marker is-large overview';
   node.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'<small>'+esc(d.brand)+'</small></span>';
-  const satellite=node.cloneNode(true);satellite.className='atlas-marker is-dot has-auto-label overview';
+  const satellite=node.cloneNode(true);satellite.className='atlas-marker is-dot is-satellite overview';
   host.append(node,satellite);pending.push({key,node,satellite});
  }
  if(pending.length){
@@ -37,7 +37,7 @@ function measureFullLabels(items){
    fullLabelFootprints.set(key,{x:label.x-marker.x-marker.width/2-gap,y:label.y-marker.y-marker.height/2-gap,
     w:label.width+gap*2,h:label.height+gap*2,radius:marker.width/2,
     satellite:{x:dotLabel.x-dot.x-dot.width/2-gap,y:dotLabel.y-dot.y-dot.height/2-gap,
-     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:6}});
+     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:14}});
   }
   host.remove();
  }
@@ -116,7 +116,7 @@ function buildClusters(items,w,h){
  // Labels do not scale with the camera. Recheck at the actual zoom, including
  // intermediate animation frames and while a new worker level is pending.
  if(groupCache.prominenceZoom!==zoom){
-  const satellites=groupCache.level===10?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
+  const satellites=zoom>=7?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
   window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3),satellites);
   groupCache.prominenceZoom=zoom;
  }
@@ -131,7 +131,10 @@ function buildClusters(items,w,h){
   const top=immersive?70:0,bottom=h-(immersive?(w<700?155:110):24);
   if(x < -margin||x>w+margin||y<top-margin||y>bottom+margin)continue;
   const original=atlasPositions.get(g.lead.id);
-  result.push({...g,x,y,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
+  const dx=g.markerOffset?.x||0,dy=g.markerOffset?.y||0;
+  const leader=g.leader?{x1:x+g.leader.x1-g.px*zoom/(2**(groupCache.level/3)),
+   y1:y+g.leader.y1+g.py*zoom/(2**(groupCache.level/3)),x2:x,y2:y}:null;
+  result.push({...g,x:x+dx,y:y+dy,leader,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
  }
  // Evaluate offscreen filter results only after their worker result is applied.
  // Keeping the old groups visible must not suppress the existing Show all fallback.
@@ -160,10 +163,24 @@ function draw(){
  for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
  for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,immersive?82:24);ctx.lineTo(xx,plotBottom);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
  // Explain the selected disc's offset without turning a dense view into a web of lines.
- for(const g of mapClusters){if(g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
+ for(const g of mapClusters){if(!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  drawPlanetLabels();
- renderMarkers();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
+ renderMarkers();drawSatelliteLeaders();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
+}
+function drawSatelliteLeaders(){
+ if(zoom<7)return;
+ const immersive=!document.body.classList.contains('my-bag-mode'),top=immersive?70:0;
+ const bottom=mapViewport.height-(immersive?(mapViewport.width<700?155:110):24);
+ ctx.save();ctx.beginPath();ctx.rect(0,top,mapViewport.width,bottom-top);ctx.clip();
+ ctx.strokeStyle=themePalette.muted;ctx.fillStyle=themePalette.muted;ctx.globalAlpha=.35;ctx.lineWidth=1;
+ for(const g of mapClusters){
+  const node=markerNodes.get(g.key),l=g.leader;
+  if(!l||!node||node.groupVersion!==groupCache||node.mapX!==g.x||node.mapY!==g.y)continue;
+  ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.stroke();
+  ctx.beginPath();ctx.arc(l.x2,l.y2,1.5,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
 // Growth settles before the deepest regroup boundary; only artwork scales.
@@ -225,9 +242,8 @@ function renderMarkers(){
   const visible=g&&(g.large||satelliteLabelsSuppressed)&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
   node.querySelector('.marker-name').style.visibility=visible?'':'hidden';
   // Drop an obsolete automatic label immediately, including budgeted updates.
-  if(node.classList.contains('has-auto-label')&&!g?.labelVisible){
-   node.classList.remove('has-auto-label');
-   node.querySelector('.marker-name').style.transition='none';
+  if(node.classList.contains('is-satellite')&&(!g?.satellite||!visible)){
+   node.querySelector('.marker-name').style.visibility='hidden';
   }
  }
  let updated=0,pendingMarkers=false;
@@ -261,7 +277,7 @@ function renderMarkers(){
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
   node.querySelector('.marker-name').style.visibility=g.large||satelliteLabelsSuppressed?'':'hidden';
-  node.classList.toggle('has-auto-label',!!g.labelVisible);
+  node.classList.toggle('is-satellite',!!g.satellite);
   node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
   node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
   const selectedScale=g.members.includes(selected)?1.12:1;
