@@ -1,5 +1,11 @@
 /* Pure world-space grouping, shared by the initial render and the background worker. */
 globalThis.AtlasGroups = {
+ // Enter at the normal density boundary; leave slightly below it. This works
+ // for every level, including the final boundary just below the zoom ceiling.
+ level(zoom, previous) {
+  const value=Math.log2(zoom)*3,next=Math.round(value);
+  return previous!=null&&next<previous&&value>previous-.65?previous:next;
+ },
  // Rectangles are measured from the rendered name/brand label in CSS pixels.
  // Keep priority order; screen-space contention alone determines prominence.
  promote(groups, footprints, zoom, groupZoom) {
@@ -50,7 +56,8 @@ globalThis.AtlasGroups = {
   // At deep zoom, a dot beside a primary is easier to reach through its stack.
   // Only absorb satellites: established primary positions and priority survive.
   if(groupZoom>3.3){
-   const absorbed=new Set(),radius=64*groupZoom/5;
+   // Fixed CSS pixels: deeper zoom must release neighbors, not absorb farther.
+   const absorbed=new Set(),radius=64;
    for(const satellite of groups){
     if(satellite.large)continue;
     let nearest=null,best=radius*radius;

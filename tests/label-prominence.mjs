@@ -9,7 +9,7 @@ export async function checkLabelProminence(browser,base){
  const settled=()=>page.waitForFunction(()=>!cameraTween&&groupCache.items===filtered&&groupCache.level===Math.round(Math.log2(zoom)*3)&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
  try{
   await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);
-  await page.evaluate(()=>{selectedBrands.add(discs.find(d=>d.name==='Savant').brand);filter();animateZoom(100);});await settled();
+  await page.evaluate(()=>{selectedBrands.add(discs.find(d=>d.name==='Savant').brand);filter();animateZoom(5/zoom);});await settled();
   console.log('Brands/view',await page.evaluate(()=>({brands:[...selectedBrands],count:filtered.length,zoom})));
   await page.evaluate(()=>{
    const g=groupCache.groups.find(g=>g.lead.name==='Savant'),area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);
@@ -53,7 +53,7 @@ export async function checkLabelProminence(browser,base){
    assert.deepEqual(await overlaps(),[],`${width}px overview labels do not overlap`);
    await page.screenshot({path:`${dir}/overview-${width}.png`});
    // Exercise every worker level and the spaces between levels with real CSS.
-   for(const z of [1.15,1.5,2,2.8,3.5,4.5,5]){
+   for(const z of [1.15,1.5,2,2.8,3.5,4.5,5,7,8,9]){
     await page.evaluate(z=>{stopCamera();zoom=z;draw();},z);await settled();await page.waitForTimeout(220);
     assert.deepEqual(await overlaps(),[],`${width}px labels do not overlap at ${z}x`);
     assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>{const p=atlasPositions.get(g.key);return g.pos.x===p.x&&g.pos.y===p.y;})),'Zoom preserves marker coordinates');

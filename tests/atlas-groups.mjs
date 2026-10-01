@@ -11,6 +11,13 @@ const items=[{id:'aaa',name:'Less popular',speed:9},{id:'zzz',name:'Destroyer',s
 const label={x:-100,y:37,w:200,h:32,radius:27};
 const footprints=new Map(items.map(d=>[d.id,label]));
 const featured=[{id:'zzz'}];
+test('top grouping level has separate enter and exit thresholds',()=>{
+ assert.equal(runtime.AtlasGroups.level(8.97,9),9);
+ assert.equal(runtime.AtlasGroups.level(9,9),10);
+ for(const z of [8.99,8.97,8.9,9])assert.equal(runtime.AtlasGroups.level(z,10),10,'Small top-end reversals retain the level');
+ assert.equal(runtime.AtlasGroups.level(8.6,10),9,'A deliberate zoom out releases it');
+ assert.equal(runtime.AtlasGroups.level(5,10),7,'Large changes do not walk stale levels');
+});
 function build(gap,level=0){
  const positions=new Map([['aaa',{x:(100+gap)/area.width,y:100/area.height}],['zzz',{x:100/area.width,y:100/area.height}]]);
  return {positions,result:runtime.AtlasGroups.build(items,positions,1000,800,level,false,footprints,featured)};
@@ -70,16 +77,23 @@ test('capacity grows toward overview, retains all discs and caps deep stacks at 
  const crowded=Array.from({length:100},(_,i)=>({id:String(i).padStart(3,'0'),name:`Disc ${i}`,speed:9}));
  const positions=new Map(crowded.map(d=>[d.id,{x:.5,y:.5}]));
  let previous=Infinity;
- for(let level=0;level<=7;level++){
+ for(let level=0;level<=10;level++){
   const {groups}=runtime.AtlasGroups.build(crowded,positions,1000,800,level,false);
   const largest=Math.max(...groups.map(g=>g.members.length));
   assert.ok(largest<=previous,'Capacity must not grow while zooming in');
   if(level===0)assert.equal(largest,100,'Overview remains uncapped');
   if(level===3)assert.ok(largest>3&&largest<100,'Intermediate zoom has intermediate capacity');
+  if(level===5)assert.equal(largest,5,'At 3x the 06F curve permits four- and five-disc stacks');
   if(level>=6)assert.equal(largest,3);
   assert.equal(new Set(groups.flatMap(g=>g.members)).size,100,'No disc is dropped');
   previous=largest;
  }
+});
+
+test('deeper zoom releases a satellite once its screen distance exceeds 64px',()=>{
+ const {result}=build(9,9); // 72px at 8x; a 200px label still makes this a satellite.
+ assert.equal(result.groups.length,2,'Absorption must not grow with the camera');
+ assert.equal(build(9,7).result.groups.length,1,'The same pair remains local at 5x');
 });
 
 test('satellite absorption preserves primary positions, caps stacks, and keeps overflow accessible',()=>{

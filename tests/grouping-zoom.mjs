@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {frameBand,measureBand,settleMap} from './zoom-candidates.mjs';
 
 export async function checkGroupingZoom(browser,base){
  const before=process.argv.includes('--baseline'),suffix=before?'before':'after',dir='outputs/grouping-zoom';
@@ -7,7 +8,7 @@ export async function checkGroupingZoom(browser,base){
  const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'dark',hasTouch:true});
  const page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- const settled=()=>page.waitForFunction(()=>!cameraTween&&groupCache.items===filtered&&groupCache.level===Math.round(Math.log2(zoom)*3)&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
+ const settled=()=>settleMap(page);
  const summary=()=>page.evaluate(()=>{
   const area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);
   return {zoom,level:groupCache.level,groups:groupCache.groups.length,singles:groupCache.groups.filter(g=>g.members.length===1).length,
@@ -31,10 +32,11 @@ export async function checkGroupingZoom(browser,base){
     await settled();await page.waitForTimeout(350);
     const state=await page.evaluate(()=>{
      const visible=mapClusters.filter(g=>g.x>70&&g.x<1370&&g.y>110&&g.y<690);
-     const labels=[...document.querySelectorAll('.marker-position:not(.is-retiring) .is-large .marker-name')].filter(n=>getComputedStyle(n).visibility!=='hidden'&&getComputedStyle(n).display!=='none').map(n=>({name:n.textContent,r:n.getBoundingClientRect()}));
+     const labeled=g=>{const n=markerNodes.get(g.key)?.querySelector('.marker-name'),s=n&&getComputedStyle(n);return planetLabels.get(g.key)?.opacity>.01||(s&&s.visibility!=='hidden'&&Number(s.opacity)>.01);};
+     const labels=[...document.querySelectorAll('.marker-position:not(.is-retiring) .marker-name')].filter(n=>{const s=getComputedStyle(n);return s.visibility!=='hidden'&&s.display!=='none'&&Number(s.opacity)>.01;}).map(n=>({name:n.textContent,r:n.getBoundingClientRect()}));
      for(const p of planetLabels.values())if(p.opacity>.01)labels.push({name:p.name,r:{left:p.x+mapViewport.left,right:p.x+p.w+mapViewport.left,top:p.y+mapViewport.top,bottom:p.y+p.h+mapViewport.top}});
      return {primaries:visible.filter(g=>g.large).length,satellites:visible.filter(g=>!g.large).length,
-      labeledSatellites:visible.filter(g=>!g.large&&planetLabels.get(g.key)?.opacity>.01).length,
+      labeledSatellites:visible.filter(g=>!g.large&&labeled(g)).length,
       anonymousSingles:visible.filter(g=>!g.large&&g.members.length===1&&!planetLabels.get(g.key)?.opacity).map(g=>g.lead.name),
       leaders:[...planetLabels.values()].filter(p=>p.opacity>.001&&p.leader!==false).length,
       overlaps:labels.flatMap((a,i)=>labels.slice(i+1).filter(b=>a.r.left<b.r.right&&a.r.right>b.r.left&&a.r.top<b.r.bottom&&a.r.bottom>b.r.top).map(b=>[a.name,b.name])),
@@ -44,8 +46,8 @@ export async function checkGroupingZoom(browser,base){
     await page.screenshot({path:`${dir}/${band}-${theme}-${suffix}.png`});
     if(!before){
      assert.ok(state.primaries>0&&state.satellites>0,`${band}/${theme} mixes primaries and satellites`);
-     assert.ok(state.labeledSatellites>0,'Remaining satellites have compact names');
-     assert.deepEqual(state.anonymousSingles,[],'Every remaining single has a name instead of an anonymous dot');
+     assert.ok(state.labeledSatellites<=state.satellites*.05,'At most 5% of satellites have automatic labels');
+     assert.ok(state.anonymousSingles.length>0,'Remaining single satellites render as plain dots');
      assert.equal(state.leaders,0,'Deep labels have no leader thicket or leader collisions');
      assert.deepEqual(state.overlaps,[],'Measured primary labels do not overlap');
      assert.ok(state.honest,'Primary orbs keep their actual coordinates');
@@ -60,32 +62,54 @@ export async function checkGroupingZoom(browser,base){
      assert.equal(await page.evaluate(()=>selected.id),dot.key,'Spatial tapping opens the correct satellite');
      assert.ok((await page.locator('#detail').innerText()).includes(dot.name));
      await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
-     const label=await page.evaluate(()=>{
-      for(const [key,p] of planetLabels){
-       const g=mapClusters.find(g=>g.key===key);
-       if(p.opacity<.5||p.x<100||p.x+p.w>900||p.y<150||p.y>600||g?.members.length!==1)continue;
-       const x=g.x<p.x+p.w/2?p.x+p.w-1:p.x+1,y=p.y+p.h/2;
-       if(Math.hypot(x-g.x,y-g.y)>24)return {key,x:mapViewport.left+x,y:mapViewport.top+y};
-      }
-      return null;
-     });
-     assert.ok(label,'A compact single-disc label is available');
-     await page.touchscreen.tap(label.x,label.y);
-     await page.locator('#detail').waitFor({state:'visible'});
-     assert.equal(await page.evaluate(()=>selected.id),label.key,'The name itself is a usable tap target');
-     await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+
     }
    }
   }
   if(!before){
-   // Cross the cutoff in both directions to catch stale canvas text/leader caches.
-   for(const z of [3.3,3.31,3.3,5]){
-    await page.evaluate(z=>{stopCamera();zoom=z;draw();},z);await settled();await page.waitForTimeout(350);
+   // Exercise both hysteresis edges and ensure canvas labels cannot go stale.
+   for(const [z,suppressed] of [[2.7,false],[2.9,true],[2.8,true],[3,true],[5,true],[2.8,true],[2.7,false]]){
+    await frameBand(page,z);
+    assert.equal(await page.evaluate(()=>satelliteLabelsSuppressed),suppressed);
     const count=await page.evaluate(()=>[...planetLabels.values()].filter(p=>p.opacity>.01).length);
-    if(z>3.3){assert.ok(count>0,'Deep zoom keeps accessible compact labels');assert.ok(await page.evaluate(()=>[...planetLabels.values()].every(p=>!p.opacity||p.leader===false)),'Deep zoom clears leader lines');}
-    else assert.ok(count>0,'Zooming back restores single-dot identification');
+    if(suppressed)assert.equal(count,0,'No stale satellite text or leaders');
+    else assert.ok(count>0,'Overview single-dot labels return below the exit threshold');
    }
+   await page.mouse.move(10,80);
+   await frameBand(page,5);const five=await measureBand(page);
+   await page.mouse.move(720,430);await page.mouse.wheel(0,-1800);await settled();
+   assert.equal(await page.evaluate(()=>zoom),9,'Wheel reaches the selected 9x ceiling');
+   await frameBand(page,9);await page.mouse.move(10,80);const max=await measureBand(page);
+   assert.ok(max.stacks<five.stacks*.5,'Deeper putters have less than half as many visible stacks');
+   assert.ok(max.putters.wholeBandStackExtras<five.putters.wholeBandStackExtras,'Stacks also thin across the whole putter band, not only by leaving the viewport');
+   assert.equal(five.putters.labeledSatellites,0,'Putter satellites have no canvas or DOM names at 5x');
+   assert.ok(max.crowdedDotPairs<five.crowdedDotPairs,'Crowded satellite pairs thin out');
+   assert.equal(max.labeledSatellites,0);assert.equal(max.leaders,0);assert.deepEqual(max.overlaps,[]);
+   assert.equal(max.scale,1.24);assert.equal(max.totalDiscs,five.totalDiscs);
+   for(const stack of [false,true]){
+    const hit=await page.evaluate(stack=>{
+     const g=mapClusters.find(g=>(stack?g.members.length>1:!g.large&&g.members.length===1)&&g.x>100&&g.x<900&&g.y>150&&g.y<600);
+     return g?{key:g.key,count:g.members.length,names:g.members.map(d=>d.catalogName||d.name),x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;
+    },stack);
+    assert.ok(hit,'The maximum has a reachable dot or stack');
+    await page.touchscreen.tap(hit.x,hit.y);await page.locator('#detail').waitFor({state:'visible'});
+    if(stack){
+     assert.equal(await page.locator('#detail .comparison-route').count(),hit.count,'Maximum-zoom stacks still open immediate comparison');
+     for(const name of hit.names)assert.ok((await page.locator('#detail').innerText()).includes(name));
+    }else assert.equal(await page.evaluate(()=>selected.id),hit.key,'Nearest-dot resolution works at the maximum');
+    await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+   }
+   await page.evaluate(()=>{window.topGroupCache=groupCache;window.topNodes=new Map(markerNodes);});
+   for(const z of [8.99,8.97,8.9,9]){
+    await frameBand(page,z);
+    assert.ok(await page.evaluate(()=>groupCache===topGroupCache),'No regroup flicker near the ceiling');
+    assert.ok(await page.evaluate(()=>[...markerNodes].every(([key,node])=>!topNodes.has(key)||topNodes.get(key)===node)),'Retained markers preserve DOM identity');
+   }
+   await page.locator('#zoomIn').click();await settled();assert.equal(await page.evaluate(()=>zoom),9);
+   await page.evaluate(()=>changeZoom(100));await settled();assert.equal(await page.evaluate(()=>zoom),9,'Pinch shares the ceiling');
+   await frameBand(page,5);
   }
+
   fs.writeFileSync(`${dir}/metrics-${suffix}.json`,JSON.stringify({overview,deep,bands},null,2));
   console.log('Bands',bands);
   console.log(suffix,JSON.stringify({overview:{...overview,signature:undefined},deep:{...deep,signature:undefined}}));
@@ -116,11 +140,11 @@ export async function checkGroupingZoom(browser,base){
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);
   await page.evaluate(()=>{stopCamera();zoom=5;const area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);pan={x:195-area.left-.5*area.width*zoom,y:350-area.bottom+.8*area.height*zoom};draw();});
   await settled();await page.waitForTimeout(350);
-  const mobileLabel=await page.evaluate(()=>{const entry=[...planetLabels].find(([key,p])=>p.opacity>.5&&p.x>15&&p.x+p.w<375&&p.y>150&&p.y<550&&mapClusters.find(g=>g.key===key)?.members.length===1);return entry?{key:entry[0],x:mapViewport.left+entry[1].x+entry[1].w/2,y:mapViewport.top+entry[1].y+7}:null;});
-  assert.ok(mobileLabel,'Mobile retains a labeled single satellite');
+  const mobileDot=await page.evaluate(()=>{const g=mapClusters.find(g=>!g.large&&g.members.length===1&&g.x>35&&g.x<355&&g.y>150&&g.y<550);return g?{key:g.key,x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;});
+  assert.ok(mobileDot,'Mobile retains an unlabeled clickable satellite');
   await page.screenshot({path:`${dir}/distance-mobile-after.png`});
-  await page.touchscreen.tap(mobileLabel.x,mobileLabel.y);await page.locator('#detail').waitFor({state:'visible'});
-  assert.equal(await page.evaluate(()=>selected.id),mobileLabel.key,'Mobile label taps open the correct disc');
+  await page.touchscreen.tap(mobileDot.x,mobileDot.y);await page.locator('#detail').waitFor({state:'visible'});
+  assert.equal(await page.evaluate(()=>selected.id),mobileDot.key,'Mobile dot taps open the correct disc');
   assert.deepEqual(errors,[]);
  }finally{await context.close();}
 }

@@ -34,7 +34,7 @@ export async function checkDeepZoom(browser,base){
   fs.writeFileSync(`${dir}/edge-${baseline?'before':'after'}.json`,JSON.stringify({depth,edge,samples},null,2));
   if(baseline)return;
   assert.ok(samples.every(s=>s.retained&&s.rendered),'A disc at/near the viewport edge remains rendered without removal/recreation');
-  assert.ok(depth.zoom<=5&&depth.count>=8,'Maximum zoom retains a useful neighborhood');
+  assert.ok(depth.zoom===9&&depth.count>=8,'Maximum zoom retains a useful neighborhood');
   await page.evaluate(()=>{const area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);pan.x=-250-area.left-edgeGroup.pos.x*area.width*zoom;draw();});
   assert.equal(await page.evaluate(()=>markerNodes.has(edgeGroup.key)),false,'A disc is culled after it is fully panned past');
   for(const side of ['left','right','top','bottom']){
@@ -50,8 +50,8 @@ export async function checkDeepZoom(browser,base){
   await page.waitForFunction(()=>!cameraTween&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
   await page.waitForTimeout(300);
   const labels=await page.evaluate(()=>[...planetLabels.values()].filter(n=>n.opacity>.5).length);
-  assert.ok(labels>0,'Deep satellites have compact names');
-  assert.ok(await page.evaluate(()=>[...planetLabels.values()].every(p=>!p.opacity||p.leader===false)),'Compact names do not bring back leader lines');
+  assert.equal(labels,0,'Deep satellites are unlabeled dots');
+  assert.ok(await page.evaluate(()=>[...planetLabels.values()].every(p=>!p.opacity||p.leader===false)),'Deep views have no leader lines');
   assert.ok(await page.evaluate(()=>mapClusters.filter(g=>g.large).every(g=>!planetLabels.get(g.key)?.opacity)),'Readable large discs do not get duplicate planet labels');
   assert.ok(await page.locator('.atlas-marker.is-large .disc-art').first().evaluate(n=>n.getBoundingClientRect().width)>60,'Deep zoom enlarges disc art');
   await page.screenshot({path:`${dir}/leader-labels.png`});
@@ -60,15 +60,15 @@ export async function checkDeepZoom(browser,base){
   await page.mouse.click(hit.x,hit.y);assert.equal(await page.evaluate(()=>selected?.id),hit.key,'The enlarged disc rim remains clickable');
   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   await page.evaluate(()=>changeZoom(100));await page.waitForTimeout(250);
-  assert.ok(await page.evaluate(()=>zoom<=5),'Immediate pinch zoom uses the same ceiling');
+  assert.ok(await page.evaluate(()=>zoom===9),'Immediate pinch zoom uses the same ceiling');
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween&&groupCache.level===0&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
   assert.ok(await page.evaluate(()=>mapClusters.every(g=>g.members.length===1&&!g.large?planetLabels.get(g.key)?.opacity>.99:!planetLabels.get(g.key)?.opacity)),'Overview labels identify single-disc dots without labeling stacks or duplicating full names');
   await page.getByRole('button',{name:'Switch to light mode'}).click();
-  await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===7&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
+  await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===10&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
   await page.screenshot({path:`${dir}/light-labels.png`});
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);
-  await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===7&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
-  assert.ok(await page.evaluate(()=>zoom<=5&&mapClusters.filter(g=>g.x>0&&g.x<390&&g.y>70&&g.y<canvas.clientHeight-155).length>=6),'Mobile deepest view retains a neighborhood');
+  await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===10&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
+  assert.ok(await page.evaluate(()=>zoom===9&&mapClusters.filter(g=>g.x>0&&g.x<390&&g.y>70&&g.y<canvas.clientHeight-155).length>=6),'Mobile deepest view retains a neighborhood');
   await page.screenshot({path:`${dir}/mobile-deepest.png`});
  }finally{const video=page.video();await context.close();if(video)await video.saveAs(`${dir}/${baseline?'before':'after'}.webm`);}
 }

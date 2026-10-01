@@ -54,12 +54,12 @@ export async function checkZoomBoundary(browser, base) {
     assert.ok(result.maxTask<50,`Boundary wheel tick stayed below 50ms (observed ${result.maxTask.toFixed(1)}ms)`);
     assert.equal(result.arrivals,0,'Existing map discs do not replay entrance animation');
     await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});
-    await page.mouse.wheel(0,45);
+    await page.mouse.wheel(0,90);
     await page.waitForFunction(()=>groupCache.level===6&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
     assert.equal(await page.locator('.is-new,.is-retiring').count(),0,'Reversing across a cached boundary leaves no ghost markers');
     if(process.argv.includes('--zoom-visual')){
       await page.screenshot({path:'outputs/zoom-review/boundary-before.png'});
-      await page.mouse.wheel(0,-45);
+      await page.mouse.wheel(0,-90);
       await page.waitForFunction(()=>groupCache.level===7);
       await page.screenshot({path:'outputs/zoom-review/boundary-blend.png'});
       await page.waitForTimeout(300);
