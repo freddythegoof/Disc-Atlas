@@ -50,8 +50,8 @@ export async function checkDeepZoom(browser,base){
   await page.waitForFunction(()=>!cameraTween&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
   await page.waitForTimeout(300);
   const labels=await page.evaluate(()=>[...planetLabels.values()].filter(n=>n.opacity>.5).length);
-  assert.equal(labels,0,'Deep satellites are unlabeled dots');
-  assert.ok(await page.evaluate(()=>[...planetLabels.values()].every(p=>!p.opacity||p.leader===false)),'Deep views have no leader lines');
+  assert.equal(labels,0,'Deep satellites have no duplicate canvas labels');
+  assert.ok(await page.evaluate(()=>[...planetLabels.values()].every(p=>!p.opacity||p.leader===false)),'Removed minor canvas renderer cannot add leader lines');
   assert.ok(await page.evaluate(()=>mapClusters.filter(g=>g.large).every(g=>!planetLabels.get(g.key)?.opacity)),'Readable large discs do not get duplicate planet labels');
   assert.ok(await page.locator('.atlas-marker.is-large .disc-art').first().evaluate(n=>n.getBoundingClientRect().width)>60,'Deep zoom enlarges disc art');
   await page.screenshot({path:`${dir}/leader-labels.png`});
@@ -62,7 +62,7 @@ export async function checkDeepZoom(browser,base){
   await page.evaluate(()=>changeZoom(100));await page.waitForTimeout(250);
   assert.ok(await page.evaluate(()=>zoom===9),'Immediate pinch zoom uses the same ceiling');
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween&&groupCache.level===0&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
-  assert.ok(await page.evaluate(()=>mapClusters.every(g=>g.members.length===1&&!g.large?planetLabels.get(g.key)?.opacity>.99:!planetLabels.get(g.key)?.opacity)),'Overview labels identify single-disc dots without labeling stacks or duplicating full names');
+  assert.ok(await page.evaluate(()=>planetLabels.size===0&&mapClusters.every(g=>!g.minorLabel||g.members.length===1&&!g.large&&g.markerOffset===null)),'Overview labels only identify fitting single dots at true positions');
   await page.getByRole('button',{name:'Switch to light mode'}).click();
   await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===10&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
   await page.screenshot({path:`${dir}/light-labels.png`});

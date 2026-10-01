@@ -30,7 +30,11 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});
 const base='http://127.0.0.1:'+server.address().port;
 try{
- if(process.argv.includes('--zoom-candidates')){
+ if(process.argv.includes('--header-menu')){
+  const {checkHeaderMenu}=await import('./context-header.mjs');await checkHeaderMenu(browser,base);
+ }else if(process.argv.includes('--low-zoom-labels')){
+  const {checkLowZoomLabels}=await import('./grouping-zoom.mjs');await checkLowZoomLabels(browser,base);
+ }else if(process.argv.includes('--zoom-candidates')){
   const {checkZoomCandidates}=await import('./zoom-candidates.mjs');
   await checkZoomCandidates(browser,base);
  }else if(process.argv.includes('--grouping-zoom')){

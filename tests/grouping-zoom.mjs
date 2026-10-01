@@ -71,9 +71,9 @@ export async function checkGroupingZoom(browser,base){
    for(const [z,suppressed] of [[2.7,false],[2.9,true],[2.8,true],[3,true],[5,true],[2.8,true],[2.7,false]]){
     await frameBand(page,z);
     assert.equal(await page.evaluate(()=>satelliteLabelsSuppressed),suppressed);
-    const count=await page.evaluate(()=>[...planetLabels.values()].filter(p=>p.opacity>.01).length);
-    if(suppressed)assert.equal(count,0,'No stale satellite text or leaders');
-    else assert.ok(count>0,'Overview single-dot labels return below the exit threshold');
+    const count=await page.evaluate(()=>groupCache.groups.filter(g=>g.minorLabel).length);
+    if(suppressed)assert.equal(count,0,'No automatic minor labels past the suppression boundary');
+    else assert.ok(count>0,'Fitting true-position minor labels return below the exit threshold');
    }
    await page.getByRole('button',{name:'Switch to dark mode'}).click();
    await page.mouse.move(10,80);
@@ -177,6 +177,7 @@ export async function checkGroupingZoom(browser,base){
   console.log('Bands',bands);
   console.log(suffix,JSON.stringify({overview:{...overview,signature:undefined},deep:{...deep,signature:undefined}}));
   if(before)return;
+  await checkLowZoomLabels(browser,base);
   assert.ok(deep.anchored&&deep.maxDisplacement<65,'Deep leads stay anchored; absorbed satellites remain local');
   assert.equal(deep.largest,3);
   assert.equal(deep.discs,overview.discs);assert.ok(overview.largest>3,'Overview remains coarsely grouped');
@@ -209,5 +210,43 @@ export async function checkGroupingZoom(browser,base){
   await page.touchscreen.tap(mobileDot.x,mobileDot.y);await page.locator('#detail').waitFor({state:'visible'});
   assert.equal(await page.evaluate(()=>selected.id),mobileDot.key,'Mobile dot taps open the correct disc');
   assert.deepEqual(errors,[]);
+ }finally{await context.close();}
+}
+
+export async function checkLowZoomLabels(browser,base){
+ fs.mkdirSync('outputs/plan-07',{recursive:true});
+ const context=await browser.newContext({viewport:{width:1440,height:900},colorScheme:'dark'}),page=await context.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);await page.mouse.move(10,80);
+  await page.evaluate(()=>{type='distance';filter();});await settleMap(page);
+  const results=[];
+  for(const z of [1,3]){
+   await frameBand(page,z,.8);
+   await page.evaluate(z=>{const a=AtlasLayout.bounds(mapViewport.width,mapViewport.height);pan.x=mapViewport.width/2-a.left-.15*a.width*z;draw();},z);
+   await settleMap(page);await page.waitForTimeout(350);
+   const state=await measureBand(page);
+   const leaders=await page.evaluate(()=>[...planetLabels.values()].filter(p=>p.opacity>.01&&p.leader!==false).length);
+   results.push({...state,canvasMinorLeaders:leaders});
+   await page.screenshot({path:`outputs/plan-07/sparse-distance-${z}x-dark.png`});
+   assert.equal(leaders,0,'No canvas minor-label leaders at any low zoom');
+   assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);
+   assert.ok(state.honest,'Low-zoom markers retain true coordinates');
+  }
+  for(const z of [1,1.5,2,2.7,2.9,3,5,6.99]){
+   await frameBand(page,z,.8);const state=await measureBand(page);
+   assert.equal(state.leaders,0,`${z}x has no vectors`);assert.deepEqual(state.overlaps,[]);assert.ok(state.honest);
+  }
+  await page.evaluate(()=>{type='all';filter();});await settleMap(page);
+  await frameBand(page,1,.8);
+  const hidden=await page.evaluate(()=>mapClusters.find(g=>!g.large&&!g.minorLabel&&g.members.length===1&&g.x>100&&g.x<1300&&g.y>150&&g.y<600)?.key);
+  assert.ok(hidden,'A blocked minor label remains an accessible dot');
+  const node=page.locator(`[data-cluster="${hidden}"]`);await node.hover();await page.waitForTimeout(250);
+  assert.ok(await node.locator('.marker-name').evaluate(n=>getComputedStyle(n).visibility==='visible'&&Number(getComputedStyle(n).opacity)>.9),'Blocked label reveals on hover');
+  await page.mouse.move(10,80);await page.keyboard.press('Tab');await node.focus();await page.waitForTimeout(250);
+  assert.ok(await node.locator('.marker-name').evaluate(n=>getComputedStyle(n).visibility==='visible'&&Number(getComputedStyle(n).opacity)>.9),'Blocked label reveals on keyboard focus');
+  await page.keyboard.press('Enter');await page.locator('#detail').waitFor({state:'visible'});assert.equal(await page.evaluate(()=>selected.id),hidden);
+  fs.writeFileSync('outputs/plan-07/low-zoom-metrics.json',JSON.stringify(results,null,2));assert.deepEqual(errors,[]);
+  console.log('PASS: low-zoom label contention, true positions, no vectors, keyboard/hover reveal and sparse captures.');
  }finally{await context.close();}
 }

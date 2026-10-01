@@ -26,7 +26,7 @@ globalThis.AtlasGroups = {
  },
  // Rectangles are measured from the rendered name/brand label in CSS pixels.
  // Keep priority order; screen-space contention alone determines prominence.
- promote(groups, footprints, zoom, groupZoom, satelliteFootprints) {
+ promote(groups, footprints, zoom, groupZoom, satelliteFootprints, minorFootprints) {
   const occupied=new Map(),cellSize=128,scale=1+.08*(Math.min(4,zoom)-1),ratio=zoom/groupZoom;
   const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
   const cells=box=>{
@@ -37,7 +37,7 @@ globalThis.AtlasGroups = {
   };
   for(const g of groups){
    g.labelVisible=false;
-   g.labelOffset=null;g.markerOffset=null;g.satellite=false;g.leader=null;
+   g.labelOffset=null;g.markerOffset=null;g.satellite=false;g.leader=null;g.minorLabel=false;
    const f=footprints.get(g.key);
    if(!f){g.large=false;continue;}
    const x=g.px*ratio,y=-g.py*ratio,r=f.radius*scale;
@@ -48,6 +48,21 @@ globalThis.AtlasGroups = {
    if(g.large)boxes.forEach((box,i)=>keys[i].forEach(key=>{
     if(!occupied.has(key))occupied.set(key,[]);occupied.get(key).push(box);
    }));
+  }
+  // Overview names have one fixed footprint at the true marker position.
+  // They share primary contention and never get offsets or canvas leaders.
+  if(minorFootprints){
+   const insert=box=>cells(box).forEach(key=>{if(!occupied.has(key))occupied.set(key,[]);occupied.get(key).push(box);});
+   for(const g of groups)if(!g.large){const r=g.members.length>1?12:8;
+    insert({x:g.px*ratio-r,y:-g.py*ratio-r,w:2*r,h:2*r});
+   }
+   for(const g of groups){
+    if(g.large||g.members.length!==1)continue;
+    const f=minorFootprints.get(g.key);if(!f)continue;
+    const label={x:g.px*ratio+f.x,y:-g.py*ratio+f.y,w:f.w,h:f.h};
+    if(cells(label).some(key=>(occupied.get(key)||[]).some(b=>overlaps(label,b))))continue;
+    g.minorLabel=true;g.labelVisible=true;insert(label);
+   }
   }
   // Keep the primary pass unchanged. Deep singles may use smaller artwork;
   // reserved true-position dots protect stacks/fallbacks and vector endpoints.

@@ -32,9 +32,10 @@ export async function checkLabelProminence(browser,base){
   const overview=await page.evaluate(()=>({large:mapClusters.filter(g=>g.large).map(g=>g.lead.name),dots:mapClusters.filter(g=>!g.large).length}));
   console.log('Overview prominence',{featured:overview.large.filter(n=>['Destroyer','Buzzz','Zone','Crave','Envy','TeeBird'].includes(n)),large:overview.large.length,dots:overview.dots});
   assert.ok(overview.large.includes('Destroyer')&&overview.large.includes('Buzzz')&&overview.dots>0);
-  const soloLabels=await page.evaluate(()=>mapClusters.filter(g=>!g.large&&g.members.length===1).map(g=>({name:g.lead.name,opacity:planetLabels.get(g.key)?.opacity||0})));
+  const soloLabels=await page.evaluate(()=>mapClusters.filter(g=>!g.large&&g.members.length===1).map(g=>({name:g.lead.name,visible:!!g.minorLabel})));
   assert.ok(soloLabels.length>0,'Overview includes single-disc dots');
-  assert.ok(soloLabels.every(label=>label.opacity>.99),'Single-disc dots have planet labels before deep zoom');
+  assert.ok(soloLabels.some(label=>label.visible),'Some clean single-disc labels fit at true positions');
+  assert.ok(await page.evaluate(()=>planetLabels.size===0),'Overview names no longer use the canvas');
   // Inspect painted labels every frame, including old worker groups during zoom.
   for(const factor of [4,.25]){
   const motionOverlaps=await page.evaluate(factor=>new Promise(resolve=>{

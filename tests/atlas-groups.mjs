@@ -156,3 +156,14 @@ test('shared featured IDs determine leads; unranked discs follow Directory alpha
  const coincident=new Map(discs.map(d=>[d.id,{x:.5,y:.5}]));
  assert.equal(runtime.AtlasGroups.build(discs,coincident,1000,800,0,false,new Map(),ranking).groups[0].key,'b');
 });
+
+test('low zoom promotes only clean measured labels at true positions, without vectors',()=>{
+ const groups=[{key:'p',px:0,py:0,members:['p']},{key:'clean',px:80,py:0,members:['clean']},
+  {key:'blocked',px:45,py:-50,members:['blocked']}];
+ const full=new Map(groups.map(g=>[g.key,{x:-60,y:37,w:120,h:32,radius:27}]));
+ const minor=new Map(groups.map(g=>[g.key,{x:-20,y:18,w:40,h:16,radius:8}]));
+ runtime.AtlasGroups.promote(groups,full,1,1,undefined,minor);
+ assert.equal(groups[1].large,false);assert.equal(groups[1].minorLabel,true,'Clean label appears at fixed relative position');
+ assert.equal(groups[2].minorLabel,false,'Contending label is suppressed');
+ assert.ok(groups.every(g=>g.markerOffset===null&&g.leader===null),'No low-zoom nudging or vectors');
+});

@@ -12,9 +12,7 @@ const preparedGroups=new Map(),pendingGroups=new Set();
 const markerNodes=new Map();
 const MAX_MAP_ZOOM=9;
 const planetLabels=new Map();
-const planetNameWidths=new Map();
 let satelliteLabelsSuppressed=false;
-let labelFrameTime=0;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
 function measureFullLabels(items){
@@ -117,7 +115,8 @@ function buildClusters(items,w,h){
  // intermediate animation frames and while a new worker level is pending.
  if(groupCache.prominenceZoom!==zoom){
   const satellites=zoom>=7?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
-  window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3),satellites);
+  const minors=zoom<2.9&&(!satelliteLabelsSuppressed||zoom<=2.7)?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
+  window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3),satellites,minors);
   groupCache.prominenceZoom=zoom;
  }
  const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
@@ -186,48 +185,11 @@ function setMapText(node,text){if(node.textContent!==text)node.textContent=text;
 // Growth settles before the deepest regroup boundary; only artwork scales.
 function mapMarkerScale(){return 1+.08*(Math.min(4,zoom)-1);}
 function drawPlanetLabels(){
- // Calm the map by 3x. Separate enter/exit thresholds avoid label chatter.
+ // Preserve the shipped label-density hysteresis. Automatic low-zoom names
+ // now come exclusively from measured DOM promotion at their true positions.
  if(zoom>=2.9)satelliteLabelsSuppressed=true;
  else if(zoom<=2.7)satelliteLabelsSuppressed=false;
- if(satelliteLabelsSuppressed){
-  planetLabels.clear();groupCache.labelPlacements?.clear();labelFrameTime=performance.now();return;
- }
- const now=performance.now(),dt=Math.min(1,(now-labelFrameTime)/140);labelFrameTime=now;
- const live=new Set();
- const occupied=mapClusters.filter(g=>g.large).map(g=>({x:g.x-76,y:g.y-38,w:152,h:112}));
- const placements=groupCache.labelPlacements||(groupCache.labelPlacements=new Map());
- for(const g of mapClusters){const p=placements.get(g.key);if(p&&!g.large)occupied.push({x:g.x+p.dx,y:g.y+p.dy,w:p.width,h:14});}
- const immersive=!document.body.classList.contains('my-bag-mode'),top=immersive?70:0,bottom=mapViewport.height-(immersive?(mapViewport.width<700?155:110):24);
- ctx.save();ctx.beginPath();ctx.rect(0,top,mapViewport.width,bottom-top);ctx.clip();ctx.font='11px DM Sans, sans-serif';ctx.lineWidth=1;
- for(const g of mapClusters){
-  live.add(g.key);
-  // Before deep zoom, identify single dots without duplicating primary names.
-  const target=!g.large&&g.members.length===1?1:0,previous=planetLabels.get(g.key)?.opacity||0;
-  const opacity=window.AtlasMotion?.enabled()?previous+Math.sign(target-previous)*Math.min(Math.abs(target-previous),dt):target;
-  if(Math.abs(opacity-target)>.001)scheduleMapDraw();
-  if(opacity<=.001){planetLabels.set(g.key,{opacity:0});continue;}
-  const name=g.lead.catalogName||g.lead.name;
-  if(!planetNameWidths.has(name))planetNameWidths.set(name,ctx.measureText(name).width);
-  const width=planetNameWidths.get(name);
-  // Choose the quietest of four short leaders, avoiding prominent disc names.
-  let placement=placements.get(g.key);
-  if(!placement){const candidates=[[1,-1],[-1,-1],[1,1],[-1,1]].map(([sx,sy])=>{
-   const x=g.x+sx*38-(sx<0?width:0),y=g.y+sy*25-6,box={x,y,w:width,h:14};
-   const overlap=occupied.reduce((sum,b)=>sum+Math.max(0,Math.min(x+width,b.x+b.w)-Math.max(x,b.x))*Math.max(0,Math.min(y+14,b.y+b.h)-Math.max(y,b.y)),0);
-   return {sx,sy,box,overlap};
-  });
-   const best=candidates.reduce((a,b)=>b.overlap<a.overlap?b:a);
-   occupied.push(best.box);
-   placement={sx:best.sx,sy:best.sy,dx:best.box.x-g.x,dy:best.box.y-g.y,width};placements.set(g.key,placement);
-  }
-  const {sx,sy,dx,dy}=placement;
-  planetLabels.set(g.key,{opacity,name,x:g.x+dx,y:g.y+dy,w:width,h:14});
-  ctx.globalAlpha=opacity*.42;ctx.strokeStyle=themePalette.muted;ctx.beginPath();
-  ctx.moveTo(g.x+sx*9,g.y+sy*5);ctx.lineTo(g.x+sx*23,g.y+sy*23);ctx.lineTo(g.x+sx*34,g.y+sy*23);ctx.stroke();
-  ctx.globalAlpha=opacity*.9;ctx.fillStyle=themePalette.muted;ctx.fillText(name,g.x+dx,g.y+dy+11);
- }
- for(const key of planetLabels.keys())if(!live.has(key))planetLabels.delete(key);
- ctx.restore();
+ planetLabels.clear();groupCache.labelPlacements?.clear();
 }
 function renderMarkers(){
  const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||window.BagApp?.isMapActive());
@@ -239,7 +201,7 @@ function renderMarkers(){
  const current=new Map(mapClusters.map(g=>[g.key,g]));
  for(const [key,node] of markerNodes){
   const g=current.get(key);
-  const visible=g&&(g.large||satelliteLabelsSuppressed)&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
+  const visible=g&&(g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7)&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
   node.querySelector('.marker-name').style.visibility=visible?'':'hidden';
   // Drop an obsolete automatic label immediately, including budgeted updates.
   if(node.classList.contains('is-satellite')&&(!g?.satellite||!visible)){
@@ -276,7 +238,9 @@ function renderMarkers(){
    node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
-  node.querySelector('.marker-name').style.visibility=g.large||satelliteLabelsSuppressed?'':'hidden';
+  node.querySelector('.marker-name').style.visibility=g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7?'':'hidden';
+  if(node.classList.contains('is-minor-label')&&!g.minorLabel)node.querySelector('.marker-name').style.transition='none';
+  node.classList.toggle('is-minor-label',!!g.minorLabel);
   node.classList.toggle('is-satellite',!!g.satellite);
   node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
   node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
