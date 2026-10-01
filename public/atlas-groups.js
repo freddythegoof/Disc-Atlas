@@ -8,7 +8,7 @@ globalThis.AtlasGroups = {
  },
  // Rectangles are measured from the rendered name/brand label in CSS pixels.
  // Keep priority order; screen-space contention alone determines prominence.
- promote(groups, footprints, zoom, groupZoom) {
+ promote(groups, footprints, zoom, groupZoom, satelliteFootprints) {
   const occupied=new Map(),cellSize=128,scale=1+.08*(Math.min(4,zoom)-1),ratio=zoom/groupZoom;
   const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
   const cells=box=>{
@@ -18,6 +18,8 @@ globalThis.AtlasGroups = {
    return keys;
   };
   for(const g of groups){
+   g.labelVisible=false;
+   g.labelOffset=null;
    const f=footprints.get(g.key);
    if(!f){g.large=false;continue;}
    const x=g.px*ratio,y=-g.py*ratio,r=f.radius*scale;
@@ -26,6 +28,31 @@ globalThis.AtlasGroups = {
    const boxes=[label,marker],keys=boxes.map(cells);
    g.large=!boxes.some((box,i)=>keys[i].some(key=>(occupied.get(key)||[]).some(b=>overlaps(box,b))));
    if(g.large)boxes.forEach((box,i)=>keys[i].forEach(key=>{
+    if(!occupied.has(key))occupied.set(key,[]);occupied.get(key).push(box);
+   }));
+  }
+  // Primaries retain priority. Only labels gain prominence in this second pass;
+  // satellites keep their smaller artwork and their honest world positions.
+  if(satelliteFootprints)for(const g of groups){
+   if(g.large||g.members.length!==1)continue;
+   const f=satelliteFootprints.get(g.key);if(!f)continue;
+   const x=g.px*ratio,y=-g.py*ratio,r=f.radius*scale;
+   const marker={x:x-r,y:y-r,w:2*r,h:2*r};
+   if(cells(marker).some(key=>(occupied.get(key)||[]).some(b=>overlaps(marker,b))))continue;
+   // Short, adjacent DOM placements; only the label moves, never the dot.
+   const candidates=[12,20,28].flatMap(gap=>[
+    {x:f.x,y:gap},{x:f.x,y:-gap-f.h},{x:gap,y:-f.h/2},{x:-gap-f.w,y:-f.h/2},
+    {x:gap,y:gap},{x:-gap-f.w,y:gap},{x:gap,y:-gap-f.h},{x:-gap-f.w,y:-gap-f.h}
+   ]);
+   const placement=candidates.find(p=>{const box={x:x+p.x,y:y+p.y,w:f.w,h:f.h};
+    return !cells(box).some(key=>(occupied.get(key)||[]).some(b=>overlaps(box,b)));
+   });
+   if(!placement)continue;
+   g.labelOffset={x:placement.x-f.x,y:placement.y-f.y};
+   const boxes=[{x:x+placement.x,y:y+placement.y,w:f.w,h:f.h},marker];
+   const keys=boxes.map(cells);
+   g.labelVisible=!boxes.some((box,i)=>keys[i].some(key=>(occupied.get(key)||[]).some(b=>overlaps(box,b))));
+   if(g.labelVisible)boxes.forEach((box,i)=>keys[i].forEach(key=>{
     if(!occupied.has(key))occupied.set(key,[]);occupied.get(key).push(box);
    }));
   }

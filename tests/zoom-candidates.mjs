@@ -15,6 +15,8 @@ export const measureBand=page=>page.evaluate(()=>{
  const putters=visible.filter(g=>typeOf(g.lead)==='putter');
  const putterGroups=groupCache.groups.filter(g=>g.members.some(d=>typeOf(d)==='putter'));
  return {zoom,level:groupCache.level,visible:visible.length,primaries:primaries.length,satellites:dots.length,labeledSatellites:dots.filter(labeled).length,
+  unstackedSatellites:dots.filter(g=>g.members.length===1).length,
+  unlabeledSingles:dots.filter(g=>g.members.length===1&&!labeled(g)).map(g=>g.lead.name),
   putters:{visible:putters.length,satellites:putters.filter(g=>!g.large).length,labeledSatellites:putters.filter(g=>!g.large&&labeled(g)).length,
    stacks:putters.filter(g=>g.members.length>1).length,
    wholeBandStackExtras:putterGroups.reduce((n,g)=>n+Math.max(0,g.members.filter(d=>typeOf(d)==='putter').length-1),0)},
@@ -37,7 +39,9 @@ export async function checkZoomCandidates(browser,base){
    await frameBand(page,z);const state=await measureBand(page);results.push(state);
    await page.screenshot({path:`${dir}/putter-${z}x-${suffix}.png`});
    if(!baseline){
-    assert.equal(state.labeledSatellites,0);assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);
+    if(state.level<10)assert.equal(state.labeledSatellites,0);
+    else assert.ok(state.labeledSatellites>0,'Max zoom promotes measured satellite labels');
+    assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);
     assert.ok(state.honest);assert.ok(state.scale<=1.24&&state.artScale<=1.24);assert.ok(state.primaries>0);
     assert.ok(state.largest<=(z===3?5:3));
    }

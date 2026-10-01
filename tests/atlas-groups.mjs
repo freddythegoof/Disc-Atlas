@@ -39,6 +39,24 @@ test('vertical neighbors use their label height rather than a circular distance'
  const result=runtime.AtlasGroups.build(items,positions,1000,800,0,false,footprints,featured);
  assert.deepEqual(Array.from(result.groups,g=>g.large),[true,true]);
 });
+
+test('deep satellite labels share measured contention without changing prominence or positions',()=>{
+ const groups=[
+  {key:'primary',px:0,py:0,members:['primary']},
+  {key:'satellite',px:90,py:0,members:['satellite']},
+  {key:'blocked',px:0,py:0,members:['blocked']},
+  {key:'stack',px:300,py:0,members:['stack','member']}
+ ];
+ const full=new Map(groups.map(g=>[g.key,{x:-60,y:37,w:120,h:32,radius:27}]));
+ const dots=new Map(groups.map(g=>[g.key,{x:-20,y:22,w:40,h:32,radius:6}]));
+ runtime.AtlasGroups.promote(groups,full,9,9,dots);
+ assert.equal(groups[1].large,false,'A labeled satellite remains a dot');
+ assert.equal(groups[1].labelVisible,true,'Its smaller measured footprint fits');
+ assert.equal(groups[2].labelVisible,false,'A colliding satellite remains accessible without a label');
+ assert.deepEqual(Array.from(groups,g=>[g.px,g.py]),[[0,0],[90,0],[0,0],[300,0]]);
+ runtime.AtlasGroups.promote(groups,full,8,8);
+ assert.equal(groups[1].labelVisible,false,'Automatic satellite labels clear outside the deepest level');
+});
 test('worker structured-clone payload preserves measured footprints and priority',()=>{
  const {positions,result}=build(180);
  const worker={};worker.self=worker;

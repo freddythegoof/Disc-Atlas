@@ -24,16 +24,20 @@ function measureFullLabels(items){
   const key=keyPrefix+d.id;if(fullLabelFootprints.has(key))continue;
   const node=document.createElement('div');node.className='atlas-marker is-large overview';
   node.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'<small>'+esc(d.brand)+'</small></span>';
-  host.append(node);pending.push({key,node});
+  const satellite=node.cloneNode(true);satellite.className='atlas-marker is-dot has-auto-label overview';
+  host.append(node,satellite);pending.push({key,node,satellite});
  }
  if(pending.length){
   $('#mapMarkers').append(host);
   // Batch writes before reads; this runs only for new labels/breakpoints/fonts.
-  for(const {key,node} of pending){
+  for(const {key,node,satellite} of pending){
    const marker=node.getBoundingClientRect(),label=node.firstChild.getBoundingClientRect();
    const gap=parseFloat(getComputedStyle(node.firstChild).lineHeight)/4;
+   const dot=satellite.getBoundingClientRect(),dotLabel=satellite.firstChild.getBoundingClientRect();
    fullLabelFootprints.set(key,{x:label.x-marker.x-marker.width/2-gap,y:label.y-marker.y-marker.height/2-gap,
-    w:label.width+gap*2,h:label.height+gap*2,radius:marker.width/2});
+    w:label.width+gap*2,h:label.height+gap*2,radius:marker.width/2,
+    satellite:{x:dotLabel.x-dot.x-dot.width/2-gap,y:dotLabel.y-dot.y-dot.height/2-gap,
+     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:6}});
   }
   host.remove();
  }
@@ -112,7 +116,8 @@ function buildClusters(items,w,h){
  // Labels do not scale with the camera. Recheck at the actual zoom, including
  // intermediate animation frames and while a new worker level is pending.
  if(groupCache.prominenceZoom!==zoom){
-  window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3));
+  const satellites=groupCache.level===10?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
+  window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3),satellites);
   groupCache.prominenceZoom=zoom;
  }
  const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
@@ -219,6 +224,11 @@ function renderMarkers(){
   const g=current.get(key);
   const visible=g&&(g.large||satelliteLabelsSuppressed)&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
   node.querySelector('.marker-name').style.visibility=visible?'':'hidden';
+  // Drop an obsolete automatic label immediately, including budgeted updates.
+  if(node.classList.contains('has-auto-label')&&!g?.labelVisible){
+   node.classList.remove('has-auto-label');
+   node.querySelector('.marker-name').style.transition='none';
+  }
  }
  let updated=0,pendingMarkers=false;
  for(const g of mapClusters){
@@ -251,6 +261,9 @@ function renderMarkers(){
   }
   if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
   node.querySelector('.marker-name').style.visibility=g.large||satelliteLabelsSuppressed?'':'hidden';
+  node.classList.toggle('has-auto-label',!!g.labelVisible);
+  node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
+  node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
   const selectedScale=g.members.includes(selected)?1.12:1;
   if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
    if(g.large)node.art.style.scale=scaleValue;

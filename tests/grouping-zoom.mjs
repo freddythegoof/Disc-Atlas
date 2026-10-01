@@ -84,7 +84,12 @@ export async function checkGroupingZoom(browser,base){
    assert.ok(max.putters.wholeBandStackExtras<five.putters.wholeBandStackExtras,'Stacks also thin across the whole putter band, not only by leaving the viewport');
    assert.equal(five.putters.labeledSatellites,0,'Putter satellites have no canvas or DOM names at 5x');
    assert.ok(max.crowdedDotPairs<five.crowdedDotPairs,'Crowded satellite pairs thin out');
-   assert.equal(max.labeledSatellites,0);assert.equal(max.leaders,0);assert.deepEqual(max.overlaps,[]);
+   assert.ok(max.satellites>0);
+   assert.equal(max.labeledSatellites,max.unstackedSatellites-1,'All fitting unstacked satellites in the dense 9x putter view have DOM labels');
+   assert.deepEqual(max.unlabeledSingles,['Scarab'],'Only the genuinely blocked satellite remains unlabeled');
+   assert.equal(max.leaders,0);assert.deepEqual(max.overlaps,[]);
+   assert.ok(max.honest,'Satellites and primaries keep their atlas coordinates');
+   await page.screenshot({path:`${dir}/putter-9x-satellite-labels.png`});
    assert.equal(max.scale,1.24);assert.equal(max.totalDiscs,five.totalDiscs);
    for(const stack of [false,true]){
     const hit=await page.evaluate(stack=>{
