@@ -26,10 +26,33 @@
       });
     });
     apply(document.documentElement.dataset.theme);
-    const info=document.getElementById('atlasInfo');
-    document.addEventListener('pointerdown',event=>{if(info&&!info.contains(event.target))info.open=false;});
-    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&info?.open){info.open=false;info.querySelector('summary').focus();}});
-    info?.querySelectorAll('button,a').forEach(control=>control.addEventListener('click',()=>{info.open=false;}));
+    const info=document.getElementById('atlasInfo'),button=document.getElementById('siteMenuButton'),menu=document.getElementById('siteMenu');
+    if(button&&menu){
+      const items=[...menu.querySelectorAll('[role="menuitem"]')];
+      const close=()=>{menu.hidden=true;button.setAttribute('aria-expanded','false');button.focus({preventScroll:true});};
+      const open=index=>{menu.hidden=false;button.setAttribute('aria-expanded','true');items[index].focus({preventScroll:true});};
+      button.addEventListener('click',()=>menu.hidden?open(0):close());
+      button.addEventListener('keydown',event=>{
+        if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+          event.preventDefault();open(event.key==='ArrowUp'?items.length-1:0);
+        }
+      });
+      menu.addEventListener('keydown',event=>{
+        const index=items.indexOf(document.activeElement);
+        const next=event.key==='ArrowDown'?(index+1)%items.length:event.key==='ArrowUp'?(index-1+items.length)%items.length:
+          event.key==='Home'?0:event.key==='End'?items.length-1:null;
+        if(next!==null){event.preventDefault();items[next].focus({preventScroll:true});}
+        else if(event.key==='Tab')close();
+      });
+      document.addEventListener('keydown',event=>{
+        if(event.key==='Escape'&&!menu.hidden){event.preventDefault();event.stopPropagation();close();}
+      });
+      document.addEventListener('pointerdown',event=>{if(!menu.hidden&&!info.contains(event.target))close();});
+      info.addEventListener('focusout',event=>{
+        if(!menu.hidden&&event.relatedTarget&&!info.contains(event.relatedTarget))close();
+      });
+      items.forEach(item=>item.addEventListener('click',close));
+    }
     document.querySelectorAll('[data-theme-select]').forEach(select => {
       select.value = document.documentElement.dataset.theme;
       select.addEventListener('change', () => {

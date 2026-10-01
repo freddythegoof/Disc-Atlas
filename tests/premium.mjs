@@ -63,10 +63,10 @@ export async function checkPremium(browser, base) {
       }
       if(viewport.width===1440)await page.screenshot({path:'outputs/premium/bottom-right-hover.png'});
       await page.mouse.move(0,0);
-      await page.locator('#atlasInfo summary').click();
-      assert.ok(await page.locator('#atlasInfo a[href="/privacy.html"]').isVisible(),'Legal links are reachable in the information menu');
+      await page.getByRole('button',{name:'Site menu',exact:true}).click();
+      assert.ok(await page.locator('#atlasInfo a[href="/privacy"]').isVisible(),'Legal links are reachable in the information menu');
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('#atlasInfo').getAttribute('open'),null,'Escape closes the information menu');
+      assert.equal(await page.locator('#siteMenuButton').getAttribute('aria-expanded'),'false','Escape closes the information menu');
       await page.evaluate(()=>{
         const group=mapClusters.at(-1);openCluster(group,markerNodes.get(group.key),true);
       });
