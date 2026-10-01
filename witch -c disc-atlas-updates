@@ -1,0 +1,14 @@
+ public/app.js              |  2 [32m+[m[31m-[m
+ public/atlas-groups.js     | 19 [32m++++++++++++++[m[31m--[m
+ public/atlas-map.js        | 56 [32m++++++++[m[31m--------------------------------------[m
+ public/cosmic.css          | 21 [32m++++++++++++[m[31m-----[m
+ public/theme.js            | 31 [32m+++++++++++++++++++++[m[31m----[m
+ tests/atlas-groups.mjs     | 11 [32m+++++++++[m
+ tests/context-header.mjs   | 47 [32m++++++++++++++++++++++++++++++++++++++[m
+ tests/deep-zoom.mjs        |  6 [32m++[m[31m---[m
+ tests/grouping-zoom.mjs    | 45 [32m++++++++++++++++++++++++++++++++++[m[31m---[m
+ tests/label-prominence.mjs |  5 [32m+++[m[31m--[m
+ tests/motion.mjs           |  6 [32m++++[m[31m-[m
+ tests/premium.mjs          |  6 [32m++[m[31m---[m
+ web/index.html             |  4 [32m++[m[31m--[m
+ 13 files changed, 186 insertions(+), 73 deletions(-)
