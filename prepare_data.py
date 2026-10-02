@@ -37,6 +37,9 @@ for r in registry:
   assert verified['brand']==brand and verified['approvalName']==name, 'Reviewed approval mapping has changed'
   d.update(verified['flightNumbers']);d['category']=verified['category'];d['flightSource']=verified['source'];d['flightSourceLabel']=verified['brand'];d['catalogName']=verified['catalogName']
   d['flightMatchNote']='Manufacturer model matched to this specific PDGA approval; historical approvals kept separate.'
+  if verified.get('adjustmentNote'):
+   # Atlas shifted a published rating: say so instead of passing it off as the manufacturer's numbers.
+   d['flightSourceLabel']=verified['sourceLabel'];d['ratingBasis']='atlas_adjusted';d['flightNote']=verified['adjustmentNote'];d['manufacturerNumbers']=verified['manufacturerNumbers']
   d['production'].update(verified['production']);d['production']['checkedAt']=verified['checkedAt']
  reviewed=reviewed_matches.get(d['id'])
  if reviewed and 'speed' not in d:
