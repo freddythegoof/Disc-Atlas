@@ -126,6 +126,8 @@
       "brand": "Discmania",
       "approvalName": "FD2 (new)",
       "catalogName": "FD2",
+      "aliases": ["FD1 (pre-mid-2025)"],
+      "catalogNote": "Since mid-2025, FD2 is the name of the former FD1 mold (7 / 4 / 0 / 2); the current FD1 is the former Instinct. Atlas also retains that mold's 2022 FD1 approval (22-211) as a separate registry record.",
       "flightNumbers": {
         "speed": 7,
         "glide": 4,
@@ -134,11 +136,33 @@
       },
       "category": "Control Driver",
       "source": "https://www.discmania.net/collections/fd2",
-      "checkedAt": "2026-09-23",
+      "checkedAt": "2026-10-03",
       "production": {
         "status": "catalog_listed",
         "source": "https://www.discmania.net/collections/fd2",
         "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "3bd98a3bc639",
+      "brand": "Discmania",
+      "approvalName": "FD1",
+      "catalogName": "FD2",
+      "aliases": ["FD1 (pre-mid-2025)"],
+      "catalogNote": "Discmania renamed this mold the FD2 in mid-2025; the current FD1 is the former Instinct (7 / 5 / 0 / 2). The FD2 (new) approval, 25-150, is listed separately in Atlas.",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 4,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Control Driver",
+      "source": "https://www.discmania.net/collections/fd2",
+      "checkedAt": "2026-10-03",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discmania.net/collections/fd2",
+        "note": "Manufacturer confirms this mold was renamed FD2. Its current catalog listing does not establish ongoing production under this 2022 approval."
       }
     },
     {
@@ -505,7 +529,9 @@
       "id": "6d63e6972109",
       "brand": "Discmania",
       "approvalName": "Instinct (150-175g)",
-      "catalogName": "Instinct",
+      "catalogName": "FD1",
+      "aliases": ["Instinct"],
+      "catalogNote": "Discmania renamed the Instinct mold FD1 in mid-2025, retaining 7 / 5 / 0 / 2 flight numbers. This is its 2019 Instinct approval. The former FD1 mold (7 / 4 / 0 / 2) is now called FD2.",
       "flightNumbers": {
         "speed": 7,
         "glide": 5,
@@ -513,12 +539,12 @@
         "fade": 2
       },
       "category": "Control Driver",
-      "source": "https://www.discmania.net/collections/instinct",
-      "checkedAt": "2026-09-23",
+      "source": "https://www.discmania.net/collections/fd1",
+      "checkedAt": "2026-10-03",
       "production": {
         "status": "catalog_listed",
-        "source": "https://www.discmania.net/collections/instinct",
-        "note": "Listed in the manufacturer current model catalog. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+        "source": "https://www.discmania.net/collections/fd1",
+        "note": "Manufacturer confirms the Instinct mold is now sold as FD1. Its current catalog listing does not establish ongoing production under this 2019 approval."
       }
     },
     {
