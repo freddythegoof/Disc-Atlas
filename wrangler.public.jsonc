@@ -7,7 +7,14 @@
   "preview_urls": false,
   "build": { "command": "node scripts/build-workers.mjs" },
   "assets": {
+    "binding": "ASSETS",
     "directory": "./dist/workers-public",
-    "run_worker_first": ["/api/*", "/signin-with-chatgpt", "/signout-with-chatgpt", "/callback"]
-  }
+    "run_worker_first": ["/api/*", "/auth/*", "/signin", "/profile", "/account-settings", "/signin-with-chatgpt", "/signout-with-chatgpt", "/callback"]
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "disc-atlas-accounts",
+    "database_id": "a30bc57c-7438-4e59-b5d2-732de1b0afb5",
+    "migrations_dir": "migrations/accounts"
+  }]
 }
