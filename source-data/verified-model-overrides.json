@@ -662,6 +662,332 @@
           "reason": "Initial consensus-pilot adjustment from fade 3 (Innova) to 2.5: Infinite Discs reviewer average 2.5 plus owner confirmation. Confidence 0.75, change 0.5, so under the review-queue thresholds."
         }
       ]
+    },
+    {
+      "id": "ff4bf9e7743c",
+      "brand": "Discraft",
+      "approvalName": "Luna",
+      "catalogName": "Luna",
+      "flightNumbers": {
+        "speed": 3,
+        "glide": 4,
+        "turn": 0,
+        "fade": 2
+      },
+      "manufacturerNumbers": {
+        "speed": 3,
+        "glide": 3,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Putter",
+      "source": "https://www.discraft.com/paul-mcbeth-putter-line-hard-luna-mcbethhdluna",
+      "sourceLabel": "Discraft catalog, Atlas-adjusted (current manufacturer + consensus)",
+      "adjustmentNote": "Atlas replaces the legacy Luna rating 3/3/0/3 with Discraft's current Hard Luna numbers, 3/4/0/2: glide 3 to 4, fade 3 to 2, speed 3 and turn 0 unchanged. Marshall Street explains that Luna was renumbered when the more overstable Kratos took over 3/3/0/3; the Luna mold did not change. Infinite Discs lists manufacturer numbers 3/4/0/2 and reviewer-average numbers 3/3.2/-0.2/2 (139 ratings). Marshall Street's current Z Swirl Luna listing also gives fade 2. Independent reviews by Disc Golf Puttheads and Disc Golf Reviewer both describe less fade than the old 3 rating, rather than exact agreement on every number. Atlas previously stacked Luna and Kratos at the same rating anchor (both 3/3/0/3). The owner approved both changes October 2, 2026. Confidence 0.8. Plastic, run and wear differences remain; the reviewer average pools those effects and is not a measurement. Sources read October 2, 2026.",
+      "checkedAt": "2026-10-02",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.discraft.com/paul-mcbeth-putter-line-hard-luna-mcbethhdluna",
+        "note": "Listed on Discraft's current Hard Luna page. Listing does not guarantee stock or independently verify continuing production."
+      },
+      "sources": [
+        {
+          "name": "Discraft Paul McBeth Putter Line Hard Luna, current manufacturer numbers 3/4/0/2",
+          "url": "https://www.discraft.com/paul-mcbeth-putter-line-hard-luna-mcbethhdluna",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs manufacturer numbers 3/4/0/2; reviewer average 3/3.2/-0.2/2 (139 ratings)",
+          "url": "https://infinitediscs.com/discraft-luna",
+          "type": "retailer",
+          "weight": 0.6
+        },
+        {
+          "name": "Marshall Street Z Swirl Luna, current numbers 3/4/0/2 and Luna/Kratos renumbering explanation",
+          "url": "https://www.marshallstreetdiscgolf.com/product/z-swirl-luna-anthony-barela-x-paul-mcbeth",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Disc Golf Puttheads Luna review, fade softer than legacy 3; reviewer estimates fade 1",
+          "url": "https://www.dgputtheads.com/discraft-luna-review",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "Disc Golf Reviewer Luna vs Voodoo, fade closer to discs rated 1 or 2",
+          "url": "https://discgolfreviewer.com/discraft-luna-vs-gateway-voodoo/",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "Freddy (site owner), glide and fade changes approved October 2, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.8,
+      "consensusNote": "Current Discraft and Infinite manufacturer numbers agree on 3/4/0/2. Infinite's reviewer average and Marshall Street support fade 2, while two independent reviewers describe a softer finish than the legacy fade 3. Glide 4 follows the current manufacturer, not the pooled reviewer glide 3.2. Kratos retains 3/3/0/3 and should sit farther toward the overstable side.",
+      "plasticVariance": "Hard Luna is the current manufacturer reference. Older stamps and some retailer variant fields still show 3/3/0/3 after renumbering; those numbers alone do not establish a mold change. Plastics, runs and wear can vary; Infinite's average pools them, and the independent reviewers report less fade without agreeing on an exact rating. No plastic-specific ratings were averaged into this override.",
+      "lastUpdated": "2026-10-02",
+      "history": [
+        {
+          "date": "2026-10-02",
+          "speed": 3,
+          "glide": 4,
+          "turn": 0,
+          "fade": 2,
+          "reason": "Second consensus-batch override: legacy 3/3/0/3 corrected to current Discraft 3/4/0/2. Owner explicitly approved glide 3 to 4 and fade 3 to 2 on October 2, 2026; turn remains 0. Confidence 0.8. Separates Luna's rating anchor from Kratos; glide does not affect map stability."
+        }
+      ]
+    },
+    {
+      "id": "0336bb800aa0",
+      "brand": "Latitude 64",
+      "approvalName": "Trident",
+      "catalogName": "Trident",
+      "flightNumbers": {
+        "speed": 6,
+        "glide": 4,
+        "turn": -0.5,
+        "fade": 3.5
+      },
+      "manufacturerNumbers": {
+        "speed": 6,
+        "glide": 4,
+        "turn": -0.5,
+        "fade": 3
+      },
+      "category": "Control Driver",
+      "source": "https://latitude64.com/products/opto-trident",
+      "sourceLabel": "Latitude 64 catalog, Atlas-adjusted (reviewer consensus)",
+      "adjustmentNote": "Latitude 64 and the Atlas baseline list Trident at 6/4/-0.5/3. Atlas moves fade half a step (3 to 3.5); speed 6, glide 4 and the existing turn -0.5 stay unchanged. Infinite Discs' reviewer-average fade is 3.9 (50 reviews), with an Opto average of 3.8 (17 reviews). Batch-5 research records Latitude 64's monster hooking fade description and says every readable reviewer comment supports a stronger finish, with none contradicting; the current Opto page also describes a forceful hook. Counter-evidence: printed manufacturer fade remains 3. The supporting reviews are anonymous pooled reports with no arm speeds stated; the Opto subset is not independent of the overall pool. The owner approved fade 3 to 3.5 on October 2, 2026. Confidence 0.65. Plastic, run and wear effects remain; no plastic-specific ratings were averaged into this mold-level estimate.",
+      "checkedAt": "2026-10-02",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://latitude64.com/products/opto-trident",
+        "note": "Listed on Latitude 64's Opto Trident page. Listing does not independently verify continuing production."
+      },
+      "sources": [
+        {
+          "name": "Latitude 64 Opto Trident, manufacturer numbers 6/4/-0.5/3; strong-hook description supports direction, printed fade 3 is counter-evidence",
+          "url": "https://latitude64.com/products/opto-trident",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs reviewer-average fade 3.9 (50 reviews); anonymous pooled evidence, arm speeds unstated",
+          "url": "https://infinitediscs.com/latitude-64-trident",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs Opto reviewer-average fade 3.8 (17 reviews), supplied batch-5 evidence; overlapping subset rather than independent confirmation",
+          "url": "https://infinitediscs.com/latitude-64-trident/opto",
+          "type": "retailer",
+          "weight": 0.4
+        },
+        {
+          "name": "Readable Infinite reviewer comments consistently support stronger fade, none contradict in the supplied batch-5 sample; no arm speeds stated",
+          "url": "https://infinitediscs.com/latitude-64-trident",
+          "type": "community",
+          "weight": 0.2
+        },
+        {
+          "name": "Freddy (site owner), fade 3 to 3.5 approved October 2, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.65,
+      "consensusNote": "Reviewer averages and the readable batch-5 comments point toward a stronger finish than printed fade 3, supported qualitatively by manufacturer copy. Atlas uses a conservative fade 3.5 rather than copying the pooled 3.9. Manufacturer fade 3 remains counter-evidence; anonymous reviewers and unknown arm speeds limit confidence. The existing turn -0.5 is preserved.",
+      "plasticVariance": "The overall Infinite average pools plastics, runs and wear. Opto fade 3.8 (17 reviews) is a related subset, not a second independent sample. No cross-plastic averaging or plastic-specific correction was performed; actual flights may vary.",
+      "lastUpdated": "2026-10-02",
+      "history": [
+        {
+          "date": "2026-10-02",
+          "turn": -0.5,
+          "fade": 3.5,
+          "reason": "Owner-approved batch-5 fade adjustment from 3 to 3.5, approved October 2, 2026. Confidence defaults to 0.65 because this checkout's review queue has no Trident entry. Preserve the actual catalog/manufacturer turn -0.5, rather than changing it to the brief's assumed 0."
+        }
+      ]
+    },
+    {
+      "id": "2dea5f27c914",
+      "brand": "Innova",
+      "approvalName": "Gator",
+      "catalogName": "Gator",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 2,
+        "turn": 0,
+        "fade": 4
+      },
+      "manufacturerNumbers": {
+        "speed": 5,
+        "glide": 2,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Midrange",
+      "source": "https://proshop.innovadiscs.com/star-gator/",
+      "sourceLabel": "Innova catalog, Atlas-adjusted (current manufacturer correction)",
+      "adjustmentNote": "Atlas corrects the legacy Gator rating 5/2/0/3 to Innova's current 5/2/0/4: fade 3 to 4, with speed 5, glide 2 and turn 0 unchanged. Innova's factory store and innovadiscs.com disc archive both print 5/2/0/4, spot-checked October 2, 2026. Titan, Foundation Discs and Disc Golf Dojo also list 5/2/0/4. Innova's related Caiman, derived from the Gator, lists 5.5/2/0/4. Counter-evidence: the Atlas baseline, Marshall Street, Infinite's listing and DiscMetrics still show fade 3, consistent with catalog lag. Infinite's reviewer-average fade 3.1-3.2 is discounted because it may be anchored on the displayed 3; that explanation is an inference, not a measured bias. The owner approved fade 3 to 4 on October 2, 2026. Confidence 0.7. This is a manufacturer-number correction, not an average across plastics. Gator3 remains 5/2/0/3 because its Innova page returned 404 during batch research and its rating could not be confirmed; Caiman is unchanged.",
+      "checkedAt": "2026-10-02",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://proshop.innovadiscs.com/star-gator/",
+        "note": "Listed on Innova's Star Gator factory-store page. Listing does not guarantee stock or independently verify continuing production."
+      },
+      "sources": [
+        {
+          "name": "Innova Factory Store Star Gator, verified manufacturer numbers 5/2/0/4",
+          "url": "https://proshop.innovadiscs.com/star-gator/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Innova speed-5 disc archive, verified Gator numbers 5/2/0/4; same manufacturer as factory store",
+          "url": "https://www.innovadiscs.com/disc/speed-5/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Titan Disc Golf Gator listing, verified numbers 5/2/0/4",
+          "url": "https://titandiscgolf.com/",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Foundation Disc Golf Gator, verified numbers 5/2/0/4",
+          "url": "https://foundationdiscs.com/products/gator",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Disc Golf Dojo Innova flight chart, verified Gator numbers 5/2/0/4",
+          "url": "https://discgolfdojo.com/discs/innova/",
+          "type": "retailer",
+          "weight": 0.4
+        },
+        {
+          "name": "Innova Caiman, related mold numbers 5.5/2/0/4; contextual support, not a substitute for Gator evidence",
+          "url": "https://www.innovadiscs.com/disc/caiman/",
+          "type": "manufacturer",
+          "weight": 0.3
+        },
+        {
+          "name": "Marshall Street Gator, legacy fade 3 retained as counter-evidence; Atlas baseline, not independent confirmation",
+          "url": "https://www.marshallstreetdiscgolf.com/?s=gator&post_type=product",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Infinite Discs Gator, legacy listing fade 3 and reviewer-average fade 3.1-3.2; discounted for possible display anchoring",
+          "url": "https://infinitediscs.com/innova-gator",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Freddy (site owner), fade 3 to 4 approved October 2, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.7,
+      "consensusNote": "Innova's factory store and disc archive agree on Gator 5/2/0/4, supported by Titan, Foundation and Disc Golf Dojo. Atlas adopts fade 4 as a current manufacturer correction despite lagging fade-3 catalogs. Infinite's pooled average near 3 is weak counter-evidence and possible display anchoring is only an inference. Owner explicitly approved this one-step change; linked Gator3 and Caiman stay unchanged.",
+      "plasticVariance": "Star Gator is the manufacturer reference, with the mold-level archive also showing 5/2/0/4. Plastic, run and wear differences remain; no plastic-specific ratings or pooled reviewer averages were averaged into this correction. Gator3 is a separate approval and does not inherit the change.",
+      "lastUpdated": "2026-10-02",
+      "history": [
+        {
+          "date": "2026-10-02",
+          "turn": 0,
+          "fade": 4,
+          "reason": "Owner-approved batch-6 correction from legacy fade 3 to current Innova fade 4, approved October 2, 2026. Manufacturer factory store and disc archive both verified 5/2/0/4. Confidence 0.7. The explicit owner approval covers the one-step change; Gator3 and Caiman remain unchanged."
+        }
+      ]
+    },
+    {
+      "id": "bcb60eb9587a",
+      "brand": "Dynamic Discs",
+      "approvalName": "Trespass",
+      "catalogName": "Trespass",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 5,
+        "turn": -1,
+        "fade": 3
+      },
+      "manufacturerNumbers": {
+        "speed": 12,
+        "glide": 5,
+        "turn": -0.5,
+        "fade": 3
+      },
+      "category": "Distance Driver",
+      "source": "https://www.dynamicdiscs.com/collections/dynamic-discs-trespass",
+      "sourceLabel": "Dynamic Discs catalog, Atlas-adjusted (premium-plastic reviewer consensus)",
+      "adjustmentNote": "Dynamic Discs publishes Trespass at 12/5/-0.5/3. Atlas moves turn half a step (-0.5 to -1); speed 12, glide 5 and fade 3 stay unchanged. The supplied batch-8 research records Infinite Discs reviewer-average turn -1.1 on the whole-mold page (177 ratings), Lucid (71) and Fuzion (38). Lucid and Fuzion are premium plastics. All three averages move away from the displayed -0.5 toward more turn, so simple agreement with the displayed rating cannot explain the direction; this does not measure or eliminate every possible review bias. Reviewers in the batch-8 sample report throwing distances of 300-400+ ft and compare Trespass with Wraith and Destroyer flights. Counter-evidence: the manufacturer still prints -0.5; the overall average pools plastics, and the plastic-specific subsets overlap the overall pool rather than providing three independent samples. DGCR threads were unreadable. The owner approved turn -0.5 to -1 on October 3, 2026. Confidence 0.65. No cross-plastic averaging was performed, and plastic, run, weight and wear differences remain. Wraith and Destroyer are unchanged; review them together with Trespass if its rating moves again.",
+      "checkedAt": "2026-10-03",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.dynamicdiscs.com/collections/dynamic-discs-trespass",
+        "note": "Listed in Dynamic Discs' current Trespass collection. Listing does not guarantee stock or independently verify continuing production."
+      },
+      "sources": [
+        {
+          "name": "Dynamic Discs Trespass collection, manufacturer numbers 12/5/-0.5/3; turn -0.5 retained as counter-evidence",
+          "url": "https://www.dynamicdiscs.com/collections/dynamic-discs-trespass",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs whole-mold reviewer-average turn -1.1 (177 ratings), supplied batch-8 numbers; pooled plastics",
+          "url": "https://infinitediscs.com/dynamic-discs-trespass",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs Lucid reviewer-average turn -1.1 (71 ratings), supplied batch-8 numbers; premium-plastic subset overlapping the whole-mold pool",
+          "url": "https://infinitediscs.com/dynamic-discs-trespass/lucid",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs Fuzion reviewer-average turn -1.1 (38 ratings), supplied batch-8 numbers; premium-plastic subset overlapping the whole-mold pool",
+          "url": "https://infinitediscs.com/dynamic-discs-trespass/fuzion",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs reviewer sample with stated throwing distances 300-400+ ft, supplied batch-8 evidence; no unverified review quotes reproduced",
+          "url": "https://infinitediscs.com/dynamic-discs-trespass",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "Freddy (site owner), turn -0.5 to -1 approved October 3, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.65,
+      "consensusNote": "The supplied whole-mold, Lucid and Fuzion reviewer averages each give turn -1.1 despite displayed -0.5. Agreement across the premium-plastic subsets supports a conservative mold-level turn -1, while the manufacturer remains at -0.5. Movement away from the displayed number argues against simple display anchoring; pooled averages and overlapping samples still limit confidence. Wraith and Destroyer must be reviewed together with Trespass if it moves again; neither changes now.",
+      "plasticVariance": "Lucid and Fuzion are the premium-plastic reference signals, each with reviewer-average turn -1.1; they were not averaged together or with other plastics. The whole-mold pool includes multiple plastics, runs, weights and wear states, and overlaps both subsets. These are coarse reviewer signals, not controlled measurements or plastic-specific ratings.",
+      "lastUpdated": "2026-10-03",
+      "history": [
+        {
+          "date": "2026-10-03",
+          "turn": -1,
+          "fade": 3,
+          "reason": "Owner-approved batch-8 turn adjustment from -0.5 to -1 on October 3, 2026. Supplied Infinite whole-mold (177 ratings), Lucid (71) and Fuzion (38) averages each read -1.1. Confidence defaults to 0.65 because this checkout's review queue has no batch-8 Trespass entry. Fade remains 3; Wraith and Destroyer stay unchanged and are linked for future review."
+        }
+      ]
     }
   ]
 }
