@@ -10,9 +10,9 @@ function photoBytes(value:unknown){
 }
 async function save(req:Request,editing:boolean){
  const a=await authenticated(req,true);if(a.error)return a.error;
- let p:any,raw:any,photo:Uint8Array|null;
+ let p:ReturnType<typeof validateItem>,raw:Record<string,unknown>,photo:Uint8Array|null;
  try{raw=await body(req,1400000);p=validateItem(raw,catalog.discs);photo=photoBytes(raw.photo);if(editing&&(typeof raw.id!=='string'||raw.id.length>80))throw new Error('Choose a saved disc.');}catch(e){return json({error:(e as Error).message},400);}
- const user=a.user!.userId,id=editing?raw.id:crypto.randomUUID();let newKey:string|null=null;
+ const user=a.user!.userId,id=editing?raw.id as string:crypto.randomUUID();let newKey:string|null=null;
  try{
  const old=editing?await database().prepare('SELECT photo_key FROM bag_items WHERE user_id=? AND id=?').bind(user,id).first<{photo_key:string|null}>():null;
  if(editing&&!old)return json({error:'Saved disc not found.'},404);

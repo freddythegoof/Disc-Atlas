@@ -1,0 +1,22 @@
+{
+  "note": "Disc-slot defaults are conservative advertised capacities (main compartment where separately specified). Custom bags use manual capacity. Legacy/unverified models require manual capacity instead of an invented specification.",
+  "checkedAt": "2026-10-03",
+  "models": [
+    {"name": "Innova Heritage", "capacity": null, "note": "Manual capacity; no verified bag specification."},
+    {"name": "Innova Adventure", "capacity": 25, "source": "https://www.innovadiscs.com/disc-golf-bags/adventure/"},
+    {"name": "Dynamic Discs Commander", "capacity": 20, "source": "https://www.dynamicdiscs.com/products/commander-bag"},
+    {"name": "Dynamic Discs Trooper", "capacity": 18, "source": "https://www.dynamicdiscs.com/products/trooper-bag"},
+    {"name": "Dynamic Discs Paratrooper", "capacity": 18, "source": "https://www.dynamicdiscs.com/products/paratrooper-bag"},
+    {"name": "Dynamic Discs Ranger", "capacity": 20, "source": "https://www.dynamicdiscs.com/products/ranger-bag"},
+    {"name": "Latitude 64 E3", "capacity": 20, "source": "https://assets.unilogcorp.com/187/ITEM/DOC/Westside_DISCS_103240484_Catalog.pdf", "note": "Manufacturer catalog: Luxury E3, approximately 20 discs."},
+    {"name": "Latitude 64 E4", "capacity": 20, "source": "https://truenorthdiscgolf.com/products/e4-luxury-backpack", "note": "Retailer reproduces the manufacturer description: approximately 20 discs."},
+    {"name": "Grip BX3", "capacity": 18, "source": "https://grip-eq.com/gear/bx3/"},
+    {"name": "Grip AX5", "capacity": 22, "source": "https://grip-eq.com/gear/ax5-series-f2/"},
+    {"name": "Pound Octothorpe", "capacity": 20, "source": "https://pounddiscgolf.com/pages/compare-our-bags"},
+    {"name": "Upper Park Rebel", "capacity": 30, "source": "https://help.upperparkdiscgolf.com/en-US/what-are-the-dimensions-disc-capacity-and-weight-of-the-bags-104413"},
+    {"name": "Upper Park Shift", "capacity": 18, "source": "https://help.upperparkdiscgolf.com/en-US/what-are-the-dimensions-disc-capacity-and-weight-of-the-bags-104413"},
+    {"name": "MVP Voyager", "capacity": 20, "source": "https://mvpdiscsports.com/products/bags/voyager-bag/"},
+    {"name": "MVP Voyager Lite", "capacity": 20, "source": "https://mvpdiscsports.com/products/bags/voyager-lite-bag/"},
+    {"name": "Infinite Sling", "capacity": 10, "source": "https://infinitediscs.com/product/economy-backpacks/infinite-disc-slinger"}
+  ]
+}

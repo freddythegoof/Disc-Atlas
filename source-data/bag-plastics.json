@@ -1,0 +1,21 @@
+{
+  "note": "Plan 11 plastic families. Availability varies by mold and run; Other accepts custom plastic. Brand defaults are used where the catalog has no mold-specific reference.",
+  "brands": {
+    "Innova": {"options": ["Star", "Champion", "GStar", "Pro", "DX", "Blizzard"], "reference": "Star"},
+    "Discraft": {"options": ["ESP", "Z", "Big Z", "D", "X"], "reference": "ESP"},
+    "Dynamic Discs": {"options": ["Lucid", "Fuzion", "BioFuzion", "Prime"], "reference": "Lucid"},
+    "Latitude 64": {"options": ["Opto", "Gold", "Retro"], "reference": "Opto"},
+    "MVP": {"options": ["Neutron", "Proton", "Plasma", "Electron"], "reference": "Neutron"},
+    "Axiom": {"options": ["Neutron", "Proton", "Plasma", "Electron"], "reference": "Neutron"},
+    "Discmania": {"options": ["S-Line", "C-Line", "D-Line", "P-Line"], "reference": "S-Line"},
+    "Prodigy": {"options": ["400", "350", "300"], "reference": "400"},
+    "Millennium": {"options": ["Quantum", "Sirius", "Standard"], "reference": "Quantum"}
+  },
+  "moldReferences": {
+    "9152771e1f7b": {"plastic": "DX", "source": "https://www.innovadiscs.com/disc/roc/"},
+    "ff4bf9e7743c": {"plastic": "Putter Line Hard", "source": "https://www.discraft.com/paul-mcbeth-putter-line-hard-luna-mcbethhdluna"},
+    "0336bb800aa0": {"plastic": "Opto", "source": "https://latitude64.com/products/opto-trident"},
+    "2dea5f27c914": {"plastic": "Star", "source": "https://www.innovadiscs.com/disc/gator/"},
+    "bcb60eb9587a": {"plastic": "Lucid", "source": "https://www.dynamicdiscs.com/collections/dynamic-discs-trespass"}
+  }
+}
