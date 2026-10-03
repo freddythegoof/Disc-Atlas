@@ -5,6 +5,8 @@
   "compatibility_date": "2026-05-15",
   "workers_dev": true,
   "preview_urls": false,
+  "ai": {"binding": "AI", "remote": true},
+  "vars": {"COACH_PROVIDER": "workers-ai"},
   "build": { "command": "node scripts/build-workers.mjs" },
   "assets": {
     "binding": "ASSETS",

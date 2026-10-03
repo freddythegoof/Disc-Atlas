@@ -1,0 +1,12 @@
+{
+ "$schema": "../node_modules/wrangler/config-schema.json",
+ "name": "disc-atlas-coach-fixture",
+ "main": "fixtures/coach-worker.mjs",
+ "compatibility_date": "2026-05-15",
+ "workers_dev": false,
+ "ai": {"binding": "AI", "remote": true},
+ "vars": {"GOOGLE_CLIENT_ID": "fixture-client", "GOOGLE_CLIENT_SECRET": "fixture-secret", "COACH_PROVIDER": "workers-ai", "COACH_QA_LIVE": "false"},
+ "secrets": {"required": ["OPENAI_API_KEY"]},
+ "assets": {"binding": "ASSETS", "directory": "../dist/workers-public", "run_worker_first": ["/api/*", "/auth/*", "/signin", "/profile", "/account-settings"]},
+ "d1_databases": [{"binding": "DB", "database_name": "disc-atlas-accounts", "database_id": "a30bc57c-7438-4e59-b5d2-732de1b0afb5", "migrations_dir": "../migrations/accounts"}]
+}

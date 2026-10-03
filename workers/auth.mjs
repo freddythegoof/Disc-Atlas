@@ -18,7 +18,7 @@ function redirect(path, cookies = []) {
 }
 function returnPath(value) {
  // Fixed destinations prevent open redirects, including encoded/backslash variants.
- return ['/', '/profile', '/account-settings', '/?bag=1'].includes(value) ? value : '/';
+ return ['/', '/profile', '/account-settings', '/?bag=1', '/?coach=1'].includes(value) ? value : '/';
 }
 async function body(request) {
  if (!request.headers.get('Content-Type')?.startsWith('application/json')) throw new Error('Send JSON.');
@@ -47,7 +47,7 @@ export function createAuth({googleFetch = (...args) => fetch(...args)} = {}) {
  function account(user, env) {
   return {provider: 'google', user: user ? {name: user.display_name, email: user.email} : null,
    csrfToken: user?.csrf_token || null, authReady: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
-   signInUrl: '/signin', signOutUrl: '/auth/signout', bagReady: false, coachReady: false, bag: [], profile: null};
+   signInUrl: '/signin', signOutUrl: '/auth/signout', bagReady: false, coachReady: !!(env.AI || (env.COACH_PROVIDER === 'openai' && env.OPENAI_API_KEY)), bag: [], profile: null};
  }
  async function start(request, env) {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return redirect('/signin?auth_error=unconfigured');
@@ -130,6 +130,7 @@ export function createAuth({googleFetch = (...args) => fetch(...args)} = {}) {
   const response = json({deleted: true});response.headers.append('Set-Cookie', cookie(SESSION, '', 0));return response;
  }
  return {
+  session,
   async fetch(request, env) {
    const path = new URL(request.url).pathname;
    if (!env.DB) return json({error: 'Account storage is unavailable. Please try again.'}, 503);

@@ -5,7 +5,7 @@
  let current = null, pending = null;
  const route = location.pathname;
  const protectedPage = ['/profile', '/account-settings'].includes(route);
- const returnTo = ['/', '/profile', '/account-settings', '/?bag=1'].includes(new URLSearchParams(location.search).get('return_to'))
+ const returnTo = ['/', '/profile', '/account-settings', '/?bag=1', '/?coach=1'].includes(new URLSearchParams(location.search).get('return_to'))
   ? new URLSearchParams(location.search).get('return_to') : '/';
  const status = message => {const node = $('#accountStatus');if (node) node.textContent = message;};
  async function api(path, method = 'GET', data) {

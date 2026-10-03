@@ -97,8 +97,8 @@ OAuth codes, tokens, credentials and SQL bindings are excluded from that log.
   cascades to every session. It does not delete the user's Google account. An
   account can be created again by signing in. Edited display names survive later
   Google sign-ins; current verified Google email is refreshed on sign-in.
-- Saved bags and the AI coach remain unavailable on the public Worker. This is
-  the account foundation; those capabilities are separate work.
+- Saved bags remain unavailable on the public Worker. Plan 08b adds the
+  login-gated [Atlas Coach](atlas-coach.md) on top of these Google sessions.
 
 ## Verification
 

@@ -10,12 +10,13 @@ The public entry is plain `web/index.html` plus `public/`, so this deployment
 needs no framework adapter or new dependencies. The existing Vinext/Sites build
 remains available separately.
 
-This deployment uses static assets and a tiny fallback Worker, with no secrets,
-AI connection, database, or storage bindings. Accounts, saved bags, and the coach
-depend on Sites and return an explicit unavailable response here. Incoming Sites
-identity headers grant no access. Use a Cloudflare Workers Free account; no paid
-services are provisioned by this configuration. Validate with `node tests/workers.mjs`
-and `pnpm exec wrangler deploy --config wrangler.public.jsonc --dry-run`.
+The public Worker uses Google sign-in and D1 sessions (Plan 08a), plus a
+login-gated Atlas Coach (Plan 08b). The coach defaults to Workers AI, with an
+optional gpt-5-nano path capped at $5/month in D1. Each user gets 20 messages/day.
+See [account setup](docs/accounts-google.md) and [coach setup](docs/atlas-coach.md).
+Saved bags remain a separate step. Incoming Sites identity headers grant no
+access. Validate with `node tests/workers.mjs` and
+`pnpm exec wrangler deploy --config wrangler.public.jsonc --dry-run`.
 
 A static, private Sites application built around a canvas flight atlas and a fully searchable directory.
 
@@ -47,7 +48,7 @@ Manufacturers use native multiple checkboxes with OR within brands and AND with 
 
 Validated collection boundaries, exclusion of unknown status from the default, exact two-year retirement cutoff, full archive restoration, brand unions, intersections with search/speed, legend colors, selected-disc consistency, empty-result recovery, and reset.
 
-## Player accounts, bags, and Atlas Coach
+## Legacy Sites build: player accounts, bags, and coach
 
 The site now uses the bundled Vinext Worker with the original atlas UI and assets in `public/` and the HTML entry in `web/index.html`. The root route serves that entry. Hosting uses D1 (`DB`) for saved player profiles, per-user bag items, and daily coach usage counts. Identity comes exclusively from Sites' dispatch-owned ChatGPT sign-in headers. Production access still follows the existing Site sharing policy.
 

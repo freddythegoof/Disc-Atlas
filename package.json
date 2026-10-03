@@ -15,7 +15,9 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "test:accounts": "node --test tests/auth.mjs",
-    "test:accounts:browser": "node tests/accounts-browser.mjs"
+    "test:accounts:browser": "node tests/accounts-browser.mjs",
+    "test:coach": "node --test tests/coach.mjs",
+    "test:coach:browser": "node tests/coach-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

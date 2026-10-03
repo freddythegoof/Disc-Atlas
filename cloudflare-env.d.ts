@@ -5,3 +5,4 @@ declare namespace Cloudflare {
   }
 }
 declare namespace Cloudflare { interface Env { OPENAI_API_KEY?: string; OPENAI_MODEL?: string; } }
+declare namespace Cloudflare { interface Env { AI?: Ai; COACH_PROVIDER?: 'workers-ai' | 'openai'; } }
