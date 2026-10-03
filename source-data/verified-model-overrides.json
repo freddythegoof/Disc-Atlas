@@ -1335,7 +1335,7 @@
       "flightNumbers": {
         "speed": 7,
         "glide": 4,
-        "turn": 0,
+        "turn": -1,
         "fade": 3
       },
       "manufacturerNumbers": {
@@ -1346,8 +1346,6 @@
       },
       "category": "Control Driver",
       "source": "https://www.innovadiscs.com/disc/eagle/",
-      "sourceLabel": "Innova catalog, Atlas-adjusted (explicit owner-approved turn)",
-      "adjustmentNote": "Owner-approved Plan 10 override, October 3, 2026. Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). The manufacturer and flights.json both publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner explicitly requested 7/4/0/3 in Plan 10. Turn 0 is an owner-approved Atlas adjustment and is not supported as a manufacturer number or batch consensus. Batch confidence 0.75 applies to the published -1 rating and approval mapping, not this turn adjustment. Eagle (old) remains unrated and its production status is unchanged.",
       "checkedAt": "2026-10-03",
       "production": {
         "status": "unknown",
@@ -1392,7 +1390,7 @@
           "weight": 0.4
         }
       ],
-      "consensusNote": "Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). The manufacturer and flights.json both publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner explicitly requested 7/4/0/3 in Plan 10. Turn 0 is an owner-approved Atlas adjustment and is not supported as a manufacturer number or batch consensus. Batch confidence 0.75 applies to the published -1 rating and approval mapping, not this turn adjustment. Eagle (old) remains unrated and its production status is unchanged.",
+      "consensusNote": "Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). Innova and flights.json publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner corrected the brief's turn 0 typo to the published turn -1 on October 3, 2026. Eagle (old) remains unrated and its production status is unchanged.",
       "plasticVariance": "DX beats in very well; one 2016 reviewer says it \"flips in Star,\" another \"stable new, beats into workhorse\"; Innova prints one set of numbers. Not quantified. Do not average.",
       "lastUpdated": "2026-10-03",
       "history": [
@@ -1403,6 +1401,14 @@
           "turn": 0,
           "fade": 3,
           "reason": "Explicit owner approval in Plan 10; batch 16 evidence. Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). The manufacturer and flights.json both publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner explicitly requested 7/4/0/3 in Plan 10. Turn 0 is an owner-approved Atlas adjustment and is not supported as a manufacturer number or batch consensus. Batch confidence 0.75 applies to the published -1 rating and approval mapping, not this turn adjustment. Eagle (old) remains unrated and its production status is unchanged."
+        },
+        {
+          "date": "2026-10-03",
+          "speed": 7,
+          "glide": 4,
+          "turn": -1,
+          "fade": 3,
+          "reason": "Owner corrected the brief's turn 0 typo to -1. Matches Innova and flights.json; catalog attachment, no Atlas flight adjustment."
         }
       ],
       "catalogMatchConfidence": 0.75
