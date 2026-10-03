@@ -41,7 +41,7 @@ globalThis.AtlasGroups = {
    const f=footprints.get(g.key);
    if(!f){g.large=false;continue;}
    const x=g.px*ratio,y=-g.py*ratio,r=f.radius*scale;
-   const label={x:x+f.x,y:y+f.y,w:f.w,h:f.h};
+   const label={x:x+f.x+(g.nudge?.x||0),y:y+f.y+(g.nudge?.y||0),w:f.w,h:f.h};
    const marker={x:x-r,y:y-r,w:2*r,h:2*r};
    const boxes=[label,marker],keys=boxes.map(cells);
    g.large=!boxes.some((box,i)=>keys[i].some(key=>(occupied.get(key)||[]).some(b=>overlaps(box,b))));
@@ -116,6 +116,8 @@ globalThis.AtlasGroups = {
   const size=Math.max(25,65/Math.max(1,groupZoom));
   const capacity=level<=0?Infinity:Math.max(3,Math.ceil(48/(groupZoom*groupZoom)));
   const ranks=new Map(featured.map((disc,index)=>[disc.id,index]));
+  // Optional per-entry label nudge in CSS pixels: shifts only that lead's name so a few-pixel contact does not cost a neighbor its slot.
+  const nudges=new Map(featured.filter(disc=>disc.nudge).map(disc=>[disc.id,disc.nudge]));
   const ordered=items.filter(d=>d.speed!=null).map(d=>({d,rank:ranks.get(d.id)??Infinity}))
    .sort((a,b)=>a.rank-b.rank||a.d.name.localeCompare(b.d.name)||(a.d.brand||'').localeCompare(b.d.brand||'')||a.d.id.localeCompare(b.d.id));
   for(const {d} of ordered){
@@ -127,7 +129,7 @@ globalThis.AtlasGroups = {
     const distance=(g.px-x)**2+(g.py-y)**2;if(distance<best){best=distance;nearby=g;}
    }
    if(nearby){nearby.members.push(d.id);continue;}
-   const g={key:d.id,pos,px:x,py:y,members:[d.id],large:false};groups.push(g);
+   const g={key:d.id,pos,px:x,py:y,members:[d.id],large:false,nudge:nudges.get(d.id)||null};groups.push(g);
    const key=cx+':'+cy;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(g);
   }
   globalThis.AtlasGroups.promote(groups,footprints,groupZoom,groupZoom);

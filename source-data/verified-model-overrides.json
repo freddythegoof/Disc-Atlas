@@ -608,6 +608,60 @@
         "source": "https://www.marshallstreetdiscgolf.com/?s=destroyer&post_type=product",
         "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
       }
+    },
+    {
+      "id": "9152771e1f7b",
+      "brand": "Innova",
+      "approvalName": "Roc",
+      "catalogName": "Roc",
+      "flightNumbers": {
+        "speed": 4,
+        "glide": 4,
+        "turn": 0,
+        "fade": 2.5
+      },
+      "manufacturerNumbers": {
+        "speed": 4,
+        "glide": 4,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Midrange",
+      "source": "https://infinitediscs.com/innova-roc",
+      "sourceLabel": "Innova catalog, Atlas-adjusted (reviewer average + owner)",
+      "adjustmentNote": "Innova publishes 4/4/0/3 for the classic Roc. Infinite Discs' reviewer-average flight numbers for it are 4/4.1/-0.1/2.5 (173 ratings), and the site owner's own throwing agrees it finishes closer to 2.5. Atlas moves fade half a step (3 to 2.5) and leaves turn alone. The reviewer average likely pools plastics and wear (DX and KC Pro Rocs differ), so it is a coarse signal, not a measurement. Confidence 0.75. Sources read October 2, 2026.",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=roc&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Infinite Discs reviewer-average flight numbers (4/4.1/-0.1/2.5, 173 ratings)",
+          "url": "https://infinitediscs.com/innova-roc",
+          "type": "retailer",
+          "weight": 0.6
+        },
+        {
+          "name": "Freddy (site owner), own throwing, confirmed October 2, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.75,
+      "consensusNote": "Reviewers and the site owner both find the Roc finishes a little softer than Innova's 3 fade, closer to 2.5. Everything else about its flight matches Innova's numbers.",
+      "plasticVariance": "Infinite Discs' reviewer average likely pools plastics and wear (DX and KC Pro Rocs differ). Atlas did not average across plastics; this is a mold-level estimate and the fade shift is deliberately small.",
+      "lastUpdated": "2026-10-02",
+      "history": [
+        {
+          "date": "2026-10-02",
+          "turn": 0,
+          "fade": 2.5,
+          "reason": "Initial consensus-pilot adjustment from fade 3 (Innova) to 2.5: Infinite Discs reviewer average 2.5 plus owner confirmation. Confidence 0.75, change 0.5, so under the review-queue thresholds."
+        }
+      ]
     }
   ]
 }

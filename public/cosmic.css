@@ -97,7 +97,7 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .atlas-marker.is-dot.is-stack .map-dot{inset:6px;border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:none}
 .atlas-marker .marker-name{display:block;position:absolute;left:50%;top:64px;transform:translateX(-50%);width:max-content;max-width:145px;white-space:normal;word-break:normal;overflow-wrap:normal;text-align:center;color:var(--text);font-size:12px;font-weight:500;line-height:1.3;opacity:1;background:none;border:0;padding:0;pointer-events:none;text-shadow:0 1px 4px var(--map-bg);box-shadow:none}
 .atlas-marker .marker-name small{display:block;margin-top:4px;font-size:9px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
-.atlas-marker.is-large.overview .marker-name{top:64px}
+.atlas-marker.is-large.overview .marker-name{top:64px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
 .atlas-marker.is-dot .marker-name{opacity:0;top:30px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;z-index:5}
 .atlas-marker.is-dot:hover .marker-name,.atlas-marker.is-dot:focus-visible .marker-name{opacity:1}
 .atlas-marker .cluster-count{right:-9px;top:-7px;background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:10px;height:19px;min-width:19px;box-shadow:none}

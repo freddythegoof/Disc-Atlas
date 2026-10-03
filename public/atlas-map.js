@@ -244,6 +244,8 @@ function renderMarkers(){
   node.classList.toggle('is-satellite',!!g.satellite);
   node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
   node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
+  node.style.setProperty('--label-nudge-x',(g.nudge?.x||0)+'px');
+  node.style.setProperty('--label-nudge-y',(g.nudge?.y||0)+'px');
   const selectedScale=g.members.includes(selected)?1.12:1;
   if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
    if(g.large)node.art.style.scale=scaleValue;
