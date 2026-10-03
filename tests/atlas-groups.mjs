@@ -167,3 +167,17 @@ test('low zoom promotes only clean measured labels at true positions, without ve
  assert.equal(groups[2].minorLabel,false,'Contending label is suppressed');
  assert.ok(groups.every(g=>g.markerOffset===null&&g.leader===null),'No low-zoom nudging or vectors');
 });
+
+test('low-zoom minor labels yield to a nudged primary label',()=>{
+ const groups=[{key:'primary',px:0,py:0,members:['primary'],nudge:{x:10,y:-10}},
+  {key:'minor',px:80,py:0,members:['minor']}];
+ const full=new Map(groups.map(g=>[g.key,{x:-60,y:37,w:120,h:32,radius:27}]));
+ const minor=new Map([['minor',{x:-20,y:18,w:40,h:16,radius:8}]]);
+ runtime.AtlasGroups.promote(groups,full,1,1,undefined,minor);
+ assert.equal(groups[0].large,true);
+ assert.equal(groups[1].minorLabel,false,'The primary nudge occupies part of the minor name footprint');
+ groups[0].nudge=null;
+ runtime.AtlasGroups.promote(groups,full,1,1,undefined,minor);
+ assert.equal(groups[1].minorLabel,true,'Without contention the minor name returns at its true position');
+ assert.ok(groups.every(g=>g.markerOffset===null&&g.leader===null));
+});

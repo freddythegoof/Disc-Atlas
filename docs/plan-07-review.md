@@ -1,16 +1,12 @@
-# Plan 07 review
+﻿# Plan 07 review — October 2, 2026
 
-Implemented locally; uncommitted and not deployed. About, Privacy and Terms page contents are unchanged.
+Both requested behaviors already exist in the clean checkout: the menu was added in d434036, and true-position low-zoom labels were added in 9bf99b7. This review changes tests and this document only. No product code, page content, catalog data or 7x+ rendering was changed. Nothing was committed, pushed or deployed.
 
-## Header menu
+The current featured file contains 170 unique entries (the request mentioned 168), with label nudges for Predator, Stiletto, Paradox and Enforcer. Verification used that current file.
 
-The info-dot disclosure is replaced by a compact three-line menu button in the same header slot. Its three menu items link to `/about`, `/privacy` and `/terms`. Theme colors, borders, spacing and focus styling follow the existing header. Desktop and 360px mobile checks confirm that the button and open menu stay inside the viewport without displacing the identity or other controls, including the existing long-brand header state.
+## Menu
 
-The button exposes `aria-haspopup="menu"`, `aria-expanded` and `aria-controls`; the panel and links use menu/menuitem roles. Click, Enter/Space, Arrow Down/Up, Home/End, Escape, Tab and outside-pointer dismissal are supported. Escape restores focus to the visibly outlined button. The first implementation exposed a focusout/click ordering issue when toggling closed; the correction uses the focus event's related target and passes the full menu matrix.
-
-Existing atlas reading guidance, mapped/unrated counts and the unrated-directory control moved into the Sources & methodology dialog. The unrated control closes that dialog before switching to the directory. Page contents and footer links were not edited.
-
-Menu screenshots frame the header and dropdown so their layout is easy to review.
+The existing compact menu links to /about, /privacy and /terms. Playwright verifies menu roles, visible keyboard focus, arrow-key navigation, Home/End, Escape with focus return, Tab dismissal, outside dismissal, button toggling, and viewport containment in dark/light themes at 1440px and 360px. The tests now also exercise Enter/Space opening and keyboard activation of all three links. Route destinations use test fixtures; page contents are unchanged.
 
 | View | Closed | Open |
 | --- | --- | --- |
@@ -21,22 +17,28 @@ Menu screenshots frame the header and dropdown so their layout is easy to review
 
 ## Low-zoom labels
 
-The old minor-disc canvas renderer chose among four off-center label positions and drew thin elbow leaders, even when the best candidate overlapped. That renderer and the obsolete selected-marker line path are removed. Before the existing 2.9x entry/2.7x exit label-suppression boundary, minor names now use fixed DOM labels centered beneath their true marker position. Their measured footprints contend with primary artwork/labels and other minor labels in the same spatial grid. A name that does not fit remains suppressed, while the dot retains hover reveal, keyboard reveal and keyboard activation.
+The existing engine promotes fitting minor names at their true marker positions before its 2.9x entry/2.7x exit suppression boundary. Names that do not fit remain available on hover or keyboard focus. Dense mid-zoom suppression and 7x+ satellite rendering retain their current behavior.
 
-The dense mid-zoom suppression behavior is preserved. No label/marker offsets or leader vectors exist below 7x. The 7x+ satellite marker placement, size, name labels, leader vectors and stack behavior remain unchanged; the full 06H regression retains its previous 7x/8x/9x counts and geometry.
+The tests now count actual non-grid canvas strokes, including selection of a stack member away from its lead at 1x, 3x and 6.99x. This covers a leftover selected-marker drawing path that previous state-only leader counts did not inspect; it emitted no lines in these checks. A new unit test verifies that minor names yield to the occupied footprint of a nudged primary label.
 
-The requested dark sparse captures filter to distance drivers and frame the left distance-band edge. At 1x the constrained camera shows the distance overview; at 3x it shows the sparse band edge. Both have zero leaders, zero label overlaps and zero primary artwork/label overlaps, with all markers at their true coordinates.
+Both requested dark captures have zero state leaders, zero painted leaders, zero label overlaps, zero artwork/label overlaps and no marker displacement:
 
 - [1x sparse distance band](../outputs/plan-07/sparse-distance-1x-dark.png)
 - [3x sparse distance band](../outputs/plan-07/sparse-distance-3x-dark.png)
-- [Machine-readable measurements](../outputs/plan-07/low-zoom-metrics.json)
+- [Measurements](../outputs/plan-07/low-zoom-metrics.json)
 
-## Validation
+## Validation and limits
 
-- 14 grouping/geometry unit tests pass, including fixed low-zoom label placement and suppression under contention.
-- Contextual-header and menu Playwright checks pass: menu roles/links, navigation, focus return, 360px layout, long brand names, outside dismissal and all eight menu screenshots.
-- Low-zoom Playwright checks pass through 1x, 1.5x, 2x, 2.7x, 2.9x, 3x, 5x and 6.99x, including sparse captures and suppressed-name hover/keyboard activation.
-- Full grouping-zoom, label-prominence, deep-zoom and premium desktop/mobile UI regressions pass. The existing 06H deep satellite geometry is preserved.
-- Targeted ESLint passes with zero errors and 14 existing unused-variable/function warnings in the legacy browser scripts. JavaScript syntax and diff whitespace checks pass.
+Passed:
 
-The menu passed after one focused correction; the low-zoom implementation passed its first attempt. Neither task required a second failed implementation attempt.
+- 20 grouping/layout unit tests.
+- Extended header-menu and contextual-header Playwright checks, including long brand names at 360px and all eight screenshots.
+- Extended low-zoom Playwright checks through 1x, 1.5x, 2x, 2.7x, 2.9x, 3x, 5x and 6.99x, including hover/keyboard reveal and activation.
+- Standalone Worker regression, targeted ESLint, JavaScript syntax and diff whitespace checks.
+
+Broader checks exposed failures:
+
+- checkGroupingZoom: '7x fallback dots have no clean nearby placement'. The independent test verifier omits primary label nudges; one attempted verifier correction did not resolve the failure. That speculative correction was reverted. Investigation stopped after the second failure under the two-strikes rule. No 7x+ rendering changes were made. The subsequent label-prominence, deep-zoom, premium, boundaries and directory runs in that batch were not reached.
+- The unrelated existing About-hero regression failed its frame-rate budget in local headless Chromium (about 19.2 FPS). Its page and renderer were not changed or investigated.
+
+The requested menu and sparse low-zoom checks pass. The broader suite is not fully green. Screenshots and logs are local ignored artifacts under outputs/plan-07; the three test files and this review document remain uncommitted for review.

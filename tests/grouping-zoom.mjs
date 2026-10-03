@@ -221,15 +221,34 @@ export async function checkLowZoomLabels(browser,base){
   await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);await page.mouse.move(10,80);
   await page.evaluate(()=>{type='distance';filter();});await settleMap(page);
   const results=[];
+  // Count painted non-grid paths too: state-only counts miss selected-stack leaders.
+  const paintedLeaders=()=>page.evaluate(()=>{
+   const original={beginPath:ctx.beginPath,moveTo:ctx.moveTo,lineTo:ctx.lineTo,stroke:ctx.stroke};
+   let points=[],leaders=0;
+   ctx.beginPath=function(...args){points=[];return original.beginPath.apply(this,args);};
+   for(const method of ['moveTo','lineTo'])ctx[method]=function(x,y){points.push({x,y});return original[method].call(this,x,y);};
+   ctx.stroke=function(...args){
+    if(points.length){
+     const [a,b]=points,w=mapViewport.width,h=mapViewport.height;
+     const grid=points.length===2&&((a.x===31&&b.x===w-16&&a.y===b.y)||
+      (a.x===b.x&&a.y===82&&b.y===h-110));
+     if(!grid)leaders++;
+    }
+    return original.stroke.apply(this,args);
+   };
+   try{draw();return leaders;}finally{Object.assign(ctx,original);}
+  });
   for(const z of [1,3]){
    await frameBand(page,z,.8);
    await page.evaluate(z=>{const a=AtlasLayout.bounds(mapViewport.width,mapViewport.height);pan.x=mapViewport.width/2-a.left-.15*a.width*z;draw();},z);
    await settleMap(page);await page.waitForTimeout(350);
    const state=await measureBand(page);
    const leaders=await page.evaluate(()=>[...planetLabels.values()].filter(p=>p.opacity>.01&&p.leader!==false).length);
-   results.push({...state,canvasMinorLeaders:leaders});
+   const canvasLeaders=await paintedLeaders();
+   results.push({...state,canvasMinorLeaders:leaders,paintedLeaders:canvasLeaders});
    await page.screenshot({path:`outputs/plan-07/sparse-distance-${z}x-dark.png`});
    assert.equal(leaders,0,'No canvas minor-label leaders at any low zoom');
+   assert.equal(canvasLeaders,0,'No non-grid canvas strokes in the sparse distance band');
    assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);
    assert.ok(state.honest,'Low-zoom markers retain true coordinates');
   }
@@ -238,6 +257,19 @@ export async function checkLowZoomLabels(browser,base){
    assert.equal(state.leaders,0,`${z}x has no vectors`);assert.deepEqual(state.overlaps,[]);assert.ok(state.honest);
   }
   await page.evaluate(()=>{type='all';filter();});await settleMap(page);
+  for(const z of [1,3,6.99]){
+   await frameBand(page,z,.8);
+   const selectedMember=await page.evaluate(()=>{
+    const a=AtlasLayout.bounds(mapViewport.width,mapViewport.height);
+    for(const g of mapClusters)for(const d of g.members){
+     const p=atlasPositions.get(d.id);
+     if(Math.hypot((p.x-g.pos.x)*a.width*zoom,(p.y-g.pos.y)*a.height*zoom)>13){selected=d;draw();return d.id;}
+    }
+    return null;
+   });
+   assert.ok(selectedMember,`${z}x exercises a selected member away from its stack lead`);
+   assert.equal(await paintedLeaders(),0,`${z}x selected stack member draws no leader`);
+  }
   await frameBand(page,1,.8);
   const hidden=await page.evaluate(()=>mapClusters.find(g=>!g.large&&!g.minorLabel&&g.members.length===1&&g.x>100&&g.x<1300&&g.y>150&&g.y<600)?.key);
   assert.ok(hidden,'A blocked minor label remains an accessible dot');
