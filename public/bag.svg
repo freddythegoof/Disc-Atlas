@@ -1,0 +1,200 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" fill="none" role="img" aria-labelledby="bag-title bag-description" data-state="closed">
+  <title id="bag-title">Premium disc golf bag</title>
+  <desc id="bag-description">An empty premium disc golf bag with a large front disc compartment. The front access flap unzips around its sides and bottom, folds inward from its top attachment, and secures behind the discs. The smaller upper putter pocket remains fixed.</desc>
+  <style>
+    /* Palette defaults live only here. Override these classes or the three CSS
+       variables on the inline SVG. All visible fabric uses semantic classes. */
+    .bag-primary { fill: var(--bag-primary, #343c49); }
+    .bag-secondary { fill: var(--bag-secondary, #202630); }
+    .bag-accent { fill: var(--bag-accent, #718091); }
+    .bag-seam { fill: none; stroke: var(--bag-accent, #718091); stroke-width: 1.25; stroke-dasharray: 2 3; opacity: .56; }
+    .bag-piping { fill: none; stroke: var(--bag-accent, #718091); stroke-width: 2.5; }
+    .bag-fold { fill: none; stroke: var(--bag-secondary, #202630); stroke-width: 2; }
+
+  
+    /* The tucked copy is painted in bag-back, behind application discs. */
+    #tucked-front-flap { display: none; }
+    [data-state="open"] #tucked-front-flap { display: inline; }
+    [data-state="open"] #bag-lid { display: none; }
+</style>
+  <defs>
+    <linearGradient id="shade-down" x2="0" y2="1">
+      <stop stop-color="white" stop-opacity="0" />
+      <stop offset=".65" stop-color="white" stop-opacity=".12" />
+      <stop offset="1" stop-color="white" stop-opacity=".9" />
+    </linearGradient>
+    <linearGradient id="light-down" x2="0" y2="1">
+      <stop stop-color="white" stop-opacity=".5" />
+      <stop offset=".5" stop-color="white" stop-opacity=".04" />
+      <stop offset="1" stop-color="white" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="shade-across">
+      <stop stop-color="white" stop-opacity=".9" />
+      <stop offset=".3" stop-color="white" stop-opacity="0" />
+      <stop offset=".75" stop-color="white" stop-opacity="0" />
+      <stop offset="1" stop-color="white" stop-opacity=".85" />
+    </linearGradient>
+    <mask id="soft-bottom" maskContentUnits="objectBoundingBox">
+      <path d="M0 0H1V1H0Z" fill="url(#shade-down)" />
+    </mask>
+    <mask id="soft-top" maskContentUnits="objectBoundingBox">
+      <path d="M0 0H1V1H0Z" fill="url(#light-down)" />
+    </mask>
+    <mask id="soft-sides" maskContentUnits="objectBoundingBox">
+      <path d="M0 0H1V1H0Z" fill="url(#shade-across)" />
+    </mask>
+    <pattern id="woven-fabric" width="6" height="6" patternUnits="userSpaceOnUse">
+      <path class="bag-accent" opacity=".075" d="M0 0h1v2H0zm3 3h1v2H3z" />
+      <path class="bag-secondary" opacity=".2" d="M1 2h2v1H1zm3 3h2v1H4z" />
+    </pattern>
+    <path id="front-silhouette" d="M187 350Q400 400 613 350L646 823Q649 872 617 901Q598 919 561 921H239Q202 919 183 901Q151 872 154 823Z M244 488H556Q568 488 567 508L560 689Q557 767 510 795Q478 814 400 814Q322 814 290 795Q243 767 240 689L233 508Q232 488 244 488Z" fill-rule="evenodd" />
+    <path id="lid-silhouette" d="M244 483H556Q574 483 572 509L565 689Q562 772 513 799Q479 820 400 820Q321 820 287 799Q238 772 235 689L228 509Q226 483 244 483Z" />
+  </defs>
+  <g id="bag-back">
+    <g id="shoulder-straps">
+      <path id="left-shoulder-strap" class="bag-secondary" d="M240 191Q207 135 171 162Q142 183 142 264L151 622L179 671L209 616L200 275Q198 222 240 219Z" />
+      <path class="bag-primary" d="M214 178Q187 161 175 197Q165 225 170 284L183 576L197 586L188 263Q185 210 222 203Z" />
+      <path class="bag-accent bag-seam" d="M208 180Q179 174 180 237L191 539" />
+      <path id="right-shoulder-strap" class="bag-secondary" d="M560 191Q593 135 629 162Q658 183 658 264L649 622L621 671L591 616L600 275Q602 222 560 219Z" />
+      <path class="bag-primary" d="M586 178Q613 161 625 197Q635 225 630 284L617 576L603 586L612 263Q615 210 578 203Z" />
+      <path class="bag-accent bag-seam" d="M592 180Q621 174 620 237L609 539" />
+    </g>
+    <g id="carry-handle">
+      <path class="bag-secondary" d="M305 195L313 144Q316 124 340 120Q400 109 460 120Q484 124 487 144L495 195H473L464 151Q400 137 336 151L327 195Z" />
+      <path class="bag-primary" d="M324 146Q326 134 343 132Q400 123 457 132Q474 134 476 146L470 154Q400 139 330 154Z" />
+      <path class="bag-accent bag-seam" d="M333 141Q400 125 467 141" />
+      <path class="bag-accent" opacity=".18" d="M345 132Q400 124 455 132L454 137Q400 130 346 137Z" />
+    </g>
+    <g id="rear-panel">
+      <path class="bag-secondary" d="M190 268Q184 214 229 189Q400 155 571 189Q616 214 610 268L638 805Q643 886 600 900H200Q157 886 162 805Z" />
+      <path class="bag-primary" d="M221 226Q224 208 249 202Q400 178 551 202Q576 208 579 226L590 264H210Z" />
+      <path class="bag-accent" opacity=".17" d="M242 205Q400 177 558 205L564 214Q400 189 236 214Z" />
+      <path class="bag-accent bag-seam" d="M232 219Q400 185 568 219" />
+    </g>
+    <g id="side-pocket-left">
+      <path id="left-pocket-gusset" class="bag-secondary" d="M192 278Q169 251 135 272Q84 300 72 393L48 769Q45 827 80 844L166 869Q188 866 201 830L220 358Z" />
+      <path id="left-pocket-shell" class="bag-primary" d="M154 274Q113 285 99 337Q88 377 85 447L66 783Q66 814 88 824L153 845Q170 834 174 803L197 351Q199 298 176 282Z" />
+      <path class="bag-secondary" mask="url(#soft-sides)" d="M154 274Q113 285 99 337Q88 377 85 447L66 783Q66 814 88 824L153 845Q170 834 174 803L197 351Q199 298 176 282Z" />
+      <path class="bag-accent" opacity=".2" d="M141 281Q108 312 104 387L81 778Q78 799 89 812L81 808Q73 800 75 779L97 388Q101 307 132 286Z" />
+      <path id="left-side-zipper" d="M156 282Q127 310 123 388L100 644" stroke="#11151b" stroke-width="10" />
+      <path d="M156 282Q127 310 123 388L100 644" stroke="#74808b" stroke-width="2" stroke-dasharray="1 3" />
+      <path class="bag-accent bag-seam" d="M163 289Q139 313 134 389L111 631" />
+      <path id="left-bottle-pocket" class="bag-secondary" d="M64 598Q110 633 177 617L167 799Q165 838 151 851L78 827Q58 818 57 789Z" />
+      <path class="bag-primary" d="M70 616Q116 644 172 633L163 792Q159 824 149 835L84 815Q68 810 67 785Z" />
+      <path class="bag-accent bag-piping" opacity=".7" d="M66 604Q113 638 176 622" />
+      <path class="bag-accent bag-seam" d="M70 615Q115 647 172 632M77 788Q77 805 91 810L145 827" />
+      <path class="bag-secondary bag-fold" d="M176 405L164 587M177 683L170 776" />
+      <g id="left-side-zipper-pull" transform="translate(139 321) rotate(12)">
+        <rect x="-5" y="-5" width="10" height="16" rx="3" fill="#11151b" stroke="#7d8892" stroke-width="1.5" />
+        <path d="M0 6L-5 30Q0 36 5 30Z" fill="#252b33" stroke="#8a949d" stroke-width="2" />
+      </g>
+    </g>
+    <g id="side-pocket-right">
+      <path id="right-pocket-gusset" class="bag-secondary" d="M608 278Q631 251 665 272Q716 300 728 393L752 769Q755 827 720 844L634 869Q612 866 599 830L580 358Z" />
+      <path id="right-pocket-shell" class="bag-primary" d="M646 274Q687 285 701 337Q712 377 715 447L734 783Q734 814 712 824L647 845Q630 834 626 803L603 351Q601 298 624 282Z" />
+      <path class="bag-secondary" mask="url(#soft-sides)" d="M646 274Q687 285 701 337Q712 377 715 447L734 783Q734 814 712 824L647 845Q630 834 626 803L603 351Q601 298 624 282Z" />
+      <path class="bag-accent" opacity=".2" d="M659 281Q692 312 696 387L719 778Q722 799 711 812L719 808Q727 800 725 779L703 388Q699 307 668 286Z" />
+      <path id="right-side-zipper" d="M644 282Q673 310 677 388L700 644" stroke="#11151b" stroke-width="10" />
+      <path d="M644 282Q673 310 677 388L700 644" stroke="#74808b" stroke-width="2" stroke-dasharray="1 3" />
+      <path class="bag-accent bag-seam" d="M637 289Q661 313 666 389L689 631" />
+      <path id="right-bottle-pocket" class="bag-secondary" d="M736 598Q690 633 623 617L633 799Q635 838 649 851L722 827Q742 818 743 789Z" />
+      <path class="bag-primary" d="M730 616Q684 644 628 633L637 792Q641 824 651 835L716 815Q732 810 733 785Z" />
+      <path class="bag-accent bag-piping" opacity=".7" d="M734 604Q687 638 624 622" />
+      <path class="bag-accent bag-seam" d="M730 615Q685 647 628 632M723 788Q723 805 709 810L655 827" />
+      <path class="bag-secondary bag-fold" d="M624 405L636 587M623 683L630 776" />
+      <g id="right-side-zipper-pull" transform="translate(661 321) rotate(-12)">
+        <rect x="-5" y="-5" width="10" height="16" rx="3" fill="#11151b" stroke="#7d8892" stroke-width="1.5" />
+        <path d="M0 6L-5 30Q0 36 5 30Z" fill="#252b33" stroke="#8a949d" stroke-width="2" />
+      </g>
+    </g>
+    <g id="main-compartment" data-opening-bounds="233 488 334 326">
+      <path id="compartment-interior" class="bag-secondary" d="M230 479H570L580 704Q574 799 516 818Q475 836 400 837Q325 836 284 818Q226 799 220 704Z" />
+      <path id="compartment-back-wall" class="bag-primary" opacity=".3" d="M270 522H530L530 742Q400 767 270 742Z" />
+      <path id="compartment-left-wall" class="bag-primary" opacity=".38" d="M236 491L270 522V742L251 766Q238 731 237 682Z" />
+      <path id="compartment-right-wall" class="bag-primary" opacity=".3" d="M564 491L530 522V742L549 766Q562 731 563 682Z" />
+      <path id="compartment-floor" class="bag-primary" opacity=".45" d="M270 742Q400 767 530 742L549 766Q529 809 470 814H330Q271 809 251 766Z" />
+      <path class="bag-secondary bag-fold" d="M270 530V742Q400 767 530 742V530" />
+      <g id="tucked-front-flap" data-secured-by="velcro">
+        <path id="tucked-flap-backside" class="bag-primary" d="M285 517H515Q525 517 527 533L533 722Q532 746 516 753Q400 776 284 753Q268 746 267 722L273 533Q275 517 285 517Z" />
+        <path class="bag-secondary" opacity=".55" d="M285 517H515Q525 517 527 533L533 722Q532 746 516 753Q400 776 284 753Q268 746 267 722L273 533Q275 517 285 517Z" />
+        <path class="bag-accent bag-seam" opacity=".3" d="M285 540L280 721Q280 737 293 742Q400 761 507 742Q520 737 520 721L515 540" />
+        <path id="velcro-tab" class="bag-secondary" d="M365 518H435V536H365Z" />
+        <path class="bag-accent bag-seam" d="M370 522H430V532H370Z" />
+        <path id="tucked-flap-lower-fold" class="bag-secondary" d="M276 744Q400 769 524 744L528 754Q400 787 272 754Z" />
+      </g>
+    </g>
+  </g>
+  <g id="bag-front">
+    <g id="body-front">
+      <use href="#front-silhouette" class="bag-primary" />
+      <use href="#front-silhouette" class="bag-secondary" mask="url(#soft-sides)" />
+      <use href="#front-silhouette" class="bag-secondary" mask="url(#soft-bottom)" opacity=".75" />
+      <use href="#front-silhouette" fill="url(#woven-fabric)" />
+      <path id="left-front-gusset" class="bag-secondary" d="M187 350L221 379L213 742Q207 836 238 918Q191 916 174 883Q154 856 158 808Z" />
+      <path class="bag-primary" d="M190 376L207 385L196 741Q190 824 222 901Q199 891 188 869Q173 835 178 792Z" />
+      <path id="right-front-gusset" class="bag-secondary" d="M613 350L579 379L587 742Q593 836 562 918Q609 916 626 883Q646 856 642 808Z" />
+      <path class="bag-primary" d="M610 376L593 385L604 741Q610 824 578 901Q601 891 612 869Q627 835 622 792Z" />
+      <path class="bag-accent bag-seam" d="M215 403L204 740Q199 833 231 906M585 403L596 740Q601 833 569 906" />
+      <path id="base-reinforcement" class="bag-secondary" d="M209 851L254 895Q400 904 546 895L591 851L610 897Q590 919 559 921H241Q210 919 190 897Z" />
+      <path class="bag-accent bag-seam" d="M211 867L249 907Q400 918 551 907L589 867" />
+      <path class="bag-accent" opacity=".13" d="M252 914Q400 923 548 914L547 917Q400 926 253 917Z" />
+    </g>
+    <g id="front-utility-pocket">
+      <path class="bag-secondary" d="M225 412Q400 449 575 412L577 488Q400 459 223 488Z" />
+      <path class="bag-primary" d="M232 426Q400 459 568 426L570 474Q400 450 230 474Z" />
+      <path id="utility-zipper" d="M235 425Q400 457 565 425" stroke="#12171d" stroke-width="8" />
+      <path d="M235 425Q400 457 565 425" stroke="#717b87" stroke-width="2" stroke-dasharray="1 3" />
+      <path class="bag-accent bag-seam" d="M241 434Q400 465 559 434" />
+      <g id="utility-zipper-pull" transform="translate(260 430) rotate(9)">
+        <rect x="-7" y="-4" width="14" height="9" rx="3" fill="#20262e" stroke="#87919c" stroke-width="1.5" />
+        <path d="M0 2L-5 25M1 3L7 25" stroke="#919ba4" stroke-width="2.5" />
+        <path d="M-5 23L-9 37Q-10 46 0 46Q10 46 9 37L6 23" stroke="#11171e" stroke-width="8" />
+        <path d="M-5 24L-8 37Q-9 43 0 43Q9 43 8 37L6 24" stroke="#56616e" stroke-width="4" />
+      </g>
+    </g>
+    <g id="upper-putter-pocket">
+      <path id="putter-pocket-rear" class="bag-primary" d="M228 225H572Q592 225 598 251L616 338Q620 368 596 380Q400 419 204 380Q180 368 184 338L202 251Q208 225 228 225Z" />
+      <path id="putter-pocket-mouth" class="bag-secondary" d="M230 240H570L589 296Q400 326 211 296Z" />
+      <path class="bag-primary" opacity=".4" d="M236 247H564L568 259Q400 250 232 259Z" />
+      <path id="putter-pocket-face" class="bag-primary" d="M210 274Q400 325 590 274L609 339Q615 360 591 370Q400 410 209 370Q185 360 191 339Z" />
+      <path class="bag-secondary" mask="url(#soft-bottom)" d="M210 274Q400 325 590 274L609 339Q615 360 591 370Q400 410 209 370Q185 360 191 339Z" />
+      <path id="putter-pocket-binding" class="bag-accent" opacity=".65" d="M210 274Q400 325 590 274L592 282Q400 334 208 282Z" />
+      <path class="bag-accent bag-seam" d="M215 289Q400 339 585 289M203 333Q195 355 214 360Q400 401 586 360Q605 355 597 333" />
+      <path class="bag-accent bag-piping" opacity=".4" d="M207 375Q400 416 593 375" />
+    </g>
+    <g id="front-opening-frame">
+      <path id="front-opening-welt" class="bag-secondary" fill-rule="evenodd" d="M239 474H561Q583 474 581 510L574 691Q571 783 518 813Q480 835 400 835Q320 835 282 813Q229 783 226 691L219 510Q217 474 239 474Z M244 488H556Q568 488 567 508L560 689Q557 767 510 795Q478 814 400 814Q322 814 290 795Q243 767 240 689L233 508Q232 488 244 488Z" />
+      <path id="front-opening-zipper" d="M237 492L244 690Q247 763 294 790Q325 809 400 809Q475 809 506 790Q553 763 556 690L563 492" stroke="#10151b" stroke-width="9" />
+      <path id="front-opening-zipper-teeth" d="M237 492L244 690Q247 763 294 790Q325 809 400 809Q475 809 506 790Q553 763 556 690L563 492" stroke="#6d7782" stroke-width="2" stroke-dasharray="1 3.5" />
+      <path class="bag-accent bag-seam" d="M225 506L232 691Q235 778 286 806Q322 828 400 828Q478 828 514 806Q565 778 568 691L575 506" />
+      <path id="compartment-retaining-lip" class="bag-primary" d="M269 789Q400 825 531 789Q519 817 484 828Q400 845 316 828Q281 817 269 789Z" />
+      <path class="bag-accent bag-piping" opacity=".6" d="M275 794Q400 827 525 794" />
+    </g>
+  </g>
+  <g id="bag-lid" data-hinge-x1="244" data-hinge-x2="556" data-hinge-y="488" data-open-state="tucked-behind-discs">
+    <use id="lid-shell" href="#lid-silhouette" class="bag-primary" />
+    <use id="lid-edge-shading" href="#lid-silhouette" class="bag-secondary" mask="url(#soft-sides)" opacity=".8" />
+    <use id="lid-bottom-shading" href="#lid-silhouette" class="bag-secondary" mask="url(#soft-bottom)" opacity=".5" />
+    <use id="lid-texture" href="#lid-silhouette" fill="url(#woven-fabric)" />
+    <path id="lid-hinge" class="bag-secondary" opacity=".65" d="M244 483H556V495H244Z" />
+    <path id="lid-hinge-stitch" class="bag-accent bag-seam" d="M248 490H552" />
+    <path id="lid-panel-stitch" class="bag-accent bag-seam" d="M243 508L250 688Q253 760 297 785Q328 804 400 804Q472 804 503 785Q547 760 550 688L557 508" />
+    <path id="lid-piping" class="bag-accent bag-piping" opacity=".6" d="M237 507L244 689Q247 765 294 792Q325 811 400 811Q475 811 506 792Q553 765 556 689L563 507" />
+    <path id="lid-zipper" d="M231 507L238 689Q241 771 291 798Q324 817 400 817Q476 817 509 798Q559 771 562 689L569 507" stroke="#11161d" stroke-width="7" />
+    <path id="lid-zipper-teeth" d="M231 507L238 689Q241 771 291 798Q324 817 400 817Q476 817 509 798Q559 771 562 689L569 507" stroke="#7b8590" stroke-width="2" stroke-dasharray="1 3" />
+    <path id="lid-left-fold" class="bag-secondary" opacity=".45" d="M256 675Q270 727 292 748L275 700Z" />
+    <path id="lid-right-fold" class="bag-secondary" opacity=".35" d="M544 553Q518 597 513 633L536 601Z" />
+    <g id="lid-zipper-pull-left" transform="translate(383 817) rotate(6)">
+      <rect x="-8" y="-5" width="16" height="9" rx="3" fill="#252c34" stroke="#929ba4" stroke-width="1.5" />
+      <path d="M-2 2L-5 18M2 2L5 18" stroke="#8d97a0" stroke-width="2" />
+      <path d="M-5 17L-7 27Q-7 33 0 33Q7 33 7 27L5 17" stroke="#11171e" stroke-width="7" />
+      <path d="M-5 18L-6 26Q-6 30 0 30Q6 30 6 26L5 18" stroke="#5c6875" stroke-width="3" />
+    </g>
+    <g id="lid-zipper-pull-right" transform="translate(417 817) rotate(-6)">
+      <rect x="-8" y="-5" width="16" height="9" rx="3" fill="#252c34" stroke="#929ba4" stroke-width="1.5" />
+      <path d="M-2 2L-5 18M2 2L5 18" stroke="#8d97a0" stroke-width="2" />
+      <path d="M-5 17L-7 27Q-7 33 0 33Q7 33 7 27L5 17" stroke="#11171e" stroke-width="7" />
+      <path d="M-5 18L-6 26Q-6 30 0 30Q6 30 6 26L5 18" stroke="#5c6875" stroke-width="3" />
+    </g>
+  </g>
+</svg>

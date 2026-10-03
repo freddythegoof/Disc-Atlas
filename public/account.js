@@ -19,7 +19,7 @@
   document.querySelectorAll('[data-auth-signed-out]').forEach(node => {node.hidden = !!data.user;});
   document.querySelectorAll('[data-auth-signed-in]').forEach(node => {node.hidden = !data.user;});
   const button = $('#accountButton');
-  if (button) {button.textContent = data.user ? 'Profile' : 'Sign in';button.href = data.user ? '/profile' : '/signin';}
+  if (button) {const firstName=data.user?.name?.trim().split(/\s+/)[0] || 'there';button.textContent = data.user ? 'Hi '+firstName : 'Sign in';button.href = data.user ? '/profile' : '/signin';}
   const userName = $('#accountName'), email = $('#accountEmail'), nameInput = $('#displayName');
   if (userName) userName.textContent = data.user?.name || '';
   if (email) email.textContent = data.user?.email || '';

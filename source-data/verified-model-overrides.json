@@ -1014,6 +1014,398 @@
           "reason": "Owner-approved batch-8 turn adjustment from -0.5 to -1 on October 3, 2026. Supplied Infinite whole-mold (177 ratings), Lucid (71) and Fuzion (38) averages each read -1.1. Confidence defaults to 0.65 because this checkout's review queue has no batch-8 Trespass entry. Fade remains 3; Wraith and Destroyer stay unchanged and are linked for future review."
         }
       ]
+    },
+    {
+      "id": "6567e159ebfd",
+      "brand": "Thought Space Athletics",
+      "approvalName": "Synapse",
+      "catalogName": "Synapse",
+      "flightNumbers": {
+        "speed": 12.0,
+        "glide": 5.0,
+        "turn": -1,
+        "fade": 3.0
+      },
+      "manufacturerNumbers": {
+        "speed": 12,
+        "glide": 5,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Distance Driver",
+      "source": "https://thoughtspaceathletics.com/products/ethereal-synapse-2",
+      "sourceLabel": "Thought Space manufacturer catalog, Atlas-adjusted (reviewer-consistent owner choice)",
+      "adjustmentNote": "Owner-approved Plan 10 override, October 3, 2026. Batch 10 reports current manufacturer turn 0, while Infinite reviewer turn averages are -0.7 overall (30 ratings), -0.9 Aura (8), and -0.3 Ethos (4). The owner approved the reviewer-consistent option -1 rather than manufacturer 0 or the stale Marshall Street -1.5. Fade 3, speed 12 and glide 5 are unchanged. Samples are small and overlapping; no plastic averages were combined.",
+      "checkedAt": "2026-10-03",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=Synapse&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Thought Space Ethereal Synapse product page (12/5/0/3)",
+          "url": "https://thoughtspaceathletics.com/products/ethereal-synapse-2",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Synapse (mfr 12/5/0/3; reviewers 12/4.6/-0.7/3.1)",
+          "url": "https://infinitediscs.com/thought-space-athletics-synapse",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs Aura Synapse (8 ratings; reviewer text)",
+          "url": "https://infinitediscs.com/Thought-Space-Athletics-Synapse/Aura",
+          "type": "retailer",
+          "weight": 0.3
+        },
+        {
+          "name": "Infinite Discs Ethos Synapse (4 ratings; reviewer text)",
+          "url": "https://infinitediscs.com/thought-space-athletics-synapse/ethos",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Rocket Discs Synapse (manufacturer 12/0 as displayed; reviewer summaries)",
+          "url": "https://rocketdiscs.com/thought-space-athletics-synapse",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Titan Disc Golf Aura Synapse (12/5/0/3 in title and body; slug still -1.5)",
+          "url": "https://titandiscgolf.com/products/thought-space-athletics-aura-synapse-12-5-1-5-3",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Marshall Street Synapse (12/5/-1.5/3 on all listings; not independent)",
+          "url": "https://www.marshallstreetdiscgolf.com/?s=synapse&post_type=product",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Freddy (site owner), explicit Plan 10 approval, October 3, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "consensusNote": "Batch 10 reports current manufacturer turn 0, while Infinite reviewer turn averages are -0.7 overall (30 ratings), -0.9 Aura (8), and -0.3 Ethos (4). The owner approved the reviewer-consistent option -1 rather than manufacturer 0 or the stale Marshall Street -1.5. Fade 3, speed 12 and glide 5 are unchanged. Samples are small and overlapping; no plastic averages were combined.",
+      "plasticVariance": "Sold in Aura, Ethos, Ethereal, Nebula variants and TSA Glow; Thought Space prints one set of numbers. One reviewer says the Glow plastic is more stable than the others; the Aura and Ethos averages (-0.9, -0.3) are on 8 and 4 ratings, too few to separate. Not quantified. Do not average.",
+      "lastUpdated": "2026-10-03",
+      "history": [
+        {
+          "date": "2026-10-03",
+          "speed": 12.0,
+          "glide": 5.0,
+          "turn": -1,
+          "fade": 3.0,
+          "reason": "Explicit owner approval in Plan 10; batch 10 evidence. Batch 10 reports current manufacturer turn 0, while Infinite reviewer turn averages are -0.7 overall (30 ratings), -0.9 Aura (8), and -0.3 Ethos (4). The owner approved the reviewer-consistent option -1 rather than manufacturer 0 or the stale Marshall Street -1.5. Fade 3, speed 12 and glide 5 are unchanged. Samples are small and overlapping; no plastic averages were combined."
+        }
+      ],
+      "confidence": 0.55
+    },
+    {
+      "id": "0f303e1b60f6",
+      "brand": "Millennium",
+      "approvalName": "Astra",
+      "catalogName": "Astra",
+      "flightNumbers": {
+        "speed": 11.0,
+        "glide": 5.0,
+        "turn": -1.5,
+        "fade": 2.0
+      },
+      "manufacturerNumbers": {
+        "speed": 11,
+        "glide": 5,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Hybrid Driver",
+      "source": "https://infinitediscs.com/millennium-astra",
+      "sourceLabel": "Published retailer catalog, Atlas-adjusted (owner-approved review candidate)",
+      "adjustmentNote": "Owner-approved Plan 10 override, October 3, 2026. Batch 11 reports retailer turn values split between -1 and -2, Infinite reviewer turn -1.5 (15 pooled ratings) and Standard -1.4. The owner approved the conservative half-step from -1 to -1.5. Manufacturer numeric ratings were not verified. Standard plastic wear and the small sample limit confidence. Speed 11, glide 5 and fade 2 are unchanged; no plastic averages were combined.",
+      "checkedAt": "2026-10-03",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=astra&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Infinite Discs Astra (mfr 11/5/-1/2; reviewers 10.9/5.1/-1.5/1.9)",
+          "url": "https://infinitediscs.com/millennium-astra",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs Standard Astra (reviewers 10.9/5/-1.4/1.9; reviewer text)",
+          "url": "https://infinitediscs.com/millennium-astra/millennium-standard",
+          "type": "retailer",
+          "weight": 0.3
+        },
+        {
+          "name": "Disc Golf Reviewer Astra review (Alan, Standard)",
+          "url": "https://discgolfreviewer.com/millenium-astra/",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "Rocket Discs Standard Astra (11/5/-1/2, \"Understable\")",
+          "url": "https://rocketdiscs.com/millennium-astra/millennium-standard",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Disc Connection Astra (11/5/-2/2)",
+          "url": "https://www.discconnection.com.au/products/millennium-astra",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Disc Golf Puttheads Astra chart (11/5/-2/2, templated)",
+          "url": "https://www.dgputtheads.com/flight-charts/astra",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Marshall Street Astra (11/5/-1/2 in the snapshot; not independent)",
+          "url": "https://www.marshallstreetdiscgolf.com/?s=astra&post_type=product",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Freddy (site owner), explicit Plan 10 approval, October 3, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "consensusNote": "Batch 11 reports retailer turn values split between -1 and -2, Infinite reviewer turn -1.5 (15 pooled ratings) and Standard -1.4. The owner approved the conservative half-step from -1 to -1.5. Manufacturer numeric ratings were not verified. Standard plastic wear and the small sample limit confidence. Speed 11, glide 5 and fade 2 are unchanged; no plastic averages were combined.",
+      "plasticVariance": "Real, per Disc Golf Puttheads and reviewers: Standard beats in fast and gets more understable; Quantum holds stability longer; Sirius is the premium grip blend. Millennium prints no numbers by plastic. Not quantified. Do not average.",
+      "lastUpdated": "2026-10-03",
+      "history": [
+        {
+          "date": "2026-10-03",
+          "speed": 11.0,
+          "glide": 5.0,
+          "turn": -1.5,
+          "fade": 2.0,
+          "reason": "Explicit owner approval in Plan 10; batch 11 evidence. Batch 11 reports retailer turn values split between -1 and -2, Infinite reviewer turn -1.5 (15 pooled ratings) and Standard -1.4. The owner approved the conservative half-step from -1 to -1.5. Manufacturer numeric ratings were not verified. Standard plastic wear and the small sample limit confidence. Speed 11, glide 5 and fade 2 are unchanged; no plastic averages were combined."
+        }
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "d589786b9467",
+      "brand": "Kastaplast",
+      "approvalName": "Grym",
+      "catalogName": "Grym",
+      "flightNumbers": {
+        "speed": 13.0,
+        "glide": 5.0,
+        "turn": -2,
+        "fade": 2.0
+      },
+      "manufacturerNumbers": {
+        "speed": 13,
+        "glide": 5,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Control Driver",
+      "source": "https://infinitediscs.com/kastaplast-grym",
+      "sourceLabel": "Published retailer catalog, Atlas-adjusted (owner-approved review candidate)",
+      "adjustmentNote": "Owner-approved Plan 10 override, October 3, 2026. Batch 16 reports most readable retailers printing 13/5/-2/2, while Infinite and Rocket retain -1. Infinite reviewer turn averages are -1.5 overall (27 ratings) and -1.4 K1 (23); the batch raw K1 tally is about -1.58, with advanced/professional mean -1.35. The owner explicitly approved the review-gated -1 to -2 option. Kastaplast numeric ratings could not be read; retailer lag versus edits remains unresolved. Speed 13, glide 5 and fade 2 are unchanged. Grym X is a separate mold and unchanged; no plastic averages were combined.",
+      "checkedAt": "2026-10-03",
+      "production": {
+        "status": "unknown",
+        "source": null,
+        "note": "Production status is not verified; approval date is not a production date."
+      },
+      "sources": [
+        {
+          "name": "Kastaplast Guld collection page (13/5/-0.5/3; no Grym mention; the only Kastaplast page read)",
+          "url": "https://www.kastaplast.com/en-us/collections/guld",
+          "type": "manufacturer",
+          "weight": 0.2
+        },
+        {
+          "name": "Infinite Discs Grym (mfr 13/5/-1/2; reviewers 12.9/4.9/-1.5/1.9; 27 ratings)",
+          "url": "https://infinitediscs.com/kastaplast-grym",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs K1 Line Grym (23 ratings, dated; reviewer text)",
+          "url": "https://infinitediscs.com/kastaplast-grym/k1",
+          "type": "retailer",
+          "weight": 0.3
+        },
+        {
+          "name": "Infinite Discs K1 Glow Grym (4 ratings, dated)",
+          "url": "https://infinitediscs.com/Kastaplast-Grym/K1-Glow",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Infinite Discs Grym X (12.5/5/0/3; the separate record, checked for pooling)",
+          "url": "https://infinitediscs.com/kastaplast-grym-x",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Reaper Discs K1 Grym (13/5/-2/2 via summary; Kastaplast copy quoted)",
+          "url": "https://reaperdiscs.com/products/kastaplast-k1-grym",
+          "type": "retailer",
+          "weight": 0.3
+        },
+        {
+          "name": "Titan Disc Golf K1 Line Grym (title 13/5/-2/2, slug 13-5-1-2)",
+          "url": "https://titandiscgolf.com/products/kastaplast-k1-line-grym-13-5-1-2",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Gotta Go Gotta Throw K1 Grym (13/5/-2/2)",
+          "url": "https://gottagogottathrow.com/products/kastaplast-k1-grym-distance-driver-golf-disc",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Fade Gear Limited Edition Last Run K1 Grym (13/5/-2/2; last-run listing)",
+          "url": "https://fadegear.com/products/kastaplast-limited-edition-last-run-k1-grym-distance-driver-golf-disc",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Drop Zone Discs Grym collection (13/5/-2/2)",
+          "url": "https://www.dzdiscs.com/collections/kastaplast-grym-distance-driver",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Rocket Discs Grym (13/5/-1/2, Stable)",
+          "url": "https://rocketdiscs.com/kastaplast-grym",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "OTB Discs K1 Grym (13/6/-3/2, \"Out of Production\"; outlier)",
+          "url": "https://otbdiscs.com/product/grym/",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Simply Disc Golf Grym review (Denis Flaschner, Pro; -2 turn; K1, K1 Soft, K1 Glow)",
+          "url": "https://simplydiscgolf.com/kastaplast-grym-review/",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "Freddy (site owner), explicit Plan 10 approval, October 3, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "consensusNote": "Batch 16 reports most readable retailers printing 13/5/-2/2, while Infinite and Rocket retain -1. Infinite reviewer turn averages are -1.5 overall (27 ratings) and -1.4 K1 (23); the batch raw K1 tally is about -1.58, with advanced/professional mean -1.35. The owner explicitly approved the review-gated -1 to -2 option. Kastaplast numeric ratings could not be read; retailer lag versus edits remains unresolved. Speed 13, glide 5 and fade 2 are unchanged. Grym X is a separate mold and unchanged; no plastic averages were combined.",
+      "plasticVariance": "K1 Glow reads far more understable than K1 Line (raw -3.4 on four ratings against -1.58; reviewers say the same); K1 Soft is sold as a Grym X, not a Grym. Kastaplast prints one set of numbers. Run-to-run spread is called out by two reviewers. Not quantified. Do not average.",
+      "lastUpdated": "2026-10-03",
+      "history": [
+        {
+          "date": "2026-10-03",
+          "speed": 13.0,
+          "glide": 5.0,
+          "turn": -2,
+          "fade": 2.0,
+          "reason": "Explicit owner approval in Plan 10; batch 16 evidence. Batch 16 reports most readable retailers printing 13/5/-2/2, while Infinite and Rocket retain -1. Infinite reviewer turn averages are -1.5 overall (27 ratings) and -1.4 K1 (23); the batch raw K1 tally is about -1.58, with advanced/professional mean -1.35. The owner explicitly approved the review-gated -1 to -2 option. Kastaplast numeric ratings could not be read; retailer lag versus edits remains unresolved. Speed 13, glide 5 and fade 2 are unchanged. Grym X is a separate mold and unchanged; no plastic averages were combined."
+        }
+      ],
+      "confidence": 0.5
+    },
+    {
+      "id": "2c73a090c48b",
+      "brand": "Innova",
+      "approvalName": "Eagle (new)",
+      "catalogName": "Eagle",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 4,
+        "turn": 0,
+        "fade": 3
+      },
+      "manufacturerNumbers": {
+        "speed": 7,
+        "glide": 4,
+        "turn": -1,
+        "fade": 3
+      },
+      "category": "Control Driver",
+      "source": "https://www.innovadiscs.com/disc/eagle/",
+      "sourceLabel": "Innova catalog, Atlas-adjusted (explicit owner-approved turn)",
+      "adjustmentNote": "Owner-approved Plan 10 override, October 3, 2026. Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). The manufacturer and flights.json both publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner explicitly requested 7/4/0/3 in Plan 10. Turn 0 is an owner-approved Atlas adjustment and is not supported as a manufacturer number or batch consensus. Batch confidence 0.75 applies to the published -1 rating and approval mapping, not this turn adjustment. Eagle (old) remains unrated and its production status is unchanged.",
+      "checkedAt": "2026-10-03",
+      "production": {
+        "status": "unknown",
+        "source": null,
+        "note": "Production status is not verified; approval date is not a production date."
+      },
+      "sources": [
+        {
+          "name": "Innova Eagle page (7/4/-1/3; approval 03/12/99)",
+          "url": "https://www.innovadiscs.com/disc/eagle/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Eagle (mfr 7/4/-1/3; reviewers 7.1/4/-0.9/3; 131 ratings)",
+          "url": "https://infinitediscs.com/innova-eagle",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite Discs Star Eagle (28 ratings, dated; reviewer text)",
+          "url": "https://infinitediscs.com/Innova-Eagle/Star",
+          "type": "retailer",
+          "weight": 0.3
+        },
+        {
+          "name": "Infinite Discs DX Eagle (11 ratings, dated)",
+          "url": "https://infinitediscs.com/Innova-Eagle/DX",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Marshall Street Eagle row in flights.json (7/4/-1/3; unmatched; not independent)",
+          "url": "https://www.marshallstreetdiscgolf.com/?s=eagle&post_type=product",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Freddy (site owner), explicit Plan 10 approval, October 3, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "consensusNote": "Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). The manufacturer and flights.json both publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner explicitly requested 7/4/0/3 in Plan 10. Turn 0 is an owner-approved Atlas adjustment and is not supported as a manufacturer number or batch consensus. Batch confidence 0.75 applies to the published -1 rating and approval mapping, not this turn adjustment. Eagle (old) remains unrated and its production status is unchanged.",
+      "plasticVariance": "DX beats in very well; one 2016 reviewer says it \"flips in Star,\" another \"stable new, beats into workhorse\"; Innova prints one set of numbers. Not quantified. Do not average.",
+      "lastUpdated": "2026-10-03",
+      "history": [
+        {
+          "date": "2026-10-03",
+          "speed": 7,
+          "glide": 4,
+          "turn": 0,
+          "fade": 3,
+          "reason": "Explicit owner approval in Plan 10; batch 16 evidence. Batch 16 identifies the unattached Eagle catalog row and matches Innova's March 12, 1999 approval to Eagle (new). The manufacturer and flights.json both publish 7/4/-1/3; Infinite reviewer turn is -0.9 across 131 ratings. The owner explicitly requested 7/4/0/3 in Plan 10. Turn 0 is an owner-approved Atlas adjustment and is not supported as a manufacturer number or batch consensus. Batch confidence 0.75 applies to the published -1 rating and approval mapping, not this turn adjustment. Eagle (old) remains unrated and its production status is unchanged."
+        }
+      ],
+      "catalogMatchConfidence": 0.75
     }
   ]
 }
