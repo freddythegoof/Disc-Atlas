@@ -21,7 +21,7 @@ test('public account endpoint ignores forged identity headers and reports a sign
  try{
   const response=await publicWorker.default.fetch(new Request('https://atlas.example/api/account',{headers:{'oai-authenticated-user-id':'forged','oai-authenticated-user-email':'forged@example.com'}}),{DB});
   assert.equal(response.status,200);
-  const account=await response.json();assert.equal(account.user,null);assert.equal(account.provider,'google');assert.equal(account.coachReady,false);assert.equal(account.bagReady,false);
+  const account=await response.json();assert.equal(account.user,null);assert.equal(account.provider,'google');assert.equal(account.coachReady,false);assert.equal(account.bagReady,true);
   assert.equal(response.headers.get('Cache-Control'),'no-store');
  }finally{DB.close();}
 });

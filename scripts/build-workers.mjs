@@ -8,4 +8,7 @@ rmSync(output, {recursive: true, force: true});
 mkdirSync(output, {recursive: true});
 cpSync(new URL('../public/', import.meta.url), output, {recursive: true});
 cpSync(new URL('../web/index.html', import.meta.url), new URL('index.html', output));
+for (const name of ['bag-plastics', 'bag-models']) {
+ cpSync(new URL(`../source-data/${name}.json`, import.meta.url), new URL(`${name}.json`, output));
+}
 console.log(`Public atlas built at ${fileURLToPath(output)}`);

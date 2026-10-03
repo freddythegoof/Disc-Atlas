@@ -17,7 +17,9 @@
     "test:accounts": "node --test tests/auth.mjs",
     "test:accounts:browser": "node tests/accounts-browser.mjs",
     "test:coach": "node --test tests/coach.mjs",
-    "test:coach:browser": "node tests/coach-browser.mjs"
+    "test:coach:browser": "node tests/coach-browser.mjs",
+    "test:bag": "node --test tests/bag.mjs tests/bag-values.mjs",
+    "test:bag:browser": "node tests/bag-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

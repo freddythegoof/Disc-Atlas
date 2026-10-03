@@ -13,8 +13,10 @@ export async function checkDirectory(browser,base){
   assert.equal(await page.locator('body').getAttribute('data-view'),'list','Mobile opens in Directory');
   assert.equal(await page.locator('#sort').inputValue(),'featured','First-time visitors get Featured');
   assert.deepEqual(await page.evaluate(()=>filtered.slice(0,3).map(d=>d.name)),['Destroyer','Buzzz','Zone']);
+  const currentCount=await page.evaluate(()=>filtered.length);
   await page.evaluate(()=>{$('#collection').value='all';filter();});
-  assert.deepEqual(await page.evaluate(()=>filtered.slice(0,3).map(d=>d.name)),['Destroyer','Buzzz','Aviar'],'Featured respects the collection filter');
+  assert.deepEqual(await page.evaluate(()=>filtered.slice(0,3).map(d=>d.name)),['Destroyer','Buzzz','Zone'],'Featured order persists when historical approvals are included');
+  assert.ok(await page.evaluate(count=>filtered.length>count&&filtered.some(d=>d.id==='460293cd4b77'),currentCount),'Show everything includes historical approvals outside the current collection');
   await page.evaluate(()=>{$('#collection').value='current';filter();});
   assert.equal(await page.locator('[data-sort="featured"]').getAttribute('aria-pressed'),'true');
   await capture('mobile-initial');

@@ -36,7 +36,7 @@ try {
  });
  const capture = async name => {await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(200); await page.screenshot({path: `${dir}/${name}.png`});};
  const open = async () => {if (!await page.locator('#coachDialog').isVisible()) await page.getByRole('button', {name: 'Atlas Coach', exact: true}).click(); await page.getByRole('dialog', {name: 'Atlas Coach', exact: true}).waitFor();};
- const close = async () => {await page.keyboard.press('Escape'); assert.ok(await page.locator('#coachButton').evaluate(n => n === document.activeElement));};
+ const close = async () => {await page.keyboard.press('Escape'); await page.waitForFunction(() => document.activeElement === document.querySelector('#coachButton'));};
  const theme = async value => {await page.getByRole('button', {name: 'Site menu', exact: true}).click(); await page.getByRole('menuitemradio', {name: value[0].toUpperCase() + value.slice(1), exact: true}).click(); await page.keyboard.press('Escape');};
  await page.goto(base); await page.waitForFunction(() => window.AtlasAccount?.current);
  await open();

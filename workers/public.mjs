@@ -1,13 +1,16 @@
 import {createAuth} from './auth.mjs';
 import {createCoach} from './coach.mjs';
+import {createBag} from './bag.mjs';
 
 // Public accounts use Google-backed cookies; Sites identity headers remain untrusted.
 export function createPublicWorker(options) {
  const auth = createAuth(options);
  const coach = createCoach(auth, options);
+ const bag = createBag(auth);
  return {
   async fetch(request, env = {}) {
     const path = new URL(request.url).pathname;
+    if (path === '/api/bag' || path.startsWith('/api/bag/')) return bag.fetch(request, env);
     if (path === '/api/coach') return coach.fetch(request, env);
     if (path === '/api/account' || path.startsWith('/auth/')) return auth.fetch(request, env);
     if (['/signin', '/profile', '/account-settings'].includes(path)) {

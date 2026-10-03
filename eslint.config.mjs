@@ -13,7 +13,17 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "public/vendor/**", // Unmodified third-party browser distributions.
+    "outputs/**", // Generated QA artifacts and local helper dependencies.
+    "work/**", // Local test databases and scratch files.
+    "**/.wrangler/**", // Wrangler-generated bundles and local runtime code.
   ]),
+  {
+    files: ["tests/**/*.cjs"],
+    rules: {
+      // These Node integration scripts intentionally use CommonJS.
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
   {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
     rules: {
