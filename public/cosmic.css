@@ -334,10 +334,15 @@ body[data-view="list"] .coach-label{display:none}
 .atlas-marker.is-dot.is-satellite .marker-name small{display:none}
 /* The site menu shares the header's quiet theme-aware controls. */
 .site-menu-button[aria-expanded="true"]{background:var(--surface);color:var(--text)}
-.site-menu-button:focus-visible,.site-menu [role="menuitem"]:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.site-menu-button:focus-visible,.site-menu [role^="menuitem"]:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
 .site-menu{position:absolute;right:0;top:calc(100% + 8px);width:176px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 12px 36px var(--shadow);z-index:10}
-.site-menu [role="menuitem"]{display:block;padding:10px 12px;border-radius:7px;color:var(--text);text-decoration:none;font-size:13px;line-height:1.3}
-.site-menu [role="menuitem"]:hover,.site-menu [role="menuitem"]:focus-visible{background:var(--surface)}
+.site-menu [role^="menuitem"]{display:block;padding:10px 12px;border:0;border-radius:7px;background:none;color:var(--text);text-decoration:none;font-size:13px;line-height:1.3}
+.site-menu [role^="menuitem"]:hover,.site-menu [role^="menuitem"]:focus-visible{background:var(--surface)}
+.site-menu-themes{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.site-menu-theme-label{display:block;padding:6px 12px;color:var(--muted);font-size:11px}
+.site-menu [role="menuitemradio"]{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left}
+.theme-choice-check{opacity:0;color:var(--lime)}
+.site-menu [aria-checked="true"] .theme-choice-check{opacity:1}
 .atlas-reading-info{margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
 
 .atlas-marker.is-dot.is-minor-label .marker-name{top:40px;bottom:auto;max-width:116px;font-size:11px;line-height:1.25;opacity:1;background:none;border:0;border-radius:0;padding:0;box-shadow:none;transition:none}

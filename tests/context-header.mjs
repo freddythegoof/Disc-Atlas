@@ -74,29 +74,113 @@ export async function checkHeaderMenu(browser,base){
     await page.mouse.move(0,150);await page.evaluate(()=>document.activeElement.blur());
     await page.screenshot({path:`outputs/plan-07/menu-${width}-${theme}-closed.png`,clip:{x:0,y:0,width,height:240}});
     await button.click();await menu.waitFor({state:'visible'});
-    const items=menu.getByRole('menuitem');assert.deepEqual(await items.allTextContents(),['About','Privacy','Terms']);
-    assert.deepEqual(await items.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href'))),['/about','/privacy','/terms']);
+    const links=menu.locator(':scope > a[role="menuitem"]'),items=menu.locator('[role="menuitem"]:visible,[role="menuitemradio"]:visible');
+    assert.deepEqual(await links.allTextContents(),['About','Privacy','Terms']);
+    assert.deepEqual(await links.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href'))),['/about','/privacy','/terms']);
+    assert.equal(await items.count(),7,'Sign in, legal links and all three theme choices participate in menu navigation');
     assert.equal(await button.getAttribute('aria-expanded'),'true');
     const bounds=await menu.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width,'Open menu stays within viewport');
     assert.ok(await items.nth(0).evaluate(n=>n===document.activeElement));
-    await page.screenshot({path:`outputs/plan-07/menu-${width}-${theme}-open.png`,clip:{x:0,y:0,width,height:240}});
+    await page.screenshot({path:`outputs/plan-07/menu-${width}-${theme}-open.png`,clip:{x:0,y:0,width,height:400}});
     await page.keyboard.press('ArrowDown');assert.ok(await items.nth(1).evaluate(n=>n===document.activeElement));
-    await page.keyboard.press('End');assert.ok(await items.nth(2).evaluate(n=>n===document.activeElement));
+    await page.keyboard.press('End');assert.ok(await items.last().evaluate(n=>n===document.activeElement));
     await page.keyboard.press('ArrowDown');assert.ok(await items.nth(0).evaluate(n=>n===document.activeElement));
-    await page.keyboard.press('ArrowUp');assert.ok(await items.nth(2).evaluate(n=>n===document.activeElement));
+    await page.keyboard.press('ArrowUp');assert.ok(await items.last().evaluate(n=>n===document.activeElement));
     await page.keyboard.press('Home');assert.ok(await items.nth(0).evaluate(n=>n===document.activeElement));
     await page.keyboard.press('Escape');await menu.waitFor({state:'hidden'});
     assert.ok(await button.evaluate(n=>n===document.activeElement),'Escape returns focus to menu button');
     assert.ok(await button.evaluate(n=>getComputedStyle(n).outlineStyle!=='none'&&parseFloat(getComputedStyle(n).outlineWidth)>0),'Keyboard focus is visibly outlined');
-    await page.keyboard.press('ArrowUp');assert.ok(await items.nth(2).evaluate(n=>n===document.activeElement));
+    await page.keyboard.press('ArrowUp');assert.ok(await items.last().evaluate(n=>n===document.activeElement));
     await page.keyboard.press('Tab');await menu.waitFor({state:'hidden'});
     await button.focus();await page.keyboard.press('ArrowDown');assert.ok(await items.nth(0).evaluate(n=>n===document.activeElement));
     await page.keyboard.press('Escape');await button.click();await button.click();assert.equal(await button.getAttribute('aria-expanded'),'false');
     await button.click();await page.mouse.click(10,160);await menu.waitFor({state:'hidden'});
+    for(const key of ['Enter','Space']){
+     await button.focus();await page.keyboard.press(key);await menu.waitFor({state:'visible'});
+     assert.ok(await items.nth(0).evaluate(n=>n===document.activeElement),`${key} opens the menu with focus on About`);
+     await page.keyboard.press('Escape');
+    }
    }
   }
-  await page.route('**/about',route=>route.fulfill({contentType:'text/html',body:'<h1>About route fixture</h1>'}));
-  await button.click();await menu.getByRole('menuitem',{name:'About',exact:true}).click();await page.waitForURL('**/about');
+  for(const [name,path] of [['About','about'],['Privacy','privacy'],['Terms','terms']]){
+   await page.route(`**/${path}`,route=>route.fulfill({contentType:'text/html',body:`<h1>${name} route fixture</h1>`}));
+   await button.focus();await page.keyboard.press('Enter');
+   await menu.getByRole('menuitem',{name,exact:true}).focus();await page.keyboard.press('Enter');await page.waitForURL(`**/${path}`);
+   await page.goBack();await button.waitFor();
+  }
   assert.deepEqual(errors,[]);console.log('PASS: menu semantics, routes, keyboard navigation, focus, viewport containment and eight screenshots.');
+ }finally{await context.close();}
+ await checkThemePicker(browser,base);
+}
+
+export async function checkThemePicker(browser,base){
+ const dir='outputs/plan-07c';fs.mkdirSync(dir,{recursive:true});
+ const context=await browser.newContext({viewport:{width:1440,height:1000},colorScheme:'light'}),page=await context.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ const settle=()=>page.waitForFunction(()=>!cameraTween&&groupCache.items===filtered&&!regrouping&&!document.querySelector('.is-new,.is-retiring,.is-updating'));
+ const button=page.getByRole('button',{name:'Site menu',exact:true}),menu=page.getByRole('menu',{name:'Site information'});
+ try{
+  await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'light','OS preference is the unsaved initial default');
+  await page.emulateMedia({colorScheme:'dark'});await page.waitForFunction(()=>document.documentElement.dataset.theme==='midnight');
+  await page.emulateMedia({colorScheme:'light'});await page.waitForFunction(()=>document.documentElement.dataset.theme==='light');
+  await settle();
+  await page.evaluate(()=>{window.themeVisit=performance.timeOrigin;window.themeMapNodes=[...markerNodes.values()];});
+  for(const [name,value] of [['Light','light'],['Midnight','midnight'],['Charcoal','charcoal']]){
+   await button.click();await page.keyboard.press('End');
+   const choice=menu.getByRole('menuitemradio',{name,exact:true});await choice.focus();
+   await page.keyboard.press(name==='Midnight'?'Space':'Enter');
+   assert.equal(await page.locator('html').getAttribute('data-theme'),value);
+   assert.equal(await choice.getAttribute('aria-checked'),'true');
+   assert.equal(await menu.locator('[role="menuitemradio"][aria-checked="true"]').count(),1);
+   assert.equal(await page.evaluate(()=>localStorage.getItem('disc-atlas-theme')),value);
+   assert.ok(await choice.evaluate(n=>n===document.activeElement),'Applying retains keyboard focus');
+   assert.ok(await choice.evaluate(n=>getComputedStyle(n).outlineStyle!=='none'),'Theme choice has visible keyboard focus');
+   assert.ok(await menu.isVisible(),'Theme preview leaves the menu open');
+   assert.ok(await page.evaluate(()=>performance.timeOrigin===themeVisit&&themeMapNodes.every(n=>markerNodes.get(n.dataset.cluster)===n)),'Theme changes do not reload or rebuild markers');
+   assert.equal(await menu.evaluate(n=>getComputedStyle(n).backgroundColor),{light:'rgb(255, 255, 255)',midnight:'rgb(19, 23, 30)',charcoal:'rgb(26, 27, 30)'}[value],'Menu uses the selected theme surface');
+   await settle();await page.waitForTimeout(250);await page.screenshot({path:`${dir}/menu-1440-${value}.png`,clip:{x:0,y:0,width:1440,height:420}});
+   await page.keyboard.press('Escape');assert.ok(await button.evaluate(n=>n===document.activeElement));
+  }
+  await page.emulateMedia({colorScheme:'dark'});assert.equal(await page.locator('html').getAttribute('data-theme'),'charcoal','Explicit choice wins over OS changes');
+  await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();await settle();
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'charcoal','Charcoal persists across visits');
+  assert.equal(await page.evaluate(()=>themePalette.background),'#101113','Canvas palette updates to Charcoal');
+  await page.mouse.move(0,75);await page.screenshot({path:`${dir}/map-charcoal.png`});
+  await page.locator('#listTab').click();await page.screenshot({path:`${dir}/directory-charcoal.png`});
+  await page.locator('.disc-row').first().click();await page.locator('#detail').waitFor({state:'visible'});
+  await page.mouse.move(0,75);
+  await page.waitForTimeout(250);await page.screenshot({path:`${dir}/detail-charcoal.png`});
+  for(const selector of ['#detail','.disc-row','#siteMenu']){
+   assert.ok(await page.locator(selector).first().evaluate(n=>{const color=getComputedStyle(n).color;const sample=document.createElement('span');sample.style.color='var(--text)';document.body.append(sample);const expected=getComputedStyle(sample).color;sample.remove();return color===expected;}),`${selector} uses the Charcoal text token`);
+  }
+  // Apply every theme with Directory and details already open, without revisiting.
+  for(const [name,value,panel,text,grid] of [['Light','light','rgb(255, 255, 255)','rgb(32, 39, 49)','#b2bdcc'],['Midnight','midnight','rgb(19, 23, 30)','rgb(237, 242, 252)','#38475b'],['Charcoal','charcoal','rgb(26, 27, 30)','rgb(241, 242, 245)','#484c55']]){
+   await button.click();await menu.getByRole('menuitemradio',{name,exact:true}).click();await page.mouse.move(0,75);await page.waitForTimeout(250);
+   assert.equal(await page.locator('#detail').evaluate(n=>getComputedStyle(n).backgroundColor),panel);
+   assert.equal(await page.locator('#directory').evaluate(n=>getComputedStyle(n).backgroundColor),panel);
+   assert.equal(await page.locator('#detail h2').evaluate(n=>getComputedStyle(n).color),text);
+   assert.equal(await page.locator('#flight svg path').first().getAttribute('stroke'),grid,'Open flight sketch recolors immediately');
+   assert.equal(await page.locator('html').getAttribute('data-theme'),value);
+   await page.keyboard.press('Escape');
+   assert.ok(await page.locator('#detail').isVisible(),'Closing the theme menu keeps the detail panel open');
+   assert.ok(await button.evaluate(n=>n===document.activeElement),'Closing returns focus to the menu button');
+  }
+  await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+  await page.setViewportSize({width:360,height:800});
+  for(const [name,value] of [['Light','light'],['Midnight','midnight'],['Charcoal','charcoal']]){
+   await button.click();await menu.getByRole('menuitemradio',{name,exact:true}).click();
+   const r=await menu.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=360&&r.y+r.height<=800,'Theme menu fits at 360px');
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   await page.waitForTimeout(250);await page.screenshot({path:`${dir}/menu-360-${value}.png`,clip:{x:0,y:0,width:360,height:420}});
+   await page.keyboard.press('Escape');
+  }
+  // The existing quick toggle and standalone select stay synchronized.
+  await page.getByRole('button',{name:'Switch to light mode'}).click();await button.click();
+  assert.equal(await menu.getByRole('menuitemradio',{name:'Light',exact:true}).getAttribute('aria-checked'),'true');
+  await page.keyboard.press('Escape');
+  await page.goto(`${base}/about.html`);await page.locator('[data-theme-select]').selectOption('charcoal');
+  await page.goto(base);await button.click();assert.equal(await menu.getByRole('menuitemradio',{name:'Charcoal',exact:true}).getAttribute('aria-checked'),'true');
+  assert.deepEqual(errors,[]);console.log('PASS: three themes, keyboard/pointer selection, OS defaults, persistence, shared controls, Charcoal map/directory/detail, desktop/mobile screenshots.');
  }finally{await context.close();}
 }
