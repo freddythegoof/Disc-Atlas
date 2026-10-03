@@ -19,7 +19,8 @@
     "test:coach": "node --test tests/coach.mjs",
     "test:coach:browser": "node tests/coach-browser.mjs",
     "test:bag": "node --test tests/bag.mjs tests/bag-values.mjs",
-    "test:bag:browser": "node tests/bag-browser.mjs"
+    "test:bag:browser": "node tests/bag-browser.mjs",
+    "test:bag:scene": "node tests/bag-scene-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

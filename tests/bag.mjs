@@ -22,7 +22,7 @@ async function fixture() {const s = setup(); await s.user('u1', 'x'.repeat(43));
 
 test('bag endpoints require a session and origin + CSRF for every mutation', async () => {
  const s = await fixture(); try {
-  for (const [path, method, data] of [['/api/bag','GET'],['/api/bag','PUT',{bag_model:'Custom bag',capacity:20}],['/api/bag/discs','GET'],['/api/bag/discs','POST',item],['/api/bag/discs/id','GET'],['/api/bag/discs/id','PUT',item],['/api/bag/discs/id','DELETE']]) {
+  for (const [path, method, data] of [['/api/bag','GET'],['/api/bag','PUT',{bag_model:'Custom bag',capacity:20}],['/api/bag/discs','GET'],['/api/bag/discs','POST',item],['/api/bag/discs/id','GET'],['/api/bag/discs/id','PUT',item],['/api/bag/discs/id','PATCH',{in_bag:false}],['/api/bag/discs/id','DELETE']]) {
    assert.equal((await s.call(path,method,data,{cookie:''})).status,401);
    if (method !== 'GET') {
     assert.equal((await s.call(path,method,data,{origin:'https://evil.example'})).status,403);
@@ -71,7 +71,7 @@ test('wear and weight require bounded integers; plastics, notes and mold IDs are
   assert.equal((await s.call('/api/bag/discs','POST',item,{contentType:'text/plain'})).status,400);
   assert.equal((await s.call('/api/bag/discs','POST',{...item,notes:'x'.repeat(9000)})).status,400);
   assert.equal((await s.call('/api/bag','POST',{})).status,405);
-  assert.equal((await s.call('/api/bag/discs/id','PATCH',{})).status,405);
+  assert.equal((await s.call('/api/bag/discs/id','PATCH',{})).status,404);
  } finally {s.close();}
 });
 
@@ -80,6 +80,46 @@ test('default details come from mold references and sane max weights; curated se
   const response = await s.call('/api/bag/discs','POST',{mold_id:'3d60892b6812'}); assert.equal(response.status,201);
   const d = (await response.json()).disc; assert.equal(d.plastic,'Star'); assert.equal(d.wear,10); assert.equal(d.weight_g,175);
   const response2 = await s.call('/api/bag','PUT',{bag_model:'Dynamic Discs Commander',capacity:999}); assert.equal(response2.status,200);
-  assert.equal((await response2.json()).bag.capacity,20);
+  assert.equal((await response2.json()).bag.capacity,24);
  } finally {s.close();}
+});
+
+test('v1.1 colors, pocket totals and storage persist without changing another account', async () => {
+ const s=await fixture();try {
+  const created=await s.call('/api/bag/discs','POST',{...item,color:'#AB34EF'});
+  const disc=(await created.json()).disc;assert.equal(disc.color,'#ab34ef');assert.equal(disc.in_bag,true);
+  const defaultColor=(await (await s.call('/api/bag/discs','POST',{...item,plastic:'Z'})).json()).disc.color;
+  assert.equal(defaultColor,'#70b7cd');
+  const moved=await s.call('/api/bag/discs/'+disc.id,'PATCH',{in_bag:false});assert.equal(moved.status,200);
+  assert.equal((await moved.json()).disc.in_bag,false);
+  assert.equal((await s.call('/api/bag/discs/'+disc.id,'PATCH',{in_bag:true},{cookie:'y'.repeat(43)})).status,404);
+  for(const patch of [{in_bag:'false'},{in_bag:2},{in_bag:null},{color:null},{color:'red'},{color:'#123'},{color:'#ffffff;'}])assert.equal((await s.call('/api/bag/discs','POST',{...item,...patch})).status,400);
+  assert.equal((await s.call('/api/bag/discs/'+disc.id,'PATCH',{in_bag:0})).status,400);
+  assert.equal((await s.call('/api/bag/discs/'+disc.id,'PATCH',{in_bag:true},{csrf:''})).status,403);
+  assert.equal((await s.call('/api/bag/discs/'+disc.id,'PUT',{...item,wear:6})).status,200);
+  const updated=(await (await s.call('/api/bag/discs/'+disc.id)).json()).disc;
+  assert.equal(updated.color,'#ab34ef');assert.equal(updated.in_bag,false,'legacy edits preserve storage');
+  const settings=await s.call('/api/bag','PUT',{bag_model:'Grip BX3',capacity:999,bag_color:'#436752'});
+  const bag=(await settings.json()).bag;assert.equal(bag.capacity,21);assert.equal(bag.main_capacity,18);assert.equal(bag.putter_capacity,3);assert.equal(bag.bag_color,'#436752');
+  const custom=await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#223344'});
+  assert.equal(custom.status,200);assert.equal((await custom.json()).bag.capacity,20);
+  assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',main_capacity:16,putter_capacity:4,capacity:21})).status,400);
+  assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,bag_color:'red'})).status,400);
+  assert.equal((await (await s.call('/api/bag','GET',undefined,{cookie:'y'.repeat(43)})).json()).bag.bag_color,'#343c49');
+  assert.throws(()=>s.db.prepare('UPDATE bag_discs SET in_bag=2').run());
+  assert.throws(()=>s.db.prepare("UPDATE bag_discs SET color='red'").run());
+  assert.throws(()=>s.db.prepare('UPDATE bags SET main_capacity=-1').run());
+ }finally{s.close();}
+});
+
+test('upgrade migration preserves existing copies, notes and custom capacity', () => {
+ const db=new DatabaseSync(':memory:');try {
+  for(const file of fs.readdirSync('migrations/accounts').sort().filter(f=>f<'0004'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('u','g','a@example.com','A',1,1);
+  db.prepare('INSERT INTO bags VALUES (?,?,?,?)').run('u','My sling',9,'before');
+  db.prepare('INSERT INTO bag_discs VALUES (?,?,?,?,?,?,?,?)').run('d','u',item.mold_id,'ESP',8,175,'Keep me','before');
+  for(const file of fs.readdirSync('migrations/accounts').sort().filter(f=>f>='0004'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  const saved=db.prepare('SELECT * FROM bag_discs').get();assert.equal(saved.in_bag,1);assert.match(saved.color,/^#[0-9a-f]{6}$/);assert.equal(saved.notes,'Keep me');
+  const bag=db.prepare('SELECT * FROM bags').get();assert.equal(bag.capacity,9);assert.equal(bag.main_capacity+bag.putter_capacity,9);assert.equal(bag.bag_color,'#343c49');
+ }finally{db.close();}
 });

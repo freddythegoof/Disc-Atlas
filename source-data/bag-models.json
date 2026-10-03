@@ -1,22 +1,173 @@
 {
-  "note": "Disc-slot defaults are conservative advertised capacities (main compartment where separately specified). Custom bags use manual capacity. Legacy/unverified models require manual capacity instead of an invented specification.",
+  "note": "True totals add main, dedicated putter and explicitly quantified extra disc pockets. Use upper end of published ranges. Main+putter split is manual when sources publish only an aggregate total. Extra disc pockets are rendered with the main compartment in this shared artwork. Capacity varies with disc mix; never blocks saving.",
   "checkedAt": "2026-10-03",
   "models": [
-    {"name": "Innova Heritage", "capacity": null, "note": "Manual capacity; no verified bag specification."},
-    {"name": "Innova Adventure", "capacity": 25, "source": "https://www.innovadiscs.com/disc-golf-bags/adventure/"},
-    {"name": "Dynamic Discs Commander", "capacity": 20, "source": "https://www.dynamicdiscs.com/products/commander-bag"},
-    {"name": "Dynamic Discs Trooper", "capacity": 18, "source": "https://www.dynamicdiscs.com/products/trooper-bag"},
-    {"name": "Dynamic Discs Paratrooper", "capacity": 18, "source": "https://www.dynamicdiscs.com/products/paratrooper-bag"},
-    {"name": "Dynamic Discs Ranger", "capacity": 20, "source": "https://www.dynamicdiscs.com/products/ranger-bag"},
-    {"name": "Latitude 64 E3", "capacity": 20, "source": "https://assets.unilogcorp.com/187/ITEM/DOC/Westside_DISCS_103240484_Catalog.pdf", "note": "Manufacturer catalog: Luxury E3, approximately 20 discs."},
-    {"name": "Latitude 64 E4", "capacity": 20, "source": "https://truenorthdiscgolf.com/products/e4-luxury-backpack", "note": "Retailer reproduces the manufacturer description: approximately 20 discs."},
-    {"name": "Grip BX3", "capacity": 18, "source": "https://grip-eq.com/gear/bx3/"},
-    {"name": "Grip AX5", "capacity": 22, "source": "https://grip-eq.com/gear/ax5-series-f2/"},
-    {"name": "Pound Octothorpe", "capacity": 20, "source": "https://pounddiscgolf.com/pages/compare-our-bags"},
-    {"name": "Upper Park Rebel", "capacity": 30, "source": "https://help.upperparkdiscgolf.com/en-US/what-are-the-dimensions-disc-capacity-and-weight-of-the-bags-104413"},
-    {"name": "Upper Park Shift", "capacity": 18, "source": "https://help.upperparkdiscgolf.com/en-US/what-are-the-dimensions-disc-capacity-and-weight-of-the-bags-104413"},
-    {"name": "MVP Voyager", "capacity": 20, "source": "https://mvpdiscsports.com/products/bags/voyager-bag/"},
-    {"name": "MVP Voyager Lite", "capacity": 20, "source": "https://mvpdiscsports.com/products/bags/voyager-lite-bag/"},
-    {"name": "Infinite Sling", "capacity": 10, "source": "https://infinitediscs.com/product/economy-backpacks/infinite-disc-slinger"}
+    {
+      "name": "Innova Heritage",
+      "capacity": null,
+      "note": "Manual capacity; no verified bag specification. Pocket counts are not specified reliably; enter your main/putter split instead of inventing it.",
+      "main_capacity": null,
+      "putter_capacity": null,
+      "extra_capacity": 0,
+      "presetSplit": false
+    },
+    {
+      "name": "Innova Adventure",
+      "capacity": 25,
+      "source": "https://www.innovadiscs.com/disc-golf-bags/adventure/",
+      "main_capacity": null,
+      "putter_capacity": null,
+      "extra_capacity": 0,
+      "presetSplit": false,
+      "note": "Advertised total 25. Pocket counts are not specified reliably; enter your main/putter split instead of inventing it."
+    },
+    {
+      "name": "Dynamic Discs Commander",
+      "capacity": 24,
+      "source": "https://www.dynamicdiscs.com/products/commander-bag",
+      "main_capacity": 20,
+      "putter_capacity": 4,
+      "extra_capacity": 0,
+      "note": "Two vertical putter pockets, two discs each; mixed-disc fit varies.",
+      "presetSplit": true
+    },
+    {
+      "name": "Dynamic Discs Trooper",
+      "capacity": 22,
+      "source": "https://www.dynamicdiscs.com/products/trooper-bag",
+      "main_capacity": 18,
+      "putter_capacity": 4,
+      "extra_capacity": 0,
+      "note": "Upper compartment holds 3–4 additional discs; use four-slot upper estimate.",
+      "presetSplit": true,
+      "sources": [
+        "https://www.dynamicdiscs.com/products/trooper-bag",
+        "https://blog.dynamicdiscs.com/2020/06/5-reasons-you-should-buy-trooper-bag.html"
+      ]
+    },
+    {
+      "name": "Dynamic Discs Paratrooper",
+      "capacity": 24,
+      "source": "https://www.dynamicdiscs.com/products/paratrooper-bag",
+      "main_capacity": 18,
+      "putter_capacity": 2,
+      "extra_capacity": 4,
+      "note": "18 main + 2 dedicated putters + up to 4 discs in upper accessory compartment.",
+      "presetSplit": true
+    },
+    {
+      "name": "Dynamic Discs Ranger",
+      "capacity": 22,
+      "source": "https://www.dynamicdiscs.com/products/ranger-bag",
+      "main_capacity": 20,
+      "putter_capacity": 2,
+      "extra_capacity": 0,
+      "note": "Manufacturer explicitly specifies 20 main + 2 side putters.",
+      "presetSplit": true
+    },
+    {
+      "name": "Latitude 64 E3",
+      "capacity": 20,
+      "source": "https://assets.unilogcorp.com/187/ITEM/DOC/Westside_DISCS_103240484_Catalog.pdf",
+      "note": "Manufacturer catalog: Luxury E3, approximately 20 discs. Pocket counts are not specified reliably; enter your main/putter split instead of inventing it.",
+      "main_capacity": null,
+      "putter_capacity": null,
+      "extra_capacity": 0,
+      "presetSplit": false
+    },
+    {
+      "name": "Latitude 64 E4",
+      "capacity": 20,
+      "source": "https://truenorthdiscgolf.com/products/e4-luxury-backpack",
+      "note": "Retailer reproduces the manufacturer description: approximately 20 discs. Pocket counts are not specified reliably; enter your main/putter split instead of inventing it.",
+      "main_capacity": null,
+      "putter_capacity": null,
+      "extra_capacity": 0,
+      "presetSplit": false
+    },
+    {
+      "name": "Grip BX3",
+      "capacity": 21,
+      "source": "https://grip-eq.com/gear/bx3/",
+      "main_capacity": 18,
+      "putter_capacity": 3,
+      "extra_capacity": 0,
+      "note": "18 main + 3 quick-pull putters.",
+      "presetSplit": true
+    },
+    {
+      "name": "Grip AX5",
+      "capacity": 28,
+      "source": "https://grip-eq.com/gear/ax5-series-f2/",
+      "main_capacity": 22,
+      "putter_capacity": 4,
+      "extra_capacity": 2,
+      "note": "22 main + 4 putters + 2 front flap discs.",
+      "presetSplit": true
+    },
+    {
+      "name": "Pound Octothorpe",
+      "capacity": 32,
+      "source": "https://pounddiscgolf.com/pages/compare-our-bags",
+      "main_capacity": 20,
+      "putter_capacity": 6,
+      "extra_capacity": 6,
+      "note": "Upper end of manufacturer ranges: 16–20 main, 5–6 putters, 4–6 haul pockets.",
+      "presetSplit": true
+    },
+    {
+      "name": "Upper Park Rebel",
+      "capacity": 30,
+      "source": "https://help.upperparkdiscgolf.com/en-US/what-are-the-dimensions-disc-capacity-and-weight-of-the-bags-104413",
+      "main_capacity": null,
+      "putter_capacity": null,
+      "extra_capacity": 0,
+      "presetSplit": false,
+      "note": "Advertised total 30. Pocket counts are not specified reliably; enter your main/putter split instead of inventing it."
+    },
+    {
+      "name": "Upper Park Shift",
+      "capacity": 18,
+      "source": "https://help.upperparkdiscgolf.com/en-US/what-are-the-dimensions-disc-capacity-and-weight-of-the-bags-104413",
+      "main_capacity": null,
+      "putter_capacity": null,
+      "extra_capacity": 0,
+      "presetSplit": false,
+      "note": "Advertised total 18. Pocket counts are not specified reliably; enter your main/putter split instead of inventing it."
+    },
+    {
+      "name": "MVP Voyager",
+      "capacity": 20,
+      "source": "https://mvpdiscsports.com/products/bags/voyager-bag/",
+      "main_capacity": 18,
+      "putter_capacity": 2,
+      "extra_capacity": 0,
+      "note": "18 drivers/mids + 2 dedicated putters. Accessory storage is not assigned an invented count.",
+      "presetSplit": true
+    },
+    {
+      "name": "MVP Voyager Lite",
+      "capacity": 20,
+      "source": "https://mvpdiscsports.com/products/bags/voyager-lite-bag/",
+      "main_capacity": 18,
+      "putter_capacity": 2,
+      "extra_capacity": 0,
+      "note": "Official MVP Pro Shop specifies 16–18 main + 2 putters; additional accessory space varies.",
+      "presetSplit": true,
+      "sources": [
+        "https://mvpproshop.com/products/mvp-voyager-lite-slate",
+        "https://mvpdiscsports.com/products/bags/voyager-lite-bag/"
+      ]
+    },
+    {
+      "name": "Infinite Sling",
+      "capacity": 12,
+      "source": "https://infinitediscs.com/product/economy-backpacks/infinite-disc-slinger",
+      "main_capacity": 10,
+      "putter_capacity": 2,
+      "extra_capacity": 0,
+      "note": "10 internal discs + 2 external putters.",
+      "presetSplit": true
+    }
   ]
 }

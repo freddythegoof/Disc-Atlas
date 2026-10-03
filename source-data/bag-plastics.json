@@ -1,21 +1,698 @@
 {
-  "note": "Plan 11 plastic families. Availability varies by mold and run; Other accepts custom plastic. Brand defaults are used where the catalog has no mold-specific reference.",
+  "note": "Curated plastic families; availability varies by mold/run. Colors are editable illustration defaults, not manufacturer color or flight claims. Unknown brands retain Other. Extend options and colors together.",
   "brands": {
-    "Innova": {"options": ["Star", "Champion", "GStar", "Pro", "DX", "Blizzard"], "reference": "Star"},
-    "Discraft": {"options": ["ESP", "Z", "Big Z", "D", "X"], "reference": "ESP"},
-    "Dynamic Discs": {"options": ["Lucid", "Fuzion", "BioFuzion", "Prime"], "reference": "Lucid"},
-    "Latitude 64": {"options": ["Opto", "Gold", "Retro"], "reference": "Opto"},
-    "MVP": {"options": ["Neutron", "Proton", "Plasma", "Electron"], "reference": "Neutron"},
-    "Axiom": {"options": ["Neutron", "Proton", "Plasma", "Electron"], "reference": "Neutron"},
-    "Discmania": {"options": ["S-Line", "C-Line", "D-Line", "P-Line"], "reference": "S-Line"},
-    "Prodigy": {"options": ["400", "350", "300"], "reference": "400"},
-    "Millennium": {"options": ["Quantum", "Sirius", "Standard"], "reference": "Quantum"}
+    "Innova": {
+      "options": [
+        "Star",
+        "Champion",
+        "GStar",
+        "Pro",
+        "DX",
+        "Blizzard",
+        "Halo Star",
+        "Metal Flake Champion",
+        "XT",
+        "Nexus",
+        "KC Pro",
+        "JK Pro",
+        "R-Pro"
+      ],
+      "reference": "Star",
+      "colors": {
+        "Star": "#e6c668",
+        "Champion": "#70b7cd",
+        "GStar": "#b99bdd",
+        "Pro": "#e49376",
+        "DX": "#a7c68c",
+        "Blizzard": "#e2d8c1",
+        "Halo Star": "#cf7d9e",
+        "Metal Flake Champion": "#79b3a8",
+        "XT": "#e6c668",
+        "Nexus": "#70b7cd",
+        "KC Pro": "#b99bdd",
+        "JK Pro": "#e49376",
+        "R-Pro": "#a7c68c"
+      }
+    },
+    "Discraft": {
+      "options": [
+        "ESP",
+        "Z",
+        "Big Z",
+        "D",
+        "X",
+        "Z FLX",
+        "ESP FLX",
+        "Jawbreaker",
+        "Putter Line Hard",
+        "Putter Line Soft",
+        "CryZtal",
+        "Titanium"
+      ],
+      "reference": "ESP",
+      "colors": {
+        "ESP": "#e6c668",
+        "Z": "#70b7cd",
+        "Big Z": "#b99bdd",
+        "D": "#e49376",
+        "X": "#a7c68c",
+        "Z FLX": "#e2d8c1",
+        "ESP FLX": "#cf7d9e",
+        "Jawbreaker": "#79b3a8",
+        "Putter Line Hard": "#e6c668",
+        "Putter Line Soft": "#70b7cd",
+        "CryZtal": "#b99bdd",
+        "Titanium": "#e49376"
+      }
+    },
+    "Dynamic Discs": {
+      "options": [
+        "Lucid",
+        "Fuzion",
+        "BioFuzion",
+        "Prime"
+      ],
+      "reference": "Lucid",
+      "colors": {
+        "Lucid": "#e6c668",
+        "Fuzion": "#70b7cd",
+        "BioFuzion": "#b99bdd",
+        "Prime": "#e49376"
+      }
+    },
+    "Latitude 64": {
+      "options": [
+        "Opto",
+        "Gold",
+        "Retro"
+      ],
+      "reference": "Opto",
+      "colors": {
+        "Opto": "#e6c668",
+        "Gold": "#70b7cd",
+        "Retro": "#b99bdd"
+      }
+    },
+    "MVP": {
+      "options": [
+        "Neutron",
+        "Proton",
+        "Plasma",
+        "Electron",
+        "Cosmic Neutron",
+        "Fission",
+        "Eclipse",
+        "R2 Neutron",
+        "Electron Soft",
+        "Electron Firm"
+      ],
+      "reference": "Neutron",
+      "colors": {
+        "Neutron": "#e6c668",
+        "Proton": "#70b7cd",
+        "Plasma": "#b99bdd",
+        "Electron": "#e49376",
+        "Cosmic Neutron": "#a7c68c",
+        "Fission": "#e2d8c1",
+        "Eclipse": "#cf7d9e",
+        "R2 Neutron": "#79b3a8",
+        "Electron Soft": "#e6c668",
+        "Electron Firm": "#70b7cd"
+      }
+    },
+    "Axiom": {
+      "options": [
+        "Neutron",
+        "Proton",
+        "Plasma",
+        "Electron",
+        "Cosmic Neutron",
+        "Fission",
+        "Eclipse",
+        "R2 Neutron",
+        "Electron Soft",
+        "Electron Firm"
+      ],
+      "reference": "Neutron",
+      "colors": {
+        "Neutron": "#e6c668",
+        "Proton": "#70b7cd",
+        "Plasma": "#b99bdd",
+        "Electron": "#e49376",
+        "Cosmic Neutron": "#a7c68c",
+        "Fission": "#e2d8c1",
+        "Eclipse": "#cf7d9e",
+        "R2 Neutron": "#79b3a8",
+        "Electron Soft": "#e6c668",
+        "Electron Firm": "#70b7cd"
+      }
+    },
+    "Discmania": {
+      "options": [
+        "S-Line",
+        "C-Line",
+        "D-Line",
+        "P-Line",
+        "Neo",
+        "Lux",
+        "Exo Hard",
+        "Exo Soft",
+        "Active",
+        "Active Premium"
+      ],
+      "reference": "S-Line",
+      "colors": {
+        "S-Line": "#e6c668",
+        "C-Line": "#70b7cd",
+        "D-Line": "#b99bdd",
+        "P-Line": "#e49376",
+        "Neo": "#a7c68c",
+        "Lux": "#e2d8c1",
+        "Exo Hard": "#cf7d9e",
+        "Exo Soft": "#79b3a8",
+        "Active": "#e6c668",
+        "Active Premium": "#70b7cd"
+      }
+    },
+    "Prodigy": {
+      "options": [
+        "400",
+        "350",
+        "300",
+        "200",
+        "300 Soft",
+        "300 Firm",
+        "400G",
+        "500",
+        "750",
+        "750G"
+      ],
+      "reference": "400",
+      "colors": {
+        "200": "#e49376",
+        "300": "#b99bdd",
+        "350": "#70b7cd",
+        "400": "#e6c668",
+        "500": "#79b3a8",
+        "750": "#e6c668",
+        "300 Soft": "#a7c68c",
+        "300 Firm": "#e2d8c1",
+        "400G": "#cf7d9e",
+        "750G": "#70b7cd"
+      }
+    },
+    "Millennium": {
+      "options": [
+        "Quantum",
+        "Sirius",
+        "Standard"
+      ],
+      "reference": "Quantum",
+      "colors": {
+        "Quantum": "#e6c668",
+        "Sirius": "#70b7cd",
+        "Standard": "#b99bdd"
+      }
+    },
+    "Kastaplast": {
+      "options": [
+        "K1",
+        "K1 Soft",
+        "K1 Hard",
+        "K1 Glow",
+        "K3",
+        "K3 Hard"
+      ],
+      "reference": "K1",
+      "colors": {
+        "K1": "#e6c668",
+        "K1 Soft": "#70b7cd",
+        "K1 Hard": "#b99bdd",
+        "K1 Glow": "#e49376",
+        "K3": "#a7c68c",
+        "K3 Hard": "#e2d8c1"
+      }
+    },
+    "Westside Discs": {
+      "options": [
+        "VIP",
+        "VIP Air",
+        "Tournament",
+        "Tournament-X",
+        "BT Hard",
+        "BT Medium",
+        "BT Soft",
+        "Origio"
+      ],
+      "reference": "VIP",
+      "colors": {
+        "VIP": "#e6c668",
+        "VIP Air": "#70b7cd",
+        "Tournament": "#b99bdd",
+        "Tournament-X": "#e49376",
+        "BT Hard": "#a7c68c",
+        "BT Medium": "#e2d8c1",
+        "BT Soft": "#cf7d9e",
+        "Origio": "#79b3a8"
+      }
+    },
+    "Streamline": {
+      "options": [
+        "Neutron",
+        "Proton",
+        "Plasma",
+        "Electron",
+        "Eclipse"
+      ],
+      "reference": "Neutron",
+      "colors": {
+        "Neutron": "#e6c668",
+        "Proton": "#70b7cd",
+        "Plasma": "#b99bdd",
+        "Electron": "#e49376",
+        "Eclipse": "#a7c68c"
+      }
+    },
+    "Infinite Discs": {
+      "options": [
+        "S-Blend",
+        "C-Blend",
+        "I-Blend",
+        "D-Blend",
+        "G-Blend",
+        "Metal Flake C-Blend",
+        "Halo S-Blend"
+      ],
+      "reference": "S-Blend",
+      "colors": {
+        "S-Blend": "#e6c668",
+        "C-Blend": "#70b7cd",
+        "I-Blend": "#b99bdd",
+        "D-Blend": "#e49376",
+        "G-Blend": "#a7c68c",
+        "Metal Flake C-Blend": "#e2d8c1",
+        "Halo S-Blend": "#cf7d9e"
+      }
+    },
+    "Gateway": {
+      "options": [
+        "Diamond",
+        "Platinum",
+        "Sure Grip",
+        "SS",
+        "SSS",
+        "SSSS",
+        "Eraser",
+        "Organic",
+        "Hemp"
+      ],
+      "reference": "Diamond",
+      "colors": {
+        "Diamond": "#e6c668",
+        "Platinum": "#70b7cd",
+        "Sure Grip": "#b99bdd",
+        "SS": "#e49376",
+        "SSS": "#a7c68c",
+        "SSSS": "#e2d8c1",
+        "Eraser": "#cf7d9e",
+        "Organic": "#79b3a8",
+        "Hemp": "#e6c668"
+      }
+    },
+    "DGA": {
+      "options": [
+        "ProLine",
+        "SP Line",
+        "D-Line",
+        "Flex"
+      ],
+      "reference": "ProLine",
+      "colors": {
+        "ProLine": "#e6c668",
+        "SP Line": "#70b7cd",
+        "D-Line": "#b99bdd",
+        "Flex": "#e49376"
+      }
+    },
+    "Legacy": {
+      "options": [
+        "Icon",
+        "Pinnacle",
+        "Excel",
+        "Protege",
+        "Gravity"
+      ],
+      "reference": "Icon",
+      "colors": {
+        "Icon": "#e6c668",
+        "Pinnacle": "#70b7cd",
+        "Excel": "#b99bdd",
+        "Protege": "#e49376",
+        "Gravity": "#a7c68c"
+      }
+    },
+    "Mint Discs": {
+      "options": [
+        "Apex",
+        "Eternal",
+        "Sublime",
+        "Royal"
+      ],
+      "reference": "Apex",
+      "colors": {
+        "Apex": "#e6c668",
+        "Eternal": "#70b7cd",
+        "Sublime": "#b99bdd",
+        "Royal": "#e49376"
+      }
+    },
+    "Thought Space Athletics": {
+      "options": [
+        "Aura",
+        "Ethos",
+        "Ethereal",
+        "Nerve"
+      ],
+      "reference": "Aura",
+      "colors": {
+        "Aura": "#e6c668",
+        "Ethos": "#70b7cd",
+        "Ethereal": "#b99bdd",
+        "Nerve": "#e49376"
+      }
+    },
+    "RPM": {
+      "options": [
+        "Atomic",
+        "Cosmic",
+        "Magma Soft",
+        "Magma Medium",
+        "Magma Hard"
+      ],
+      "reference": "Atomic",
+      "colors": {
+        "Atomic": "#e6c668",
+        "Cosmic": "#70b7cd",
+        "Magma Soft": "#b99bdd",
+        "Magma Medium": "#e49376",
+        "Magma Hard": "#a7c68c"
+      }
+    },
+    "Yikun": {
+      "options": [
+        "Dragon",
+        "Phoenix",
+        "Tiger",
+        "Tortoise"
+      ],
+      "reference": "Dragon",
+      "colors": {
+        "Dragon": "#e6c668",
+        "Phoenix": "#70b7cd",
+        "Tiger": "#b99bdd",
+        "Tortoise": "#e49376"
+      }
+    },
+    "Lone Star Discs": {
+      "options": [
+        "Alpha",
+        "Bravo",
+        "Victor 1",
+        "Victor 2",
+        "Lima",
+        "Glow"
+      ],
+      "reference": "Alpha",
+      "colors": {
+        "Alpha": "#e6c668",
+        "Bravo": "#70b7cd",
+        "Victor 1": "#b99bdd",
+        "Victor 2": "#e49376",
+        "Lima": "#a7c68c",
+        "Glow": "#e2d8c1"
+      }
+    },
+    "Clash Discs": {
+      "options": [
+        "Steady",
+        "Hardy",
+        "Softy",
+        "Tone"
+      ],
+      "reference": "Steady",
+      "colors": {
+        "Steady": "#e6c668",
+        "Hardy": "#70b7cd",
+        "Softy": "#b99bdd",
+        "Tone": "#e49376"
+      }
+    },
+    "Doomsday Discs": {
+      "options": [
+        "Toxic Waste",
+        "Radioactive Waste",
+        "Survival",
+        "Ration",
+        "Gloom"
+      ],
+      "reference": "Toxic Waste",
+      "colors": {
+        "Toxic Waste": "#e6c668",
+        "Radioactive Waste": "#70b7cd",
+        "Survival": "#b99bdd",
+        "Ration": "#e49376",
+        "Gloom": "#a7c68c"
+      }
+    },
+    "Trash Panda Disc Golf": {
+      "options": [
+        "Premium",
+        "Baseline"
+      ],
+      "reference": "Premium",
+      "colors": {
+        "Premium": "#e6c668",
+        "Baseline": "#70b7cd"
+      }
+    },
+    "Elevation Disc Golf": {
+      "options": [
+        "ecoFLEX",
+        "OG"
+      ],
+      "reference": "ecoFLEX",
+      "colors": {
+        "ecoFLEX": "#e6c668",
+        "OG": "#70b7cd"
+      }
+    },
+    "EV-7": {
+      "options": [
+        "OG Soft",
+        "OG Medium",
+        "OG Firm",
+        "OG Base"
+      ],
+      "reference": "OG Soft",
+      "colors": {
+        "OG Soft": "#e6c668",
+        "OG Medium": "#70b7cd",
+        "OG Firm": "#b99bdd",
+        "OG Base": "#e49376"
+      }
+    },
+    "Finish Line": {
+      "options": [
+        "Forged",
+        "Composite"
+      ],
+      "reference": "Forged",
+      "colors": {
+        "Forged": "#e6c668",
+        "Composite": "#70b7cd"
+      }
+    },
+    "Prodiscus": {
+      "options": [
+        "Premium",
+        "Ultrium",
+        "Basic"
+      ],
+      "reference": "Premium",
+      "colors": {
+        "Premium": "#e6c668",
+        "Ultrium": "#70b7cd",
+        "Basic": "#b99bdd"
+      }
+    },
+    "Viking Discs (IP-Agency Finland Oy)": {
+      "options": [
+        "Armor",
+        "Storm",
+        "Ground"
+      ],
+      "reference": "Armor",
+      "colors": {
+        "Armor": "#e6c668",
+        "Storm": "#70b7cd",
+        "Ground": "#b99bdd"
+      }
+    },
+    "Disctroyer OÜ": {
+      "options": [
+        "A-Hard",
+        "A-Medium",
+        "A-Soft"
+      ],
+      "reference": "A-Hard",
+      "colors": {
+        "A-Hard": "#e6c668",
+        "A-Medium": "#70b7cd",
+        "A-Soft": "#b99bdd"
+      }
+    },
+    "Daredevil Discs": {
+      "options": [
+        "High Performance",
+        "Flex Performance",
+        "Grip Performance",
+        "Elastic Performance"
+      ],
+      "reference": "High Performance",
+      "colors": {
+        "High Performance": "#e6c668",
+        "Flex Performance": "#70b7cd",
+        "Grip Performance": "#b99bdd",
+        "Elastic Performance": "#e49376"
+      }
+    },
+    "Disc Golf UK Ltd.": {
+      "options": [
+        "Base",
+        "Opto"
+      ],
+      "reference": "Base",
+      "colors": {
+        "Base": "#e6c668",
+        "Opto": "#70b7cd"
+      }
+    },
+    "Birdie": {
+      "options": [
+        "Premium",
+        "Base"
+      ],
+      "reference": "Premium",
+      "colors": {
+        "Premium": "#e6c668",
+        "Base": "#70b7cd"
+      }
+    },
+    "Above Ground Level": {
+      "options": [
+        "Alpine",
+        "Woodland"
+      ],
+      "reference": "Alpine",
+      "colors": {
+        "Alpine": "#e6c668",
+        "Woodland": "#70b7cd"
+      }
+    },
+    "Løft Discs": {
+      "options": [
+        "Alpha",
+        "Beta"
+      ],
+      "reference": "Alpha",
+      "colors": {
+        "Alpha": "#e6c668",
+        "Beta": "#70b7cd"
+      }
+    },
+    "Wild Discs": {
+      "options": [
+        "Lava",
+        "Meteor"
+      ],
+      "reference": "Lava",
+      "colors": {
+        "Lava": "#e6c668",
+        "Meteor": "#70b7cd"
+      }
+    },
+    "Reptilian Disc Golf": {
+      "options": [
+        "Fossil",
+        "Armor"
+      ],
+      "reference": "Fossil",
+      "colors": {
+        "Fossil": "#e6c668",
+        "Armor": "#70b7cd"
+      }
+    },
+    "Vibram Disc Golf": {
+      "options": [
+        "X-Link Firm",
+        "X-Link Medium",
+        "X-Link Soft"
+      ],
+      "reference": "X-Link Firm",
+      "colors": {
+        "X-Link Firm": "#e6c668",
+        "X-Link Medium": "#70b7cd",
+        "X-Link Soft": "#b99bdd"
+      }
+    },
+    "Innova Factory Store": {
+      "options": [
+        "Star",
+        "Champion",
+        "GStar",
+        "Pro",
+        "DX",
+        "Halo Star"
+      ],
+      "reference": "Star",
+      "colors": {
+        "Star": "#e6c668",
+        "Champion": "#70b7cd",
+        "GStar": "#b99bdd",
+        "Pro": "#e49376",
+        "DX": "#a7c68c",
+        "Halo Star": "#e2d8c1"
+      }
+    }
   },
   "moldReferences": {
-    "9152771e1f7b": {"plastic": "DX", "source": "https://www.innovadiscs.com/disc/roc/"},
-    "ff4bf9e7743c": {"plastic": "Putter Line Hard", "source": "https://www.discraft.com/paul-mcbeth-putter-line-hard-luna-mcbethhdluna"},
-    "0336bb800aa0": {"plastic": "Opto", "source": "https://latitude64.com/products/opto-trident"},
-    "2dea5f27c914": {"plastic": "Star", "source": "https://www.innovadiscs.com/disc/gator/"},
-    "bcb60eb9587a": {"plastic": "Lucid", "source": "https://www.dynamicdiscs.com/collections/dynamic-discs-trespass"}
-  }
+    "9152771e1f7b": {
+      "plastic": "DX",
+      "source": "https://www.innovadiscs.com/disc/roc/"
+    },
+    "ff4bf9e7743c": {
+      "plastic": "Putter Line Hard",
+      "source": "https://www.discraft.com/paul-mcbeth-putter-line-hard-luna-mcbethhdluna"
+    },
+    "0336bb800aa0": {
+      "plastic": "Opto",
+      "source": "https://latitude64.com/products/opto-trident"
+    },
+    "2dea5f27c914": {
+      "plastic": "Star",
+      "source": "https://www.innovadiscs.com/disc/gator/"
+    },
+    "bcb60eb9587a": {
+      "plastic": "Lucid",
+      "source": "https://www.dynamicdiscs.com/collections/dynamic-discs-trespass"
+    }
+  },
+  "defaultColor": "#e6c668",
+  "sources": [
+    "https://www.kastaplast.com/collections/all",
+    "https://westsidediscs.com/",
+    "https://gatewaydiscsports.com/collections/gateway-disc-lineup",
+    "https://mvpdiscsports.com/plastics/",
+    "https://infinitediscs.com/"
+  ]
 }

@@ -48,7 +48,7 @@ try {
  await page.locator('#compare').click();await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});await page.locator('#compareBar [data-bag-add]').click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  await page.locator('#bagTab').click();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===3);
  assert.match(await page.locator('#bagSlotMeter').innerText(),/3 \/ 20/);
- await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('__custom');await page.locator('#customBagName').fill('Weekend sling');await page.locator('#bagCapacity').fill('2');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('__custom');await page.locator('#customBagName').fill('Weekend sling');await page.locator('#bagMainCapacity').fill('2');await page.locator('#bagPutterCapacity').fill('0');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  assert.match(await page.locator('#bagSlotMeter').innerText(),/3 \/ 2/);assert.ok(await page.locator('#bagCapacityNotice').isVisible());
  await page.locator('[data-bag-edit]').first().click();await page.locator('#bagPlastic').selectOption('__other');await page.locator('#bagPlasticOther').fill('My blend');await page.locator('#bagWear').fill('1');await page.locator('#bagWeight').fill('150');await page.locator('#bagNotes').fill('Water disc');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  assert.match(await page.locator('#myBagContents').innerText(),/My blend.*Beat/s);
@@ -58,7 +58,7 @@ try {
  await page.evaluate(async()=>{for(const [mold_id,plastic,wear,weight_g] of [['35dae588c670','Neutron',7,175],['7446eb39abe5','Z',8,180],['761c90d342f5','Electron',6,175]]) {const r=await fetch('/api/bag/discs',{method:'POST',headers:{'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken},body:JSON.stringify({mold_id,plastic,wear,weight_g})});if(!r.ok)throw Error(await r.text());}});
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===5);
  assert.deepEqual(await page.locator('.my-bag-group h2').allTextContents(),['Distance drivers','Fairway drivers','Midranges','Putters']);
- await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('Dynamic Discs Commander');assert.equal(await page.locator('#bagCapacity').inputValue(),'20');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('Dynamic Discs Commander');assert.equal(await page.locator('#bagCapacity').inputValue(),'24');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  for (const name of ['light','midnight','charcoal']) for (const width of [1440,360]) {
   await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await capture(`bag-${width}-${name}`);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
