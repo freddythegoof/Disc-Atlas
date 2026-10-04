@@ -3,6 +3,8 @@ import {test} from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
 import {createPublicWorker} from '../workers/public.mjs';
+import {bagSlots} from '../public/bag-values.js';
+import catalog from '../public/data.json' with {type:'json'};
 
 function setup() {
  const db = new DatabaseSync(':memory:');
@@ -19,6 +21,54 @@ function setup() {
 }
 const item = {mold_id: '7446eb39abe5', plastic: 'ESP', wear: 10, weight_g: 180, notes: ''};
 async function fixture() {const s = setup(); await s.user('u1', 'x'.repeat(43)); await s.user('u2', 'y'.repeat(43)); return s;}
+
+test('new putter defaults once, then main persists through edits and every read route', async () => {
+ const s=await fixture();try {
+  const created=await s.call('/api/bag/discs','POST',{mold_id:'761c90d342f5'});
+  assert.equal(created.status,201);const disc=(await created.json()).disc;assert.equal(disc.pocket,'putter');
+  const moved=await s.call('/api/bag/discs/'+disc.id,'PUT',{...disc,pocket:'main'});
+  assert.equal(moved.status,200);assert.equal((await moved.json()).disc.pocket,'main');
+  for(const [method,details] of [['PUT',{...disc,pocket:undefined,wear:5}],['PATCH',{in_bag:false}],['PATCH',{in_bag:true}]]){
+   const edited=await s.call('/api/bag/discs/'+disc.id,method,details);assert.equal(edited.status,200);assert.equal((await edited.json()).disc.pocket,'main');
+  }
+  for(const path of ['/api/bag','/api/bag/discs','/api/bag/discs/'+disc.id]){
+   const body=await (await s.call(path)).json(),rows=body.discs || [body.disc];assert.equal(rows[0].pocket,'main');
+   const slots=bagSlots(rows,{main_capacity:2,putter_capacity:2},id=>catalog.discs.find(d=>d.id===id));
+   assert.equal(slots.main[0].item.id,disc.id);assert.ok(slots.putter.every(s=>!s.item));
+  }
+  assert.equal(s.db.prepare('SELECT pocket FROM bag_discs WHERE id=?').get(disc.id).pocket,'main');
+ }finally{s.close();}
+});
+
+test('go-to supports create and both edits, persists on reads and remains account scoped', async () => {
+ const s=await fixture();try {
+  const created=await s.call('/api/bag/discs','POST',{...item,pocket:'goto'});assert.equal(created.status,201);
+  const disc=(await created.json()).disc;assert.equal(disc.pocket,'goto');
+  for(const pocket of ['putter','main','goto']){
+   const edited=await s.call('/api/bag/discs/'+disc.id,'PATCH',{pocket});assert.equal(edited.status,200);assert.equal((await edited.json()).disc.pocket,pocket);
+  }
+  assert.equal((await s.call('/api/bag/discs/'+disc.id,'PUT',{...item,wear:6})).status,200);
+  assert.equal((await (await s.call('/api/bag/discs/'+disc.id)).json()).disc.pocket,'goto');
+  assert.equal((await (await s.call()).json()).discs[0].pocket,'goto');
+  assert.equal((await s.call('/api/bag/discs/'+disc.id,'PATCH',{pocket:'main'},{cookie:'y'.repeat(43)})).status,404);
+  assert.throws(()=>s.db.prepare("UPDATE bag_discs SET pocket='other'").run());
+ }finally{s.close();}
+});
+
+test('go-to migration preserves every existing column, indexes and account cascade', () => {
+ const db=new DatabaseSync(':memory:');try {
+  for(const file of fs.readdirSync('migrations/accounts').sort().filter(f=>f<'0006'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('u','g','a@example.com','A',1,1);
+  for(const [id,pocket] of [['p','main'],['d','putter']])db.prepare('INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,notes,added_at,color,in_bag,pocket,stability_bias,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id,'u','761c90d342f5','Other',5,175,'Keep me','before','#123456',0,pocket,'less_stable',7);
+  const before=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  for(const file of fs.readdirSync('migrations/accounts').sort().filter(f=>f>='0006'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  assert.deepEqual(db.prepare('SELECT * FROM bag_discs ORDER BY id').all(),before);
+  db.prepare("UPDATE bag_discs SET pocket='goto' WHERE id='p'").run();
+  assert.equal(db.prepare("SELECT pocket FROM bag_discs WHERE id='p'").get().pocket,'goto');
+  assert.deepEqual(db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='bag_discs' AND name NOT LIKE 'sqlite_%' ORDER BY name").all().map(r=>r.name),['bag_discs_user_added','bag_discs_user_location']);
+  db.prepare("DELETE FROM auth_users WHERE id='u'").run();assert.equal(db.prepare('SELECT COUNT(*) AS n FROM bag_discs').get().n,0);
+ }finally{db.close();}
+});
 
 test('bag endpoints require a session and origin + CSRF for every mutation', async () => {
  const s = await fixture(); try {

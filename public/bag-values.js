@@ -20,8 +20,8 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  const color=data.color===undefined?plasticColor(disc.brand,value.plastic.trim(),catalog):data.color,in_bag=value.in_bag===undefined?true:value.in_bag;
  if(!validColor(color))throw new Error('Choose a six-digit hex disc color.');
  if(typeof in_bag!=='boolean')throw new Error('Choose Bag or Storage.');
- const pocket=value.pocket===undefined?defaultPocket(disc):value.pocket,stability_bias=value.stability_bias===undefined?null:value.stability_bias;
- if(!['main','putter'].includes(pocket))throw new Error('Choose Main compartment or Putter pocket.');
+ const pocket=value.pocket,stability_bias=value.stability_bias===undefined?null:value.stability_bias;
+ if(!['main','putter','goto'].includes(pocket))throw new Error('Choose Main compartment, Putter pocket or Go-to.');
  if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
  if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
  return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),in_bag,pocket,stability_bias};
@@ -52,14 +52,15 @@ export function bagPalette(color){
 export function bagSlots(items,settings,lookup){
  const bagged=items.filter(i=>i.in_bag!==false && i.in_bag!==0);
  const sort=bagComparator(settings.sort_mode,lookup);
- const pocketOf=i=>i.pocket ?? defaultPocket(lookup(i.mold_id));
- const main=bagged.filter(i=>pocketOf(i)==='main').sort(sort),putter=bagged.filter(i=>pocketOf(i)==='putter').sort(sort);
+ const main=bagged.filter(i=>i.pocket==='main').sort(sort),putter=bagged.filter(i=>i.pocket==='putter').sort(sort),goto=bagged.filter(i=>i.pocket==='goto').sort(sort);
  const mainCount=(settings.main_capacity ?? settings.capacity)+(settings.extra_capacity ?? 0),putterCount=settings.putter_capacity ?? 0;
- // Pocket overflow uses spare main slots; never lose an owned copy.
- const pocket=putter.splice(0,putterCount);main.push(...putter);main.sort(sort);
- return {main:Array.from({length:mainCount},(_,i)=>({item:main[i]||null,index:i})),putter:Array.from({length:putterCount},(_,i)=>({item:pocket[i]||null,index:i})),overflow:main.slice(mainCount)};
+ // Go-to discs lead the shared upper area, including bags without putter slots.
+ // Full pockets stay in the list; rendering never relocates a saved copy.
+ const upperPutterCount=Math.max(0,putterCount-goto.length);
+ return {main:Array.from({length:mainCount},(_,i)=>({item:main[i]||null,index:i})),goto:goto.map((item,index)=>({item,index})),putter:Array.from({length:upperPutterCount},(_,i)=>({item:putter[i]||null,index:goto.length+i})),overflow:[...main.slice(mainCount),...putter.slice(upperPutterCount),...bagged.filter(i=>!['main','putter','goto'].includes(i.pocket))]};
 }
 export const defaultPocket=disc=>bagClass(disc)==='putter'?'putter':'main';
+export const pocketLabel=pocket=>({main:'Main compartment',putter:'Putter pocket',goto:'Go-to'})[pocket] || 'Pocket unavailable';
 export const stabilityBiasLabel=bias=>bias==='more_stable'?'More stable':bias==='less_stable'?'Less stable':'';
 export function bagComparator(mode='speed',lookup){
  const speed=i=>lookup(i.mold_id)?.speed ?? -1;
