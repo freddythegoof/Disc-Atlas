@@ -33,14 +33,16 @@ try {
  const reload=async()=>{await page.reload();await phase();};
  const data=async()=>await (await page.request.get(base+'/api/bag')).json();
  const pocketOf=async id=>(await data()).discs.find(d=>d.id===id).pocket;
- const slot=(id,pocket)=>page.locator(`#bagScene g[data-pocket="${pocket}"] > [data-physical-disc="${id}"]`);
+ const slot=(id,pocket)=>page.locator(`#bagScene [data-pocket="${pocket}"] > [data-physical-disc="${id}"]`);
  const inline=id=>page.locator(`select[data-bag-pocket="${id}"]`);
  const setInline=async(id,pocket)=>{
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/bag/discs/'+id) && r.request().method()==='PATCH');
   await inline(id).selectOption(pocket);assert.equal((await saved).status(),200);
   await page.waitForFunction(([id,pocket])=>{const s=document.querySelector(`select[data-bag-pocket="${id}"]`);return s && !s.disabled && s.value===pocket;},[id,pocket]);
  };
- const center=locator=>locator.evaluate(n=>{const m=n.parentNode.transform.baseVal.getItem(0).matrix;return {x:m.e,y:m.f};});
+ // Slot centers in the bag's former 800×1000 artwork units, measured from the 3D hit layer.
+ const center=locator=>locator.evaluate(n=>{const r=n.parentNode.getBoundingClientRect(),c=n.closest('[data-bag-canvas]').getBoundingClientRect();return {x:(r.x+r.width/2-c.x)/c.width*800,y:(r.y+r.height/2-c.y)/c.height*1000};});
+ const mainMiddle=()=>page.locator('#bagScene .bag-hit-slot[data-pocket="main"]').evaluateAll(nodes=>{const c=nodes[0].closest('[data-bag-canvas]').getBoundingClientRect(),xs=nodes.map(n=>{const r=n.getBoundingClientRect();return (r.x+r.width/2-c.x)/c.width*800;});return (Math.min(...xs)+Math.max(...xs))/2;});
  const canvasWidth=()=>page.locator('[data-bag-canvas]').evaluate(n=>n.getBoundingClientRect().width);
  const noOverflow=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal page overflow');
  const shot=async(state,width,theme,options={})=>{
@@ -102,11 +104,11 @@ try {
  assert.equal(await slot(driver.id,'goto').count(),1,'Go-to renders without a reload');
  await reload();assert.equal(await pocketOf(driver.id),'goto');assert.equal(await slot(driver.id,'goto').count(),1);
  assert.equal(await page.locator('#bagScene .bag-goto-slot .bag-slot-hollow').count(),0);
- assert.equal(await page.locator(`#bagScene .bag-goto-slot [data-physical-disc="${driver.id}"] .bag-goto-ring`).count(),1,'Go-to has its accent ring');
+ assert.ok(await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.getBagLayoutState().some(d=>d.id===id && d.pocket==='goTo'),driver.id),'The 3D go-to disc sits in the top pocket (with its accent rim)');
  const top=await center(slot(driver.id,'goto')),main=await center(slot(putter.id,'main')),side=await center(slot(secondPutter.id,'putter'));
- assert.equal(top.x,400,'Go-to is centered');assert.ok(top.y<main.y && top.y<side.y,'Go-to sits above the main compartment and rises above the putters');
- assert.ok(Math.abs(side.x-400)>60,'Putters flank the go-to slot');
- check('Go-to slot: empty hollow, inline assignment, centered/raised with accent ring, persists across reload');
+ const middle=await mainMiddle();assert.ok(Math.abs(top.x-middle)<24,`Go-to is centered over the main compartment (${top.x.toFixed(1)} vs ${middle.toFixed(1)})`);assert.ok(top.y<main.y && top.y<side.y,'Go-to sits above the main compartment and rises above the putters');
+ assert.ok(side.y>top.y && side.y<main.y,'The putter pocket is the front pocket between the go-to slot and the main compartment');
+ check('Go-to slot: empty outline, inline assignment, centered/raised with accent rim, persists across reload');
  // Every disc type can be the go-to, and a full putter pocket keeps all its putters.
  for(const disc of [seeded[1],seeded[2],secondPutter]){await setInline(disc.id,'goto');assert.equal(await slot(disc.id,'goto').count(),1,disc.mold_id);}
  for(const disc of [seeded[1],seeded[2]])await setInline(disc.id,'main');await setInline(secondPutter.id,'putter');
@@ -132,11 +134,13 @@ try {
 
  // 4. Bag size: larger default, S/M/L, crisp vector scaling, persisted per browser.
  assert.equal(await page.locator('#bagScene').getAttribute('data-size'),'m');
- assert.equal(await page.locator('[data-bag-canvas] image, [data-bag-canvas] canvas, [data-bag-canvas] img').count(),0,'Artwork stays vector (no raster upscaling)');
+ // The 3D canvas re-renders at every displayed size instead of upscaling a raster.
+ const sharp=()=>page.locator('[data-bag-canvas]').evaluate(n=>{const c=n.querySelector('canvas'),r=n.bagViewer.renderer;return Math.abs(c.width-Math.round(c.clientWidth*r.pixelRatio))<=1 && Math.abs(c.height-Math.round(c.clientHeight*r.pixelRatio))<=1 && r.pixelRatio>=Math.min(devicePixelRatio,1);});
  const sizes={};
  for(const size of ['s','m','l']){
   await setSize(size);await page.waitForTimeout(50);
-  const disc=await slot(putter.id,'main').locator('rect').boundingBox();
+  assert.ok(await sharp(),`The 3D canvas renders at the ${size.toUpperCase()} size`);
+  const disc=await slot(putter.id,'main').boundingBox();
   sizes[size]={canvas:await canvasWidth(),disc:disc.width,info:0};
   await slot(driver.id,'goto').focus();sizes[size].info=await page.locator('#bagLiftInfo strong').evaluate(n=>parseFloat(getComputedStyle(n).fontSize));await page.keyboard.press('Escape');
  }

@@ -29,7 +29,8 @@ try {
  });
  const phase=()=>page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');
  const data=async()=>await (await page.request.get(base+'/api/bag')).json();
- const slot=(id,pocket)=>page.locator(`#bagScene g[data-pocket="${pocket}"] > [data-physical-disc="${id}"]`);
+ const slot=(id,pocket)=>page.locator(`#bagScene [data-pocket="${pocket}"] > [data-physical-disc="${id}"]`);
+ const centerY=locator=>locator.evaluate(n=>{const r=n.parentNode.getBoundingClientRect();return r.y+r.height/2;});
  const edit=async(id,pocket)=>{
   await page.locator(`[data-bag-edit="${id}"]`).click();
   await page.locator('#bagPocket').selectOption(pocket);await page.locator('#saveDisc').click();
@@ -79,8 +80,8 @@ try {
    const rows=(await data()).discs;assert.equal(rows.find(d=>d.id===putter.id).pocket,'main');assert.equal(rows.find(d=>d.id===goto.id).pocket,'goto');
    assert.equal(await slot(putter.id,'main').count(),1);assert.equal(await slot(putter.id,'putter').count(),0);
    assert.equal(await slot(goto.id,'goto').count(),1);assert.equal(await slot(goto.id,'main').count(),0);
-   const mainY=await slot(putter.id,'main').evaluate(n=>n.parentNode.transform.baseVal.getItem(0).matrix.f);
-   const topY=await slot(goto.id,'goto').evaluate(n=>n.parentNode.transform.baseVal.getItem(0).matrix.f);
+   const mainY=await centerY(slot(putter.id,'main'));
+   const topY=await centerY(slot(goto.id,'goto'));
    assert.ok(topY<mainY,'Go-to is in the upper pocket');
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
    await page.locator('#bagScene').scrollIntoViewIfNeeded();await slot(putter.id,'main').focus();

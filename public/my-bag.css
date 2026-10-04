@@ -100,22 +100,22 @@ body[data-view="bag"] main {display:none!important}
 .bag-scene {position:relative;margin:4px auto 36px;isolation:isolate;--bag-width:560px;--bag-type:1.12}
 .bag-scene[data-size="s"] {--bag-width:360px;--bag-type:1}
 .bag-scene[data-size="l"] {--bag-width:880px;--bag-type:1.3}
-/* Vector artwork scales crisply; the cap keeps the whole bag inside the viewport height. */
-.bag-scene-canvas {width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 190px) * .8)));margin:auto;aspect-ratio:4/5}
-.interactive-bag-svg {width:100%;height:100%;overflow:visible;display:block;cursor:pointer;touch-action:manipulation}
+/* The 3D canvas re-renders at its displayed size; the cap keeps the whole bag inside the viewport height. */
+.bag-scene-canvas {position:relative;width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 190px) * .8)));margin:auto;aspect-ratio:4/5}
+.bag-3d-stage {position:absolute;inset:0}
+.bag-3d-status {position:absolute;left:0;right:0;top:46%;margin:0;text-align:center;font-size:12px;color:var(--muted);pointer-events:none}
+.bag-3d-status:empty {display:none}
+/* Positioned slot targets over the canvas: focus, hover/touch and labels for each disc. */
+.bag-hit-layer {position:absolute;inset:0;pointer-events:none}
+.bag-hit-slot,.bag-slot-hollow {position:absolute}
+.bag-slot-hollow {inset:0}
 .bag-scene-glow {position:absolute;z-index:-1;inset:18% 0 12%;border-radius:50%;background:radial-gradient(ellipse,var(--accent-soft),transparent 70%);pointer-events:none}
-.bag-scene::after {content:'';position:absolute;z-index:-1;bottom:94px;left:25%;width:50%;height:20px;border-radius:50%;background:var(--text);opacity:.06;filter:blur(12px);pointer-events:none}
-.bag-physical-disc {cursor:pointer;outline:none}
-/* The lift stretches an edge-on disc ~10x horizontally; non-scaling strokes keep its rim and
-   highlight hairline-crisp instead of smearing into soft bands at every bag size. */
-.bag-disc-visual :is(ellipse,path) {vector-effect:non-scaling-stroke}
-.bag-disc-face {vector-effect:non-scaling-stroke}
+.bag-physical-disc {position:absolute;inset:0;border-radius:4px;pointer-events:auto;cursor:pointer;outline:none}
+.bag-hit-slot[data-shape="ellipse"] .bag-physical-disc {border-radius:50%}
+.bag-hit-slot[data-shape="dome"] .bag-physical-disc {border-radius:50% 50% 12% 12% / 100% 100% 12% 12%}
+/* The disc itself lifts out of the canvas; the ring marks which slot has keyboard focus. */
+.bag-physical-disc:focus-visible {box-shadow:0 0 0 2px var(--lime),0 0 0 5px var(--accent-soft)}
 .bag-physical-disc[aria-hidden="true"] {pointer-events:none}
-.bag-disc-shadow {fill:#000;opacity:0;filter:blur(8px);pointer-events:none;transition:opacity 360ms cubic-bezier(.2,1.35,.35,1)}
-.bag-disc-shadow.is-visible {opacity:.5}
-.bag-physical-disc:focus-visible .bag-disc-face {stroke:var(--lime);stroke-width:3}
-.bag-goto-ring {stroke:var(--lime);stroke-width:calc(3px * var(--bag-type));vector-effect:non-scaling-stroke}
-.bag-goto-slot .bag-slot-hollow {stroke:var(--lime);stroke-opacity:.8;stroke-width:2;stroke-dasharray:7 6;vector-effect:non-scaling-stroke}
 .bag-scene figcaption {display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--muted)}
 .bag-size-control {display:flex;align-items:center;gap:2px;margin:0;padding:3px;border:1px solid var(--line);border-radius:24px;min-width:0}
 .bag-size-control legend {float:left;padding:0 8px 0 10px;font-size:12px;color:var(--muted)}
@@ -150,7 +150,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-settings-total {display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
 .bag-settings-total output {color:var(--text)}
 #bagCapacityHint {font-size:11px;color:var(--muted);line-height:1.7}
-@media(prefers-reduced-motion:reduce){.bag-lift-info,.bag-disc-shadow {transition:none}}
+@media(prefers-reduced-motion:reduce){.bag-lift-info {transition:none}}
 @media(max-width:700px) {
  .header-actions #accountButton {max-width:72px}
  body[data-view="bag"] .coach-launch {left:auto;right:16px;bottom:18px;width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:20px}
