@@ -11,7 +11,7 @@ export const PUTTER = {front: .176, span: .044, y: .147, mouth: .145, scale: .88
   tilt: 0, raise: .085, forward: .05};
 // Top grab-and-go pocket, behind the putters; the GLB's dashed outline marks an empty slot.
 export const GOTO = {center: .017, span: .060, y: .249, mouth: .252, scale: .92, rise: .008, spread: .012, maxX: .030, maxSlots: 6,
-  tilt: -.12, raise: .04, forward: .11};
+  tilt: -.12, raise: .03, forward: .08};
 
 const FACE_FORWARD = -Math.PI / 2, MAX_GAP = .012;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));

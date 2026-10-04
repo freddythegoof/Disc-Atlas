@@ -29,7 +29,7 @@ export class BagScene {
    try{
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',
+     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
     // The hit layer and the list carry the content; the canvas itself is decorative.

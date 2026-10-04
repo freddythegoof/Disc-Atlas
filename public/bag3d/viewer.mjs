@@ -57,6 +57,7 @@ export async function mountBag(container, {
   maxPixels = Infinity,
   ambientFps = 0,
   quality = 'high',
+  toneMapping = 'aces',
 } = {}) {
   const low = quality === 'low' || (quality === 'auto' && softwareRenderer());
   if (low) animated = false;
@@ -67,8 +68,10 @@ export async function mountBag(container, {
   container.dataset.quality = low ? 'low' : 'high';
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = .90;
+  // 'neutral' (Khronos PBR Neutral) keeps disc colors true to their chosen hex; ACES
+  // desaturates bright, camera-facing discs toward pastel.
+  renderer.toneMapping = toneMapping === 'neutral' ? THREE.NeutralToneMapping : THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = toneMapping === 'neutral' ? .75 : .90;
   renderer.domElement.setAttribute('aria-label', 'Interactive 3D charcoal disc-golf backpack. Drag to rotate; scroll to zoom.');
   renderer.domElement.setAttribute('role', 'img');
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:none';

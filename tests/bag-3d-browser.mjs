@@ -38,7 +38,6 @@ try {
  const phase=want=>page.waitForFunction(w=>document.querySelector('#bagScene').dataset.phase===w,want);
  const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
  const data=async()=>await (await page.request.get(base+'/api/bag')).json();
- const headers=()=>page.evaluate(()=>({'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken}));
  const setTheme=async theme=>{await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.getByRole('menuitemradio',{name:theme[0].toUpperCase()+theme.slice(1),exact:true}).click();await page.keyboard.press('Escape');};
  // The rendered 3D state must match the saved bag exactly: same discs, pockets and colors.
  const inSync=async(label)=>{
@@ -143,6 +142,11 @@ try {
  await mainDisc.hover();await settle();assert.equal(await viewer(v=>v.liftedDisc),driver.id,'Hover lifts the 3D disc');
  const lifted=await viewer((v,id)=>v.discScreenRect(id),driver.id),box=await page.locator('[data-bag-canvas]').evaluate(n=>({w:n.clientWidth,h:n.clientHeight}));
  assert.ok(lifted.left>=0 && lifted.top>=0 && lifted.left+lifted.width<=box.w && lifted.top+lifted.height<=box.h,'Lifted disc stays inside the canvas');
+ // Color fidelity: the lifted disc's face renders close to the saved color (#ed7868).
+ const face=await page.locator('[data-bag-canvas]').boundingBox(),crop=await page.screenshot({clip:{x:face.x+lifted.left+lifted.width*.5-2,y:face.y+lifted.top+lifted.height*.5-2,width:5,height:5}});
+ const rendered=await page.evaluate(async b64=>{const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();const c=document.createElement('canvas');c.width=5;c.height=5;const x=c.getContext('2d');x.drawImage(img,0,0);return [...x.getImageData(2,2,1,1).data.slice(0,3)];},crop.toString('base64'));
+ const wanted=[0xed,0x78,0x68],drift=Math.max(...rendered.map((v,i)=>Math.abs(v-wanted[i])));perf.liftedFace={rendered:'#'+rendered.map(v=>v.toString(16).padStart(2,'0')).join(''),wanted:'#ed7868',drift};
+ assert.ok(drift<=40,`Lifted disc keeps its color: rendered ${perf.liftedFace.rendered} vs #ed7868`);
  await page.mouse.move(5,5);await settle();assert.equal(await viewer(v=>v.liftedDisc),null);
  // Drag sideways turns the bag and it eases back to the front; a drag never toggles.
  const canvas=await page.locator('.bag-3d-stage canvas').boundingBox(),cx=canvas.x+canvas.width*.15,cy=canvas.y+canvas.height*.6;
@@ -153,6 +157,7 @@ try {
  const before=await page.evaluate(()=>scrollY);await page.mouse.move(cx,cy);await page.mouse.wheel(0,300);await page.waitForTimeout(300);
  assert.ok(await page.evaluate(b=>scrollY>b,before),'The wheel scrolls the page over the bag (no zoom capture)');
  await page.evaluate(()=>scrollTo(0,0));
+ check(`Lifted disc color ${perf.liftedFace.rendered} vs saved #ed7868 (max channel drift ${perf.liftedFace.drift})`);
  check('Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus lift, Escape, drag-to-turn, page scroll preserved');
 
  // 5. Size control: re-rendered (not upscaled) at S/M/L.
