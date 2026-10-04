@@ -49,13 +49,13 @@ try{
   ]){const r=await fetch('/api/bag/discs',{method:'POST',headers,body:JSON.stringify(disc)});if(!r.ok)throw Error(await r.text());}
  });
  await page.goto(base+'/?bag=1');await phase('open');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===7);
- assert.equal(await page.locator('#bagSlotMeter').innerText(),'6 / 21');assert.equal(await page.locator('#bagSlotMeter').getAttribute('title'),'18 main + 3 putter');
+ assert.equal(await page.locator('#bagSlotMeter').innerText(),'6 / 23');assert.equal(await page.locator('#bagSlotMeter').getAttribute('title'),'18 main + 4 putter + 1 extra');
  assert.deepEqual(await page.locator('#bagScene svg > g').evaluateAll(nodes=>nodes.map(n=>n.id)),['bag-back','bag-disc-layer','bag-front','bag-lid']);
- assert.equal(await page.locator('.bag-slot-hollow').count(),15);assert.equal(await page.locator('[data-pocket="putter"] [data-physical-disc]').count(),2);
+ assert.equal(await page.locator('.bag-slot-hollow').count(),17);assert.equal(await page.locator('[data-pocket="putter"] [data-physical-disc]').count(),2);
  const speeds=await page.locator('[data-pocket="main"] [data-physical-disc]').evaluateAll(nodes=>nodes.map(n=>{const row=n.getAttribute('aria-label');return row.split(',')[0];}));assert.equal(speeds.at(-1),'Buzzz');
- const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 21');
+ const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');
  assert.ok(await page.locator('#bagStorageEmpty').isVisible());assert.ok(await page.locator('[data-bag-move]').filter({hasText:'Store'}).count());
- await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 21');
+ await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
  await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#436752');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  assert.equal(await page.locator('#bagScene svg').evaluate(n=>n.style.getPropertyValue('--bag-secondary')),'#324d3e');
  await page.reload();await phase('open');assert.equal(await page.locator('#bagScene svg').evaluate(n=>n.style.getPropertyValue('--bag-primary')),'#436752');

@@ -150,7 +150,7 @@ test('v1.1 colors, pocket totals and storage persist without changing another ac
   const updated=(await (await s.call('/api/bag/discs/'+disc.id)).json()).disc;
   assert.equal(updated.color,'#ab34ef');assert.equal(updated.in_bag,false,'legacy edits preserve storage');
   const settings=await s.call('/api/bag','PUT',{bag_model:'Grip BX3',capacity:999,bag_color:'#436752'});
-  const bag=(await settings.json()).bag;assert.equal(bag.capacity,21);assert.equal(bag.main_capacity,18);assert.equal(bag.putter_capacity,3);assert.equal(bag.bag_color,'#436752');
+  const bag=(await settings.json()).bag;assert.equal(bag.capacity,23);assert.equal(bag.main_capacity,18);assert.equal(bag.putter_capacity,4);assert.equal(bag.extra_capacity,1);assert.equal(bag.bag_color,'#436752');
   const custom=await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#223344'});
   assert.equal(custom.status,200);assert.equal((await custom.json()).bag.capacity,20);
   assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',main_capacity:16,putter_capacity:4,capacity:21})).status,400);
