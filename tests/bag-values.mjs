@@ -31,3 +31,20 @@ test('wear labels explain new, midpoint and severely beat discs without changing
 test('bag class follows the disc class before speed; unknown ratings remain honest', () => {
  for (const [disc,want] of [[{category:'Control Driver',speed:10},'fairway'],[{category:'Distance Driver',speed:9},'distance'],[{category:'Midrange',speed:6},'mid'],[{category:'Putter',speed:4},'putter'],[{speed:3},'putter'],[{speed:5},'mid'],[{speed:8},'fairway'],[{speed:12},'distance'],[{},'unknown']]) assert.equal(bagClass(disc),want);
 });
+
+test('speed sorts stability ties; stability and custom order drive physical slots', () => {
+ const molds={a:{speed:9,turn:-2,fade:1},b:{speed:9,turn:0,fade:3},c:{speed:5,turn:0,fade:4}};
+ const rows=['a','b','c'].map((id,index)=>({id,mold_id:id,pocket:'main',sort_order:2-index}));
+ const order=sort_mode=>bagSlots(rows,{main_capacity:3,putter_capacity:0,sort_mode},id=>molds[id]).main.map(s=>s.item.id);
+ assert.deepEqual(order('speed'),['b','a','c']);
+ assert.deepEqual(order('stability'),['c','b','a']);
+ assert.deepEqual(order('custom'),['c','b','a']);
+ assert.deepEqual(rows.map(i=>i.id),['a','b','c'],'Sorting does not mutate owned copies');
+});
+test('explicit pocket overrides type and defaults putters into their pocket', () => {
+ const molds={p:{speed:2,category:'Putter'},d:{speed:12,category:'Distance Driver'}};
+ const slots=bagSlots([{id:'p',mold_id:'p',pocket:'main'},{id:'d',mold_id:'d',pocket:'putter'}],{main_capacity:1,putter_capacity:1},id=>molds[id]);
+ assert.equal(slots.main[0].item.id,'p');assert.equal(slots.putter[0].item.id,'d');
+ assert.equal(defaultDiscDetails({id:'p',...molds.p,brand:'Innova'},plastics).pocket,'putter');
+ assert.equal(defaultDiscDetails({id:'d',...molds.d,brand:'Innova'},plastics).stability_bias,null);
+});

@@ -1,4 +1,4 @@
-import {bagPalette,bagSlots,wearLabel} from './bag-values.js';
+import {bagPalette,bagSlots,wearLabel,stabilityBiasLabel} from './bag-values.js';
 
 const NS='http://www.w3.org/2000/svg';
 export const BAG_SPRING='cubic-bezier(.2,1.35,.35,1)';
@@ -63,7 +63,7 @@ export class BagScene {
       // SVG paint order changes during a lift; keyboard order stays in slots.
       const ordered=[...this.layer.querySelectorAll('[data-physical-disc]')].sort((a,b)=>Number(a.dataset.slotOrder)-Number(b.dataset.slotOrder));
       const next=ordered[ordered.indexOf(disc)+(event.shiftKey?-1:1)];
-      event.preventDefault();if(next)next.focus({preventScroll:true});else (event.shiftKey?document.querySelector('#editBagModel'):this.toggle).focus({preventScroll:true});
+      event.preventDefault();if(next)next.focus({preventScroll:true});else (event.shiftKey?document.querySelector('#bagSort'):this.toggle).focus({preventScroll:true});
      }
      if(event.key==='Enter'||event.key===' '){event.preventDefault();if(this.open&&!this.running)this.inspect(mold);}
      if(event.key==='Escape'){this.settle(disc);this.toggle.focus();}
@@ -88,6 +88,9 @@ export class BagScene {
   const x=Number(disc.dataset.slotX),target=Math.max(320,Math.min(480,x));
   this.motion(disc.querySelector('.bag-disc-visual'),`translate(${target-x}px,-72px) scale(${Math.max(1.12,72/rx)},.66)`,360);
   this.info.querySelector('strong').textContent=title;this.info.querySelector('span').textContent=`${item.plastic} · ${item.wear}/10 ${wearLabel(item.wear)} · ${item.weight_g} g`;
+  const note=this.info.querySelector('[data-lift-note]'),bias=this.info.querySelector('[data-lift-bias]');
+  note.textContent=item.notes || '';note.hidden=!item.notes;
+  bias.textContent=stabilityBiasLabel(item.stability_bias);bias.hidden=!bias.textContent;
   this.info.dataset.visible='true';this.info.setAttribute('aria-hidden','false');
  }
  settle(disc){this.motion(disc.querySelector('.bag-disc-visual'),'translateY(0px) scale(1)',360);disc.classList.remove('is-lifted');if(this.lifted===disc){this.lifted=null;this.tapped=null;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}}

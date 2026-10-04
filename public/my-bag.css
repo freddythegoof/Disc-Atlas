@@ -36,6 +36,33 @@ body[data-view="bag"] main {display:none!important}
 .wear-badge {border:1px solid var(--line);border-radius:5px;padding:3px 7px;font-size:11px}
 .wear-badge[data-beat="true"] {border-color:var(--lime);color:var(--text)}
 .my-bag-notes {font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 0;overflow-wrap:anywhere}
+.bag-sort-bar {display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.bag-sort-bar select {min-height:44px;padding:10px 32px 10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
+.bag-sort-bar select:disabled {opacity:.6}
+.bag-sort-bar>span {margin-left:auto;line-height:1.6}
+.bag-ordered-list {margin-top:0}
+.bag-stability-field {border:0;margin:0 0 20px;padding:0;min-width:0;font-size:13px}
+.bag-stability-field legend {margin-bottom:10px}
+.bag-stability-field small {display:block;margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
+.bag-stability-chips {display:flex;gap:8px;flex-wrap:wrap}
+.bag-stability-chips button {min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:24px;font-size:12px;background:var(--surface)}
+.bag-stability-chips button[aria-pressed="true"] {background:var(--accent-soft);border-color:var(--lime);color:var(--text)}
+.bag-bias-label {color:var(--text);font-size:11px}
+.bag-reorder-controls {grid-column:2/-1;display:flex;gap:4px;justify-content:flex-end;margin-top:-8px}
+.bag-reorder-controls button {width:44px;min-height:44px;border:1px solid var(--line);border-radius:8px;font-size:18px;color:var(--muted)}
+.bag-reorder-controls button:disabled {opacity:.3;cursor:default}
+.bag-reorder-controls [data-bag-drag] {cursor:grab;touch-action:none}
+.my-bag-disc.is-reordering {opacity:.55}
+.my-bag-disc.is-drop-target {box-shadow:inset 0 -2px var(--lime);background:var(--accent-soft)}
+.bag-lift-info [data-lift-note] {font-size:12px;line-height:1.5;color:var(--text);margin:8px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.bag-lift-info [data-lift-bias] {display:block;font-size:10px;color:var(--lime);font-weight:500;margin-top:8px}
+.bag-lift-info [hidden] {display:none!important}
+.add-destination-menu {position:fixed;inset:auto;margin:0;width:180px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);box-shadow:0 12px 32px #0003}
+.add-destination-menu button {display:block;min-height:44px;width:100%;text-align:left;padding:10px 12px;border-radius:6px;font-size:13px}
+.add-destination-menu button:hover,.add-destination-menu button:focus-visible {background:var(--selected);color:var(--text)}
+.directory-add {min-width:48px;font-size:12px}
+.compare-bag-add {min-height:44px;white-space:nowrap}
+@media(max-width:700px){.bag-sort-bar {gap:10px}.bag-sort-bar>span {width:100%;margin-left:0;font-size:11px}.bag-reorder-controls {justify-content:flex-start}.bag-lift-info {width:90%;max-width:300px}}
 .bag-consensus {text-align:right;white-space:nowrap}
 .bag-consensus strong {font-size:13px;font-weight:500;display:block}
 .bag-consensus small {font-size:10px;color:var(--muted);display:block;margin-top:6px}
@@ -61,9 +88,10 @@ body[data-view="bag"] main {display:none!important}
 .bag-sheet .sheet-actions button {min-height:44px}
 #bagModelForm {display:grid;gap:20px}
 #bagModelForm .sheet-actions {margin:0}
-.directory-row {display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:center}
+.directory-row {display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:center}
 .directory-row .disc-row {width:100%;min-width:0}
-.directory-add {width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;font-size:20px;color:var(--muted)}
+.directory-add {width:48px;height:44px;display:flex;align-items:center;justify-content:center;gap:2px;border:1px solid var(--line);border-radius:24px;font-size:17px;color:var(--muted)}
+.directory-add>span:last-child {font-size:12px}
 .directory-add:hover {color:var(--text);background:var(--accent-soft);border-color:var(--lime)}
 .compare-item .compare-bag-add {position:static;width:100%;min-height:44px;font-size:12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:var(--accent-soft);color:var(--text)}
 .detail .bag-add.primary {margin:14px 0;font-size:14px}
@@ -141,8 +169,9 @@ body[data-view="bag"] main {display:none!important}
  .bag-sheet h2 {font-size:25px}
  .bag-sheet .profile-grid {grid-template-columns:1fr 1fr;gap:18px 12px}
  .bag-sheet .profile-field {font-size:13px;gap:8px}
+ .bag-sheet .bag-pocket-field {grid-column:1/-1}
  .directory-row {gap:4px}
- .directory-row .disc-row {grid-template-columns:minmax(0,1fr) 74px 25px;gap:5px;padding-left:0;padding-right:3px}
+ .directory-row .disc-row {grid-template-columns:minmax(0,1fr) 74px 25px;gap:5px;padding-left:8px;padding-right:3px}
  .directory-row .row-identity {gap:8px}
  .directory-row .row-identity>.disc-art {display:none}
  .directory-row .row-identity strong {font-size:14px}

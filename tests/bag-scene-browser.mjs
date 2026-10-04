@@ -33,7 +33,7 @@ try{
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();await phase('open');
  assert.equal(await page.locator('#accountButton').innerText(),'Hi Atlas');assert.ok(await page.locator('#bagStorageEmpty').isVisible());
- await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDiscDialog').waitFor();
+ await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#addDiscDialog').waitFor();
  assert.equal(await page.locator('#bagDiscColor').inputValue(),'#e6c668');await page.locator('#bagPlastic').selectOption('Champion');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#70b7cd');
  await page.locator('#bagDiscColor').fill('#ed7868');await page.locator('#bagPlastic').selectOption('DX');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#ed7868','custom color survives plastic change');
  await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
