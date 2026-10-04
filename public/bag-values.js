@@ -54,13 +54,16 @@ export function bagSlots(items,settings,lookup){
  const sort=bagComparator(settings.sort_mode,lookup);
  const main=bagged.filter(i=>i.pocket==='main').sort(sort),putter=bagged.filter(i=>i.pocket==='putter').sort(sort),goto=bagged.filter(i=>i.pocket==='goto').sort(sort);
  const mainCount=(settings.main_capacity ?? settings.capacity)+(settings.extra_capacity ?? 0),putterCount=settings.putter_capacity ?? 0;
- // Go-to discs lead the shared upper area, including bags without putter slots.
+ // Go-to has its own centered slot (shown empty until assigned) and never borrows putter capacity.
  // Full pockets stay in the list; rendering never relocates a saved copy.
- const upperPutterCount=Math.max(0,putterCount-goto.length);
- return {main:Array.from({length:mainCount},(_,i)=>({item:main[i]||null,index:i})),goto:goto.map((item,index)=>({item,index})),putter:Array.from({length:upperPutterCount},(_,i)=>({item:putter[i]||null,index:goto.length+i})),overflow:[...main.slice(mainCount),...putter.slice(upperPutterCount),...bagged.filter(i=>!['main','putter','goto'].includes(i.pocket))]};
+ return {main:Array.from({length:mainCount},(_,i)=>({item:main[i]||null,index:i})),goto:goto.length?goto.map((item,index)=>({item,index})):[{item:null,index:0}],putter:Array.from({length:putterCount},(_,i)=>({item:putter[i]||null,index:i})),overflow:[...main.slice(mainCount),...putter.slice(putterCount),...bagged.filter(i=>!['main','putter','goto'].includes(i.pocket))]};
 }
 export const defaultPocket=disc=>bagClass(disc)==='putter'?'putter':'main';
 export const pocketLabel=pocket=>({main:'Main compartment',putter:'Putter pocket',goto:'Go-to'})[pocket] || 'Pocket unavailable';
+export const POCKETS=[['main','Main'],['putter','Putter'],['goto','Go-to']];
+// Display sizes cap the bag's width; CSS also fits it to the viewport height.
+export const BAG_SIZES={s:360,m:560,l:880};
+export const bagSize=value=>Object.hasOwn(BAG_SIZES,value)?value:'m';
 export const stabilityBiasLabel=bias=>bias==='more_stable'?'More stable':bias==='less_stable'?'Less stable':'';
 export function bagComparator(mode='speed',lookup){
  const speed=i=>lookup(i.mold_id)?.speed ?? -1;

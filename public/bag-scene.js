@@ -37,21 +37,20 @@ export class BagScene {
   const slots=bagSlots(items,settings,this.lookup);this.layer.replaceChildren();
   this.root.querySelector('[data-bag-overflow]').textContent=slots.overflow.length?`${slots.overflow.length} more ${slots.overflow.length===1?'disc':'discs'} listed below · beyond the illustrated slots`:'';
   let keyboardOrder=0;
-  const drawSlots=(list,area)=>{
-   const total=list.length,main=area==='main';
-   // The main discs live strictly in x270–530/y545–790; the putter tops
-   // emerge above the fixed pocket face. Its rear/face naturally occlude bottoms.
-   const min=main?270:280,max=main?530:520,step=(max-min)/Math.max(total,1),rx=Math.max(.5,Math.min(main?26:48,step*.44)),cy=main?670:240,ry=main?115:98;
-   for(const slot of list){
-    const pocket=slot.item?.pocket || (main?'main':'putter');
-    const x=min+step*(slot.index+.5),position=el('g',{transform:`translate(${x} ${cy})`,'data-pocket':pocket});
-    if(!slot.item){position.append(el('ellipse',{cx:0,cy:0,rx,ry,fill:'#0c1118',stroke:'#697485','stroke-opacity':'.18','stroke-width':1,class:'bag-slot-hollow'}));position.setAttribute('aria-hidden','true');this.layer.append(position);continue;}
+  const drawSlots=(list,{area,min,max,cy,ry,maxRx})=>{
+   const step=(max-min)/Math.max(list.length,1),rx=Math.max(.5,Math.min(maxRx,step*.44)),goto=area==='goto';
+   list.forEach((slot,order)=>{
+    const pocket=slot.item?.pocket || area;
+    const x=min+step*(order+.5),position=el('g',{transform:`translate(${x} ${cy})`,'data-pocket':pocket,...(goto?{class:'bag-goto-slot'}:{})});
+    if(!slot.item){position.append(el('ellipse',{cx:0,cy:0,rx,ry,fill:'#0c1118',stroke:'#697485','stroke-opacity':'.18','stroke-width':1,class:'bag-slot-hollow'}));position.setAttribute('aria-hidden','true');this.layer.append(position);return;}
     const item=slot.item,mold=this.lookup(item.mold_id),title=mold?.catalogName||mold?.name||'Saved disc';
     const disc=el('g',{class:'bag-physical-disc','data-physical-disc':item.id,'data-slot-order':keyboardOrder++,tabindex:this.open?'0':'-1',role:'button','aria-label':`${title}, ${item.plastic}, wear ${item.wear} of 10, ${item.weight_g} grams, ${pocketLabel(item.pocket)}. Enter to explore.`, 'aria-describedby':'bagLiftInfo'});
     const visual=el('g',{class:'bag-disc-visual'});visual.style.transformOrigin='0px 0px';disc.dataset.slotX=x;disc.dataset.pocket=pocket;disc.style.opacity=this.open?'1':'0';
     // The slot's hit area stays still while the top turns and lifts. It keeps
     // hovering/touching the original slot from fighting the spring motion.
     disc.append(el('rect',{x:-rx,y:-ry,width:rx*2,height:ry*2,fill:'transparent'}));disc.append(visual);
+    // The go-to disc carries an accent rim so it reads apart from the putters.
+    if(goto)visual.append(el('ellipse',{cx:0,cy:0,rx:rx+4,ry:ry+4,fill:'none',class:'bag-goto-ring'}));
     // A quiet bevel defines a physical rim without copying manufacturer stamps.
     visual.append(el('ellipse',{cx:0,cy:0,rx,ry,fill:item.color||'#e6c668',class:'bag-disc-face'}));
     visual.append(el('ellipse',{cx:0,cy:0,rx:rx*.7,ry:ry*.91,fill:'none',stroke:'white','stroke-opacity':'.2','stroke-width':1}));
@@ -73,10 +72,18 @@ export class BagScene {
      if(event.pointerType==='touch' && this.tapped!==disc){this.tapped=disc;this.lift(disc,item,title,rx);return;}
      this.inspect(mold);
     });
-    position.append(disc);this.layer.append(position);
-   }
+    // The lift shadow is the disc's sibling so its lifted geometry never widens the disc's box.
+    position.append(el('ellipse',{cx:0,cy:0,rx,ry,class:'bag-disc-shadow'}),disc);this.layer.append(position);
+   });
   };
-  drawSlots(slots.main,'main');drawSlots([...slots.goto,...slots.putter],'upper');
+  // Main discs live strictly in x270–530/y545–790. In the fixed upper pocket
+  // (mouth x230–570), putters flank a taller, centered go-to slot; the pocket
+  // rear/face naturally occlude their bottoms. Draw order is left-to-right Tab order.
+  const half=Math.ceil(slots.putter.length/2),reach=[52,76][slots.goto.length-1] ?? 96;
+  drawSlots(slots.main,{area:'main',min:270,max:530,cy:670,ry:115,maxRx:26});
+  drawSlots(slots.putter.slice(0,half),{area:'putter',min:248,max:400-reach-6,cy:240,ry:98,maxRx:48});
+  drawSlots(slots.goto,{area:'goto',min:400-reach,max:400+reach,cy:214,ry:108,maxRx:50});
+  drawSlots(slots.putter.slice(half),{area:'putter',min:400+reach+6,max:552,cy:240,ry:98,maxRx:48});
  }
  lift(disc,item,title,rx){
   if(!this.open||this.running)return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
@@ -86,15 +93,18 @@ export class BagScene {
   if(this.layer.moveBefore)this.layer.moveBefore(disc.parentNode,null);else if(document.activeElement!==disc)this.layer.append(disc.parentNode);
   disc.classList.add('is-lifted');
   // Widen the visible top as it comes out of the tightly packed row.
-  const x=Number(disc.dataset.slotX),target=Math.max(320,Math.min(480,x));
-  this.motion(disc.querySelector('.bag-disc-visual'),`translate(${target-x}px,-72px) scale(${Math.max(1.12,72/rx)},.66)`,360);
+  const x=Number(disc.dataset.slotX),target=Math.max(320,Math.min(480,x)),scale=Math.max(1.12,72/rx),ry=Number(disc.querySelector('.bag-disc-face').getAttribute('ry'));
+  this.motion(disc.querySelector('.bag-disc-visual'),`translate(${target-x}px,-72px) scale(${scale},.66)`,360);
+  // The soft shadow sits at the lifted pose in unstretched space. A CSS filter on the
+  // stretched disc would rasterize it first and smear the face's edges.
+  const shadow=disc.previousElementSibling;for(const [key,value] of Object.entries({cx:target-x,cy:-64,rx:rx*scale,ry:ry*.66}))shadow.setAttribute(key,value);shadow.classList.add('is-visible');
   this.info.querySelector('strong').textContent=title;this.info.querySelector('span').textContent=`${item.plastic} · ${item.wear}/10 ${wearLabel(item.wear)} · ${item.weight_g} g · ${pocketLabel(item.pocket)}`;
   const note=this.info.querySelector('[data-lift-note]'),bias=this.info.querySelector('[data-lift-bias]');
   note.textContent=item.notes || '';note.hidden=!item.notes;
   bias.textContent=stabilityBiasLabel(item.stability_bias);bias.hidden=!bias.textContent;
   this.info.dataset.visible='true';this.info.setAttribute('aria-hidden','false');
  }
- settle(disc){this.motion(disc.querySelector('.bag-disc-visual'),'translateY(0px) scale(1)',360);disc.classList.remove('is-lifted');if(this.lifted===disc){this.lifted=null;this.tapped=null;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}}
+ settle(disc){this.motion(disc.querySelector('.bag-disc-visual'),'translateY(0px) scale(1)',360);disc.classList.remove('is-lifted');disc.previousElementSibling?.classList.remove('is-visible');if(this.lifted===disc){this.lifted=null;this.tapped=null;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}}
  clearLift(){if(this.lifted)this.settle(this.lifted);this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
  motion(node,transform,duration,delay=0){
   const from=getComputedStyle(node).transform;node.getAnimations().forEach(a=>a.cancel());node.style.transform=transform;

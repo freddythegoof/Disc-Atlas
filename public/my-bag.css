@@ -54,8 +54,8 @@ body[data-view="bag"] main {display:none!important}
 .bag-reorder-controls [data-bag-drag] {cursor:grab;touch-action:none}
 .my-bag-disc.is-reordering {opacity:.55}
 .my-bag-disc.is-drop-target {box-shadow:inset 0 -2px var(--lime);background:var(--accent-soft)}
-.bag-lift-info [data-lift-note] {font-size:12px;line-height:1.5;color:var(--text);margin:8px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
-.bag-lift-info [data-lift-bias] {display:block;font-size:10px;color:var(--lime);font-weight:500;margin-top:8px}
+.bag-lift-info [data-lift-note] {font-size:calc(12px * var(--bag-type));line-height:1.5;color:var(--text);margin:8px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.bag-lift-info [data-lift-bias] {display:block;font-size:calc(10px * var(--bag-type));color:var(--lime);font-weight:500;margin-top:8px}
 .bag-lift-info [hidden] {display:none!important}
 .add-destination-menu {position:fixed;inset:auto;margin:0;width:180px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);box-shadow:0 12px 32px #0003}
 .add-destination-menu button {display:block;min-height:44px;width:100%;text-align:left;padding:10px 12px;border-radius:6px;font-size:13px}
@@ -97,27 +97,45 @@ body[data-view="bag"] main {display:none!important}
 .detail .bag-add.primary {margin:14px 0;font-size:14px}
 :is(#myBagView,.bag-sheet,.directory-row,.compare-item) :is(button,input,select,textarea,a):focus-visible {outline:2px solid var(--lime);outline-offset:4px}
 .bag-pocket-breakdown {font-size:11px;color:var(--muted);flex-basis:100%}
-.bag-scene {position:relative;max-width:600px;margin:4px auto 36px;isolation:isolate}
-.bag-scene-canvas {width:100%;max-width:360px;margin:auto;aspect-ratio:4/5}
+.bag-scene {position:relative;margin:4px auto 36px;isolation:isolate;--bag-width:560px;--bag-type:1.12}
+.bag-scene[data-size="s"] {--bag-width:360px;--bag-type:1}
+.bag-scene[data-size="l"] {--bag-width:880px;--bag-type:1.3}
+/* Vector artwork scales crisply; the cap keeps the whole bag inside the viewport height. */
+.bag-scene-canvas {width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 190px) * .8)));margin:auto;aspect-ratio:4/5}
 .interactive-bag-svg {width:100%;height:100%;overflow:visible;display:block;cursor:pointer;touch-action:manipulation}
 .bag-scene-glow {position:absolute;z-index:-1;inset:18% 0 12%;border-radius:50%;background:radial-gradient(ellipse,var(--accent-soft),transparent 70%);pointer-events:none}
 .bag-scene::after {content:'';position:absolute;z-index:-1;bottom:94px;left:25%;width:50%;height:20px;border-radius:50%;background:var(--text);opacity:.06;filter:blur(12px);pointer-events:none}
-.bag-physical-disc {cursor:pointer;outline:none;transition:filter 360ms cubic-bezier(.2,1.35,.35,1)}
-.bag-disc-visual {will-change:transform}
+.bag-physical-disc {cursor:pointer;outline:none}
+/* The lift stretches an edge-on disc ~10x horizontally; non-scaling strokes keep its rim and
+   highlight hairline-crisp instead of smearing into soft bands at every bag size. */
+.bag-disc-visual :is(ellipse,path) {vector-effect:non-scaling-stroke}
 .bag-disc-face {vector-effect:non-scaling-stroke}
 .bag-physical-disc[aria-hidden="true"] {pointer-events:none}
-.bag-physical-disc.is-lifted {filter:drop-shadow(0 8px 8px #0008)}
+.bag-disc-shadow {fill:#000;opacity:0;filter:blur(8px);pointer-events:none;transition:opacity 360ms cubic-bezier(.2,1.35,.35,1)}
+.bag-disc-shadow.is-visible {opacity:.5}
 .bag-physical-disc:focus-visible .bag-disc-face {stroke:var(--lime);stroke-width:3}
-.bag-scene figcaption {display:flex;gap:20px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.bag-goto-ring {stroke:var(--lime);stroke-width:calc(3px * var(--bag-type));vector-effect:non-scaling-stroke}
+.bag-goto-slot .bag-slot-hollow {stroke:var(--lime);stroke-opacity:.8;stroke-width:2;stroke-dasharray:7 6;vector-effect:non-scaling-stroke}
+.bag-scene figcaption {display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.bag-size-control {display:flex;align-items:center;gap:2px;margin:0;padding:3px;border:1px solid var(--line);border-radius:24px;min-width:0}
+.bag-size-control legend {float:left;padding:0 8px 0 10px;font-size:12px;color:var(--muted)}
+.bag-size-control label {position:relative;display:grid;place-items:center;min-width:44px;min-height:44px;border-radius:22px;font:600 13px 'Space Grotesk',sans-serif;color:var(--muted);cursor:pointer}
+.bag-size-control input {position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
+.bag-size-control label:hover {color:var(--text)}
+.bag-size-control label:has(input:checked) {background:var(--selected);color:var(--text)}
+.bag-size-control label:has(input:focus-visible) {outline:2px solid var(--lime);outline-offset:2px}
+.bag-sr {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.bag-pocket-inline select {min-height:44px;padding:8px 28px 8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
+.bag-pocket-inline select:disabled {opacity:.6;cursor:progress}
 .bag-scene figcaption button {min-height:44px;font-size:12px;padding:10px 18px}
 .bag-scene-hint {font-size:11px;color:var(--muted);text-align:center;margin:16px 0 0;line-height:1.6}
 .bag-scene [data-bag-overflow] {text-align:center;margin:10px 0}
 .bag-scene [data-bag-overflow]:empty {display:none}
-.bag-lift-info {position:absolute;left:50%;top:65%;transform:translateX(-50%) translateY(8px);width:max-content;max-width:90%;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 35px #0002;opacity:0;pointer-events:none;transition:opacity 180ms,transform 360ms cubic-bezier(.2,1.35,.35,1);z-index:1}
+.bag-lift-info {position:absolute;left:50%;top:65%;transform:translateX(-50%) translateY(8px);width:max-content;max-width:min(90%,calc(420px * var(--bag-type)));padding:calc(12px * var(--bag-type)) calc(16px * var(--bag-type));background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 35px #0002;opacity:0;pointer-events:none;transition:opacity 180ms,transform 360ms cubic-bezier(.2,1.35,.35,1);z-index:1}
 .bag-lift-info[data-visible="true"] {opacity:1;transform:translateX(-50%) translateY(0)}
-.bag-lift-info strong {display:block;font:600 17px/1.3 'Space Grotesk',sans-serif;color:var(--text)}
-.bag-lift-info span {display:block;font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
-.bag-lift-info small {display:block;font-size:10px;color:var(--muted);margin-top:8px}
+.bag-lift-info strong {display:block;font:600 calc(17px * var(--bag-type))/1.3 'Space Grotesk',sans-serif;color:var(--text)}
+.bag-lift-info span {display:block;font-size:calc(11px * var(--bag-type));color:var(--muted);margin-top:6px;line-height:1.6}
+.bag-lift-info small {display:block;font-size:calc(10px * var(--bag-type));color:var(--muted);margin-top:8px}
 .bag-section-heading {display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding:18px 0}
 .bag-section-heading h2 {font:500 28px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.6px;margin:0}
 .bag-section-heading>span,.bag-storage-note,.bag-storage-empty {font-size:12px;color:var(--muted);line-height:1.7}
@@ -132,7 +150,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-settings-total {display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
 .bag-settings-total output {color:var(--text)}
 #bagCapacityHint {font-size:11px;color:var(--muted);line-height:1.7}
-@media(prefers-reduced-motion:reduce){.bag-lift-info,.bag-physical-disc {transition:none}}
+@media(prefers-reduced-motion:reduce){.bag-lift-info,.bag-disc-shadow {transition:none}}
 @media(max-width:700px) {
  .header-actions #accountButton {max-width:72px}
  body[data-view="bag"] .coach-launch {left:auto;right:16px;bottom:18px;width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:20px}
@@ -152,7 +170,9 @@ body[data-view="bag"] main {display:none!important}
  .my-bag-disc>.disc-art {width:48px;height:48px;align-self:start}
  .my-bag-disc>.bag-disc-swatch {width:44px;height:44px;align-self:start}
  .bag-scene {margin:4px -10px 24px}
- .bag-scene-canvas {max-width:290px}
+ /* Phones: Small keeps the compact bag; Medium and Large fill the width. */
+ .bag-scene[data-size] {--bag-type:1}
+ .bag-scene[data-size="s"] {--bag-width:290px}
  .bag-scene figcaption {gap:14px;font-size:11px}
  .bag-lift-info {top:55%;max-width:90%;padding:10px 12px}
  .bag-scene-hint {font-size:10px;padding:0 12px}

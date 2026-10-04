@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import plastics from '../source-data/bag-plastics.json' with {type:'json'};
-import {defaultDiscDetails,plasticOptions,wearLabel,bagClass,plasticColor,bagPalette,bagSlots,validateDiscDetails} from '../public/bag-values.js';
+import {defaultDiscDetails,plasticOptions,wearLabel,bagClass,plasticColor,bagPalette,bagSlots,validateDiscDetails,BAG_SIZES,bagSize,POCKETS} from '../public/bag-values.js';
 
 test('mold plastic reference wins over brand fallback and remains selectable', () => {
  const details = defaultDiscDetails({id:'ff4bf9e7743c',brand:'Discraft',specs:{'Max weight':'174.3'}},plastics);
@@ -40,15 +40,39 @@ test('pocket overflow stays out of other pockets and missing metadata is never i
  assert.deepEqual(slots.overflow.map(i=>i.id),['full','missing']);
 });
 
-test('go-to copies occupy upper slots first, retain their pocket and exclude storage', () => {
+test('go-to has its own slot, retains its pocket, excludes storage and never borrows putter slots', () => {
  const rows=[{id:'main',pocket:'main'},{id:'putter',pocket:'putter'},{id:'first',pocket:'goto'},{id:'stored',pocket:'goto',in_bag:false}];
  const slots=bagSlots(rows,{main_capacity:2,putter_capacity:2},()=>({speed:2}));
- assert.ok(Array.isArray(slots.goto),'Go-to has upper pocket slots');
  assert.deepEqual(slots.goto.map(s=>s.item.id),['first']);
- assert.deepEqual(slots.putter.map(s=>s.item?.id),['putter']);
+ assert.deepEqual(slots.putter.map(s=>s.item?.id ?? null),['putter',null]);
  assert.equal(slots.main[0].item.id,'main');assert.equal(slots.overflow.length,0);
  const noTop=bagSlots(rows,{main_capacity:2,putter_capacity:0},()=>({speed:2}));
  assert.equal(noTop.goto[0].item.id,'first');assert.deepEqual(noTop.overflow.map(i=>i.id),['putter']);
+ // A full putter pocket keeps all of its putters when a go-to is assigned.
+ const full=[1,2,3,4].map(n=>({id:'p'+n,pocket:'putter'})).concat({id:'go',pocket:'goto'});
+ const crowded=bagSlots(full,{main_capacity:1,putter_capacity:4},()=>({speed:2}));
+ assert.equal(crowded.putter.filter(s=>s.item).length,4);assert.equal(crowded.goto[0].item.id,'go');assert.equal(crowded.overflow.length,0);
+});
+
+test('an empty go-to slot is always available to render', () => {
+ const slots=bagSlots([{id:'m',pocket:'main'}],{main_capacity:1,putter_capacity:0},()=>({speed:9}));
+ assert.deepEqual(slots.goto,[{item:null,index:0}]);
+});
+
+test('any disc type renders wherever its stored pocket says, including go-to', () => {
+ const molds={p:{speed:2,category:'Putter'},m:{speed:5,category:'Midrange'},d:{speed:12,category:'Distance Driver'}};
+ for(const mold of Object.keys(molds))for(const pocket of ['main','putter','goto']){
+  const slots=bagSlots([{id:'x',mold_id:mold,pocket}],{main_capacity:2,putter_capacity:2},id=>molds[id]);
+  const where=['main','putter','goto'].filter(area=>slots[area].some(s=>s.item?.id==='x'));
+  assert.deepEqual(where,[pocket],`${mold} in ${pocket}`);
+ }
+});
+
+test('display size choices are bounded and default to medium', () => {
+ assert.deepEqual(BAG_SIZES,{s:360,m:560,l:880});
+ for(const [value,want] of [['s','s'],['m','m'],['l','l'],[null,'m'],['xl','m'],['__proto__','m'],['constructor','m']])assert.equal(bagSize(value),want);
+ assert.ok(BAG_SIZES.m>=BAG_SIZES.s*1.5,'Default is significantly larger than the old 360px bag');
+ assert.deepEqual(POCKETS.map(([value])=>value),['main','putter','goto']);
 });
 test('wear labels explain new, midpoint and severely beat discs without changing flight data', () => {
  for (const [wear,label] of [[10,'Factory new'],[9,'Like new'],[5,'Seasoned'],[3,'Well-worn'],[1,'Beat · different stability class'],[2,'Beat · different stability class']]) assert.equal(wearLabel(wear),label);

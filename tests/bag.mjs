@@ -28,9 +28,14 @@ test('new putter defaults once, then main persists through edits and every read 
   assert.equal(created.status,201);const disc=(await created.json()).disc;assert.equal(disc.pocket,'putter');
   const moved=await s.call('/api/bag/discs/'+disc.id,'PUT',{...disc,pocket:'main'});
   assert.equal(moved.status,200);assert.equal((await moved.json()).disc.pocket,'main');
-  for(const [method,details] of [['PUT',{...disc,pocket:undefined,wear:5}],['PATCH',{in_bag:false}],['PATCH',{in_bag:true}]]){
+  for(const [method,details] of [['PUT',{...disc,pocket:undefined,wear:5}],['PATCH',{in_bag:false}],['PATCH',{in_bag:true}],['PATCH',{stability_bias:'more_stable'}]]){
    const edited=await s.call('/api/bag/discs/'+disc.id,method,details);assert.equal(edited.status,200);assert.equal((await edited.json()).disc.pocket,'main');
   }
+  // Bag-level writes (sort, reorder, settings) never touch a copy's stored pocket.
+  for(const [path,method,body] of [['/api/bag','PATCH',{sort_mode:'stability'}],['/api/bag/order','PUT',{ids:[disc.id]}],['/api/bag','PUT',{bag_model:'Custom bag',main_capacity:1,putter_capacity:4}]])assert.equal((await s.call(path,method,body)).status,200,path+' '+method);
+  // The inline list selector writes through the same one-field PATCH.
+  assert.equal((await (await s.call('/api/bag/discs/'+disc.id,'PATCH',{pocket:'goto'})).json()).disc.pocket,'goto');
+  assert.equal((await (await s.call('/api/bag/discs/'+disc.id,'PATCH',{pocket:'main'})).json()).disc.pocket,'main');
   for(const path of ['/api/bag','/api/bag/discs','/api/bag/discs/'+disc.id]){
    const body=await (await s.call(path)).json(),rows=body.discs || [body.disc];assert.equal(rows[0].pocket,'main');
    const slots=bagSlots(rows,{main_capacity:2,putter_capacity:2},id=>catalog.discs.find(d=>d.id===id));
