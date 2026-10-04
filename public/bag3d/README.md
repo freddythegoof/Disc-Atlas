@@ -154,7 +154,7 @@ Disc Atlas mounts this viewer directly in the My bag page (`public/bag-scene.js`
 
 | Option | Meaning |
 | --- | --- |
-| `layout: {main, putter, goTo}` | Arbitrary slot counts. Each entry is a disc (`{id, color}`) or `null` for an empty slot. Layout mode hides the GLB's twelve fixed discs and builds slots from the same disc mesh. Empty main and putter slots render as faint ghosts. An empty go-to slot shows the GLB's dashed outline. |
+| `layout: {main, putter, goTo}` | Arbitrary slot counts. Each entry is a disc (`{id, color}`) or `null` for an empty slot. Layout mode hides the GLB's twelve fixed discs and builds slots from the same disc mesh. Empty main and putter slots render as faint ghosts. Disc Atlas seats putters in the top pocket and the go-to in the front pocket, moving the GLB's accent rim and dashed outline there. An empty go-to slot shows the dashed outline. (The 12-ID API above keeps the model's original arrangement.) |
 | `bagColor` | Fabric color. Panels, piping, padding and seam thread keep their tonal ratio to the shell. Zipper tape, teeth and hardware stay fixed. `null` restores the original charcoal. |
 | `accentColor` | Go-to accent rim and glow (Disc Atlas passes the theme's `--lime`). |
 | `interaction: 'turntable'` | Replaces orbit/zoom with a horizontal drag that eases back to the front. `touch-action: pan-y` and no wheel capture keep page scrolling intact. `'orbit'` (the default) loads OrbitControls on demand. |

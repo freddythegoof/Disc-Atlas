@@ -81,7 +81,7 @@ BRANDS = {
     'Legacy': ('legacydiscs.com', 'https://legacydiscs.com/discs/{slug}/'),
     'Millennium': ('golfdisc.com', 'https://www.golfdisc.com/disc-golf-discs/{slug}/'),
     'Divergent Discs': ('divergentdiscs.com', 'https://divergentdiscs.com/{slug}/'),
-    'Clash Discs': ('clashdiscs.com', 'https://clashdiscs.com/pages/{slug}'),
+    'Clash Discs': ('clashdiscs.com', None),  # Squarespace product hub, not Shopify /pages/.
     'Above Ground Level': ('agldiscs.com', 'https://www.agldiscs.com/collections/{slug}'),
     'Trash Panda Disc Golf': ('trashpandadiscgolf.com', 'https://trashpandadiscgolf.com/pages/{slug}'),
     'Infinite Discs': ('infinitediscs.com', 'https://infinitediscs.com/infinite-discs-{slug}'),
@@ -111,6 +111,7 @@ BRANDS = {
 # Catalogs with searchable mold/product links. Shared pages are fetched once.
 INDEX_PATHS = {
     'Discraft': ['/disc-golf/'], 'Mint Discs': ['/'],
+    'Clash Discs': ['/products'],
     'DGA': ['/disc-golf-discs/'], 'Doomsday Discs': ['/discs/'],
     'Daredevil Discs': ['/disc-golf-discs/'], 'RPM': ['/discs/'],
     'Legacy': ['/discs/'], 'Millennium': ['/disc-golf-discs/'],
@@ -156,6 +157,17 @@ def select_discs(discs, documents, include_unrated=False):
             if ident.lower() in by_id:
                 excluded_ids.add(ident.lower())
                 keys.add(mold_key(by_id[ident.lower()]))
+        # Linked anchors are sometimes discussed with explicit Atlas numbers
+        # but have no heading/ID of their own (e.g. "P2x (Atlas 2/3/0/1)").
+        # Require that marker; a plastic name in review prose is not a mold.
+        references = re.sub(r'[*`]', '', document)
+        reference_pattern = r"([\w#' +.\-/]{1,80})\s*\(Atlas(?:\s+now)?\s*:?\s*" + NUMBER + r'\s*/\s*' + NUMBER + r'\s*/\s*' + NUMBER + r'\s*/\s*' + NUMBER
+        for match in re.finditer(reference_pattern, references, re.I):
+            candidate = norm(match.group(1))
+            for name, owners in names.items():
+                if len(owners) == 1 and (candidate == name or candidate.endswith(' ' + name)):
+                    keys.add((next(iter(owners)), name))
+                    break
         headers = None
         for line in document.splitlines():
             if re.match(r'^#{2,6}\s', line):
@@ -283,13 +295,13 @@ def identify(title, d):
     if value.startswith(brand + ' '):
         value = value[len(brand) + 1:]
     # Plain product titles often prefix the manufacturer/plastic to the mold.
-    plastic = r'(?:innova|discraft|prodigy|discmania|dynamic discs|westside discs|latitude 64|kastaplast|mint discs|k1|k2|k3|k1 soft|k1 hard|z|z line|big z|esp|esp flx|elite z|d line|s line|c line|p line|q line|star|halo star|champion|dx|pro|gstar|neutron|proton|plasma|fission|electron|eclipse|cosmic neutron|lucid|fuzion|prime|opto|gold|retro|vip|tournament|bt hard|bt soft|bt medium|400|400g|500|300|300 soft|750|proline|spark|sp line|signature line|granite) '
+    plastic = r'(?:innova|discraft|prodigy|discmania|dynamic discs|westside discs|latitude 64|kastaplast|mint discs|k1|k2|k3|k1 soft|k1 hard|z|z line|big z|esp|esp flx|elite z|d line|s line|c line|p line|q line|star|halo star|champion|dx|pro|gstar|neutron|proton|plasma|fission|electron|eclipse|cosmic neutron|lucid|fuzion|prime|opto|gold|retro|vip|tournament|bt hard|bt soft|bt medium|400|400g|500|300|300 soft|750|proline|spark|sp line|signature line|granite|atmos|stone) '
     while True:
         stripped = re.sub(r'^' + plastic, '', value)
         if stripped == value:
             break
         value = stripped
-    value = re.sub(r' (?:plastic|disc golf disc|disc golf distance driver|disc golf fairway driver|disc|putter|midrange|fairway driver|distance driver)$', '', value)
+    value = re.sub(r' (?:plastic|disc golf disc|disc golf distance driver|disc golf fairway driver|disc|putter|putt approach|midrange|fairway driver|distance driver)$', '', value)
     if value.startswith(target + ' ') and re.fullmatch(r'(?:400|400g|500|300|300 soft|750|k1|k2|k3|star|champion|dx|neutron|proton|plasma|fission|electron|s line|c line|d line)', value[len(target) + 1:]):
         value = target
     return value == target
@@ -317,6 +329,14 @@ def tuples_in(text, d, slash=True):
             if valid_numbers(values):
                 out.append(values)
     if slash:
+        # Consistent Shopify/WooCommerce descriptions explicitly label the
+        # S/G/T/F tuple "Flight Numbers" or "Flight Ratings" (often with |).
+        # The caller has already verified the H1 and isolated model content.
+        labeled = r'\bFlight\s+(?:Numbers|Ratings)\s*[:=]?\s*(' + NUMBER + r')\s*[/|,]\s*(' + NUMBER + r')\s*[/|,]\s*(' + NUMBER + r')\s*[/|,]\s*(' + NUMBER + r')(?!\d)'
+        for match in re.finditer(labeled, text, re.I):
+            values = [float(v) for v in match.groups()]
+            if valid_numbers(values):
+                out.append(values)
         pattern = r'(?<![\w/.])(' + NUMBER + r')\s*/\s*(' + NUMBER + r')\s*/\s*(' + NUMBER + r')\s*/\s*(' + NUMBER + r')(?!\d)'
         mold = norm(base_name(d['name']))
         for match in re.finditer(pattern, text):
@@ -548,6 +568,22 @@ def model_link(url, d, label=''):
                          or identify(label, d)))
 
 
+def candidate_url(url):
+    """Shopify discovery links for weights/colors refer to the same product.
+
+    Only discovery links are canonicalized. Explicit Atlas source URLs retain
+    their queries, and the fetch cache itself remains keyed by exact URL.
+    """
+    parsed = urllib.parse.urlsplit(url)
+    path = parsed.path
+    query = parsed.query
+    if '/products/' in path:
+        path = '/products/' + path.split('/products/', 1)[1]
+        query = urllib.parse.urlencode([(k, v) for k, v in urllib.parse.parse_qsl(query)
+                                       if k != 'variant' and not k.startswith('utm_') and k != 'msclkid'])
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, path, query, ''))
+
+
 def search_urls(source, d):
     urls = []
     for node in Page(source).root.walk():
@@ -555,7 +591,7 @@ def search_urls(source, d):
             continue
         url = unwrap_search(node.attrs.get('href', ''))
         if is_official(url, d['brand']) and model_link(url, d, clean(node.text())):
-            url = urllib.parse.urldefrag(url)[0]
+            url = candidate_url(url)
             if url not in urls:
                 urls.append(url)
     return urls
@@ -583,7 +619,7 @@ class Resolver:
                             if n.tag == 'a':
                                 target = urllib.parse.urljoin(response['final_url'], n.attrs.get('href', ''))
                                 if is_official(target, brand):
-                                    links.append((urllib.parse.urldefrag(target)[0], clean(n.text())))
+                                    links.append((candidate_url(target), clean(n.text())))
             self.indices[brand] = list(dict.fromkeys(links))
         matching = [u for u, label in self.indices[brand] if model_link(u, d, label)]
         # Model landing pages first; prefer ordinary products over tour/run releases.
@@ -643,7 +679,7 @@ class Resolver:
                         if n.tag == 'a':
                             target = urllib.parse.urljoin(response['final_url'], n.attrs.get('href', ''))
                             if '/products/' in target and is_official(target, d['brand']) and model_link(target, d, clean(n.text())):
-                                links.append(urllib.parse.urldefrag(target)[0])
+                                links.append(candidate_url(target))
                     for target in sorted(set(links), key=lambda u: (bool(re.search(r'tour|limited|special|shirt|towel|misprint', u, re.I)), len(u))):
                         if followed >= 4:
                             break

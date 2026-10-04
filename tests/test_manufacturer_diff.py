@@ -38,6 +38,11 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(len(md.select_discs(rows, [])[0]), 1)
         self.assertEqual(len(md.select_discs(rows, [], include_unrated=True)[0]), 2)
 
+    def test_excludes_explicit_linked_atlas_references_without_confusing_plastic_names(self):
+        rows = [disc('P2x', 'Discmania'), disc('Cosmic', 'Alfa Discs', 'bbbbbbbbbbbb')]
+        text = '- **Linked:** P2x (Atlas 2/3/0/1, same numbers), other covered anchors.\n- Plastic variance: Cosmic is glidier.'
+        self.assertEqual([d['name'] for d in md.select_discs(rows, [text])[0]], ['Cosmic'])
+
     def test_innova_badges_are_not_navigation_or_related_product_ratings(self):
         page = '<title>Leopard - Innova</title><nav>Speed 14 Glide 4 Turn 0 Fade 4</nav><header class="entry-header"><h1>Leopard</h1></header>'
         for k, v in zip(md.FIELDS, [6, 5, -2, 1]):
@@ -55,6 +60,12 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(md.parse_flights(page, disc('Armadillo', 'Lone Star Discs'))['numbers'], [1, 2, 0, 1])
         page = '<h1>Witness</h1><div class="flight-numbers">8 Speed 6 Glide -3 Turn 1 Fade</div><div class="product-grid">9 Speed 5 Glide -2 Turn 2 Fade</div>'
         self.assertEqual(md.parse_flights(page, disc('Witness', 'Dynamic Discs'))['numbers'], [8, 6, -3, 1])
+        page = '<h1>Atmos Surf Putt &amp; Approach</h1><div class="product-description">Flight Numbers: 3 | 4 | 0 | 1</div>'
+        self.assertEqual(md.parse_flights(page, disc('Surf', 'DGA'))['numbers'], [3, 4, 0, 1])
+
+    def test_product_discovery_deduplicates_color_variants(self):
+        page = '<a href="https://mintdiscs.com/collections/lobster/products/lobster-sublime-plastic?variant=1">Lobster</a><a href="https://mintdiscs.com/products/lobster-sublime-plastic?variant=2">Lobster</a>'
+        self.assertEqual(md.search_urls(page, disc('Lobster', 'Mint Discs')), ['https://mintdiscs.com/products/lobster-sublime-plastic'])
 
     def test_resolver_follows_collection_products_without_web_search(self):
         import hashlib
@@ -84,6 +95,10 @@ class AuditTests(unittest.TestCase):
     def test_labeled_description_and_unicode_minus(self):
         page = '<h1>River</h1><div class="collection__description">Speed: 7 | Glide: 7 | Turn: −1 | Fade: 1</div>'
         self.assertEqual(md.parse_flights(page, disc('River', 'Latitude 64'))['numbers'], [7, 7, -1, 1])
+
+    def test_explicit_rating_header_in_primary_description(self):
+        page = '<h1>AGL Discs - Sherbet Alpine Elm (Stock Stamp)</h1><div class="product__description">Elm is a fairway driver. Flight Ratings: 9 | 4 | 0 | 3 Plastic Blend: Alpine</div>'
+        self.assertEqual(md.parse_flights(page, disc('Elm', 'Above Ground Level'))['numbers'], [9, 4, 0, 3])
 
     def test_slash_fallback_needs_mold_nearby_and_valid_ranges(self):
         page = '<h1>Example</h1><div class="product-description">Example flight numbers: 9/5/-1.5/2.</div>'

@@ -104,10 +104,10 @@ try {
  assert.equal(await slot(driver.id,'goto').count(),1,'Go-to renders without a reload');
  await reload();assert.equal(await pocketOf(driver.id),'goto');assert.equal(await slot(driver.id,'goto').count(),1);
  assert.equal(await page.locator('#bagScene .bag-goto-slot .bag-slot-hollow').count(),0);
- assert.ok(await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.getBagLayoutState().some(d=>d.id===id && d.pocket==='goTo'),driver.id),'The 3D go-to disc sits in the top pocket (with its accent rim)');
+ assert.ok(await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.getBagLayoutState().some(d=>d.id===id && d.pocket==='goTo'),driver.id),'The 3D go-to disc sits in the front pocket (with its accent rim)');
  const top=await center(slot(driver.id,'goto')),main=await center(slot(putter.id,'main')),side=await center(slot(secondPutter.id,'putter'));
- const middle=await mainMiddle();assert.ok(Math.abs(top.x-middle)<24,`Go-to is centered over the main compartment (${top.x.toFixed(1)} vs ${middle.toFixed(1)})`);assert.ok(top.y<main.y && top.y<side.y,'Go-to sits above the main compartment and rises above the putters');
- assert.ok(side.y>top.y && side.y<main.y,'The putter pocket is the front pocket between the go-to slot and the main compartment');
+ const middle=await mainMiddle();assert.ok(Math.abs(top.x-middle)<24,`Go-to is centered over the main compartment (${top.x.toFixed(1)} vs ${middle.toFixed(1)})`);assert.ok(top.y<main.y,'Go-to sits in the front pocket above the main compartment');
+ assert.ok(side.y<top.y,'Putters ride in the top pocket, above the go-to');
  check('Go-to slot: empty outline, inline assignment, centered/raised with accent rim, persists across reload');
  // Every disc type can be the go-to, and a full putter pocket keeps all its putters.
  for(const disc of [seeded[1],seeded[2],secondPutter]){await setInline(disc.id,'goto');assert.equal(await slot(disc.id,'goto').count(),1,disc.mold_id);}

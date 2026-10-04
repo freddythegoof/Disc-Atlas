@@ -99,18 +99,18 @@ try {
  assert.equal(await page.locator('.bag-goto-slot [data-physical-disc]').count(),1);assert.equal(await page.locator('.bag-goto-slot .bag-slot-hollow').count(),0);
  const at=id=>layout.find(d=>d.id===id).position,pocketOf=id=>layout.find(d=>d.id===id).pocket;
  assert.equal(pocketOf(goto.id),'goTo');assert.equal(pocketOf(putter.id),'putter');assert.equal(pocketOf(driver.id),'main');
- assert.ok(at(goto.id)[1]>at(putter.id)[1] && at(putter.id)[1]>at(driver.id)[1],'Go-to on top, putter pocket above main');
- assert.ok(at(putter.id)[2]>at(driver.id)[2],'Putter pocket is the front pocket');
+ assert.ok(at(putter.id)[1]>at(goto.id)[1] && at(goto.id)[1]>at(driver.id)[1],'Putters in the top pocket, go-to in the front pocket above main');
+ assert.ok(at(goto.id)[2]>at(putter.id)[2] && at(goto.id)[2]>at(driver.id)[2],'Go-to pocket is the front pocket');
  assert.equal(layout.find(d=>d.id===driver.id).color,'#ed7868','Per-disc color reaches the 3D material');
  assert.match(await page.locator('#bagSlotMeter').innerText(),/^6 \/ 23$/);assert.ok(await page.locator('#bagStorage').isVisible());
- check('Parity: 19 main + 4 putter slots, go-to in the top pocket, putters in the front pocket above main, per-disc colors, meter and Storage');
+ check('Parity: 19 main + 4 putter slots, putters in the top pocket, go-to in the front pocket above main, per-disc colors, meter and Storage');
 
  // 3. Live sync: every change applies to the 3D scene without a reload.
  const reloads=[];page.on('framenavigated',f=>{if(f===page.mainFrame())reloads.push(f.url());});
  const setInline=async(id,pocket)=>{const saved=page.waitForResponse(r=>r.url().endsWith('/api/bag/discs/'+id) && r.request().method()==='PATCH');await page.locator(`select[data-bag-pocket="${id}"]`).selectOption(pocket);assert.equal((await saved).status(),200);await page.waitForFunction(([id,p])=>{const s=document.querySelector(`select[data-bag-pocket="${id}"]`);return s && !s.disabled && s.value===p;},[id,pocket]);};
  await setInline(fairway.id,'putter');await inSync('inline move to putter');
  await setInline(mid.id,'goto');await inSync('second go-to copy');
- assert.equal(await page.locator('.bag-goto-slot [data-physical-disc]').count(),2,'Two go-to copies share the top pocket');
+ assert.equal(await page.locator('.bag-goto-slot [data-physical-disc]').count(),2,'Two go-to copies share the front pocket');
  await setInline(mid.id,'main');await setInline(fairway.id,'main');await inSync('back to main');
  await setInline(goto.id,'main');await inSync('go-to cleared');
  assert.equal(await page.locator('.bag-goto-slot .bag-slot-hollow').count(),1,'Empty go-to outline returns');

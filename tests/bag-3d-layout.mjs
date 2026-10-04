@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -29,26 +29,29 @@ test('main slots stay inside the compartment, left to right, without touching ri
  }
 });
 
-test('go-to sits in the top pocket, putters in the front pocket above main', () => {
+test('putters ride in the top pocket; go-to sits in the front pocket above main', () => {
  const {placements}=bagLayout({main:[disc('m')],putter:[disc('p'),disc('p2'),null],goTo:[disc('g')]});
  const by=id=>placements.find(p=>p.id===id);
  assert.equal(by('g').pocket,'goTo');assert.equal(by('p').pocket,'putter');
- assert.ok(by('g').position[1]>by('p').position[1] && by('p').position[1]>by('m').position[1],'top > putter > main');
- assert.ok(by('p').position[2]>by('g').position[2] && by('p').position[2]>by('m').position[2],'putter pocket is the front pocket');
+ assert.equal(PUTTER.y,TOP.y);assert.equal(GOTO.y,FRONT.y);
+ assert.ok(by('p').position[1]>by('g').position[1] && by('g').position[1]>by('m').position[1],'putters (top) > go-to (front) > main');
+ assert.ok(by('g').position[2]>by('p').position[2] && by('g').position[2]>by('m').position[2],'go-to pocket is the front pocket');
  // Pocketed discs face forward; main discs stand edge-on.
  assert.equal(by('p').rotation[1],-Math.PI/2);assert.equal(by('g').rotation[1],-Math.PI/2);assert.equal(by('m').rotation[1],0);
  // Back putters rise and fan out so each rim shows above the disc in front.
  assert.ok(by('p2').position[1]>by('p').position[1] && by('p2').position[0]!==by('p').position[0]);
- assert.ok(placements.filter(p=>p.pocket==='putter').every(p=>p.position[2]<=PUTTER.front && p.position[2]>=PUTTER.front-PUTTER.span-1e-9));
+ const zs=placements.filter(p=>p.pocket==='putter').map(p=>p.position[2]);
+ assert.ok(Math.abs((Math.max(...zs)+Math.min(...zs))/2-TOP.center)<1e-9,'putter stack centered in the top pocket');
  assert.equal(placements.find(p=>p.pocket==='putter' && p.empty).key,'putter-empty-2');
 });
 
-test('empty go-to is a single placeholder; several go-to copies share the pocket', () => {
+test('empty go-to is a single placeholder; several go-to copies share the front pocket', () => {
  assert.deepEqual(bagLayout({goTo:[null]}).placements.map(p=>[p.pocket,p.empty]),[['goTo',true]]);
  const tops=bagLayout({goTo:[disc('a'),disc('b'),disc('c')]}).placements;
  assert.equal(new Set(tops.map(p=>p.position[2])).size,3,'copies stack front to back');
  const zs=tops.map(p=>p.position[2]);
- assert.ok(Math.abs((Math.max(...zs)+Math.min(...zs))/2-GOTO.center)<1e-9,'stack centered in the pocket');
+ assert.ok(Math.max(...zs)===FRONT.front && Math.min(...zs)>=FRONT.front-FRONT.span-1e-9,'stack runs back from the front pocket face');
+ assert.deepEqual(bagLayout({goTo:[null]}).placements[0].position,[0,FRONT.y,FRONT.front],'empty slot outline sits in the front pocket');
  assert.ok(tops.every(p=>Math.abs(p.position[0])<=GOTO.maxX));
 });
 
@@ -70,7 +73,7 @@ test('slots beyond the illustrated maximum are reported, not drawn', () => {
 
 test('hit order puts front discs last so they win where pockets overlap', () => {
  const order=depthOrder(bagLayout({main:[disc('m')],putter:[disc('p0'),disc('p1')],goTo:[disc('g')]}).placements).map(p=>p.key);
- assert.deepEqual(order,['m','g','p1','p0']);
+ assert.deepEqual(order,['m','p1','p0','g']);
 });
 
 test('lift poses come forward, toward the viewer', () => {

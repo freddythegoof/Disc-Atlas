@@ -6,12 +6,19 @@
 export const DISC = {radius: .101, thickness: .010};
 // The main compartment's inner span, from the GLB's DiscSlot00–11 centers (±0.102) plus half a disc.
 export const MAIN = {xMin: -.107, xMax: .107, y: -.072, z: .01, maxSlots: 48};
-// Front pocket above the main compartment: mouth at y 0.145, depth z 0.121–0.191, width ±0.126.
-export const PUTTER = {front: .176, span: .044, y: .147, mouth: .145, scale: .88, rise: .009, spread: .013, maxX: .036, maxSlots: 8,
+// Pockets by physical location. Like a real Grip-style bag, putters ride in the TOP pocket
+// and the go-to disc sits in the FRONT pocket above the main compartment.
+// Front pocket: mouth at y 0.145, depth z 0.121–0.191, width ±0.126. Stacks from its front edge.
+export const FRONT = {anchor: 'front', front: .176, span: .044, y: .137, mouth: .145, scale: .85, rise: .009, spread: .013, maxX: .036,
   tilt: 0, raise: .085, forward: .05};
-// Top grab-and-go pocket, behind the putters; the GLB's dashed outline marks an empty slot.
-export const GOTO = {center: .017, span: .060, y: .249, mouth: .252, scale: .92, rise: .008, spread: .012, maxX: .030, maxSlots: 6,
+// Top pocket, behind the front pocket. Stacks around its center line.
+export const TOP = {anchor: 'center', center: .017, span: .060, y: .249, mouth: .252, scale: .92, rise: .008, spread: .012, maxX: .030,
   tilt: -.12, raise: .03, forward: .08};
+export const PUTTER = {...TOP, maxSlots: 8};
+export const GOTO = {...FRONT, maxSlots: 6};
+// The GLB authors its go-to accent rim and dashed outline around a disc seated in the top
+// pocket; the viewer moves them from this pose to the go-to's front-pocket pose.
+export const GLB_ACCENT_POSE = {position: [0, TOP.y, TOP.center], rotation: [TOP.tilt, -Math.PI / 2, 0], scale: [1, TOP.scale, TOP.scale]};
 
 const FACE_FORWARD = -Math.PI / 2, MAX_GAP = .012;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -49,31 +56,28 @@ export function bagLayout({main = [], putter = [], goTo = []} = {}) {
   });
 
   // Putters and go-to discs face forward in a shallow stack: order 0 is the front disc.
-  const stack = (list, spec, pocket, front) => {
+  const stack = (list, spec, pocket) => {
     const gap = list.length > 1 ? Math.min(MAX_GAP, spec.span / (list.length - 1)) : 0;
     const depthScale = list.length > 1 ? Math.min(1, gap * .85 / DISC.thickness) : 1;
+    const front = spec.anchor === 'front' ? spec.front : spec.center + gap * (list.length - 1) / 2;
     list.forEach((slot, order) => {
-      const x = fan(order, spec.spread, spec.maxX), y = spec.y + order * spec.rise, z = front(gap) - order * gap;
+      const x = fan(order, spec.spread, spec.maxX), y = spec.y + order * spec.rise, z = front - order * gap;
       placements.push({...entry(slot, pocket, order), position: [x, y, z], rotation: [spec.tilt, FACE_FORWARD, 0],
         scale: [depthScale, spec.scale, spec.scale], lift: [x * .5, y + spec.raise, z + spec.forward],
         // Only the part above the pocket's mouth is visible (and targetable).
         mouth: spec.mouth});
     });
   };
-  const putters = take(putter, PUTTER.maxSlots, 'putter');
-  stack(putters, PUTTER, 'putter', () => PUTTER.front);
-  const tops = take(goTo, GOTO.maxSlots, 'goTo');
-  // Several go-to copies share the top pocket, centered on its middle.
-  stack(tops, GOTO, 'goTo', gap => GOTO.center + gap * (tops.length - 1) / 2);
+  stack(take(putter, PUTTER.maxSlots, 'putter'), PUTTER, 'putter');
+  // Several go-to copies share the front pocket.
+  stack(take(goTo, GOTO.maxSlots, 'goTo'), GOTO, 'goTo');
   return {placements, clipped};
 }
 
-// Hit/paint order for the overlapping top pockets: back-most first, so the front disc wins.
+// Hit/paint order for the overlapping upper pockets: back-most first, so the front disc wins.
 export function depthOrder(placements) {
-  const back = (a, b) => a.position[2] - b.position[2];
   return [
     ...placements.filter(p => p.pocket === 'main'),
-    ...placements.filter(p => p.pocket === 'goTo').sort(back),
-    ...placements.filter(p => p.pocket === 'putter').sort(back),
+    ...placements.filter(p => p.pocket !== 'main').sort((a, b) => a.position[2] - b.position[2]),
   ];
 }

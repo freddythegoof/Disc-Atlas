@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures } from './disc-features.mjs';
-import { bagLayout } from './bag-layout.mjs';
+import { bagLayout, GLB_ACCENT_POSE } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -400,8 +400,14 @@ export async function mountBag(container, {
     }
     if (!records.has(liftedKey)) liftedKey = null;
     const assigned = result.placements.some(p => p.pocket === 'goTo' && !p.empty);
-    for (const object of placeholders) { object.visible = !assigned; object.scale.setScalar(assigned ? 0 : 1); }
-    for (const object of accents) { object.visible = assigned; object.scale.setScalar(assigned ? 1 : 0); }
+    // The GLB draws the accent rim and dashed outline around a top-pocket disc; carry them
+    // to the go-to's front-pocket seat (the front-most go-to, or the empty slot).
+    const seat = result.placements.find(p => p.pocket === 'goTo' && p.order === 0) ?? bagLayout({ goTo: [null] }).placements[0];
+    const pose = p => new THREE.Matrix4().compose(new THREE.Vector3(...p.position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...p.rotation)), new THREE.Vector3(...p.scale));
+    const toSeat = pose(seat).multiply(pose(GLB_ACCENT_POSE).invert());
+    for (const object of [...placeholders, ...accents]) { object.matrixAutoUpdate = false; object.matrix.copy(toSeat); }
+    for (const object of placeholders) object.visible = !assigned;
+    for (const object of accents) object.visible = assigned;
     invalidate();
     container.dispatchEvent(new CustomEvent('bagviewlayout'));
   };
