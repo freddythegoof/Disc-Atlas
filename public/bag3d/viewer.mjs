@@ -21,6 +21,8 @@ const FABRIC = ['Charcoal woven shell', 'Graphite pocket panels', 'Soft black pi
 const spring = t => { let lo = 0, hi = 1, u = t; const b = (p, a, c) => 3 * (1 - p) * (1 - p) * p * a + 3 * (1 - p) * p * p * c + p * p * p; for (let i = 0; i < 16; i++) { u = (lo + hi) / 2; if (b(u, .2, .35) < t) lo = u; else hi = u; } return b(u, 1.35, 1); };
 const easeOut = t => 1 - (1 - t) ** 3;
 const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650;
+// Let input and painting run between the heavy mount phases on slower phones.
+const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
 // Software WebGL (SwiftShader, llvmpipe, blocklisted GPUs) is CPU-bound: detect it so the
 // viewer can drop multisampling, cap resolution and skip ambient motion there.
 export function softwareRenderer() {
@@ -286,7 +288,9 @@ export async function mountBag(container, {
     flapWaiters = [];
   };
   try {
+    await yieldToMain();
     gltf = await new GLTFLoader().loadAsync(modelUrl);
+    await yieldToMain();
     float.add(gltf.scene);
     discFeatures = attachDiscFeatures(THREE, gltf.scene, {
       onChange: state => container.dispatchEvent(new CustomEvent('discstatechange', { detail: state })),
@@ -516,6 +520,7 @@ export async function mountBag(container, {
   if (layout) setBagLayout(layout);
   if (bagColor) setBagColor(bagColor);
   setAccentColor(accentColor);
+  await yieldToMain();
   // Compile every program up front, in parallel where the browser supports it, so the
   // first frame does not stall on shader compilation.
   await renderer.compileAsync(scene, camera);
