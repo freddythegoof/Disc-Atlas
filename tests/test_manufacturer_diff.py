@@ -5,6 +5,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest import mock
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 SCRIPT = pathlib.Path(__file__).with_name('manufacturer-diff.py')
@@ -20,6 +21,50 @@ def disc(name='Volt', brand='MVP', ident='aaaaaaaaaaaa', numbers=(8, 5, -1, 2)):
 
 
 class AuditTests(unittest.TestCase):
+    def test_decimal_comma_in_labeled_flight_numbers_is_not_truncated(self):
+        row = disc('Cinnamon', 'Clash Discs', numbers=(9, 5, -1.5, 2))
+        for fields in ['Speed: 9 Glide: 5 Turn: -1,5 Fade: 2', '9 Speed 5 Glide -1,5 Turn 2 Fade']:
+            parsed = md.parse_flights('<h1>Cinnamon</h1><p>' + fields + '</p>', row)
+            self.assertEqual(parsed['numbers'], [9, 5, -1.5, 2])
+            self.assertFalse(md.compare(row, parsed['numbers'])['flagged'])
+
+    def test_equal_length_catalog_urls_have_deterministic_order(self):
+        resolver = md.Resolver(mock.Mock())
+        urls = ['https://mvpdiscsports.com/products/volt-aaa',
+                'https://mvpdiscsports.com/products/volt-bbb']
+        resolver.indices['MVP'] = [(url, 'Volt') for url in urls]
+        # A set's traversal order changes with Python's per-process hash seed.
+        with mock.patch.object(md, 'set', return_value=list(reversed(urls)), create=True):
+            self.assertEqual(resolver.catalog_links(disc()), urls)
+
+    def test_atomic_save_retries_transient_windows_file_lock(self):
+        with tempfile.TemporaryDirectory(dir=SCRIPT.parent) as directory:
+            path = pathlib.Path(directory) / 'report.md'
+            path.write_text('old', encoding='utf-8')
+            original_replace = pathlib.Path.replace
+            attempts = []
+
+            def locked_once(source, target):
+                attempts.append(target)
+                if len(attempts) == 1:
+                    raise PermissionError('Windows reader temporarily prevents replacement')
+                return original_replace(source, target)
+
+            with mock.patch.object(pathlib.Path, 'replace', locked_once), mock.patch.object(md.time, 'sleep') as sleep:
+                md.atomic_write(path, 'complete report')
+            self.assertEqual(path.read_text(encoding='utf-8'), 'complete report')
+            self.assertEqual(len(attempts), 2)
+            sleep.assert_called_once()
+
+    def test_atomic_save_does_not_hide_persistent_permission_error(self):
+        with tempfile.TemporaryDirectory(dir=SCRIPT.parent) as directory:
+            path = pathlib.Path(directory) / 'report.md'
+            path.write_text('old', encoding='utf-8')
+            with mock.patch.object(pathlib.Path, 'replace', side_effect=PermissionError('locked')), mock.patch.object(md.time, 'sleep'):
+                with self.assertRaises(PermissionError):
+                    md.atomic_write(path, 'new')
+            self.assertEqual(path.read_text(encoding='utf-8'), 'old')
+
     def test_excludes_ids_heading_aliases_and_sample_table_without_cross_brand_leaks(self):
         rows = [disc(), disc('Volt (old)', ident='bbbbbbbbbbbb'),
                 disc('Volt', 'Other', 'cccccccccccc'),
@@ -82,9 +127,32 @@ class AuditTests(unittest.TestCase):
             self.assertEqual(result['deltas'][2], -1)
             self.assertEqual(result['url'], 'https://mintdiscs.com/products/lobster-sublime-plastic')
 
+    def test_catalog_discovers_molds_on_later_pages(self):
+        import hashlib
+        with tempfile.TemporaryDirectory(dir=SCRIPT.parent) as tmp:
+            cache = md.HttpCache(pathlib.Path(tmp), offline=True)
+            pages = {
+                'https://lonestardiscs.com/collections/all': '<h1>Products</h1><a rel="next" href="/collections/all?page=2">Next</a>',
+                'https://lonestardiscs.com/collections/all?page=2': '<h1>Products</h1><a href="/products/lone-wolf-distance-driver?variant=123">Lone Wolf 13/5/-3/1</a>',
+            }
+            for url, page in pages.items():
+                (cache.directory / (hashlib.sha256(url.encode()).hexdigest() + '.json')).write_text(json.dumps(dict(url=url, final_url=url, status=200, html=page, error=None)), encoding='utf-8')
+            self.assertIn('https://lonestardiscs.com/products/lone-wolf-distance-driver', md.Resolver(cache).catalog_links(disc('Lone Wolf', 'Lone Star Discs')))
+
     def test_mvp_superscripts_preserve_negative_half_point(self):
         page = '<h1>Volt</h1><div class="power-meter"><div><span>8</span></div><div><span>5</span></div><div><span>-0</span><sup>.5</sup></div><div><span>2</span></div></div>'
         self.assertEqual(md.parse_flights(page, disc())['numbers'], [8, 5, -0.5, 2])
+
+    def test_discraft_unordered_badges_ignore_fifth_stability_and_similar_discs(self):
+        page = '<h1>APX</h1>'
+        for n, label in [(2, 'SPEED'), (-1, 'TURN'), (0, 'STABILITY'), (2, 'GLIDE'), (1, 'FADE')]:
+            page += f'<div><h1>{n}</h1><p>{label}</p></div>'
+        page += '<h2>SIMILAR DISCS</h2><div>4 SPEED 3 GLIDE 0 TURN 3 FADE</div>'
+        self.assertEqual(md.parse_flights(page, disc('APX', 'Discraft'))['numbers'], [2, 2, -1, 1])
+
+    def test_infinite_own_brand_uses_manufacturer_header_not_reviewer_averages(self):
+        page = '<h1>Infinite Discs Alpaca</h1><div>Manufacturer Flight Numbers 3/3/0/1 Reviewer Flight Numbers 2.9/3.1/0/1.1</div><h1>Related Products</h1><div>Manufacturer Flight Numbers 4/3/0/3</div>'
+        self.assertEqual(md.parse_flights(page, disc('Alpaca', 'Infinite Discs'))['numbers'], [3, 3, 0, 1])
 
     def test_discmania_collection_baseline_ignores_product_variants(self):
         page = '<h1>FD</h1><ul class="flight-numbers collection-numbers">'

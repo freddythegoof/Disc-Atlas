@@ -27,6 +27,15 @@ Deliberate differences:
 - A sideways drag turns the bag and it eases back to the front. There is no orbit or zoom: the canvas uses `touch-action: pan-y` and ignores the wheel, so page scrolling over the bag keeps working. OrbitControls never loads.
 - The SVG asset `public/bag.svg` is deleted (nothing references it). Restore it with `git checkout -- public/bag.svg` if wanted.
 
+## Slide-out and top view (Oct 4 2026)
+
+- **Slide-out, no redirect.** Clicking (or tapping, or Enter on) a disc in the 3D bag no longer opens the Directory. The disc slides out of its pocket, face-on and larger, just above the middle of the bag, with only its name under it. Hover and focus still lift a disc and show the info card; while a disc is out the card stays hidden.
+- **Details on My Bag.** Clicking the slid-out disc or its name (or a second Enter or tap) opens the atlas's own `#detail` panel, docked on the My Bag page: the same disc details, plus a "Your disc" section with this copy's pocket, plastic, weight, wear, stability note and personal notes, an Edit disc button, and **Show on Atlas**. The disc names in the list open the same panel. The map-only "Explore nearby discs" link is left out on My Bag.
+- **Show on Atlas** goes to the map, clears any filter that hides the disc, zooms (4× or more) until the disc has its own marker, centers it in the part of the map the panel leaves visible (beside it on desktop, above the bottom sheet on phones) and opens its details. Molds without flight ratings have no map position, so the button is disabled with that reason.
+- **Putting it back.** Escape steps back one layer: it closes the panel first, then slides the disc back in, then leaves the top view. A click anywhere else slides the disc back; on the bag body that click does not also toggle the flap. Opening or closing the flap, dragging, editing the bag and switching tabs also put it back.
+- **Top view.** The "Top view" toggle beside Open bag moves the camera from the current angle to straight above in 0.6 s (eased), then back on a second click or Escape. From above, the fabric turns translucent so the main compartment's rims show, and three labels name the main compartment, top putter pocket and front go-to pocket with the discs each holds. The hit layer is re-measured, so hover, slide-out, the turntable drag and the flap all keep working. Reduced motion switches instantly. The first switch compiles the translucent shaders: the move starts about 0.2 s after the click when the click comes with no hover first (as in the test), and earlier when the pointer rests on the button first, because hovering or focusing the toggle warms them.
+
+
 ## Performance
 
 - Rendering is on demand. The loop runs only during motion and the gentle float (throttled to 30 fps when nothing else moves). It stops when the bag is offscreen or the tab is hidden. Shaders compile up front with `compileAsync`. Mount phases yield to the main thread.
@@ -39,6 +48,7 @@ Deliberate differences:
 ```powershell
 node --test --test-isolation=none tests/bag.mjs tests/bag-values.mjs tests/bag-3d-layout.mjs tests/auth.mjs tests/coach.mjs tests/atlas-layout.mjs tests/atlas-groups.mjs
 node tests/bag-3d-browser.mjs
+node tests/bag-interactions-browser.mjs
 node tests/bag-v13-browser.mjs
 node tests/bag-pockets-browser.mjs
 node tests/bag-scene-browser.mjs
@@ -47,6 +57,7 @@ node tests/bag-browser.mjs
 ```
 
 - `tests/bag-3d-layout.mjs` (new, Node): every curated bag model fits, main slots stay inside the compartment without touching, pocket order and depth, go-to stacking, no duplicate discs, caps and hit order.
+- `tests/bag-interactions-browser.mjs` (port 8803, `work/bag-interactions/d1-qa`): slide-out (name only, no navigation, Escape/outside/bag-body dismissal without a flap toggle), details docked on My Bag with personal notes (mouse, keyboard, list names, edit refresh, unrated mold), Show on Atlas (zoom, own marker selected and visible beside the panel), top view (frame-sampled 0.6 s eased move, translucent fabric, non-overlapping labels inside the canvas, hit layer re-measured, hover/slide/drag/flap from above, exact return, reduced motion), standalone orbit mode, and 18 screenshots: slid out, details, settled top view in Light, Midnight and Charcoal at 1440 px and 360 px. Gallery: [outputs/bag-interactions/screenshots.html](../outputs/bag-interactions/screenshots.html).
 - `tests/bag-3d-browser.mjs` (new, port 8802, `work/bag-3d/d1-qa`). Lazy loading by network log. Live sync: after each change, the rendered 3D state (read from the materials) and the hit layer must equal `/api/bag`, with no navigation. Parity counts. Color fidelity. Open/close. Drag and scroll behavior. Sizes. The phone performance profile. 39 screenshots: open with go-to, closed, mid-fold, lifted main, lifted go-to, the list, in Light, Midnight and Charcoal at 1440 px and 360 px, plus bag color and S/L. Gallery: [outputs/bag-3d/screenshots.html](../outputs/bag-3d/screenshots.html) · [qa.json](../outputs/bag-3d/qa.json). The SVG-era shots are kept for comparison in `outputs/bag-3d/baseline-svg/`.
 - The existing suites keep every behavioral check. Only assertions that read SVG internals were ported to their 3D equivalents:
   - `bag-scene-browser`: SVG layer ids became the canvas + hit-layer structure. CSS `--bag-*` variables became the bag color read back from the fabric material. "Lifted top inside the SVG opening" became "lifted disc inside the canvas" plus the 3D disc being lifted. Clicks on the SVG body became clicks on the canvas body. The lid `transform` and paused Web Animations became flap progress under the virtual clock: one pause per theme and width, at 110 ms and 450 ms.

@@ -73,7 +73,9 @@ try{
  await disc.focus();await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>n.classList.contains('is-lifted') && document.activeElement===n));
  const faceRect=await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.discScreenRect(id),discId),canvasRect=await page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));assert.ok(faceRect.left>=0 && faceRect.top>=0 && faceRect.left+faceRect.width<=canvasRect.width && faceRect.top+faceRect.height<=canvasRect.height,'Lifted disc stays inside the canvas instead of clipping '+JSON.stringify({faceRect,canvasRect}));
  assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.liftedDisc),discId,'The 3D disc itself is lifted');
- await page.keyboard.press('Enter');await page.locator('#detail').waitFor();await page.locator('#closeDetail').click();await page.locator('#bagTab').click();
+ // Enter slides the disc out (no navigation); Enter on the slid-out disc opens its details on My Bag.
+ await page.keyboard.press('Enter');await page.waitForTimeout(400);assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),discId);assert.ok(!await page.locator('#detail').isVisible());
+ await page.keyboard.press('Enter');await page.locator('#detail').waitFor();assert.ok(await page.locator('#myBagView').isVisible());await page.locator('#closeDetail').click();await page.locator('#bagTab').click();
  await page.locator('[data-bag-toggle]').focus();await page.keyboard.press('Enter');await phase('closed');assert.equal(await disc.getAttribute('tabindex'),'-1');
  await page.keyboard.press('Enter');await phase('open');
  // Clicking the bag body (a side pocket, away from any disc target) opens and closes it.
@@ -103,10 +105,10 @@ try{
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));
  const cadence=await page.evaluate(async()=>{const node=document.querySelector('[data-physical-disc]'),times=[];let last;node.focus();await new Promise(resolve=>{const frame=now=>{if(last)times.push(now-last);last=now;if(times.length<60)requestAnimationFrame(frame);else resolve();};requestAnimationFrame(frame);});return {averageMs:times.reduce((a,b)=>a+b,0)/times.length,maxMs:Math.max(...times),over33ms:times.filter(n=>n>33.5).length};});
  await page.emulateMedia({reducedMotion:'reduce'});await page.locator('[data-bag-toggle]').click();await phase('closed');await page.locator('[data-bag-toggle]').click();await phase('open');await page.emulateMedia({reducedMotion:'no-preference'});
- // A real touch context must use one tap to lift, a second to inspect.
+ // A real touch context: one tap slides the disc out, a second opens its details.
  const touch=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800},isMobile:true,hasTouch:true,storageState:await context.storageState()});
  const mobile=await touch.newPage();await mobile.goto(base+'/?bag=1');await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');
- const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();assert.equal(await mobile.locator('#bagLiftInfo').getAttribute('data-visible'),'true');assert.ok(!await mobile.locator('#detail').isVisible());await touchDisc.tap();await mobile.locator('#detail').waitFor();await touch.close();
+ const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();assert.equal(await mobile.locator('#bagScene').getAttribute('data-slide'),'out','The first tap slides the disc out');assert.ok(!await mobile.locator('#detail').isVisible());await touchDisc.tap();await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'Details open on My Bag');await touch.close();
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);assert.equal(await page.locator('[data-physical-disc]').count(),0);assert.ok(!await page.locator('#bagScene').isVisible());assert.equal(await page.locator('#accountButton').innerText(),'Sign in');
  assert.deepEqual(errors,[]);fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,themes,widths,metrics,cadence,errors},null,2));
  await context.close();console.log('PASS: 3D bag handoff, stored colors, true totals, Storage, keyboard/touch/reduced motion, 36 theme screenshots and motion recording. '+JSON.stringify(cadence));

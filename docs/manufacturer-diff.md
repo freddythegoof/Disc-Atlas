@@ -1,18 +1,18 @@
 # Manufacturer flight-number diff
 
-Generated 2026-10-04T14:47:54+00:00. **Research queue only; no overrides or catalog data changed.**
+Generated 2026-10-04T15:34:06+00:00. **Research queue only; no overrides or catalog data changed.**
 
-Run status: **partial / checkpoint**. Scope: rated catalog records minus covered molds; unrated records are included only with `--include-unrated`.
+Run status: **complete**. Scope: rated catalog records minus covered molds; unrated records are included only with `--include-unrated`.
 
 - Full catalog: **2434** records.
 - Already covered / excluded: **276** records (IDs and brand/base-mold aliases).
 - Remaining unrated records: **1238** (outside the default comparison scope).
 - Eligible in selected scope: **920**.
-- Total attempted: **630**.
-- Total checked (successful comparisons): **317**.
-- Flagged: **17** (absolute turn or fade delta ≥ 0.5).
-- Unresolved: **313**.
-- Speed/glide informational differences: **7** (may also be flagged for stability).
+- Total attempted: **920**.
+- Total checked (successful comparisons): **493**.
+- Flagged: **24** (absolute turn or fade delta ≥ 0.5).
+- Unresolved: **427**.
+- Speed/glide informational differences: **16** (may also be flagged for stability).
 - Manufacturer numbers found without an Atlas baseline: **0**.
 
 Exclusion inputs (read-only): `docs\stability-review-queue.md`; `..\disc-atlas-twin2\docs\sampling-audit.md`.
@@ -20,10 +20,10 @@ Exclusion inputs (read-only): `docs\stability-review-queue.md`; `..\disc-atlas-t
 Reproduce from repository root:
 
 ```powershell
-python scripts/manufacturer-diff.py --sampling-audit ../disc-atlas-twin2/docs/sampling-audit.md
+python scripts/manufacturer-diff.py --sampling-audit ../disc-atlas-twin2/docs/sampling-audit.md --offline
 ```
 
-HTTP requests this run: 661; cache hits: 779. Every uncached request, including redirects/searches, is spaced by at least 1 seconds. Cached pages and failures are reused; use a fresh `--cache` directory to refresh.
+HTTP requests this run: 0; cache hits: 2247. Every uncached request, including redirects/searches, is spaced by at least 1 seconds. Cached pages and failures are reused; use a fresh `--cache` directory to refresh.
 
 Deltas are **manufacturer minus Atlas**; order is speed/glide/turn/fade. Flagged rows sort by the largest absolute turn/fade delta, then the sum of those deltas. Manufacturer pages are evidence for owner review, including possible catalog lag, approval differences, and plastic/run differences. No ratings are averaged.
 
@@ -35,9 +35,11 @@ Deltas are **manufacturer minus Atlas**; order is speed/glide/turn/fade. Flagged
 | Divergent Discs | Wyrm | 56899afe23af | 8/1/1/4 | 9/2/0/5 | 1 | 1 | -1 | 1 | [page](https://divergentdiscs.com/product-tag/wyrm/) | Wyrm / visible labels / mold-local slash fallback |
 | Gateway | Aura | 68af32f30a4a | 12/6/-2/1 | 12/6/-1.5/2 | 0 | 0 | 0.5 | 1 | [page](https://gatewaydiscsports.com/collections/aura) | Aura / primary product/collection description |
 | Gateway | Hybrid | d94273fe89d2 | 7/5/0/3 | 7/4/-0.5/2 | 0 | -1 | -0.5 | -1 | [page](https://gatewaydiscsports.com/collections/hybrid) | Hybrid / primary product/collection description |
+| Prodigy | M5 | e905af456041 | 5/5/-3/1 | 5/5/-2/0.5 | 0 | 0 | 1 | -0.5 | [page](https://prodigydisc.com/products/prodigy-m5-400-plastic) | Prodigy M5 400 Plastic / visible labels / mold-local slash fallback |
 | Alfa Discs | Cosmic | 827871a0aac6 | 8/6/0/2 | 8/6/0/3 | 0 | 0 | 0 | 1 | [page](https://alfadiscs.com/item/cosmic/) | Cosmic / visible labels / mold-local slash fallback |
 | Axiom | Time-Lapse | fbec7a7d6cd0 | 12/5/-1/3 | 12/5/-1/2 | 0 | 0 | 0 | -1 | [page](https://axiomdiscs.com/discs/time-lapse/) | Time-Lapse / MVP-family power meter |
 | Discmania | DD4 | a92195c30ec2 | 13/5/0/3 | 13/5/-1/3 | 0 | 0 | -1 | 0 | [page](https://www.discmania.net/collections/dd4) | DD4 / Discmania collection numbers |
+| Discraft | Archer | 46efed768b52 | 5/4/-4/1 | 7/4/-3/1 | 2 | 0 | 1 | 0 | [page](https://www.team.discraft.com/discs/archer) | Archer / Discraft model badges (separate stability excluded) |
 | Divergent Discs | Kraken | eba3aaaf0db3 | 8/5/-2/2 | 8/5/-1/2 | 0 | 0 | 1 | 0 | [page](https://divergentdiscs.com/product-tag/kraken/) | Kraken / visible labels / mold-local slash fallback |
 | Divergent Discs | Minotaur | daba930518da | 8/3/0/4 | 8/3/0/3 | 0 | 0 | 0 | -1 | [page](https://divergentdiscs.com/product/minotaur-max-grip/) | Minotaur (Max Grip) / primary product/collection description |
 | Divergent Discs | Nuno | 2a64bb62f765 | 3/4/-1/1 | 3/4/0/1 | 0 | 0 | 1 | 0 | [page](https://divergentdiscs.com/product-tag/nuno/) | Nuno / visible labels / mold-local slash fallback |
@@ -45,21 +47,35 @@ Deltas are **manufacturer minus Atlas**; order is speed/glide/turn/fade. Flagged
 | Innova | Lynx | 7bac98262a87 | 7/6/-2/1 | 7/6/-3/1 | 0 | 0 | -1 | 0 | [page](https://www.innovadiscs.com/disc/lynx/) | Lynx / Innova rating badges |
 | Lone Star Discs | Artemis | 2cbdaa78c008 | 4/4/0/3 | 4/4/0/2 | 0 | 0 | 0 | -1 | [page](https://www.lonestardiscs.com/products/artemis) | Artemis 4/4/0/2 / manufacturer model title ratings |
 | Lone Star Discs | Bearkat | b19135e88385 | 5/5/-2/1 | 5/5/-3/1 | 0 | 0 | -1 | 0 | [page](https://www.lonestardiscs.com/products/bearkat-midrange) | Bearkat 5/5/-3/1 / manufacturer model title ratings |
-| Clash Discs | Cinnamon | 7af26d2e6017 | 9/5/-1.5/2 | 9/5/-1/2 | 0 | 0 | 0.5 | 0 | [page](https://www.clashdiscs.com/cinnamon) | Cinnamon / visible labels / mold-local slash fallback |
+| Lone Star Discs | Lone Wolf | 78da2edc3101 | 5/5/-3/1 | 5/5/-4/1 | 0 | 0 | -1 | 0 | [page](https://www.lonestardiscs.com/products/lone-wolf-midrange) | Lone Wolf 5/5/-4/1 / manufacturer model title ratings |
+| Lone Star Discs | Tumbleweed | fbf0979e6b99 | 10/6/-4/1 | 10/6/-3/1 | 0 | 0 | 1 | 0 | [page](https://www.lonestardiscs.com/products/tumbleweed) | Tumbleweed 10/6/-3/1 / manufacturer model title ratings |
+| Streamline | Pilot | 71fcb40815bd | 2/5/-1/1 | 2/5/0/1 | 0 | 0 | 1 | 0 | [page](https://streamlinediscs.com/discs/pilot/) | Pilot / MVP-family power meter |
 | Divergent Discs | Kapre | 9618b1c70a1e | 5/5/-1.5/1 | 5/5/-1/1 | 0 | 0 | 0.5 | 0 | [page](https://divergentdiscs.com/product-tag/kapre/) | Kapre / visible labels / mold-local slash fallback |
 | Gateway | Apex | 62e6d7efa845 | 12/6/-1/2 | 11.5/6/-1/1.5 | -0.5 | 0 | 0 | -0.5 | [page](https://gatewaydiscsports.com/products/apex-diamond) | Apex - Diamond / visible labels / mold-local slash fallback |
+| Infinite Discs | Centurion | 93498283f1d5 | 7/5/-1/1.5 | 7/5/-1/2 | 0 | 0 | 0 | 0.5 | [page](https://infinitediscs.com/infinite-discs-centurion) | Infinite Discs Centurion / Infinite own brand: Manufacturer Flight Numbers block |
+| MVP | Nomad | 3b2d2e555496 | 2/4/0/1 | 2/4/0/1.5 | 0 | 0 | 0 | 0.5 | [page](https://mvpdiscsports.com/discs/nomad/) | Nomad / MVP-family power meter |
+| Mint Discs | Idol | f79387f2ecff | 13/5/-1/3 | 13/5/-1/2.5 | 0 | 0 | 0 | -0.5 | [page](https://mintdiscs.com/products/idol-apex-firm-ap-id01-25) | Idol - Apex Firm (AP-ID02-25) / primary product/collection description |
 
 ## Speed/glide differences (info only)
 
 | Brand | Mold | Atlas S/G/T/F | Manufacturer S/G/T/F | ΔS | ΔG | Source |
 |---|---|---|---|---:|---:|---|
 | Axiom | Inspire | 6.5/4/-1.5/1 | 6.5/5/-1.5/1 | 0 | 1 | [page](https://axiomdiscs.com/discs/inspire/) |
+| Discraft | Archer | 5/4/-4/1 | 7/4/-3/1 | 2 | 0 | [page](https://www.team.discraft.com/discs/archer) |
 | Divergent Discs | Basilisk | 12/6/-4/1 | 13/6/-5/2 | 1 | 0 | [page](https://divergentdiscs.com/product/basilisk-max-grip/) |
 | Divergent Discs | Lawin | 12/5/-3/2 | 12/6/-3/2 | 0 | 1 | [page](https://divergentdiscs.com/product-tag/lawin/) |
 | Divergent Discs | Wyrm | 8/1/1/4 | 9/2/0/5 | 1 | 1 | [page](https://divergentdiscs.com/product-tag/wyrm/) |
 | Gateway | Apex | 12/6/-1/2 | 11.5/6/-1/1.5 | -0.5 | 0 | [page](https://gatewaydiscsports.com/products/apex-diamond) |
 | Gateway | Hybrid | 7/5/0/3 | 7/4/-0.5/2 | 0 | -1 | [page](https://gatewaydiscsports.com/collections/hybrid) |
 | Gateway | Spirit | 12/4/0/4 | 11/4/0/4 | -1 | 0 | [page](https://gatewaydiscsports.com/collections/spirit) |
+| Infinite Discs | Slab | 12/3/0/4 | 11/3/0/4 | -1 | 0 | [page](https://infinitediscs.com/infinite-discs-slab) |
+| Lone Star Discs | Crockett | 13/5/-1/3 | 13/4/-1/3 | 0 | -1 | [page](https://www.lonestardiscs.com/products/crockett-distance-driver) |
+| Lone Star Discs | Walker | 5/3/0/4 | 5/5/0/4 | 0 | 2 | [page](https://www.lonestardiscs.com/products/walker-midrange) |
+| MVP | Anode | 3/3/0/0.5 | 2.5/3/0/0.5 | -0.5 | 0 | [page](https://mvpdiscsports.com/discs/anode/) |
+| Mint Discs | Mustang | 5/5/0/2 | 5/4/0/2 | 0 | -1 | [page](https://mintdiscs.com/products/mustang-apex-plastic-ap-mt04-26) |
+| Prodigy | D2 Pro | 13/5/-1/3 | 12/5/-1/3 | -1 | 0 | [page](https://prodigydisc.com/products/prodigy-d2-pro-750-plastic) |
+| RPM | Pekapeka (DGFD2) | 9/5/-3/1 | 9/6/-3/1 | 0 | 1 | [page](https://www.rpmdiscs.com/product/pekapeka/) |
+| Sacred Discs | Gnome | 2/3/0/1 | 2/2/0/1 | 0 | -1 | [page](https://sacreddiscs.com/products/gnome-putt-and-approach) |
 
 ## HTTP / JavaScript limits
 
@@ -77,13 +93,13 @@ No unresolved pages were positively identified as JS-rendered shells. Other pars
 | Axiom | 16 | 14 | 1 | 2 | 0 |
 | Bernoulli Disc Golf | 5 | 0 | 0 | 5 | 0 |
 | Birdie | 4 | 0 | 0 | 4 | 0 |
-| Clash Discs | 19 | 17 | 1 | 2 | 0 |
+| Clash Discs | 19 | 17 | 0 | 2 | 0 |
 | Climo Disc Golf | 8 | 6 | 0 | 2 | 0 |
 | Crosslap | 5 | 0 | 0 | 5 | 0 |
 | DGA | 21 | 8 | 0 | 13 | 0 |
 | Daredevil Discs | 21 | 17 | 0 | 4 | 0 |
 | Discmania | 48 | 45 | 1 | 3 | 0 |
-| Discraft | 64 | 0 | 0 | 64 | 0 |
+| Discraft | 64 | 2 | 1 | 62 | 0 |
 | Disctroyer OÜ | 5 | 0 | 0 | 5 | 0 |
 | Divergent Discs | 12 | 11 | 6 | 1 | 0 |
 | Doomsday Discs | 33 | 24 | 0 | 9 | 0 |
@@ -91,9 +107,9 @@ No unresolved pages were positively identified as JS-rendered shells. Other pars
 | EV-7 | 10 | 0 | 0 | 10 | 0 |
 | Elevation Disc Golf | 11 | 0 | 0 | 11 | 0 |
 | Finish Line | 9 | 0 | 0 | 9 | 0 |
-| Gateway | 34 | 21 | 3 | 13 | 0 |
+| Gateway | 34 | 23 | 3 | 11 | 0 |
 | Hooligan Discs | 6 | 6 | 0 | 0 | 0 |
-| Infinite Discs | 28 | 0 | 0 | 28 | 0 |
+| Infinite Discs | 28 | 28 | 1 | 0 | 0 |
 | Innova | 85 | 56 | 1 | 29 | 0 |
 | Innova Factory Store | 5 | 0 | 0 | 5 | 0 |
 | Jester Disc Golf | 6 | 0 | 0 | 6 | 0 |
@@ -101,7 +117,25 @@ No unresolved pages were positively identified as JS-rendered shells. Other pars
 | Latitude 64 | 48 | 27 | 0 | 21 | 0 |
 | Legacy | 23 | 0 | 0 | 23 | 0 |
 | Lightning | 4 | 0 | 0 | 4 | 0 |
-| Lone Star Discs | 23 | 12 | 2 | 11 | 0 |
+| Lone Star Discs | 40 | 34 | 4 | 6 | 0 |
+| Løft Discs | 6 | 0 | 0 | 6 | 0 |
+| MVP | 33 | 30 | 1 | 3 | 0 |
+| Millennium | 16 | 4 | 0 | 12 | 0 |
+| Mint Discs | 18 | 11 | 1 | 7 | 0 |
+| Neptune Discs  | 4 | 0 | 0 | 4 | 0 |
+| Prodigy | 36 | 19 | 1 | 17 | 0 |
+| Prodiscus | 22 | 0 | 0 | 22 | 0 |
+| RPM | 10 | 7 | 0 | 3 | 0 |
+| Sacred Discs | 5 | 4 | 0 | 1 | 0 |
+| Stokely Discs | 7 | 0 | 0 | 7 | 0 |
+| Storm | 5 | 0 | 0 | 5 | 0 |
+| Streamline | 16 | 16 | 1 | 0 | 0 |
+| Thought Space Athletics | 15 | 0 | 0 | 15 | 0 |
+| Trash Panda Disc Golf | 5 | 3 | 0 | 2 | 0 |
+| Vibram Disc Golf | 18 | 0 | 0 | 18 | 0 |
+| Westside Discs | 28 | 28 | 0 | 0 | 0 |
+| Wild Discs | 8 | 0 | 0 | 8 | 0 |
+| Yikun | 21 | 0 | 0 | 21 | 0 |
 
 ## Unresolved — manual research
 
@@ -166,8 +200,6 @@ The linked URL is the last candidate attempted, **not a verified source**. Full 
 | Discmania | Cloudbreaker | a68e603b86fb | 12/5/-1/3 | HTTP 404; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.discmania.net/collections/cloudbreaker) |
 | Discmania | New MD1 | 8b061e21ed26 | 5/6/0/0 | page identity does not match mold; HTTP 404; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.discmania.net/collections/new-md1) |
 | Discmania | Premier Cloudbreaker | 58e4e2b13ed4 | 12/5/0/3 | HTTP 404; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.discmania.net/collections/premier-cloudbreaker) |
-| Discraft | APX | 9917e34430e4 | 2/2/-1/1 | parse failed: no complete flight-number set in model content; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.team.discraft.com/discs/apx) |
-| Discraft | Archer | 46efed768b52 | 5/4/-4/1 | parse failed: no complete flight-number set in model content; Remote end closed connection without response; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.discraft.com/disc-golf/2026-austin-turner-tour-series-archer-dc--archer.26v2tour?returnurl=%2fdisc-golf%2f) |
 | Discraft | Ares (PM-0226-D) (renamed from Zeus 2.0) | 1b456425771e | 12/6/-1/2 | HTTP 429; host unreachable after three HTTP attempts: Remote end closed connection without response; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.discraft.com/disc-golf/paul-mcbeth-first-run-esp-ares-frmcbethares?returnurl=%2fdisc-golf%2f) |
 | Discraft | Athena | 68d64ed1b6a3 | 7/5/0/2 | HTTP 429: host rate-limited; skipped for remainder of run (Retry-After: unspecified); host unreachable after three HTTP attempts: Remote end closed connection without response; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.discraft.com/disc-golf/paul-mcbeth-fly-dye-z-athena-mcbethfdzathena?returnurl=%2fdisc-golf%2f) |
 | Discraft | Banger-GT | ff0b51fdb61e | 2/3/0/1 | HTTP 429: host rate-limited; skipped for remainder of run (Retry-After: unspecified); web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.team.discraft.com/discs/banger-gt) |
@@ -241,9 +273,9 @@ The linked URL is the last candidate attempted, **not a verified source**. Full 
 | Doomsday Discs | Cyber Putter | 3bd3e67941ba | 3/3/0/2 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/cyber-putter-in-survival-plastic) |
 | Doomsday Discs | Dread | 1ed6b9dbb11c | 2/4/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/dread-in-ration-plastic) |
 | Doomsday Discs | Dystopia | e4f6d63c6713 | 10/5/-2/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/dystopia-in-glow-isolation-plastic) |
-| Doomsday Discs | Famine | f5ef85ad382b | 12/5/-2/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/famine-x-out-in-uranium-plastic) |
+| Doomsday Discs | Famine | f5ef85ad382b | 12/5/-2/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/famine-in-radioactive-waste-plastic) |
 | Doomsday Discs | Monstrosity | 77fccd2f8af5 | 7/5/-3/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/monstrosity-in-isolation-glow-plastic) |
-| Doomsday Discs | Oblivion | ad0084c40b5e | 12/4/-1/3 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/oblivion-in-starfield-plastic) |
+| Doomsday Discs | Oblivion | ad0084c40b5e | 12/4/-1/3 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/fear-pack-2025-three-masked-drivers-oblivion-plague-famine) |
 | Doomsday Discs | Psyop | cc937e956f50 | 9/4/-2/3 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://doomsdaydiscs.com/products/psyop-in-retina-glow-plastic) |
 | Dynamic Discs | Sockibomb Felon | 1526636d1f7f | 9/4/0.5/4 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.dynamicdiscs.com/) |
 | Dynamic Discs | Sockibomb Slammer | 0d67566bd210 | 3/1/0.5/4 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.dynamicdiscs.com/) |
@@ -251,12 +283,12 @@ The linked URL is the last candidate attempted, **not a verified source**. Full 
 | EV-7 | Kairos  | 5c5b711de453 | 12/5/-1/3 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-kairos) |
 | EV-7 | Mobius  | 787485b6654a | 2/4/-1/0 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-mobius) |
 | EV-7 | Ouro Boros  | 269bfde889c6 | 4/3/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
-| EV-7 | Penrose  | 549b5f98da67 | 2/4/0/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-medium-penrose) |
-| EV-7 | Phi | 49dd8a02cae7 | 3/4/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-medium-phi) |
+| EV-7 | Penrose  | 549b5f98da67 | 2/4/0/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-penrose) |
+| EV-7 | Phi | 49dd8a02cae7 | 3/4/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-phi) |
 | EV-7 | Protos  | cb8d9f060c21 | 8/6/-3/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-protos) |
-| EV-7 | Telos  | 584540890613 | 2/4/0/1.5 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-medium-telos) |
-| EV-7 | Yang | 39833bae3a8d | 1/2/0/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-medium-yang) |
-| EV-7 | Yin | 4a24a417d379 | 1/4/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-medium-yin) |
+| EV-7 | Telos  | 584540890613 | 2/4/0/1.5 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-telos) |
+| EV-7 | Yang | 39833bae3a8d | 1/2/0/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-yang) |
+| EV-7 | Yin | 4a24a417d379 | 1/4/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.ev-7discgolf.com/products/og-premium-yin) |
 | Elevation Disc Golf | Arowana | ff121249e609 | 3/3/-1/2 | HTTP 404; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://elevationdiscs.com/collections/arowana) |
 | Elevation Disc Golf | Binx | 671bfd12f9c4 | 8/5/0/1 | HTTP 404; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://elevationdiscs.com/collections/binx) |
 | Elevation Disc Golf | Capybara | a4a1f88e3661 | 5/5/-2/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://elevationdiscs.com/collections/capybara) |
@@ -278,11 +310,9 @@ The linked URL is the last candidate attempted, **not a verified source**. Full 
 | Finish Line | Supra | c408d1d75f7e | 5/5/0/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
 | Finish Line | Torque | 4f3034a614af | 8/4/0/2.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
 | Gateway | Apache (retooled) | 3c80c062a03d | 10/6/0/2 | approval/version-specific mold; current-page identity needs manual review | [page](https://gatewaydiscsports.com/collections/apache) |
-| Gateway | Chief OS | 8de59c326fb6 | 3/3/0/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/chief-os) |
 | Gateway | Demon | 967908980e2b | 6/3/0/4 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/demon) |
-| Gateway | Devilhawk | 5341864ac64c | 3/3/0/4 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/devilhawk) |
 | Gateway | G-ONE | 28f3f1fef58a | 12/6/-2/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/g-one) |
-| Gateway | Javelin | 316e31902fd6 | 13/5/0/3 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/javelin) |
+| Gateway | Javelin | 316e31902fd6 | 13/5/0/3 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/products/elijah-bickel-javelin-nxt-g-2026) |
 | Gateway | Karma | 216980c4c838 | 7/5/-1/2 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/products/jon-borzicks-nxt-karma) |
 | Gateway | Ninja | f23a702ea19a | 10/6/-1/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/ninja) |
 | Gateway | Samurai | 2612c61c1609 | 12/5/-1.5/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/samurai) |
@@ -290,34 +320,6 @@ The linked URL is the last candidate attempted, **not a verified source**. Full 
 | Gateway | Slayer | 5a3bba3b7d14 | 13/5/-1/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/slayer) |
 | Gateway | Wand | c2576b43e41c | 1/7/0/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/collections/wand) |
 | Gateway | Witch Doctor | e8b5faa77cb3 | 3/4/0/2.5 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://gatewaydiscsports.com/products/witch-doctor-suregrip-firm) |
-| Infinite Discs | Alpaca | 128019b91e89 | 3/3/0/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-alpaca) |
-| Infinite Discs | Anubis | 4fe840834d2a | 5/5/0/0 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-anubis) |
-| Infinite Discs | Aztec | 0fef741a0014 | 10/5/-1/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-aztec) |
-| Infinite Discs | Cavalier | 9b0208313a13 | 5/5/0/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-cavalier) |
-| Infinite Discs | Centurion | 93498283f1d5 | 7/5/-1/1.5 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-centurion) |
-| Infinite Discs | Chariot | 5ce0376e7aa9 | 5/5/0/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-chariot) |
-| Infinite Discs | Conqueror | 83a791e13e32 | 12/4/0/4 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-conqueror) |
-| Infinite Discs | Czar | 95fdfcb5725d | 11/5/-1/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-czar) |
-| Infinite Discs | Dynasty | ccdaeaed5b0a | 9/5/-1/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-dynasty) |
-| Infinite Discs | Exodus | b5f1e7d00add | 7/5/-0.5/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-exodus) |
-| Infinite Discs | Galleon | 1cd27abfe255 | 6/3/0/5 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-galleon) |
-| Infinite Discs | Glyph | 33c0f897b88c | 1/5/0/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-glyph) |
-| Infinite Discs | Inca | 83b5e682aece | 5/5/0/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-inca) |
-| Infinite Discs | Khonsu | 292a0e4634c6 | 5/5/-3/0 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-khonsu) |
-| Infinite Discs | Kon Tiki | be1edef3b0f9 | 4/5/-3/0 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-kon-tiki) |
-| Infinite Discs | Maya | f3cbde469681 | 11/5/-3/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-maya) |
-| Infinite Discs | Myth | dae6c2a830cc | 2/3/0/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-myth) |
-| Infinite Discs | Ra | 30e34279f859 | 5/4/0/2.5 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-ra) |
-| Infinite Discs | Raze | 3ab497a8567e | 3/2/0/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-raze) |
-| Infinite Discs | Roman | 22e837ec98b4 | 10/4/0/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-roman) |
-| Infinite Discs | Ruin | ec20462876e6 | 3/3/0/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-ruin) |
-| Infinite Discs | Scarab | 28543c47fb7f | 2/4/0/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-scarab) |
-| Infinite Discs | Scepter | 5a24826b1a8e | 9/4/0/4 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-scepter) |
-| Infinite Discs | Slab | 79278cd60129 | 12/3/0/4 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-slab) |
-| Infinite Discs | Sphinx | e748e266da63 | 9/6/-3/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-sphinx/signature-halo-metal-flake-c-blend) |
-| Infinite Discs | Squire | 288991278acd | 8/6/0/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-squire) |
-| Infinite Discs | Sultan | 3ac6db46e507 | 12/5/-2/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-sultan) |
-| Infinite Discs | Tomb | c4ce17504acf | 3/4/0/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://infinitediscs.com/infinite-discs-tomb) |
 | Innova | Ace | b4900a47f355 | 2/3/-2/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.innovadiscs.com/disc/ace/) |
 | Innova | Aviar 3 | 88d348b10ccf | 3/2/0/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.innovadiscs.com/disc/aviar-3/) |
 | Innova | Bulldog | 294af4dd19b5 | 4/3/0/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.innovadiscs.com/disc/bulldog/) |
@@ -411,17 +413,163 @@ The linked URL is the last candidate attempted, **not a verified source**. Full 
 | Lightning | #1 Helix | 12522c3aef2a | 8/4/-1/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
 | Lightning | #1 Hookshot | 061e80ecd3a0 | 6/4/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
 | Lightning | #1 Hyzer | c5a23f120fcd | 7/3/0/4 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
-| Lone Star Discs | Chuck | 15999f8fc3b8 | 5/5/-2/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/chuck) |
-| Lone Star Discs | Chupacabra | f5ab07595ce1 | 9/3/0/4 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/chupacabra) |
-| Lone Star Discs | Copperhead | 4ff6c4065cfd | 3/4/0/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/copperhead) |
-| Lone Star Discs | Crockett | d88ad879dad8 | 13/5/-1/3 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/crockett) |
-| Lone Star Discs | Curl | fe07d198be92 | 11/5/-1/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/curl) |
-| Lone Star Discs | Desperado | 9a7ba20bf55b | 9/5/-2/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/desperado) |
-| Lone Star Discs | Dos X | 3e85af4e2704 | 8/4/-1/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/dos-x) |
-| Lone Star Discs | Frio | 86147cd23dc6 | 7/5/-1/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/frio) |
-| Lone Star Discs | Growler | 37043487ef65 | 12/6/-3/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/growler) |
 | Lone Star Discs | Horny Toad | c6c26f7cabad | 4/3/0/3 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/horny-toad) |
-| Lone Star Discs | Houston | 52acd129c81f | 5/5/0/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/houston) |
+| Lone Star Discs | Jack Rabbit | 04f85de80db9 | 3/3/0/3 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/jack-rabbit) |
+| Lone Star Discs | Mad Cat | 44a2873cdf08 | 9/5/0/2 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/products/el-gato-loco-mad-cat-fairway-driver-9005) |
+| Lone Star Discs | Prickly Pear | d67cd97bad6a | 3/3/-1/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/prickly-pear) |
+| Lone Star Discs | The Dome | 66bf69cb28eb | 8/6/-3/1 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/products/the-dome-fairway-driver) |
+| Lone Star Discs | Trinity | 315195552ecd | 7/5/0/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.lonestardiscs.com/collections/trinity) |
+| Løft Discs | Bohrium | 9d3a2fb99e84 | 14/6/-1/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Løft Discs | Hydrogen | 5a6e6a63ddc2 | 1/2/0/0 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Løft Discs | Neon | 59dd9e9d2618 | 3/1/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Løft Discs | Silicon | 1fcc19718177 | 5/4/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Løft Discs | Titanium | 1fc158f8229a | 7/5/-2/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Løft Discs | Xenon | d491b94daa8d | 9/3/0/4 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| MVP | Atom | 2874ef188913 | 3/3/-0.5/0 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mvpdiscsports.com/discs/feed/atom/) |
+| MVP | Beam | 1548a809e633 | 1/1/0/0 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mvpdiscsports.com/discs/beam/) |
+| MVP | Cypher | 45f7be1edb59 | 7/5/-3/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mvpdiscsports.com/discs/cypher/) |
+| Millennium |  ES1 | e52df0457e51 | 11/5/-2/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/disc-golf-discs/es1/) |
+| Millennium | Aquarius | a3fd8f842f00 | 8/5/-3/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/aquarius/) |
+| Millennium | Mars Rover (renamed from Rover) | 2124a6f66d83 | 5/6/-4/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/disc-golf-discs/mars-rover/) |
+| Millennium | Moab | 46aca93e91e0 | 6/4/1/5 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/moab/) |
+| Millennium | Mortar | 26c56624a17e | 5/2/0/3 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/mortar/) |
+| Millennium | Omega4  | c12289dd0f64 | 2/3/0/1 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/disc-golf-discs/omega4/) |
+| Millennium | Polaris LS | 18d5d9bd3a8c | 6/4/-1/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/polaris-ls/) |
+| Millennium | Sabot | 8918bd6c4e9c | 11/4/0/5 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/sabot/) |
+| Millennium | Scorpius | fbe04bb92fbc | 12/5/-1/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/scorpius/) |
+| Millennium | Sentinel MF | 2d3dc1c14cca | 5/4/0/4 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/discs/sentinel-mf/) |
+| Millennium | Vela | 64bcf14aff40 | 7/4/-1.5/2 | conflicting flight numbers/plastics on manufacturer page | [page](https://www.golfdisc.com/discs/vela/) |
+| Millennium | Zodiac (renamed from ES2) | 3db60b49a1e7 | 10/6/-1/2 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.golfdisc.com/news/millenniums-new-zodiac-power-driver-10-6-1-2-debuts-at-lvc-pre-orders-available-soon/) |
+| Mint Discs | Alpha | 379511c22366 | 8/4/0/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mintdiscs.com/products/phoenix-eternal-plastic-et-px01-23) |
+| Mint Discs | Bullet | 971258da03e2 | 2/4/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mintdiscs.com/products/phoenix-eternal-plastic-et-px01-23) |
+| Mint Discs | Diamondback | 12a448b303a8 | 9/5/-2/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mintdiscs.com/products/diamondback-unisex-polyester-t-shirt-by-zamdesign) |
+| Mint Discs | Lobster | 77b1d561c58f | 5/5/-3/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search blocked/challenged; web search found no matching official URL | [page](https://mintdiscs.com/products/phoenix-eternal-plastic-et-px01-23) |
+| Mint Discs | Longhorn | d1ff2573467f | 11/4/-1/2.5 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mintdiscs.com/products/ian-hovey-memorial-shirt) |
+| Mint Discs | Profit | 2c09a556cc68 | 2/3/0/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mintdiscs.com/products/phoenix-eternal-plastic-et-px01-23) |
+| Mint Discs | Salamander | 5326c260412a | 6/6/-2/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://mintdiscs.com/products/the-shredder-salamander-drop-ship-unisex-polyester-t-shirt) |
+| Neptune Discs  | Marlin | 42da88440675 | 7/5/-4/1 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://neptunediscs.com/products/pearl-marlin-stock-stamp) |
+| Neptune Discs  | Nautilus | c781861c22be | 5/5/0/2 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://neptunediscs.com/products/pearl-nautilus-stock-stamp) |
+| Neptune Discs  | Splash | 36051e2cec4c | 3/3/0/1 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://neptunediscs.com/products/pearl-splash) |
+| Neptune Discs  | Squid | 915d5c1f76dc | 11/5/-1/2 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://neptunediscs.com/products/triton-squid-stock-stamp-2nd-run) |
+| Prodigy | D Model OS | af9144d9c70a | 13/5/0/4 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/ace-line-d-model-os-duraflex-glow-plastic) |
+| Prodigy | D Model US | de53d3ad259f | 13/6/-3/1 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/ace-line-d-model-us-duraflex-glow-plastic) |
+| Prodigy | D1 Max | b039996a8874 | 13/5/-1/3 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/d1-max) |
+| Prodigy | D2 Max | 522293146949 | 13/5/-1/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/d2-max) |
+| Prodigy | D2 Signature (Falcor) | e0ccc960a21a | 13/6/-1/2.5 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/d2-signature) |
+| Prodigy | D3 Max | b267606b1617 | 13/5/-2/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/d3-max) |
+| Prodigy | D4 Max | 67926f36f9cf | 13/5/-3/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/d4-max) |
+| Prodigy | F Model OS | 782a488f54fa | 10/5/2/4 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/ace-line-f-model-os-duraflex-glow-plastic) |
+| Prodigy | F Model US | 5c3a4d6099ee | 10/5/-2/1 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/ace-line-f-model-us-duraflex-glow-plastic) |
+| Prodigy | M Model S | 0a147f859c11 | 6/4/0/3 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/ace-line-m-model-s-basegrip-plastic-bird-uv) |
+| Prodigy | M Model US | f35749b17848 | 4/5/-1/1 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/ace-line-m-model-us-duraflex-glow-plastic) |
+| Prodigy | PA1 | 6d7a343f6bb4 | 3/3/0/2.5 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/prodigy-pa1-350g-plastic) |
+| Prodigy | Pivot | bc24caddb827 | 3/4/0/0.5 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/prodigy-pivot-400-glimmer-seraphim-stamp) |
+| Prodigy | Shadowfax | 62a9a8df3299 | 9/5/-1/2.5 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/shadowfax) |
+| Prodigy | Stryder | 9282aecb6d81 | 6/4/0/3 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/stryder) |
+| Prodigy | Waco | f9301d67d0b7 | 5/5/0/1 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodigydisc.com/products/prodigy-fx-4-400g-plastic-waco-fundraiser) |
+| Prodigy | X5 | 4296b91062c3 | 12/6/-3/2 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.prodigydisc.com/collections/x5) |
+| Prodiscus | Amulet | a21a3cb21262 | 5/4/1/3 | &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/amulet/) |
+| Prodiscus | Empire | 5c35c7ca78ee | 13/5/0/4 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/empire/) |
+| Prodiscus | FASTi | 87ee66e20509 | 12/4/-3/4 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/fasti/) |
+| Prodiscus | FLIPPERi | 8b20158b0863 | 9/3/-3/0 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/flipperi/) |
+| Prodiscus | JokeriX (beaded) | 23597b37a03d | 3/3/1/2 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/jokerix/) |
+| Prodiscus | Laseri | 0d4e184fcf5f | 10/4/-1/1 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/laseri/) |
+| Prodiscus | Legenda | 3e5b5de87286 | 13/4/-1/4 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/legenda/) |
+| Prodiscus | Legion | adceb697471d | 5/5/-1/1 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/legion/) |
+| Prodiscus | Midari | 0a04c2b02c23 | 5/3/0/1 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/midari/) |
+| Prodiscus | MidariX (beaded) | c47007da0e93 | 5/4/-1/2 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/midarix/) |
+| Prodiscus | Origo | 3491539101b6 | 3/4/0/1 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/origo/) |
+| Prodiscus | Pyramid | 26cfe9a350b3 | 5/3/0/3 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/pyramid/) |
+| Prodiscus | Razeri | 0cc659223e80 | 12/4/0/4 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/razeri/) |
+| Prodiscus | Respecti | 946767ebe6b8 | 7/2/1/2 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/respecti/) |
+| Prodiscus | Rocket | 3c28393eabe9 | 9/4/0/3 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/rocket/) |
+| Prodiscus | STARi | 556c26151121 | 4/4/-2/0 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/stari/) |
+| Prodiscus | Slaidi | 5880bfff1a6c | 11/3/0/3 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/slaidi/) |
+| Prodiscus | Sparta | fd26ed8e5740 | 3/3/0/0.5 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/sparta/) |
+| Prodiscus | Talisman | f7e292ef4382 | 9/4/0/2 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/talisman/) |
+| Prodiscus | Titan | 61fffb18af7a | 9/3/0/2 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/titan/) |
+| Prodiscus | Totem | c4a3b89ff6a9 | 12/5/1/3 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/totem/) |
+| Prodiscus | Unicorn | 0fd2a9b9c75a | 5/4/0/2 | host unreachable after three HTTP attempts: &lt;urlopen error [Errno 11002] getaddrinfo failed&gt;; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://prodiscus.fi/discs/unicorn/) |
+| RPM | Kahu (DGD2) | 5bd528e17304 | 13/5/-1/2 | conflicting flight numbers/plastics on manufacturer page | [page](https://www.rpmdiscs.com/product/kahu/) |
+| RPM | Taniwha | 01a44ce155df | 10/5/-2/2 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.rpmdiscs.com/product/kiwi/) |
+| RPM | Te Moko (DGR2) | a1b28a033ee1 | 3/4/0/0 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://www.rpmdiscs.com/product/te-moko/) |
+| Sacred Discs | Seed | eece5681e818 | 2/4/0/1 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://sacreddiscs.com/products/aroma-line-first-run-seed-putter) |
+| Stokely Discs | Cardinal | ac6014de16cf | 5/4/0/2.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Stokely Discs | Finch | ee29e52cf3fc | 3/3/0/1.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Stokely Discs | Lark | 4a02566d6316 | 7/5/-1.5/1.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Stokely Discs | Owl | 1c53cb287fa6 | 4/3/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Stokely Discs | Peregrine | 924d8e14b1e5 | 12/6/-2/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Stokely Discs | Robin | 6063a0986b67 | 7/5/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Stokely Discs | Wren | a966b555df4e | 3/3.5/-0.5/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Storm | Abyss | 48c1bc0bf569 | 8/4/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Storm | Radar | c4ebcc9b6c05 | 2/5/0/0.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Storm | The Crater | 3e657df319d2 | 3/2/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Storm | The Eye | b0680fa07ca8 | 6/5/-1/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Storm | Wall Cloud | 3297955b15a9 | 5/5/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Thought Space Athletics | Alter | f58bc0e09624 | 3/3/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/eyerachnid-3-foil-alter) |
+| Thought Space Athletics | Construct | 897fbd070a7e | 10/6/-1/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/aura-soft-construct) |
+| Thought Space Athletics | Crux | f2a393b77e64 | 5/4/0/2 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/collections/crux) |
+| Thought Space Athletics | Expanse | 1e200df82587 | 11/5/-2/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/lykke-lorentzen-signature-vex-expanse) |
+| Thought Space Athletics | Mana | d00f5a073b4b | 5/5/-2/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/swirly-aura-mana) |
+| Thought Space Athletics | Mantra | 6261581b8ae9 | 9/6/-2/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/collections/mantra) |
+| Thought Space Athletics | Mellow | 2b8757f8d4e8 | 1/5/0/1 | HTTP 404; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/premium-mellow) |
+| Thought Space Athletics | Nuance | f40574f7d5d3 | 7/5/-2/1 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/collections/nuance) |
+| Thought Space Athletics | Persona | 21bb2d9f2bac | 8/5/-3/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/parallel-persona) |
+| Thought Space Athletics | Pneuma | b182fd64b8fa | 2/3/0/0 | HTTP 404; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/collections/pneuma) |
+| Thought Space Athletics | Praxis | 9b50d72b9fef | 3/3/0/1 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/experimental-ethos-praxis-metal) |
+| Thought Space Athletics | Requiem | b915c6bb9ec6 | 12/5/-1/2 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/requiem-tee) |
+| Thought Space Athletics | Temple | 116e6c04e504 | 4/3/0/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/collections/temple) |
+| Thought Space Athletics | Vessel | e75d50c9eb3e | 4/3/0/3 | parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/products/vexbreaker-vessel) |
+| Thought Space Athletics | Votum | d51a1141d522 | 7/5/0/3 | parse failed: no complete flight-number set in model content; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://thoughtspaceathletics.com/collections/votum) |
+| Trash Panda Disc Golf | Inner Core | 63e84e302210 | 2/4/-0.5/0 | HTTP 404; parse failed: no complete flight-number set in model content; page identity does not match mold; web search &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://trashpandadiscgolf.com/products/bodanzas-candy-catch-inner-core) |
+| Trash Panda Disc Golf | Outer Core | 99eafabe6624 | 2/4/0/1 | HTTP 404; parse failed: no complete flight-number set in model content; page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://trashpandadiscgolf.com/products/outer-core-putter-pack-1) |
+| Vibram Disc Golf | Arch | 9d38adf23693 | 8/5/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Ascent | 58ae1b2cc491 | 8/4/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Crag | 3c2be7cf2929 | 4/3/0/3.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Ibex | a58df4d4a0e3 | 5/4/-1/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Lace | 06f603871639 | 14/6/-1/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Launch | 6dfafd79f465 | 5/5/-1/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Notch | 4db7e2625efb | 7/3/0/4.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | O-Lace | e25be9010c25 | 13/5/-1/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Obex | 38ee65f5f8c7 | 5/4/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Onyx | 606a93e0c0da | 8/6/-3/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Ridge | f9c8532c2518 | 2/3/0/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Solace | 9a9c9ee6ca5e | 13/4/0/4 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Sole | 623b1dff7ed0 | 2/3/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Summit | 4f98af8a8e68 | 2/3/-1/0 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Trak | 4e81369294ba | 7/4/-1/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | V.P. | a996b96389f6 | 2/3/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | Valley | 5987250b235c | 7/5/-1/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Vibram Disc Golf | unLace | 4ef67cdd5ec7 | 14/6/-5/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Addax | 9f4da67c4858 | 5/5/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Angler | e2350cd8bbdf | 4/3/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Great White | d5ee9620dd90 | 13/5/-1/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Hummingbird | 9a4dc9503a8e | 2/4/0/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Hyena | 468f1da451f4 | 9/5/-2/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Orca | b420ec344678 | 12/5/-1.5/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Tasmanian Devil | 140cf9abca8c | 7/4/-2/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Wild Discs | Tasmanian Devil V2 | dd4207c52b39 | 9/4/0/4 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Bi (毕方 Bi Fang) | 2b7b3c9dcd80 | 9/5/-1/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Bái Zé (白泽) | c264beadb7d6 | 7/6/-0.5/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Claws (爪) | b902120d059a | 1/3/0/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Crossbow (Nu, 连弩) | 0dc6e5ec058a | 4/1.5/0.5/4 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Erlang (杨戬, Yáng Jiǎn) | ad9a67d88c0b | 7/3/-3/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Freyja (弗蕾雅) | 8c8a4c0831da | 3/3/0/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Fu (夸父, Kua Fu) | 475f922736f5 | 7/5/0/2 | page identity does not match mold; web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | [page](https://yikunsports.com/FU-SANG) |
+| Yikun | Hammer (Chui, 战锤) | cbd75be396f9 | 2/2.5/0/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Hu (九尾狐) | 14a1278d34ca | 9/5/-2/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Jun (鵕鸟) | b61f261ffc5d | 11/5/-1/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Kui (夔牛) | 12699151533f | 5/5/0/2.5 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Lu (Luan, 鸾鸟) | 87e914ff688b | 14/5/-1/3 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Meteor Hammer (流星锤) | 1541edf86d15 | 2/3/0/0 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Qi (穷奇, Qiong Qi) | e727c7192b01 | 13/6/-2/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Tomahawk (八卦钺) | 6c0276c5a32f | 5/6/0/0 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | View (视) | b5c8a25e6fb1 | 7/6/-3.5/1 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Wei (精卫) | 0d4f09285d8a | 10/5/-2.5/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Wings (翼) | c35859e59260 | 3/3/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Wù Kōng (悟空) | bda1311a154b | 10/5/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Yao (文鳐鱼) | 01e18ce29a9f | 4/4/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
+| Yikun | Zhu (夫诸 Fu Zhu) | e2c7cd288954 | 7/5/0/2 | web search host unreachable after three HTTP attempts: &lt;urlopen error timed out&gt;; web search found no matching official URL | — |
 
 ## Successfully compared records
 
@@ -431,7 +579,7 @@ Complete comparison ledger, including matches and differences below the flag thr
 |---|---|---|---|---|---:|---:|---|
 | Above Ground Level | Elm | 2dbf673408d3 | 9/4/0/3 | 9/4/0/3 | 0 | 0 | [page](https://www.agldiscs.com/products/agl-discs-sherbet-alpine-elm-stock-stamp) |
 | Above Ground Level | Koa | 35af551bec11 | 2/3/0/1 | 2/3/0/1 | 0 | 0 | [page](https://www.agldiscs.com/products/agl-discs-woodland-koa-nccc-stamp) |
-| Above Ground Level | Maple | f4976964ecb7 | 4/2/0/2 | 4/2/0/2 | 0 | 0 | [page](https://www.agldiscs.com/products/agl-discs-woodland-maple-x-out-stamp) |
+| Above Ground Level | Maple | f4976964ecb7 | 4/2/0/2 | 4/2/0/2 | 0 | 0 | [page](https://www.agldiscs.com/products/agl-discs-pink-woodland-maple-agl-stock-stamp) |
 | Above Ground Level | Sequoia | 6293849d556c | 12/5/-1/3 | 12/5/-1/3 | 0 | 0 | [page](https://www.agldiscs.com/products/agl-discs-polar-sequoia-x-out-stamp) |
 | Alfa Discs | Apollo | 2f3b754ccad7 | 5/5/-1/2 | 5/5/-1/2 | 0 | 0 | [page](https://alfadiscs.com/item/apollo/) |
 | Alfa Discs | Atlantis | e273fef32fa0 | 9/6/-4/1 | 9/6/-4/1 | 0 | 0 | [page](https://alfadiscs.com/item/atlantis/) |
@@ -456,7 +604,7 @@ Complete comparison ledger, including matches and differences below the flag thr
 | Clash Discs | Butter | 28995d836dc9 | 2/3/0/1 | 2/3/0/1 | 0 | 0 | [page](https://www.clashdiscs.com/butter) |
 | Clash Discs | Candy | 7a44daf44547 | 3/3/-1/1 | 3/3/-1/1 | 0 | 0 | [page](https://www.clashdiscs.com/candy) |
 | Clash Discs | Cherry | c919d399e720 | 5/5/-2/1 | 5/5/-2/1 | 0 | 0 | [page](https://www.clashdiscs.com/cherry) |
-| Clash Discs | Cinnamon | 7af26d2e6017 | 9/5/-1.5/2 | 9/5/-1/2 | 0.5 | 0 | [page](https://www.clashdiscs.com/cinnamon) |
+| Clash Discs | Cinnamon | 7af26d2e6017 | 9/5/-1.5/2 | 9/5/-1.5/2 | 0 | 0 | [page](https://www.clashdiscs.com/cinnamon) |
 | Clash Discs | Cookie | 990ee9d16985 | 7/5/0/2 | 7/5/0/2 | 0 | 0 | [page](https://www.clashdiscs.com/steady-cookie) |
 | Clash Discs | Fudge | dae2701de928 | 2/3/0/2 | 2/3/0/2 | 0 | 0 | [page](https://www.clashdiscs.com/fudge) |
 | Clash Discs | Guava | 60ab34502be9 | 5/5/0/2 | 5/5/0/2 | 0 | 0 | [page](https://www.clashdiscs.com/guava) |
@@ -545,6 +693,8 @@ Complete comparison ledger, including matches and differences below the flag thr
 | Discmania | Tactic | fc4ab0a66073 | 4/2/0/3 | 4/2/0/3 | 0 | 0 | [page](https://www.discmania.net/collections/tactic) |
 | Discmania | Tailor | 960f1c00d72a | 4/4/0/1 | 4/4/0/1 | 0 | 0 | [page](https://www.discmania.net/collections/tailor) |
 | Discmania | Tilt | 1f38178c40c2 | 9/1/1/6 | 9/1/1/6 | 0 | 0 | [page](https://www.discmania.net/collections/tilt) |
+| Discraft | APX | 9917e34430e4 | 2/2/-1/1 | 2/2/-1/1 | 0 | 0 | [page](https://www.team.discraft.com/discs/apx) |
+| Discraft | Archer | 46efed768b52 | 5/4/-4/1 | 7/4/-3/1 | 1 | 0 | [page](https://www.team.discraft.com/discs/archer) |
 | Divergent Discs | Alpas | 3b3adbcd5021 | 4/4/-2/1 | 4/4/-2/1 | 0 | 0 | [page](https://divergentdiscs.com/product-tag/alpas/) |
 | Divergent Discs | Basilisk | abcec9d8352a | 12/6/-4/1 | 13/6/-5/2 | -1 | 1 | [page](https://divergentdiscs.com/product/basilisk-max-grip/) |
 | Divergent Discs | Golem | 3d87d5f7d028 | 4/2/0/4 | 4/2/0/4 | 0 | 0 | [page](https://divergentdiscs.com/product-tag/golem/) |
@@ -617,7 +767,9 @@ Complete comparison ledger, including matches and differences below the flag thr
 | Gateway | Assassin | b0caceaf47fd | 9/6/-1.5/1 | 9/6/-1.5/1 | 0 | 0 | [page](https://gatewaydiscsports.com/collections/assassin) |
 | Gateway | Aura | 68af32f30a4a | 12/6/-2/1 | 12/6/-1.5/2 | 0.5 | 1 | [page](https://gatewaydiscsports.com/collections/aura) |
 | Gateway | Blaze | 50ecde5647e4 | 7/4/0/3 | 7/4/0/3 | 0 | 0 | [page](https://gatewaydiscsports.com/products/blaze-hyper-diamond) |
-| Gateway | Chief | 0e254ed8d707 | 3/3/0/1 | 3/3/0/1 | 0 | 0 | [page](https://gatewaydiscsports.com/products/chief-suregrip%E2%84%A2) |
+| Gateway | Chief | 0e254ed8d707 | 3/3/0/1 | 3/3/0/1 | 0 | 0 | [page](https://gatewaydiscsports.com/products/chief-lunar) |
+| Gateway | Chief OS | 8de59c326fb6 | 3/3/0/2 | 3/3/0/2 | 0 | 0 | [page](https://gatewaydiscsports.com/products/chief-os-diamond-1) |
+| Gateway | Devilhawk | 5341864ac64c | 3/3/0/4 | 3/3/0/4 | 0 | 0 | [page](https://gatewaydiscsports.com/products/devil-hawk-nxt) |
 | Gateway | Element | 5bab5ae7a8cd | 5/5/-1/1 | 5/5/-1/1 | 0 | 0 | [page](https://gatewaydiscsports.com/products/element-nxt) |
 | Gateway | Ether | 3f520dd393a8 | 12/6/-1/2 | 12/6/-1/2 | 0 | 0 | [page](https://gatewaydiscsports.com/collections/ether) |
 | Gateway | Ghoul | 98725b3db282 | 3/3/0/3 | 3/3/0/3 | 0 | 0 | [page](https://gatewaydiscsports.com/products/chan-ghoul-suregrip) |
@@ -639,6 +791,34 @@ Complete comparison ledger, including matches and differences below the flag thr
 | Hooligan Discs | Thread | b9cdd04acf31 | 9/5/-1/1 | 9/5/-1/1 | 0 | 0 | [page](https://hooligandiscs.com/collections/thread-9-5-1-1) |
 | Hooligan Discs | Vibe | f17dd8541fb0 | 11/5/-2/2 | 11/5/-2/2 | 0 | 0 | [page](https://hooligandiscs.com/collections/vibe-12-5-2-2) |
 | Hooligan Discs | Yeet | 95a765405abd | 12/5/-1/3 | 12/5/-1/3 | 0 | 0 | [page](https://hooligandiscs.com/collections/yeet-12-5-1-3) |
+| Infinite Discs | Alpaca | 128019b91e89 | 3/3/0/1 | 3/3/0/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-alpaca) |
+| Infinite Discs | Anubis | 4fe840834d2a | 5/5/0/0 | 5/5/0/0 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-anubis) |
+| Infinite Discs | Aztec | 0fef741a0014 | 10/5/-1/2 | 10/5/-1/2 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-aztec) |
+| Infinite Discs | Cavalier | 9b0208313a13 | 5/5/0/2 | 5/5/0/2 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-cavalier) |
+| Infinite Discs | Centurion | 93498283f1d5 | 7/5/-1/1.5 | 7/5/-1/2 | 0 | 0.5 | [page](https://infinitediscs.com/infinite-discs-centurion) |
+| Infinite Discs | Chariot | 5ce0376e7aa9 | 5/5/0/1 | 5/5/0/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-chariot) |
+| Infinite Discs | Conqueror | 83a791e13e32 | 12/4/0/4 | 12/4/0/4 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-conqueror) |
+| Infinite Discs | Czar | 95fdfcb5725d | 11/5/-1/3 | 11/5/-1/3 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-czar) |
+| Infinite Discs | Dynasty | ccdaeaed5b0a | 9/5/-1/2 | 9/5/-1/2 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-dynasty) |
+| Infinite Discs | Exodus | b5f1e7d00add | 7/5/-0.5/2 | 7/5/-0.5/2 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-exodus) |
+| Infinite Discs | Galleon | 1cd27abfe255 | 6/3/0/5 | 6/3/0/5 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-galleon) |
+| Infinite Discs | Glyph | 33c0f897b88c | 1/5/0/1 | 1/5/0/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-glyph) |
+| Infinite Discs | Inca | 83b5e682aece | 5/5/0/3 | 5/5/0/3 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-inca) |
+| Infinite Discs | Khonsu | 292a0e4634c6 | 5/5/-3/0 | 5/5/-3/0 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-khonsu) |
+| Infinite Discs | Kon Tiki | be1edef3b0f9 | 4/5/-3/0 | 4/5/-3/0 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-kon-tiki) |
+| Infinite Discs | Maya | f3cbde469681 | 11/5/-3/1 | 11/5/-3/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-maya) |
+| Infinite Discs | Myth | dae6c2a830cc | 2/3/0/2 | 2/3/0/2 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-myth) |
+| Infinite Discs | Ra | 30e34279f859 | 5/4/0/2.5 | 5/4/0/2.5 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-ra) |
+| Infinite Discs | Raze | 3ab497a8567e | 3/2/0/3 | 3/2/0/3 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-raze) |
+| Infinite Discs | Roman | 22e837ec98b4 | 10/4/0/3 | 10/4/0/3 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-roman) |
+| Infinite Discs | Ruin | ec20462876e6 | 3/3/0/3 | 3/3/0/3 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-ruin) |
+| Infinite Discs | Scarab | 28543c47fb7f | 2/4/0/1 | 2/4/0/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-scarab) |
+| Infinite Discs | Scepter | 5a24826b1a8e | 9/4/0/4 | 9/4/0/4 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-scepter) |
+| Infinite Discs | Slab | 79278cd60129 | 12/3/0/4 | 11/3/0/4 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-slab) |
+| Infinite Discs | Sphinx | e748e266da63 | 9/6/-3/1 | 9/6/-3/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-sphinx) |
+| Infinite Discs | Squire | 288991278acd | 8/6/0/1 | 8/6/0/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-squire) |
+| Infinite Discs | Sultan | 3ac6db46e507 | 12/5/-2/2 | 12/5/-2/2 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-sultan) |
+| Infinite Discs | Tomb | c4ce17504acf | 3/4/0/1 | 3/4/0/1 | 0 | 0 | [page](https://infinitediscs.com/infinite-discs-tomb) |
 | Innova | Aero | ab6dabd8eee3 | 3/6/0/0 | 3/6/0/0 | 0 | 0 | [page](https://www.innovadiscs.com/disc/aero/) |
 | Innova | Alien | 160157f25794 | 4/2/0/1 | 4/2/0/1 | 0 | 0 | [page](https://www.innovadiscs.com/disc/alien/) |
 | Innova | Animal | 6c65e5f50643 | 2/1/0/1 | 2/1/0/1 | 0 | 0 | [page](https://www.innovadiscs.com/disc/animal/) |
@@ -746,3 +926,147 @@ Complete comparison ledger, including matches and differences below the flag thr
 | Lone Star Discs | Brazos | e1e445740df8 | 7/5/0/3 | 7/5/0/3 | 0 | 0 | [page](https://www.lonestardiscs.com/products/brazos-fairway-driver) |
 | Lone Star Discs | Bull Snake | fb574df2edf6 | 3/2/0/4 | 3/2/0/4 | 0 | 0 | [page](https://www.lonestardiscs.com/products/bull-snake-putter) |
 | Lone Star Discs | Cactus | ea3ac774d5fa | 10/5/-2/2 | 10/5/-2/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/cactus) |
+| Lone Star Discs | Chuck | 15999f8fc3b8 | 5/5/-2/1 | 5/5/-2/1 | 0 | 0 | [page](https://www.lonestardiscs.com/products/chuck-5-5-2-1) |
+| Lone Star Discs | Chupacabra | f5ab07595ce1 | 9/3/0/4 | 9/3/0/4 | 0 | 0 | [page](https://www.lonestardiscs.com/products/chupacabra-fairway-driver) |
+| Lone Star Discs | Copperhead | 4ff6c4065cfd | 3/4/0/2 | 3/4/0/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/copperhead-putter) |
+| Lone Star Discs | Crockett | d88ad879dad8 | 13/5/-1/3 | 13/4/-1/3 | 0 | 0 | [page](https://www.lonestardiscs.com/products/crockett-distance-driver) |
+| Lone Star Discs | Curl | fe07d198be92 | 11/5/-1/2 | 11/5/-1/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/curl-distance-driver) |
+| Lone Star Discs | Desperado | 9a7ba20bf55b | 9/5/-2/1 | 9/5/-2/1 | 0 | 0 | [page](https://www.lonestardiscs.com/products/desperado-9-5-2-1-copy) |
+| Lone Star Discs | Dos X | 3e85af4e2704 | 8/4/-1/2 | 8/4/-1/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/dos-x) |
+| Lone Star Discs | Frio | 86147cd23dc6 | 7/5/-1/1 | 7/5/-1/1 | 0 | 0 | [page](https://www.lonestardiscs.com/products/frio-fairway-driver) |
+| Lone Star Discs | Growler | 37043487ef65 | 12/6/-3/2 | 12/6/-3/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/growler-distance-driver) |
+| Lone Star Discs | Houston | 52acd129c81f | 5/5/0/2 | 5/5/0/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/coming-soon-houston-5-5-0-2-copy) |
+| Lone Star Discs | Lariat | 14dbfe1e1be9 | 9/5/-1/1 | 9/5/-1/1 | 0 | 0 | [page](https://www.lonestardiscs.com/products/lariat-fairway-driver) |
+| Lone Star Discs | Lone Wolf | 78da2edc3101 | 5/5/-3/1 | 5/5/-4/1 | -1 | 0 | [page](https://www.lonestardiscs.com/products/lone-wolf-midrange) |
+| Lone Star Discs | Nimitz | 849d8add9fb2 | 11/5/-1/3 | 11/5/-1/3 | 0 | 0 | [page](https://www.lonestardiscs.com/products/nimitz-distance-driver) |
+| Lone Star Discs | Rio Grande | 5bf6b88bf8bf | 7/5/-2/1 | 7/5/-2/1 | 0 | 0 | [page](https://www.lonestardiscs.com/products/rio-grande-7-5-2-1) |
+| Lone Star Discs | Seguin | c603780885f5 | 13/5/0/3 | 13/5/0/3 | 0 | 0 | [page](https://www.lonestardiscs.com/products/seguin-distance-driver) |
+| Lone Star Discs | Spur | 5928e2030c0c | 9/4/0/3 | 9/4/0/3 | 0 | 0 | [page](https://www.lonestardiscs.com/products/spur-fairway-driver) |
+| Lone Star Discs | Tombstone | 515eb4c8c278 | 13/4/0/4 | 13/4/0/4 | 0 | 0 | [page](https://www.lonestardiscs.com/products/tombstone-distance-driver) |
+| Lone Star Discs | Tumbleweed | fbf0979e6b99 | 10/6/-4/1 | 10/6/-3/1 | 1 | 0 | [page](https://www.lonestardiscs.com/products/tumbleweed) |
+| Lone Star Discs | Walker | dfd84d889d8e | 5/3/0/4 | 5/5/0/4 | 0 | 0 | [page](https://www.lonestardiscs.com/products/walker-midrange) |
+| Lone Star Discs | Warbird | fb0149cc2475 | 12/6/-1/3 | 12/6/-1/3 | 0 | 0 | [page](https://www.lonestardiscs.com/products/warbird-distance-driver) |
+| Lone Star Discs | Wrangler | 10936a66e929 | 9/5/-1/2 | 9/5/-1/2 | 0 | 0 | [page](https://www.lonestardiscs.com/products/wrangler-fairway-driver-9048) |
+| Lone Star Discs | Yellow Rose | 5aeb9a1e3006 | 2/4/0/1 | 2/4/0/1 | 0 | 0 | [page](https://www.lonestardiscs.com/products/yellow-rose-putter-9063) |
+| MVP | Amp | 0b67cb94c19c | 8/5/-1.5/1 | 8/5/-1.5/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/amp/) |
+| MVP | Anode | f4d8043218cf | 3/3/0/0.5 | 2.5/3/0/0.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/anode/) |
+| MVP | Axis | 1377a0ace46f | 5/5/-1/1 | 5/5/-1/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/axis/) |
+| MVP | Catalyst | 60871e273e6c | 13/5.5/-2/2 | 13/5.5/-2/2 | 0 | 0 | [page](https://mvpdiscsports.com/discs/catalyst/) |
+| MVP | Control | 2cae5224a067 | 10/5/-0.5/2 | 10/5/-0.5/2 | 0 | 0 | [page](https://mvpdiscsports.com/discs/control/) |
+| MVP | Detour | 999654ad76d9 | 5/5/-2/1 | 5/5/-2/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/detour/) |
+| MVP | Energy | 45546ba2fc4d | 13/4/0/4 | 13/4/0/4 | 0 | 0 | [page](https://mvpdiscsports.com/discs/energy/) |
+| MVP | Ion | 16cf27567840 | 2.5/3/0/1.5 | 2.5/3/0/1.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/ion/) |
+| MVP | Limit | 15bfc46103c6 | 14.5/3.5/0/4 | 14.5/3.5/0/4 | 0 | 0 | [page](https://mvpdiscsports.com/discs/limit/) |
+| MVP | Matrix | 614396bf6719 | 5/4/-1/2 | 5/4/-1/2 | 0 | 0 | [page](https://mvpdiscsports.com/discs/matrix/) |
+| MVP | Motion | 3c8852a77e48 | 9/3.5/0/4 | 9/3.5/0/4 | 0 | 0 | [page](https://mvpdiscsports.com/discs/motion/) |
+| MVP | Nomad | 3b2d2e555496 | 2/4/0/1 | 2/4/0/1.5 | 0 | 0.5 | [page](https://mvpdiscsports.com/discs/nomad/) |
+| MVP | Ohm | 8bb7ec2aad8b | 2/5/0/1 | 2/5/0/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/ohm/) |
+| MVP | Orbital | 7123593187b4 | 11/5/-4.5/1 | 11/5/-4.5/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/orbital/) |
+| MVP | Particle | d318f15ef1aa | 3/3/0/2.5 | 3/3/0/2.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/particle/) |
+| MVP | Phase | f2b9354edb42 | 11/3.5/0/4 | 11/3.5/0/4 | 0 | 0 | [page](https://mvpdiscsports.com/discs/phase/) |
+| MVP | Relativity | ea64637b006d | 14.5/5.5/-3/1.5 | 14.5/5.5/-3/1.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/relativity/) |
+| MVP | Relay | 545b0bfb6766 | 6/5/-2/1 | 6/5/-2/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/relay/) |
+| MVP | Shock | bd52206e5d49 | 8/5/0/2.5 | 8/5/0/2.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/shock/) |
+| MVP | Signal | 71210e350f70 | 6/5/-3/1 | 6/5/-3/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/signal/) |
+| MVP | Spin | 234547a0a9d2 | 2.5/4/-2/0 | 2.5/4/-2/0 | 0 | 0 | [page](https://mvpdiscsports.com/discs/spin/) |
+| MVP | Stasis | e9974b90612a | 2/1/0/2.5 | 2/1/0/2.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/stasis/) |
+| MVP | Switch | a91450732e20 | 6.5/5/-1.5/1 | 6.5/5/-1.5/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/switch/) |
+| MVP | Tangent | e961f238e2cf | 4/4/-0.5/0.5 | 4/4/-0.5/0.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/tangent/) |
+| MVP | Terra | 213a3133ccee | 8/5/0/3 | 8/5/0/3 | 0 | 0 | [page](https://mvpdiscsports.com/discs/terra/) |
+| MVP | Trail | 4051d328301c | 10/5/-1/1 | 10/5/-1/1 | 0 | 0 | [page](https://mvpdiscsports.com/discs/trail/) |
+| MVP | Uplink | 4e2c0a6fd334 | 5/5/-3/0.5 | 5/5/-3/0.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/uplink/) |
+| MVP | Vector | f374c49d04da | 5/4/0/2 | 5/4/0/2 | 0 | 0 | [page](https://mvpdiscsports.com/discs/vector/) |
+| MVP | Watt | ce1b0eb592a0 | 2/5/-0.5/0.5 | 2/5/-0.5/0.5 | 0 | 0 | [page](https://mvpdiscsports.com/discs/watt/) |
+| MVP | Zenith | 00d950e101d6 | 11/5/-0.5/2 | 11/5/-0.5/2 | 0 | 0 | [page](https://mvpdiscsports.com/discs/zenith/) |
+| Millennium | Draco | 308d1731ff3c | 9/3/0/4 | 9/3/0/4 | 0 | 0 | [page](https://www.golfdisc.com/discs/draco/) |
+| Millennium | Falcon | a3bb67298333 | 13/5/-2/2 | 13/5/-2/2 | 0 | 0 | [page](https://www.golfdisc.com/discs/standard-falcon/) |
+| Millennium | Solstice | 257c607c36c1 | 5/4/0/3 | 5/4/0/3 | 0 | 0 | [page](https://www.golfdisc.com/discs/solstice/) |
+| Millennium | Taurus | ed4c8caa05b5 | 4/4/0/4 | 4/4/0/4 | 0 | 0 | [page](https://www.golfdisc.com/discs/taurus/) |
+| Mint Discs | Bobcat | 10c2e3829ca2 | 5/4/0/2.5 | 5/4/0/2.5 | 0 | 0 | [page](https://mintdiscs.com/products/bobcat-apex-plastic-tacocat) |
+| Mint Discs | Goat (aka G.O.A.T, aka The GOAT, aka The Greatest of All Time) | f7fe6bed7cd0 | 12/4/-1/3 | 12/4/-1/3 | 0 | 0 | [page](https://mintdiscs.com/products/goat-vault-collection) |
+| Mint Discs | Grackle | 4a43160bbb67 | 7/5/-1/2 | 7/5/-1/2 | 0 | 0 | [page](https://mintdiscs.com/products/grackle-vault-collection) |
+| Mint Discs | Idol | f79387f2ecff | 13/5/-1/3 | 13/5/-1/2.5 | 0 | -0.5 | [page](https://mintdiscs.com/products/idol-apex-firm-ap-id01-25) |
+| Mint Discs | Jackalope | 671fd49ee65e | 8/5/-2/1 | 8/5/-2/1 | 0 | 0 | [page](https://mintdiscs.com/products/jackalope-nocturnal-glow-plastic-tacolope) |
+| Mint Discs | Lasso | bceba4e8740d | 3/3/0/2 | 3/3/0/2 | 0 | 0 | [page](https://mintdiscs.com/products/lasso-apex-plastic-dust-up-by-brad-bond) |
+| Mint Discs | Mustang | 7cab0cc4ebb0 | 5/5/0/2 | 5/4/0/2 | 0 | 0 | [page](https://mintdiscs.com/products/mustang-apex-plastic-ap-mt04-26) |
+| Mint Discs | Phoenix | e25d935fbdd5 | 9/3/0/4 | 9/3/0/4 | 0 | 0 | [page](https://mintdiscs.com/products/phoenix-vault-collection) |
+| Mint Discs | Pizza (renamed from Mystery Box (2025)) | c25ced66a19a | 8/5/-1/2 | 8/5/-1/2 | 0 | 0 | [page](https://mintdiscs.com/products/pizza-name-this-new-plastic) |
+| Mint Discs | Rodeo | 83ff3c29232f | 5/5/-1/3 | 5/5/-1/3 | 0 | 0 | [page](https://mintdiscs.com/products/rodeo-royal-plastic-ro-rd01-26) |
+| Mint Discs | UFO | ae06c4e2e676 | 2/3/0/1 | 2/3/0/1 | 0 | 0 | [page](https://mintdiscs.com/products/ufo-vault-collection) |
+| Prodigy | A4 | 6535d0ea9c2e | 4/3/-1/3 | 4/3/-1/3 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-a4-300-plastic) |
+| Prodigy | Archive | d3e045b2aa49 | 5/5/0/2 | 5/5/0/2 | 0 | 0 | [page](https://prodigydisc.com/products/archive-400-plastic-test-run-stamp) |
+| Prodigy | D2 Pro | 732b67fe05bd | 13/5/-1/3 | 12/5/-1/3 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-d2-pro-750-plastic) |
+| Prodigy | D4 | a85de7c64d5b | 12/5/-2/2 | 12/5/-2/2 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-d4-400-plastic) |
+| Prodigy | D6 | 9c5d47df33a7 | 12/6/-3/2 | 12/6/-3/2 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-d6-400-plastic) |
+| Prodigy | FX-4 | c73c0fcdb4b8 | 9/5/-2/2 | 9/5/-2/2 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-fx-4-400-plastic) |
+| Prodigy | Feedback | 974b9557d6a4 | 9/5/-1/3 | 9/5/-1/3 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-feedback-750-plastic) |
+| Prodigy | Good Boy (renamed from P Model S) | f62919664dad | 3/5/0/2 | 3/5/0/2 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-good-boy-300-plastic) |
+| Prodigy | H4 V2 | 10e64029ec84 | 10/5/-2/1 | 10/5/-2/1 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-h4-v2-400-plastic) |
+| Prodigy | H5 | 9cabc38157a7 | 10/5/-3/1 | 10/5/-3/1 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-h5-300-kaleidoscope-stamp) |
+| Prodigy | H6 | 36a715c24f36 | 11/5/-3/1 | 11/5/-3/1 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-h6-400-plastic) |
+| Prodigy | H7 | 9a7ff80ce89a | 10/5/-4/1 | 10/5/-4/1 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-h7-400-plastic) |
+| Prodigy | M1 | a71e7b24a226 | 5/4/0/3 | 5/4/0/3 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-m1-300-plastic) |
+| Prodigy | M2 (originally M3) | c45630643a19 | 5/4/0/2 | 5/4/0/2 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-m2-400-plastic) |
+| Prodigy | M5 | e905af456041 | 5/5/-3/1 | 5/5/-2/0.5 | 1 | -0.5 | [page](https://prodigydisc.com/products/prodigy-m5-400-plastic) |
+| Prodigy | MX-1 | fa0549a34d1a | 5/3/0/4 | 5/3/0/4 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-mx-1-500-plastic) |
+| Prodigy | MX-3 | 3205dcedf6c3 | 5/4/0/1 | 5/4/0/1 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-mx-3-750-plastic) |
+| Prodigy | PA-5 | a7b3ff57c5ae | 3/4/-2/0.5 | 3/4/-2/0.5 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-pa-5-300-plastic) |
+| Prodigy | PX-3 | ef746b9a966a | 3/3/0/2 | 3/3/0/2 | 0 | 0 | [page](https://prodigydisc.com/products/prodigy-px-3-500-plastic) |
+| RPM | Huia (DGFD1) | 5fb8291a41d2 | 7/5/0/2 | 7/5/0/2 | 0 | 0 | [page](https://www.rpmdiscs.com/product/huia/) |
+| RPM | Kotuku (MR3) | 69f67126aa30 | 5/5/0/2 | 5/5/0/2 | 0 | 0 | [page](https://www.rpmdiscs.com/product/kotuku/) |
+| RPM | Pekapeka (DGFD2) | 946d315cf098 | 9/5/-3/1 | 9/6/-3/1 | 0 | 0 | [page](https://www.rpmdiscs.com/product/pekapeka/) |
+| RPM | Piwakawaka (MR1, originally Arcturus) | 23439096c25d | 6/6/-3/0 | 6/6/-3/0 | 0 | 0 | [page](https://www.rpmdiscs.com/product/piwakawaka/) |
+| RPM | Ruru (PA2) | a78c0a2cd01a | 2/3/0/1 | 2/3/0/1 | 0 | 0 | [page](https://www.rpmdiscs.com/product/ruru/) |
+| RPM | Takapu (PA3) | d9a027776f1e | 2/3/0/2 | 2/3/0/2 | 0 | 0 | [page](https://www.rpmdiscs.com/product/takapu/) |
+| RPM | Tara Iti (Fairy Tern, DGFD3) | 3415e87bf14b | 10/5/0/2 | 10/5/0/2 | 0 | 0 | [page](https://www.rpmdiscs.com/product/tara-iti/) |
+| Sacred Discs | Arrowhead | 9a585b59c36a | 4/3/0/1 | 4/3/0/1 | 0 | 0 | [page](https://sacreddiscs.com/products/arrowhead-midrange) |
+| Sacred Discs | Gnome | 5f1f9600e758 | 2/3/0/1 | 2/2/0/1 | 0 | 0 | [page](https://sacreddiscs.com/products/gnome-putt-and-approach) |
+| Sacred Discs | Oracle | e9a73b452f48 | 7/5/-2/2 | 7/5/-2/2 | 0 | 0 | [page](https://sacreddiscs.com/products/oracle-fairway-driver) |
+| Sacred Discs | Starship | d4118ad32ca0 | 13/6/-1/2 | 13/6/-1/2 | 0 | 0 | [page](https://sacreddiscs.com/products/starship-distance-driver) |
+| Streamline | Ascend | 4822c2f398f0 | 6/5/-3/0.5 | 6/5/-3/0.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/ascend/) |
+| Streamline | Boost | b71584bda7ab | 9.5/4/0/2.5 | 9.5/4/0/2.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/boost/) |
+| Streamline | Drift | 228da5fb5d15 | 7/5/-2/1 | 7/5/-2/1 | 0 | 0 | [page](https://streamlinediscs.com/discs/drift/) |
+| Streamline | Echo | c25c9d1a9d02 | 5/5/-1.5/1 | 5/5/-1.5/1 | 0 | 0 | [page](https://streamlinediscs.com/discs/echo/) |
+| Streamline | Engine | 6a9d87229e9b | 13/5/-0.5/2 | 13/5/-0.5/2 | 0 | 0 | [page](https://streamlinediscs.com/discs/engine/) |
+| Streamline | Flare | df4c47626f73 | 9/4/0/3.5 | 9/4/0/3.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/flare/) |
+| Streamline | Jet | c7a63698a165 | 11/5/-3/2 | 11/5/-3/2 | 0 | 0 | [page](https://streamlinediscs.com/discs/jet/) |
+| Streamline | Lift | ef1e45bd3bee | 9/5/-2/1.5 | 9/5/-2/1.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/lift/) |
+| Streamline | Parachute | 9fe65c24eadf | 1/7/0/0.5 | 1/7/0/0.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/parachute/) |
+| Streamline | Pilot | 71fcb40815bd | 2/5/-1/1 | 2/5/0/1 | 1 | 0 | [page](https://streamlinediscs.com/discs/pilot/) |
+| Streamline | Range | 9bf86a5ac536 | 2/1/-0.5/0.5 | 2/1/-0.5/0.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/range/) |
+| Streamline | Runway | bbb2a6df791a | 5/4/0/3.5 | 5/4/0/3.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/runway/) |
+| Streamline | Shift | 986da5e91ec7 | 9/5/-3/1 | 9/5/-3/1 | 0 | 0 | [page](https://streamlinediscs.com/discs/shift/) |
+| Streamline | Stabilizer | 91d7bcf5e5d6 | 3/3.5/0/3 | 3/3.5/0/3 | 0 | 0 | [page](https://streamlinediscs.com/discs/stabilizer/) |
+| Streamline | Trace | 518d7ced84e6 | 11/5/-1/2 | 11/5/-1/2 | 0 | 0 | [page](https://streamlinediscs.com/discs/trace/) |
+| Streamline | Turbulence | 8cf244c600e8 | 7/2/0/3.5 | 7/2/0/3.5 | 0 | 0 | [page](https://streamlinediscs.com/discs/turbulence/) |
+| Trash Panda Disc Golf | Dune | 2530fb6f044a | 5/5/-1/0 | 5/5/-1/0 | 0 | 0 | [page](https://trashpandadiscgolf.com/products/dune-premium-recycled-disc-golf-midrange) |
+| Trash Panda Disc Golf | Ozone | cee94badffd2 | 8/6/-3/1 | 8/6/-3/1 | 0 | 0 | [page](https://trashpandadiscgolf.com/products/ozone-premium-recycled-disc-golf-fairway-driver) |
+| Trash Panda Disc Golf | Procyon | 3340cc70378d | 11.5/4/-1/2 | 11.5/4/-1/2 | 0 | 0 | [page](https://trashpandadiscgolf.com/products/procyon) |
+| Westside Discs | Anvil | 5d7a14edf8b2 | 4/2/0/4 | 4/2/0/4 | 0 | 0 | [page](https://westsidediscs.com/collections/anvil) |
+| Westside Discs | Bard (Laulaja1) | 4edf91d03b3e | 5/4/0/3 | 5/4/0/3 | 0 | 0 | [page](https://westsidediscs.com/collections/bard) |
+| Westside Discs | Bear | 33e0b9f754ff | 8/6/-0.5/2.5 | 8/6/-0.5/2.5 | 0 | 0 | [page](https://westsidediscs.com/collections/bear) |
+| Westside Discs | Boatman (Tuonelan Lautturi1) | 3783caf73348 | 11/5/0/2 | 11/5/0/2 | 0 | 0 | [page](https://westsidediscs.com/collections/boatman) |
+| Westside Discs | Catapult (Katapultt1) | be101e170a04 | 14/4/-0.5/3 | 14/4/-0.5/3 | 0 | 0 | [page](https://westsidediscs.com/collections/catapult) |
+| Westside Discs | Crown (Kruunu1) | 3857680e6a88 | 3/4/0/1 | 3/4/0/1 | 0 | 0 | [page](https://westsidediscs.com/collections/crown) |
+| Westside Discs | Destiny (Kohtalo1) | ce9d67c78299 | 14/6/-2/3 | 14/6/-2/3 | 0 | 0 | [page](https://westsidediscs.com/collections/destiny) |
+| Westside Discs | Fortress (Linnoitus1) | fbf5c150f835 | 10/4/0/3 | 10/4/0/3 | 0 | 0 | [page](https://westsidediscs.com/collections/fortress) |
+| Westside Discs | Hatchet (Sotakipves1) | 4b35eda75a85 | 9/6/-2/1 | 9/6/-2/1 | 0 | 0 | [page](https://westsidediscs.com/collections/hatchet) |
+| Westside Discs | King (Pohjolan Isäntä1) | 1ff054d551cd | 14/5/-1.5/3 | 14/5/-1.5/3 | 0 | 0 | [page](https://westsidediscs.com/collections/king) |
+| Westside Discs | Longbowman (Jousimies1) | 91de6a0c5a3a | 9/4/0/3 | 9/4/0/3 | 0 | 0 | [page](https://westsidediscs.com/collections/longbowman) |
+| Westside Discs | Northman (Pohjan Poika1) | fc817a019b63 | 10/5/-1/2 | 10/5/-1/2 | 0 | 0 | [page](https://westsidediscs.com/collections/northman) |
+| Westside Discs | Pine (Hornan Honka1) | 6b80eadc05dc | 5/4/0/2 | 5/4/0/2 | 0 | 0 | [page](https://westsidediscs.com/collections/pine) |
+| Westside Discs | Prince | b8107b36085a | 13/5/0/3 | 13/5/0/3 | 0 | 0 | [page](https://westsidediscs.com/collections/prince) |
+| Westside Discs | Queen (Pohjolan Emäntä1) | 0197e9781f90 | 14/5/-3/2 | 14/5/-3/2 | 0 | 0 | [page](https://westsidediscs.com/collections/queen) |
+| Westside Discs | Sampo | 6a88e115c5ef | 10/4/-1/2 | 10/4/-1/2 | 0 | 0 | [page](https://westsidediscs.com/collections/sampo) |
+| Westside Discs | Seer (Ennustaja1) | b77be8aa4630 | 7/5/-2/1 | 7/5/-2/1 | 0 | 0 | [page](https://westsidediscs.com/collections/seer) |
+| Westside Discs | Shield (Kilpi1) | 655327d2339f | 3/3/0/1 | 3/3/0/1 | 0 | 0 | [page](https://westsidediscs.com/collections/shield) |
+| Westside Discs | Sling (Linko1) | 617006feb51e | 5/5/0/1 | 5/5/0/1 | 0 | 0 | [page](https://westsidediscs.com/collections/sling) |
+| Westside Discs | Sorcerer (Tietäjä1) | 83a6d64ff7ab | 13/5/-0.5/3 | 13/5/-0.5/3 | 0 | 0 | [page](https://westsidediscs.com/collections/sorcerer) |
+| Westside Discs | Stag (Hiiden Hirvi1) | 63b0a8f399f6 | 8/6/-1/2 | 8/6/-1/2 | 0 | 0 | [page](https://westsidediscs.com/collections/stag) |
+| Westside Discs | Sword (Kalevan Miekka1) | 39ae398a3e43 | 12/5/-0.5/2 | 12/5/-0.5/2 | 0 | 0 | [page](https://westsidediscs.com/collections/sword) |
+| Westside Discs | Tide | a2b1070dc4c4 | 12/6/-0.5/3 | 12/6/-0.5/3 | 0 | 0 | [page](https://westsidediscs.com/collections/tide) |
+| Westside Discs | Tursas (Tursas1) | 65269132e9ef | 5/5/-2/1 | 5/5/-2/1 | 0 | 0 | [page](https://westsidediscs.com/collections/tursas) |
+| Westside Discs | Underworld (Manala1) | d3b86b33d170 | 7/6/-3/1 | 7/6/-3/1 | 0 | 0 | [page](https://westsidediscs.com/collections/underworld) |
+| Westside Discs | Vellamo | c34fdbba0a49 | 5/5.5/0/1.5 | 5/5.5/0/1.5 | 0 | 0 | [page](https://westsidediscs.com/collections/vellamo) |
+| Westside Discs | War Horse | e19ac2f13698 | 13/4/0/4 | 13/4/0/4 | 0 | 0 | [page](https://westsidediscs.com/collections/war-horse) |
+| Westside Discs | Warship (Pursi1) | e367cccfe875 | 5/6/0/1 | 5/6/0/1 | 0 | 0 | [page](https://westsidediscs.com/collections/warship) |

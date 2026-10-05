@@ -13,13 +13,39 @@ const div=(className,attributes={})=>{const node=document.createElement('div');n
 // focus, hover/touch targets and labels, so keyboard and screen-reader use stay intact.
 export class BagScene {
  constructor(root,{lookup,inspect}){
-  this.root=root;this.lookup=lookup;this.inspect=inspect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;
+  this.root=root;this.lookup=lookup;this.inspect=inspect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;this.top=false;this.slid=null;
   this.toggle=root.querySelector('[data-bag-toggle]');this.info=root.querySelector('[data-bag-lift-info]');this.canvas=root.querySelector('[data-bag-canvas]');
+  this.topToggle=root.querySelector('[data-bag-top-view]');
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
+  this.topToggle.addEventListener('click',()=>void this.setTopView(!this.top));
+  for(const type of ['pointerenter','focus'])this.topToggle.addEventListener(type,()=>void this.viewer?.prepareTopView());
   this.stage=div('bag-3d-stage');this.layer=div('bag-hit-layer',{role:'group','aria-label':'Your disc golf bag'});this.status=div('bag-3d-status',{role:'status'});
-  this.canvas.replaceChildren(this.stage,this.layer,this.status);
+  // A clicked disc slides out of the bag; this card covers it and carries its name.
+  this.card=div('bag-slide-out',{role:'button',tabindex:'-1','aria-hidden':'true','data-bag-slide-out':''});this.cardName=document.createElement('span');this.cardName.className='bag-slide-name';
+  this.card.append(this.cardName);
+  this.pockets=div('bag-pocket-labels',{'aria-hidden':'true'});
+  this.canvas.replaceChildren(this.stage,this.pockets,this.layer,this.card,this.status);
+  this.card.addEventListener('click',()=>this.openSlid());
+  this.card.addEventListener('keydown',event=>{
+   if(event.key==='Enter'||event.key===' '){event.preventDefault();this.openSlid();}
+   if(event.key==='Tab'){const disc=this.slid?.disc;event.preventDefault();this.slideIn();if(disc?.isConnected)this.tabFrom(disc,event.shiftKey);}
+  });
   const hoverOut=event=>{if(event.pointerType!=='touch' && this.lifted && document.activeElement!==this.lifted && (event.type==='pointerleave' || !event.target.closest('[data-physical-disc]')))this.settle(this.lifted);};
   this.canvas.addEventListener('pointermove',hoverOut);this.canvas.addEventListener('pointerleave',hoverOut);
+  // Clicking anywhere else slides the disc back in; the disc details panel and dialogs don't count.
+  document.addEventListener('pointerdown',event=>{
+   this.swallowClick=false;
+   // A second click on the same disc opens its details (its click handler does that).
+   if(!this.slid || event.target.closest?.('[data-bag-slide-out],#detail,dialog,[popover]') || event.target.closest?.('[data-physical-disc]')===this.slid.disc)return;
+   this.swallowClick=this.stage.contains(event.target);this.slideIn();
+  },true);
+  // Escape steps back one layer: the details panel (closed by the atlas), then the slid-out disc, then the top view.
+  document.addEventListener('keydown',event=>{
+   if(event.key!=='Escape' || !this.ready || !this.root.checkVisibility() || document.querySelector('dialog[open],:popover-open'))return;
+   const detail=document.querySelector('#detail');if(detail && !detail.hidden && !detail.inert)return;
+   if(this.slid){event.preventDefault();this.slideIn({focus:true});}
+   else if(this.top && !event.target.closest('[data-physical-disc]')){event.preventDefault();void this.setTopView(false);}
+  },true);
   addEventListener('atlas-theme-change',()=>this.viewer?.setAccentColor(accent()));
   matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>this.viewer?.setAnimated(!reduced()));
  }
@@ -37,8 +63,9 @@ export class BagScene {
     // Exposed for QA scripts that verify the rendered state matches the saved bag.
     Object.defineProperty(this.canvas,'bagViewer',{value:viewer,configurable:true});
     this.stage.addEventListener('bagviewlayout',()=>this.place());
-    this.stage.addEventListener('bagclick',()=>void this.setOpen(!this.open));
-    this.stage.addEventListener('bagdragstart',()=>this.clearLift());
+    // A click that only slid a disc back in leaves the flap alone.
+    this.stage.addEventListener('bagclick',()=>{if(this.swallowClick){this.swallowClick=false;return;}void this.setOpen(!this.open);});
+    this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.slideIn();});
     this.stage.addEventListener('bagviewererror',event=>{this.status.textContent=event.detail;});
     this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';
     if(this.data)this.draw();
@@ -58,7 +85,7 @@ export class BagScene {
  }
  bagColor(settings){const color=settings.bag_color || DEFAULT_BAG;return color===DEFAULT_BAG?null:color;}
  draw(){
-  this.clearLift();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);
+  this.clearLift();this.slideIn();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);this.items=items;
   // The default charcoal keeps the model's original tonal fabric.
   this.viewer.setBagColor(this.bagColor(settings));this.root.dataset.bagColor=this.viewer.bagColor;
   this.viewer.setBagLayout(layout);
@@ -76,28 +103,27 @@ export class BagScene {
    const item=byId.get(rect.id);
    if(!item){slot.setAttribute('aria-hidden','true');slot.append(div('bag-slot-hollow'));continue;}
    const mold=this.lookup(item.mold_id),title=mold?.catalogName||mold?.name||'Saved disc';
-   const disc=div('bag-physical-disc',{'data-physical-disc':item.id,'data-pocket':pocket,'data-slot-order':tabOrder.get(rect.key),role:'button',tabindex:'-1','aria-label':`${title}, ${item.plastic}, wear ${item.wear} of 10, ${item.weight_g} grams, ${pocketLabel(item.pocket)}. Enter to explore.`,'aria-describedby':'bagLiftInfo'});
+   const disc=div('bag-physical-disc',{'data-physical-disc':item.id,'data-pocket':pocket,'data-slot-order':tabOrder.get(rect.key),role:'button',tabindex:'-1','aria-label':`${title}, ${item.plastic}, wear ${item.wear} of 10, ${item.weight_g} grams, ${pocketLabel(item.pocket)}. Enter to slide it out.`,'aria-describedby':'bagLiftInfo'});
    disc.style.setProperty('--disc-color',item.color||'#e6c668');
    disc.addEventListener('pointerenter',event=>{if(event.pointerType!=='touch')this.lift(disc,item,title);});
    disc.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch' && document.activeElement!==disc)this.settle(disc);});
    disc.addEventListener('focus',()=>this.lift(disc,item,title));disc.addEventListener('blur',()=>this.settle(disc));
    disc.addEventListener('keydown',event=>{
-    if(event.key==='Tab'){
-     // Hit-layer paint order differs from the reading order; keep Tab in slot order.
-     const ordered=[...this.layer.querySelectorAll('[data-physical-disc]:not([aria-hidden="true"])')].sort((a,b)=>Number(a.dataset.slotOrder)-Number(b.dataset.slotOrder));
-     const next=ordered[ordered.indexOf(disc)+(event.shiftKey?-1:1)];
-     event.preventDefault();if(next)next.focus({preventScroll:true});else (event.shiftKey?document.querySelector('#bagSort'):this.toggle).focus({preventScroll:true});
-    }
-    if(event.key==='Enter'||event.key===' '){event.preventDefault();if(this.reachable(disc))this.inspect(mold);}
+    if(event.key==='Tab'){event.preventDefault();this.tabFrom(disc,event.shiftKey);}
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();this.slideOut(disc,item,title);}
     if(event.key==='Escape'){this.settle(disc);this.toggle.focus();}
    });
-   disc.addEventListener('click',event=>{if(!this.reachable(disc))return;
-    if(event.pointerType==='touch' && this.tapped!==disc){this.tapped=disc;this.lift(disc,item,title);return;}
-    this.inspect(mold);
-   });
+   // One click (or tap) slides the disc out; clicking the slid-out disc opens its details.
+   disc.addEventListener('click',()=>this.slideOut(disc,item,title));
    slot.append(disc);
   }
   this.place();this.interactive(!this.running);
+ }
+ // Hit-layer paint order differs from the reading order; keep Tab in slot order.
+ tabFrom(disc,back){
+  const ordered=[...this.layer.querySelectorAll('[data-physical-disc]:not([aria-hidden="true"])')].sort((a,b)=>Number(a.dataset.slotOrder)-Number(b.dataset.slotOrder));
+  const next=ordered[ordered.indexOf(disc)+(back?-1:1)];
+  if(next)next.focus({preventScroll:true});else (back?document.querySelector('#bagSort'):this.toggle).focus({preventScroll:true});
  }
  // Main discs sit behind the flap, so they only respond while the bag is open.
  reachable(disc){return this.ready && !this.running && (this.open || disc.dataset.pocket!=='main');}
@@ -110,10 +136,56 @@ export class BagScene {
    const slot=this.slotsByKey.get(rect.key);if(!slot)continue;
    Object.assign(slot.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
   }
+  this.placeCard();this.placePockets();
+ }
+ slideOut(disc,item,title){
+  if(!this.reachable(disc) || this.viewer.cameraMoving)return;
+  if(this.slid?.disc===disc){this.openSlid();return;}
+  this.clearLift();
+  this.slid={disc,item,title,mold:this.lookup(item.mold_id)};
+  this.cardName.textContent=title;this.card.setAttribute('aria-label',`${title}, out of the bag. Enter for disc details, Escape to put it back.`);
+  this.card.style.setProperty('--disc-color',item.color||'#e6c668');
+  this.root.dataset.slide='out';this.card.setAttribute('aria-hidden','false');this.card.tabIndex=0;
+  void this.viewer.slideDisc(disc.dataset.physicalDisc,{instant:reduced()});
+  this.placeCard();this.card.focus({preventScroll:true});
+ }
+ slideIn({focus=false}={}){
+  const slid=this.slid;if(!slid)return;this.slid=null;
+  delete this.root.dataset.slide;this.card.setAttribute('aria-hidden','true');this.card.tabIndex=-1;
+  if(this.viewer?.slidDisc)void this.viewer.slideDisc(null,{instant:reduced()});
+  if(focus)(slid.disc.isConnected && this.reachable(slid.disc)?slid.disc:this.toggle).focus({preventScroll:true});
+ }
+ openSlid(){if(this.slid?.mold)this.inspect(this.slid.mold,this.slid.item);}
+ // The card covers the slid-out disc at its resting place; the name sits under it.
+ placeCard(){
+  const rect=this.slid && this.viewer?.slideRect();if(!rect)return;
+  Object.assign(this.card.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
+ }
+ async setTopView(on){
+  if(!this.ready || on===this.top)return;
+  this.top=on;this.slideIn();this.clearLift();
+  this.topToggle.setAttribute('aria-pressed',String(on));this.root.dataset.camera='moving';
+  const view=await this.viewer.setTopView(on,{instant:reduced()});
+  if(view!==this.top)return;
+  this.root.dataset.camera=on?'top':'front';this.place();
+ }
+ // Top view: each pocket is named, with the discs it holds.
+ placePockets(){
+  if(!this.top || !this.viewer || !this.items){this.pockets.replaceChildren();return;}
+  const rects=this.viewer.pocketRects(),names={main:[],putter:[],goto:[]};
+  for(const item of this.items)if(item.in_bag!==false)names[item.pocket]?.push(this.lookup(item.mold_id)?.catalogName || this.lookup(item.mold_id)?.name || 'Saved disc');
+  const labels=[['putter','Top pocket · Putters',rects.putter],['goto','Front pocket · Go-to',rects.goTo],['main','Main compartment',rects.main]];
+  this.pockets.replaceChildren(...labels.map(([pocket,heading,rect])=>{
+   const label=div('bag-pocket-label',{'data-pocket':pocket}),strong=document.createElement('strong'),list=document.createElement('span');
+   strong.textContent=heading;const shown=names[pocket].slice(0,4);
+   list.textContent=names[pocket].length?shown.join(', ')+(names[pocket].length>shown.length?` +${names[pocket].length-shown.length} more`:''):'Empty';
+   label.append(strong,list);label.style.setProperty('--x',rect.left+rect.width/2+'px');label.style.setProperty('--top',rect.top+'px');label.style.setProperty('--bottom',rect.top+rect.height+'px');
+   return label;
+  }));
  }
  lift(disc,item,title){
-  if(!this.reachable(disc))return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
-  this.lifted=disc;disc.classList.add('is-lifted');
+  if(!this.reachable(disc) || this.slid)return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
+  this.lifted=disc;disc.classList.add('is-lifted');this.root.dataset.lifted='';
   this.viewer.turnHome(reduced());this.viewer.liftDisc(disc.dataset.physicalDisc,{instant:reduced()});
   this.info.querySelector('strong').textContent=title;this.info.querySelector('span').textContent=`${item.plastic} · ${item.wear}/10 ${wearLabel(item.wear)} · ${item.weight_g} g · ${pocketLabel(item.pocket)}`;
   const note=this.info.querySelector('[data-lift-note]'),bias=this.info.querySelector('[data-lift-bias]');
@@ -123,12 +195,12 @@ export class BagScene {
  }
  settle(disc){
   disc.classList.remove('is-lifted');
-  if(this.lifted===disc){this.lifted=null;this.tapped=null;this.viewer?.liftDisc(null,{instant:reduced()});this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
+  if(this.lifted===disc){this.lifted=null;delete this.root.dataset.lifted;this.viewer?.liftDisc(null,{instant:reduced()});this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
  }
  clearLift(){if(this.lifted)this.settle(this.lifted);this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
  async reveal(){this.visible=true;await this.load();if(this.revealed||!this.ready||this.open||this.running||!this.visible)return;this.revealed=true;void this.setOpen(true);}
  async setOpen(open){
-  if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();this.toggle.setAttribute('aria-disabled','true');
+  if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();this.slideIn();this.toggle.setAttribute('aria-disabled','true');
   this.root.dataset.phase=open?'opening':'closing';this.interactive(false);
   await this.viewer.setCompartmentOpen(open,{instant:reduced()});
   if(epoch!==this.epoch)return;this.open=open;this.running=false;this.root.dataset.phase=open?'open':'closed';
@@ -136,8 +208,9 @@ export class BagScene {
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
  }
  reset(){
-  this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.clearLift();
-  if(this.ready){void this.viewer.setCompartmentOpen(false,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
+  this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();this.slideIn();
+  this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
+  if(this.ready){void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;
   if(this.root.dataset.engine!=='error')this.toggle.disabled=false;
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent='Open bag';this.toggle.setAttribute('aria-expanded','false');this.root.dataset.phase='closed';

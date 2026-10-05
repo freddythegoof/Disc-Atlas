@@ -45,6 +45,9 @@ import urllib.request
 
 FIELDS = ('speed', 'glide', 'turn', 'fade')
 NUMBER = r'[+\-]?(?:\d+(?:\.\d+)?|\.\d+)'
+# Decimal commas are unambiguous beside field labels. Commas separating a
+# quartet (e.g. Daredevil's 9,5,-2,2) must retain their delimiter meaning.
+FIELD_NUMBER = r'[+\-]?(?:\d+(?:[.,]\d+)?|[.,]\d+)'
 
 # Official domains are an explicit allowlist. Infinite's own brand is the ONLY
 # case where its retailer/catalog site is accepted as the manufacturer's site.
@@ -321,11 +324,11 @@ def noise(node):
 def tuples_in(text, d, slash=True):
     text = clean(text)
     out = []
-    forward = r'\bSpeed\s*[:=]?\s*(' + NUMBER + r').{0,60}?\bGlide\s*[:=]?\s*(' + NUMBER + r').{0,60}?\bTurn\s*[:=]?\s*(' + NUMBER + r').{0,60}?\bFade\s*[:=]?\s*(' + NUMBER + r')(?![\d.])'
-    reverse = r'(' + NUMBER + r')\s*Speed\b.{0,110}?(' + NUMBER + r')\s*Glide\b.{0,110}?(' + NUMBER + r')\s*Turn\b.{0,110}?(' + NUMBER + r')\s*Fade\b'
+    forward = r'\bSpeed\s*[:=]?\s*(' + FIELD_NUMBER + r').{0,60}?\bGlide\s*[:=]?\s*(' + FIELD_NUMBER + r').{0,60}?\bTurn\s*[:=]?\s*(' + FIELD_NUMBER + r').{0,60}?\bFade\s*[:=]?\s*(' + FIELD_NUMBER + r')(?![\d.,])'
+    reverse = r'(' + FIELD_NUMBER + r')\s*Speed\b.{0,110}?(' + FIELD_NUMBER + r')\s*Glide\b.{0,110}?(' + FIELD_NUMBER + r')\s*Turn\b.{0,110}?(' + FIELD_NUMBER + r')\s*Fade\b'
     for pattern in (forward, reverse):
         for match in re.finditer(pattern, text, re.I):
-            values = [float(v) for v in match.groups()]
+            values = [float(v.replace(',', '.')) for v in match.groups()]
             if valid_numbers(values):
                 out.append(values)
     if slash:
@@ -377,6 +380,41 @@ def parse_flights(source, d):
     heading_values = tuples_in(title, d)
     if heading_values:
         return finish(heading_values, 'manufacturer model title ratings')
+
+    # Infinite manufactures its own branded line and publishes its numbers on
+    # the same catalog used for other brands. Accept ONLY its own brand and
+    # the explicit Manufacturer Flight Numbers block, never reviewer averages.
+    if norm(d['brand']) == 'infinite discs':
+        primary = re.split(r'Reviewer\s+Flight\s+Numbers|Related\s+Products', clean(page.root.text()), maxsplit=1, flags=re.I)[0]
+        pattern = r'\bManufacturer\s+Flight\s+Numbers\s*:?\s*(' + NUMBER + r')\s*/\s*(' + NUMBER + r')\s*/\s*(' + NUMBER + r')\s*/\s*(' + NUMBER + r')(?!\d)'
+        values = [[float(v) for v in match.groups()] for match in re.finditer(pattern, primary, re.I)]
+        if values:
+            return finish(values, 'Infinite own brand: Manufacturer Flight Numbers block')
+
+    # Team Discraft's readable Wix model pages order five separate badges as
+    # speed, turn, Discraft stability, glide, fade. The fifth-scale stability
+    # value is NOT a turn/fade rating. Stop before the similar-disc section.
+    if norm(d['brand']) == 'discraft':
+        start = next(i for i, n in enumerate(nodes) if n in headings and clean(n.text()) == title)
+        parts = []
+        length = 0
+        for n in nodes[start:]:
+            if noise(n):
+                continue
+            if n.tag in ('h2', 'h3', 'p') and re.fullmatch(r'SIMILAR DISCS|AVAILABLE PLASTICS|SPECIFICATIONS|WHAT PEOPLE SAY', clean(n.text()), re.I):
+                break
+            direct = clean(' '.join(c for c in n.children if isinstance(c, str)))
+            parts.append(direct); length += len(direct)
+            if length > 1800:
+                break
+        chunk = clean(' '.join(parts))
+        values = {}
+        for field in FIELDS:
+            found = re.findall(r'(' + NUMBER + r')\s+' + field + r'\b', chunk, re.I)
+            if len(set(found)) == 1:
+                values[field] = float(found[0])
+        if len(values) == 4:
+            return finish([[values[k] for k in FIELDS]], 'Discraft model badges (separate stability excluded)')
 
     if norm(d['brand']) == 'daredevil discs':
         pattern = r'(' + NUMBER + r')\s*,\s*(' + NUMBER + r')\s*,\s*(' + NUMBER + r')\s*,\s*(' + NUMBER + r')\s*$'
@@ -613,17 +651,39 @@ class Resolver:
                     paths.insert(0, 'https://store.discgolf.com/collections/dga-disc-golf-discs')
                 for path in paths:
                     url = path if path.startswith('https://') else 'https://' + domain + path
-                    response = self.http.get(url)
-                    if not response['error'] and is_official(response['final_url'], brand):
+                    seen_pages = set()
+                    # Explicit next links only, at most six HTML catalog pages
+                    # per entry point. Shared across every mold of this brand.
+                    for _ in range(6):
+                        if url in seen_pages:
+                            break
+                        seen_pages.add(url)
+                        response = self.http.get(url)
+                        if response['error'] or not is_official(response['final_url'], brand):
+                            break
+                        next_page = None
+                        current = urllib.parse.urlsplit(response['final_url'])
                         for n in Page(response['html']).root.walk():
-                            if n.tag == 'a':
-                                target = urllib.parse.urljoin(response['final_url'], n.attrs.get('href', ''))
-                                if is_official(target, brand):
-                                    links.append((candidate_url(target), clean(n.text())))
+                            if n.tag != 'a':
+                                continue
+                            target = urllib.parse.urljoin(response['final_url'], n.attrs.get('href', ''))
+                            if not is_official(target, brand):
+                                continue
+                            label = clean(n.text())
+                            links.append((candidate_url(target), label))
+                            attrs = ' '.join([n.attrs.get('rel', ''), n.attrs.get('aria-label', ''), n.attrs.get('class', ''), label]).casefold()
+                            parsed = urllib.parse.urlsplit(target)
+                            query = urllib.parse.parse_qs(parsed.query)
+                            same_catalog = parsed.path == current.path or parsed.path.startswith(current.path.rstrip('/') + '/page/')
+                            if 'next' in attrs and same_catalog and ('page' in query or '/page/' in parsed.path) and target not in seen_pages:
+                                next_page = target
+                        if not next_page:
+                            break
+                        url = next_page
             self.indices[brand] = list(dict.fromkeys(links))
         matching = [u for u, label in self.indices[brand] if model_link(u, d, label)]
         # Model landing pages first; prefer ordinary products over tour/run releases.
-        return sorted(set(matching), key=lambda u: ('/products/' in u or '/product/' in u, len(u)))[:6]
+        return sorted(set(matching), key=lambda u: ('/products/' in u or '/product/' in u, len(u), u))[:6]
 
     def search(self, d):
         query = f'{d["brand"].strip()} {base_name(d["name"])} flight numbers'
@@ -680,7 +740,7 @@ class Resolver:
                             target = urllib.parse.urljoin(response['final_url'], n.attrs.get('href', ''))
                             if '/products/' in target and is_official(target, d['brand']) and model_link(target, d, clean(n.text())):
                                 links.append(candidate_url(target))
-                    for target in sorted(set(links), key=lambda u: (bool(re.search(r'tour|limited|special|shirt|towel|misprint', u, re.I)), len(u))):
+                    for target in sorted(set(links), key=lambda u: (bool(re.search(r'tour|limited|special|shirt|towel|misprint', u, re.I)), len(u), u)):
                         if followed >= 4:
                             break
                         if target not in pending and target not in seen:
@@ -792,6 +852,20 @@ def render_report(rows, stats, inputs, complete=True, command='', transport=None
     return '\n'.join(out) + '\n'
 
 
+def atomic_write(path, content):
+    """Replace a checkpoint; Windows readers can briefly lock the destination."""
+    temp = path.with_suffix(path.suffix + '.tmp')
+    temp.write_text(content, encoding='utf-8')
+    for attempt in range(6):
+        try:
+            temp.replace(path)
+            return
+        except PermissionError:
+            if attempt == 5:
+                raise
+            time.sleep(0.1 * 2 ** attempt)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--catalog', type=pathlib.Path, default=pathlib.Path('public/data.json'))
@@ -836,8 +910,7 @@ def main(argv=None):
         results = dict(stats=stats, complete=complete, inputs=[str(p) for p in inputs], results=rows)
         for path, content in [(args.cache / 'results.json', json.dumps(results, indent=2, ensure_ascii=False)),
                               (args.output, render_report(rows, stats, inputs, complete, command, http))]:
-            temp = path.with_suffix(path.suffix + '.tmp')
-            temp.write_text(content, encoding='utf-8'); temp.replace(path)
+            atomic_write(path, content)
 
     print(f'Catalog {stats["catalog"]}; excluded {stats["excluded"]}; unrated remaining {stats["unrated"]}; eligible {stats["eligible"]}; selected {len(pool)}', flush=True)
     interrupted = False
