@@ -129,16 +129,26 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-inline select:disabled {opacity:.6;cursor:progress}
 .bag-scene figcaption button {min-height:44px;font-size:12px;padding:10px 18px}
 .bag-scene-hint {font-size:11px;color:var(--muted);text-align:center;margin:16px 0 0;line-height:1.6}
-/* Slide-out: a clicked disc leaves the bag face-on; only its name shows. Click it again for details. */
+/* Disc names: one dark pill with white text in every theme, on hover and on a slid-out disc. */
+.bag-name-pill {position:absolute;z-index:3;width:max-content;max-width:min(260px,calc(100% - 12px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:calc(6px * var(--bag-type)) calc(13px * var(--bag-type));border:1px solid #ffffff24;border-radius:999px;background:#151a21f0;color:#fff;box-shadow:0 8px 22px #0000004d;font:600 calc(13px * var(--bag-type))/1.25 'Space Grotesk',sans-serif;letter-spacing:.1px;pointer-events:none}
+.bag-name-pill[hidden] {display:none}
+.bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both}
+.bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
+@keyframes bag-pill-in {from {opacity:0}}
+/* Slide-out: a clicked disc leaves its pocket; only its name shows. Click it again for details. */
 .bag-slide-out {position:absolute;z-index:2;display:none;border-radius:50%;cursor:pointer;outline:none;pointer-events:auto}
 .bag-scene[data-slide="out"] .bag-slide-out {display:block}
 .bag-slide-out:focus-visible {box-shadow:0 0 0 2px var(--lime),0 0 0 6px var(--accent-soft)}
-.bag-slide-name {position:absolute;left:50%;top:calc(100% + 12px);max-width:min(280px,calc(100vw - 48px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:calc(7px * var(--bag-type)) calc(14px * var(--bag-type));border:1px solid var(--line);border-left:4px solid var(--disc-color);border-radius:999px;background:var(--panel);color:var(--text);box-shadow:0 10px 28px var(--shadow);font:600 calc(15px * var(--bag-type))/1.25 'Space Grotesk',sans-serif;opacity:0;transform:translate(-50%,6px);transition:opacity 180ms 260ms,transform 360ms 260ms cubic-bezier(.2,1.35,.35,1)}
+.bag-slide-name {left:50%;top:calc(100% + 10px);transform:translate(-50%,4px);opacity:0;pointer-events:auto;cursor:pointer;transition:opacity 160ms,transform 260ms cubic-bezier(.2,1.35,.35,1)}
+.bag-slide-out[data-label="above"] .bag-slide-name {top:auto;bottom:calc(100% + 10px)}
 .bag-scene[data-slide="out"] .bag-slide-name {opacity:1;transform:translate(-50%,0)}
-.bag-slide-out:hover .bag-slide-name {border-color:var(--lime);border-left-color:var(--disc-color)}
-.bag-scene[data-slide="out"] .bag-lift-info {visibility:hidden}
+.bag-slide-out:hover .bag-slide-name {border-color:#ffffff66}
+/* The details card stays as the screen-reader description of the hovered or focused disc. */
+.bag-lift-info {clip-path:inset(50%);opacity:0}
+/* While the bag turns under a drag, targets and labels wait for it to settle. */
+.bag-scene[data-dragging] :is(.bag-hit-layer,.bag-name-pill,.bag-pocket-labels) {visibility:hidden}
 .bag-pocket-labels {transition:opacity 160ms}
-.bag-scene:is([data-slide="out"],[data-lifted]) .bag-pocket-labels {opacity:0}
+.bag-scene:is([data-slide="out"],[data-hovered]) .bag-pocket-labels {opacity:0}
 /* Top view: animated camera; pocket labels and the hit layer wait until it settles. */
 .bag-top-toggle {display:inline-flex;align-items:center;gap:8px}
 .bag-top-toggle svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
@@ -153,7 +163,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-label:is([data-pocket="putter"],[data-pocket="goto"]) {top:var(--bottom);transform:translate(-50%,10px)}
 .bag-pocket-label:is([data-pocket="putter"],[data-pocket="goto"])::after {bottom:auto;top:-5px;border-width:1px 0 0 1px}
 @keyframes bag-pocket-in {from {opacity:0}}
-@media(prefers-reduced-motion:reduce){.bag-slide-name {transition:none}.bag-pocket-label {animation:none}}
+@media(prefers-reduced-motion:reduce){.bag-slide-name {transition:none}.bag-pocket-label,.bag-hover-name {animation:none}}
 /* Disc details on the My Bag page: this copy, with its personal notes. */
 .bag-detail-personal {margin:14px 0 4px;padding:14px 16px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .bag-detail-heading {display:flex;align-items:center;gap:12px}

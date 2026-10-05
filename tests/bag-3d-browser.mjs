@@ -136,19 +136,25 @@ try {
  await page.locator('[data-bag-toggle]').click();await phase('closed');
  assert.equal(await viewer(v=>v.compartmentProgress),0);assert.equal(await mainDisc.getAttribute('tabindex'),'-1');
  assert.equal(await topDisc.getAttribute('tabindex'),'0','Go-to stays reachable with the flap closed');
- await topDisc.focus();await settle();assert.equal(await viewer(v=>v.liftedDisc),goto.id);assert.match(await page.locator('#bagLiftInfo').innerText(),/Go-to/);
+ // Focus (like hover) names the disc in a pill; the disc stays in its pocket.
+ await topDisc.focus();await settle();assert.equal(await viewer(v=>v.liftedDisc),null);assert.ok(await page.locator('.bag-hover-name').isVisible());assert.match(await page.locator('#bagLiftInfo').innerText(),/Go-to/);
  await page.keyboard.press('Escape');assert.ok(await page.locator('[data-bag-toggle]').evaluate(n=>n===document.activeElement));
  await page.keyboard.press('Enter');await phase('open');assert.equal(await viewer(v=>v.compartmentProgress),1);assert.equal(await mainDisc.getAttribute('tabindex'),'0');
- await mainDisc.hover();await settle();assert.equal(await viewer(v=>v.liftedDisc),driver.id,'Hover lifts the 3D disc');
+ const resting=await viewer((v,id)=>v.discScreenRect(id),driver.id);
+ await mainDisc.hover();await settle();assert.equal(await viewer(v=>v.liftedDisc),null,'Hover does not move the disc');
+ assert.deepEqual(await viewer((v,id)=>v.discScreenRect(id),driver.id),resting);assert.equal((await page.locator('.bag-hover-name').innerText()).trim(),'Destroyer','Hover names the disc');
+ // A click slides the disc out of the compartment, face-on.
+ await mainDisc.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');await settle();
  const lifted=await viewer((v,id)=>v.discScreenRect(id),driver.id),box=await page.locator('[data-bag-canvas]').evaluate(n=>({w:n.clientWidth,h:n.clientHeight}));
- assert.ok(lifted.left>=0 && lifted.top>=0 && lifted.left+lifted.width<=box.w && lifted.top+lifted.height<=box.h,'Lifted disc stays inside the canvas');
- // Color fidelity: the lifted disc's face renders close to the saved color (#ed7868).
+ assert.ok(lifted.left>=0 && lifted.top>=0 && lifted.left+lifted.width<=box.w && lifted.top+lifted.height<=box.h,'Slid-out disc stays inside the canvas');
+ // Color fidelity: the slid-out disc's face renders close to the saved color (#ed7868).
  const face=await page.locator('[data-bag-canvas]').boundingBox(),crop=await page.screenshot({clip:{x:face.x+lifted.left+lifted.width*.5-2,y:face.y+lifted.top+lifted.height*.5-2,width:5,height:5}});
  const rendered=await page.evaluate(async b64=>{const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();const c=document.createElement('canvas');c.width=5;c.height=5;const x=c.getContext('2d');x.drawImage(img,0,0);return [...x.getImageData(2,2,1,1).data.slice(0,3)];},crop.toString('base64'));
  const wanted=[0xed,0x78,0x68],drift=Math.max(...rendered.map((v,i)=>Math.abs(v-wanted[i])));perf.liftedFace={rendered:'#'+rendered.map(v=>v.toString(16).padStart(2,'0')).join(''),wanted:'#ed7868',drift};
- assert.ok(drift<=40,`Lifted disc keeps its color: rendered ${perf.liftedFace.rendered} vs #ed7868`);
- await page.mouse.move(5,5);await settle();assert.equal(await viewer(v=>v.liftedDisc),null);
- // Drag sideways turns the bag and it eases back to the front; a drag never toggles.
+ assert.ok(drift<=40,`Slid-out disc keeps its color: rendered ${perf.liftedFace.rendered} vs #ed7868`);
+ await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().every(d=>d.slide===0));
+ await page.mouse.move(5,5);await settle();assert.equal(await viewer(v=>v.slidDisc),null);assert.ok(await mainDisc.evaluate(n=>n===document.activeElement),'Escape returns focus to the disc');
+ // Drag sideways turns the bag and it stays turned; a drag never toggles.
  const canvas=await page.locator('.bag-3d-stage canvas').boundingBox(),cx=canvas.x+canvas.width*.15,cy=canvas.y+canvas.height*.6;
  await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+160,cy+6,{steps:10});
  const turned=await page.locator('[data-bag-canvas]').evaluate(n=>n.querySelector('canvas').style.cursor);assert.equal(turned,'grabbing');
@@ -157,8 +163,8 @@ try {
  const before=await page.evaluate(()=>scrollY);await page.mouse.move(cx,cy);await page.mouse.wheel(0,300);await page.waitForTimeout(300);
  assert.ok(await page.evaluate(b=>scrollY>b,before),'The wheel scrolls the page over the bag (no zoom capture)');
  await page.evaluate(()=>scrollTo(0,0));
- check(`Lifted disc color ${perf.liftedFace.rendered} vs saved #ed7868 (max channel drift ${perf.liftedFace.drift})`);
- check('Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus lift, Escape, drag-to-turn, page scroll preserved');
+ check(`Slid-out disc color ${perf.liftedFace.rendered} vs saved #ed7868 (max channel drift ${perf.liftedFace.drift})`);
+ check('Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus name pill, click slide-out, Escape, drag-to-turn, page scroll preserved');
 
  // 5. Size control: re-rendered (not upscaled) at S/M/L.
  const sizes={};
@@ -210,8 +216,8 @@ try {
   await page.clock.install();await page.clock.pauseAt(await page.evaluate(()=>Date.now()+50));await page.locator('[data-bag-toggle]').click();await page.clock.runFor(330);
   assert.equal(await scene.getAttribute('data-phase'),'opening');await page.evaluate(()=>document.fonts.ready);await scene.screenshot({path:`${dir}/opening-${width}-${theme}.png`});shots.push({state:'opening',width,theme,name:`opening-${width}-${theme}.png`});
   await page.clock.runFor(1200);await page.clock.resume();await phase('open');
-  await page.locator(`[data-physical-disc="${driver.id}"]`).focus();await shot('lifted-main',width,theme,{locator:scene});
-  await page.locator(`[data-physical-disc="${goto.id}"]`).focus();await shot('lifted-goto',width,theme,{locator:scene});
+  await page.locator(`[data-physical-disc="${driver.id}"]`).focus();await shot('named-main',width,theme,{locator:scene});
+  await page.locator(`[data-physical-disc="${goto.id}"]`).focus();await shot('named-goto',width,theme,{locator:scene});
   await page.keyboard.press('Escape');
   await page.locator('#bagLineup').scrollIntoViewIfNeeded();await page.locator(`select[data-bag-pocket="${goto.id}"]`).focus();await shot('list-inline-pocket',width,theme,{locator:page.locator('#bagLineup')});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
@@ -221,14 +227,14 @@ try {
  await scene.scrollIntoViewIfNeeded();await shot('custom-color',1440,'light',{locator:scene});
  for(const size of ['s','l']){await page.locator(`input[name="bagSize"][value="${size}"]`).check();await scene.scrollIntoViewIfNeeded();await shot(`size-${size}`,1440,'light',{locator:scene});}
  await page.locator('input[name="bagSize"][value="m"]').check();
- check(`Screenshots: ${shots.length} across ${themes.length} themes at 1440px and 360px (open with go-to, closed, mid-fold, lifted main, lifted go-to, list), plus bag color and S/L`);
+ check(`Screenshots: ${shots.length} across ${themes.length} themes at 1440px and 360px (open with go-to, closed, mid-fold, named main, named go-to, list), plus bag color and S/L`);
 
  // 8. Sign-out clears the scene.
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);
  assert.equal(await page.locator('[data-physical-disc]').count(),0);assert.ok(!await scene.isVisible());
  assert.deepEqual(errors,[]);
  fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,checks,perf,sizes,gpuArgs,themes,widths,screenshots:shots,errors},null,2));
- const order=['open-goto','closed','opening','lifted-main','lifted-goto','list-inline-pocket','custom-color','size-s','size-l'];
+ const order=['open-goto','closed','opening','named-main','named-goto','list-inline-pocket','custom-color','size-s','size-l'];
  fs.writeFileSync(dir+'/screenshots.html',`<!doctype html><meta charset="utf-8"><title>3D bag QA</title><style>body{margin:32px;background:#14191f;color:#e9edf0;font:16px system-ui}section{margin:40px 0}figure{display:inline-block;vertical-align:top;margin:12px}img{width:420px;max-width:100%}.mobile img{width:300px}a{color:inherit}figcaption{margin-top:6px;font-size:13px}li{margin:4px 0}pre{background:#0c1014;padding:16px;overflow:auto;font-size:12px}</style><h1>3D bag · local QA</h1><ul>${checks.map(c=>`<li>✓ ${c}</li>`).join('')}</ul><pre>${JSON.stringify({renderer:perf.renderer,quality:perf.quality,phone:{openMs:perf.phone.openMs,maxLoadTask:perf.phone.maxLoadTask,idle:perf.phone.idle,closeOpen:perf.phone.closeOpen,liftSweep:perf.phone.liftSweep}},null,1)}</pre>${['light','midnight','charcoal'].map(theme=>`<section><h2>${theme}</h2>${order.flatMap(state=>shots.filter(s=>s.theme===theme && s.state===state)).map(s=>`<figure class="${s.width===360?'mobile':''}"><a href="${s.name}"><img src="${s.name}" loading="lazy"></a><figcaption>${s.state} · ${s.width}px</figcaption></figure>`).join('')}</section>`).join('')}`);
  console.log(checks.map(c=>'✓ '+c).join('\n'));
  console.log(`PASS: ${checks.length} checks, ${shots.length} screenshots; renderer ${perf.renderer} (${perf.quality}); no page errors.`);

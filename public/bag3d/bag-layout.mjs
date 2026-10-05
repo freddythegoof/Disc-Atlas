@@ -11,8 +11,9 @@ export const MAIN = {xMin: -.107, xMax: .107, y: -.072, z: .01, maxSlots: 48};
 // Front pocket: mouth at y 0.145, depth z 0.121–0.191, width ±0.126. Stacks from its front edge.
 export const FRONT = {anchor: 'front', front: .176, span: .044, y: .137, mouth: .145, scale: .85, rise: .009, spread: .013, maxX: .036,
   tilt: 0, raise: .085, forward: .05};
-// Top pocket, behind the front pocket. Stacks around its center line.
-export const TOP = {anchor: 'center', center: .017, span: .060, y: .249, mouth: .252, scale: .92, rise: .008, spread: .012, maxX: .030,
+// Top pocket, behind the front pocket. Putters stand in one neat row around its center line:
+// same x, same tilt, even spacing, each a step higher so every rim shows above the one in front.
+export const TOP = {anchor: 'center', center: .017, span: .060, y: .249, mouth: .252, scale: .92, rise: .016, spread: 0, maxX: .030,
   tilt: -.12, raise: .03, forward: .08};
 export const PUTTER = {...TOP, maxSlots: 8};
 export const GOTO = {...FRONT, maxSlots: 6};
@@ -21,6 +22,9 @@ export const GOTO = {...FRONT, maxSlots: 6};
 export const GLB_ACCENT_POSE = {position: [0, TOP.y, TOP.center], rotation: [TOP.tilt, -Math.PI / 2, 0], scale: [1, TOP.scale, TOP.scale]};
 
 const FACE_FORWARD = -Math.PI / 2, MAX_GAP = .012;
+// Slide-out: how far clear of a pocket mouth a pulled disc rests, and where main discs come to rest.
+const CLEAR = .006;
+export const SLIDE = {main: {y: .05, z: .30, maxX: .035}, forward: .014};
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 // Alternate later discs left/right so each one's rim shows above the disc in front of it.
 const fan = (order, spread, max) => order === 0 ? 0 : clamp((order % 2 ? 1 : -1) * Math.ceil(order / 2) * spread, -max, max);
@@ -52,7 +56,9 @@ export function bagLayout({main = [], putter = [], goTo = []} = {}) {
     const x = MAIN.xMin + step * (order + .5);
     placements.push({...entry(slot, 'main', order), position: [x, MAIN.y, MAIN.z], rotation: [0, 0, 0], scale: [thin, 1, 1],
       // Pulled forward out of the opening, toward the viewer.
-      lift: [clamp(x, -.045, .045), .005, .235], slotWidth: step});
+      lift: [clamp(x, -.045, .045), .005, .235], slotWidth: step,
+      // Slid out: drawn forward out of the open compartment, then up and turned to show its face.
+      slide: {position: [clamp(x, -SLIDE.main.maxX, SLIDE.main.maxX), SLIDE.main.y, SLIDE.main.z], rotation: [0, FACE_FORWARD, 0], scale: [1, 1, 1]}});
   });
 
   // Putters and go-to discs face forward in a shallow stack: order 0 is the front disc.
@@ -65,7 +71,10 @@ export function bagLayout({main = [], putter = [], goTo = []} = {}) {
       placements.push({...entry(slot, pocket, order), position: [x, y, z], rotation: [spec.tilt, FACE_FORWARD, 0],
         scale: [depthScale, spec.scale, spec.scale], lift: [x * .5, y + spec.raise, z + spec.forward],
         // Only the part above the pocket's mouth is visible (and targetable).
-        mouth: spec.mouth});
+        mouth: spec.mouth,
+        // Slid out: straight up until the whole disc clears the mouth, then a short step forward
+        // past the stack's front disc so nothing in the pocket covers it.
+        slide: {position: [x, spec.mouth + DISC.radius * spec.scale + CLEAR, front + SLIDE.forward], rotation: [spec.tilt, FACE_FORWARD, 0], scale: [1, spec.scale, spec.scale]}});
     });
   };
   stack(take(putter, PUTTER.maxSlots, 'putter'), PUTTER, 'putter');

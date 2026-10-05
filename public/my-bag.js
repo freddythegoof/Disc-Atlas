@@ -11,7 +11,7 @@ const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async
 catalogs.catch(()=>{});
 const mold = id => discs.find(d=>d.id===id);
 const name = d => d?.catalogName || d?.name || 'Catalog mold unavailable';
-const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail});
+const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail,deselect:closeBagDetail});
 // Disc details open in the atlas's own panel, docked on the My Bag page, with this copy's details and notes.
 let detailItem=null;const detailPanel=$('#detail'),detailHome=detailPanel.parentNode;
 function openBagDetail(d,item){
@@ -19,6 +19,8 @@ function openBagDetail(d,item){
  if(detailPanel.parentNode!==$('#myBagView'))$('#myBagView').append(detailPanel);
  select(d);
 }
+// Putting a slid-out disc back closes its details too.
+function closeBagDetail(){if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);}
 function undockDetail(){detailItem=null;if(detailPanel.parentNode!==detailHome)detailHome.append(detailPanel);}
 function refreshBagDetail(){
  if(!detailItem || detailPanel.hidden || detailPanel.parentNode!==$('#myBagView'))return;

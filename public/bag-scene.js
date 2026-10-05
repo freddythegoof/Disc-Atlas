@@ -12,39 +12,39 @@ const div=(className,attributes={})=>{const node=document.createElement('div');n
 // The 3D bag renders in a canvas. A matching layer of positioned slot elements carries
 // focus, hover/touch targets and labels, so keyboard and screen-reader use stay intact.
 export class BagScene {
- constructor(root,{lookup,inspect}){
-  this.root=root;this.lookup=lookup;this.inspect=inspect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;this.top=false;this.slid=null;
+ constructor(root,{lookup,inspect,deselect}){
+  this.root=root;this.lookup=lookup;this.inspect=inspect;this.deselect=deselect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;this.top=false;this.slid=null;this.slideToken=0;
   this.toggle=root.querySelector('[data-bag-toggle]');this.info=root.querySelector('[data-bag-lift-info]');this.canvas=root.querySelector('[data-bag-canvas]');
   this.topToggle=root.querySelector('[data-bag-top-view]');
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
   this.topToggle.addEventListener('click',()=>void this.setTopView(!this.top));
   for(const type of ['pointerenter','focus'])this.topToggle.addEventListener(type,()=>void this.viewer?.prepareTopView());
   this.stage=div('bag-3d-stage');this.layer=div('bag-hit-layer',{role:'group','aria-label':'Your disc golf bag'});this.status=div('bag-3d-status',{role:'status'});
-  // A clicked disc slides out of the bag; this card covers it and carries its name.
-  this.card=div('bag-slide-out',{role:'button',tabindex:'-1','aria-hidden':'true','data-bag-slide-out':''});this.cardName=document.createElement('span');this.cardName.className='bag-slide-name';
+  // Hovering (or focusing) a disc shows only its name; the disc itself stays put.
+  this.tag=div('bag-name-pill bag-hover-name',{'aria-hidden':'true'});this.tag.hidden=true;
+  // A clicked disc slides out of its pocket; this card covers it and carries its name.
+  this.card=div('bag-slide-out',{role:'button',tabindex:'-1','aria-hidden':'true','data-bag-slide-out':''});this.cardName=document.createElement('span');this.cardName.className='bag-name-pill bag-slide-name';
   this.card.append(this.cardName);
   this.pockets=div('bag-pocket-labels',{'aria-hidden':'true'});
-  this.canvas.replaceChildren(this.stage,this.pockets,this.layer,this.card,this.status);
-  this.card.addEventListener('click',()=>this.openSlid());
+  this.canvas.replaceChildren(this.stage,this.pockets,this.layer,this.tag,this.card,this.status);
+  this.onTap(this.card,()=>this.openSlid());
   this.card.addEventListener('keydown',event=>{
    if(event.key==='Enter'||event.key===' '){event.preventDefault();this.openSlid();}
-   if(event.key==='Tab'){const disc=this.slid?.disc;event.preventDefault();this.slideIn();if(disc?.isConnected)this.tabFrom(disc,event.shiftKey);}
+   if(event.key==='Tab'){const disc=this.slid?.disc;event.preventDefault();void this.slideIn();if(disc?.isConnected)this.tabFrom(disc,event.shiftKey);}
   });
-  const hoverOut=event=>{if(event.pointerType!=='touch' && this.lifted && document.activeElement!==this.lifted && (event.type==='pointerleave' || !event.target.closest('[data-physical-disc]')))this.settle(this.lifted);};
-  this.canvas.addEventListener('pointermove',hoverOut);this.canvas.addEventListener('pointerleave',hoverOut);
-  // Clicking anywhere else slides the disc back in; the disc details panel and dialogs don't count.
+  // Clicking empty space slides the disc back and closes its details. Clicks on the details
+  // panel or dialogs do not count; a click on another disc swaps discs (its click handler does that).
   document.addEventListener('pointerdown',event=>{
    this.swallowClick=false;
-   // A second click on the same disc opens its details (its click handler does that).
-   if(!this.slid || event.target.closest?.('[data-bag-slide-out],#detail,dialog,[popover]') || event.target.closest?.('[data-physical-disc]')===this.slid.disc)return;
-   this.swallowClick=this.stage.contains(event.target);this.slideIn();
+   if(!this.slid || event.target.closest?.('[data-bag-slide-out],#detail,dialog,[popover],[data-physical-disc]'))return;
+   this.swallowClick=this.stage.contains(event.target);void this.slideIn();
   },true);
-  // Escape steps back one layer: the details panel (closed by the atlas), then the slid-out disc, then the top view.
+  // Escape puts the slid-out disc back and closes everything; with nothing out, it leaves the top view.
   document.addEventListener('keydown',event=>{
    if(event.key!=='Escape' || !this.ready || !this.root.checkVisibility() || document.querySelector('dialog[open],:popover-open'))return;
+   if(this.slid){event.preventDefault();event.stopPropagation();void this.slideIn({focus:true});return;}
    const detail=document.querySelector('#detail');if(detail && !detail.hidden && !detail.inert)return;
-   if(this.slid){event.preventDefault();this.slideIn({focus:true});}
-   else if(this.top && !event.target.closest('[data-physical-disc]')){event.preventDefault();void this.setTopView(false);}
+   if(this.top){event.preventDefault();void this.setTopView(false);}
   },true);
   addEventListener('atlas-theme-change',()=>this.viewer?.setAccentColor(accent()));
   matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>this.viewer?.setAnimated(!reduced()));
@@ -65,7 +65,9 @@ export class BagScene {
     this.stage.addEventListener('bagviewlayout',()=>this.place());
     // A click that only slid a disc back in leaves the flap alone.
     this.stage.addEventListener('bagclick',()=>{if(this.swallowClick){this.swallowClick=false;return;}void this.setOpen(!this.open);});
-    this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.slideIn();});
+    // The bag stays turned where the user leaves it; targets and labels follow once the drag ends.
+    this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.root.dataset.dragging='';});
+    this.stage.addEventListener('bagdragend',()=>{delete this.root.dataset.dragging;this.interactive(!this.running);});
     this.stage.addEventListener('bagviewererror',event=>{this.status.textContent=event.detail;});
     this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';
     if(this.data)this.draw();
@@ -85,7 +87,7 @@ export class BagScene {
  }
  bagColor(settings){const color=settings.bag_color || DEFAULT_BAG;return color===DEFAULT_BAG?null:color;}
  draw(){
-  this.clearLift();this.slideIn();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);this.items=items;
+  this.clearLift();void this.slideIn();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);this.items=items;
   // The default charcoal keeps the model's original tonal fabric.
   this.viewer.setBagColor(this.bagColor(settings));this.root.dataset.bagColor=this.viewer.bagColor;
   this.viewer.setBagLayout(layout);
@@ -105,19 +107,36 @@ export class BagScene {
    const mold=this.lookup(item.mold_id),title=mold?.catalogName||mold?.name||'Saved disc';
    const disc=div('bag-physical-disc',{'data-physical-disc':item.id,'data-pocket':pocket,'data-slot-order':tabOrder.get(rect.key),role:'button',tabindex:'-1','aria-label':`${title}, ${item.plastic}, wear ${item.wear} of 10, ${item.weight_g} grams, ${pocketLabel(item.pocket)}. Enter to slide it out.`,'aria-describedby':'bagLiftInfo'});
    disc.style.setProperty('--disc-color',item.color||'#e6c668');
+   // Touch has no hover: a tap is a click.
    disc.addEventListener('pointerenter',event=>{if(event.pointerType!=='touch')this.lift(disc,item,title);});
-   disc.addEventListener('pointerleave',event=>{if(event.pointerType!=='touch' && document.activeElement!==disc)this.settle(disc);});
+   disc.addEventListener('pointerleave',()=>{if(document.activeElement!==disc)this.settle(disc);});
    disc.addEventListener('focus',()=>this.lift(disc,item,title));disc.addEventListener('blur',()=>this.settle(disc));
    disc.addEventListener('keydown',event=>{
     if(event.key==='Tab'){event.preventDefault();this.tabFrom(disc,event.shiftKey);}
-    if(event.key==='Enter'||event.key===' '){event.preventDefault();this.slideOut(disc,item,title);}
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();void this.slideOut(disc,item,title);}
     if(event.key==='Escape'){this.settle(disc);this.toggle.focus();}
    });
    // One click (or tap) slides the disc out; clicking the slid-out disc opens its details.
-   disc.addEventListener('click',()=>this.slideOut(disc,item,title));
+   this.onTap(disc,()=>void this.slideOut(disc,item,title));
    slot.append(disc);
   }
   this.place();this.interactive(!this.running);
+ }
+ // Touch has no hover: a tap is a click. Taps are read from the pointer events themselves,
+ // because a browser may drop the click for the first tap after a drag (as Chrome does after
+ // the turntable drag); the click that does follow a tap is then ignored.
+ onTap(node,action){
+  let press=null,tapped=0;
+  node.addEventListener('pointerdown',event=>{press=event.pointerType==='touch'?{id:event.pointerId,x:event.clientX,y:event.clientY,at:event.timeStamp}:null;});
+  node.addEventListener('pointerup',event=>{
+   const start=press;press=null;
+   if(!start || event.pointerId!==start.id || Math.hypot(event.clientX-start.x,event.clientY-start.y)>10 || event.timeStamp-start.at>600)return;
+   tapped=event.timeStamp;action();
+   // The click that follows lands on whatever the tap opened (the details panel); swallow it.
+   const swallow=click=>{if(click.timeStamp-tapped<800 && !node.contains(click.target)){click.preventDefault();click.stopPropagation();}};
+   document.addEventListener('click',swallow,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',swallow,{capture:true}),800);
+  });
+  node.addEventListener('click',event=>{if(tapped && event.timeStamp-tapped<800){tapped=0;return;}action();});
  }
  // Hit-layer paint order differs from the reading order; keep Tab in slot order.
  tabFrom(disc,back){
@@ -125,8 +144,9 @@ export class BagScene {
   const next=ordered[ordered.indexOf(disc)+(back?-1:1)];
   if(next)next.focus({preventScroll:true});else (back?document.querySelector('#bagSort'):this.toggle).focus({preventScroll:true});
  }
- // Main discs sit behind the flap, so they only respond while the bag is open.
- reachable(disc){return this.ready && !this.running && (this.open || disc.dataset.pocket!=='main');}
+ // Main discs sit behind the flap, so they only respond while the bag is open. Turned away
+ // (front facing back), only the top pocket's putters are in reach.
+ reachable(disc){return this.ready && !this.running && (this.open || disc.dataset.pocket!=='main') && (disc.dataset.pocket==='putter' || this.viewer.frontFacing);}
  interactive(on){
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]')){const ok=on && this.reachable(disc);disc.setAttribute('tabindex',ok?'0':'-1');disc.setAttribute('aria-hidden',String(!ok));}
  }
@@ -136,34 +156,50 @@ export class BagScene {
    const slot=this.slotsByKey.get(rect.key);if(!slot)continue;
    Object.assign(slot.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
   }
-  this.placeCard();this.placePockets();
+  this.placeCard();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
  }
- slideOut(disc,item,title){
+ // One disc out at a time: a second disc waits for the first to slide home.
+ async slideOut(disc,item,title){
   if(!this.reachable(disc) || this.viewer.cameraMoving)return;
-  if(this.slid?.disc===disc){this.openSlid();return;}
-  this.clearLift();
-  this.slid={disc,item,title,mold:this.lookup(item.mold_id)};
+  if(this.slid?.disc===disc){if(this.root.dataset.slide==='out')this.openSlid();return;}
+  const token=++this.slideToken;this.clearLift();
+  if(this.slid){await this.putBack();if(token!==this.slideToken || !disc.isConnected)return;}
+  const slid=this.slid={disc,item,title,mold:this.lookup(item.mold_id)};
   this.cardName.textContent=title;this.card.setAttribute('aria-label',`${title}, out of the bag. Enter for disc details, Escape to put it back.`);
-  this.card.style.setProperty('--disc-color',item.color||'#e6c668');
+  this.cardName.style.setProperty('--disc-color',item.color||'#e6c668');
+  this.root.dataset.slide='moving';
+  await this.viewer.slideDisc(disc.dataset.physicalDisc,{instant:reduced()});
+  if(this.slid!==slid)return;
   this.root.dataset.slide='out';this.card.setAttribute('aria-hidden','false');this.card.tabIndex=0;
-  void this.viewer.slideDisc(disc.dataset.physicalDisc,{instant:reduced()});
   this.placeCard();this.card.focus({preventScroll:true});
  }
- slideIn({focus=false}={}){
-  const slid=this.slid;if(!slid)return;this.slid=null;
+ // Escape, a click on empty space and every other reset put the disc back and close its details.
+ slideIn(options){this.slideToken++;return this.putBack(options);}
+ putBack({focus=false}={}){
+  const slid=this.slid;if(!slid)return Promise.resolve();this.slid=null;
   delete this.root.dataset.slide;this.card.setAttribute('aria-hidden','true');this.card.tabIndex=-1;
-  if(this.viewer?.slidDisc)void this.viewer.slideDisc(null,{instant:reduced()});
+  this.deselect?.();
   if(focus)(slid.disc.isConnected && this.reachable(slid.disc)?slid.disc:this.toggle).focus({preventScroll:true});
+  return this.viewer?.slidDisc?this.viewer.slideDisc(null,{instant:reduced()}):Promise.resolve();
  }
  openSlid(){if(this.slid?.mold)this.inspect(this.slid.mold,this.slid.item);}
- // The card covers the slid-out disc at its resting place; the name sits under it.
+ // The card covers the slid-out disc where it rests; its name sits under it (above, if the
+ // canvas ends first).
  placeCard(){
-  const rect=this.slid && this.viewer?.slideRect();if(!rect)return;
+  const rect=this.slid && this.root.dataset.slide==='out' && this.viewer?.slideRect();if(!rect)return;
   Object.assign(this.card.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
+  const room=this.canvas.clientHeight-(rect.top+rect.height);this.card.dataset.label=room<this.cardName.offsetHeight+18?'above':'below';
+ }
+ // The hover name sits just above its disc (below, near the canvas top), kept inside the canvas.
+ placeTag(disc){
+  const slot=disc.parentNode,width=this.canvas.clientWidth,left=slot.offsetLeft,top=slot.offsetTop;
+  const half=this.tag.offsetWidth/2,x=Math.min(width-half-6,Math.max(half+6,left+slot.offsetWidth/2));
+  const above=top>this.tag.offsetHeight+14;
+  Object.assign(this.tag.style,{left:x+'px',top:(above?top-8:top+slot.offsetHeight+8)+'px'});this.tag.dataset.side=above?'above':'below';
  }
  async setTopView(on){
   if(!this.ready || on===this.top)return;
-  this.top=on;this.slideIn();this.clearLift();
+  this.top=on;void this.slideIn();this.clearLift();
   this.topToggle.setAttribute('aria-pressed',String(on));this.root.dataset.camera='moving';
   const view=await this.viewer.setTopView(on,{instant:reduced()});
   if(view!==this.top)return;
@@ -183,10 +219,13 @@ export class BagScene {
    return label;
   }));
  }
+ // Hover/focus: the name pill only. The hidden description keeps plastic, wear, weight,
+ // pocket and notes available to screen readers (aria-describedby).
  lift(disc,item,title){
-  if(!this.reachable(disc) || this.slid)return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
-  this.lifted=disc;disc.classList.add('is-lifted');this.root.dataset.lifted='';
-  this.viewer.turnHome(reduced());this.viewer.liftDisc(disc.dataset.physicalDisc,{instant:reduced()});
+  if(!this.reachable(disc) || this.root.dataset.dragging!==undefined)return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
+  this.lifted=disc;disc.classList.add('is-hovered');this.root.dataset.hovered='';
+  this.tag.textContent=title;this.tag.style.setProperty('--disc-color',item.color||'#e6c668');
+  this.tag.hidden=this.slid?.disc===disc;if(!this.tag.hidden)this.placeTag(disc);
   this.info.querySelector('strong').textContent=title;this.info.querySelector('span').textContent=`${item.plastic} · ${item.wear}/10 ${wearLabel(item.wear)} · ${item.weight_g} g · ${pocketLabel(item.pocket)}`;
   const note=this.info.querySelector('[data-lift-note]'),bias=this.info.querySelector('[data-lift-bias]');
   note.textContent=item.notes || '';note.hidden=!item.notes;
@@ -194,13 +233,13 @@ export class BagScene {
   this.info.dataset.pocket=disc.dataset.pocket;this.info.dataset.visible='true';this.info.setAttribute('aria-hidden','false');
  }
  settle(disc){
-  disc.classList.remove('is-lifted');
-  if(this.lifted===disc){this.lifted=null;delete this.root.dataset.lifted;this.viewer?.liftDisc(null,{instant:reduced()});this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
+  disc.classList.remove('is-hovered');
+  if(this.lifted===disc){this.lifted=null;delete this.root.dataset.hovered;this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
  }
- clearLift(){if(this.lifted)this.settle(this.lifted);this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
+ clearLift(){if(this.lifted)this.settle(this.lifted);this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
  async reveal(){this.visible=true;await this.load();if(this.revealed||!this.ready||this.open||this.running||!this.visible)return;this.revealed=true;void this.setOpen(true);}
  async setOpen(open){
-  if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();this.slideIn();this.toggle.setAttribute('aria-disabled','true');
+  if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();void this.slideIn();this.toggle.setAttribute('aria-disabled','true');
   this.root.dataset.phase=open?'opening':'closing';this.interactive(false);
   await this.viewer.setCompartmentOpen(open,{instant:reduced()});
   if(epoch!==this.epoch)return;this.open=open;this.running=false;this.root.dataset.phase=open?'open':'closed';
@@ -208,7 +247,7 @@ export class BagScene {
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
  }
  reset(){
-  this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();this.slideIn();
+  this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();void this.slideIn();
   this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
   if(this.ready){void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;

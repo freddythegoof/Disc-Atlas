@@ -11,9 +11,10 @@ const VIEWS = {
   home: { position: [.60, .24, 1.14], target: [0, .025, 0] },
   front: { position: [0, .10, 1.29], target: [0, .025, 0] },
   rear: { position: [-.55, .22, -1.17], target: [0, .025, 0] },
-  // Disc Atlas page framing: a slight three-quarter view that keeps the main opening,
-  // the front putter pocket and the top go-to pocket readable in a 4:5 box.
-  page: { position: [.20, .17, 1.33], target: [0, .045, 0] },
+  // Disc Atlas page framing: a slight three-quarter view that keeps the main opening, the
+  // front go-to pocket and the top putter pocket readable in a 4:5 box, with headroom for a
+  // putter slid up out of the top pocket.
+  page: { position: [.20, .20, 1.33], target: [0, .075, 0] },
 };
 // Fabric recolors with the bag color; zipper tape, teeth and hardware stay fixed.
 const FABRIC = ['Charcoal woven shell', 'Graphite pocket panels', 'Soft black piping', 'Back padding and webbing', 'Tonal seam thread'];
@@ -21,9 +22,11 @@ const FABRIC = ['Charcoal woven shell', 'Graphite pocket panels', 'Soft black pi
 const spring = t => { let lo = 0, hi = 1, u = t; const b = (p, a, c) => 3 * (1 - p) * (1 - p) * p * a + 3 * (1 - p) * p * p * c + p * p * p; for (let i = 0; i < 16; i++) { u = (lo + hi) / 2; if (b(u, .2, .35) < t) lo = u; else hi = u; } return b(u, 1.35, 1); };
 const easeOut = t => 1 - (1 - t) ** 3;
 const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
-const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650, SLIDE_MS = 520, TOP_MS = 600;
-// A slid-out disc fills about this share of the view height, just above the view center.
-const SLIDE_SIZE = .32, SLIDE_RAISE = .06;
+const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650, SLIDE_MS = 620, TOP_MS = 600;
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const clamp01 = value => Math.min(1, Math.max(0, value));
+// Slide-out runs in two overlapping stages, like pulling a disc out by hand.
+const stage = (progress, from, to) => easeInOut(clamp01((progress - from) / (to - from)));
 // Top view: the fabric fades to this opacity so discs in the main compartment show through.
 const XRAY_OPACITY = .09, XRAY_GLOW = new THREE.Color('#9fb2cc'), XRAY_GLOW_INTENSITY = .45;
 // In top view a hovered disc rises this share of the way toward the camera, above every pocket.
@@ -145,7 +148,7 @@ export async function mountBag(container, {
   let yaw = 0, yawTween = null, needsRender = true, loopOn = false, visible = true, lastRender = 0, lastFrame = 0;
   // Top view: the camera moves on a sphere around the target, from the current angle to
   // straight down. Orbit controls (standalone mode) pause during the move.
-  let topView = false, cameraTween = null, cameraWaiters = [], xray = 0, xrayMaterials = null, topPose = null;
+  let topView = false, beforeTop = null, cameraTween = null, cameraWaiters = [], xray = 0, xrayMaterials = null, topPose = null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -256,8 +259,9 @@ export async function mountBag(container, {
       if (press.drag) {
         dragging = false;
         el.style.cursor = 'pointer';
-        turnHome();
+        // The bag stays turned exactly where the user let go: no ease back to the front.
         container.dispatchEvent(new CustomEvent('bagdragend'));
+        container.dispatchEvent(new CustomEvent('bagviewlayout'));
       } else if (event.type === 'pointerup') container.dispatchEvent(new CustomEvent('bagclick'));
     };
     el.addEventListener('pointerup', release);
@@ -376,7 +380,8 @@ export async function mountBag(container, {
     if (record.placement.empty) return;
     const material = record.mesh.material;
     material.emissive.copy(accent);
-    material.emissiveIntensity = (record.placement.pocket === 'goTo' ? .08 : 0) + (record.key === liftedKey || record.key === slidKey ? .12 : 0);
+    // Every disc renders clean: no accent glow on the go-to or on a lifted/slid disc.
+    material.emissiveIntensity = 0;
   };
 
   // Layout mode replaces the GLB's twelve fixed discs with slots built from the same disc mesh.
@@ -424,7 +429,8 @@ export async function mountBag(container, {
     const toSeat = pose(seat).multiply(pose(GLB_ACCENT_POSE).invert());
     for (const object of [...placeholders, ...accents]) { object.matrixAutoUpdate = false; object.matrix.copy(toSeat); }
     for (const object of placeholders) object.visible = !assigned;
-    for (const object of accents) object.visible = assigned;
+    // The GLB's go-to accent rim stays hidden: a go-to disc renders clean, without an outline.
+    for (const object of accents) object.visible = false;
     invalidate();
     container.dispatchEvent(new CustomEvent('bagviewlayout'));
   };
@@ -446,32 +452,46 @@ export async function mountBag(container, {
     }
     invalidate();
   };
-  // A slid-out disc leaves its pocket entirely and comes to rest face-on, centered just
-  // above the middle of the view, whatever the camera angle (front or top view).
+  // A slid-out disc leaves its pocket along the pocket's own axis (see bag-layout's `slide`
+  // poses): putters and the go-to straight up and a step forward, main discs forward out of
+  // the compartment, then up and turned face-on. One disc is out at a time.
   const slideDisc = (key = null, { instant = !active } = {}) => {
     if (key !== null && !records.has(key)) throw new RangeError(`Unknown disc ${key}`);
     slidKey = key;
     const now = performance.now();
+    let longest = 0;
     for (const record of records.values()) {
       const to = record.key === key ? 1 : 0;
       if (record.slideTo === to && !instant) continue;
-      record.slideFrom = record.slide; record.slideTo = to; record.slideStart = instant ? now - SLIDE_MS : now;
-      paintDisc(record);
+      // Progress is linear in time; reversing mid-way covers only the remaining distance.
+      const duration = instant ? 0 : Math.abs(to - record.slide) * SLIDE_MS;
+      record.slideFrom = record.slide; record.slideTo = to; record.slideStart = now; record.slideDuration = duration;
+      if (instant) record.slide = to;
+      longest = Math.max(longest, duration);
     }
     invalidate();
-    return new Promise(resolve => setTimeout(resolve, instant ? 0 : SLIDE_MS));
+    return new Promise(resolve => setTimeout(resolve, longest));
   };
-  const slideTarget = out => {
-    const toTarget = target.clone().sub(camera.position).normalize();
-    // Stay in front of the bag body (from above, that means higher than the putters' rims).
-    let near = Infinity;
-    for (const x of [bodyBox.min.x, bodyBox.max.x]) for (const y of [bodyBox.min.y, bodyBox.max.y]) for (const z of [bodyBox.min.z, bodyBox.max.z]) near = Math.min(near, new THREE.Vector3(x, y, z).sub(camera.position).dot(toTarget));
-    const distance = Math.min(.202 / (SLIDE_SIZE * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))), near - .03);
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
-    const viewHeight = 2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    return out.copy(camera.position).addScaledVector(toTarget, distance).addScaledVector(up, viewHeight * SLIDE_RAISE);
+  // The slid-out pose; from above, the disc also turns its face up to the camera.
+  const slidePose = (record, progress, base) => {
+    const { placement } = record, out = placement.slide, main = placement.pocket === 'main';
+    const along = main ? stage(progress, 0, .6) : stage(progress, 0, .7), after = main ? stage(progress, .35, 1) : stage(progress, .55, 1), turn = main ? stage(progress, .3, 1) : 0;
+    const position = base.position.clone();
+    if (main) {
+      position.z += (out.position[2] - position.z) * along;
+      position.x += (out.position[0] - position.x) * after;
+      position.y += (out.position[1] - position.y) * after;
+    } else {
+      position.y += (out.position[1] - position.y) * along;
+      position.x += (out.position[0] - position.x) * after;
+      position.z += (out.position[2] - position.z) * after;
+    }
+    const quaternion = base.quaternion.clone().slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(...out.rotation)), turn);
+    if (xray > 0) quaternion.slerp(faceCamera(position, scratch.face), xray * Math.max(along, after));
+    const scale = base.scale.clone().lerp(new THREE.Vector3(...out.scale), Math.max(along, turn));
+    return { position, quaternion, scale };
   };
-  const scratch = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(), face: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), slide: new THREE.Vector3() };
+  const scratch = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(), face: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1) };
   const poseRecord = (record, now) => {
     let busy = false;
     const { rest, placement, mesh } = record;
@@ -480,9 +500,9 @@ export async function mountBag(container, {
       record.lift = t >= 1 ? record.liftTo : record.liftFrom + (record.liftTo - record.liftFrom) * spring(t);
       busy = t < 1;
     }
-    if (record.slide !== record.slideTo || now - record.slideStart < SLIDE_MS) {
-      const t = Math.min(1, (now - record.slideStart) / SLIDE_MS);
-      record.slide = t >= 1 ? record.slideTo : record.slideFrom + (record.slideTo - record.slideFrom) * spring(t);
+    if (record.slide !== record.slideTo) {
+      const t = record.slideDuration ? Math.min(1, (now - record.slideStart) / record.slideDuration) : 1;
+      record.slide = t >= 1 ? record.slideTo : record.slideFrom + (record.slideTo - record.slideFrom) * t;
       busy = busy || t < 1;
     }
     let position = rest.position, quaternion = rest.quaternion, scale = rest.scale;
@@ -502,11 +522,9 @@ export async function mountBag(container, {
       mesh.quaternion.slerp(faceCamera(lifted, scratch.face), Math.min(1, Math.max(0, record.lift)));
       mesh.scale.lerp(scratch.one, Math.min(1, Math.max(0, record.lift)));
     }
-    if (record.slide !== 0) {
-      const out = slideTarget(scratch.slide), share = Math.min(1, Math.max(0, record.slide));
-      mesh.position.lerp(out, record.slide);
-      mesh.quaternion.slerp(faceCamera(out, scratch.face), share);
-      mesh.scale.lerp(scratch.one, share);
+    if (record.slide !== 0 && placement.slide) {
+      const pose = slidePose(record, record.slide, { position: mesh.position, quaternion: mesh.quaternion, scale: mesh.scale });
+      mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.scale.copy(pose.scale);
     }
     return busy;
   };
@@ -515,8 +533,6 @@ export async function mountBag(container, {
   // The fabric turns translucent so the main compartment reads through the top panel.
   gltf.scene.updateMatrixWorld(true);
   const bagBox = new THREE.Box3().setFromObject(gltf.scene);
-  // The body without the flap's bind pose: down to the contact shadow, forward to the front pocket.
-  const bodyBox = new THREE.Box3(new THREE.Vector3(bagBox.min.x, Math.max(bagBox.min.y, shadow.position.y), bagBox.min.z), new THREE.Vector3(bagBox.max.x, bagBox.max.y, FRONT.front + .02));
   topPose = () => {
     // The box also spans the flap's bind pose (hanging open in front), so frame the body:
     // from its back panel to the front pocket, plus room under it for the go-to label.
@@ -558,6 +574,8 @@ export async function mountBag(container, {
     const next = Boolean(value);
     const settle = new Promise(resolve => cameraWaiters.push(resolve));
     if (next === topView && !cameraTween) { finishCamera(); return settle; }
+    // Leaving the top view returns to wherever the camera was (orbit mode keeps the user's angle).
+    if (next && !beforeTop) beforeTop = { position: camera.position.clone(), target: target.clone() };
     topView = next;
     if (next) {
       // Put the fabric on its translucent shaders before the clock starts, so no frame of the
@@ -567,7 +585,8 @@ export async function mountBag(container, {
       try { await renderer.compileAsync(scene, camera); } catch { /* compiles on first use instead */ }
     }
     if (disposed || topView !== next) return settle;
-    const goal = next ? topPose() : (() => { const home = homeCamera(); return { target: home.target, spherical: sphericalAt(home.position, home.target) }; })();
+    const back = beforeTop ?? homeCamera();
+    const goal = next ? topPose() : { target: back.target.clone(), spherical: sphericalAt(back.position, back.target) };
     const from = sphericalAt(camera.position, target);
     // Turn the short way round.
     while (goal.spherical.theta - from.theta > Math.PI) goal.spherical.theta -= Math.PI * 2;
@@ -586,6 +605,7 @@ export async function mountBag(container, {
     applyXray(lerp(motion.xrayFrom, motion.xrayTo));
     if (t < 1) return true;
     cameraTween = null;
+    if (!topView) beforeTop = null;
     if (controls) { controls.minPolarAngle = topView ? 0 : .30; controls.enabled = true; controls.update(); }
     finishCamera();
     return false;
@@ -680,8 +700,9 @@ export async function mountBag(container, {
   invalidate();
 
   // Screen rectangles in container pixels, measured at the resting pose (no float or turn).
+  // Points are in the bag's frame; turn them with the bag (the user's drag), ignoring the float.
   const project = point => {
-    const ndc = point.clone().project(camera);
+    const ndc = point.clone().applyAxisAngle(Y_AXIS, yaw).project(camera);
     return { x: (ndc.x + 1) / 2 * container.clientWidth, y: (1 - ndc.y) / 2 * container.clientHeight };
   };
   const boxOf = (placement, pose = restPose(placement), clip = false) => {
@@ -740,6 +761,7 @@ export async function mountBag(container, {
       yawTween = null;
       if (cameraTween) stepCamera(cameraTween, 1);
       if (topView) { topView = false; applyXray(0); if (controls) controls.minPolarAngle = .30; }
+      beforeTop = null;
       float.rotation.set(0, 0, 0);
       float.position.y = 0;
       if (controls) {
@@ -767,6 +789,12 @@ export async function mountBag(container, {
     // Compiles the translucent fabric up front (e.g. when a pointer nears the toggle).
     prepareTopView: () => prepareXray(),
     get topView() { return topView; },
+    // The bag's turn from the user's drag (radians); it persists until the user drags again.
+    get turn() { return yaw; },
+    // Whether the front pockets and main opening face the camera (or the camera is above).
+    // Whether any of the GLB's go-to accent rim is drawn (it should not be).
+    get goToAccentVisible() { return accents.some(object => object.visible); },
+    get frontFacing() { return topView || Math.cos(yaw) > .25; },
     get cameraMoving() { return cameraTween !== null; },
     // Camera state for QA: polar angle from straight up (0 = top view) and fabric opacity share.
     get cameraState() { const s = sphericalAt(camera.position, target); return { polar: s.phi, azimuth: s.theta, radius: s.radius, xray }; },
@@ -777,8 +805,7 @@ export async function mountBag(container, {
       const record = records.get(slidKey);
       if (!record) return null;
       camera.updateMatrixWorld();
-      const position = slideTarget(new THREE.Vector3());
-      return boxOf(record.placement, { position, quaternion: faceCamera(position, new THREE.Quaternion()), scale: scratch.one });
+      return boxOf(record.placement, slidePose(record, 1, restPose(record.placement)));
     },
     // Each pocket's volume projected to container pixels (for top-view pocket labels).
     pocketRects() {
@@ -800,10 +827,12 @@ export async function mountBag(container, {
     discScreenRect,
     get clipped() { return { ...clipped }; },
     getBagLayoutState() {
-      return [...records.values()].map(({ key, placement, mesh }) => ({
+      return [...records.values()].map(record => ({ record, ...record })).map(({ record, key, placement, mesh }) => ({
         key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty,
         color: placement.empty ? null : '#' + mesh.material.color.getHexString(),
         position: placement.position.slice(), visible: mesh.visible,
+        // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
+        pose: mesh.position.toArray(), slide: record.slide, glow: placement.empty ? 0 : mesh.material.emissiveIntensity,
       }));
     },
     get renderer() { return { pixelRatio: renderer.getPixelRatio(), width: renderer.domElement.width, height: renderer.domElement.height, rendering: loopOn, visible, quality: low ? 'low' : 'high' }; },

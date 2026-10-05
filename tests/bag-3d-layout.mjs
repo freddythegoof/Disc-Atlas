@@ -38,8 +38,11 @@ test('putters ride in the top pocket; go-to sits in the front pocket above main'
  assert.ok(by('g').position[2]>by('p').position[2] && by('g').position[2]>by('m').position[2],'go-to pocket is the front pocket');
  // Pocketed discs face forward; main discs stand edge-on.
  assert.equal(by('p').rotation[1],-Math.PI/2);assert.equal(by('g').rotation[1],-Math.PI/2);assert.equal(by('m').rotation[1],0);
- // Back putters rise and fan out so each rim shows above the disc in front.
- assert.ok(by('p2').position[1]>by('p').position[1] && by('p2').position[0]!==by('p').position[0]);
+ // Putters stand in one neat row: same x and tilt, even spacing, each a step higher so every rim shows.
+ const row=placements.filter(p=>p.pocket==='putter');
+ assert.ok(row.every(p=>p.position[0]===0 && p.rotation[0]===TOP.tilt),'aligned, consistent tilt');
+ const steps=row.slice(1).map((p,i)=>[p.position[1]-row[i].position[1],row[i].position[2]-p.position[2]]);
+ assert.ok(steps.every(([dy,dz])=>dy>0 && Math.abs(dy-steps[0][0])<1e-12 && Math.abs(dz-steps[0][1])<1e-12),'even spacing');
  const zs=placements.filter(p=>p.pocket==='putter').map(p=>p.position[2]);
  assert.ok(Math.abs((Math.max(...zs)+Math.min(...zs))/2-TOP.center)<1e-9,'putter stack centered in the top pocket');
  assert.equal(placements.find(p=>p.pocket==='putter' && p.empty).key,'putter-empty-2');
@@ -78,4 +81,20 @@ test('hit order puts front discs last so they win where pockets overlap', () => 
 
 test('lift poses come forward, toward the viewer', () => {
  for(const p of bagLayout({main:[disc('m'),null],putter:[disc('p')],goTo:[disc('g')]}).placements)assert.ok(p.lift[2]>p.position[2],p.key);
+});
+
+test('slide-out runs along each pocket axis until the whole disc is clear', () => {
+ const {placements}=bagLayout({main:[disc('m'),disc('m2')],putter:[disc('p0'),disc('p1'),disc('p2'),disc('p3')],goTo:[disc('g')]});
+ for(const p of placements.filter(p=>p.pocket!=='main')){
+  const [x,y,z]=p.slide.position,radius=.101*p.scale[1];
+  assert.equal(x,p.position[0],p.key+' keeps its x: straight up');assert.ok(y-radius>p.mouth,p.key+' bottom clears the pocket mouth');
+  assert.deepEqual(p.slide.rotation,p.rotation,p.key+' keeps its tilt');
+ }
+ const putters=placements.filter(p=>p.pocket==='putter'),front=Math.max(...putters.map(p=>p.position[2]));
+ assert.ok(putters.every(p=>p.slide.position[2]>front),'a slid putter rests in front of the stack');
+ const goTo=placements.find(p=>p.pocket==='goTo');assert.ok(goTo.slide.position[2]>goTo.position[2],'go-to comes forward and up');
+ for(const p of placements.filter(p=>p.pocket==='main')){
+  assert.ok(p.slide.position[2]>FRONT.front+DISC.radius,p.key+' comes out of the compartment, in front of the front pocket');
+  assert.ok(p.slide.position[1]>p.position[1],p.key+' and up');assert.equal(p.slide.rotation[1],-Math.PI/2,p.key+' turns face-on');
+ }
 });
