@@ -44,7 +44,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-sort-bar {display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
 .bag-sort-bar select {min-height:44px;padding:10px 32px 10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
 .bag-sort-bar select:disabled {opacity:.6}
-.bag-sort-bar>span {margin-left:auto;line-height:1.6}
+.bag-sort-bar>span:not(.dd-select) {margin-left:auto;line-height:1.6}
 .bag-ordered-list {margin-top:0}
 .bag-stability-field {border:0;margin:0 0 20px;padding:0;min-width:0;font-size:13px}
 .bag-stability-field legend {margin-bottom:10px}
@@ -67,7 +67,7 @@ body[data-view="bag"] main {display:none!important}
 .add-destination-menu button:hover,.add-destination-menu button:focus-visible {background:var(--selected);color:var(--text)}
 .directory-add {min-width:48px;font-size:12px}
 .compare-bag-add {min-height:44px;white-space:nowrap}
-@media(max-width:700px){.bag-sort-bar {gap:10px}.bag-sort-bar>span {width:100%;margin-left:0;font-size:11px}.bag-reorder-controls {justify-content:flex-start}.bag-lift-info {width:90%;max-width:300px}}
+@media(max-width:700px){.bag-sort-bar {gap:10px}.bag-sort-bar>span:not(.dd-select) {width:100%;margin-left:0;font-size:11px}.bag-reorder-controls {justify-content:flex-start}.bag-lift-info {width:90%;max-width:300px}}
 .bag-consensus {text-align:right;white-space:nowrap}
 .bag-consensus strong {font-size:13px;font-weight:500;display:block}
 .bag-consensus small {font-size:10px;color:var(--muted);display:block;margin-top:6px}
@@ -96,7 +96,6 @@ body[data-view="bag"] main {display:none!important}
 .directory-row {display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:center}
 .directory-row .disc-row {width:100%;min-width:0}
 .directory-add {width:48px;height:44px;display:flex;align-items:center;justify-content:center;gap:2px;border:1px solid var(--line);border-radius:24px;font-size:17px;color:var(--muted)}
-.directory-add>span:last-child {font-size:12px}
 .directory-add:hover {color:var(--text);background:var(--accent-soft);border-color:var(--lime)}
 .compare-item .compare-bag-add {position:static;width:100%;min-height:44px;font-size:12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:var(--accent-soft);color:var(--text)}
 .detail .bag-add.primary {margin:14px 0;font-size:14px}

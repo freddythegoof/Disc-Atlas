@@ -57,10 +57,12 @@ export async function checkDirectory(browser,base){
   const speeds=()=>page.locator('.disc-row .nums').allTextContents().then(rows=>rows.map(s=>Number(s.trim().split('/')[0])));
   await speed.click();let values=await speeds();
   assert.ok(values[0]>=14&&values.every((v,i)=>!i||v<=values[i-1]),'First click sorts fastest first');
-  assert.match(await speed.innerText(),/↓/);await capture('speed-fastest');
+  // Direction shows as the dropdown indicator: pointing down, or turned up for ascending.
+  const direction=button=>button.evaluate(n=>({data:n.dataset.direction,indicator:!!n.querySelector(':scope>.dd-indicator'),text:n.innerText.trim()}));
+  assert.deepEqual(await direction(speed),{data:'descending',indicator:true,text:'Speed'});await capture('speed-fastest');
   await speed.click();values=await speeds();
   assert.ok(values[0]<=1&&values.every((v,i)=>!i||v>=values[i-1]),'Second click sorts slowest first');
-  assert.match(await speed.innerText(),/↑/);await capture('speed-slowest');
+  assert.deepEqual(await direction(speed),{data:'ascending',indicator:true,text:'Speed'});await capture('speed-slowest');
   await speed.focus();await page.keyboard.press('Enter');
   assert.ok((await speeds())[0]>=14,'Keyboard toggles back to fastest');
   await page.evaluate(()=>{$('#collection').value='all';filter();});
@@ -73,8 +75,8 @@ export async function checkDirectory(browser,base){
    for(const [direction,action] of [['descending','click'],['ascending','Enter'],['descending','Space']]){
     if(action==='click')await button.click();else{await button.focus();await page.keyboard.press(action);}
     assert.equal(await button.getAttribute('aria-pressed'),'true');
-    assert.match(await button.innerText(),direction==='ascending'?/↑/:/↓/);
-    if(sort==='new')assert.equal((await button.innerText()).trim(),direction==='ascending'?'Oldest ↑':'Newest ↓');
+    assert.equal(await button.getAttribute('data-direction'),direction);
+    assert.equal((await button.innerText()).trim(),sort==='new'?(direction==='ascending'?'Oldest':'Newest'):label);
     const current=sort==='stability'?(direction==='ascending'?'most understable first':'most overstable first'):(direction==='ascending'?'oldest first':'newest first');
     assert.equal(await button.getAttribute('aria-label'),`${sort==='new'&&direction==='ascending'?'Oldest':label}: ${current}`);
     assert.ok((await button.getAttribute('title')).toLowerCase().startsWith(current+'.'));
@@ -91,7 +93,7 @@ export async function checkDirectory(browser,base){
     }
    }
    await button.click();await speed.click();await button.click();
-   assert.match(await button.innerText(),/↓/,'Switching sorts restores default direction');
+   assert.equal(await button.getAttribute('data-direction'),'descending','Switching sorts restores default direction');
    await page.evaluate(()=>{discs=discs.filter(d=>!sortFixtures.includes(d));filter();});
   }
   for(const width of [320,390,700,701,1440]){

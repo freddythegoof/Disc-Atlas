@@ -142,7 +142,7 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 @media(max-width:1100px){header{padding:0 20px;gap:16px}header nav{gap:14px}.header-actions{gap:10px}.logo{font-size:17px;letter-spacing:1px}body[data-view="map"]:not(.my-bag-mode) .workspace-head{display:none}.legend{gap:12px}body[data-view="map"]:not(.my-bag-mode) .map-toolbar{bottom:24px;padding:12px}.detail{width:330px}}
 @media(max-width:700px){
  :root{--header-height:112px}
- header{height:var(--header-height);padding:12px 16px 0;display:grid;grid-template-columns:1fr auto;gap:6px 10px}.logo{font-size:15px;letter-spacing:.8px;gap:4px}.orbit{font-size:23px;margin-right:2px}.header-actions{gap:8px}.theme-picker{padding:2px 6px}.theme-picker>span{display:none}.theme-picker select{font-size:12px;max-width:85px}#accountButton{font-size:12px!important;padding:6px 8px;min-height:36px}
+ header{height:var(--header-height);padding:12px 16px 0;display:grid;grid-template-columns:1fr auto;gap:6px 10px}.logo{font-size:15px;letter-spacing:.8px;gap:4px}.orbit{font-size:23px;margin-right:2px}.header-actions{gap:8px}.theme-picker{padding:2px 6px}.theme-picker>span:not(.dd-select){display:none}.theme-picker select{font-size:12px;max-width:85px}#accountButton{font-size:12px!important;padding:6px 8px;min-height:36px}
  header nav{grid-column:1/-1;grid-row:2;gap:22px;justify-content:center;width:100%;align-self:stretch}header nav button{padding:6px 0;flex:none;font-size:13px}
  .workspace{padding:18px 16px}.explore-tools{gap:8px}.explore-tools .search{height:44px;max-width:none;padding:0 10px}.explore-tools .search input{font-size:16px}#filtersToggle{height:44px;padding:0 12px;font-size:13px}
  body[data-view="map"]:not(.my-bag-mode) .explore-tools{top:16px;left:16px;width:calc(100% - 32px)}
@@ -398,9 +398,7 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100%
 .brand-chip-options .brand-option{min-height:34px;padding:5px 6px;border-radius:8px;font-size:13px}
 .chip-popover-clear{align-self:flex-start;padding:4px 2px;font-size:12px;color:var(--muted)}
 .chip-popover-clear:hover{color:var(--lime)}
-.explore-tools .type-chips .brand-chip{position:relative;padding:0 28px 0 14px}
-.brand-chip::after{content:"";position:absolute;right:12px;top:50%;width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-75%) rotate(45deg);opacity:.7}
-.brand-chip[aria-expanded="true"]::after{transform:translateY(-25%) rotate(225deg)}
+.explore-tools .type-chips .brand-chip{display:inline-flex;align-items:center;gap:6px;padding:0 10px 0 14px}
 .explore-tools .type-chips .brand-chip[data-active="true"]{background:var(--selected);color:var(--text);border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime)}
 /* Phones: five chips do not fit one line, so the row scrolls sideways instead of pushing the map down. */
 @media(max-width:700px){
@@ -408,9 +406,7 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100%
  .type-chips::-webkit-scrollbar{display:none}
  .type-chips>button{flex-shrink:0}
 }
-.explore-tools .atlas-lens .lens-button{position:relative;padding:0 30px 0 14px;color:var(--text)}
-.lens-button::after{content:"";position:absolute;right:13px;top:50%;width:5px;height:5px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-75%) rotate(45deg);opacity:.7}
-.lens-button[aria-expanded="true"]::after{transform:translateY(-25%) rotate(225deg)}
+.explore-tools .atlas-lens .lens-button{display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 14px;color:var(--text)}
 .lens-menu{width:190px;gap:2px;padding:6px}
 .lens-menu [role="menuitemradio"]{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;color:var(--text)}
 .lens-menu [role="menuitemradio"]:hover,.lens-menu [role="menuitemradio"]:focus-visible{background:var(--selected);outline:none}
