@@ -1,10 +1,11 @@
 import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
+import {moldShifts,personalPositions} from './personal-lens.js';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custom bag',capacity:20}, items = [], active = false;
 let plastics, models, editing = null, removing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
-let colorCustomized=false,ordering=false,dragging=null;
+let colorCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
 const pendingPockets=new Map();
 const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async path => {const r = await fetch(path);if (!r.ok) throw Error('Bag choices could not load. Please try again.');return r.json();})).then(([p,m])=>{plastics=p;models=m;});
 // Fetch failures are surfaced when opening a sheet, without an unhandled rejection.
@@ -37,9 +38,11 @@ function refreshBagDetail(){
  if(item){detailItem=item;detail();}else closeDetail(false);
 }
 function bagDetailMarkup(d){
- const item=detailItem;if(!active || !item || item.mold_id!==d.id)return '';
- const rated=d.speed!=null;
- return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(item.color||'#e6c668')}" aria-hidden="true"></span><div><h3 id="bagDetailTitle">Your disc</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide primary" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button><button type="button" class="wide" data-bag-detail-edit="${esc(item.id)}">Edit disc</button></div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
+ // On My Map a disc is a mold; its details describe the first bagged copy.
+ const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;if(!active || !item)return '';
+ const rated=d.speed!=null,index=rated?Math.max(0,Math.min(100,50+10*(d.turn+d.fade))):null;
+ const shift=mapOpen && rated?moldShifts(bagged().filter(i=>i.mold_id===d.id)).get(d.id):0,personal=Math.round(Math.max(0,Math.min(100,index+shift)));
+ return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(item.color||'#e6c668')}" aria-hidden="true"></span><div><h3 id="bagDetailTitle">Your disc</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}${shift && personal!==index?`<div><dt>On your map</dt><dd>Stability ${personal} · consensus ${index}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide primary" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button><button type="button" class="wide" data-bag-detail-edit="${esc(item.id)}">Edit disc</button></div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
 }
 detailPanel.addEventListener('click',event=>{
  const show=event.target.closest('[data-show-on-atlas]'),edit=event.target.closest('[data-bag-detail-edit]');
@@ -66,7 +69,7 @@ function sync(data) {
  const changed = account?.csrfToken !== data.csrfToken || !!account?.user !== !!data.user;
  account = data;
  if(changed) {
-  generation++;scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;ordering=false;dragging=null;pendingPockets.clear();
+  generation++;mapOpen=false;scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;ordering=false;dragging=null;pendingPockets.clear();
   if($('#addDestinationMenu').matches(':popover-open'))$('#addDestinationMenu').hidePopover();
   for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog']) if($('#'+id).open)$('#'+id).close();
   status('');
@@ -84,7 +87,10 @@ function render() {
  const bagged=items.filter(i=>i.in_bag!==false).sort(bagComparator(settings.sort_mode,mold)),stored=items.filter(i=>i.in_bag===false),count=bagged.length;
  $('#bagSort').value=settings.sort_mode || 'speed';$('#bagSort').disabled=loading || !!loadError || ordering;
  $('#bagSortHint').textContent=settings.sort_mode==='custom'?'Drag the grip, or use Move earlier / later.':settings.sort_mode==='stability'?'Most stable first · shared atlas index':'Fastest first · stability within each speed';
- $('#bagScene').hidden=!signedIn || loading || !!loadError;
+ $('#bagScene').hidden=!signedIn || loading || !!loadError || mapOpen;
+ $('#myBagViews').hidden=!signedIn;$('.bag-sort-bar').hidden=mapOpen;
+ for(const button of $('#myBagViews').querySelectorAll('[data-bag-view]')){const on=(button.dataset.bagView==='map')===mapOpen;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
+ $('#myBagContents').hidden||=mapOpen;$('#myMapPanel').hidden=!signedIn || loading || !!loadError || !mapOpen;syncMyMap();
  $('#bagSlotMeter').textContent=`${count} / ${settings.capacity}`;
  const breakdown=`${settings.main_capacity ?? settings.capacity} main + ${settings.putter_capacity ?? 0} putter${settings.extra_capacity?' + '+settings.extra_capacity+' extra':''}`;
  $('#bagSlotMeter').title=breakdown;$('#bagPocketBreakdown').textContent=breakdown;
@@ -94,7 +100,7 @@ function render() {
  $('#bagCapacityNotice').textContent=count===settings.capacity?'Your bag is full. You can still add a disc.':'A little over capacity. Move a spare to Storage, or keep carrying it.';
  $('#editBagModel').disabled=loading || !!loadError || ordering;
  if(!signedIn || loading || loadError){$('#myBagContents').replaceChildren();return;}
- scene.update(items,settings);if(active)void scene.reveal();refreshBagDetail();
+ scene.update(items,settings);if(active && !mapOpen)void scene.reveal();refreshBagDetail();
  const groups=[['distance','Distance drivers'],['fairway','Fairway drivers'],['mid','Midranges'],['putter','Putters'],['unknown','Unclassified discs']];
  const grouped=(collection,ordered=false)=>(ordered?[['lineup','Bag discs']]:groups).map(([key,label])=>{
   const rows=ordered?collection:collection.filter(i=>bagClass(mold(i.mold_id))===key).sort(bagComparator(settings.sort_mode,mold));if(!rows.length)return '';
@@ -112,10 +118,39 @@ function activateBag() {
  history.replaceState(null,'','/?bag=1');render();window.scrollTo(0,0);
 }
 function leaveBag(view) {
- active=false;scene.slideIn();undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
+ active=false;syncMyMap();scene.slideIn();undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
  for(const id of ['mapTab','listTab','bagTab'])$('#'+id).setAttribute('aria-current',id===(view==='map'?'mapTab':'listTab')?'page':'false');
  history.replaceState(null,'','/');setView(view);
 }
+const bagged=()=>items.filter(i=>i.in_bag!==false && mold(i.mold_id)).sort(bagComparator(settings.sort_mode,mold));
+// My Map: the atlas's own map, docked here, showing only bagged discs at their personal positions
+// (consensus shifted by the player's stability notes). Positions are recomputed when the bag changes.
+function syncMyMap(){
+ if(!mapOpen || !active || !account?.user || loading || loadError || !discs.length){myMapKey='';hideMyMap();return;}
+ const copies=bagged(),molds=[...new Set(copies.map(i=>i.mold_id))].map(mold),rated=molds.filter(d=>d.speed!=null),unrated=molds.length-rated.length;
+ const shifts=moldShifts(copies),moved=rated.filter(d=>shifts.get(d.id)).length;
+ $('#myMapEmpty').hidden=rated.length>0;$('#myMapHost').hidden=!rated.length;$('.my-map-axis').hidden=!rated.length;
+ $('#myMapEmptyTitle').textContent=molds.length?'Nothing to plot yet.':'Your map is empty.';
+ $('#myMapEmptyText').textContent=molds.length?'None of the discs in your bag have flight ratings yet, so none of them has a place on the map.':'Add discs to your bag and they appear here, placed where they fly for you.';
+ $('#myMapSummary').textContent=!rated.length?'':`${rated.length} ${rated.length===1?'disc':'discs'} · `+(moved?`${moved} moved by your stability notes. A dashed ring marks the consensus spot.`:'all at consensus positions. Mark a copy More stable or Less stable in Edit to move it here.');
+ $('#myMapNote').textContent=unrated && rated.length?`${unrated} ${unrated===1?'disc in your bag has':'discs in your bag have'} no flight ratings yet, so ${unrated===1?'it isn’t':'they aren’t'} plotted.`:'';
+ if(!rated.length){myMapKey='';hideMyMap();return;}
+ if(detailPanel.parentNode!==$('#myBagView'))$('#myBagView').append(detailPanel);
+ const key=JSON.stringify([rated.map(d=>d.id),[...shifts]]);
+ if(key===myMapKey && myMap && !$('#mapWrap').hidden)return;myMapKey=key;
+ showMyMap({ids:new Set(rated.map(d=>d.id)),positions:personalPositions(window.AtlasLayout,rated,shifts),shifts},$('#myMapHost'));
+}
+function setBagView(next){
+ if(mapOpen===(next==='map'))return;mapOpen=next==='map';
+ if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);undockDetail();scene.slideIn();render();
+}
+$('#myBagViews').addEventListener('click',event=>{const button=event.target.closest('[data-bag-view]');if(button)setBagView(button.dataset.bagView);});
+$('#myBagViews').addEventListener('keydown',event=>{
+ const keys={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1};if(!keys[event.key])return;event.preventDefault();
+ const buttons=[...$('#myBagViews').querySelectorAll('[data-bag-view]')],next=buttons[(buttons.indexOf(document.activeElement)+keys[event.key]+buttons.length)%buttons.length];
+ setBagView(next.dataset.bagView);next.focus();
+});
+$('#myMapDirectory').addEventListener('click',()=>directory());
 function directory() {leaveBag('list');$('#search').focus({preventScroll:true});window.scrollTo(0,0);}
 function show(dialog) {opener=document.activeElement;dialog.showModal();}
 for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog']) {

@@ -256,3 +256,31 @@ body[data-view="bag"] main {display:none!important}
  .directory-row .row-identity strong {font-size:14px}
  .directory-row .nums {font-size:10px}
 }
+
+/* My Map: the atlas's own map, docked on the My Bag page with only the bag's discs (personal lens). */
+.my-bag-views {display:inline-flex;gap:2px;padding:3px;margin:-8px 0 28px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.my-bag-views button {height:38px;padding:0 18px;border:0;border-radius:9px;background:none;color:var(--muted);font-size:13px;font-weight:500}
+.my-bag-views button:hover {color:var(--text)}
+.my-bag-views button[aria-checked="true"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
+.my-map {padding-top:8px}
+.my-map-heading {display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+.my-map-heading h2 {font:500 28px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.6px;margin:6px 0}
+.my-map-heading p {margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+.my-map-heading .eyebrow {font-size:11px}
+.my-map-heading .my-map-summary {max-width:380px;text-align:right;font-size:13px}
+.my-map-host #map {height:min(640px,72dvh)}
+.my-map-axis {display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:10px 6px 0;font-size:11px;color:var(--muted)}
+.my-map-axis strong {font-weight:500;color:var(--text)}
+.my-map-axis small {color:var(--muted);font-weight:400;margin-left:4px}
+#myMapNote:empty {display:none}
+.my-map .my-bag-empty {border:1px solid var(--line);border-radius:18px}
+/* Every disc here is the player's own, so the atlas's "in your bag" ring would mark them all. */
+.my-map-mode .atlas-marker.is-mine .disc-art,.my-map-mode .atlas-marker.is-dot.is-mine .map-dot {outline:none}
+@media(max-width:700px){
+ .my-bag-views {margin:-12px 0 22px}
+ .my-map-heading {display:block}
+ .my-map-heading .my-map-summary {text-align:left;margin-top:10px}
+ .my-map-host #map {height:460px}
+ .my-map-axis {margin:10px 2px 0;font-size:10px}
+ .my-map-axis small {display:none}
+}

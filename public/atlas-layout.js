@@ -5,14 +5,15 @@ window.AtlasLayout = (() => {
     for (const c of String(value)) n = Math.imul(n ^ c.charCodeAt(0), 16777619);
     return (n >>> 0) / 4294967296;
   }
-  function positions(items) {
+  // `shift` moves a disc's stability index (My Map's personal lens); the shared atlas passes none.
+  function positions(items, shift = () => 0) {
     const result = new Map();
     for (const d of items) {
       if (d.speed == null) continue;
       const angle = seed(d.id) * Math.PI * 2;
       const radius = .012 + Math.sqrt(seed(d.id + ':radius')) * .05;
       result.set(d.id, {
-        x: Math.max(0, Math.min(100, 50 + 10 * (d.turn + d.fade))) / 100 + Math.cos(angle) * radius,
+        x: Math.max(0, Math.min(100, 50 + 10 * (d.turn + d.fade) + shift(d))) / 100 + Math.cos(angle) * radius,
         y: (d.speed - 1) / 14 + Math.sin(angle) * radius,
       });
     }

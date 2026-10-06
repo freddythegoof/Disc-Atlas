@@ -165,6 +165,17 @@ function draw(){
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
  for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
  for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,immersive?82:24);ctx.lineTo(xx,plotBottom);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
+ // My Map: a disc moved by the player's stability notes keeps a faint ring where the consensus puts it.
+ if(myMap){
+  ctx.save();ctx.strokeStyle=themePalette.muted;ctx.globalAlpha=.6;ctx.setLineDash([3,4]);
+  for(const [id,shift] of myMap.shifts){
+   const from=sharedPositions.get(id),to=atlasPositions.get(id);if(!shift||!from||!to)continue;
+   const fx=area.left+from.x*area.width*zoom+pan.x,fy=area.bottom-from.y*area.height*zoom+pan.y;
+   ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(area.left+to.x*area.width*zoom+pan.x,fy);ctx.stroke();
+   ctx.beginPath();ctx.arc(fx,fy,7,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+ }
  // Explain the selected disc's offset without turning a dense view into a web of lines.
  for(const g of mapClusters){if(!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  drawPlanetLabels();
@@ -196,7 +207,7 @@ function drawPlanetLabels(){
  planetLabels.clear();groupCache.labelPlacements?.clear();
 }
 function renderMarkers(){
- const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||window.BagApp?.isMapActive());
+ const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||myMap);
  const scale=mapMarkerScale();
  const scaleValue=scale.toFixed(3);
  const filterPending=groupCache.items!==filtered;
