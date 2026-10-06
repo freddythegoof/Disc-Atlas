@@ -1412,6 +1412,160 @@
         }
       ],
       "catalogMatchConfidence": 0.75
+    },
+    {
+      "id": "9ea748f5bf64",
+      "brand": "Innova",
+      "approvalName": "Tern",
+      "catalogName": "Tern",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -2,
+        "fade": 2
+      },
+      "manufacturerNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -2,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://www.innovadiscs.com/disc/tern/",
+      "sourceLabel": "Innova catalog, Atlas-adjusted (approved current mold-page correction)",
+      "adjustmentNote": "Owner-approved correction, October 5, 2026: Tern turn -3 to -2, changing 12/6/-3/2 to 12/6/-2/2. Atlas uses Innova's current mold page as the representative mold rating rather than older Star/GStar stamp numbers. The recorded evidence in docs/stability-review-queue.md, Tern section, lists Innova and Infinite at 12/6/-2/2 and explains the plastic-specific -3 history. Confidence 0.85 is the approved confidence for this baseline decision; the queue's earlier unresolved confidence 0.5 predates that decision. Speed 12, glide 6 and fade 2 are unchanged. No plastic-specific averages were combined.",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=tern&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Innova Tern current mold page, 12/6/-2/2, as recorded in the Tern review",
+          "url": "https://www.innovadiscs.com/disc/tern/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Tern, manufacturer 12/6/-2/2 and reviewer turn -2, recorded review evidence",
+          "url": "https://infinitediscs.com/innova-tern",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Marshall Street Star Tern, legacy 12/6/-3/2; counter-evidence for the plastic-specific baseline",
+          "url": "https://www.marshallstreetdiscgolf.com/?s=tern&post_type=product",
+          "type": "retailer",
+          "weight": 0.2
+        },
+        {
+          "name": "Freddy (site owner), explicit approval October 5, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.85,
+      "consensusNote": "Owner selected Innova's current mold-page baseline 12/6/-2/2 over older Star/GStar 12/6/-3/2 stamps. The review queue records agreement from Infinite's mold and plastic pages, with meaningful plastic variance retained as context.",
+      "plasticVariance": "Champion historically carries -2; Star/GStar historically carry -3 (older Star -4), with weight and run variation. Atlas represents the current mold-page rating; no ratings were averaged across plastics.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 12,
+          "glide": 6,
+          "turn": -2,
+          "fade": 2,
+          "reason": "Owner-approved correction, October 5, 2026: Tern turn -3 to -2, changing 12/6/-3/2 to 12/6/-2/2. Atlas uses Innova's current mold page as the representative mold rating rather than older Star/GStar stamp numbers. The recorded evidence in docs/stability-review-queue.md, Tern section, lists Innova and Infinite at 12/6/-2/2 and explains the plastic-specific -3 history. Confidence 0.85 is the approved confidence for this baseline decision; the queue's earlier unresolved confidence 0.5 predates that decision. Speed 12, glide 6 and fade 2 are unchanged. No plastic-specific averages were combined."
+        }
+      ]
+    },
+    {
+      "id": "a9c5133f6a9d",
+      "brand": "Kastaplast",
+      "approvalName": "Grym X",
+      "catalogName": "Grym X",
+      "flightNumbers": {
+        "speed": 12.5,
+        "glide": 5,
+        "turn": -0.5,
+        "fade": 3
+      },
+      "manufacturerNumbers": {
+        "speed": 12.5,
+        "glide": 5,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Distance Driver",
+      "source": "https://infinitediscs.com/kastaplast-grym-x",
+      "sourceLabel": "Published retailer catalog, Atlas-adjusted (owner-approved Grym X review candidate)",
+      "adjustmentNote": "Owner-approved correction, October 5, 2026: Grym X turn 0 to -0.5; speed 12.5, glide 5 and fade 3 are unchanged. Evidence: docs/stability-review-queue.md, Grym X section (batch 20), records K1 Line 2015-2020 turn mean -0.50 and all three K1 Line advanced/professional raters at -0.5 turn / 3 fade. Later K1 Line ratings lean toward more turn. The queue identifies 0 to -0.5 as the conservative candidate, now explicitly approved by the owner. Confidence 0.5 is retained from the review: the pool is small (17 ratings), retailers and launch numbers still print turn 0, and the current manufacturer page was unreadable. This is an Atlas observed-flight adjustment, not a manufacturer-number correction. No cross-plastic averages were combined.",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "unknown",
+        "source": null,
+        "note": "Production status is not verified; approval date is not a production date."
+      },
+      "sources": [
+        {
+          "name": "Infinite Discs Grym X, published 12.5/5/0/3; reviewer turn -0.4; 17 reviews, recorded in batch 20",
+          "url": "https://infinitediscs.com/kastaplast-grym-x",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite reviewer text, 17 raw rated Grym X reviews; K1 Line era and skill breakdown recorded in batch 20",
+          "url": "https://infinitediscs.com/Disc/DiscComments",
+          "type": "community",
+          "weight": 0.4
+        },
+        {
+          "name": "DGCR Grym X April 2016 launch thread; quoted Kastaplast launch turn 0 is counter-evidence",
+          "url": "https://www.dgcoursereview.com/threads/kastaplast-grym-x-distance-driver.128721/",
+          "type": "community",
+          "weight": 0.15
+        },
+        {
+          "name": "Rocket Discs Grym X, 12.5/5/0/3; printed turn 0 is counter-evidence",
+          "url": "https://rocketdiscs.com/kastaplast-grym-x",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Lucky Disc Golf Grym X, 12.5/5/0/3; printed turn 0 is counter-evidence",
+          "url": "https://luckydiscgolf.com/collections/kastaplast-grym-x",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Gotta Go Gotta Throw K1 Grym X, 13/5/0/3; printed turn 0 is counter-evidence",
+          "url": "https://gottagogottathrow.com/products/kastaplast-k1-grym-x-distance-driver-golf-disc",
+          "type": "retailer",
+          "weight": 0.1
+        },
+        {
+          "name": "Freddy (site owner), explicit approval October 5, 2026",
+          "url": null,
+          "type": "community",
+          "weight": 0.4
+        }
+      ],
+      "confidence": 0.5,
+      "consensusNote": "Batch 20 records early K1 Line turn -0.50 and the three advanced/professional K1 Line ratings at -0.5/3; later runs lean more understable. Owner approved the conservative half-step despite retailer and launch turn 0. Manufacturer numbers remain 12.5/5/0/3 as published via Infinite, not independently verified current Kastaplast numbers.",
+      "plasticVariance": "The queue records K1 Line turn/fade -1.04/2.31 (13 ratings), early -0.50/2.75 (6), later -1.50/1.93 (7); K1 Soft -1.25/2.50 (2); K1 Glow +0.25/1.25 (2, with a +2 outlier). These are separate review subsets, not inputs to a cross-plastic average.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 12.5,
+          "glide": 5,
+          "turn": -0.5,
+          "fade": 3,
+          "reason": "Owner-approved correction, October 5, 2026: Grym X turn 0 to -0.5; speed 12.5, glide 5 and fade 3 are unchanged. Evidence: docs/stability-review-queue.md, Grym X section (batch 20), records K1 Line 2015-2020 turn mean -0.50 and all three K1 Line advanced/professional raters at -0.5 turn / 3 fade. Later K1 Line ratings lean toward more turn. The queue identifies 0 to -0.5 as the conservative candidate, now explicitly approved by the owner. Confidence 0.5 is retained from the review: the pool is small (17 ratings), retailers and launch numbers still print turn 0, and the current manufacturer page was unreadable. This is an Atlas observed-flight adjustment, not a manufacturer-number correction. No cross-plastic averages were combined."
+        }
+      ]
     }
   ]
 }
