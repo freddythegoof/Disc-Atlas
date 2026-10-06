@@ -98,7 +98,7 @@ function buildClusters(items,w,h){
   // use the same worker and staged swap as zoom changes, even at the same level.
   if(!groupCache||!hasPaintedMarkers){
    const initial=Math.round(Math.log2(zoom)*3);
-   groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive,groupContext.footprints,atlasPriority()),items,w,h,initial,immersive);
+   groupCache=hydrateGroups(window.AtlasGroups.build(items,shownPositions(items,w,h,immersive),w,h,initial,immersive,groupContext.footprints,atlasPriority()),items,w,h,initial,immersive);
    preparedGroups.set(initial,groupCache);
   }
  }
@@ -112,7 +112,7 @@ function buildClusters(items,w,h){
    $('#mapMarkers').classList.add('is-regrouping');
   }
   else if(groupWorker)prepareGroups(level,items,w,h,immersive);
-  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive,groupContext.footprints,atlasPriority()),items,w,h,level,immersive);appliedContext=contextPending;}
+  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,shownPositions(items,w,h,immersive),w,h,level,immersive,groupContext.footprints,atlasPriority()),items,w,h,level,immersive);appliedContext=contextPending;}
  }
  // Labels do not scale with the camera. Recheck at the actual zoom, including
  // intermediate animation frames and while a new worker level is pending.
@@ -132,7 +132,7 @@ function buildClusters(items,w,h){
   const margin=markerNodes.has(g.key)?80:48;
   const top=immersive?70:0,bottom=h-(immersive?(w<700?155:110):24);
   if(x < -margin||x>w+margin||y<top-margin||y>bottom+margin)continue;
-  const original=atlasPositions.get(g.lead.id);
+  const original=g.pos;
   const dx=g.markerOffset?.x||0,dy=g.markerOffset?.y||0;
   const leader=g.leader?{x1:x+g.leader.x1-g.px*zoom/(2**(groupCache.level/3)),
    y1:y+g.leader.y1+g.py*zoom/(2**(groupCache.level/3)),x2:x,y2:y}:null;
@@ -145,10 +145,16 @@ function buildClusters(items,w,h){
  }
  return result;
 }
+// Where discs are drawn: a filtered map spreads into the room it frees, as the worker does.
+function shownPositions(items,w,h,immersive){return window.AtlasLayout.adapt(items,atlasPositions,w,h,immersive);}
+function shownPosition(id){
+ const {width:w,height:h}=mapViewport||canvas.getBoundingClientRect();
+ return shownPositions(filtered,w,h,!document.body.classList.contains('my-bag-mode')).get(id)??atlasPositions.get(id);
+}
 function focusFeatured(){
  const d=filtered.find(d=>d.name.toLowerCase()==='destroyer'&&/innova/i.test(d.brand)&&d.speed!=null)||filtered.find(d=>d.speed!=null);
  if(!d)return;
- selected=d;const p=atlasPositions.get(d.id);if(!p)return;
+ selected=d;const p=shownPosition(d.id);if(!p)return;
  const camera=window.AtlasLayout.camera(p,canvas.clientWidth,canvas.clientHeight,innerWidth<700?4:2.8);
  zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
 }
@@ -169,7 +175,10 @@ function draw(){
  if(myMap){
   ctx.save();ctx.strokeStyle=themePalette.muted;ctx.globalAlpha=.6;ctx.setLineDash([3,4]);
   for(const [id,shift] of myMap.shifts){
-   const from=sharedPositions.get(id),to=atlasPositions.get(id);if(!shift||!from||!to)continue;
+   const consensus=sharedPositions.get(id),personal=atlasPositions.get(id);if(!shift||!consensus||!personal)continue;
+   const to=shownPosition(id);
+   // The ring keeps its offset from the disc as shown, which a sparse map may have spread.
+   const from={x:to.x-personal.x+consensus.x,y:to.y};
    const fx=area.left+from.x*area.width*zoom+pan.x,fy=area.bottom-from.y*area.height*zoom+pan.y;
    ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(area.left+to.x*area.width*zoom+pan.x,fy);ctx.stroke();
    ctx.beginPath();ctx.arc(fx,fy,7,0,Math.PI*2);ctx.stroke();

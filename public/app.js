@@ -51,14 +51,14 @@ function showOnAtlas(d){
  // A map that has never been shown has no groups yet; draw it before selecting.
  measureMap();draw();const w=canvas.clientWidth,h=canvas.clientHeight,immersive=!document.body.classList.contains('my-bag-mode');
  const footprints=groupContext?.items===filtered?groupContext.footprints:measureFullLabels(filtered);
- const level=z=>AtlasGroups.level(z),own=z=>window.AtlasGroups.build(filtered,atlasPositions,w,h,level(z),immersive,footprints,atlasPriority()).groups.some(g=>g.key===d.id);
+ const level=z=>AtlasGroups.level(z),own=z=>window.AtlasGroups.build(filtered,shownPositions(filtered,w,h,immersive),w,h,level(z),immersive,footprints,atlasPriority()).groups.some(g=>g.key===d.id);
  const target=[4,5,6.35,8,MAX_MAP_ZOOM].find(own)??MAX_MAP_ZOOM;
  // select() stops camera motion, so it goes first. Then center the disc in the map the panel leaves visible:
  // beside it on desktop, above the bottom sheet on phones.
  select(d);
  const box=canvas.getBoundingClientRect(),panel=$('#detail').getBoundingClientRect(),sheet=panel.left<box.left+box.width*.2;
  const at=sheet?{x:box.width/2,y:(Math.max(box.top,$('#search').getBoundingClientRect().bottom)+panel.top)/2-box.top}:{x:(Math.min(panel.left,box.right)-box.left)/2,y:h*.48};
- const camera=window.AtlasLayout.camera(atlasPositions.get(d.id),w,h,target);
+ const camera=window.AtlasLayout.camera(shownPosition(d.id),w,h,target);
  prepareZoomLevel(target);tweenCamera({...camera,x:camera.x+at.x-w*.5,y:camera.y+at.y-h*.48},.45);
 }
 // state: {ids: bagged mold IDs, positions: personal positions, shifts: mold ID -> index points}.

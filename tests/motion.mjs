@@ -115,23 +115,24 @@ try{
   await page.evaluate(()=>{window.originalClose=document.querySelector('#closeDetail');select(filtered.find(d=>d.speed===5));});
   assert.ok(await page.evaluate(()=>originalClose===document.querySelector('#closeDetail')),'Changing discs preserves sidebar controls');
   await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+  // A sparse map spreads even coincident discs apart: each gets its own marker and opens directly.
+  // Dense-catalog stacks keep the chooser (checked below).
   for(const size of [2,3])for(const level of [2.8,12]){
-   await page.evaluate(({size,level})=>{
+   const first=await page.evaluate(({size,level})=>{
     const items=discs.filter(d=>d.speed===12).slice(0,size);filtered=items;selected=null;
     for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});
-    const camera=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,level);
-    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
+    const camera=AtlasLayout.camera(shownPosition(items[0].id),canvas.clientWidth,canvas.clientHeight,level);
+    zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();return items[0].id;
    },{size,level});
    await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
-   const expected=await page.evaluate(()=>mapClusters[0].lead.name);
-   await page.locator('.atlas-marker').first().click();
+   assert.ok(await page.evaluate(size=>groupCache.groups.length===size&&groupCache.groups.every(g=>g.members.length===1),size),'Coincident discs in a sparse map spread into separate markers');
+   const expected=await page.evaluate(id=>discs.find(d=>d.id===id).name,first);
+   await page.locator(`[data-cluster="${first}"]`).click();
    await page.locator('#detail h2').waitFor();
-   assert.equal(await page.locator('#detail [data-choose-disc]').count(),size,'Coincident discs remain accessible through the stack chooser');
+   assert.equal(await page.locator('#detail [data-choose-disc]').count(),0,'A spread disc opens directly, without a stack chooser');
    assert.equal(await page.locator('#clusterPopover').isVisible(),false);
-   await page.locator('#detail [data-choose-disc]').first().click();
-   assert.equal(await page.locator('#detail h2').innerText(),expected.trim(),'Choosing a disc opens that disc');
-   assert.equal(await page.locator('.atlas-marker').count(),1,'Coincident markers stay grouped instead of being displaced');
-   assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>g.pos.x===.5&&g.pos.y===.5)),'Selecting a stack preserves its true position');
+   assert.equal(await page.locator('#detail h2').innerText(),expected.trim(),'Clicking a spread disc opens that disc');
+   assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>{const p=shownPosition(g.key);return g.pos.x===p.x&&g.pos.y===p.y;})),'Selecting keeps every marker at its spread position');
    await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
   }
   await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
@@ -146,9 +147,12 @@ try{
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
   assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Expanded graph fits the entire catalog');
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
-  await page.evaluate(()=>{const items=filtered.filter(d=>d.speed===12).slice(0,2);filtered=items;selected=null;for(const d of items)atlasPositions.set(d.id,{x:.5,y:.5});const c=AtlasLayout.camera({x:.5,y:.5},canvas.clientWidth,canvas.clientHeight,12);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});
-  await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
-  await page.locator('.atlas-marker').first().click();await page.locator('#detail h2').waitFor();
+  // A real stack in the dense catalog, which keeps its positions and its stacks.
+  await page.waitForFunction(()=>!cameraTween&&groupCache.items===filtered&&groupCache.level===AtlasGroups.level(zoom,groupCache.level)&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
+  const mobileStack=await page.evaluate(()=>{selected=null;draw();return mapClusters.find(g=>g.members.length>1&&g.members.length<=3&&g.x>30&&g.x<innerWidth-30&&g.y>150&&g.y<innerHeight-220)?.key;});
+  assert.ok(mobileStack,'The dense phone map has a stack in view');
+  await page.locator(`[data-cluster="${mobileStack}"]`).click();await page.locator('#detail h2').waitFor();
+  assert.ok(await page.locator('#detail [data-choose-disc]').count()>1,'The phone sheet keeps the stack chooser');
   await page.locator('#expandDetail').click();await page.waitForFunction(()=>document.querySelector('#detail').getBoundingClientRect().y===0);
   await page.screenshot({path:'outputs/motion/stack-mobile.png'});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

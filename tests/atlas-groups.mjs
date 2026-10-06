@@ -81,7 +81,11 @@ test('worker structured-clone payload preserves measured footprints and priority
  vm.runInContext(fs.readFileSync('public/atlas-groups-worker.js','utf8'),worker);
  worker.onmessage({data:structuredClone({revision:7,level:0,items,positions:[...positions],width:1000,height:800,immersive:false,footprints,featured})});
  assert.equal(reply.revision,7);
- assert.deepEqual(reply.groups,structuredClone(result.groups));
+ // The worker spreads a sparse map exactly as the main thread does before grouping it.
+ const shown=runtime.AtlasLayout.adapt(items,positions,1000,800,false);
+ assert.notEqual(shown,positions,'Two discs are a sparse map');
+ assert.deepEqual(reply.groups,structuredClone(runtime.AtlasGroups.build(items,shown,1000,800,0,false,footprints,featured).groups));
+ assert.notDeepEqual(reply.groups,structuredClone(result.groups));
  // Reordering the shared ranking must also reach an already-created worker.
  worker.onmessage({data:structuredClone({revision:8,level:7,items,positions:[...positions],width:1000,height:800,immersive:false,footprints,featured:[{id:'aaa'}]})});
  assert.equal(reply.groups[0].key,'aaa');

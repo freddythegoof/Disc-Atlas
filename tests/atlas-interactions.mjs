@@ -38,7 +38,10 @@ export async function checkAtlasInteractions(browser,base){
   assert.ok(await page.evaluate(()=>mapClusters.some(g=>g.members.length>1)),'The dense catalog still groups');
   await page.evaluate(()=>{selectedBrands.clear();selectedBrands.add('Axiom');filter();});
   await page.waitForFunction(()=>groupCache.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
-  assert.ok(await page.evaluate(()=>groupCache.groups.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length&&groupCache.groups.every(g=>{const p=atlasPositions.get(g.key);return g.pos.x===p.x&&g.pos.y===p.y;})),'A sparse brand retains every disc at its established position instead of spreading markers to force prominence');
+  assert.ok(await page.evaluate(()=>{
+   const {width:w,height:h}=mapViewport,shown=AtlasLayout.adapt(filtered,atlasPositions,w,h,true);
+   return shown!==atlasPositions&&groupCache.groups.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length&&groupCache.groups.every(g=>{const p=shown.get(g.key);return g.pos.x===p.x&&g.pos.y===p.y;});
+  }),'A sparse brand keeps every disc, spread into the room the filter frees');
   const positions=await page.evaluate(()=>groupCache.groups.map(g=>[g.key,g.pos.x,g.pos.y]));
   await page.mouse.move(600,300);await page.mouse.wheel(50,50);await page.waitForTimeout(750);
   assert.deepEqual(await page.evaluate(()=>groupCache.groups.map(g=>[g.key,g.pos.x,g.pos.y])),positions,'Panning does not reshuffle discs');

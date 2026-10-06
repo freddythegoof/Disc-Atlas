@@ -15,7 +15,8 @@ export async function checkLabelProminence(browser,base){
    const g=groupCache.groups.find(g=>g.lead.name==='Savant'),area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);
    pan={x:700-area.left-g.pos.x*area.width*zoom,y:400-area.bottom+g.pos.y*area.height*zoom};draw();
   });await settled();await page.waitForTimeout(350);
-  const target=await page.evaluate(()=>mapClusters.filter(g=>['Viking','Savant','Python','Teebird 3'].includes(g.lead.name)).map(g=>({name:g.lead.name,large:g.large,x:g.x,y:g.y})));
+  // The filtered brand spreads out, so some of the four may sit beyond this view; promotion covers every group.
+  const target=await page.evaluate(()=>groupCache.groups.filter(g=>['Viking','Savant','Python','Teebird 3'].includes(g.lead.name)).map(g=>({name:g.lead.name,large:g.large,members:g.members.length})));
   console.log('Target neighborhood',target);
   await page.screenshot({path:`${dir}/deep-${before?'before':'after'}.png`,clip:{x:412,y:204,width:1076,height:924}});
   if(before)return;
