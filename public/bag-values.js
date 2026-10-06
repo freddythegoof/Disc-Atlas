@@ -8,7 +8,7 @@ export function defaultDiscDetails(disc, catalog) {
  const weight = Number(disc.typicalMaxWeight ?? disc.specs?.['Max weight']);
  return {mold_id: disc.id, plastic: plasticOptions(disc, catalog).reference, wear: 10,
   weight_g: Number.isFinite(weight) && weight >= 130 ? Math.min(180, Math.floor(weight)) : 175, notes: '',
-  color:plasticColor(disc.brand,plasticOptions(disc,catalog).reference,catalog),in_bag:true};
+  color:plasticColor(disc.brand,plasticOptions(disc,catalog).reference,catalog),in_bag:true,pocket:defaultPocket(disc),stability_bias:null};
 }
 export function validateDiscDetails(data, disc, catalog, defaults = false) {
  if (!disc) throw new Error('Choose a mold from the Directory.');
@@ -20,7 +20,11 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  const color=data.color===undefined?plasticColor(disc.brand,value.plastic.trim(),catalog):data.color,in_bag=value.in_bag===undefined?true:value.in_bag;
  if(!validColor(color))throw new Error('Choose a six-digit hex disc color.');
  if(typeof in_bag!=='boolean')throw new Error('Choose Bag or Storage.');
- return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),in_bag};
+ const pocket=value.pocket,stability_bias=value.stability_bias===undefined?null:value.stability_bias;
+ if(!['main','putter','goto'].includes(pocket))throw new Error('Choose Main compartment, Putter pocket or Go-to.');
+ if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
+ if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
+ return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),in_bag,pocket,stability_bias};
 }
 export function validateBagSettings(data, catalog) {
  if (typeof data.bag_model !== 'string' || !data.bag_model.trim() || data.bag_model.trim().length > 80) throw new Error('Enter a bag name (up to 80 characters).');
@@ -34,7 +38,9 @@ export function validateBagSettings(data, catalog) {
  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) throw new Error('Capacity must be a whole number from 1 to 500.');
  if(!fixed && data.capacity!==undefined && data.capacity!==capacity)throw new Error('Total capacity must match your pocket capacities.');
  const bag_color=data.bag_color===undefined?'#343c49':data.bag_color;if(!validColor(bag_color))throw new Error('Choose a six-digit hex bag color.');
- return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase()};
+ const sort_mode=data.sort_mode===undefined?'speed':data.sort_mode;
+ if(!['speed','stability','custom'].includes(sort_mode))throw new Error('Choose Speed, Stability or Custom order.');
+ return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase(),sort_mode};
 }
 export const validColor=color=>typeof color==='string'&&/^#[0-9a-f]{6}$/i.test(color);
 export function plasticColor(brand,plastic,catalog){return catalog.brands[brand]?.colors?.[plastic] || catalog.defaultColor || '#e6c668';}
@@ -45,12 +51,26 @@ export function bagPalette(color){
 }
 export function bagSlots(items,settings,lookup){
  const bagged=items.filter(i=>i.in_bag!==false && i.in_bag!==0);
- const sort=(a,b)=>(lookup(b.mold_id)?.speed ?? -1)-(lookup(a.mold_id)?.speed ?? -1) || a.id.localeCompare(b.id);
- const main=bagged.filter(i=>bagClass(lookup(i.mold_id))!=='putter').sort(sort),putter=bagged.filter(i=>bagClass(lookup(i.mold_id))==='putter').sort(sort);
+ const sort=bagComparator(settings.sort_mode,lookup);
+ const main=bagged.filter(i=>i.pocket==='main').sort(sort),putter=bagged.filter(i=>i.pocket==='putter').sort(sort),goto=bagged.filter(i=>i.pocket==='goto').sort(sort);
  const mainCount=(settings.main_capacity ?? settings.capacity)+(settings.extra_capacity ?? 0),putterCount=settings.putter_capacity ?? 0;
- // Putters beyond their pocket use spare main slots; never lose an owned copy.
- const pocket=putter.splice(0,putterCount);main.push(...putter);main.sort(sort);
- return {main:Array.from({length:mainCount},(_,i)=>({item:main[i]||null,index:i})),putter:Array.from({length:putterCount},(_,i)=>({item:pocket[i]||null,index:i})),overflow:main.slice(mainCount)};
+ // Go-to has its own centered slot (shown empty until assigned) and never borrows putter capacity.
+ // Full pockets stay in the list; rendering never relocates a saved copy.
+ return {main:Array.from({length:mainCount},(_,i)=>({item:main[i]||null,index:i})),goto:goto.length?goto.map((item,index)=>({item,index})):[{item:null,index:0}],putter:Array.from({length:putterCount},(_,i)=>({item:putter[i]||null,index:i})),overflow:[...main.slice(mainCount),...putter.slice(putterCount),...bagged.filter(i=>!['main','putter','goto'].includes(i.pocket))]};
+}
+export const defaultPocket=disc=>bagClass(disc)==='putter'?'putter':'main';
+export const pocketLabel=pocket=>({main:'Main compartment',putter:'Putter pocket',goto:'Go-to'})[pocket] || 'Pocket unavailable';
+export const POCKETS=[['main','Main'],['putter','Putter'],['goto','Go-to']];
+// Display sizes cap the bag's width; CSS also fits it to the viewport height.
+export const BAG_SIZES={s:360,m:560,l:880};
+export const bagSize=value=>Object.hasOwn(BAG_SIZES,value)?value:'m';
+export const stabilityBiasLabel=bias=>bias==='more_stable'?'More stable':bias==='less_stable'?'Less stable':'';
+export function bagComparator(mode='speed',lookup){
+ const speed=i=>lookup(i.mold_id)?.speed ?? -1;
+ // Use the atlas's shared provisional index; personal notes never alter consensus.
+ const stability=i=>{const d=lookup(i.mold_id);return d?.speed==null?-1:Math.max(0,Math.min(100,50+10*((d.turn ?? 0)+(d.fade ?? 0))));};
+ const manual=(a,b)=>(a.sort_order ?? 0)-(b.sort_order ?? 0)||(a.added_at||'').localeCompare(b.added_at||'')||a.id.localeCompare(b.id);
+ return (a,b)=>mode==='custom'?manual(a,b):mode==='stability'?stability(b)-stability(a)||speed(b)-speed(a)||manual(a,b):speed(b)-speed(a)||stability(b)-stability(a)||manual(a,b);
 }
 export function wearLabel(wear) {
  return wear === 10 ? 'Factory new' : wear >= 8 ? 'Like new' : wear >= 5 ? 'Seasoned' : wear >= 3 ? 'Well-worn' : 'Beat · different stability class';

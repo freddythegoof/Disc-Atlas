@@ -150,7 +150,8 @@ function focusFeatured(){
  zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
 }
 function draw(){
- if(view!=='map')return;
+ // Fonts/worker callbacks can schedule a frame before app.js has initialized.
+ if(typeof view==='undefined'||view!=='map')return;
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.font='12px DM Sans, sans-serif';}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const immersive=!document.body.classList.contains('my-bag-mode');
@@ -394,23 +395,13 @@ function initAtlasMap(){
   if(!pointers.size&&!cameraTween)scheduleMapDraw();
  };
  map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);map.addEventListener('lostpointercapture',stop);
- let trackpadUntil=0;
  map.addEventListener('wheel',e=>{
-  if(e.target.closest('.map-controls'))return;
   e.preventDefault();measureMap();
-  // WheelEvent has no device type. Fine pixel deltas / horizontal gestures identify
-  // trackpad drags; keep that classification through the gesture's momentum tail.
-  // Coarse, line and page deltas are mouse wheels. Ctrl/Meta always means pinch zoom.
-  const now=performance.now(),pinch=e.ctrlKey||e.metaKey;
-  const fine=e.deltaMode===0&&(e.deltaX!==0||Math.abs(e.deltaY)<40||!Number.isInteger(e.deltaY));
-  if(!pinch&&e.deltaMode===0&&(fine||now<trackpadUntil)){
-   trackpadUntil=now+180;stopCamera();closeCluster();
-   panMap(-e.deltaX,-e.deltaY);
-   clearTimeout(edgeReleaseTimer);edgeReleaseTimer=setTimeout(releaseEdge,120);return;
-  }
-  trackpadUntil=0;resetEdge();
+  // Wheel and trackpad pinch always zoom, including fine pixel deltas.
+  // Capture over child controls too so the atlas never scrolls the document.
+  resetEdge();
   const unit=e.deltaMode===1?16:e.deltaMode===2?mapViewport.height:1;
-  const delta=Math.max(-600,Math.min(600,e.deltaY*unit));
+  const delta=Math.max(-600,Math.min(600,(e.deltaY || e.deltaX)*unit));
   animateZoom(Math.exp(-delta*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});
  },{passive:false});
  map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]},.22);}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});

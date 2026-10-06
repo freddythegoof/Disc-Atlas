@@ -40,12 +40,12 @@ try {
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);
  await page.locator('#myBagEmpty').waitFor();assert.equal(new URL(page.url()).searchParams.get('bag'),'1');
- await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();
+ await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();
  await page.locator('#addDiscDialog').waitFor();
  assert.equal(await page.locator('#bagPlastic').inputValue(),'Star');assert.equal(await page.locator('#bagWear').inputValue(),'10');assert.equal(await page.locator('#bagWeight').inputValue(),'175');
  await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
- await page.locator('#rows .disc-row').first().click();await page.locator('#addToBag').click();await page.locator('#bagPlastic').selectOption('Champion');await page.locator('#bagWear').fill('5');await page.locator('#bagWeight').fill('170');await page.locator('#bagNotes').fill('Forehand only');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
- await page.locator('#compare').click();await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});await page.locator('#compareBar [data-bag-add]').click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+ await page.locator('#rows .disc-row').first().click();await page.locator('#addToBag').click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#bagPlastic').selectOption('Champion');await page.locator('#bagWear').fill('5');await page.locator('#bagWeight').fill('170');await page.locator('#bagNotes').fill('Forehand only');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+ await page.locator('#compare').click();await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});await page.locator('#compareBar [data-add-menu]').click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  await page.locator('#bagTab').click();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===3);
  assert.match(await page.locator('#bagSlotMeter').innerText(),/3 \/ 20/);
  await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('__custom');await page.locator('#customBagName').fill('Weekend sling');await page.locator('#bagMainCapacity').fill('2');await page.locator('#bagPutterCapacity').fill('0');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
@@ -57,7 +57,8 @@ try {
  // Add real physical copies from all classes through the API, keeping the UI's CRUD coverage above.
  await page.evaluate(async()=>{for(const [mold_id,plastic,wear,weight_g] of [['35dae588c670','Neutron',7,175],['7446eb39abe5','Z',8,180],['761c90d342f5','Electron',6,175]]) {const r=await fetch('/api/bag/discs',{method:'POST',headers:{'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken},body:JSON.stringify({mold_id,plastic,wear,weight_g})});if(!r.ok)throw Error(await r.text());}});
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===5);
- assert.deepEqual(await page.locator('.my-bag-group h2').allTextContents(),['Distance drivers','Fairway drivers','Midranges','Putters']);
+ assert.equal(await page.locator('#bagLineup .my-bag-disc').count(),5);
+ assert.deepEqual(await page.locator('#bagLineup .my-bag-disc-name').allTextContents(),['Destroyer','Destroyer','Crave','Buzzz','Envy']);
  await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('Dynamic Discs Commander');assert.equal(await page.locator('#bagCapacity').inputValue(),'24');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  for (const name of ['light','midnight','charcoal']) for (const width of [1440,360]) {
   await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await capture(`bag-${width}-${name}`);
@@ -71,16 +72,16 @@ try {
  await page.locator('#mapTab').click();await page.waitForFunction(()=>document.querySelectorAll('#mapMarkers button').length>0);
  await page.locator('#mapMarkers button').first().click();
  if(await page.locator('[data-choose-disc]').count())await page.locator('[data-choose-disc]').first().click();
- await page.locator('#addToBag').click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+ await page.locator('#addToBag').click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  await page.locator('#bagTab').click();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===6);
- await page.locator('#addBagDisc').click();await page.locator('#rows .directory-add').first().click();
- for (const name of ['light','midnight','charcoal']) for(const width of [1440,360]) {await page.keyboard.press('Escape');await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await page.locator('#rows .directory-add').first().click();await capture(`add-${width}-${name}`);}
+ await page.locator('#addBagDisc').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();
+ for (const name of ['light','midnight','charcoal']) for(const width of [1440,360]) {await page.keyboard.press('Escape');await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await capture(`add-${width}-${name}`);}
  await page.keyboard.press('Escape');await page.locator('#bagTab').click();
  // A slow read must not erase a disc saved while the original read is pending.
  const stale=await (await page.request.get(base+'/api/bag')).json();let releaseRead,startedRead;
  const held=new Promise(resolve=>{releaseRead=resolve;}),began=new Promise(resolve=>{startedRead=resolve;});let heldOnce=false;
  await context.route(base+'/api/bag',async route=>{if(route.request().method()==='GET'&&!heldOnce){heldOnce=true;startedRead();await held;await route.fulfill({json:stale});}else await route.continue();});
- await page.reload();await began;await page.locator('#addBagDisc').click();await page.locator('#rows .directory-add').first().click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});releaseRead();await page.locator('#bagTab').click();
+ await page.reload();await began;await page.locator('#addBagDisc').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});releaseRead();await page.locator('#bagTab').click();
  await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===7);await context.unroute(base+'/api/bag');
  // A late response from a previous account must never repaint personal data after sign-out.
  let releaseSignedOut,startedSignedOut;const heldSignedOut=new Promise(resolve=>{releaseSignedOut=resolve;}),beganSignedOut=new Promise(resolve=>{startedSignedOut=resolve;});

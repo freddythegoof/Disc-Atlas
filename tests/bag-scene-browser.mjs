@@ -33,7 +33,7 @@ try{
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();await phase('open');
  assert.equal(await page.locator('#accountButton').innerText(),'Hi Atlas');assert.ok(await page.locator('#bagStorageEmpty').isVisible());
- await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDiscDialog').waitFor();
+ await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#addDiscDialog').waitFor();
  assert.equal(await page.locator('#bagDiscColor').inputValue(),'#e6c668');await page.locator('#bagPlastic').selectOption('Champion');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#70b7cd');
  await page.locator('#bagDiscColor').fill('#ed7868');await page.locator('#bagPlastic').selectOption('DX');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#ed7868','custom color survives plastic change');
  await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
@@ -49,47 +49,54 @@ try{
   ]){const r=await fetch('/api/bag/discs',{method:'POST',headers,body:JSON.stringify(disc)});if(!r.ok)throw Error(await r.text());}
  });
  await page.goto(base+'/?bag=1');await phase('open');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===7);
- assert.equal(await page.locator('#bagSlotMeter').innerText(),'6 / 21');assert.equal(await page.locator('#bagSlotMeter').getAttribute('title'),'18 main + 3 putter');
- assert.deepEqual(await page.locator('#bagScene svg > g').evaluateAll(nodes=>nodes.map(n=>n.id)),['bag-back','bag-disc-layer','bag-front','bag-lid']);
- assert.equal(await page.locator('.bag-slot-hollow').count(),15);assert.equal(await page.locator('[data-pocket="putter"] [data-physical-disc]').count(),2);
+ assert.equal(await page.locator('#bagSlotMeter').innerText(),'6 / 23');assert.equal(await page.locator('#bagSlotMeter').getAttribute('title'),'18 main + 4 putter + 1 extra');
+ // The 3D bag: a WebGL canvas plus a positioned hit layer that carries focus, hover and labels.
+ assert.equal(await page.locator('#bagScene').getAttribute('data-engine'),'ready');assert.equal(await page.locator('#bagScene .bag-3d-stage > canvas').count(),1);
+ assert.equal(await page.locator('#bagScene .bag-hit-layer').getAttribute('role'),'group');
+ assert.equal(await page.locator(':not(.bag-goto-slot) > .bag-slot-hollow').count(),17);assert.equal(await page.locator('.bag-goto-slot > .bag-slot-hollow').count(),1,'Empty go-to slot');assert.equal(await page.locator('[data-pocket="putter"] [data-physical-disc]').count(),2);
  const speeds=await page.locator('[data-pocket="main"] [data-physical-disc]').evaluateAll(nodes=>nodes.map(n=>{const row=n.getAttribute('aria-label');return row.split(',')[0];}));assert.equal(speeds.at(-1),'Buzzz');
- const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 21');
+ const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');
  assert.ok(await page.locator('#bagStorageEmpty').isVisible());assert.ok(await page.locator('[data-bag-move]').filter({hasText:'Store'}).count());
- await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 21');
+ await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
  await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#436752');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- assert.equal(await page.locator('#bagScene svg').evaluate(n=>n.style.getPropertyValue('--bag-secondary')),'#324d3e');
- await page.reload();await phase('open');assert.equal(await page.locator('#bagScene svg').evaluate(n=>n.style.getPropertyValue('--bag-primary')),'#436752');
+ // The fabric material itself carries the saved color (read back from the live 3D scene).
+ const bagColor=()=>page.locator('[data-bag-canvas]').evaluate(n=>({color:n.bagViewer.bagColor,custom:n.bagViewer.customBagColor}));
+ assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
+ await page.reload();await phase('open');assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
  await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#343c49');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- assert.equal(await page.locator('#bagScene svg').evaluate(n=>n.style.getPropertyValue('--bag-primary')),'');
+ assert.equal((await bagColor()).custom,null,'Default charcoal restores the model fabric');assert.notEqual((await bagColor()).color,'#436752');
  await page.waitForFunction(()=>document.activeElement===document.querySelector('#editBagModel'));
  const discId=await page.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc');
  const disc=page.locator(`[data-physical-disc="${discId}"]`);
  await disc.focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.dataset.slotOrder),'1');await page.keyboard.press('Shift+Tab');assert.ok(await disc.evaluate(n=>n===document.activeElement));await page.keyboard.press('Escape');
- const layoutBefore=await page.locator('#bagScene').boundingBox();await disc.hover();await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>n.classList.contains('is-lifted')));assert.deepEqual(await page.locator('#bagScene').boundingBox(),layoutBefore,'Lift causes no layout shift');await page.mouse.move(0,0);await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>!n.classList.contains('is-lifted')));
- await disc.focus();await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>n.classList.contains('is-lifted') && document.activeElement===n));
- const faceRect=await disc.locator('.bag-disc-face').boundingBox(),svgRect=await page.locator('.interactive-bag-svg').boundingBox();assert.ok(faceRect.x>=svgRect.x+233/800*svgRect.width && faceRect.x+faceRect.width<=svgRect.x+567/800*svgRect.width,'Lifted top stays inside the SVG opening instead of clipping into the fixed front '+JSON.stringify({faceRect,svgRect}));
- await page.keyboard.press('Enter');await page.locator('#detail').waitFor();await page.locator('#closeDetail').click();await page.locator('#bagTab').click();
+ const layoutBefore=await page.locator('#bagScene').boundingBox();const resting=await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.discScreenRect(id),discId);await disc.hover();await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>n.classList.contains('is-hovered')));assert.ok(await page.locator('.bag-hover-name').isVisible(),'Hover names the disc');assert.deepEqual(await page.locator('#bagScene').boundingBox(),layoutBefore,'Hover causes no layout shift');await page.mouse.move(0,0);await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>!n.classList.contains('is-hovered')));
+ await disc.focus();await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>n.classList.contains('is-hovered') && document.activeElement===n));
+ const faceRect=await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.discScreenRect(id),discId),canvasRect=await page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));assert.ok(faceRect.left>=0 && faceRect.top>=0 && faceRect.left+faceRect.width<=canvasRect.width && faceRect.top+faceRect.height<=canvasRect.height,'Named disc stays inside the canvas '+JSON.stringify({faceRect,canvasRect}));assert.deepEqual(faceRect,resting,'Hover and focus leave the disc in its pocket');
+ assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.liftedDisc),null,'The 3D disc does not move on focus');
+ // Enter slides the disc out (no navigation); Enter on the slid-out disc opens its details on My Bag.
+ await page.keyboard.press('Enter');await page.waitForTimeout(400);assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),discId);assert.ok(!await page.locator('#detail').isVisible());
+ await page.keyboard.press('Enter');await page.locator('#detail').waitFor();assert.ok(await page.locator('#myBagView').isVisible());await page.locator('#closeDetail').click();await page.locator('#bagTab').click();
  await page.locator('[data-bag-toggle]').focus();await page.keyboard.press('Enter');await phase('closed');assert.equal(await disc.getAttribute('tabindex'),'-1');
  await page.keyboard.press('Enter');await phase('open');
- await page.locator('.interactive-bag-svg').click({position:{x:180,y:400}});await phase('closed');await page.locator('.interactive-bag-svg').click({position:{x:180,y:300}});await phase('open');
- // Genuine animation frames, not synthetic open poses: pause the flap during
- // its live rAF fold and the disc animations during their staggered rise.
+ // Clicking the bag body (a side pocket, away from any disc target) opens and closes it.
+ const body=async()=>{const box=await page.locator('.bag-3d-stage canvas').boundingBox();return {x:box.width*.17,y:box.height*.6};};
+ await page.locator('.bag-3d-stage canvas').click({position:await body()});await phase('closed');await page.locator('.bag-3d-stage canvas').click({position:await body()});await phase('open');
+ // Genuine animation frames, not synthetic open poses: pause the clock during the
+ // flap's live rAF fold, early and mid-way.
  for(const name of themes)for(const width of widths){
   await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await page.evaluate(()=>scrollTo(0,0));
   await page.locator('[data-bag-toggle]').click();await phase('closed');await page.evaluate(()=>scrollTo(0,0));await shot(`closed-${width}-${name}`);
   const openMs=await page.evaluate(()=>new Promise(resolve=>{const root=document.querySelector('#bagScene'),start=performance.now(),observer=new MutationObserver(()=>{if(root.dataset.phase==='open'){observer.disconnect();resolve(performance.now()-start);}});observer.observe(root,{attributes:true,attributeFilter:['data-phase']});document.querySelector('[data-bag-toggle]').click();}));metrics.push({theme:name,width,openMs});assert.ok(openMs<1000,'Opening sequence stays under one second');
   await page.evaluate(()=>scrollTo(0,0));await shot(`open-${width}-${name}`);
   await page.locator('[data-bag-toggle]').click();await phase('closed');
-  await page.clock.install();await page.clock.pauseAt(new Date());await page.locator('[data-bag-toggle]').click();await page.clock.runFor(110);
-  assert.equal(await page.locator('#bagScene').getAttribute('data-phase'),'opening');assert.match(await page.locator('#bag-lid').getAttribute('transform'),/translate\(0 488\)/);
+  await page.clock.install();await page.clock.pauseAt(await page.evaluate(()=>Date.now()+50));await page.locator('[data-bag-toggle]').click();await page.clock.runFor(110);
+  const progress=()=>page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.compartmentProgress);
+  assert.equal(await page.locator('#bagScene').getAttribute('data-phase'),'opening');const early=await progress();assert.ok(early>0 && early<.5,'Flap is part-way open: '+early);
   await page.evaluate(()=>scrollTo(0,0));await shot(`opening-flap-${width}-${name}`);
+  await page.clock.runFor(340);
+  assert.equal(await page.locator('#bagScene').getAttribute('data-phase'),'opening');const middle=await progress();assert.ok(middle>early && middle<1,'Flap keeps folding: '+middle);await shot(`opening-${width}-${name}`);
   await page.clock.runFor(1000);await page.clock.resume();await phase('open');
-  await page.locator('[data-bag-toggle]').click();await phase('closed');
-  await page.evaluate(()=>scrollTo(0,0));
-  await page.evaluate(()=>new Promise(resolve=>{document.querySelector('[data-bag-toggle]').click();setTimeout(()=>{document.querySelectorAll('[data-physical-disc]').forEach(n=>n.getAnimations({subtree:true}).forEach(a=>a.pause()));resolve();},420);}));
-  assert.equal(await page.locator('#bagScene').getAttribute('data-phase'),'opening');await shot(`opening-${width}-${name}`);
-  await page.locator('[data-physical-disc]').evaluateAll(nodes=>nodes.forEach(n=>n.getAnimations({subtree:true}).forEach(a=>a.play())));await phase('open');
-  await disc.focus();await page.waitForTimeout(420);await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'true');await shot(`lifted-${width}-${name}`);
+  await disc.focus();await page.waitForTimeout(420);await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'true');await shot(`named-${width}-${name}`);
   await page.locator('[data-bag-toggle]').focus();await page.waitForTimeout(400);assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'false');
   await page.locator('#bagStorage').scrollIntoViewIfNeeded();await shot(`storage-${width}-${name}`);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -98,12 +105,12 @@ try{
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));
  const cadence=await page.evaluate(async()=>{const node=document.querySelector('[data-physical-disc]'),times=[];let last;node.focus();await new Promise(resolve=>{const frame=now=>{if(last)times.push(now-last);last=now;if(times.length<60)requestAnimationFrame(frame);else resolve();};requestAnimationFrame(frame);});return {averageMs:times.reduce((a,b)=>a+b,0)/times.length,maxMs:Math.max(...times),over33ms:times.filter(n=>n>33.5).length};});
  await page.emulateMedia({reducedMotion:'reduce'});await page.locator('[data-bag-toggle]').click();await phase('closed');await page.locator('[data-bag-toggle]').click();await phase('open');await page.emulateMedia({reducedMotion:'no-preference'});
- // A real touch context must use one tap to lift, a second to inspect.
+ // A real touch context: a tap slides the disc out; tapping its label opens its details.
  const touch=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800},isMobile:true,hasTouch:true,storageState:await context.storageState()});
  const mobile=await touch.newPage();await mobile.goto(base+'/?bag=1');await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');
- const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();assert.equal(await mobile.locator('#bagLiftInfo').getAttribute('data-visible'),'true');assert.ok(!await mobile.locator('#detail').isVisible());await touchDisc.tap();await mobile.locator('#detail').waitFor();await touch.close();
+ const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');assert.equal(await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),touchId,'The first tap slides the disc out');assert.ok(!await mobile.locator('#detail').isVisible());await mobile.locator('.bag-slide-name').tap();await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'Tapping the label of the slid-out disc opens details on My Bag');await touch.close();
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);assert.equal(await page.locator('[data-physical-disc]').count(),0);assert.ok(!await page.locator('#bagScene').isVisible());assert.equal(await page.locator('#accountButton').innerText(),'Sign in');
  assert.deepEqual(errors,[]);fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,themes,widths,metrics,cadence,errors},null,2));
- await context.close();console.log('PASS: SVG handoff, stored colors, true totals, Storage, keyboard/touch/reduced motion, 36 theme screenshots and motion recording. '+JSON.stringify(cadence));
-}catch(error){if(page){console.error(JSON.stringify({errors,scene:await page.locator('#bagScene').evaluate(n=>({phase:n.dataset.phase,open:n.querySelector('svg')?.dataset.state,focused:document.activeElement.outerHTML.slice(0,250),discs:[...n.querySelectorAll('[data-physical-disc]')].map(d=>({id:d.dataset.physicalDisc,tab:d.getAttribute('tabindex'),lift:d.classList.contains('is-lifted')}))})),logs:logs.slice(-500)},null,2));await page.screenshot({path:dir+'/failure.png'});}throw error;}
+ await context.close();console.log('PASS: 3D bag handoff, stored colors, true totals, Storage, keyboard/touch/reduced motion, 36 theme screenshots and motion recording. '+JSON.stringify(cadence));
+}catch(error){if(page){console.error(JSON.stringify({errors,scene:await page.locator('#bagScene').evaluate(n=>({phase:n.dataset.phase,open:n.querySelector('[data-bag-canvas]')?.bagViewer?.compartmentProgress,renderer:n.querySelector('[data-bag-canvas]')?.bagViewer?.renderer,stage:JSON.stringify(n.querySelector('.bag-3d-stage')?.getBoundingClientRect()),scrollY,innerHeight,focused:document.activeElement.outerHTML.slice(0,250),discs:[...n.querySelectorAll('[data-physical-disc]')].map(d=>({id:d.dataset.physicalDisc,tab:d.getAttribute('tabindex'),lift:d.classList.contains('is-lifted')}))})),logs:logs.slice(-500)},null,2));await page.screenshot({path:dir+'/failure.png'});}throw error;}
 finally{if(browser)await browser.close();server.kill();}

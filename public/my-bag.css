@@ -36,6 +36,33 @@ body[data-view="bag"] main {display:none!important}
 .wear-badge {border:1px solid var(--line);border-radius:5px;padding:3px 7px;font-size:11px}
 .wear-badge[data-beat="true"] {border-color:var(--lime);color:var(--text)}
 .my-bag-notes {font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0 0;overflow-wrap:anywhere}
+.bag-sort-bar {display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.bag-sort-bar select {min-height:44px;padding:10px 32px 10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
+.bag-sort-bar select:disabled {opacity:.6}
+.bag-sort-bar>span {margin-left:auto;line-height:1.6}
+.bag-ordered-list {margin-top:0}
+.bag-stability-field {border:0;margin:0 0 20px;padding:0;min-width:0;font-size:13px}
+.bag-stability-field legend {margin-bottom:10px}
+.bag-stability-field small {display:block;margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}
+.bag-stability-chips {display:flex;gap:8px;flex-wrap:wrap}
+.bag-stability-chips button {min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:24px;font-size:12px;background:var(--surface)}
+.bag-stability-chips button[aria-pressed="true"] {background:var(--accent-soft);border-color:var(--lime);color:var(--text)}
+.bag-bias-label {color:var(--text);font-size:11px}
+.bag-reorder-controls {grid-column:2/-1;display:flex;gap:4px;justify-content:flex-end;margin-top:-8px}
+.bag-reorder-controls button {width:44px;min-height:44px;border:1px solid var(--line);border-radius:8px;font-size:18px;color:var(--muted)}
+.bag-reorder-controls button:disabled {opacity:.3;cursor:default}
+.bag-reorder-controls [data-bag-drag] {cursor:grab;touch-action:none}
+.my-bag-disc.is-reordering {opacity:.55}
+.my-bag-disc.is-drop-target {box-shadow:inset 0 -2px var(--lime);background:var(--accent-soft)}
+.bag-lift-info [data-lift-note] {font-size:calc(12px * var(--bag-type));line-height:1.5;color:var(--text);margin:8px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
+.bag-lift-info [data-lift-bias] {display:block;font-size:calc(10px * var(--bag-type));color:var(--lime);font-weight:500;margin-top:8px}
+.bag-lift-info [hidden] {display:none!important}
+.add-destination-menu {position:fixed;inset:auto;margin:0;width:180px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);box-shadow:0 12px 32px #0003}
+.add-destination-menu button {display:block;min-height:44px;width:100%;text-align:left;padding:10px 12px;border-radius:6px;font-size:13px}
+.add-destination-menu button:hover,.add-destination-menu button:focus-visible {background:var(--selected);color:var(--text)}
+.directory-add {min-width:48px;font-size:12px}
+.compare-bag-add {min-height:44px;white-space:nowrap}
+@media(max-width:700px){.bag-sort-bar {gap:10px}.bag-sort-bar>span {width:100%;margin-left:0;font-size:11px}.bag-reorder-controls {justify-content:flex-start}.bag-lift-info {width:90%;max-width:300px}}
 .bag-consensus {text-align:right;white-space:nowrap}
 .bag-consensus strong {font-size:13px;font-weight:500;display:block}
 .bag-consensus small {font-size:10px;color:var(--muted);display:block;margin-top:6px}
@@ -61,35 +88,106 @@ body[data-view="bag"] main {display:none!important}
 .bag-sheet .sheet-actions button {min-height:44px}
 #bagModelForm {display:grid;gap:20px}
 #bagModelForm .sheet-actions {margin:0}
-.directory-row {display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;align-items:center}
+.directory-row {display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:center}
 .directory-row .disc-row {width:100%;min-width:0}
-.directory-add {width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;font-size:20px;color:var(--muted)}
+.directory-add {width:48px;height:44px;display:flex;align-items:center;justify-content:center;gap:2px;border:1px solid var(--line);border-radius:24px;font-size:17px;color:var(--muted)}
+.directory-add>span:last-child {font-size:12px}
 .directory-add:hover {color:var(--text);background:var(--accent-soft);border-color:var(--lime)}
 .compare-item .compare-bag-add {position:static;width:100%;min-height:44px;font-size:12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:var(--accent-soft);color:var(--text)}
 .detail .bag-add.primary {margin:14px 0;font-size:14px}
 :is(#myBagView,.bag-sheet,.directory-row,.compare-item) :is(button,input,select,textarea,a):focus-visible {outline:2px solid var(--lime);outline-offset:4px}
 .bag-pocket-breakdown {font-size:11px;color:var(--muted);flex-basis:100%}
-.bag-scene {position:relative;max-width:600px;margin:4px auto 36px;isolation:isolate}
-.bag-scene-canvas {width:100%;max-width:360px;margin:auto;aspect-ratio:4/5}
-.interactive-bag-svg {width:100%;height:100%;overflow:visible;display:block;cursor:pointer;touch-action:manipulation}
+.bag-scene {position:relative;margin:4px auto 36px;isolation:isolate;--bag-width:560px;--bag-type:1.12}
+.bag-scene[data-size="s"] {--bag-width:360px;--bag-type:1}
+.bag-scene[data-size="l"] {--bag-width:880px;--bag-type:1.3}
+/* The 3D canvas re-renders at its displayed size; the cap keeps the whole bag inside the viewport height. */
+.bag-scene-canvas {position:relative;width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 190px) * .8)));margin:auto;aspect-ratio:4/5}
+.bag-3d-stage {position:absolute;inset:0}
+.bag-3d-status {position:absolute;left:0;right:0;top:46%;margin:0;text-align:center;font-size:12px;color:var(--muted);pointer-events:none}
+.bag-3d-status:empty {display:none}
+/* Positioned slot targets over the canvas: focus, hover/touch and labels for each disc. */
+.bag-hit-layer {position:absolute;inset:0;pointer-events:none}
+.bag-hit-slot,.bag-slot-hollow {position:absolute}
+.bag-slot-hollow {inset:0}
 .bag-scene-glow {position:absolute;z-index:-1;inset:18% 0 12%;border-radius:50%;background:radial-gradient(ellipse,var(--accent-soft),transparent 70%);pointer-events:none}
-.bag-scene::after {content:'';position:absolute;z-index:-1;bottom:94px;left:25%;width:50%;height:20px;border-radius:50%;background:var(--text);opacity:.06;filter:blur(12px);pointer-events:none}
-.bag-physical-disc {cursor:pointer;outline:none;transition:filter 360ms cubic-bezier(.2,1.35,.35,1)}
-.bag-disc-visual {will-change:transform}
-.bag-disc-face {vector-effect:non-scaling-stroke}
+.bag-physical-disc {position:absolute;inset:0;border-radius:4px;pointer-events:auto;cursor:pointer;outline:none}
+.bag-hit-slot[data-shape="ellipse"] .bag-physical-disc {border-radius:50%}
+.bag-hit-slot[data-shape="dome"] .bag-physical-disc {border-radius:50% 50% 12% 12% / 100% 100% 12% 12%}
+/* The disc itself lifts out of the canvas; the ring marks which slot has keyboard focus. */
+.bag-physical-disc:focus-visible {box-shadow:0 0 0 2px var(--lime),0 0 0 5px var(--accent-soft)}
 .bag-physical-disc[aria-hidden="true"] {pointer-events:none}
-.bag-physical-disc.is-lifted {filter:drop-shadow(0 8px 8px #0008)}
-.bag-physical-disc:focus-visible .bag-disc-face {stroke:var(--lime);stroke-width:3}
-.bag-scene figcaption {display:flex;gap:20px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.bag-scene figcaption {display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.bag-size-control {display:flex;align-items:center;gap:2px;margin:0;padding:3px;border:1px solid var(--line);border-radius:24px;min-width:0}
+.bag-size-control legend {float:left;padding:0 8px 0 10px;font-size:12px;color:var(--muted)}
+.bag-size-control label {position:relative;display:grid;place-items:center;min-width:44px;min-height:44px;border-radius:22px;font:600 13px 'Space Grotesk',sans-serif;color:var(--muted);cursor:pointer}
+.bag-size-control input {position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
+.bag-size-control label:hover {color:var(--text)}
+.bag-size-control label:has(input:checked) {background:var(--selected);color:var(--text)}
+.bag-size-control label:has(input:focus-visible) {outline:2px solid var(--lime);outline-offset:2px}
+.bag-sr {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.bag-pocket-inline select {min-height:44px;padding:8px 28px 8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
+.bag-pocket-inline select:disabled {opacity:.6;cursor:progress}
 .bag-scene figcaption button {min-height:44px;font-size:12px;padding:10px 18px}
 .bag-scene-hint {font-size:11px;color:var(--muted);text-align:center;margin:16px 0 0;line-height:1.6}
+/* Disc names: one dark pill with white text in every theme, on hover and on a slid-out disc. */
+.bag-name-pill {position:absolute;z-index:3;width:max-content;max-width:min(260px,calc(100% - 12px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:calc(6px * var(--bag-type)) calc(13px * var(--bag-type));border:1px solid #ffffff24;border-radius:999px;background:#151a21f0;color:#fff;box-shadow:0 8px 22px #0000004d;font:600 calc(13px * var(--bag-type))/1.25 'Space Grotesk',sans-serif;letter-spacing:.1px;pointer-events:none}
+.bag-name-pill[hidden] {display:none}
+.bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both}
+.bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
+@keyframes bag-pill-in {from {opacity:0}}
+/* Slide-out: a clicked disc leaves its pocket; only its name shows. Click it again for details. */
+.bag-slide-out {position:absolute;z-index:2;display:none;border-radius:50%;cursor:pointer;outline:none;pointer-events:auto}
+.bag-scene[data-slide="out"] .bag-slide-out {display:block}
+.bag-slide-out:focus-visible {box-shadow:0 0 0 2px var(--lime),0 0 0 6px var(--accent-soft)}
+.bag-slide-name {left:50%;top:calc(100% + 10px);transform:translate(-50%,4px);opacity:0;pointer-events:auto;cursor:pointer;transition:opacity 160ms,transform 260ms cubic-bezier(.2,1.35,.35,1)}
+.bag-slide-out[data-label="above"] .bag-slide-name {top:auto;bottom:calc(100% + 10px)}
+.bag-scene[data-slide="out"] .bag-slide-name {opacity:1;transform:translate(-50%,0)}
+.bag-slide-out:hover .bag-slide-name {border-color:#ffffff66}
+/* The details card stays as the screen-reader description of the hovered or focused disc. */
+.bag-lift-info {clip-path:inset(50%);opacity:0}
+/* While the bag turns under a drag, targets and labels wait for it to settle. */
+.bag-scene[data-dragging] :is(.bag-hit-layer,.bag-name-pill,.bag-pocket-labels) {visibility:hidden}
+.bag-pocket-labels {transition:opacity 160ms}
+.bag-scene:is([data-slide="out"],[data-hovered]) .bag-pocket-labels {opacity:0}
+/* Top view: animated camera; pocket labels and the hit layer wait until it settles. */
+.bag-top-toggle {display:inline-flex;align-items:center;gap:8px}
+.bag-top-toggle svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
+.bag-top-toggle[aria-pressed="true"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
+.bag-scene[data-camera="moving"] :is(.bag-hit-layer,.bag-pocket-labels) {visibility:hidden}
+.bag-pocket-labels {position:absolute;inset:0;pointer-events:none;z-index:1}
+.bag-pocket-label {position:absolute;left:var(--x);top:var(--top);transform:translate(-50%,calc(-100% - 8px));width:max-content;max-width:min(260px,72%);padding:calc(6px * var(--bag-type)) calc(11px * var(--bag-type));border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 92%,transparent);box-shadow:0 8px 22px var(--shadow);text-align:center;animation:bag-pocket-in 220ms ease-out both}
+.bag-pocket-label strong {display:block;font:600 calc(11px * var(--bag-type))/1.3 'Space Grotesk',sans-serif;letter-spacing:.6px;text-transform:uppercase;color:var(--lime)}
+.bag-pocket-label span {display:block;font-size:calc(12px * var(--bag-type));line-height:1.4;color:var(--text);overflow-wrap:anywhere}
+/* Each label sits beside its pocket, its caret pointing in: main above the bag, putters below the top pocket, go-to below the front pocket. */
+.bag-pocket-label::after {content:'';position:absolute;left:50%;width:8px;height:8px;background:inherit;border:inherit;border-width:0 1px 1px 0;transform:translateX(-50%) rotate(45deg);bottom:-5px}
+.bag-pocket-label:is([data-pocket="putter"],[data-pocket="goto"]) {top:var(--bottom);transform:translate(-50%,10px)}
+.bag-pocket-label:is([data-pocket="putter"],[data-pocket="goto"])::after {bottom:auto;top:-5px;border-width:1px 0 0 1px}
+@keyframes bag-pocket-in {from {opacity:0}}
+@media(prefers-reduced-motion:reduce){.bag-slide-name {transition:none}.bag-pocket-label,.bag-hover-name {animation:none}}
+/* Disc details on the My Bag page: this copy, with its personal notes. */
+.bag-detail-personal {margin:14px 0 4px;padding:14px 16px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.bag-detail-heading {display:flex;align-items:center;gap:12px}
+.bag-detail-heading .bag-disc-swatch {width:36px;height:36px;border-width:2px;flex:none}
+.bag-detail-heading h3 {margin:0;font:600 15px/1.3 'Space Grotesk',sans-serif;color:var(--text)}
+.bag-detail-heading span {font-size:12px;color:var(--muted)}
+.bag-detail-facts {display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:14px 0 0}
+.bag-detail-facts div {min-width:0}
+.bag-detail-facts dt {font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.bag-detail-facts dd {margin:2px 0 0;font-size:13px;color:var(--text);overflow-wrap:anywhere}
+.bag-detail-personal h4 {margin:16px 0 4px;font-size:10px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.bag-detail-notes {margin:0;font-size:14px;line-height:1.55;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+.bag-detail-notes.is-empty {color:var(--muted);font-size:13px}
+.bag-detail-actions {display:grid;gap:8px;margin-top:14px}
+.bag-detail-actions .wide {margin:0}
+.bag-detail-actions .wide:disabled {opacity:.55;cursor:not-allowed}
+.bag-detail-personal .micro {margin:8px 0 0;color:var(--muted)}
 .bag-scene [data-bag-overflow] {text-align:center;margin:10px 0}
 .bag-scene [data-bag-overflow]:empty {display:none}
-.bag-lift-info {position:absolute;left:50%;top:65%;transform:translateX(-50%) translateY(8px);width:max-content;max-width:90%;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 35px #0002;opacity:0;pointer-events:none;transition:opacity 180ms,transform 360ms cubic-bezier(.2,1.35,.35,1);z-index:1}
+.bag-lift-info {position:absolute;left:50%;top:65%;transform:translateX(-50%) translateY(8px);width:max-content;max-width:min(90%,calc(420px * var(--bag-type)));padding:calc(12px * var(--bag-type)) calc(16px * var(--bag-type));background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 35px #0002;opacity:0;pointer-events:none;transition:opacity 180ms,transform 360ms cubic-bezier(.2,1.35,.35,1);z-index:1}
 .bag-lift-info[data-visible="true"] {opacity:1;transform:translateX(-50%) translateY(0)}
-.bag-lift-info strong {display:block;font:600 17px/1.3 'Space Grotesk',sans-serif;color:var(--text)}
-.bag-lift-info span {display:block;font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
-.bag-lift-info small {display:block;font-size:10px;color:var(--muted);margin-top:8px}
+.bag-lift-info strong {display:block;font:600 calc(17px * var(--bag-type))/1.3 'Space Grotesk',sans-serif;color:var(--text)}
+.bag-lift-info span {display:block;font-size:calc(11px * var(--bag-type));color:var(--muted);margin-top:6px;line-height:1.6}
+.bag-lift-info small {display:block;font-size:calc(10px * var(--bag-type));color:var(--muted);margin-top:8px}
 .bag-section-heading {display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding:18px 0}
 .bag-section-heading h2 {font:500 28px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.6px;margin:0}
 .bag-section-heading>span,.bag-storage-note,.bag-storage-empty {font-size:12px;color:var(--muted);line-height:1.7}
@@ -104,7 +202,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-settings-total {display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
 .bag-settings-total output {color:var(--text)}
 #bagCapacityHint {font-size:11px;color:var(--muted);line-height:1.7}
-@media(prefers-reduced-motion:reduce){.bag-lift-info,.bag-physical-disc {transition:none}}
+@media(prefers-reduced-motion:reduce){.bag-lift-info {transition:none}}
 @media(max-width:700px) {
  .header-actions #accountButton {max-width:72px}
  body[data-view="bag"] .coach-launch {left:auto;right:16px;bottom:18px;width:44px;height:44px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:20px}
@@ -124,7 +222,9 @@ body[data-view="bag"] main {display:none!important}
  .my-bag-disc>.disc-art {width:48px;height:48px;align-self:start}
  .my-bag-disc>.bag-disc-swatch {width:44px;height:44px;align-self:start}
  .bag-scene {margin:4px -10px 24px}
- .bag-scene-canvas {max-width:290px}
+ /* Phones: Small keeps the compact bag; Medium and Large fill the width. */
+ .bag-scene[data-size] {--bag-type:1}
+ .bag-scene[data-size="s"] {--bag-width:290px}
  .bag-scene figcaption {gap:14px;font-size:11px}
  .bag-lift-info {top:55%;max-width:90%;padding:10px 12px}
  .bag-scene-hint {font-size:10px;padding:0 12px}
@@ -141,8 +241,9 @@ body[data-view="bag"] main {display:none!important}
  .bag-sheet h2 {font-size:25px}
  .bag-sheet .profile-grid {grid-template-columns:1fr 1fr;gap:18px 12px}
  .bag-sheet .profile-field {font-size:13px;gap:8px}
+ .bag-sheet .bag-pocket-field {grid-column:1/-1}
  .directory-row {gap:4px}
- .directory-row .disc-row {grid-template-columns:minmax(0,1fr) 74px 25px;gap:5px;padding-left:0;padding-right:3px}
+ .directory-row .disc-row {grid-template-columns:minmax(0,1fr) 74px 25px;gap:5px;padding-left:8px;padding-right:3px}
  .directory-row .row-identity {gap:8px}
  .directory-row .row-identity>.disc-art {display:none}
  .directory-row .row-identity strong {font-size:14px}
