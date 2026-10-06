@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import plastics from '../source-data/bag-plastics.json' with {type:'json'};
-import {defaultDiscDetails,plasticOptions,wearLabel,bagClass,plasticColor,bagPalette,bagSlots,validateDiscDetails,BAG_SIZES,bagSize,POCKETS} from '../public/bag-values.js';
+import {defaultDiscDetails,plasticOptions,wearLabel,bagClass,plasticColor,bagPalette,bagSlots,validateDiscDetails,POCKETS} from '../public/bag-values.js';
 
 test('mold plastic reference wins over brand fallback and remains selectable', () => {
  const details = defaultDiscDetails({id:'ff4bf9e7743c',brand:'Discraft',specs:{'Max weight':'174.3'}},plastics);
@@ -68,10 +68,7 @@ test('any disc type renders wherever its stored pocket says, including go-to', (
  }
 });
 
-test('display size choices are bounded and default to medium', () => {
- assert.deepEqual(BAG_SIZES,{s:360,m:560,l:880});
- for(const [value,want] of [['s','s'],['m','m'],['l','l'],[null,'m'],['xl','m'],['__proto__','m'],['constructor','m']])assert.equal(bagSize(value),want);
- assert.ok(BAG_SIZES.m>=BAG_SIZES.s*1.5,'Default is significantly larger than the old 360px bag');
+test('pockets are main, putter and go-to', () => {
  assert.deepEqual(POCKETS.map(([value])=>value),['main','putter','goto']);
 });
 test('wear labels explain new, midpoint and severely beat discs without changing flight data', () => {

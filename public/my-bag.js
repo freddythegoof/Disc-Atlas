@@ -1,4 +1,4 @@
-import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,bagSize} from './bag-values.js';
+import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,6 +11,15 @@ const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async
 catalogs.catch(()=>{});
 const mold = id => discs.find(d=>d.id===id);
 const name = d => d?.catalogName || d?.name || 'Catalog mold unavailable';
+// The atlas shows the signed-in player's bag in its own colors: one color per mold, from its
+// first copy in bag order. Storage discs are not in the bag.
+let bagColorMap=new Map(),bagColorKey='[]';
+function publishBagColors(){
+ const bagged=account?.user?items.filter(i=>i.in_bag!==false && mold(i.mold_id)).sort(bagComparator(settings.sort_mode,mold)):[],next=new Map();
+ for(const i of bagged)if(!next.has(i.mold_id))next.set(i.mold_id,i.color||'#e6c668');
+ const key=JSON.stringify([...next]);if(key===bagColorKey)return;bagColorKey=key;bagColorMap=next;
+ window.dispatchEvent(new CustomEvent('atlas-bag-change'));
+}
 const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail,deselect:closeBagDetail});
 // Disc details open in the atlas's own panel, docked on the My Bag page, with this copy's details and notes.
 let detailItem=null;const detailPanel=$('#detail'),detailHome=detailPanel.parentNode;
@@ -65,7 +74,7 @@ function sync(data) {
  render();if(changed && data.user)void loadBag();
 }
 function render() {
- const signedIn = !!account?.user;
+ const signedIn = !!account?.user;publishBagColors();
  $('#myBagTeaser').hidden=signedIn;$('#myBagSignIn').hidden=!account || signedIn;
  $('#myBagTeaserStatus').textContent=account?'Sign in to keep your discs with your account.':'Checking your account…';
  $('#myBagTools').hidden=!signedIn;$('#myBagContents').hidden=!signedIn || loading || !!loadError;
@@ -251,14 +260,6 @@ $('#confirmRemoveDisc').addEventListener('click',async()=>{
  catch(error){if(error.name!=='AbortError')$('#removeDiscStatus').textContent=error.message;}
  finally{if(epoch===generation)button.disabled=false;}
 });
-function setBagSize(value,save=false){
- const size=bagSize(value);$('#bagScene').dataset.size=size;
- const input=document.querySelector(`input[name="bagSize"][value="${size}"]`);if(input)input.checked=true;
- // Display size is a per-device preference, so it stays in this browser.
- if(save)try{localStorage.setItem('atlas-bag-size',size);}catch{}
-}
-try{setBagSize(localStorage.getItem('atlas-bag-size'));}catch{setBagSize('m');}
-document.querySelectorAll('input[name="bagSize"]').forEach(input=>input.addEventListener('change',()=>{if(input.checked)setBagSize(input.value,true);}));
 $('#bagTab').onclick=activateBag;$('#mapTab').onclick=()=>leaveBag('map');$('#listTab').onclick=()=>leaveBag('list');
 $('#addBagDisc').onclick=directory;$('#retryMyBag').onclick=loadBag;
 const addMenu=$('#addDestinationMenu');let addMenuTrigger=null;
@@ -289,5 +290,5 @@ addMenu.addEventListener('keydown',event=>{
 });
 window.addEventListener('resize',()=>closeAddMenu());window.addEventListener('scroll',event=>{if(addMenu.matches(':popover-open') && !addMenu.contains(event.target))positionAddMenu();},true);
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
-window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup};
+window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,mapColors:()=>bagColorMap};
 render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

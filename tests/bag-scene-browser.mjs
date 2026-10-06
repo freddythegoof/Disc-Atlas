@@ -73,9 +73,9 @@ try{
  await disc.focus();await page.waitForTimeout(400);assert.ok(await disc.evaluate(n=>n.classList.contains('is-hovered') && document.activeElement===n));
  const faceRect=await page.locator('[data-bag-canvas]').evaluate((n,id)=>n.bagViewer.discScreenRect(id),discId),canvasRect=await page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));assert.ok(faceRect.left>=0 && faceRect.top>=0 && faceRect.left+faceRect.width<=canvasRect.width && faceRect.top+faceRect.height<=canvasRect.height,'Named disc stays inside the canvas '+JSON.stringify({faceRect,canvasRect}));assert.deepEqual(faceRect,resting,'Hover and focus leave the disc in its pocket');
  assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.liftedDisc),null,'The 3D disc does not move on focus');
- // Enter slides the disc out (no navigation); Enter on the slid-out disc opens its details on My Bag.
- await page.keyboard.press('Enter');await page.waitForTimeout(400);assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),discId);assert.ok(!await page.locator('#detail').isVisible());
- await page.keyboard.press('Enter');await page.locator('#detail').waitFor();assert.ok(await page.locator('#myBagView').isVisible());await page.locator('#closeDetail').click();await page.locator('#bagTab').click();
+ // Enter slides the disc out (no navigation) and, since the Oct 5 tweaks, opens its details on My Bag in the same step.
+ await page.keyboard.press('Enter');await page.waitForTimeout(400);assert.equal(await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),discId);
+ await page.locator('#detail').waitFor();assert.ok(await page.locator('#myBagView').isVisible());await page.locator('#closeDetail').click();await page.locator('#bagTab').click();
  await page.locator('[data-bag-toggle]').focus();await page.keyboard.press('Enter');await phase('closed');assert.equal(await disc.getAttribute('tabindex'),'-1');
  await page.keyboard.press('Enter');await phase('open');
  // Clicking the bag body (a side pocket, away from any disc target) opens and closes it.
@@ -86,7 +86,7 @@ try{
  for(const name of themes)for(const width of widths){
   await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await page.evaluate(()=>scrollTo(0,0));
   await page.locator('[data-bag-toggle]').click();await phase('closed');await page.evaluate(()=>scrollTo(0,0));await shot(`closed-${width}-${name}`);
-  const openMs=await page.evaluate(()=>new Promise(resolve=>{const root=document.querySelector('#bagScene'),start=performance.now(),observer=new MutationObserver(()=>{if(root.dataset.phase==='open'){observer.disconnect();resolve(performance.now()-start);}});observer.observe(root,{attributes:true,attributeFilter:['data-phase']});document.querySelector('[data-bag-toggle]').click();}));metrics.push({theme:name,width,openMs});assert.ok(openMs<1000,'Opening sequence stays under one second');
+  const openMs=await page.evaluate(()=>new Promise(resolve=>{const root=document.querySelector('#bagScene'),start=performance.now(),observer=new MutationObserver(()=>{if(root.dataset.phase==='open'){observer.disconnect();resolve(performance.now()-start);}});observer.observe(root,{attributes:true,attributeFilter:['data-phase']});document.querySelector('[data-bag-toggle]').click();}));metrics.push({theme:name,width,openMs});assert.ok(openMs<1000,'Opening sequence stays under one second: '+Math.round(openMs)+' ms');
   await page.evaluate(()=>scrollTo(0,0));await shot(`open-${width}-${name}`);
   await page.locator('[data-bag-toggle]').click();await phase('closed');
   await page.clock.install();await page.clock.pauseAt(await page.evaluate(()=>Date.now()+50));await page.locator('[data-bag-toggle]').click();await page.clock.runFor(110);
@@ -96,7 +96,8 @@ try{
   await page.clock.runFor(340);
   assert.equal(await page.locator('#bagScene').getAttribute('data-phase'),'opening');const middle=await progress();assert.ok(middle>early && middle<1,'Flap keeps folding: '+middle);await shot(`opening-${width}-${name}`);
   await page.clock.runFor(1000);await page.clock.resume();await phase('open');
-  await disc.focus();await page.waitForTimeout(420);await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'true');await shot(`named-${width}-${name}`);
+  // Park the pointer off the bag (the 680px bag now reaches the toggle's former spot after scrolling), so hover cannot take over from focus.
+  await page.mouse.move(0,0);await disc.focus();await page.waitForTimeout(420);await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'true');await shot(`named-${width}-${name}`);
   await page.locator('[data-bag-toggle]').focus();await page.waitForTimeout(400);assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'false');
   await page.locator('#bagStorage').scrollIntoViewIfNeeded();await shot(`storage-${width}-${name}`);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -108,7 +109,7 @@ try{
  // A real touch context: a tap slides the disc out; tapping its label opens its details.
  const touch=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800},isMobile:true,hasTouch:true,storageState:await context.storageState()});
  const mobile=await touch.newPage();await mobile.goto(base+'/?bag=1');await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');
- const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');assert.equal(await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),touchId,'The first tap slides the disc out');assert.ok(!await mobile.locator('#detail').isVisible());await mobile.locator('.bag-slide-name').tap();await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'Tapping the label of the slid-out disc opens details on My Bag');await touch.close();
+ const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');assert.equal(await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.slidDisc),touchId,'The first tap slides the disc out');await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'Tapping the label of the slid-out disc opens details on My Bag');await touch.close();
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);assert.equal(await page.locator('[data-physical-disc]').count(),0);assert.ok(!await page.locator('#bagScene').isVisible());assert.equal(await page.locator('#accountButton').innerText(),'Sign in');
  assert.deepEqual(errors,[]);fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,themes,widths,metrics,cadence,errors},null,2));
  await context.close();console.log('PASS: 3D bag handoff, stored colors, true totals, Storage, keyboard/touch/reduced motion, 36 theme screenshots and motion recording. '+JSON.stringify(cadence));

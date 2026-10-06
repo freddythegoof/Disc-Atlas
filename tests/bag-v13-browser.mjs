@@ -53,7 +53,8 @@ try {
   await page.getByRole('button',{name:'Site menu',exact:true}).click();
   await page.getByRole('menuitemradio',{name:theme[0].toUpperCase()+theme.slice(1),exact:true}).click();await page.keyboard.press('Escape');
  };
- const setSize=async size=>{await page.locator(`input[name="bagSize"][value="${size}"]`).check();await page.waitForFunction(s=>document.querySelector('#bagScene').dataset.size===s,size);};
+ // One bag size since the Oct 5 tweaks; zoom replaces S/M/L.
+ const zoomBag=async label=>{await page.locator('#bagScene').getByRole('button',{name:label}).click();await page.waitForTimeout(350);};
 
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>window.AtlasAccount?.current);
  await page.locator('#myBagSignIn').click();await page.getByRole('link',{name:'Continue with Google',exact:true}).waitFor();
@@ -132,38 +133,30 @@ try {
  await page.unroute('**/api/bag/discs/'+putter.id);expectHttpError=false;assert.equal(await pocketOf(putter.id),'main');
  check('Inline select: three pockets, labelled, 44px target, immediate persist, reverts on failure');
 
- // 4. Bag size: larger default, S/M/L, crisp vector scaling, persisted per browser.
- assert.equal(await page.locator('#bagScene').getAttribute('data-size'),'m');
- // The 3D canvas re-renders at every displayed size instead of upscaling a raster.
+ // 4. Bag size (Oct 5 tweaks): one size between the former Medium (560) and Large (880); zoom instead of S/M/L.
+ assert.equal(await page.locator('input[name="bagSize"],.bag-size-control').count(),0,'No size options');
+ // The 3D canvas re-renders at its displayed size instead of upscaling a raster.
  const sharp=()=>page.locator('[data-bag-canvas]').evaluate(n=>{const c=n.querySelector('canvas'),r=n.bagViewer.renderer;return Math.abs(c.width-Math.round(c.clientWidth*r.pixelRatio))<=1 && Math.abs(c.height-Math.round(c.clientHeight*r.pixelRatio))<=1 && r.pixelRatio>=Math.min(devicePixelRatio,1);});
- const sizes={};
- for(const size of ['s','m','l']){
-  await setSize(size);await page.waitForTimeout(50);
-  assert.ok(await sharp(),`The 3D canvas renders at the ${size.toUpperCase()} size`);
-  const disc=await slot(putter.id,'main').boundingBox();
-  sizes[size]={canvas:await canvasWidth(),disc:disc.width,info:0};
-  await slot(driver.id,'goto').focus();sizes[size].info=await page.locator('#bagLiftInfo strong').evaluate(n=>parseFloat(getComputedStyle(n).fontSize));await page.keyboard.press('Escape');
- }
- assert.equal(Math.round(sizes.s.canvas),360);assert.equal(Math.round(sizes.m.canvas),560,'Default is 560px, up from 360px');
- assert.ok(sizes.l.canvas>sizes.m.canvas,'Large is larger than Medium at 1440×1000');
- for(const size of ['m','l'])assert.ok(Math.abs(sizes[size].disc/sizes.s.disc-sizes[size].canvas/sizes.s.canvas)<.02,'Hit targets scale with the artwork');
- assert.ok(sizes.s.info<sizes.m.info && sizes.m.info<sizes.l.info,'Lift label type scales');
- await reload();assert.equal(await page.locator('#bagScene').getAttribute('data-size'),'l','Size choice persists across reload');
- assert.ok(await page.locator('input[name="bagSize"][value="l"]').isChecked());
- await page.locator('input[name="bagSize"][value="l"]').focus();await page.keyboard.press('ArrowLeft');
- assert.equal(await page.locator('#bagScene').getAttribute('data-size'),'m','Arrow keys move between sizes');await setSize('l');
+ const sizes={canvas:await canvasWidth()};
+ assert.ok(await sharp(),'The 3D canvas renders at its displayed size');
+ assert.equal(Math.round(sizes.canvas),680,'Default is 680px at 1440×1000');
+ sizes.disc=(await slot(putter.id,'main').boundingBox()).width;
+ await zoomBag('Zoom in');assert.ok(await sharp(),'Zoomed, it still renders at full resolution');
+ sizes.zoomedDisc=(await slot(putter.id,'main').boundingBox()).width;
+ assert.ok(Math.abs(sizes.zoomedDisc/sizes.disc-1.4)<.05,'Hit targets scale with the zoom: '+JSON.stringify(sizes));
+ await zoomBag(/^Reset zoom/);
  await page.setViewportSize({width:2560,height:1440});await page.waitForTimeout(100);
- const desktop=await canvasWidth();assert.equal(Math.round(desktop),880,'Large reaches 880px on a 27" (2560×1440) display');
+ const desktop=await canvasWidth();assert.equal(Math.round(desktop),680,'The same size on a 27" (2560×1440) display');
  const scene=await page.locator('[data-bag-canvas]').boundingBox();assert.ok(scene.height<=1440,'The whole bag fits in the viewport');
  await noOverflow();
- check(`Size control: S ${Math.round(sizes.s.canvas)}px, M ${Math.round(sizes.m.canvas)}px (default), L ${Math.round(sizes.l.canvas)}px at 1440×1000 and ${Math.round(desktop)}px at 2560×1440; hit targets and labels scale; persists`);
+ check(`One size: ${Math.round(sizes.canvas)}px at 1440×1000 and ${Math.round(desktop)}px at 2560×1440 (no S/M/L); zooming 140% scales hit targets ${(sizes.zoomedDisc/sizes.disc).toFixed(2)}×`);
 
  // Screenshots: all three themes, desktop and 360px.
  for(const theme of themes){
-  await page.setViewportSize({width:2560,height:1440});await setTheme(theme);await reload();await setSize('l');
-  await page.locator('#bagScene').scrollIntoViewIfNeeded();await shot('bag-large-27in',2560,theme);
+  await page.setViewportSize({width:2560,height:1440});await setTheme(theme);await reload();
+  await page.locator('#bagScene').scrollIntoViewIfNeeded();await shot('bag-27in',2560,theme);
   for(const width of widths){
-   await page.setViewportSize({width,height:width===360?800:1000});await reload();await setSize('m');
+   await page.setViewportSize({width,height:width===360?800:1000});await reload();
    assert.equal(await pocketOf(putter.id),'main');assert.equal(await slot(putter.id,'main').count(),1);await noOverflow();
    await page.locator('#bagScene').scrollIntoViewIfNeeded();
    await slot(putter.id,'main').focus();assert.match(await page.locator('#bagLiftInfo').innerText(),/Main compartment/);
@@ -171,14 +164,14 @@ try {
    await page.locator('#bagScene').scrollIntoViewIfNeeded();await shot('goto-top-pocket',width,theme);
    const row=page.locator(`[data-disc-id="${driver.id}"]`);await row.scrollIntoViewIfNeeded();await inline(driver.id).focus();
    await shot('inline-pocket-dropdown',width,theme,{locator:page.locator('#bagLineup')});
-   await setSize('l');await noOverflow();await page.locator('#bagScene').scrollIntoViewIfNeeded();
-   await shot('bag-large',width,theme);
-   await setSize('m');
+   await page.locator('#bagScene').scrollIntoViewIfNeeded();await zoomBag('Zoom in');await noOverflow();
+   await shot('bag-zoomed',width,theme);
+   await zoomBag(/^Reset zoom/);
   }
  }
  assert.deepEqual(errors,[]);
  fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,checks,sizes,themes,widths,screenshots:shots,errors},null,2));
- const order=['putter-main-reloaded','goto-top-pocket','inline-pocket-dropdown','bag-large','bag-large-27in'];
+ const order=['putter-main-reloaded','goto-top-pocket','inline-pocket-dropdown','bag-zoomed','bag-27in'];
  fs.writeFileSync(dir+'/screenshots.html',`<!doctype html><meta charset="utf-8"><title>Bag v1.3 QA</title><style>body{margin:32px;background:#14191f;color:#e9edf0;font:16px system-ui}section{margin:40px 0}figure{display:inline-block;vertical-align:top;margin:16px}img{width:660px;max-width:100%}.mobile img{width:300px}a{color:inherit}figcaption{margin-top:8px}li{margin:4px 0}</style><h1>Bag v1.3 · local QA</h1><ul>${checks.map(c=>`<li>✓ ${c}</li>`).join('')}</ul>${themes.map(theme=>`<section><h2>${theme}</h2>${order.flatMap(state=>shots.filter(s=>s.theme===theme && s.state===state)).map(s=>`<figure class="${s.width===360?'mobile':''}"><a href="${s.name}"><img src="${s.name}" loading="lazy"></a><figcaption>${s.state} · ${s.width}px</figcaption></figure>`).join('')}</section>`).join('')}`);
  console.log(checks.map(c=>'✓ '+c).join('\n'));
  console.log(`PASS: ${checks.length} checks, ${shots.length} screenshots across ${themes.length} themes at 1440px, 360px and 2560px; no page errors.`);

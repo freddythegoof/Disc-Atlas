@@ -22,10 +22,25 @@ test('scatter is stable across catalog order and ignores unrated records',()=>{
 });
 test('opening camera centers the featured disc at desktop and phone sizes',()=>{
  assert.ok(layout,'Atlas layout is available');
- for(const [w,h,left,bottom,width,height] of [[1440,780,128.64,546.5,1182.72,418],[390,620,65.64,363.2,258.72,246.4]]){
+ for(const [w,h] of [[1440,780],[390,620]]){
+  const {left,bottom,width,height}=layout.bounds(w,h);
   const target={x:.72,y:.79},camera=layout.camera(target,w,h,2.8);
   assert.ok(Math.abs(left+target.x*width*camera.zoom+camera.x-w*.5)<1);
   assert.ok(Math.abs(bottom-target.y*height*camera.zoom+camera.y-h*.48)<1);
+ }
+});
+test('the 1x frame fits every catalog disc to the visible map, close to its edges',()=>{
+ const discs=JSON.parse(fs.readFileSync('public/data.json')).discs,points=[...layout.positions(discs).values()],{FRAME}=layout;
+ assert.ok(points.every(p=>p.x>=FRAME.minX && p.x<=FRAME.maxX && p.y>=FRAME.minY && p.y<=FRAME.maxY),'Every rated disc is inside the frame');
+ for(const [w,h,mobile] of [[1440,832,false],[1280,652,false],[360,688,true]]){
+  const area=layout.bounds(w,h),x=v=>area.left+v*area.width,y=v=>area.bottom-v*area.height;
+  // The frame's corners land on the visible box: just under the search bar, above the legend, near the sides.
+  assert.ok(Math.abs(x(FRAME.minX)-area.view.left)<1e-6 && Math.abs(x(FRAME.maxX)-area.view.right)<1e-6);
+  assert.ok(Math.abs(y(FRAME.maxY)-area.view.top)<1e-6 && Math.abs(y(FRAME.minY)-area.view.bottom)<1e-6);
+  assert.ok(area.view.left<=(mobile?40:64) && w-area.view.right<=(mobile?40:64) && area.view.top<=(mobile?90:96),'Close to the edges at '+w);
+  // At 1x the camera keeps the whole frame in place.
+  const at1=layout.constrain({zoom:1,x:0,y:0},area,layout.extent(new Map(points.map((p,i)=>[i,p]))));
+  assert.equal(at1.x,0);assert.equal(at1.y,0);
  }
 });
 test('camera stops at every data edge and centers data smaller than the viewport',()=>{

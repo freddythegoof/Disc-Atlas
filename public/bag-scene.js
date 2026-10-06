@@ -6,6 +6,8 @@ const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const loadViewer=()=>import('./bag3d/viewer.mjs');
 const accent=()=>getComputedStyle(document.documentElement).getPropertyValue('--lime').trim()||null;
 const DEFAULT_BAG='#343c49';
+// Each zoom button step (the viewer allows 1× to its maxZoom).
+const ZOOM_STEP=1.4;
 const POCKET={main:'main',putter:'putter',goTo:'goto'};
 const div=(className,attributes={})=>{const node=document.createElement('div');node.className=className;for(const [key,value]of Object.entries(attributes))node.setAttribute(key,value);return node;};
 
@@ -18,7 +20,6 @@ export class BagScene {
   this.topToggle=root.querySelector('[data-bag-top-view]');
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
   this.topToggle.addEventListener('click',()=>void this.setTopView(!this.top));
-  for(const type of ['pointerenter','focus'])this.topToggle.addEventListener(type,()=>void this.viewer?.prepareTopView());
   this.stage=div('bag-3d-stage');this.layer=div('bag-hit-layer',{role:'group','aria-label':'Your disc golf bag'});this.status=div('bag-3d-status',{role:'status'});
   // Hovering (or focusing) a disc shows only its name; the disc itself stays put.
   this.tag=div('bag-name-pill bag-hover-name',{'aria-hidden':'true'});this.tag.hidden=true;
@@ -26,7 +27,30 @@ export class BagScene {
   this.card=div('bag-slide-out',{role:'button',tabindex:'-1','aria-hidden':'true','data-bag-slide-out':''});this.cardName=document.createElement('span');this.cardName.className='bag-name-pill bag-slide-name';
   this.card.append(this.cardName);
   this.pockets=div('bag-pocket-labels',{'aria-hidden':'true'});
-  this.canvas.replaceChildren(this.stage,this.pockets,this.layer,this.tag,this.card,this.status);
+  // Zoom: these buttons, a pinch, or Ctrl/⌘ + scroll (a plain scroll keeps scrolling the page).
+  this.zoomControls=div('bag-zoom',{role:'group','aria-label':'Zoom the bag'});
+  const zoomButton=(label,text,action)=>{const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',label);button.textContent=text;button.addEventListener('click',action);return button;};
+  this.zoomOut=zoomButton('Zoom out','−',()=>this.zoomBy(1/ZOOM_STEP));this.zoomReset=zoomButton('Reset zoom','100%',()=>this.zoomTo(1));this.zoomIn=zoomButton('Zoom in','+',()=>this.zoomBy(ZOOM_STEP));
+  this.zoomReset.className='bag-zoom-level';this.zoomControls.append(this.zoomOut,this.zoomReset,this.zoomIn);
+  this.canvas.replaceChildren(this.stage,this.pockets,this.layer,this.tag,this.card,this.zoomControls,this.status);
+  this.canvas.addEventListener('wheel',event=>{
+   if(!this.ready || !(event.ctrlKey || event.metaKey))return;event.preventDefault();
+   const box=this.canvas.getBoundingClientRect(),delta=Math.max(-100,Math.min(100,event.deltaY*(event.deltaMode===1?16:1)));
+   this.viewer.setZoom(this.viewer.zoom*Math.exp(-delta*.01),{anchor:{x:event.clientX-box.left,y:event.clientY-box.top},instant:true});
+  },{passive:false});
+  const touches=new Map();let pinch=null;
+  this.canvas.addEventListener('pointerdown',event=>{
+   if(event.pointerType!=='touch')return;touches.set(event.pointerId,{x:event.clientX,y:event.clientY});
+   if(touches.size!==2 || !this.ready)return;
+   // Two fingers pinch-zoom; the turn that the first finger may have started is dropped.
+   this.viewer.cancelPress();this.clearLift();const [a,b]=[...touches.values()];pinch={distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),zoom:this.viewer.zoom};
+  });
+  this.canvas.addEventListener('pointermove',event=>{
+   if(!touches.has(event.pointerId))return;touches.set(event.pointerId,{x:event.clientX,y:event.clientY});if(!pinch || touches.size<2)return;
+   const [a,b]=[...touches.values()],box=this.canvas.getBoundingClientRect();
+   this.viewer.setZoom(pinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance,{anchor:{x:(a.x+b.x)/2-box.left,y:(a.y+b.y)/2-box.top},instant:true});
+  });
+  for(const type of ['pointerup','pointercancel'])this.canvas.addEventListener(type,event=>{touches.delete(event.pointerId);if(touches.size<2)pinch=null;});
   this.onTap(this.card,()=>this.openSlid());
   this.card.addEventListener('keydown',event=>{
    if(event.key==='Enter'||event.key===' '){event.preventDefault();this.openSlid();}
@@ -54,8 +78,9 @@ export class BagScene {
    this.root.dataset.engine='loading';this.status.textContent='Loading your bag…';
    try{
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
+    // The bag starts closed, so its putters start stowed in the top pocket.
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',
+     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.open,
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
     // The hit layer and the list carry the content; the canvas itself is decorative.
@@ -69,7 +94,8 @@ export class BagScene {
     this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.root.dataset.dragging='';});
     this.stage.addEventListener('bagdragend',()=>{delete this.root.dataset.dragging;this.interactive(!this.running);});
     this.stage.addEventListener('bagviewererror',event=>{this.status.textContent=event.detail;});
-    this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';
+    this.stage.addEventListener('bagzoom',event=>this.showZoom(event.detail.zoom));
+    this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';this.showZoom(viewer.zoom);
     if(this.data)this.draw();
    }catch{
     this.root.dataset.engine='error';this.status.textContent='The 3D bag could not load. Your discs are listed below.';this.toggle.disabled=true;
@@ -145,8 +171,8 @@ export class BagScene {
   if(next)next.focus({preventScroll:true});else (back?document.querySelector('#bagSort'):this.toggle).focus({preventScroll:true});
  }
  // Main discs sit behind the flap, so they only respond while the bag is open. Turned away
- // (front facing back), only the top pocket's putters are in reach.
- reachable(disc){return this.ready && !this.running && (this.open || disc.dataset.pocket!=='main') && (disc.dataset.pocket==='putter' || this.viewer.frontFacing);}
+ // (front facing back), and in the top view, only the top pocket's putters are in reach.
+ reachable(disc){return this.ready && !this.running && (this.open || disc.dataset.pocket!=='main') && (disc.dataset.pocket==='putter' || (this.viewer.frontFacing && !this.top));}
  interactive(on){
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]')){const ok=on && this.reachable(disc);disc.setAttribute('tabindex',ok?'0':'-1');disc.setAttribute('aria-hidden',String(!ok));}
  }
@@ -158,7 +184,8 @@ export class BagScene {
   }
   this.placeCard();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
  }
- // One disc out at a time: a second disc waits for the first to slide home.
+ // One click slides the disc out and opens its details together. One disc is out at a time:
+ // a second disc waits for the first to slide home.
  async slideOut(disc,item,title){
   if(!this.reachable(disc) || this.viewer.cameraMoving)return;
   if(this.slid?.disc===disc){if(this.root.dataset.slide==='out')this.openSlid();return;}
@@ -168,10 +195,13 @@ export class BagScene {
   this.cardName.textContent=title;this.card.setAttribute('aria-label',`${title}, out of the bag. Enter for disc details, Escape to put it back.`);
   this.cardName.style.setProperty('--disc-color',item.color||'#e6c668');
   this.root.dataset.slide='moving';
-  await this.viewer.slideDisc(disc.dataset.physicalDisc,{instant:reduced()});
+  const moving=this.viewer.slideDisc(disc.dataset.physicalDisc,{instant:reduced()});
+  // The details panel opens (and takes focus) while the disc slides out.
+  this.openSlid();this.keepAboveSheet();
+  await moving;
   if(this.slid!==slid)return;
   this.root.dataset.slide='out';this.card.setAttribute('aria-hidden','false');this.card.tabIndex=0;
-  this.placeCard();this.card.focus({preventScroll:true});
+  this.placeCard();
  }
  // Escape, a click on empty space and every other reset put the disc back and close its details.
  slideIn(options){this.slideToken++;return this.putBack(options);}
@@ -183,6 +213,14 @@ export class BagScene {
   return this.viewer?.slidDisc?this.viewer.slideDisc(null,{instant:reduced()}):Promise.resolve();
  }
  openSlid(){if(this.slid?.mold)this.inspect(this.slid.mold,this.slid.item);}
+ // On phones the details are a bottom sheet: scroll the page so the disc comes out above it, name included.
+ keepAboveSheet(){
+  const panel=document.querySelector('#detail'),rect=this.viewer?.slideRect();
+  if(!panel || panel.hidden || !rect || !matchMedia('(max-width:700px)').matches)return;
+  const box=this.canvas.getBoundingClientRect(),sheetTop=innerHeight-panel.offsetHeight,top=box.top+rect.top,bottom=top+rect.height+48;
+  const by=Math.min(bottom-(sheetTop-8),top-8);
+  if(by>0)scrollBy({top:by,behavior:reduced()?'instant':'smooth'});
+ }
  // The card covers the slid-out disc where it rests; its name sits under it (above, if the
  // canvas ends first).
  placeCard(){
@@ -199,18 +237,24 @@ export class BagScene {
  }
  async setTopView(on){
   if(!this.ready || on===this.top)return;
-  this.top=on;void this.slideIn();this.clearLift();
+  this.top=on;void this.slideIn();this.clearLift();this.interactive(false);
   this.topToggle.setAttribute('aria-pressed',String(on));this.root.dataset.camera='moving';
   const view=await this.viewer.setTopView(on,{instant:reduced()});
   if(view!==this.top)return;
-  this.root.dataset.camera=on?'top':'front';this.place();
+  this.root.dataset.camera=on?'top':'front';this.place();this.interactive(!this.running);
  }
- // Top view: each pocket is named, with the discs it holds.
+ zoomBy(factor){if(this.ready)this.zoomTo(this.viewer.zoom*factor);}
+ zoomTo(value){if(this.ready){this.clearLift();this.viewer.setZoom(value,{instant:reduced()});}}
+ showZoom(zoom){
+  const percent=Math.round(zoom*100)+'%';this.zoomReset.textContent=percent;this.zoomReset.setAttribute('aria-label',`Reset zoom (now ${percent})`);
+  this.zoomReset.disabled=zoom<=1.001;this.zoomOut.disabled=zoom<=1.001;this.zoomIn.disabled=zoom>=this.viewer.maxZoom-.001;this.root.dataset.zoomed=String(zoom>1.001);
+ }
+ // Top view looks into the putter pocket, named with the putters it holds.
  placePockets(){
   if(!this.top || !this.viewer || !this.items){this.pockets.replaceChildren();return;}
-  const rects=this.viewer.pocketRects(),names={main:[],putter:[],goto:[]};
+  const rects=this.viewer.pocketRects(),names={putter:[]};
   for(const item of this.items)if(item.in_bag!==false)names[item.pocket]?.push(this.lookup(item.mold_id)?.catalogName || this.lookup(item.mold_id)?.name || 'Saved disc');
-  const labels=[['putter','Top pocket · Putters',rects.putter],['goto','Front pocket · Go-to',rects.goTo],['main','Main compartment',rects.main]];
+  const labels=[['putter','Top pocket · Putters',rects.putter]];
   this.pockets.replaceChildren(...labels.map(([pocket,heading,rect])=>{
    const label=div('bag-pocket-label',{'data-pocket':pocket}),strong=document.createElement('strong'),list=document.createElement('span');
    strong.textContent=heading;const shown=names[pocket].slice(0,4);
@@ -223,7 +267,7 @@ export class BagScene {
  // pocket and notes available to screen readers (aria-describedby).
  lift(disc,item,title){
   if(!this.reachable(disc) || this.root.dataset.dragging!==undefined)return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
-  this.lifted=disc;disc.classList.add('is-hovered');this.root.dataset.hovered='';
+  this.lifted=disc;disc.classList.add('is-hovered');this.root.dataset.hovered='';this.viewer.glowDisc(disc.dataset.physicalDisc,{instant:reduced()});
   this.tag.textContent=title;this.tag.style.setProperty('--disc-color',item.color||'#e6c668');
   this.tag.hidden=this.slid?.disc===disc;if(!this.tag.hidden)this.placeTag(disc);
   this.info.querySelector('strong').textContent=title;this.info.querySelector('span').textContent=`${item.plastic} · ${item.wear}/10 ${wearLabel(item.wear)} · ${item.weight_g} g · ${pocketLabel(item.pocket)}`;
@@ -234,14 +278,17 @@ export class BagScene {
  }
  settle(disc){
   disc.classList.remove('is-hovered');
-  if(this.lifted===disc){this.lifted=null;delete this.root.dataset.hovered;this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
+  if(this.lifted===disc){this.lifted=null;delete this.root.dataset.hovered;this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');this.viewer?.glowDisc(null,{instant:reduced()});}
  }
- clearLift(){if(this.lifted)this.settle(this.lifted);this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');}
+ clearLift(){if(this.lifted)this.settle(this.lifted);this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');if(this.viewer?.glowingDisc)this.viewer.glowDisc(null,{instant:reduced()});}
  async reveal(){this.visible=true;await this.load();if(this.revealed||!this.ready||this.open||this.running||!this.visible)return;this.revealed=true;void this.setOpen(true);}
  async setOpen(open){
   if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();void this.slideIn();this.toggle.setAttribute('aria-disabled','true');
   this.root.dataset.phase=open?'opening':'closing';this.interactive(false);
-  await this.viewer.setCompartmentOpen(open,{instant:reduced()});
+  // The flap and the putters move together: closed, the putters stow in the top pocket;
+  // open, they come back out into their row. The flap sets the pace (the putters' wave is no
+  // longer), so a slow frame delaying the putters' timer never holds up the bag's state.
+  void this.viewer.setPuttersOut(open,{instant:reduced()});await this.viewer.setCompartmentOpen(open,{instant:reduced()});
   if(epoch!==this.epoch)return;this.open=open;this.running=false;this.root.dataset.phase=open?'open':'closed';
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent=open?'Close bag':'Open bag';this.toggle.setAttribute('aria-expanded',String(open));
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
@@ -249,7 +296,7 @@ export class BagScene {
  reset(){
   this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();void this.slideIn();
   this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
-  if(this.ready){void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
+  if(this.ready){void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;
   if(this.root.dataset.engine!=='error')this.toggle.disabled=false;
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent='Open bag';this.toggle.setAttribute('aria-expanded','false');this.root.dataset.phase='closed';

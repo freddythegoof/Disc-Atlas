@@ -13,8 +13,9 @@ export const FRONT = {anchor: 'front', front: .176, span: .044, y: .137, mouth: 
   tilt: 0, raise: .085, forward: .05};
 // Top pocket, behind the front pocket. Putters stand in one neat row around its center line:
 // same x, same tilt, even spacing, each a step higher so every rim shows above the one in front.
+// Stowed (bag closed), they sink to one height with only their rims above the mouth.
 export const TOP = {anchor: 'center', center: .017, span: .060, y: .249, mouth: .252, scale: .92, rise: .016, spread: 0, maxX: .030,
-  tilt: -.12, raise: .03, forward: .08};
+  tilt: -.12, raise: .03, forward: .08, stowY: .172};
 export const PUTTER = {...TOP, maxSlots: 8};
 export const GOTO = {...FRONT, maxSlots: 6};
 // The GLB authors its go-to accent rim and dashed outline around a disc seated in the top
@@ -70,6 +71,7 @@ export function bagLayout({main = [], putter = [], goTo = []} = {}) {
       const x = fan(order, spec.spread, spec.maxX), y = spec.y + order * spec.rise, z = front - order * gap;
       placements.push({...entry(slot, pocket, order), position: [x, y, z], rotation: [spec.tilt, FACE_FORWARD, 0],
         scale: [depthScale, spec.scale, spec.scale], lift: [x * .5, y + spec.raise, z + spec.forward],
+        ...(spec.stowY === undefined ? {} : {stow: {position: [x, spec.stowY, z], rotation: [spec.tilt, FACE_FORWARD, 0], scale: [depthScale, spec.scale, spec.scale]}}),
         // Only the part above the pocket's mouth is visible (and targetable).
         mouth: spec.mouth,
         // Slid out: straight up until the whole disc clears the mouth, then a short step forward

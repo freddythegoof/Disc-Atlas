@@ -98,3 +98,16 @@ test('slide-out runs along each pocket axis until the whole disc is clear', () =
   assert.ok(p.slide.position[1]>p.position[1],p.key+' and up');assert.equal(p.slide.rotation[1],-Math.PI/2,p.key+' turns face-on');
  }
 });
+
+test('stowed putters sit at one height inside the top pocket with only their rims above the mouth', () => {
+  const {placements} = bagLayout({putter: [{id: 'a'}, {id: 'b'}, {id: 'c'}, {id: 'd'}], goTo: [{id: 'g'}]});
+  const putters = placements.filter(p => p.pocket === 'putter');
+  for (const p of putters) {
+    assert.ok(p.stow, 'Each putter has a stowed seat');
+    assert.deepEqual([p.stow.position[0], p.stow.position[2]], [p.position[0], p.position[2]], 'Stowing only lowers it');
+    assert.equal(p.stow.position[1], TOP.stowY);
+    const rim = p.stow.position[1] + DISC.radius * p.stow.scale[1];
+    assert.ok(rim > TOP.mouth && rim - TOP.mouth < .015, `Only the rim shows above the mouth: ${(rim - TOP.mouth).toFixed(3)} m`);
+  }
+  assert.ok(!placements.find(p => p.pocket === 'goTo').stow, 'The go-to does not stow');
+});

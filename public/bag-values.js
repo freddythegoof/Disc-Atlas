@@ -61,9 +61,6 @@ export function bagSlots(items,settings,lookup){
 export const defaultPocket=disc=>bagClass(disc)==='putter'?'putter':'main';
 export const pocketLabel=pocket=>({main:'Main compartment',putter:'Putter pocket',goto:'Go-to'})[pocket] || 'Pocket unavailable';
 export const POCKETS=[['main','Main'],['putter','Putter'],['goto','Go-to']];
-// Display sizes cap the bag's width; CSS also fits it to the viewport height.
-export const BAG_SIZES={s:360,m:560,l:880};
-export const bagSize=value=>Object.hasOwn(BAG_SIZES,value)?value:'m';
 export const stabilityBiasLabel=bias=>bias==='more_stable'?'More stable':bias==='less_stable'?'Less stable':'';
 export function bagComparator(mode='speed',lookup){
  const speed=i=>lookup(i.mold_id)?.speed ?? -1;

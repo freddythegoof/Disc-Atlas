@@ -56,8 +56,10 @@ try {
  // center must all show the disc's own color, so nothing (pocket, other discs, the canvas edge) covers it.
  const fullyVisible=async(id,color,label)=>{
   const rect=await viewer((v,id)=>v.discScreenRect(id),id),stage=await page.locator('[data-bag-canvas]').boundingBox();
-  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2,points=[[0,0],[-.3,0],[.3,0],[0,-.3],[0,.3]].map(([dx,dy])=>[cx+dx*rect.width,cy+dy*rect.height]);
-  const png=await page.screenshot({clip:{x:stage.x,y:stage.y,width:stage.width,height:stage.height}});
+  // Sample a viewport screenshot at viewport coordinates: the canvas may start above the viewport
+  // (on phones the page scrolls the slid-out disc above the details sheet), where a clip would be cut.
+  const cx=stage.x+rect.left+rect.width/2,cy=stage.y+rect.top+rect.height/2,points=[[0,0],[-.3,0],[.3,0],[0,-.3],[0,.3]].map(([dx,dy])=>[cx+dx*rect.width,cy+dy*rect.height]);
+  const png=await page.screenshot();
   const samples=await page.evaluate(async([b64,points])=>{const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const x=c.getContext('2d');x.drawImage(img,0,0);return points.map(([px,py])=>[...x.getImageData(Math.round(px),Math.round(py),1,1).data.slice(0,3)]);},[png.toString('base64'),points]);
   const want=hex(color),drift=Math.max(...samples.flatMap(rgb=>rgb.map((v,i)=>Math.abs(v-want[i]))));
   metrics[label]={rect:{top:Math.round(rect.top),left:Math.round(rect.left),size:Math.round(rect.width)},colorDrift:drift};
@@ -141,7 +143,7 @@ try {
  assert.ok(end[2]>row[0].position[2],'It ends in front of the stack');
  await onBagPage('Slide-out');
  assert.equal(await viewer(v=>v.slidDisc),putter.id);assert.equal((await label.innerText()).trim(),putterLabel,'Name label');
- assert.ok(!await detail.isVisible(),'Details wait for the next click');
+ await detail.waitFor({state:'visible'});assert.equal(await detail.locator('h2').first().innerText(),putterLabel,'Details open with the first click (Oct 5 tweaks)');
  await fullyVisible(putter.id,putterColor,'Slid-out putter');inside(await local(label),box,'Putter label');
  metrics.putterPathFrames=moving.length;
  // Another disc: the first returns home before the second leaves.
@@ -178,15 +180,15 @@ try {
  const body=await page.locator('.bag-3d-stage canvas').boundingBox();await page.mouse.click(body.x+body.width*.1,body.y+body.height*.66);
  await slidHome();await detail.waitFor({state:'hidden'});assert.equal(await scene.getAttribute('data-phase'),'open','Empty-space click does not toggle the flap');
  await driverSlot.click();await slideOut();await page.mouse.click(10,300);await slidHome();
- // Keyboard: Enter slides out, Enter opens details, Escape closes everything.
- await driverSlot.focus();await page.keyboard.press('Enter');await slideOut();await page.keyboard.press('Enter');await detail.waitFor({state:'visible'});
+ // Keyboard: one Enter slides the disc out and opens its details; Escape closes everything.
+ await driverSlot.focus();await page.keyboard.press('Enter');await slideOut();await detail.waitFor({state:'visible'});
  await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});
  // The list's names open the same panel; an unrated mold's Show on Atlas is disabled with a reason.
  await page.locator(`#bagStorage [data-bag-inspect="${odd.id}"]`).click();await detail.waitFor({state:'visible'});
  assert.ok(await page.locator('[data-show-on-atlas]').isDisabled());assert.match(await detail.locator('#bagDetailUnmapped').innerText(),/no flight ratings/);
  await page.locator('#closeDetail').click();await detail.waitFor({state:'hidden'});
  assert.deepEqual(navigations,[],'No navigation or reload on My Bag');
- check('Details: clicking the slid-out disc or its label opens the docked panel with personal notes and Show on Atlas; Escape or an empty-space click slides the disc home and closes the panel in one step (flap untouched); keyboard Enter → Enter → Escape; go-to comes up and forward');
+ check('Details: clicking the slid-out disc or its label opens the docked panel with personal notes and Show on Atlas; Escape or an empty-space click slides the disc home and closes the panel in one step (flap untouched); keyboard Enter → Escape; go-to comes up and forward');
 
  // 6. Show on Atlas jumps to the disc on the map.
  await driverSlot.click();await slideOut();await label.click();await detail.waitFor({state:'visible'});
@@ -237,11 +239,11 @@ try {
  assert.ok(Math.abs(touchTurn)>.3 && await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.turn)===touchTurn,'Touch turn holds: '+touchTurn);
  const tapSlot=mobile.locator(`[data-physical-disc="${driver.id}"]`);await tapSlot.tap();
  await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');assert.ok(!await mobile.locator('.bag-hover-name').isVisible(),'No hover pill on touch');
- await mobile.locator('.bag-slide-name').tap();await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible());
+ await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'The same tap opens its details on My Bag');
  await touch.close();
- check(`Touch: a finger drag turn (${touchTurn.toFixed(2)} rad) holds; a tap slides a disc out, tapping its label opens details on My Bag`);
+ check(`Touch: a finger drag turn (${touchTurn.toFixed(2)} rad) holds; one tap slides a disc out and opens its details on My Bag`);
 
- // 9. Top view still animates straight above with labeled pockets.
+ // 9. Top view still animates straight above, now into the putter pocket only (Oct 5 tweaks).
  await page.reload();await phase('open');await scene.scrollIntoViewIfNeeded();await page.mouse.move(0,0);
  await page.locator('[data-bag-canvas]').evaluate(n=>{const samples=n.cameraSamples=[];const tick=()=>{samples.push([performance.now(),n.bagViewer.cameraState.polar]);if(samples.length<240)requestAnimationFrame(tick);};requestAnimationFrame(tick);});
  const frontCam=await viewer(v=>v.cameraState);await page.locator('[data-bag-top-view]').click();await camera('top');
@@ -249,12 +251,12 @@ try {
  const firstMove=samples.find(([,p])=>p<frontCam.polar-1e-4),arrived=samples.find(([,p])=>p<=top.polar+1e-4),ms=arrived[0]-firstMove[0];
  assert.ok(top.polar<.01 && ms>=520 && ms<=760,'Top view: about 0.6 s to straight above: '+ms);
  const labels=await page.locator('.bag-pocket-label').evaluateAll(nodes=>nodes.map(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {pocket:n.dataset.pocket,text:n.innerText,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};}));
- assert.deepEqual(labels.map(l=>l.pocket).sort(),['goto','main','putter']);for(const l of labels)inside(l,box,l.pocket+' label');
- for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)assert.ok(!overlap(labels[i],labels[j]),'Pocket labels do not overlap');
- assert.match(labels.find(l=>l.pocket==='goto').text,/Järn/);assert.match(labels.find(l=>l.pocket==='main').text,/\+14 more/);
+ assert.deepEqual(labels.map(l=>l.pocket),['putter'],'Only the putter pocket is labeled');for(const l of labels)inside(l,box,l.pocket+' label');
+ assert.ok(PUTTERS.every(([,name])=>labels[0].text.includes(name)),'It names the putters: '+labels[0].text);
+ assert.equal(await viewer(v=>v.fabricOpaque),true,'The fabric stays opaque');
  await putterSlot.click({force:true});await slideOut();await settle();assert.equal(await viewer(v=>v.slidDisc),row[0].id,'Slide-out works from above');
  await page.keyboard.press('Escape');await slidHome();await page.keyboard.press('Escape');await camera('front');
- check(`Top view: ${Math.round(ms)} ms to straight above, three non-overlapping pocket labels (main, top putters, front go-to), slide-out works from above, Escape returns`);
+ check(`Top view: ${Math.round(ms)} ms to straight above, into the putter pocket with one label naming its putters, opaque fabric, slide-out works from above, Escape returns`);
 
  // 10. Screenshots in every theme, desktop and 360 px: hover label, slid-out putter, slid-out main disc,
  // details from a clicked label, a held rotation, and the settled top view.
@@ -266,13 +268,13 @@ try {
   if(width===360)await hoverSlot.focus();else await hoverSlot.hover();
   inside(await local(pill),wbox,`Hover pill (${theme} ${width})`);await shot('hover-label',width,theme,canvas);
   await page.locator('[data-bag-toggle]').focus();await page.mouse.move(0,0);
-  await clickRim(backSlot);await slideOut();
+  await clickRim(backSlot);await slideOut();await detail.waitFor({state:'visible'});
   await fullyVisible(putter.id,putterColor,`Putter (${theme} ${width})`);inside(await local(label),wbox,`Putter label (${theme} ${width})`);
   await shot('slid-out-putter',width,theme,canvas);
-  await driverSlot.click();await slideOut();
+  await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});
+  await driverSlot.click();await slideOut();await detail.waitFor({state:'visible'});
   await fullyVisible(driver.id,'#ed7868',`Main (${theme} ${width})`);inside(await local(label),wbox,`Main label (${theme} ${width})`);
   await shot('slid-out-main',width,theme,canvas);
-  await label.click();await detail.waitFor({state:'visible'});
   if(width===360)await detail.evaluate(n=>{n.scrollTop=n.querySelector('h2').offsetTop-90;});
   await shot('details-from-label',width,theme,page);
   await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});

@@ -97,12 +97,28 @@ body[data-view="bag"] main {display:none!important}
 .detail .bag-add.primary {margin:14px 0;font-size:14px}
 :is(#myBagView,.bag-sheet,.directory-row,.compare-item) :is(button,input,select,textarea,a):focus-visible {outline:2px solid var(--lime);outline-offset:4px}
 .bag-pocket-breakdown {font-size:11px;color:var(--muted);flex-basis:100%}
-.bag-scene {position:relative;margin:4px auto 36px;isolation:isolate;--bag-width:560px;--bag-type:1.12}
-.bag-scene[data-size="s"] {--bag-width:360px;--bag-type:1}
-.bag-scene[data-size="l"] {--bag-width:880px;--bag-type:1.3}
+/* One size, between the former Medium (560px) and Large (880px); zoom covers the rest. */
+.bag-scene {position:relative;margin:4px auto 36px;isolation:isolate;--bag-width:680px;--bag-type:1.18}
 /* The 3D canvas re-renders at its displayed size; the cap keeps the whole bag inside the viewport height. */
-.bag-scene-canvas {position:relative;width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 190px) * .8)));margin:auto;aspect-ratio:4/5}
+.bag-scene-canvas {position:relative;width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 150px) * .8)));margin:auto;aspect-ratio:4/5}
 .bag-3d-stage {position:absolute;inset:0}
+/* Vertical swipes scroll the page; a pinch anywhere on the bag (discs included) zooms it, not the page. */
+.bag-scene-canvas {touch-action:pan-y}
+/* Zoomed in, targets and labels outside the view are clipped with it. */
+.bag-scene[data-zoomed="true"] :is(.bag-hit-layer,.bag-pocket-labels) {overflow:hidden}
+@property --bag-top-fade {syntax:'<number>';inherits:true;initial-value:1}
+/* Top view: a soft window around the putter pocket; the rest of the bag fades into the page. */
+.bag-3d-stage {--bag-top-fade:1;transition:--bag-top-fade 320ms ease}
+.bag-scene[data-camera="top"] .bag-3d-stage {--bag-top-fade:0}
+.bag-scene:is([data-camera="top"],[data-camera="moving"]) .bag-3d-stage {mask-image:linear-gradient(to right,rgb(0 0 0/var(--bag-top-fade)) 4%,#000 12%,#000 88%,rgb(0 0 0/var(--bag-top-fade)) 96%),linear-gradient(to bottom,rgb(0 0 0/var(--bag-top-fade)) 25%,#000 33%,#000 62%,rgb(0 0 0/var(--bag-top-fade)) 70%);mask-composite:intersect}
+@media(prefers-reduced-motion:reduce){.bag-3d-stage {transition:none}}
+.bag-zoom {position:absolute;z-index:4;top:10px;right:10px;display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow)}
+.bag-zoom button {display:grid;place-items:center;min-width:36px;height:36px;padding:0 6px;border-radius:999px;font:600 18px/1 'Space Grotesk',sans-serif;color:var(--text)}
+.bag-zoom .bag-zoom-level {min-width:52px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bag-zoom button:hover:not(:disabled) {background:var(--selected)}
+.bag-zoom button:disabled {opacity:.4;cursor:default}
+.bag-zoom .bag-zoom-level:disabled {opacity:1}
+.bag-scene:not([data-engine="ready"]) .bag-zoom,.bag-scene[data-dragging] .bag-zoom {visibility:hidden}
 .bag-3d-status {position:absolute;left:0;right:0;top:46%;margin:0;text-align:center;font-size:12px;color:var(--muted);pointer-events:none}
 .bag-3d-status:empty {display:none}
 /* Positioned slot targets over the canvas: focus, hover/touch and labels for each disc. */
@@ -117,13 +133,6 @@ body[data-view="bag"] main {display:none!important}
 .bag-physical-disc:focus-visible {box-shadow:0 0 0 2px var(--lime),0 0 0 5px var(--accent-soft)}
 .bag-physical-disc[aria-hidden="true"] {pointer-events:none}
 .bag-scene figcaption {display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--muted)}
-.bag-size-control {display:flex;align-items:center;gap:2px;margin:0;padding:3px;border:1px solid var(--line);border-radius:24px;min-width:0}
-.bag-size-control legend {float:left;padding:0 8px 0 10px;font-size:12px;color:var(--muted)}
-.bag-size-control label {position:relative;display:grid;place-items:center;min-width:44px;min-height:44px;border-radius:22px;font:600 13px 'Space Grotesk',sans-serif;color:var(--muted);cursor:pointer}
-.bag-size-control input {position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
-.bag-size-control label:hover {color:var(--text)}
-.bag-size-control label:has(input:checked) {background:var(--selected);color:var(--text)}
-.bag-size-control label:has(input:focus-visible) {outline:2px solid var(--lime);outline-offset:2px}
 .bag-sr {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .bag-pocket-inline select {min-height:44px;padding:8px 28px 8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
 .bag-pocket-inline select:disabled {opacity:.6;cursor:progress}
@@ -222,9 +231,7 @@ body[data-view="bag"] main {display:none!important}
  .my-bag-disc>.disc-art {width:48px;height:48px;align-self:start}
  .my-bag-disc>.bag-disc-swatch {width:44px;height:44px;align-self:start}
  .bag-scene {margin:4px -10px 24px}
- /* Phones: Small keeps the compact bag; Medium and Large fill the width. */
- .bag-scene[data-size] {--bag-type:1}
- .bag-scene[data-size="s"] {--bag-width:290px}
+ .bag-scene {--bag-type:1}
  .bag-scene figcaption {gap:14px;font-size:11px}
  .bag-lift-info {top:55%;max-width:90%;padding:10px 12px}
  .bag-scene-hint {font-size:10px;padding:0 12px}

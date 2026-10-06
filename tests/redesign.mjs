@@ -48,7 +48,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
   assert.equal(coverage.mapped,coverage.rated,'Show all fits every rated disc inside the usable map area');
   await page.locator('#map').focus();await page.keyboard.press('+');
   await page.waitForFunction(()=>document.querySelector('#zoomLabel').textContent!=='Zoom 1.0×');
-  await page.locator('#bagTab').click();assert.ok(await page.locator('#playerHub').isVisible());
+  await page.locator('#bagTab').click();assert.ok(await page.locator('#myBagView').isVisible(),'My Bag opens (the old #playerHub was replaced by #myBagView)');
   await page.screenshot({animations:'disabled',path:'outputs/redesign/bag.png',fullPage:true});
   for(const name of ['about','privacy','terms']){
    await page.goto(`${base}/${name}.html`);

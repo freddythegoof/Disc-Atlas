@@ -166,16 +166,15 @@ try {
  check(`Slid-out disc color ${perf.liftedFace.rendered} vs saved #ed7868 (max channel drift ${perf.liftedFace.drift})`);
  check('Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus name pill, click slide-out, Escape, drag-to-turn, page scroll preserved');
 
- // 5. Size control: re-rendered (not upscaled) at S/M/L.
- const sizes={};
- for(const size of ['s','m','l']){
-  await page.locator(`input[name="bagSize"][value="${size}"]`).check();await page.waitForFunction(s=>document.querySelector('#bagScene').dataset.size===s,size);await page.waitForTimeout(100);
-  sizes[size]=await page.locator('[data-bag-canvas]').evaluate(n=>{const c=n.querySelector('canvas'),r=n.bagViewer.renderer;return {css:Math.round(c.clientWidth),buffer:c.width,ratio:r.pixelRatio,target:Math.round(n.querySelector(`[data-pocket="main"] > [data-physical-disc]`).getBoundingClientRect().height)};});
-  assert.equal(sizes[size].buffer,Math.round(sizes[size].css*sizes[size].ratio),`${size}: canvas buffer matches its displayed size`);
- }
- assert.deepEqual([sizes.s.css,sizes.m.css,sizes.l.css],[360,560,648]);assert.ok(sizes.s.target<sizes.m.target && sizes.m.target<sizes.l.target,'Hit targets scale with the bag');
- await page.locator('input[name="bagSize"][value="m"]').check();
- check(`Size: S ${sizes.s.css}px, M ${sizes.m.css}px, L ${sizes.l.css}px at 1440×1000, each rendered at full resolution`);
+ // 5. One size (Oct 5 tweaks), re-rendered (not upscaled), and zoomed instead of S/M/L.
+ const measure=()=>page.locator('[data-bag-canvas]').evaluate(n=>{const c=n.querySelector('canvas'),r=n.bagViewer.renderer;return {css:Math.round(c.clientWidth),buffer:c.width,ratio:r.pixelRatio,target:Math.round(n.querySelector(`[data-pocket="main"] > [data-physical-disc]`).getBoundingClientRect().height)};});
+ assert.equal(await page.locator('input[name="bagSize"]').count(),0,'No size options');
+ const sizes={base:await measure()};
+ await page.locator('#bagScene').getByRole('button',{name:'Zoom in'}).click();await page.waitForTimeout(350);sizes.zoomed=await measure();
+ for(const size of ['base','zoomed'])assert.equal(sizes[size].buffer,Math.round(sizes[size].css*sizes[size].ratio),`${size}: canvas buffer matches its displayed size`);
+ assert.equal(sizes.base.css,680);assert.ok(sizes.zoomed.target>sizes.base.target*1.3,'Hit targets scale with the zoom');
+ await page.locator('#bagScene').getByRole('button',{name:/^Reset zoom/}).click();await page.waitForTimeout(350);
+ check(`Size: ${sizes.base.css}px at 1440×1000 (one size), rendered at full resolution; zoom scales hit targets ${sizes.base.target}→${sizes.zoomed.target}px`);
 
  // 6. Performance on a mid-range phone profile: 360×800, DPR 2.625, 4× CPU slowdown.
  const phone=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800},deviceScaleFactor:2.625,isMobile:true,hasTouch:true,storageState:await context.storageState()});
@@ -225,9 +224,9 @@ try {
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');await page.reload();await phase('open');
  await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#436752');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  await scene.scrollIntoViewIfNeeded();await shot('custom-color',1440,'light',{locator:scene});
- for(const size of ['s','l']){await page.locator(`input[name="bagSize"][value="${size}"]`).check();await scene.scrollIntoViewIfNeeded();await shot(`size-${size}`,1440,'light',{locator:scene});}
- await page.locator('input[name="bagSize"][value="m"]').check();
- check(`Screenshots: ${shots.length} across ${themes.length} themes at 1440px and 360px (open with go-to, closed, mid-fold, named main, named go-to, list), plus bag color and S/L`);
+ await page.locator('#bagScene').getByRole('button',{name:'Zoom in'}).click();await page.waitForTimeout(350);await scene.scrollIntoViewIfNeeded();await shot('zoomed',1440,'light',{locator:scene});
+ await page.locator('#bagScene').getByRole('button',{name:/^Reset zoom/}).click();await page.waitForTimeout(350);
+ check(`Screenshots: ${shots.length} across ${themes.length} themes at 1440px and 360px (open with go-to, closed, mid-fold, named main, named go-to, list), plus bag color and zoom`);
 
  // 8. Sign-out clears the scene.
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);

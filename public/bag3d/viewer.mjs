@@ -22,13 +22,14 @@ const FABRIC = ['Charcoal woven shell', 'Graphite pocket panels', 'Soft black pi
 const spring = t => { let lo = 0, hi = 1, u = t; const b = (p, a, c) => 3 * (1 - p) * (1 - p) * p * a + 3 * (1 - p) * p * p * c + p * p * p; for (let i = 0; i < 16; i++) { u = (lo + hi) / 2; if (b(u, .2, .35) < t) lo = u; else hi = u; } return b(u, 1.35, 1); };
 const easeOut = t => 1 - (1 - t) ** 3;
 const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
-const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650, SLIDE_MS = 620, TOP_MS = 600;
-const Y_AXIS = new THREE.Vector3(0, 1, 0);
+const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650, SLIDE_MS = 620, TOP_MS = 600, STOW_MS = 520, STOW_STAGGER = 70, STOW_WAVE = 240, GLOW_MS = 160, ZOOM_MS = 220;
+// A hovered disc lights up in its own color at this emissive intensity.
+const GLOW = 1.1;
+export const MAX_ZOOM = 3;
+const Y_AXIS = new THREE.Vector3(0, 1, 0), WHITE = new THREE.Color(1, 1, 1);
 const clamp01 = value => Math.min(1, Math.max(0, value));
 // Slide-out runs in two overlapping stages, like pulling a disc out by hand.
 const stage = (progress, from, to) => easeInOut(clamp01((progress - from) / (to - from)));
-// Top view: the fabric fades to this opacity so discs in the main compartment show through.
-const XRAY_OPACITY = .09, XRAY_GLOW = new THREE.Color('#9fb2cc'), XRAY_GLOW_INTENSITY = .45;
 // In top view a hovered disc rises this share of the way toward the camera, above every pocket.
 const TOP_LIFT = .3;
 // Let input and painting run between the heavy mount phases on slower phones.
@@ -68,6 +69,7 @@ export async function mountBag(container, {
   ambientFps = 0,
   quality = 'high',
   toneMapping = 'aces',
+  puttersOut = true,
 } = {}) {
   const low = quality === 'low' || (quality === 'auto' && softwareRenderer());
   if (low) animated = false;
@@ -147,8 +149,13 @@ export async function mountBag(container, {
   let time = 0, last = performance.now(), active = animated, dragging = false, resumeAt = 0, offset = 0, disposed = false;
   let yaw = 0, yawTween = null, needsRender = true, loopOn = false, visible = true, lastRender = 0, lastFrame = 0;
   // Top view: the camera moves on a sphere around the target, from the current angle to
-  // straight down. Orbit controls (standalone mode) pause during the move.
-  let topView = false, beforeTop = null, cameraTween = null, cameraWaiters = [], xray = 0, xrayMaterials = null, topPose = null;
+  // straight down over the putter pocket. Orbit controls (standalone mode) pause during the move.
+  // `overhead` is how far the camera has come (0 = page view, 1 = straight down).
+  let topView = false, beforeTop = null, cameraTween = null, cameraWaiters = [], overhead = 0, topPose = null;
+  // Zoom renders a window of the full frame (a camera view offset), so projections, hit targets
+  // and labels all follow it. zoomCenter is the window's center in the frame (0–1).
+  let zoomLevel = 1, zoomCenter = { x: .5, y: .5 }, zoomTween = null;
+  let puttersOutState = Boolean(puttersOut), glowKey = null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -191,11 +198,33 @@ export async function mountBag(container, {
     motionRatio = false;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    applyZoom();
     // The top view's fit depends on the aspect ratio.
     if (topView && !cameraTween && topPose) { const pose = topPose(); placeOnSphere(pose.spherical, pose.target); }
     invalidate();
     container.dispatchEvent(new CustomEvent('bagviewlayout'));
+  };
+  function applyZoom() {
+    const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
+    if (zoomLevel <= 1.0001) camera.clearViewOffset();
+    else camera.setViewOffset(width, height, (zoomCenter.x - .5 / zoomLevel) * width, (zoomCenter.y - .5 / zoomLevel) * height, width / zoomLevel, height / zoomLevel);
+    camera.updateProjectionMatrix();
+  }
+  // The frame point under `anchor` (container pixels; default the center) stays put.
+  const zoomGoal = (value, anchor) => {
+    const level = Math.min(MAX_ZOOM, Math.max(1, value)), half = .5 / level;
+    const ax = anchor ? anchor.x / Math.max(container.clientWidth, 1) : .5, ay = anchor ? anchor.y / Math.max(container.clientHeight, 1) : .5;
+    const fx = zoomCenter.x + (ax - .5) / zoomLevel, fy = zoomCenter.y + (ay - .5) / zoomLevel;
+    const clamp = value => Math.min(1 - half, Math.max(half, value));
+    return { level, center: { x: clamp(fx - (ax - .5) / level), y: clamp(fy - (ay - .5) / level) } };
+  };
+  const setZoom = (value, { anchor = null, instant = !active } = {}) => {
+    const goal = zoomGoal(value, anchor);
+    if (instant) {
+      zoomTween = null; zoomLevel = goal.level; zoomCenter = goal.center; applyZoom(); invalidate();
+      container.dispatchEvent(new CustomEvent('bagviewlayout'));
+    } else { zoomTween = { from: { level: zoomLevel, center: { ...zoomCenter } }, to: goal, start: performance.now() }; invalidate(); }
+    container.dispatchEvent(new CustomEvent('bagzoom', { detail: { zoom: goal.level } }));
   };
   const observer = new ResizeObserver(resize);
   observer.observe(container);
@@ -267,6 +296,16 @@ export async function mountBag(container, {
     el.addEventListener('pointerup', release);
     el.addEventListener('pointercancel', release);
   }
+  // A second finger turns the gesture into a pinch (handled by the page): drop the turn.
+  const cancelPress = () => {
+    const press = pointer.press;
+    pointer.press = null;
+    if (!press?.drag) return;
+    dragging = false;
+    renderer.domElement.style.cursor = 'pointer';
+    container.dispatchEvent(new CustomEvent('bagdragend'));
+    container.dispatchEvent(new CustomEvent('bagviewlayout'));
+  };
   const turnHome = (instant = !active) => {
     const home = Math.round(yaw / (Math.PI * 2)) * Math.PI * 2;
     if (instant || Math.abs(yaw - home) < 1e-4) { yaw = 0; yawTween = null; invalidate(); return; }
@@ -379,9 +418,10 @@ export async function mountBag(container, {
   const paintDisc = record => {
     if (record.placement.empty) return;
     const material = record.mesh.material;
-    material.emissive.copy(accent);
-    // Every disc renders clean: no accent glow on the go-to or on a lifted/slid disc.
-    material.emissiveIntensity = 0;
+    // Every disc renders clean (no accent rim or glow, the go-to included), except the hovered
+    // one, which lights up in its own color.
+    material.emissive.copy(material.color).lerp(WHITE, .3);
+    material.emissiveIntensity = (record.glow ?? 0) * GLOW;
   };
 
   // Layout mode replaces the GLB's twelve fixed discs with slots built from the same disc mesh.
@@ -410,7 +450,10 @@ export async function mountBag(container, {
       mesh.position.copy(rest.position); mesh.quaternion.copy(rest.quaternion); mesh.scale.copy(rest.scale);
       if (placement.empty) mesh.renderOrder = 1;
       discGroup.add(mesh);
-      const record = { key: placement.key, placement, mesh, rest, lift: 0, liftFrom: 0, liftTo: 0, liftStart: 0, slide: 0, slideFrom: 0, slideTo: 0, slideStart: 0, move: null };
+      // Putters have a stowed seat; `out` runs from 0 (stowed) to 1 (standing in their row).
+      const out = placement.stow && !puttersOutState ? 0 : 1;
+      const record = { key: placement.key, placement, mesh, rest, lift: 0, liftFrom: 0, liftTo: 0, liftStart: 0, slide: 0, slideFrom: 0, slideTo: 0, slideStart: 0, move: null,
+        stow: placement.stow ? restPose(placement.stow) : null, out, outFrom: out, outTo: out, outStart: 0, outDuration: 0, glow: 0, glowFrom: 0, glowTo: 0, glowStart: 0 };
       // A disc that changed pockets glides from where it was.
       const before = previous.get(placement.key);
       if (before && active && !before.mesh.position.equals(rest.position)) {
@@ -421,6 +464,7 @@ export async function mountBag(container, {
     }
     if (!records.has(liftedKey)) liftedKey = null;
     if (!records.has(slidKey)) slidKey = null;
+    if (glowKey !== null && records.has(glowKey)) { const record = records.get(glowKey); record.glow = record.glowFrom = record.glowTo = 1; paintDisc(record); } else glowKey = null;
     const assigned = result.placements.some(p => p.pocket === 'goTo' && !p.empty);
     // The GLB draws the accent rim and dashed outline around a top-pocket disc; carry them
     // to the go-to's front-pocket seat (the front-most go-to, or the empty slot).
@@ -428,7 +472,8 @@ export async function mountBag(container, {
     const pose = p => new THREE.Matrix4().compose(new THREE.Vector3(...p.position), new THREE.Quaternion().setFromEuler(new THREE.Euler(...p.rotation)), new THREE.Vector3(...p.scale));
     const toSeat = pose(seat).multiply(pose(GLB_ACCENT_POSE).invert());
     for (const object of [...placeholders, ...accents]) { object.matrixAutoUpdate = false; object.matrix.copy(toSeat); }
-    for (const object of placeholders) object.visible = !assigned;
+    goToAssigned = assigned;
+    showFrontPocket();
     // The GLB's go-to accent rim stays hidden: a go-to disc renders clean, without an outline.
     for (const object of accents) object.visible = false;
     invalidate();
@@ -449,6 +494,41 @@ export async function mountBag(container, {
       if (record.liftTo === to && !instant) continue;
       record.liftFrom = record.lift; record.liftTo = to; record.liftStart = instant ? now - LIFT_MS : now;
       paintDisc(record);
+    }
+    invalidate();
+  };
+  // Putters stow in the top pocket while the bag is closed and come back out into their row,
+  // one after another from the front, when it opens.
+  const setPuttersOut = (value, { instant = !active } = {}) => {
+    puttersOutState = Boolean(value);
+    const now = performance.now(), to = puttersOutState ? 1 : 0;
+    const putters = [...records.values()].filter(record => record.stow).sort((a, b) => a.placement.order - b.placement.order);
+    let longest = 0;
+    putters.forEach((record, index) => {
+      if (record.outTo === to && !instant) return;
+      // A full pocket keeps the whole wave inside STOW_WAVE, so opening stays under a second.
+      const step = Math.min(STOW_STAGGER, STOW_WAVE / Math.max(1, putters.length - 1));
+      const delay = instant ? 0 : (puttersOutState ? index : putters.length - 1 - index) * step;
+      record.outFrom = record.out; record.outTo = to; record.outStart = now + delay;
+      record.outDuration = instant ? 0 : Math.abs(to - record.out) * STOW_MS;
+      if (instant) record.out = to;
+      longest = Math.max(longest, delay + record.outDuration);
+    });
+    invalidate();
+    // Hit targets move to the new seats right away.
+    container.dispatchEvent(new CustomEvent('bagviewlayout'));
+    return new Promise(resolve => setTimeout(() => resolve(puttersOutState), longest));
+  };
+  // Hover: one disc at a time lights up.
+  const glowDisc = (key = null, { instant = !active } = {}) => {
+    if (key !== null && !records.has(key)) throw new RangeError(`Unknown disc ${key}`);
+    glowKey = key;
+    const now = performance.now();
+    for (const record of records.values()) {
+      const to = record.key === key && !record.placement.empty ? 1 : 0;
+      if (record.glowTo === to && !instant) continue;
+      record.glowFrom = record.glow; record.glowTo = to; record.glowStart = now;
+      if (instant) { record.glow = to; paintDisc(record); }
     }
     invalidate();
   };
@@ -487,11 +567,11 @@ export async function mountBag(container, {
       position.z += (out.position[2] - position.z) * after;
     }
     const quaternion = base.quaternion.clone().slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(...out.rotation)), turn);
-    if (xray > 0) quaternion.slerp(faceCamera(position, scratch.face), xray * Math.max(along, after));
+    if (overhead > 0) quaternion.slerp(faceCamera(position, scratch.face), overhead * Math.max(along, after));
     const scale = base.scale.clone().lerp(new THREE.Vector3(...out.scale), Math.max(along, turn));
     return { position, quaternion, scale };
   };
-  const scratch = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(), face: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1) };
+  const scratch = { position: new THREE.Vector3(), seat: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(), face: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1) };
   const poseRecord = (record, now) => {
     let busy = false;
     const { rest, placement, mesh } = record;
@@ -505,6 +585,17 @@ export async function mountBag(container, {
       record.slide = t >= 1 ? record.slideTo : record.slideFrom + (record.slideTo - record.slideFrom) * t;
       busy = busy || t < 1;
     }
+    if (record.out !== record.outTo) {
+      const t = record.outDuration ? Math.min(1, Math.max(0, (now - record.outStart) / record.outDuration)) : 1;
+      record.out = t >= 1 ? record.outTo : record.outFrom + (record.outTo - record.outFrom) * t;
+      busy = busy || t < 1;
+    }
+    if (record.glow !== record.glowTo) {
+      const t = Math.min(1, (now - record.glowStart) / GLOW_MS);
+      record.glow = t >= 1 ? record.glowTo : record.glowFrom + (record.glowTo - record.glowFrom) * easeOut(t);
+      paintDisc(record);
+      busy = busy || t < 1;
+    }
     let position = rest.position, quaternion = rest.quaternion, scale = rest.scale;
     if (record.move) {
       const t = Math.min(1, (now - record.move.start) / MOVE_MS), e = easeOut(t);
@@ -513,11 +604,16 @@ export async function mountBag(container, {
       scale = scratch.scale.copy(record.move.scale).lerp(rest.scale, e);
       if (t >= 1) record.move = null; else busy = true;
     }
+    // Rising out of the pocket springs into the row; stowing settles down evenly.
+    if (record.stow && record.out !== 1) {
+      const e = record.outTo === 1 && record.outFrom === 0 ? spring(record.out) : easeInOut(record.out);
+      position = scratch.seat.copy(record.stow.position).lerp(position, e);
+    }
     mesh.position.copy(position); mesh.quaternion.copy(quaternion); mesh.scale.copy(scale);
     if (record.lift !== 0) {
       const lifted = new THREE.Vector3(...placement.lift);
       // From above, a lifted disc rises straight toward the viewer instead of out the front.
-      if (xray > 0) lifted.lerp(rest.position.clone().lerp(camera.position, TOP_LIFT), xray);
+      if (overhead > 0) lifted.lerp(rest.position.clone().lerp(camera.position, TOP_LIFT), overhead);
       mesh.position.lerp(lifted, record.lift);
       mesh.quaternion.slerp(faceCamera(lifted, scratch.face), Math.min(1, Math.max(0, record.lift)));
       mesh.scale.lerp(scratch.one, Math.min(1, Math.max(0, record.lift)));
@@ -529,47 +625,23 @@ export async function mountBag(container, {
     return busy;
   };
 
-  // Top view frames the bag's footprint from straight above (front pocket at the bottom).
-  // The fabric turns translucent so the main compartment reads through the top panel.
+  // Top view looks straight down into the putter pocket (front of the bag at the bottom). The
+  // fabric stays opaque, so only the top pocket's discs show; the frame fits the pocket's width.
   gltf.scene.updateMatrixWorld(true);
   const bagBox = new THREE.Box3().setFromObject(gltf.scene);
   topPose = () => {
-    // The box also spans the flap's bind pose (hanging open in front), so frame the body:
-    // from its back panel to the front pocket, plus room under it for the go-to label.
-    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), back = bagBox.min.z, front = FRONT.front + .03 + .12;
-    const width = (bagBox.max.x - bagBox.min.x) * 1.04, depth = front - back;
-    const fit = Math.max(depth / (2 * tan), width / (2 * tan * camera.aspect));
-    // Width usually binds; the spare depth goes above the straps and below the label evenly.
-    return { target: new THREE.Vector3(0, 0, (back + front) / 2 - .035), spherical: new THREE.Spherical(fit + bagBox.max.y, 1e-3, 0) };
+    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), width = .27, depth = .2;
+    // Framed at the height of the putters' rims, about .09 above the pocket's mouth.
+    const fit = Math.max(depth / (2 * tan), width / (2 * tan * camera.aspect)) + .09;
+    return { target: new THREE.Vector3(0, TOP.mouth, TOP.center + .01), spherical: new THREE.Spherical(Math.max(fit, bagBox.max.y - TOP.mouth + .1), 1e-3, 0) };
   };
-  const prepareXray = async () => {
-    if (xrayMaterials) return;
-    const keep = new Set();
-    for (const object of [...glbDiscs, ...placeholders, ...accents]) object.traverse(child => { for (const material of child.isMesh ? [child.material].flat() : []) keep.add(material); });
-    const materials = new Set();
-    gltf.scene.traverse(object => { for (const material of object.isMesh ? [object.material].flat() : []) if (!keep.has(material)) materials.add(material); });
-    xrayMaterials = [...materials].map(material => ({ material, opacity: material.opacity, transparent: material.transparent, depthWrite: material.depthWrite, emissive: material.emissive?.clone(), emissiveIntensity: material.emissiveIntensity }));
-    // Translucent fabric needs its own shader variant; compile it before the first move.
-    for (const entry of xrayMaterials) { entry.material.transparent = true; entry.material.needsUpdate = true; }
-    try { await renderer.compileAsync(scene, camera); } catch { /* compiles on first use instead */ }
-    applyXray(xray, true);
-  };
-  const applyXray = (value, force = false) => {
-    if (!xrayMaterials || (!force && value === xray)) { xray = value; return; }
-    const was = xray > 0;
-    xray = value;
-    for (const entry of xrayMaterials) {
-      const { material } = entry;
-      material.opacity = entry.opacity * (1 - (1 - XRAY_OPACITY) * value);
-      // A faint cool glow keeps the ghosted bag's outline visible on dark themes too.
-      if (entry.emissive) { material.emissive.copy(entry.emissive).lerp(XRAY_GLOW, value); material.emissiveIntensity = entry.emissiveIntensity + (XRAY_GLOW_INTENSITY - entry.emissiveIntensity) * value; }
-      if (force || was !== value > 0) {
-        material.transparent = value > 0 || entry.transparent;
-        material.depthWrite = value > 0 ? false : entry.depthWrite;
-        material.needsUpdate = true;
-      }
-    }
-  };
+  // From above, only the putter pocket shows: the go-to (or its empty outline) hides halfway up.
+  let goToAssigned = false;
+  function showFrontPocket() {
+    const shown = overhead < .5;
+    for (const record of records.values()) if (record.placement.pocket === 'goTo') record.mesh.visible = shown;
+    for (const object of placeholders) object.visible = shown && !goToAssigned;
+  }
   const setTopView = async (value, { instant = !active } = {}) => {
     const next = Boolean(value);
     const settle = new Promise(resolve => cameraWaiters.push(resolve));
@@ -577,14 +649,6 @@ export async function mountBag(container, {
     // Leaving the top view returns to wherever the camera was (orbit mode keeps the user's angle).
     if (next && !beforeTop) beforeTop = { position: camera.position.clone(), target: target.clone() };
     topView = next;
-    if (next) {
-      // Put the fabric on its translucent shaders before the clock starts, so no frame of the
-      // move stalls on shader linking (three.js frees unused programs, so warming alone is not enough).
-      await prepareXray();
-      applyXray(Math.max(xray, 1e-3));
-      try { await renderer.compileAsync(scene, camera); } catch { /* compiles on first use instead */ }
-    }
-    if (disposed || topView !== next) return settle;
     const back = beforeTop ?? homeCamera();
     const goal = next ? topPose() : { target: back.target.clone(), spherical: sphericalAt(back.position, back.target) };
     const from = sphericalAt(camera.position, target);
@@ -592,7 +656,7 @@ export async function mountBag(container, {
     while (goal.spherical.theta - from.theta > Math.PI) goal.spherical.theta -= Math.PI * 2;
     while (goal.spherical.theta - from.theta < -Math.PI) goal.spherical.theta += Math.PI * 2;
     if (controls) { controls.enabled = false; controls.minPolarAngle = 0; }
-    const motion = cameraTween = { from, fromCenter: target.clone(), to: goal.spherical, toCenter: goal.target, xrayFrom: xray, xrayTo: next ? 1 : 0, start: null, duration: instant ? 0 : TOP_MS };
+    const motion = cameraTween = { from, fromCenter: target.clone(), to: goal.spherical, toCenter: goal.target, overheadFrom: overhead, overheadTo: next ? 1 : 0, start: null, duration: instant ? 0 : TOP_MS };
     // Settle on time even if no frame finishes it (offscreen, hidden tab).
     setTimeout(() => { if (cameraTween === motion && !disposed) { stepCamera(motion, 1); invalidate(); } }, motion.duration + 250);
     invalidate();
@@ -602,7 +666,8 @@ export async function mountBag(container, {
     const e = easeInOut(t), lerp = (a, b) => a + (b - a) * e;
     const spherical = new THREE.Spherical(lerp(motion.from.radius, motion.to.radius), lerp(motion.from.phi, motion.to.phi), lerp(motion.from.theta, motion.to.theta));
     placeOnSphere(spherical, motion.fromCenter.clone().lerp(motion.toCenter, e));
-    applyXray(lerp(motion.xrayFrom, motion.xrayTo));
+    overhead = lerp(motion.overheadFrom, motion.overheadTo);
+    showFrontPocket();
     if (t < 1) return true;
     cameraTween = null;
     if (!topView) beforeTop = null;
@@ -626,8 +691,8 @@ export async function mountBag(container, {
     } else {
       // Reversing mid-motion keeps the current fold and only covers the remaining distance.
       const motion = flapMotion = { from, to: next ? 1 : 0, start: performance.now(), duration: Math.abs((next ? 1 : 0) - from) * compartmentDuration * 1000 };
-      // If no frame finishes it (offscreen, hidden tab, stalled GPU), settle on time anyway.
-      setTimeout(() => { if (flapMotion === motion && !disposed) { setFlap(motion.to); flapMotion = null; finishFlap(); invalidate(); } }, motion.duration + 250);
+      // If no frame finishes it on time (offscreen, hidden tab, slow software rendering), settle on time anyway.
+      setTimeout(() => { if (flapMotion === motion && !disposed) { setFlap(motion.to); flapMotion = null; finishFlap(); invalidate(); } }, motion.duration + 40);
     }
     invalidate();
     return settle;
@@ -662,6 +727,14 @@ export async function mountBag(container, {
     // The move's clock starts on its first drawn frame.
     if (cameraTween) cameraTween.start ??= now;
     if (cameraTween && stepCamera(cameraTween, Math.min(1, (now - cameraTween.start) / Math.max(cameraTween.duration, 1)))) busy = true;
+    if (zoomTween) {
+      const t = Math.min(1, (now - zoomTween.start) / ZOOM_MS), e = easeOut(t), { from, to } = zoomTween;
+      zoomLevel = from.level + (to.level - from.level) * e;
+      zoomCenter = { x: from.center.x + (to.center.x - from.center.x) * e, y: from.center.y + (to.center.y - from.center.y) * e };
+      applyZoom();
+      if (t >= 1) zoomTween = null; else busy = true;
+      container.dispatchEvent(new CustomEvent('bagviewlayout'));
+    }
     if (dragging) busy = true;
     if (controls?.update()) busy = true;
     const ambient = active && !dragging && now >= resumeAt;
@@ -705,10 +778,12 @@ export async function mountBag(container, {
     const ndc = point.clone().applyAxisAngle(Y_AXIS, yaw).project(camera);
     return { x: (ndc.x + 1) / 2 * container.clientWidth, y: (1 - ndc.y) / 2 * container.clientHeight };
   };
-  const boxOf = (placement, pose = restPose(placement), clip = false) => {
+  // Where a disc sits now: a putter's stowed seat while they are stowed, otherwise its slot.
+  const seatPose = placement => restPose(placement.stow && !puttersOutState ? placement.stow : placement);
+  const boxOf = (placement, pose = seatPose(placement), clip = false) => {
     const matrix = new THREE.Matrix4().compose(pose.position, pose.quaternion, pose.scale);
     // A pocketed disc's lower part sits inside the pocket; clip the box at the mouth.
-    const below = clip && placement.mouth !== undefined ? Math.min(.09, Math.max(-.101, (placement.mouth - placement.position[1]) / placement.scale[1])) : -.101;
+    const below = clip && placement.mouth !== undefined ? Math.min(.09, Math.max(-.101, (placement.mouth - pose.position.y) / pose.scale.y)) : -.101;
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     for (const x of [-.005, .005]) for (const y of [below, .101]) for (const z of [-.101, .101]) {
       const p = project(new THREE.Vector3(x, y, z).applyMatrix4(matrix));
@@ -760,7 +835,7 @@ export async function mountBag(container, {
       yaw = 0;
       yawTween = null;
       if (cameraTween) stepCamera(cameraTween, 1);
-      if (topView) { topView = false; applyXray(0); if (controls) controls.minPolarAngle = .30; }
+      if (topView) { topView = false; overhead = 0; showFrontPocket(); if (controls) controls.minPolarAngle = .30; }
       beforeTop = null;
       float.rotation.set(0, 0, 0);
       float.position.y = 0;
@@ -786,18 +861,28 @@ export async function mountBag(container, {
     slideDisc,
     get slidDisc() { return slidKey; },
     setTopView,
-    // Compiles the translucent fabric up front (e.g. when a pointer nears the toggle).
-    prepareTopView: () => prepareXray(),
+    setPuttersOut,
+    get puttersOut() { return puttersOutState; },
+    // Whether every putter has finished moving (stowing or coming out).
+    get puttersSettled() { return [...records.values()].every(record => record.out === record.outTo); },
+    glowDisc,
+    get glowingDisc() { return glowKey; },
+    setZoom,
+    get zoom() { return zoomTween ? zoomTween.to.level : zoomLevel; },
+    maxZoom: MAX_ZOOM,
+    cancelPress,
     get topView() { return topView; },
     // The bag's turn from the user's drag (radians); it persists until the user drags again.
     get turn() { return yaw; },
     // Whether the front pockets and main opening face the camera (or the camera is above).
     // Whether any of the GLB's go-to accent rim is drawn (it should not be).
     get goToAccentVisible() { return accents.some(object => object.visible); },
+    // Whether the bag's fabric renders opaque (the top view no longer turns it translucent).
+    get fabricOpaque() { return fabric.every(({ material }) => !material.transparent && material.opacity === 1); },
     get frontFacing() { return topView || Math.cos(yaw) > .25; },
     get cameraMoving() { return cameraTween !== null; },
-    // Camera state for QA: polar angle from straight up (0 = top view) and fabric opacity share.
-    get cameraState() { const s = sphericalAt(camera.position, target); return { polar: s.phi, azimuth: s.theta, radius: s.radius, xray }; },
+    // Camera state for QA: polar angle from straight up (0 = top view) and how far it has come overhead.
+    get cameraState() { const s = sphericalAt(camera.position, target); return { polar: s.phi, azimuth: s.theta, radius: s.radius, overhead }; },
     // Screen points (container pixels) for labels anchored to the bag, at the resting pose.
     projectPoint(point) { camera.updateMatrixWorld(); return project(new THREE.Vector3(...point)); },
     // Where the slid-out disc comes to rest, in container pixels.
@@ -805,7 +890,7 @@ export async function mountBag(container, {
       const record = records.get(slidKey);
       if (!record) return null;
       camera.updateMatrixWorld();
-      return boxOf(record.placement, slidePose(record, 1, restPose(record.placement)));
+      return boxOf(record.placement, slidePose(record, 1, seatPose(record.placement)));
     },
     // Each pocket's volume projected to container pixels (for top-view pocket labels).
     pocketRects() {

@@ -23,11 +23,11 @@ export async function checkPremium(browser, base) {
     await page.locator('#map').dispatchEvent('wheel',{deltaY:12,deltaX:0,deltaMode:0});
     await page.waitForTimeout(200);
     const dragged=await page.evaluate(()=>({zoom,...pan}));
-    assert.equal(dragged.zoom,after.zoom,'Fine two-finger trackpad motion pans');
-    assert.ok(dragged.y<after.y,'A vertical trackpad drag moves the camera');
+    // Since Bag 1.2 (995ccac) wheel and trackpad gestures always zoom, fine pixel deltas included; dragging pans.
+    assert.ok(dragged.zoom<after.zoom,'Fine two-finger trackpad motion zooms (out for a downward scroll)');
     await page.locator('#map').dispatchEvent('wheel',{deltaY:-12,ctrlKey:true});
     await page.waitForTimeout(250);
-    assert.ok(await page.evaluate(z=>zoom>z,after.zoom),'Trackpad pinch still zooms');
+    assert.ok(await page.evaluate(z=>zoom>z,dragged.zoom),'Trackpad pinch still zooms');
     const pinchZoom=await page.evaluate(()=>zoom);
     await page.locator('#map').dispatchEvent('wheel',{deltaY:3,deltaMode:1});
     await page.waitForTimeout(250);
@@ -94,6 +94,6 @@ export async function checkPremium(browser, base) {
     await page.waitForTimeout(200);
     assert.ok(await page.evaluate(z=>zoom>z,touchZoom),'Two-finger touch pinch still zooms');
     assert.deepEqual(errors,[]);
-    console.log('PASS: cursor-centered wheel zoom, trackpad pan/pinch, touch pinch, line-mode wheel, saved theme, responsive chrome, preview clearance and information menu.');
+    console.log('PASS: cursor-centered wheel zoom, trackpad zoom/pinch, touch pinch, line-mode wheel, saved theme, responsive chrome, preview clearance and information menu.');
   } finally { await context.close(); }
 }

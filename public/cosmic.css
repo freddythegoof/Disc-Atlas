@@ -89,15 +89,15 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .marker-position:hover,.marker-position:focus-within{z-index:6!important}
 .atlas-marker{left:0;top:0;transform:translate(-50%,-50%);transition:none!important;width:48px;height:48px;padding:0;min-height:0;touch-action:none;contain:layout style}
 .atlas-marker:hover,.atlas-marker:focus-visible,.atlas-marker.is-open{transform:translate(-50%,-50%)}
-.atlas-marker.is-large.overview,.atlas-marker.is-large.brand-view{width:54px;height:54px}
-.atlas-marker.is-large .disc-art,.atlas-marker.is-large.overview .disc-art{width:54px;height:54px}
+.atlas-marker.is-large.overview,.atlas-marker.is-large.brand-view{width:62px;height:62px}
+.atlas-marker.is-large .disc-art,.atlas-marker.is-large.overview .disc-art{width:62px;height:62px}
 .atlas-marker .marker-stack{display:block}.atlas-marker .stack-0{position:absolute;inset:0;transform:none}.atlas-marker .marker-halo{inset:-8px;border:1px solid var(--lime);background:none;box-shadow:none;opacity:0}
 .atlas-marker.is-selected .marker-halo,.atlas-marker:focus-visible .marker-halo{opacity:1}
 .atlas-marker.is-dot .map-dot{inset:7px;background:var(--disc-color);opacity:.68;border:0;box-shadow:0 0 8px color-mix(in srgb,var(--disc-color) 12%,transparent)}
 .atlas-marker.is-dot.is-stack .map-dot{inset:6px;border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:none}
-.atlas-marker .marker-name{display:block;position:absolute;left:50%;top:64px;transform:translateX(-50%);width:max-content;max-width:145px;white-space:normal;word-break:normal;overflow-wrap:normal;text-align:center;color:var(--text);font-size:12px;font-weight:500;line-height:1.3;opacity:1;background:none;border:0;padding:0;pointer-events:none;text-shadow:0 1px 4px var(--map-bg);box-shadow:none}
+.atlas-marker .marker-name{display:block;position:absolute;left:50%;top:74px;transform:translateX(-50%);width:max-content;max-width:145px;white-space:normal;word-break:normal;overflow-wrap:normal;text-align:center;color:var(--text);font-size:12px;font-weight:500;line-height:1.3;opacity:1;background:none;border:0;padding:0;pointer-events:none;text-shadow:0 1px 4px var(--map-bg);box-shadow:none}
 .atlas-marker .marker-name small{display:block;margin-top:4px;font-size:9px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
-.atlas-marker.is-large.overview .marker-name{top:64px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
+.atlas-marker.is-large.overview .marker-name{top:74px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
 .atlas-marker.is-dot .marker-name{opacity:0;top:30px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;z-index:5}
 .atlas-marker.is-dot:hover .marker-name,.atlas-marker.is-dot:focus-visible .marker-name{opacity:1}
 .atlas-marker .cluster-count{right:-9px;top:-7px;background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:10px;height:19px;min-width:19px;box-shadow:none}
@@ -347,3 +347,23 @@ body[data-view="list"] .coach-label{display:none}
 
 .atlas-marker.is-dot.is-minor-label .marker-name{top:40px;bottom:auto;max-width:116px;font-size:11px;line-height:1.25;opacity:1;background:none;border:0;border-radius:0;padding:0;box-shadow:none;transition:none}
 .atlas-marker.is-dot.is-minor-label .marker-name small{display:none}
+/* Your bag on the atlas (signed in): My bag / Default / Only my discs. */
+.atlas-lens{display:flex;flex-shrink:0;gap:2px;height:46px;padding:3px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:12px;background:color-mix(in srgb,var(--panel) 92%,transparent);box-shadow:0 2px 8px var(--shadow)}
+.atlas-lens[hidden]{display:none}
+.explore-tools .atlas-lens button{padding:0 12px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);background:none;transform:none}
+.explore-tools .atlas-lens button:hover{color:var(--text);transform:none}
+.explore-tools .atlas-lens button[aria-checked="true"]{background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
+.atlas-lens button:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.atlas-lens .lens-short{display:none}
+body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:min(780px,calc(100% - 56px))}
+@media(max-width:700px){
+ .atlas-lens{height:44px}.explore-tools .atlas-lens button{padding:0 9px}
+ .atlas-lens .lens-long{display:none}.atlas-lens .lens-short{display:inline}
+ .explore-tools:has(.atlas-lens:not([hidden])) #filtersToggle{width:44px;padding:0;font-size:0;justify-content:center}
+ .explore-tools:has(.atlas-lens:not([hidden])) #filtersToggle span{font-size:16px}
+ body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:calc(100% - 32px)}
+}
+/* Discs from the player's bag wear their own color and a ring. */
+.atlas-marker.is-mine .disc-art,.atlas-marker.is-dot.is-mine .map-dot{outline:2px solid color-mix(in srgb,var(--text) 78%,transparent);outline-offset:2px}
+.atlas-marker.is-dot.is-mine .map-dot{outline-width:1.5px;outline-offset:1.5px}
+.legend .dot.mine{background:none;border:2px solid color-mix(in srgb,var(--text) 78%,transparent)}

@@ -41,7 +41,10 @@ function measureFullLabels(items){
  }
  return new Map(items.map(d=>[d.id,fullLabelFootprints.get(keyPrefix+d.id)]));
 }
-document.fonts.ready.then(()=>{fullLabelFootprints.clear();groupContext=null;scheduleMapDraw();});
+// Label footprints must use the real fonts. A face first requested by these measurements loads
+// after fonts.ready, so measure again whenever any font finishes loading.
+const remeasureLabels=()=>{fullLabelFootprints.clear();groupContext=null;scheduleMapDraw();};
+document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
 function measureMap(){mapViewport=canvas.getBoundingClientRect();}
 function cancelRegroup(){
  regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
@@ -58,7 +61,7 @@ function hydrateGroups(raw,items,w,h,level,immersive){
 function prepareGroups(level,items,w,h,immersive){
  if(preparedGroups.has(level)||pendingGroups.has(level)||!groupWorker)return;
  pendingGroups.add(level);
- groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,footprints:groupContext.footprints,featured:window.DiscAtlasFeatured||[],
+ groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,footprints:groupContext.footprints,featured:atlasPriority(),
   items:items.map(d=>({id:d.id,name:d.name,brand:d.brand,speed:d.speed})),
   positions:items.filter(d=>atlasPositions.has(d.id)).map(d=>[d.id,atlasPositions.get(d.id)])});
 }
@@ -95,7 +98,7 @@ function buildClusters(items,w,h){
   // use the same worker and staged swap as zoom changes, even at the same level.
   if(!groupCache||!hasPaintedMarkers){
    const initial=Math.round(Math.log2(zoom)*3);
-   groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive,groupContext.footprints,window.DiscAtlasFeatured||[]),items,w,h,initial,immersive);
+   groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,initial,immersive,groupContext.footprints,atlasPriority()),items,w,h,initial,immersive);
    preparedGroups.set(initial,groupCache);
   }
  }
@@ -109,7 +112,7 @@ function buildClusters(items,w,h){
    $('#mapMarkers').classList.add('is-regrouping');
   }
   else if(groupWorker)prepareGroups(level,items,w,h,immersive);
-  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive,groupContext.footprints,window.DiscAtlasFeatured||[]),items,w,h,level,immersive);appliedContext=contextPending;}
+  else {groupCache=hydrateGroups(window.AtlasGroups.build(items,atlasPositions,w,h,level,immersive,groupContext.footprints,atlasPriority()),items,w,h,level,immersive);appliedContext=contextPending;}
  }
  // Labels do not scale with the camera. Recheck at the actual zoom, including
  // intermediate animation frames and while a new worker level is pending.
@@ -233,7 +236,7 @@ function renderMarkers(){
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
   if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected||node.scaleLarge!==g.large)){
    if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
-   const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected)};
+   const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected),'is-mine':!!myColor(lead)};
    for(const [name,on] of Object.entries(flags))if(node.classList.contains(name)!==on)node.classList.toggle(name,on);
    node.groupVersion=groupCache;node.brandView=brandView;node.selection=selected;
    node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
@@ -343,7 +346,7 @@ function initAtlasMap(){
    group=null;
    for(const g of mapClusters){
     const node=markerNodes.get(g.key);if(!node||node.position.inert)continue;
-    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?27*mapMarkerScale()+8:22;
+    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?31*mapMarkerScale()+8:22;
     if(distance<=radius&&distance<best){best=distance;group=g;}
    }
   }

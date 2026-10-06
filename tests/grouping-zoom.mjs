@@ -99,7 +99,7 @@ export async function checkGroupingZoom(browser,base){
     assert.ok(state.readableSatellites>0,`${z}x satellites use readable markers`);
     assert.equal(state.readableSatellites+state.fallbacks.length,state.unstackedSatellites,`${z}x every fitting unstacked satellite gets a labeled marker`);
     assert.ok(state.fallbacks.every(f=>f.noCleanPlacement),`${z}x fallback dots have no clean nearby placement`);
-    const expectedFallbacks={7:['Rot','Xero'],8:[],9:['Bluebonnet','Scarab']};
+    const expectedFallbacks={7:[],8:['Bluebonnet'],9:['Scarab']};
     assert.deepEqual(state.unlabeledSingles,expectedFallbacks[z],`${z}x remaining dots are only the genuinely blocked singles`);
     assert.deepEqual(state.overlaps,[],`${z}x DOM labels never overlap`);
     assert.deepEqual(state.markerOverlaps,[],`${z}x markers and labels never overlap`);
@@ -109,9 +109,12 @@ export async function checkGroupingZoom(browser,base){
    }
    // A selected displaced satellite must not acquire the legacy center-to-dot
    // vector on top of its subtle rim-to-coordinate leader.
-   await frameBand(page,9);
-   const selectedVectors=await page.evaluate(()=>{
-    const g=mapClusters.find(g=>g.satellite&&g.leader&&g.x>100&&g.x<900&&g.y>150&&g.y<650);
+   // The wider 1x frame (Oct 5) leaves fewer displaced satellites; use the deepest band that has one on screen.
+   let selectedVectors=null;
+   for(const z of [9,8,7]){
+    await frameBand(page,z);
+    selectedVectors=await page.evaluate(()=>{
+    const g=mapClusters.find(g=>g.satellite&&g.leader&&g.x>100&&g.x<mapViewport.width-100&&g.y>150&&g.y<mapViewport.height-150);
     if(!g)return null;
     const move=ctx.moveTo.bind(ctx),line=ctx.lineTo.bind(ctx),segments=[];let previous=null;
     ctx.moveTo=(x,y)=>{previous={x,y};move(x,y);};
@@ -119,7 +122,9 @@ export async function checkGroupingZoom(browser,base){
     try{select(g.lead);segments.length=0;draw();return segments.filter(s=>
      Math.hypot(s.x1-g.actualX,s.y1-g.actualY)<.01||Math.hypot(s.x2-g.actualX,s.y2-g.actualY)<.01).length;
     }finally{ctx.moveTo=move;ctx.lineTo=line;}
-   });
+    });
+    if(selectedVectors!==null)break;
+   }
    assert.equal(selectedVectors,1,'Selecting a displaced marker paints exactly one honest vector');
    await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
    for(const state of deepBands){
@@ -198,7 +203,7 @@ export async function checkGroupingZoom(browser,base){
   await page.screenshot({path:`${dir}/three-disc-comparison-full.png`});
   await page.setViewportSize({width:1440,height:900});
   // The actual worker and no-worker path must produce identical groups.
-  await page.addInitScript(()=>{window.Worker=undefined;});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();
+  await page.addInitScript(()=>{window.Worker=undefined;});await page.reload();await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);
   await page.evaluate(()=>{stopCamera();zoom=5;draw();});await settled();
   assert.deepEqual((await summary()).signature,deep.signature,'Worker and synchronous grouping agree');
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);
