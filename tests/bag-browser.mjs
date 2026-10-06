@@ -30,9 +30,10 @@ try {
  const capture=async name=>{await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(150);await page.screenshot({path:`${dir}/${name}.png`,fullPage:!/^sheet-|^add-/.test(name)});};
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>window.AtlasAccount?.current);
  await page.getByRole('heading',{name:'My bag',exact:true}).waitFor();
- assert.ok(!await page.locator('#myBagContents').isVisible());
+ // Signed out shows the read-only demo bag (tests/bag-demo-browser.mjs covers it in depth).
+ await page.locator('#myBagDemo').waitFor();assert.equal(await page.locator('#myBagContents [data-bag-edit]').count(),0);
  assert.equal((await page.request.get(base+'/api/bag')).status(),401);
- for (const name of ['light','midnight','charcoal']) for (const width of [1440,360]) {await page.setViewportSize({width,height:width===360?800:1000});await theme(name);assert.ok(await page.locator('#myBagTitle').isVisible(),'Bag title remains visible on mobile');await capture(`teaser-${width}-${name}`);}
+ for (const name of ['light','midnight','charcoal']) for (const width of [1440,360]) {await page.setViewportSize({width,height:width===360?800:1000});await theme(name);assert.ok(await page.locator('#myBagTitle').isVisible(),'Bag title remains visible on mobile');await capture(`demo-${width}-${name}`);}
  await page.locator('#myBagSignIn').click();
  await page.getByRole('link',{name:'Continue with Google',exact:true}).waitFor();
  const href=await page.getByRole('link',{name:'Continue with Google',exact:true}).getAttribute('href');
@@ -86,8 +87,8 @@ try {
  // A late response from a previous account must never repaint personal data after sign-out.
  let releaseSignedOut,startedSignedOut;const heldSignedOut=new Promise(resolve=>{releaseSignedOut=resolve;}),beganSignedOut=new Promise(resolve=>{startedSignedOut=resolve;});
  await context.route(base+'/api/bag',async route=>{startedSignedOut();await heldSignedOut;await route.fulfill({json:stale});});
- await page.reload();await beganSignedOut;await page.evaluate(()=>window.AtlasAccount.signOut());assert.ok(!await page.locator('#myBagContents').isVisible());
- const late=page.waitForResponse(base+'/api/bag');releaseSignedOut();await late;await page.waitForTimeout(50);assert.equal(await page.locator('[data-bag-edit]').count(),0);
+ await page.reload();await beganSignedOut;await page.evaluate(()=>window.AtlasAccount.signOut());await page.locator('#myBagDemo').waitFor();assert.ok(await page.evaluate(()=>{const ids=[...document.querySelectorAll('#myBagContents [data-disc-id]')].map(n=>n.dataset.discId);return ids.length===20&&ids.every(id=>id.startsWith('demo-'));}),'Signed out shows only the demo bag');
+ const late=page.waitForResponse(base+'/api/bag');releaseSignedOut();await late;await page.waitForTimeout(50);assert.equal(await page.locator('[data-bag-edit]').count(),0);assert.ok(await page.evaluate(()=>{const ids=[...document.querySelectorAll('#myBagContents [data-disc-id]')].map(n=>n.dataset.discId);return ids.length===20&&ids.every(id=>id.startsWith('demo-'));}),'Signed out shows only the demo bag');
  assert.deepEqual(errors,[]);fs.writeFileSync(`${dir}/qa.json`,JSON.stringify({passed:true,themes:['light','midnight','charcoal'],widths:[1440,360],errors},null,2));
  console.log('PASS: local Wrangler/D1, signed Google fixture, all add surfaces, copies, custom + curated capacity, edit/remove confirmation, auth gating, focus containment/restoration, 3 themes at desktop/360px. Screenshots: '+dir);
 } catch(error) {if(page){await page.screenshot({path:`${dir}/failure.png`,fullPage:true});console.log(await page.evaluate(()=>({url:location.href,detail:document.querySelector('#detail')?.outerHTML.slice(0,1800),bag:document.querySelector('#myBagView')?.hidden})));}throw error;}

@@ -54,9 +54,10 @@ try {
   const name=`${state}-${width}-${theme}.png`;await (options.locator||page).screenshot({path:`${dir}/${name}`});shots.push({state,width,theme,name});
  };
 
- // 1. Lazy loading: signed out, nothing 3D loads.
- await page.goto(base+'/?bag=1');await page.waitForFunction(()=>window.AtlasAccount?.current);await page.waitForTimeout(800);
- assert.deepEqual(bagRequests(),[],'Signed out: no 3D assets');
+ // 1. Lazy loading: on the atlas, nothing 3D loads until My Bag is shown (signed out, the demo bag).
+ await page.goto(base+'/');await page.waitForFunction(()=>window.AtlasAccount?.current);await page.waitForTimeout(800);
+ assert.deepEqual(bagRequests(),[],'Atlas: no 3D assets');
+ await page.locator('#bagTab').click();await page.locator('#myBagDemo').waitFor();
  await page.locator('#myBagSignIn').click();await page.getByRole('link',{name:'Continue with Google',exact:true}).waitFor();
  const href=await page.getByRole('link',{name:'Continue with Google',exact:true}).getAttribute('href');
  const redirect=await page.request.get(base+href,{maxRedirects:0});await page.goto(redirect.headers().location);
@@ -87,7 +88,7 @@ try {
  for(const asset of ['/bag3d/viewer.mjs','/bag3d/vendor/three/three.module.min.js','/bag3d/vendor/three/three.core.min.js','/bag3d/charcoal-bag.glb'])assert.ok(loaded.includes(asset),`Bag tab loads ${asset}`);
  assert.ok(!loaded.includes('/bag3d/vendor/three/addons/controls/OrbitControls.js'),'Turntable mode never loads OrbitControls');
  perf.bytes=await page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>new URL(e.name).pathname.startsWith('/bag3d/')).reduce((sum,e)=>sum+(e.encodedBodySize||0),0));
- check(`Lazy load: no 3D requests signed out or on the map; Bag tab loads three.js + model (${(perf.bytes/1e6).toFixed(2)} MB) and opens in ${perf.firstOpenMs} ms`);
+ check(`Lazy load: no 3D requests on the atlas (signed out or in); Bag tab loads three.js + model (${(perf.bytes/1e6).toFixed(2)} MB) and opens in ${perf.firstOpenMs} ms`);
  perf.renderer=await page.evaluate(()=>{const gl=document.createElement('canvas').getContext('webgl2');const d=gl.getExtension('WEBGL_debug_renderer_info');return gl.getParameter(d?d.UNMASKED_RENDERER_WEBGL:gl.RENDERER);});
  perf.quality=await viewer(v=>v.renderer.quality);
 
@@ -228,9 +229,9 @@ try {
  await page.locator('#bagScene').getByRole('button',{name:/^Reset zoom/}).click();await page.waitForTimeout(350);
  check(`Screenshots: ${shots.length} across ${themes.length} themes at 1440px and 360px (open with go-to, closed, mid-fold, named main, named go-to, list), plus bag color and zoom`);
 
- // 8. Sign-out clears the scene.
+ // 8. Sign-out clears the player's discs from the scene; the read-only demo bag takes their place.
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);
- assert.equal(await page.locator('[data-physical-disc]').count(),0);assert.ok(!await scene.isVisible());
+ await page.locator('#myBagDemo').waitFor();await page.waitForFunction(()=>{const ids=[...document.querySelectorAll('[data-physical-disc]')].map(n=>n.dataset.physicalDisc);return ids.length===18&&ids.every(id=>id.startsWith('demo-'));});
  assert.deepEqual(errors,[]);
  fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,checks,perf,sizes,gpuArgs,themes,widths,screenshots:shots,errors},null,2));
  const order=['open-goto','closed','opening','named-main','named-goto','list-inline-pocket','custom-color','size-s','size-l'];
