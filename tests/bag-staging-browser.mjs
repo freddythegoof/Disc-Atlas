@@ -5,10 +5,13 @@ import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 // Out discs on My Bag (Oct 6): a click slides a disc out and it stays out until clicked again,
-// each disc on its own. One to five rest beside the bag, understable left and overstable right;
+// each disc on its own. One to five rest beside the bag, split relative to each other (the less
+// overstable half left, the more overstable half right, even for a bag that leans one way);
 // the sixth turns on map mode, where every out disc takes its Atlas place (stability across,
 // speed up) around the bag on the Stitch grid; back to five returns to the sides. The same grid
-// sits under the main atlas in every theme. Runs on the signed-out demo bag (no account needed).
+// sits under the main atlas in every theme. Every out disc shows its name in both layouts, clear
+// of the bag, the discs, the other names, the zoom buttons and the map's captions. Runs on the
+// signed-out demo bag (no account needed).
 const config='tests/auth.wrangler.jsonc',state='work/bag-staging/d1-qa',base='https://localhost:8807',dir='outputs/bag-staging';
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
 fs.mkdirSync(dir,{recursive:true});
@@ -46,9 +49,15 @@ try {
  const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.engine==='ready' && s.dataset.phase==='open';},null,{timeout:30000});await scene.scrollIntoViewIfNeeded();await page.mouse.move(2,2);};
  // Each demo disc's Atlas position, the same AtlasLayout.positions the map uses.
  const atlasOf=()=>page.evaluate(async()=>{const {DEMO_DISCS}=await import('/bag-demo.js');return Object.fromEntries(DEMO_DISCS.map(item=>{const mold=discs.find(d=>d.id===item.mold_id),p=mold && window.AtlasLayout.positions([mold]).get(mold.id);return [item.id,p?{x:p.x,y:p.y,name:mold.catalogName||mold.name}:null];}));});
- // Out discs' rects and names must sit inside the canvas, discs never on each other or under the zoom buttons.
+ // Out discs' rects and names must sit inside the canvas, discs never on each other or under the zoom
+ // buttons; every out disc shows its name, clear of the bag, every disc, every other name, the zoom
+ // buttons and (on the map) the axis captions.
  const layoutChecks=async label=>{
   const box=await canvasBox(),rects=(await viewer(v=>v.discRects())).filter(r=>r.out),zoom=await local(page.locator('.bag-zoom'));
+  const bag=await viewer(v=>v.bagRect()),map=await scene.getAttribute('data-stage')==='map';
+  const captions=map?await page.locator('.bag-map-caption').evaluateAll(list=>list.map(n=>{const c=n.closest('.bag-scene').querySelector('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {text:n.textContent,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};})):[];
+  assert.ok(bag && bag.width>40,`${label}: the bag's silhouette is measured`);
+  for(const r of rects)for(const c of captions)assert.ok(!overlap(r,c),`${label}: ${r.id} clear of the "${c.text}" caption`);
   for(const r of rects){
    assert.ok(r.left>=-1 && r.top>=-1 && r.left+r.width<=box.width+1 && r.top+r.height<=box.height+1,`${label}: ${r.id} inside the canvas ${JSON.stringify(r)}`);
    assert.ok(!overlap(r,zoom),`${label}: ${r.id} clear of the zoom buttons`);
@@ -57,8 +66,13 @@ try {
    const a=rects[i],b=rects[j],ca=[a.left+a.width/2,a.top+a.height/2],cb=[b.left+b.width/2,b.top+b.height/2];
    assert.ok(Math.hypot(ca[0]-cb[0],ca[1]-cb[1])>=(Math.min(a.width,b.width))*.98,`${label}: ${a.id} and ${b.id} do not overlap `+JSON.stringify({a,b}));
   }
-  const names=await page.locator('[data-out-name]:not([hidden])').evaluateAll(list=>list.map(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {id:n.dataset.outName,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};}));
+  const names=await page.locator('[data-out-name]').evaluateAll(list=>list.map(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {id:n.dataset.outName,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};}));
+  assert.equal(await page.locator('[data-out-name][hidden]').count(),0,`${label}: no name hidden`);
+  assert.deepEqual(names.map(n=>n.id).sort(),rects.map(r=>r.id).sort(),`${label}: every out disc shows its name`);
   for(const n of names){
+   assert.ok(!overlap(n,bag),`${label}: name of ${n.id} clear of the bag `+JSON.stringify({n,bag}));
+   assert.ok(!overlap(n,zoom),`${label}: name of ${n.id} clear of the zoom buttons`);
+   for(const c of captions)assert.ok(!overlap(n,c),`${label}: name of ${n.id} clear of the "${c.text}" caption`);
    assert.ok(n.left>=0 && n.left+n.width<=box.width+1 && n.top>=0 && n.top+n.height<=box.height+1,`${label}: name of ${n.id} inside the canvas`);
    for(const r of rects)if(r.id!==n.id)assert.ok(!overlap(n,r),`${label}: name of ${n.id} clear of ${r.id}`);
    for(const m of names)if(m!==n)assert.ok(!overlap(n,m),`${label}: names ${n.id} and ${m.id} apart`);
@@ -149,7 +163,33 @@ try {
  assert.equal(await viewer(v=>v.stage.pull),1,'With nothing out the camera is back at the page view');
  check('Toggle: a click (or Enter) slides a disc out with its details and it stays out through Escape, empty-space clicks, closing the bag and the top view; each disc is independent; the next click puts back just that disc');
 
- // 3. One to five: beside the bag, understable left and overstable right, balanced.
+ // 3a. A bag that leans overstable: the five most overstable discs still split evenly, the less
+ // overstable half left. Covers a single disc, even counts (exactly at the median) and odd ones.
+ const byStability=reachable.map(([id])=>id).filter(id=>atlas[id]).sort((p,q)=>atlas[q].x-atlas[p].x);
+ const leaning=byStability.slice(0,5);metrics.leaningStability=leaning.map(id=>+atlas[id].x.toFixed(3));
+ const sideCheck=async(out,label)=>{
+  const st=await viewer(v=>v.stage),x=id=>atlas[id]?.x ?? .5;
+  assert.equal(st.mode,'side',`${label}: side layout`);
+  const left=out.filter(id=>st.sides[id]==='left'),right=out.filter(id=>st.sides[id]==='right');
+  assert.ok(Math.abs(left.length-right.length)<=1,`${label}: even ${left.length}/${right.length}`);
+  if(left.length && right.length)assert.ok(Math.max(...left.map(x))<=Math.min(...right.map(x)),`${label}: every left disc less overstable than every right disc `+JSON.stringify(out.map(id=>[atlas[id]?.name,x(id).toFixed(2),st.sides[id]])));
+  if(out.length%2===0)assert.equal(left.length,right.length,`${label}: an even count splits exactly at the median`);
+  // Faster discs higher within each column.
+  const state=await viewer(v=>v.getBagLayoutState().filter(d=>d.out)),y=Object.fromEntries(state.map(d=>[d.id,d.spot[1]]));
+  for(const column of [left,right])for(const p of column)for(const q of column)if(atlas[p]&&atlas[q]&&atlas[p].y>atlas[q].y+1e-9)assert.ok(y[p]>y[q],`${label}: ${atlas[p].name} (faster) above ${atlas[q].name}`);
+  await layoutChecks(label);
+  return {left,right};
+ };
+ for(let i=0;i<leaning.length;i++){
+  await toggle(leaning[i]);const out=leaning.slice(0,i+1),{left,right}=await sideCheck(out,`overstable ${out.length} out`);
+  if(out.length===1)assert.deepEqual([left.length,right.length],[0,1],'A lone disc rests on the right');
+ }
+ assert.ok(metrics.leaningStability.filter(v=>v>=.5).length>=3,'The set leans overstable: '+metrics.leaningStability);
+ await shot('side-overstable-5-1440-midnight');
+ for(const id of [...leaning].reverse())await toggle(id);
+ check(`Relative split: the demo bag's five most overstable discs (stability ${metrics.leaningStability.join(', ')}) still split 0/1, 1/1, 1/2, 2/2, 2/3 — less overstable half left, faster higher, every name shown and clear`);
+
+ // 3. One to five: beside the bag, less overstable left and more overstable right, balanced.
  const five=[mains[0],mains[4],goto,mains[9],putterFront];
  for(let i=0;i<five.length;i++){
   await toggle(five[i]);const out=five.slice(0,i+1),st=await viewer(v=>v.stage);
@@ -164,7 +204,7 @@ try {
  }
  metrics.sidePull=await viewer(v=>v.stage.pull);
  assert.ok(metrics.sidePull>=1 && metrics.sidePull<1.4,'The bag stays near full size beside five discs: pull '+metrics.sidePull);
- const sideNames=await page.locator('[data-out-name]:not([hidden])').count();assert.equal(sideNames,5,'Every disc beside the bag shows its name');
+ const sideNames=await page.locator('[data-out-name][data-shown]').count();assert.equal(sideNames,5,'Every disc beside the bag shows its name');
  await shot('side-5-1440-midnight');
  check(`1–5 out: beside the bag, balanced, every left disc less stable than every right disc, names shown, nothing overlapping; camera pulled back only to ${metrics.sidePull.toFixed(2)}×`);
 
@@ -213,13 +253,18 @@ try {
  await page.setViewportSize({width:360,height:800});await setTheme('light');await openBag();
  for(const id of [mains[0],goto,mains[9]])await toggle(id);
  assert.equal((await viewer(v=>v.stage)).mode,'side');await layoutChecks('phone side');await shot('side-3-360-light');
+ for(const id of await outIds())await toggle(id);
+ for(const id of leaning)await toggle(id);
+ await sideCheck(leaning,'phone overstable 5');await shot('side-overstable-5-360-light');
+ for(const id of [...leaning].reverse())await toggle(id);
+ for(const id of [mains[0],goto,mains[9]])await toggle(id);
  for(const id of [mains[4],putterFront,mains[12],mains[2]])await toggle(id);
  assert.equal((await viewer(v=>v.stage)).mode,'map');await atlasOrder('map 7 (360)');await layoutChecks('phone map');
  metrics.phoneMapPull=await viewer(v=>v.stage.pull);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal scroll on a phone');
  await shot('map-7-360-light');await setTheme('charcoal');await shot('map-7-360-charcoal');
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');await settled();await layoutChecks('desktop map after resize');await shot('map-7-1440-light');
- check(`Phone (360 px): side layout and map mode fit the canvas with names clear of discs; map keeps the Atlas order (ρ ${metrics['map 7 (360)'].stabilityRank}/${metrics['map 7 (360)'].speedRank}); pull ${metrics.phoneMapPull.toFixed(2)}×; restaged on resize`);
+ check(`Phone (360 px): side layout (also the overstable-leaning five) and map mode fit the canvas with every name shown, clear of the bag, discs, names, zoom and captions; map keeps the Atlas order (ρ ${metrics['map 7 (360)'].stabilityRank}/${metrics['map 7 (360)'].speedRank}); pull ${metrics.phoneMapPull.toFixed(2)}×; restaged on resize`);
 
  // 7. Reduced motion stages instantly.
  await page.emulateMedia({reducedMotion:'reduce'});

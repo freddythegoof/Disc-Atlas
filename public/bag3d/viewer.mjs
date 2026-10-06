@@ -549,27 +549,43 @@ export async function mountBag(container, {
   // poses): putters and the go-to straight up and a step forward, main discs forward out of
   // the compartment, then up and turned face-on. It then travels to its staged spot and stays
   // there until it is staged back in. Every disc is independent: `keys` lists all out discs, in
-  // the order they came out. Up to five rest beside the bag, understable left and overstable
-  // right; six or more take their Atlas places
-  // (`atlas`: key → {x, y}, AtlasLayout's 0–1 stability and speed) on a map around the bag.
-  // `reserve` keeps a top-right corner of the canvas clear on the map; `labelSpace` (px) is room
-  // for a name under each disc beside the bag. Resolves when every disc and the camera settle.
-  const stageDiscs = (keys = [], { atlas = new Map(), reserve, labelSpace = 0, instant = !active } = {}) => {
+  // the order they came out. Up to five rest beside the bag, split relative to each other (the
+  // less overstable half left, the more overstable half right); six or more take their Atlas
+  // places (`atlas`: key → {x, y}, AtlasLayout's 0–1 stability and speed) on a map around the bag.
+  // `labels` (key → {width, height}, px, the gap above included) is the name under each disc: the
+  // layout keeps room for every name, clear of the bag, the other discs and the other names.
+  // `reserve` keeps a top-right corner of the canvas clear on the map, `clear` more boxes there
+  // ({left, top, right, bottom}, canvas fractions). Resolves when every disc and the camera settle.
+  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active } = {}) => {
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
     const mode = stageMode(keys.length);
-    const entries = keys.map(key => ({ key, atlas: atlas.get(key) ?? null }));
-    let spots = new Map();
     const home = homeCamera(), halfHeight = home.position.distanceTo(home.target) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    // Room between discs beside the bag for a name, in the bag's meters at about the pull-back they take.
-    if (mode === 'side') { sides = assignSides(entries); spots = sideSpots(entries, sides, { row: (labelSpace + 8) * 2 * halfHeight * 1.25 / Math.max(container.clientHeight, 1) }); }
+    // Names in the bag's meters at the page view, measured at the target's depth with a tenth to
+    // spare: the camera looks on from one side and above, so the canvas's far parts hold more
+    // meters per pixel. pullToFit, which projects for real, settles any remainder.
+    const unit = 1.1 * 2 * halfHeight / Math.max(container.clientHeight, 1);
+    const entries = keys.map(key => { const label = labels.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
+    let spots = new Map(), goal = 1;
+    if (mode === 'side') {
+      // Names grow with the pull-back: lay the columns out for the pull-back they end up taking.
+      sides = assignSides(entries);
+      for (let guess = 1, i = 0; i < 4; i++) {
+        spots = sideSpots(entries, sides, { pull: guess });
+        goal = pullToFit(spots, labels);
+        if (goal <= guess + 1e-3) break;
+        guess = goal;
+      }
+    }
     if (mode === 'map') {
       const left = entries.filter(entry => entry.atlas && entry.atlas.x < .5).length + entries.filter(entry => !entry.atlas).length;
-      spots = mapSpots(entries, mapFrame({ count: keys.length, aspect: camera.aspect, halfHeight, centerY: home.target.y, reserve, left, right: keys.length - left }));
+      const widest = { width: Math.max(0, ...entries.map(entry => entry.label?.width ?? 0)), height: Math.max(0, ...entries.map(entry => entry.label?.height ?? 0)) };
+      spots = mapSpots(entries, mapFrame({ count: keys.length, aspect: camera.aspect, halfHeight, centerY: home.target.y, reserve, clear, label: widest, edge: (FRAME_MARGIN + 2) * unit, left, right: keys.length - left, entries }));
+      goal = pullToFit(spots, labels, reserve, clear);
     }
     if (mode !== 'side') sides = new Map();
     stagedMode = mode;
-    const goal = mode ? pullToFit(spots, mode === 'side' ? labelSpace : 0, mode === 'map' ? reserve : null) : 1, eye = pulledHome(goal).position;
+    const eye = pulledHome(goal).position;
     const now = performance.now();
     let longest = 0;
     for (const record of records.values()) {
@@ -610,26 +626,29 @@ export async function mountBag(container, {
     setTimeout(() => { if (pullTween === motion && !disposed) { pullTween = null; pull = goal; if (!topView && !cameraTween) placePulled(); invalidate(); container.dispatchEvent(new CustomEvent('bagviewlayout')); } }, PULL_MS + 250);
     return PULL_MS;
   };
-  // The least pull-back (at least 1) that keeps every staged disc, and the room for its name
-  // below it, inside the canvas and out of the reserved top-right corner. The bag itself always
-  // fits the page view.
+  // The least pull-back (at least 1) that keeps every staged disc, and its name under it (`labels`,
+  // px), inside the canvas and out of the reserved top-right corner and the `clear` boxes. The bag
+  // itself always fits the page view.
   const fitCamera = new THREE.PerspectiveCamera();
-  const pullToFit = (spots, labelSpace, reserve) => {
+  const pullToFit = (spots, labels, reserve, clear = []) => {
     if (!spots.size) return 1;
     const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
     fitCamera.copy(camera); fitCamera.clearViewOffset(); fitCamera.aspect = width / height; fitCamera.updateProjectionMatrix();
-    const points = [];
-    for (const { position: [x, y, z], scale } of spots.values()) {
+    const keep = [...(reserve ? [{ left: 1 - reserve.width, top: 0, right: 1, bottom: reserve.height }] : []), ...clear]
+      .map(box => ({ left: box.left * width, top: box.top * height, right: box.right * width, bottom: box.bottom * height }));
+    const discs = [...spots].map(([key, { position: [x, y, z], scale }]) => {
       const r = DISC.radius * scale;
-      for (const [dx, dy] of [[-r, 0], [r, 0], [0, r], [0, -r]]) points.push([new THREE.Vector3(x + dx, y + dy, z), dy < 0 ? labelSpace : 0]);
-    }
+      return { label: labels.get(key), points: [[-r, 0], [r, 0], [0, r], [0, -r]].map(([dx, dy]) => new THREE.Vector3(x + dx, y + dy, z)) };
+    });
     const fits = factor => {
       const home = pulledHome(factor);
       fitCamera.position.copy(home.position); fitCamera.lookAt(home.target); fitCamera.updateMatrixWorld();
-      return points.every(([point, below]) => {
-        const ndc = point.clone().project(fitCamera), x = (ndc.x + 1) / 2 * width, y = (1 - ndc.y) / 2 * height;
-        const cornered = reserve && x > width * (1 - reserve.width) && y < height * reserve.height;
-        return !cornered && x >= FRAME_MARGIN && x <= width - FRAME_MARGIN && y >= FRAME_MARGIN && y + below <= height - FRAME_MARGIN;
+      return discs.every(({ label, points }) => {
+        const [left, right, top, bottom] = points.map(point => { const ndc = point.clone().project(fitCamera); return [(ndc.x + 1) / 2 * width, (1 - ndc.y) / 2 * height]; });
+        const boxes = [{ left: left[0], right: right[0], top: top[1], bottom: bottom[1] }];
+        if (label) { const center = (left[0] + right[0]) / 2; boxes.push({ left: center - label.width / 2, right: center + label.width / 2, top: bottom[1], bottom: bottom[1] + label.height }); }
+        return boxes.every(box => box.left >= FRAME_MARGIN && box.right <= width - FRAME_MARGIN && box.top >= FRAME_MARGIN && box.bottom <= height - FRAME_MARGIN
+          && !keep.some(k => box.left < k.right && k.left < box.right && box.top < k.bottom && k.top < box.bottom));
       });
     };
     if (fits(1)) return 1;
@@ -943,6 +962,27 @@ export async function mountBag(container, {
       return rect;
     });
   };
+  // The bag's silhouette on screen (container px): every bag mesh's vertices (no discs), seen
+  // from where the camera settles at its pull-back, so names can keep off the bag.
+  const vertex = new THREE.Vector3();
+  const bagRect = () => {
+    if (!gltf) return null;
+    const view = camera.clone();
+    if (!controls && !topView && !cameraTween) { const home = pulledHome(pullGoal); view.position.copy(home.position); view.lookAt(home.target); }
+    view.updateMatrixWorld(); gltf.scene.updateMatrixWorld(true);
+    const width = container.clientWidth, height = container.clientHeight;
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+    gltf.scene.traverseVisible(object => {
+      if (!object.isMesh || glbDiscs.includes(object)) return;
+      const positions = object.geometry.attributes.position, step = Math.max(1, Math.floor(positions.count / 4000));
+      for (let i = 0; i < positions.count; i += step) {
+        vertex.fromBufferAttribute(positions, i).applyMatrix4(object.matrixWorld).project(view);
+        const x = (vertex.x + 1) / 2 * width, y = (1 - vertex.y) / 2 * height;
+        left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+      }
+    });
+    return left < right ? { left, top, width: right - left, height: bottom - top } : null;
+  };
   const discScreenRect = key => {
     const record = records.get(key);
     if (!record) return null;
@@ -1048,6 +1088,9 @@ export async function mountBag(container, {
     },
     turnHome,
     discRects,
+    bagRect,
+    // Whether `count` out discs rest beside the bag or on the map.
+    stageMode,
     discScreenRect,
     get bagBounds() { gltf.scene.updateMatrixWorld(true); const box = new THREE.Box3(); gltf.scene.traverseVisible(o => { if (o.isMesh && !glbDiscs.includes(o)) box.expandByObject(o); }); return { min: box.min.toArray(), max: box.max.toArray() }; },
     get clipped() { return { ...clipped }; },

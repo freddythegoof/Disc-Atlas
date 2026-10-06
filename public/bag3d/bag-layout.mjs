@@ -105,14 +105,16 @@ export const STAGE = {
   // Beside the bag: columns just clear of its sides, room for a name under each disc.
   side: {scale: .58, gap: .02, row: .09, y: .03, z: .05},
   // Around the bag: smaller discs; the camera pulls back at least `pull` and more as the count grows.
-  map: {scale: .40, gap: .014, z: .05, pull: 1.3, maxPull: 2.6, fill: 1.6},
+  map: {scale: .40, gap: .014, z: .05, pull: 1.3, maxPull: 2.6, fill: 1.6, edge: .012},
 };
 export const stageMode = count => count < 1 ? null : count <= STAGE.sideMax ? 'side' : 'map';
 
 /**
- * Splits out discs between the bag's sides by stability, as evenly as possible: the more
- * understable half rests on the left, the more overstable half on the right, like the Atlas's
- * stability axis. With an odd count the middle disc takes the side its own stability is on.
+ * Splits out discs between the bag's sides relative to each other, never by a fixed stability
+ * threshold: ranked by stability, the less overstable half rests on the left and the more
+ * overstable half on the right, so both columns stay even whatever the bag leans to. With an odd
+ * count the median disc joins the neighbor it is nearer in stability (the right on a tie, and a
+ * lone disc rests on the right).
  * entries: [{key, atlas}] (atlas: {x: stability 0–1, y: speed 0–1} or null, which counts as
  * neutral). Returns Map key → 'left' | 'right'.
  */
@@ -120,20 +122,34 @@ export function assignSides(entries) {
   const stability = entry => entry.atlas?.x ?? .5;
   const ranked = entries.map((entry, index) => ({entry, index})).sort((a, b) => stability(a.entry) - stability(b.entry) || a.index - b.index);
   const half = Math.floor(ranked.length / 2), sides = new Map();
-  ranked.forEach(({entry}, rank) => sides.set(entry.key, rank < half ? 'left' : rank >= ranked.length - half ? 'right' : stability(entry) < .5 ? 'left' : 'right'));
+  ranked.forEach(({entry}, rank) => sides.set(entry.key, rank < half ? 'left' : 'right'));
+  if (ranked.length % 2 && half > 0) {
+    const [below, median, above] = ranked.slice(half - 1, half + 2).map(({entry}) => stability(entry));
+    if (median - below < above - median - 1e-9) sides.set(ranked[half].entry.key, 'left');
+  }
   return sides;
 }
 
+// A name rests under its disc. Entries may carry `label: {width, height}`, the name's size in the
+// bag's meters at the page view (pull-back 1, including the gap above it); it grows with the
+// pull-back because names keep their pixel size while the scene shrinks.
+const labelAt = (entry, pull) => ({width: (entry.label?.width ?? 0) * pull, height: (entry.label?.height ?? 0) * pull});
+
 // Beside the bag: each side is one column centered on the bag, faster discs higher (the Atlas's
-// speed axis). `row` is the room between discs for a name (at least STAGE.side.row).
-export function sideSpots(entries, sides = assignSides(entries), {row = STAGE.side.row} = {}) {
-  const {scale, gap, y, z} = STAGE.side, radius = DISC.radius * scale, step = 2 * radius + Math.max(row, STAGE.side.row), spots = new Map();
+// speed axis). `row` is the room between discs for a name (at least STAGE.side.row, and at least
+// the tallest name at `pull`); a column whose names are wider than its discs steps out from the
+// bag so no name reaches it.
+export function sideSpots(entries, sides = assignSides(entries), {row = STAGE.side.row, pull = 1} = {}) {
+  const {scale, gap, y, z} = STAGE.side, radius = DISC.radius * scale, spots = new Map();
+  const tallest = Math.max(0, ...entries.map(entry => labelAt(entry, pull).height));
+  const step = 2 * radius + Math.max(row, STAGE.side.row, tallest + gap);
   const speed = entry => entry.atlas?.y ?? .5;
   for (const [side, sign] of [['left', -1], ['right', 1]]) {
     const column = entries.map((entry, index) => ({entry, index})).filter(({entry}) => sides.get(entry.key) === side)
-      .sort((a, b) => speed(b.entry) - speed(a.entry) || a.index - b.index).map(({entry}) => entry.key);
-    const x = sign * (Math.max(-BAG_BOX.xMin, BAG_BOX.xMax) + gap + radius);
-    column.forEach((key, index) => spots.set(key, {position: [x, y + ((column.length - 1) / 2 - index) * step, z], scale, side}));
+      .sort((a, b) => speed(b.entry) - speed(a.entry) || a.index - b.index).map(({entry}) => entry);
+    const reach = Math.max(radius, ...column.map(entry => labelAt(entry, pull).width / 2));
+    const x = sign * (Math.max(-BAG_BOX.xMin, BAG_BOX.xMax) + gap + reach);
+    column.forEach((entry, index) => spots.set(entry.key, {position: [x, y + ((column.length - 1) / 2 - index) * step, z], scale, side}));
   }
   return spots;
 }
@@ -142,78 +158,127 @@ export function sideSpots(entries, sides = assignSides(entries), {row = STAGE.si
  * The map's frame for `count` discs: how far the camera pulls back (`pull`, 1 = the page view)
  * and the box disc centers may use, in the bag's frame. The view's half height at the page
  * distance is `halfHeight` around `centerY`; `aspect` is width / height. `reserve` keeps a
- * top-right corner clear (fractions of the canvas), e.g. for the zoom buttons.
+ * top-right corner clear (fractions of the canvas), e.g. for the zoom buttons; `clear` lists more
+ * boxes to keep clear ({left, top, right, bottom}, fractions of the canvas), e.g. the axis
+ * captions. `label` is the largest name's size (see sideSpots), so each side's room counts a name
+ * under every disc. `edge` is the least room between a disc (or name) and the canvas's edge, at the
+ * page view (at least STAGE.map.edge; a small canvas asks for more, as its pixels are bigger).
+ * Given the `entries` themselves (see mapSpots), the frame is the least pull-back at which their
+ * laid-out map comes out clean, every disc and name clear of the rest, and keeps the Atlas order
+ * (or, if no pull-back up to the cap keeps it, the least one that comes out clean).
  */
-export function mapFrame({count, aspect, halfHeight, centerY, reserve = {width: 0, height: 0}, left = count / 2, right = count / 2}) {
-  const {scale, gap, pull: least, maxPull, fill} = STAGE.map, radius = DISC.radius * scale, apart = 2 * radius + gap;
+export function mapFrame({count, aspect, halfHeight, centerY, reserve = {width: 0, height: 0}, clear = [], label = {width: 0, height: 0}, edge = 0, left = count / 2, right = count / 2, entries = null}) {
+  const {scale, gap, pull: least, maxPull, fill} = STAGE.map, radius = DISC.radius * scale;
   const frameAt = pull => {
-    const h = halfHeight * pull, w = h * aspect, margin = radius + .012 * pull;
+    const h = halfHeight * pull, w = h * aspect, margin = radius + Math.max(STAGE.map.edge, edge) * pull;
     const region = {xMin: -w + margin, xMax: w - margin, yMin: centerY - h + margin, yMax: centerY + h - margin};
     const corner = {xMin: w - 2 * w * reserve.width - radius, xMax: Infinity, yMin: centerY + h - 2 * h * reserve.height - radius, yMax: Infinity};
-    return {pull, region, avoid: [inflate(BAG_BOX, radius + gap), corner]};
+    const boxes = clear.map(box => inflate({xMin: -w + 2 * w * box.left, xMax: -w + 2 * w * box.right, yMin: centerY + h - 2 * h * box.bottom, yMax: centerY + h - 2 * h * box.top}, radius));
+    return {pull, region, avoid: [inflate(BAG_BOX, radius + gap), corner, ...boxes]};
   };
-  // Room on each side of the bag (understable left, overstable right): how many discs fit on a
-  // square grid of disc spacing in that half, off the bag and the reserved corner. Pull back
-  // until each side holds its discs with some slack.
-  const fits = frame => gridSlots(frame, -1, apart).length >= Math.ceil(left * fill) && gridSlots(frame, 1, apart).length >= Math.ceil(right * fill);
+  // Room on each side of the bag (understable left, overstable right): how many discs, each with
+  // its name, fit on a grid in that half, off the bag and the kept-clear boxes. Pull back until
+  // each side holds its discs with some slack. With the entries given, the grid counts discs alone
+  // (names stagger, so a grid of whole footprints overstates their need), then the pull-back grows
+  // until the laid-out map is clean.
+  const lattice = entries ? {width: 0, height: 0} : label;
+  const fits = frame => {
+    const cell = footprint(radius, labelAt({label: lattice}, frame.pull));
+    return gridSlots(frame, -1, cell).length >= Math.ceil(left * fill) && gridSlots(frame, 1, cell).length >= Math.ceil(right * fill);
+  };
   let pull = least;
   while (pull < maxPull && !fits(frameAt(pull))) pull += .02;
-  return frameAt(Math.min(pull, maxPull));
+  if (!entries) return frameAt(Math.min(pull, maxPull));
+  let clean = null;
+  for (; pull < maxPull + 1e-9; pull += .02) {
+    const frame = frameAt(pull), spots = mapSpots(entries, frame);
+    if (!cleanMap(entries, frame, spots)) continue;
+    clean ??= frame;
+    if (keepsOrder(entries, spots)) return frame;
+  }
+  return clean ?? frameAt(maxPull);
 }
-// Disc-spaced grid points on one side of the bag's center line (side −1 left, 1 right), off the
-// bag and the reserved corner: the spots a crowded side can always fall back to.
-function gridSlots({region, avoid}, side, apart) {
-  const slots = [];
-  for (let x = apart / 2; x <= Math.abs(side < 0 ? region.xMin : region.xMax) + 1e-9; x += apart)
-    for (let y = region.yMin; y <= region.yMax + 1e-9; y += apart)
-      if (!avoid.some(box => inside({x: side * x, y}, box))) slots.push({x: side * x, y});
+// Whether the rated discs' spots keep the Atlas order: stability left to right and speed bottom to
+// top, each with a rank correlation of at least .85 (fewer than four rated discs always do).
+const ORDER = .85;
+function keepsOrder(entries, spots) {
+  const rated = entries.filter(entry => entry.atlas);
+  if (rated.length < 4) return true;
+  const rank = values => { const order = values.map((value, i) => [value, i]).sort((a, b) => a[0] - b[0] || a[1] - b[1]), ranks = []; order.forEach(([, i], k) => { ranks[i] = k; }); return ranks; };
+  const rho = (a, b) => { const ra = rank(a), rb = rank(b), n = a.length; return 1 - 6 * ra.reduce((sum, r, i) => sum + (r - rb[i]) ** 2, 0) / (n * (n * n - 1)); };
+  const at = (entry, axis) => spots.get(entry.key).position[axis];
+  return rho(rated.map(entry => at(entry, 0)), rated.map(entry => entry.atlas.x)) >= ORDER && rho(rated.map(entry => at(entry, 1)), rated.map(entry => entry.atlas.y)) >= ORDER;
+}
+// Whether the entries' map at `frame` comes out clean: every disc and its name inside the region,
+// off the bag and the kept-clear boxes, and clear of every other disc and name.
+function cleanMap(entries, frame, spots) {
+  const {scale, gap} = STAGE.map, radius = DISC.radius * scale, {region, avoid} = frame;
+  const points = entries.map(entry => { const [x, y] = spots.get(entry.key).position; return {x, y, ...footprint(radius, labelAt(entry, frame.pull))}; });
+  return points.every((point, i) => point.x - (point.reach - radius) >= region.xMin - 1e-6 && point.x + (point.reach - radius) <= region.xMax + 1e-6
+    && point.y - point.below >= region.yMin - 1e-6 && point.y <= region.yMax + 1e-6
+    && !avoid.some(box => blocks(point, box, radius)) && points.every((other, j) => j <= i || !overlapOf(point, other, radius, gap - 1e-6)));
+}
+// A disc with its name under it: `reach` is how far it spans either side of the disc's center
+// (the disc or its name, whichever is wider), `below` how far the name hangs under the disc.
+const footprint = (radius, label) => ({reach: Math.max(radius, label.width / 2), below: label.height});
+// Whether a disc at `point` (with its footprint) would reach into `box`, a box disc centers keep
+// out of: its name widens the box by its extra reach and raises the box's top by the name's height.
+const blocks = (point, box, radius) => point.x > box.xMin - (point.reach - radius) && point.x < box.xMax + (point.reach - radius) && point.y > box.yMin && point.y < box.yMax + point.below;
+// Grid points one footprint (`cell`) apart on one side of the bag's center line (side −1 left,
+// 1 right), off the bag and the kept-clear boxes: the spots a crowded side can always fall back to.
+function gridSlots({region, avoid}, side, cell) {
+  const {gap, scale} = STAGE.map, radius = DISC.radius * scale, slots = [];
+  const extra = cell.reach - radius, edge = Math.abs(side < 0 ? region.xMin : region.xMax) - extra;
+  for (let x = cell.reach + gap / 2; x <= edge + 1e-9; x += 2 * cell.reach + gap)
+    for (let y = region.yMin + cell.below; y <= region.yMax + 1e-9; y += 2 * radius + cell.below + gap)
+      if (!avoid.some(box => blocks({x: side * x, y, ...cell}, box, radius))) slots.push({x: side * x, y});
   return slots;
 }
 const inflate = (box, by) => ({xMin: box.xMin - by, xMax: box.xMax + by, yMin: box.yMin - by, yMax: box.yMax + by});
-const intersect = (a, b) => ({xMin: Math.max(a.xMin, b.xMin), xMax: Math.min(a.xMax, b.xMax), yMin: Math.max(a.yMin, b.yMin), yMax: Math.min(a.yMax, b.yMax)});
-const area = box => Math.max(0, box.xMax - box.xMin) * Math.max(0, box.yMax - box.yMin);
-const inside = (point, box) => point.x > box.xMin && point.x < box.xMax && point.y > box.yMin && point.y < box.yMax;
 
 /**
- * Out discs on the flight map around the bag. entries: [{key, atlas}] where atlas is the disc's
- * Atlas position ({x: stability 0–1, y: speed 0–1}, as AtlasLayout.positions gives it) or null
- * for a mold without flight ratings. Stability runs left (more turn) to right (more fade), speed
- * bottom to top, across the frame's region; beside the bag each half of the stability axis fills
- * its own flank. A disc still on the bag (or the reserved corner) steps out by the shortest way;
- * discs then push apart until none overlap.
+ * Out discs on the flight map around the bag. entries: [{key, atlas, label}] where atlas is the
+ * disc's Atlas position ({x: stability 0–1, y: speed 0–1}, as AtlasLayout.positions gives it) or
+ * null for a mold without flight ratings, and label its name's size (see sideSpots). Stability
+ * runs left (more turn) to right (more fade), speed bottom to top, across the frame's region;
+ * beside the bag each half of the stability axis fills its own flank. A disc (with the name under
+ * it) still on the bag or a kept-clear box steps out by the shortest way; discs then push apart
+ * until no disc or name overlaps another.
  * Deterministic: the same entries always give the same spots.
  */
-export function mapSpots(entries, {region, avoid}) {
-  const {scale, gap, z} = STAGE.map, apart = 2 * DISC.radius * scale + gap;
+export function mapSpots(entries, {pull = 1, region, avoid}) {
+  const {scale, gap, z} = STAGE.map, radius = DISC.radius * scale;
   const lerp = (a, b, t) => a + (b - a) * Math.min(1, Math.max(0, t));
-  let unrated = 0;
+  let unrated = region.xMin;
   // Beside the bag (its height), each half of the stability axis spreads across its own flank, so
   // discs keep their left-to-right order instead of piling up at the bag's edges.
-  const [bag] = avoid, flank = (x, side) => {
-    const edge = side < 0 ? region.xMin : region.xMax, inner = side < 0 ? bag.xMin : bag.xMax;
+  const [bag] = avoid, flank = (x, side, extra) => {
+    const edge = side < 0 ? region.xMin + extra : region.xMax - extra, inner = side < 0 ? bag.xMin - extra : bag.xMax + extra;
     return inner + Math.min(1, Math.max(0, x / edge)) * (edge - inner);
   };
-  const points = entries.map(({key, atlas}) => {
+  const points = entries.map(entry => {
+    const {key, atlas} = entry, foot = footprint(radius, labelAt(entry, pull)), extra = foot.reach - radius;
     // No flight ratings, no Atlas position: these line up along the bottom edge from the left.
-    if (!atlas) return {key, x: region.xMin + apart * unrated++, y: region.yMin, side: -1};
+    if (!atlas) { const x = unrated + extra; unrated += 2 * foot.reach + gap; return {key, ...foot, x, y: region.yMin + foot.below, side: -1}; }
     const side = atlas.x < .5 ? -1 : 1, x = lerp(region.xMin, region.xMax, atlas.x), y = lerp(region.yMin, region.yMax, atlas.y);
-    return {key, x: y > bag.yMin && y < bag.yMax && bag.xMin > region.xMin && bag.xMax < region.xMax ? flank(x, side) : x, y, side, rated: true};
+    return {key, ...foot, x: y > bag.yMin && y < bag.yMax + foot.below && bag.xMin > region.xMin && bag.xMax < region.xMax ? flank(x, side, extra) : x, y, side, rated: true};
   });
   // Each rated disc keeps to its half: understable left of the bag's center line, overstable right.
   const settle = point => {
-    point.x = Math.min(region.xMax, Math.max(region.xMin, point.x));
-    if (point.rated) point.x = point.side < 0 ? Math.min(point.x, -apart / 2) : Math.max(point.x, apart / 2);
-    point.y = Math.min(region.yMax, Math.max(region.yMin, point.y));
+    const extra = point.reach - radius;
+    point.x = Math.min(region.xMax - extra, Math.max(region.xMin + extra, point.x));
+    if (point.rated) point.x = point.side < 0 ? Math.min(point.x, -point.reach - gap / 2) : Math.max(point.x, point.reach + gap / 2);
+    point.y = Math.min(region.yMax, Math.max(region.yMin + point.below, point.y));
     avoid.forEach((box, index) => {
-      if (!inside(point, box)) return;
+      if (!blocks(point, box, radius)) return;
       // A disc never leaves the bag (the first box) on the other side from its stability.
-      const sticky = index === 0;
+      const sticky = index === 0, left = box.xMin - extra, right = box.xMax + extra, top = box.yMax + point.below;
       const exits = [
-        ...(sticky && point.side > 0 ? [] : [{x: box.xMin, y: point.y, cost: point.x - box.xMin}]),
-        ...(sticky && point.side < 0 ? [] : [{x: box.xMax, y: point.y, cost: box.xMax - point.x}]),
+        ...(sticky && point.side > 0 ? [] : [{x: left, y: point.y, cost: point.x - left}]),
+        ...(sticky && point.side < 0 ? [] : [{x: right, y: point.y, cost: right - point.x}]),
         {x: point.x, y: box.yMin, cost: point.y - box.yMin},
-        {x: point.x, y: box.yMax, cost: box.yMax - point.y},
-      ].filter(exit => exit.x >= region.xMin - 1e-9 && exit.x <= region.xMax + 1e-9 && exit.y >= region.yMin - 1e-9 && exit.y <= region.yMax + 1e-9);
+        {x: point.x, y: top, cost: top - point.y},
+      ].filter(exit => exit.x >= region.xMin + extra - 1e-9 && exit.x <= region.xMax - extra + 1e-9 && exit.y >= region.yMin + point.below - 1e-9 && exit.y <= region.yMax + 1e-9);
       const best = exits.sort((a, b) => a.cost - b.cost)[0];
       if (best) { point.x = best.x; point.y = best.y; }
     });
@@ -222,13 +287,12 @@ export function mapSpots(entries, {region, avoid}) {
   for (let round = 0; round < 1500; round++) {
     let moved = false;
     for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) {
-      const a = points[i], b = points[j];
-      let dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
-      if (distance >= apart - 1e-6) continue;
-      // Coincident discs (two copies of one mold) part along the stability axis.
-      if (distance < 1e-9) { dx = 1; dy = (j - i) % 2 ? .25 : -.25; distance = Math.hypot(dx, dy); }
-      const push = (apart - distance) / 2 + 1e-5, ux = dx / distance, uy = dy / distance;
-      a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push;
+      const a = points[i], b = points[j], overlap = overlapOf(a, b, radius, gap);
+      if (!overlap) continue;
+      // Apart along the shorter way out; coincident discs (two copies of one mold) part along the
+      // stability axis.
+      const push = overlap.by / 2 + 1e-5, sign = overlap.sign || ((j - i) % 2 ? 1 : -1);
+      if (overlap.axis === 'x') { a.x -= sign * push; b.x += sign * push; } else { a.y -= sign * push; b.y += sign * push; }
       moved = true;
     }
     points.forEach(settle);
@@ -238,9 +302,10 @@ export function mapSpots(entries, {region, avoid}) {
   // takes the free grid point nearest where the Atlas put it.
   for (const side of [-1, 1]) {
     const group = points.filter(point => point.side === side);
-    const crowded = group.some((a, i) => group.some((b, j) => j > i && Math.hypot(a.x - b.x, a.y - b.y) < apart - 1e-6));
+    const crowded = group.some((a, i) => group.some((b, j) => j > i && overlapOf(a, b, radius, gap)));
     if (!crowded) continue;
-    const free = gridSlots({region, avoid}, side, apart);
+    const cell = {reach: Math.max(...group.map(point => point.reach)), below: Math.max(...group.map(point => point.below))};
+    const free = gridSlots({region, avoid}, side, cell);
     for (const point of [...group].sort((a, b) => b.y - a.y || side * (b.x - a.x))) {
       if (!free.length) break;
       let best = 0;
@@ -249,4 +314,12 @@ export function mapSpots(entries, {region, avoid}) {
     }
   }
   return new Map(points.map(point => [point.key, {position: [point.x, point.y, z], scale}]));
+}
+// How far two discs' footprints (disc and name) overlap, `gap` apart counted: the shorter way out
+// ('x' or 'y'), by how much, and which way b lies from a (0 when they coincide). Null when clear.
+function overlapOf(a, b, radius, gap) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const x = a.reach + b.reach + gap - Math.abs(dx), y = radius + (dy >= 0 ? b.below : a.below) + radius + gap - Math.abs(dy);
+  if (x <= 1e-6 || y <= 1e-6) return null;
+  return x <= y ? {axis: 'x', by: x, sign: Math.sign(dx)} : {axis: 'y', by: y, sign: Math.sign(dy) || 1};
 }

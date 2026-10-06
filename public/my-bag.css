@@ -150,15 +150,15 @@ body[data-view="bag"] main {display:none!important}
 .bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both}
 .bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
 @keyframes bag-pill-in {from {opacity:0}}
-/* Out discs: a click slides a disc out and it stays out until clicked again. Each carries its
-   name under it; on the map the names are compact, and one that would cover a disc or another
-   name waits for hover. Names fade while discs move. */
+/* Out discs: a click slides a disc out and it stays out until clicked again. Every out disc
+   carries its name under it, beside the bag and on the map (more compact there); the layout keeps
+   room for each, clear of the bag, the discs and each other. Names fade while discs move. */
 .bag-out-names {position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;transition:opacity 200ms ease}
 .bag-scene[data-staging="moving"] .bag-out-names {opacity:0;transition-duration:90ms}
-.bag-out-name {transform:translateX(-50%);pointer-events:auto;cursor:pointer}
-.bag-out-name:hover {border-color:#ffffff66}
+.bag-out-name {transform:translateX(-50%);max-width:min(180px,calc(100% - 12px));padding:calc(4px * var(--bag-type)) calc(11px * var(--bag-type));font-size:calc(12px * var(--bag-type));letter-spacing:.15px;box-shadow:0 4px 14px #00000038;pointer-events:auto;cursor:pointer;transition:border-color 120ms,background-color 120ms}
+.bag-out-name:hover {border-color:#ffffff66;background:#1d242ef5}
 .bag-scene[data-staging="moving"] .bag-out-name {pointer-events:none}
-.bag-scene[data-stage="map"] .bag-out-name {max-width:132px;padding:3px 9px;border-radius:7px;font:500 11px/1.3 var(--mono,'Space Grotesk',sans-serif);letter-spacing:0}
+.bag-scene[data-stage="map"] .bag-out-name {max-width:132px;padding:3px 9px;font-size:calc(11px * var(--bag-type))}
 .bag-hit-slot[data-out] .bag-physical-disc {border-radius:50%}
 /* Map mode: the Stitch grid, lined up with the page's, under a flight map around the bag. */
 .bag-map-grid {position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 420ms ease}

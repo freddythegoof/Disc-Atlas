@@ -127,19 +127,37 @@ test('staging switches from the side layout to the map at the sixth out disc', (
   assert.equal(STAGE.sideMax, 5);
 });
 
-test('beside the bag, discs sort by stability: understable left, overstable right, balanced', () => {
-  const discs = [entry('fade', .9, .4), entry('turn', .1, .6), entry('neutral', .52, .5), entry('flip', .3, .8), entry('stable', .7, .2)];
-  for (let count = 1; count <= 5; count++) {
-    const list = discs.slice(0, count), sides = assignSides(list);
-    const left = list.filter(d => sides.get(d.key) === 'left'), right = list.filter(d => sides.get(d.key) === 'right');
-    assert.ok(Math.abs(left.length - right.length) <= 1, `${count}: balanced ${left.length}/${right.length}`);
-    if (left.length && right.length) assert.ok(Math.max(...left.map(d => d.atlas.x)) <= Math.min(...right.map(d => d.atlas.x)), `${count}: every left disc is less stable than every right disc`);
+// Left and right columns from assignSides, each listed by key.
+const columns = list => { const sides = assignSides(list); return {left: list.filter(d => sides.get(d.key) === 'left').map(d => d.key), right: list.filter(d => sides.get(d.key) === 'right').map(d => d.key)}; };
+const stabilityOf = list => key => list.find(d => d.key === key).atlas?.x ?? .5;
+
+test('beside the bag, discs split relative to each other: less overstable half left, more overstable half right, balanced', () => {
+  const mixed = [entry('fade', .9, .4), entry('turn', .1, .6), entry('neutral', .52, .5), entry('flip', .3, .8), entry('stable', .7, .2)];
+  const allOver = [entry('o1', .78, .9), entry('o2', .95, .3), entry('o3', .7, .5), entry('o4', .88, .6), entry('o5', .82, .1)];
+  const allUnder = [entry('u1', .05, .9), entry('u2', .3, .3), entry('u3', .12, .5), entry('u4', .2, .6), entry('u5', .26, .1)];
+  for (const [name, discs] of [['mixed', mixed], ['all overstable', allOver], ['all understable', allUnder]]) {
+    for (let count = 1; count <= 5; count++) {
+      const list = discs.slice(0, count), {left, right} = columns(list), x = stabilityOf(list);
+      assert.ok(Math.abs(left.length - right.length) <= 1, `${name} ${count}: even ${left.length}/${right.length}`);
+      if (left.length && right.length) assert.ok(Math.max(...left.map(x)) <= Math.min(...right.map(x)), `${name} ${count}: every left disc is less overstable than every right disc`);
+    }
   }
-  // A lone disc (or the middle one of an odd count) takes the side its own stability is on.
-  assert.equal(assignSides([entry('fade', .9, .4)]).get('fade'), 'right');
-  assert.equal(assignSides([entry('turn', .2, .4)]).get('turn'), 'left');
-  assert.equal(assignSides([entry('a', .1, 0), entry('m', .8, 0), entry('b', .9, 0)]).get('m'), 'right');
-  assert.equal(assignSides([entry('a', .1, 0), entry('m', .3, 0), entry('b', .9, 0)]).get('m'), 'left');
+  // An all-overstable (or all-understable) set still spreads evenly: no fixed threshold.
+  assert.deepEqual(columns(allOver.slice(0, 4)), {left: ['o1', 'o3'], right: ['o2', 'o4']}, 'Four overstable discs: the two least overstable go left');
+  assert.deepEqual(columns(allUnder.slice(0, 4)), {left: ['u1', 'u3'], right: ['u2', 'u4']}, 'Four understable discs: the two most overstable go right');
+  // Even counts split exactly at the median.
+  assert.deepEqual(columns([entry('a', .61, 0), entry('b', .6, 0)]), {left: ['b'], right: ['a']});
+  // Odd counts: the median joins the neighbor it is nearer in stability; the right on a tie.
+  assert.deepEqual(columns([entry('a', .7, 0), entry('m', .72, 0), entry('b', .95, 0)]), {left: ['a', 'm'], right: ['b']}, 'Median near the lower neighbor goes left');
+  assert.deepEqual(columns([entry('a', .7, 0), entry('m', .93, 0), entry('b', .95, 0)]), {left: ['a'], right: ['m', 'b']}, 'Median near the upper neighbor goes right');
+  assert.deepEqual(columns([entry('a', .2, 0), entry('m', .5, 0), entry('b', .8, 0)]), {left: ['a'], right: ['m', 'b']}, 'A tie goes right');
+  assert.deepEqual(columns([entry('a', .1, 0), entry('b', .2, 0), entry('m', .5, 0), entry('c', .52, 0), entry('d', .9, 0)]), {left: ['a', 'b'], right: ['m', 'c', 'd']});
+  // A lone disc rests on the right whatever its stability.
+  assert.deepEqual(columns([entry('turn', .1, .4)]), {left: [], right: ['turn']});
+  assert.deepEqual(columns([entry('fade', .9, .4)]), {left: [], right: ['fade']});
+  // Equal stability splits in out order; unrated discs count as neutral.
+  assert.deepEqual(columns([entry('p', .6, 0), entry('q', .6, 0), entry('r', .6, 0), entry('s', .6, 0)]), {left: ['p', 'q'], right: ['r', 's']});
+  assert.equal(assignSides([entry('x', null), entry('y', .9, .3)]).get('x'), 'left');
 });
 
 test('side spots rest just clear of the bag, faster discs higher, with room for names', () => {
@@ -156,6 +174,56 @@ test('side spots rest just clear of the bag, faster discs higher, with room for 
   // Unrated discs count as neutral and still get a spot.
   assert.equal(sideSpots([entry('x', null), entry('y', .2, .3)]).size, 2);
 });
+
+// Out discs with a name of `width` × `height` (page-view meters, gap above included) under each.
+const named = (list, width, height) => list.map(d => ({...d, label: {width, height}}));
+// The disc-and-name box of a staged spot, for a name of label × pull.
+const footBox = (spot, label, pull) => {
+  const r = DISC.radius * spot.scale, reach = Math.max(r, label.width * pull / 2), [x, y] = spot.position;
+  return {xMin: x - reach, xMax: x + reach, yMin: y - r - label.height * pull, yMax: y + r};
+};
+const boxesOverlap = (a, b, by = 0) => a.xMin < b.xMax + by - 1e-6 && b.xMin < a.xMax + by - 1e-6 && a.yMin < b.yMax + by - 1e-6 && b.yMin < a.yMax + by - 1e-6;
+
+test('beside the bag, wide names step their column out so no name reaches the bag; tall names open the rows', () => {
+  const discs = named([entry('a', .2, .9), entry('b', .25, .1), entry('c', .3, .5), entry('d', .8, .7), entry('e', .9, .2)], .2, .05);
+  for (const pull of [1, 1.4]) {
+    const spots = sideSpots(discs, undefined, {pull}), label = {width: .2, height: .05};
+    const boxes = [...spots.values()].map(spot => footBox(spot, label, pull));
+    for (const box of boxes) assert.ok(!boxesOverlap(box, BAG_BOX), `${pull}: name clear of the bag ${JSON.stringify(box)}`);
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i], boxes[j]), `${pull}: discs and names apart`);
+  }
+  // Narrow names leave the columns where they were.
+  const plain = sideSpots(discs.map(({label, ...d}) => d)), narrow = sideSpots(named(discs, .01, .01));
+  assert.deepEqual([...narrow].map(([k, s]) => [k, s.position[0]]), [...plain].map(([k, s]) => [k, s.position[0]]));
+});
+
+test('on the map, every disc keeps room for its name: no name on the bag, a disc, another name or a kept-clear box', () => {
+  // Names keep their pixel size: about .07 × .025 m at the page view on a desktop canvas, .11 × .045 m on a phone's.
+  const clear = [{left: 0, top: .97, right: .25, bottom: 1}, {left: .7, top: .97, right: 1, bottom: 1}, {left: 0, top: 0, right: .15, bottom: .04}];
+  for (const [count, label] of [[6, {width: .11, height: .045}], [8, {width: .11, height: .045}], [12, {width: .11, height: .045}], [12, {width: .07, height: .025}], [20, {width: .07, height: .025}]]) {
+    const discs = named(Array.from({length: count}, (_, i) => entry('n' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)), label.width, label.height);
+    // The frame either counts names on a grid, or (given the discs) lays them out until clean.
+    for (const frame of [mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}, clear, label}),
+      mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}, clear, label, entries: discs})]) {
+    const spots = mapSpots(discs, frame), boxes = [...spots].map(([key, spot]) => [key, footBox(spot, label, frame.pull)]);
+    for (const [key, box] of boxes) {
+      assert.ok(!boxesOverlap(box, BAG_BOX), `${count}: ${key} and its name clear of the bag`);
+      for (const keep of frame.avoid.slice(1)) assert.ok(!boxesOverlap(box, inflateBy(keep, -DISC.radius * STAGE.map.scale)), `${count}: ${key} clear of a kept-clear box`);
+      assert.ok(box.yMin >= frame.region.yMin - DISC.radius * STAGE.map.scale - 1e-6, `${count}: ${key}'s name inside the frame`);
+    }
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${count}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
+    assert.deepEqual([...mapSpots(discs, frame)], [...spots], 'Deterministic');
+    }
+  }
+  // Laying the discs out finds a clean map without pulling back as far as the grid of names asks.
+  const discs = named(Array.from({length: 8}, (_, i) => entry('g' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)), .11, .045);
+  const options = {count: 8, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}, clear, label: {width: .11, height: .045}};
+  assert.ok(mapFrame({...options, entries: discs}).pull <= mapFrame(options).pull);
+  // Names cost room: the same count pulls back at least as far with them.
+  const label = {width: .11, height: .045};
+  assert.ok(mapFrame({count: 12, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, label}).pull >= mapFrame({count: 12, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075}).pull);
+});
+const inflateBy = (box, by) => ({xMin: box.xMin - by, xMax: box.xMax + by, yMin: box.yMin - by, yMax: box.yMax + by});
 
 test('map spots follow Atlas positions around the bag without overlapping it or each other', () => {
   // Every disc also stays on the side of the bag its stability leans to, even when one side is crowded.
