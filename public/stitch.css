@@ -1,0 +1,140 @@
+/* Stitch reskin: obsidian surfaces, a lime accent and mono metadata.
+   Paint only. This file changes colors, surfaces, radii, shadows and chrome type; it never
+   changes box sizes or border widths (the type chips only redistribute their padding), so
+   every layout stays exactly where it was.
+   Frozen tokens (the map draws with them): --text --muted --bg --map-bg --grid --center-line
+   --ambient --marker-edge, the type colors and the Okabe-Ito --palette-* hues.
+   Map labels keep their fonts: label footprints drive grouping, so nothing in #mapMarkers
+   changes typeface, size or tracking. */
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(fonts/jetbrains-mono.woff2) format('woff2');
+}
+
+:root {
+  --panel:#ffffff;--surface:#eef1f4;--selected:#e6eedb;--line:#dde2e8;
+  --lime:#3f6212;--accent-soft:#eef6e0;--on-accent:#ffffff;
+  --accent-fill:#a3e635;--accent-ink:#1a2e05;
+  --accent-edge:color-mix(in srgb,#65a30d 45%,transparent);
+  --accent-glow:0 0 18px -4px rgba(101,163,13,.45);
+  --hairline:color-mix(in srgb,var(--line) 85%,transparent);
+  --glass:color-mix(in srgb,var(--panel) 88%,transparent);
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+:root[data-theme="midnight"] {
+  --panel:#0c111a;--surface:#111722;--selected:#1a2332;--line:#1c2534;
+  --lime:#a3e635;--accent-soft:#18240f;--on-accent:#132004;
+  --accent-fill:#a3e635;--accent-ink:#132004;
+  --accent-edge:rgba(163,230,53,.35);
+  --accent-glow:0 0 20px -3px rgba(163,230,53,.35);
+  --hairline:rgba(255,255,255,.06);
+}
+:root[data-theme="charcoal"] {
+  --panel:#18191c;--surface:#212327;--selected:#2b2e33;--line:#2c2f35;
+  --lime:#a3e635;--accent-soft:#20271a;--on-accent:#132004;
+  --accent-fill:#a3e635;--accent-ink:#132004;
+  --accent-edge:rgba(163,230,53,.32);
+  --accent-glow:0 0 20px -4px rgba(163,230,53,.3);
+  --hairline:rgba(255,255,255,.06);
+}
+
+/* Page: a barely-there grid and a lime breath at the top, dark themes only. */
+:root:not([data-theme="light"]) body {
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%,rgba(163,230,53,.035),transparent 70%),
+    linear-gradient(to right,rgba(255,255,255,.018) 1px,transparent 1px) 0 0/48px 48px,
+    linear-gradient(to bottom,rgba(255,255,255,.018) 1px,transparent 1px) 0 0/48px 48px,
+    var(--bg);
+}
+
+/* Header and primary nav */
+header { background:var(--glass); border-bottom-color:var(--hairline); }
+.logo svg { color:var(--lime); }
+header nav { background:var(--bg); border-color:var(--hairline); border-radius:999px; box-shadow:inset 0 1px 2px var(--shadow); }
+header nav button { border-radius:999px; transition:background .18s,color .18s,box-shadow .18s; }
+header nav button:hover { color:var(--text); }
+header nav button.active { background:var(--accent-fill); color:var(--accent-ink); box-shadow:var(--accent-glow); }
+header nav button::after { background:var(--accent-fill); }
+.theme-toggle:hover,.site-menu-button:hover { background:var(--surface); color:var(--lime); }
+.site-menu { background:var(--panel); border-color:var(--hairline); }
+
+/* Explore toolbar: search, filters, type chips, lens */
+.explore-tools .search,#filtersToggle,.atlas-lens {
+  background:var(--glass); border-color:var(--hairline); box-shadow:0 8px 32px -12px var(--shadow);
+}
+.search:focus-within,.explore-tools .search:focus-within { border-color:var(--accent-edge); box-shadow:0 0 0 3px var(--accent-soft); }
+#filtersToggle[aria-expanded="true"] { border-color:var(--accent-edge); background:var(--accent-soft); color:var(--lime); }
+.explore-tools .type-chips button {
+  /* Same 28px of horizontal padding, moved left to make room for the type dot. */
+  padding-left:23px; padding-right:5px;
+  background:radial-gradient(circle at 12px 50%,var(--chip-dot,var(--muted)) 3px,transparent 3.6px) no-repeat var(--glass);
+  border-color:var(--hairline);
+}
+@media(max-width:700px){ .explore-tools .type-chips button { padding-left:24px; padding-right:6px; } }
+.type-chips button[data-type="distance"] { --chip-dot:var(--distance); }
+.type-chips button[data-type="fairway"] { --chip-dot:var(--fairway); }
+.type-chips button[data-type="mid"] { --chip-dot:var(--mid); }
+.type-chips button[data-type="putter"] { --chip-dot:var(--putter); }
+.explore-tools .type-chips button[aria-pressed="true"] {
+  background:radial-gradient(circle at 12px 50%,var(--chip-dot) 3px,transparent 3.6px) no-repeat var(--selected);
+  color:var(--text); border-color:var(--accent-edge); box-shadow:inset 0 0 0 1px var(--accent-edge);
+}
+.explore-tools .atlas-lens button[aria-checked="true"] { background:var(--surface); color:var(--text); box-shadow:inset 0 0 0 1px var(--hairline),0 1px 3px var(--shadow); }
+
+/* Buttons */
+.pill-button { background:var(--surface); border-color:var(--hairline); }
+.pill-button:hover { background:var(--selected); }
+.pill-button.primary { background:var(--accent-fill); color:var(--accent-ink); border-color:var(--accent-fill); box-shadow:var(--accent-glow); }
+.pill-button.primary:hover { background:var(--accent-fill); filter:brightness(1.06); }
+.wide.primary,.wide.primary:hover,.cluster-action { background:var(--accent-fill); color:var(--accent-ink); box-shadow:var(--accent-glow); }
+.cluster-action:hover { color:var(--accent-ink); }
+.coach-launch { background:var(--glass); color:var(--text); border-color:var(--accent-edge); box-shadow:var(--accent-glow); }
+.coach-launch:hover { color:var(--lime); }
+
+/* Map chrome (outside the markers) */
+#map { border-color:var(--hairline); }
+.map-controls { background:var(--glass); border-color:var(--hairline); }
+.map-controls button:hover { background:var(--accent-soft); color:var(--lime); }
+.stability-axis>strong { font-family:var(--mono); font-weight:500; letter-spacing:.06em; text-transform:uppercase; }
+.stability-axis small { font-family:var(--mono); }
+
+/* Detail panel, stack chooser, cluster popover */
+.detail { background:var(--panel); border-left-color:var(--hairline); }
+.detail .brand-name { color:var(--lime); font-family:var(--mono); }
+.detail h2,.stack-matchup h2 { font-weight:700; letter-spacing:-.035em; }
+.detail .numbers { background:var(--surface); border-color:var(--hairline); }
+.numbers strong { font-family:var(--mono); font-weight:600; letter-spacing:-.04em; }
+.numbers small { font-family:var(--mono); text-transform:uppercase; }
+.stack-choice { background:var(--surface); border-color:var(--hairline); }
+.stack-choice:hover { background:var(--accent-soft); border-color:var(--accent-edge); }
+.stack-ratings { font-family:var(--mono); }
+.cluster-popover { background:var(--panel); border-color:var(--hairline); }
+
+/* Directory */
+#viewTitle { font-weight:700; letter-spacing:-.035em; }
+.count { color:var(--lime); background:var(--accent-soft); border-color:var(--accent-edge); }
+#sortBar button[aria-pressed="true"] { background:var(--accent-fill); color:var(--accent-ink); box-shadow:var(--accent-glow); }
+.list-head { background:var(--surface); }
+.disc-row { border-top-color:var(--hairline); }
+.disc-row:hover { background:var(--accent-soft); }
+.disc-row.selected { background:var(--accent-soft); box-shadow:inset 3px 0 var(--lime); }
+.disc-row .nums { color:var(--text); }
+.disc-row .score { color:var(--lime); font-family:var(--mono); font-weight:600; }
+
+/* My bag */
+#myBagTitle,#myMapTitle { font-weight:700; letter-spacing:-.04em; }
+.eyebrow { font-family:var(--mono); letter-spacing:.14em; }
+.my-bag-views { background:var(--bg); border-color:var(--hairline); border-radius:999px; }
+.my-bag-views button { border-radius:999px; }
+.my-bag-views button[aria-checked="true"] { background:var(--surface); color:var(--text); box-shadow:inset 0 0 0 1px var(--accent-edge); }
+.my-bag-meter { border-color:var(--hairline); }
+#bagSort { background:var(--panel); border-color:var(--hairline); }
+#bagSortHint { font-family:var(--mono); letter-spacing:-.01em; }
+.my-map-host,#myMapHost #map { border-color:var(--hairline); }
+
+/* Focus stays lime everywhere. */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible { outline-color:var(--lime); }

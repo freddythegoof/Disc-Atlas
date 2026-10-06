@@ -138,7 +138,7 @@ export async function checkThemePicker(browser,base){
    assert.ok(await choice.evaluate(n=>getComputedStyle(n).outlineStyle!=='none'),'Theme choice has visible keyboard focus');
    assert.ok(await menu.isVisible(),'Theme preview leaves the menu open');
    assert.ok(await page.evaluate(()=>performance.timeOrigin===themeVisit&&themeMapNodes.every(n=>markerNodes.get(n.dataset.cluster)===n)),'Theme changes do not reload or rebuild markers');
-   assert.equal(await menu.evaluate(n=>getComputedStyle(n).backgroundColor),{light:'rgb(255, 255, 255)',midnight:'rgb(19, 23, 30)',charcoal:'rgb(26, 27, 30)'}[value],'Menu uses the selected theme surface');
+   assert.equal(await menu.evaluate(n=>getComputedStyle(n).backgroundColor),{light:'rgb(255, 255, 255)',midnight:'rgb(12, 17, 26)',charcoal:'rgb(24, 25, 28)'}[value],'Menu uses the selected theme surface');
    await settle();await page.waitForTimeout(250);await page.screenshot({path:`${dir}/menu-1440-${value}.png`,clip:{x:0,y:0,width:1440,height:420}});
    await page.keyboard.press('Escape');assert.ok(await button.evaluate(n=>n===document.activeElement));
   }
@@ -155,7 +155,7 @@ export async function checkThemePicker(browser,base){
    assert.ok(await page.locator(selector).first().evaluate(n=>{const color=getComputedStyle(n).color;const sample=document.createElement('span');sample.style.color='var(--text)';document.body.append(sample);const expected=getComputedStyle(sample).color;sample.remove();return color===expected;}),`${selector} uses the Charcoal text token`);
   }
   // Apply every theme with Directory and details already open, without revisiting.
-  for(const [name,value,panel,text,grid] of [['Light','light','rgb(255, 255, 255)','rgb(32, 39, 49)','#b2bdcc'],['Midnight','midnight','rgb(19, 23, 30)','rgb(237, 242, 252)','#38475b'],['Charcoal','charcoal','rgb(26, 27, 30)','rgb(241, 242, 245)','#484c55']]){
+  for(const [name,value,panel,text,grid] of [['Light','light','rgb(255, 255, 255)','rgb(32, 39, 49)','#b2bdcc'],['Midnight','midnight','rgb(12, 17, 26)','rgb(237, 242, 252)','#38475b'],['Charcoal','charcoal','rgb(24, 25, 28)','rgb(241, 242, 245)','#484c55']]){
    await button.click();await menu.getByRole('menuitemradio',{name,exact:true}).click();await page.mouse.move(0,75);await page.waitForTimeout(250);
    assert.equal(await page.locator('#detail').evaluate(n=>getComputedStyle(n).backgroundColor),panel);
    assert.equal(await page.locator('#directory').evaluate(n=>getComputedStyle(n).backgroundColor),panel);
