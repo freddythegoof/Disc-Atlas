@@ -54,6 +54,10 @@
   if (dialog.open) ($('#coachInput').disabled ? $('#coachClose') : $('#coachInput')).focus();
  }
  $('#coachButton').addEventListener('click', open); $('#askCoach')?.addEventListener('click', open);
+ document.addEventListener('click', event => {
+  const close = event.target.closest('[data-close-dialog]');
+  if (close) document.getElementById(close.dataset.closeDialog)?.close();
+ });
  dialog.addEventListener('close', () => {$('#coachButton').setAttribute('aria-expanded', 'false'); opener?.focus();});
  dialog.addEventListener('keydown', event => {
   if (event.key !== 'Tab') return;

@@ -36,9 +36,27 @@ try {
  });
  const capture = async name => {await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(200); await page.screenshot({path: `${dir}/${name}.png`});};
  const open = async () => {if (!await page.locator('#coachDialog').isVisible()) await page.getByRole('button', {name: 'Atlas Coach', exact: true}).click(); await page.getByRole('dialog', {name: 'Atlas Coach', exact: true}).waitFor();};
- const close = async () => {await page.keyboard.press('Escape'); await page.waitForFunction(() => document.activeElement === document.querySelector('#coachButton'));};
+ const close = async () => {
+  await page.locator('#coachClose').click();
+  await page.waitForFunction(() => !document.querySelector('#coachDialog').open && document.activeElement === document.querySelector('#coachButton') && document.querySelector('#coachButton').getAttribute('aria-expanded') === 'false');
+  assert.equal(await page.locator('#coachButton').getAttribute('aria-expanded'), 'false');
+ };
  const theme = async value => {await page.getByRole('button', {name: 'Site menu', exact: true}).click(); await page.getByRole('menuitemradio', {name: value[0].toUpperCase() + value.slice(1), exact: true}).click(); await page.keyboard.press('Escape');};
+ // Coach dismissal must work independently of the bag's delegated click handler.
+ await page.route('**/bag.js', route => route.fulfill({contentType: 'application/javascript', body: ''}));
  await page.goto(base); await page.waitForFunction(() => window.AtlasAccount?.current);
+ await open(); await close();
+ await open(); await page.keyboard.press('Escape');
+ await page.waitForFunction(() => !document.querySelector('#coachDialog').open && document.activeElement === document.querySelector('#coachButton') && document.querySelector('#coachButton').getAttribute('aria-expanded') === 'false');
+ assert.equal(await page.locator('#coachButton').getAttribute('aria-expanded'), 'false');
+ await page.evaluate(() => {
+  document.body.insertAdjacentHTML('beforeend', '<dialog id="delegatedCloseTest"><button data-close-dialog="delegatedCloseTest"><span>Close test dialog</span></button></dialog>');
+  document.querySelector('#delegatedCloseTest').showModal();
+ });
+ await page.locator('#delegatedCloseTest span').click();
+ assert.equal(await page.locator('#delegatedCloseTest').evaluate(node => node.open), false, 'Descendant clicks close the dialog named by the attribute');
+ await page.locator('#delegatedCloseTest').evaluate(node => node.remove());
+ await page.unroute('**/bag.js'); await page.reload(); await page.waitForFunction(() => window.AtlasAccount?.current);
  await open();
  assert.ok(!await page.locator('#coachForm').isVisible(), 'Signed-out users see a sign-in prompt, not the chat form');
  assert.ok(!await page.locator('#coachMessages').isVisible(), 'Signed-out transcript is hidden');
