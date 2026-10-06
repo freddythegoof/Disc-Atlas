@@ -136,6 +136,20 @@ try {
  const only=await page.evaluate(()=>({filtered:filtered.length,all:filtered.every(d=>window.BagApp.mapColors().has(d.id)),zoom}));
  assert.ok(only.all && only.filtered===want.size && only.zoom===1,'My Bag, framed at 1x: '+JSON.stringify(only));
  await shot('map-only-1x-1440-light');
+ // Directory always browses the catalog, independently of the map's My Bag lens.
+ for(const [name,viewport] of [['desktop',{width:1440,height:1000}],['mobile',{width:390,height:844}]]){
+  await page.setViewportSize(viewport);await page.locator('#listTab').click();
+  assert.ok(await page.locator('#atlasLens').isHidden(),`${name}: Directory has no map lens option`);
+  assert.ok(await lensMenu.isHidden(),`${name}: Directory has no open map menu`);
+  assert.ok(await page.evaluate(()=>filtered.length>window.BagApp.mapColors().size && filtered.every(inCollection)),`${name}: Directory uses the catalog collection`);
+  await page.locator('#search').fill('zzzz-no-matching-disc');
+  assert.equal((await page.locator('#rows').innerText()).trim(),'No discs match these filters.',`${name}: Directory empty state describes catalog filters`);
+  await page.locator('#search').fill('');await shot(`directory-${name}`);
+  await page.locator('#mapTab').click();
+  assert.equal(await label(),'My Bag',`${name}: returning to the map preserves its lens`);
+  assert.ok(await page.evaluate(()=>filtered.length===window.BagApp.mapColors().size && filtered.every(d=>window.BagApp.mapColors().has(d.id))),`${name}: My Bag still shows only bagged molds`);
+ }
+ await page.setViewportSize({width:1440,height:1000});
  // Standard: the shared atlas.
  await chooseMap('Standard');assert.equal(await label(),'Standard');
  assert.equal(await page.locator('#mapMarkers .atlas-marker.is-mine').count(),0,'Standard has no bag colors');
@@ -198,12 +212,12 @@ try {
  const rims=await page.locator('#bagScene [data-pocket="putter"] [data-physical-disc]').evaluateAll(nodes=>nodes.map(n=>n.parentNode.getBoundingClientRect().height));
  assert.ok(rims.every(h=>h>0 && h<22),'Closed: only the rims show (hit targets follow): '+rims);
  assert.equal(await viewer(v=>v.puttersOut),false);
- // Sample the rise: the front putter leaves first and every putter overshoots slightly into place.
- await canvasBox.evaluate(n=>{const s=n.riseSamples=[];const tick=()=>{s.push(n.bagViewer.getBagLayoutState().filter(d=>d.pocket==='putter' && !d.empty).sort((a,b)=>a.order-b.order).map(d=>d.pose[1]));if(s.length<80)requestAnimationFrame(tick);};requestAnimationFrame(tick);});
+ // Sample until settled: a fixed frame count can truncate the rise on high-refresh displays.
+ await canvasBox.evaluate(n=>{const s=n.riseSamples=[];n.samplingRise=true;const tick=()=>{s.push(n.bagViewer.getBagLayoutState().filter(d=>d.pocket==='putter' && !d.empty).sort((a,b)=>a.order-b.order).map(d=>d.pose[1]));if(n.samplingRise)requestAnimationFrame(tick);};requestAnimationFrame(tick);});
  await page.locator('[data-bag-toggle]').click();
  await page.waitForTimeout(260);await shot('bag-opening-putters-rising-1440-light',scene);
  await phase('open');await settled();
- const rise=await canvasBox.evaluate(n=>n.riseSamples),start=rise[0];
+ const rise=await canvasBox.evaluate(n=>{n.samplingRise=false;return n.riseSamples;}),start=rise[0];
  const firstMove=out.map((_,i)=>rise.findIndex(frame=>frame[i]>start[i]+1e-4));
  assert.ok(firstMove.every((f,i)=>f>=0 && (i===0 || f>=firstMove[i-1])),'Front putter rises first: '+firstMove);
  assert.ok(out.some((p,i)=>Math.max(...rise.map(f=>f[i]))>p.rest+.001),'They spring into the row');

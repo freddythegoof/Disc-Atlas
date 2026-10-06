@@ -11,6 +11,7 @@ export async function checkDirectory(browser,base){
  try{
   await page.goto(base);await ready();
   assert.equal(await page.locator('body').getAttribute('data-view'),'list','Mobile opens in Directory');
+  assert.ok(await page.locator('#atlasLens').isHidden(),'Directory has no map lens option');
   assert.equal(await page.locator('#sort').inputValue(),'featured','First-time visitors get Featured');
   assert.deepEqual(await page.evaluate(()=>filtered.slice(0,3).map(d=>d.name)),['Destroyer','Buzzz','Zone']);
   const currentCount=await page.evaluate(()=>filtered.length);
