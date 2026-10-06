@@ -22,11 +22,11 @@ window.AtlasLayout = (() => {
   // and the display scatter adds up to .062 (tests/atlas-layout.mjs checks the catalog fits).
   const FRAME = {minX: .045, maxX: 1.055, minY: -.06, maxY: 1.025};
   // The 1x view fits that envelope to the visible map: disc centers run from just under the
-  // search bar to a name's height above the axis legend, and close to both sides.
+  // search bar (and the type chips, which wrap under it below 1100px) to a name's height above the axis legend, and close to both sides.
   function bounds(width, height, immersive = true) {
     const mobile = width < 700;
     const view = immersive
-      ? {left: mobile ? 38 : 62, right: width - (mobile ? 38 : 58), top: mobile ? 84 : 90, bottom: height - (mobile ? 195 : 172)}
+      ? {left: mobile ? 38 : 62, right: width - (mobile ? 38 : 58), top: mobile ? 132 : width < 1100 ? 138 : 90, bottom: height - (mobile ? 195 : 172)}
       : {left: 48, right: width - 48, top: 60, bottom: height - 70};
     view.right = Math.max(view.left + 80, view.right);view.bottom = Math.max(view.top + 60, view.bottom);
     const w = (view.right - view.left) / (FRAME.maxX - FRAME.minX), h = (view.bottom - view.top) / (FRAME.maxY - FRAME.minY);

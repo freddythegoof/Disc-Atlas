@@ -367,3 +367,25 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidd
 .atlas-marker.is-mine .disc-art,.atlas-marker.is-dot.is-mine .map-dot{outline:2px solid color-mix(in srgb,var(--text) 78%,transparent);outline-offset:2px}
 .atlas-marker.is-dot.is-mine .map-dot{outline-width:1.5px;outline-offset:1.5px}
 .legend .dot.mine{background:none;border:2px solid color-mix(in srgb,var(--text) 78%,transparent)}
+/* Disc-type filter chips beside the search bar: Driver / Fairway / Midrange / Putter.
+   Wide screens keep them on the search row; below 1100px they wrap under it. */
+.explore-tools{flex-wrap:wrap;row-gap:10px}
+.explore-tools .search{min-width:190px}
+.type-chips{display:flex;flex-wrap:wrap;gap:8px;margin-left:6px}
+.explore-tools .type-chips button{height:34px;padding:0 14px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid color-mix(in srgb,var(--line) 75%,transparent);box-shadow:0 2px 8px var(--shadow)}
+.explore-tools .type-chips button:hover{color:var(--text)}
+.explore-tools .type-chips button[aria-pressed="true"]{background:var(--selected);color:var(--text);border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime)}
+body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100% - 56px));max-width:none}
+@media(min-width:1100px){
+ body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:min(1040px,calc(100% - 56px))}
+}
+@media(max-width:1099px){
+ .type-chips{flex:0 0 100%;order:3;margin-left:0}
+ body[data-view="map"]:not(.my-bag-mode) .map-caption{top:156px}
+}
+@media(max-width:700px){
+ .explore-tools .search{min-width:0}
+ body[data-view="map"]:not(.my-bag-mode) .map-caption{top:132px}
+ .explore-tools .type-chips button{height:38px;padding:0 15px;font-size:13px}
+ body[data-view="map"]:not(.my-bag-mode) .explore-tools,body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:calc(100% - 32px)}
+}

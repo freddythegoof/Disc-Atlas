@@ -52,6 +52,9 @@ try{
  }else if(process.argv.includes('--context-header')){
   const {checkContextHeader}=await import('./context-header.mjs');
   await checkContextHeader(browser,base);
+ }else if(process.argv.includes('--type-chips')){
+  const {checkTypeChips}=await import('./type-chips.mjs');
+  await checkTypeChips(browser,base);
  }else if(process.argv.includes('--filter-regroup')){
   const {checkFilterRegroup}=await import('./filter-regroup.mjs');
   await checkFilterRegroup(browser,base);
