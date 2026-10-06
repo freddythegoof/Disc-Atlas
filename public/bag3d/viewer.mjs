@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures } from './disc-features.mjs';
-import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, stageMode, assignSides, sideSpots, mapFrame, mapSpots } from './bag-layout.mjs';
+import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, assignSides, sideSpots, ringFrame, ringLayout } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -31,6 +31,9 @@ const TRAVEL_MS = 480, TRAVEL_AT = .75, SLIDE_TOTAL = SLIDE_MS * TRAVEL_AT + TRA
 const ARC_Z = .42;
 // Staged discs and their names stay this far (px) inside the canvas.
 const FRAME_MARGIN = 8;
+// The furthest the camera pulls back for a ring with names: a crowd needing more takes compact
+// names, then none (names keep their pixel size, so beyond this the bag would shrink to a token).
+const NAMED_PULL = 2.6;
 // A hovered disc lights up in its own color at this emissive intensity.
 const GLOW = 1.1;
 export const MAX_ZOOM = 3;
@@ -166,7 +169,7 @@ export async function mountBag(container, {
   let puttersOutState = Boolean(puttersOut), glowKey = null;
   // Staging: the out discs in the order they came out, each one's side (beside the bag), the
   // layout in use ('side', 'map' or null) and the camera's pull-back (1 = the page view).
-  let outKeys = [], sides = new Map(), stagedMode = null, pull = 1, pullGoal = 1, pullTween = null;
+  let outKeys = [], sides = new Map(), stagedMode = null, ring = null, names = 'full', pull = 1, pullGoal = 1, pullTween = null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -550,13 +553,17 @@ export async function mountBag(container, {
   // the compartment, then up and turned face-on. It then travels to its staged spot and stays
   // there until it is staged back in. Every disc is independent: `keys` lists all out discs, in
   // the order they came out. Up to five rest beside the bag, split relative to each other (the
-  // less overstable half left, the more overstable half right); six or more take their Atlas
-  // places (`atlas`: key → {x, y}, AtlasLayout's 0–1 stability and speed) on a map around the bag.
+  // less overstable half left, the more overstable half right); six or more spread evenly on a
+  // ring around the bag, in stability order along the arc (`atlas`: key → {x, y}, AtlasLayout's
+  // 0–1 stability and speed; speed only orders the columns beside the bag).
   // `labels` (key → {width, height}, px, the gap above included) is the name under each disc: the
   // layout keeps room for every name, clear of the bag, the other discs and the other names.
-  // `reserve` keeps a top-right corner of the canvas clear on the map, `clear` more boxes there
-  // ({left, top, right, bottom}, canvas fractions). Resolves when every disc and the camera settle.
-  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active } = {}) => {
+  // `compact` (the same, measured in a smaller style) is for a crowd on the ring: those names are
+  // used when the full ones cannot fit within NAMED_PULL; when neither can, the ring leaves the
+  // names out (`stage.names`: 'full', 'compact' or 'none').
+  // `reserve` keeps a top-right corner of the canvas clear, `clear` more boxes ({left, top, right,
+  // bottom}, canvas fractions). Resolves when every disc and the camera settle.
+  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), compact = null, reserve, clear = [], instant = !active } = {}) => {
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
     const mode = stageMode(keys.length);
@@ -565,25 +572,41 @@ export async function mountBag(container, {
     // spare: the camera looks on from one side and above, so the canvas's far parts hold more
     // meters per pixel. pullToFit, which projects for real, settles any remainder.
     const unit = 1.1 * 2 * halfHeight / Math.max(container.clientHeight, 1);
-    const entries = keys.map(key => { const label = labels.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
+    const entriesFor = sizes => keys.map(key => { const label = sizes.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
+    const entries = entriesFor(labels);
     let spots = new Map(), goal = 1;
+    names = 'full';
     if (mode === 'side') {
       // Names grow with the pull-back: lay the columns out for the pull-back they end up taking.
       sides = assignSides(entries);
       for (let guess = 1, i = 0; i < 4; i++) {
         spots = sideSpots(entries, sides, { pull: guess });
-        goal = pullToFit(spots, labels);
+        goal = pullToFit(spots, labels, reserve, clear);
         if (goal <= guess + 1e-3) break;
         guess = goal;
       }
     }
     if (mode === 'map') {
-      const left = entries.filter(entry => entry.atlas && entry.atlas.x < .5).length + entries.filter(entry => !entry.atlas).length;
-      const widest = { width: Math.max(0, ...entries.map(entry => entry.label?.width ?? 0)), height: Math.max(0, ...entries.map(entry => entry.label?.height ?? 0)) };
-      spots = mapSpots(entries, mapFrame({ count: keys.length, aspect: camera.aspect, halfHeight, centerY: home.target.y, reserve, clear, label: widest, edge: (FRAME_MARGIN + 2) * unit, left, right: keys.length - left, entries }));
-      goal = pullToFit(spots, labels, reserve, clear);
+      // The ring's frame estimates the pull-back; pullToFit projects for real. If that pulls back
+      // further, the names grow in the scene's meters, so the ring is laid out again for it.
+      const plan = sizes => {
+        const list = entriesFor(sizes), frame = ringFrame({ aspect: camera.aspect, halfHeight, centerY: home.target.y, reserve, clear, edge: (FRAME_MARGIN + 2) * unit, entries: list });
+        let { spots: planned, ring: shape } = frame, fit = pullToFit(planned, sizes, reserve, clear);
+        for (let guess = frame.pull, i = 0; i < 4 && fit > guess + 1e-3; i++) {
+          guess = fit;
+          ({ spots: planned, ring: shape } = ringLayout(list, { pull: guess, center: [0, home.target.y], ratio: frame.ratio }));
+          fit = pullToFit(planned, sizes, reserve, clear);
+        }
+        return { spots: planned, ring: shape, goal: fit, fits: frame.fits && fit <= (sizes.size ? NAMED_PULL : STAGE.map.maxPull) };
+      };
+      let best = plan(labels);
+      if (!best.fits && compact) { best = plan(compact); names = 'compact'; }
+      if (!best.fits) { best = plan(new Map()); names = 'none'; }
+      ({ spots, ring, goal } = best);
+      ring = { ...ring, angles: Object.fromEntries([...spots].map(([key, spot]) => [key, spot.angle])) };
     }
     if (mode !== 'side') sides = new Map();
+    if (mode !== 'map') ring = null;
     stagedMode = mode;
     const eye = pulledHome(goal).position;
     const now = performance.now();
@@ -1030,11 +1053,13 @@ export async function mountBag(container, {
     stageDiscs,
     // The out discs, in the order they came out.
     get outDiscs() { return outKeys.slice(); },
-    // Staging state for QA: the layout ('side', 'map' or null), each side's discs, the camera's
-    // pull-back now and where it is heading, and whether anything is still moving.
+    // Staging state for QA: the layout ('side', 'map' or null), each side's discs, the ring (its
+    // center, half width a and height b in the bag's meters, and each disc's angle), the names on
+    // the ring ('full', 'compact' or 'none'), the
+    // camera's pull-back now and where it is heading, and whether anything is still moving.
     get stage() {
       const now = performance.now(), moving = pullTween !== null || [...records.values()].some(r => r.slide !== r.slideTo || (r.spot?.from && now - r.spot.start < r.spot.duration));
-      return { mode: stagedMode, sides: Object.fromEntries(sides), pull, pullGoal, moving };
+      return { mode: stagedMode, sides: Object.fromEntries(sides), ring, names: stagedMode === 'map' ? names : 'full', pull, pullGoal, moving };
     },
     // Where an out disc rests (or is heading), in container pixels, once the camera has
     // settled at its pull-back (so a page can scroll it into view while it still moves).

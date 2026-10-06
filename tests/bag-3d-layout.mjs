@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideSpots,mapFrame,mapSpots} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideSpots,RING_BAG,ringOrder,ringAngle,ringLayout,ringFrame} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -197,88 +197,84 @@ test('beside the bag, wide names step their column out so no name reaches the ba
   assert.deepEqual([...narrow].map(([k, s]) => [k, s.position[0]]), [...plain].map(([k, s]) => [k, s.position[0]]));
 });
 
-test('on the map, every disc keeps room for its name: no name on the bag, a disc, another name or a kept-clear box', () => {
-  // Names keep their pixel size: about .07 × .025 m at the page view on a desktop canvas, .11 × .045 m on a phone's.
-  const clear = [{left: 0, top: .97, right: .25, bottom: 1}, {left: .7, top: .97, right: 1, bottom: 1}, {left: 0, top: 0, right: .15, bottom: .04}];
-  for (const [count, label] of [[6, {width: .11, height: .045}], [8, {width: .11, height: .045}], [12, {width: .11, height: .045}], [12, {width: .07, height: .025}], [20, {width: .07, height: .025}]]) {
-    const discs = named(Array.from({length: count}, (_, i) => entry('n' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)), label.width, label.height);
-    // The frame either counts names on a grid, or (given the discs) lays them out until clean.
-    for (const frame of [mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}, clear, label}),
-      mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}, clear, label, entries: discs})]) {
-    const spots = mapSpots(discs, frame), boxes = [...spots].map(([key, spot]) => [key, footBox(spot, label, frame.pull)]);
-    for (const [key, box] of boxes) {
-      assert.ok(!boxesOverlap(box, BAG_BOX), `${count}: ${key} and its name clear of the bag`);
-      for (const keep of frame.avoid.slice(1)) assert.ok(!boxesOverlap(box, inflateBy(keep, -DISC.radius * STAGE.map.scale)), `${count}: ${key} clear of a kept-clear box`);
-      assert.ok(box.yMin >= frame.region.yMin - DISC.radius * STAGE.map.scale - 1e-6, `${count}: ${key}'s name inside the frame`);
-    }
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${count}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
-    assert.deepEqual([...mapSpots(discs, frame)], [...spots], 'Deterministic');
-    }
-  }
-  // Laying the discs out finds a clean map without pulling back as far as the grid of names asks.
-  const discs = named(Array.from({length: 8}, (_, i) => entry('g' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)), .11, .045);
-  const options = {count: 8, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}, clear, label: {width: .11, height: .045}};
-  assert.ok(mapFrame({...options, entries: discs}).pull <= mapFrame(options).pull);
-  // Names cost room: the same count pulls back at least as far with them.
-  const label = {width: .11, height: .045};
-  assert.ok(mapFrame({count: 12, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, label}).pull >= mapFrame({count: 12, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075}).pull);
-});
 const inflateBy = (box, by) => ({xMin: box.xMin - by, xMax: box.xMax + by, yMin: box.yMin - by, yMax: box.yMax + by});
 
-test('map spots follow Atlas positions around the bag without overlapping it or each other', () => {
-  // Every disc also stays on the side of the bag its stability leans to, even when one side is crowded.
-  const lopsided = Array.from({length: 14}, (_, i) => entry('o' + i, .55 + i * .02, (i * 7 % 14) / 14));
-  const leftCount = 0, crowded = mapSpots(lopsided, mapFrame({count: 14, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, left: leftCount, right: 14}));
-  for (const [key, spot] of crowded) assert.ok(spot.position[0] > 0, `${key} (overstable) stays right of center`);
-  assert.ok(minGap(crowded) >= 2 * DISC.radius * STAGE.map.scale + STAGE.map.gap - 1e-6, 'A crowded side still has no overlaps');
-  const radius = DISC.radius * STAGE.map.scale, apart = 2 * radius + STAGE.map.gap;
-  for (const count of [6, 10, 18, 26]) {
-    const discs = Array.from({length: count}, (_, i) => entry('d' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97));
-    const frame = mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}});
-    const spots = mapSpots(discs, frame), {region} = frame;
+// Map mode: an even ring around the bag. A spot's angle as seen from the ring's center, measured
+// clockwise from straight down (0 at the bottom, then up the left side, over the top, down the right).
+const clockwise = (spot, center, below = 0) => { const dx = spot.position[0] - center[0], dy = spot.position[1] - below / 2 - center[1]; return ((Math.atan2(-dx, -dy) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); };
+const FRAME = {aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075};
+// Names keep their pixel size: about .07 × .03 m at the page view on a desktop canvas, .14 × .06 m on a phone's.
+const DESKTOP = {width: .07, height: .03}, PHONE = {width: .14, height: .06};
+const mixes = count => ({
+  mixed: Array.from({length: count}, (_, i) => entry('m' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)),
+  overstable: Array.from({length: count}, (_, i) => entry('o' + i, .7 + ((i * 7) % count) * .25 / count, ((i * 53) % 97) / 97)),
+  understable: Array.from({length: count}, (_, i) => entry('u' + i, .05 + ((i * 5) % count) * .2 / count, ((i * 31) % 89) / 89)),
+  neutral: Array.from({length: count}, (_, i) => entry('n' + i, .5, .5)),
+});
+
+test('ring angles are evenly spaced, clockwise from just left of the bottom with the seam at the bottom', () => {
+  for (const count of [6, 7, 12, 25]) {
+    const step = 2 * Math.PI / count, angles = Array.from({length: count}, (_, rank) => ringAngle(rank, count));
+    for (let i = 1; i < count; i++) assert.ok(Math.abs(angles[i - 1] - angles[i] - step) < 1e-12, `${count}: even, clockwise`);
+    // First and last sit half a step either side of straight down.
+    assert.ok(Math.abs(Math.cos(angles[0]) + Math.sin(step / 2)) < 1e-12 && Math.abs(Math.sin(angles[0]) + Math.cos(step / 2)) < 1e-12, `${count}: first just left of the bottom`);
+    assert.ok(Math.abs(Math.cos(angles.at(-1)) - Math.sin(step / 2)) < 1e-12, `${count}: last just right of the bottom`);
+  }
+  // Ring order: least overstable first; unrated discs count as neutral; equal stability keeps the out order.
+  assert.deepEqual(ringOrder([entry('fade', .9, 0), entry('x', null), entry('turn', .1, 0), entry('p', .5, 0), entry('flip', .3, 0)]).map(d => d.key), ['turn', 'flip', 'x', 'p', 'fade']);
+});
+
+test('map mode spreads the out discs evenly around the bag, in stability order along the arc, whatever the mix', () => {
+  for (const count of [6, 8, 12, 20]) for (const label of [DESKTOP, PHONE]) for (const [mix, list] of Object.entries(mixes(count))) {
+    const discs = named(list, label.width, label.height), frame = ringFrame({...FRAME, entries: discs}), {spots, ring} = frame, name = `${count} ${mix} ${label === PHONE ? 'phone' : 'desktop'}`;
     assert.equal(spots.size, count);
-    assert.ok(minGap(spots) >= apart - 1e-6, `${count}: no overlaps (${minGap(spots).toFixed(4)})`);
-    for (const [key, spot] of spots) {
-      assert.ok(clearOfBag(spot, radius), `${count}: ${key} is not on the bag ${spot.position}`);
-      assert.ok(spot.position[0] >= region.xMin - 1e-9 && spot.position[0] <= region.xMax + 1e-9 && spot.position[1] >= region.yMin - 1e-9 && spot.position[1] <= region.yMax + 1e-9, `${count}: ${key} inside the frame`);
+    if (count <= 12 || label === DESKTOP) assert.ok(frame.fits, `${name}: fits with names`);
+    // Even angles, in stability order clockwise from the bottom left.
+    const order = ringOrder(discs).map(d => d.key);
+    order.forEach((key, rank) => assert.ok(Math.abs(spots.get(key).angle - ringAngle(rank, count)) < 1e-12, `${name}: ${key} at rank ${rank}`));
+    const turns = order.map(key => clockwise(spots.get(key), ring.center, label.height * frame.pull));
+    for (let i = 0; i < count; i++) {
+      assert.ok(Math.abs(turns[i] - (i + .5) * 2 * Math.PI / count) < 1e-9, `${name}: ${order[i]} at its even angle (${turns[i].toFixed(3)})`);
+      const [x, y] = spots.get(order[i]).position, below = label.height * frame.pull, dx = x - ring.center[0], dy = y - below / 2 - ring.center[1];
+      assert.ok(Math.abs(dx * dx / ring.a ** 2 + dy * dy / ring.b ** 2 - 1) < 1e-9, `${name}: ${order[i]} on the ellipse`);
     }
-    assert.deepEqual([...mapSpots(discs, frame)], [...spots], 'Deterministic');
+    // Less overstable discs on the left half of the arc, more overstable ones on the right.
+    for (let i = 0; i < count; i++) assert.equal(Math.sign(spots.get(order[i]).position[0]) || 1, i < count / 2 ? -1 : 1, `${name}: ${order[i]} on its half`);
+    // Nothing on the bag or another disc or name; every disc and name inside the frame.
+    const boxes = [...spots].map(([key, spot]) => [key, footBox(spot, label, frame.pull)]);
+    for (const [key, box] of boxes) {
+      assert.ok(!boxesOverlap(box, RING_BAG), `${name}: ${key} and its name clear of the bag`);
+      if (frame.fits) assert.ok(box.xMin >= frame.region.xMin - DISC.radius * STAGE.map.scale - 1e-6 && box.xMax <= frame.region.xMax + DISC.radius * STAGE.map.scale + 1e-6, `${name}: ${key} inside the frame`);
+    }
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${name}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
+    assert.deepEqual([...ringFrame({...FRAME, entries: discs}).spots], [...spots], `${name}: deterministic`);
+    // The ring is the least that is clean: 3% smaller brings a disc or name within the gap of the bag or another.
+    const smaller = ringLayout(discs, {pull: frame.pull, center: ring.center, ratio: frame.ratio, size: ring.a * .97}).spots;
+    const tight = [...smaller].map(([, spot]) => footBox(spot, label, frame.pull));
+    assert.ok(tight.some((a, i) => boxesOverlap(a, RING_BAG, STAGE.map.gap) || tight.some((b, j) => j > i && boxesOverlap(a, b, STAGE.map.gap))), `${name}: the ring hugs the bag`);
+  }
+  // Evenness comes from the count alone: every stability mix lays out the same ring.
+  for (const count of [6, 9]) {
+    const rings = Object.values(mixes(count)).map(list => { const {spots} = ringFrame({...FRAME, entries: named(list, DESKTOP.width, DESKTOP.height)}); return [...spots.values()].map(spot => spot.position.map(v => +v.toFixed(9)).join()).sort(); });
+    for (const other of rings.slice(1)) assert.deepEqual(other, rings[0], `${count}: same ring for every mix`);
   }
 });
 
-test('the map keeps the Atlas order: stability left to right, speed bottom to top', () => {
-  // Well-separated discs land where the Atlas puts them, scaled to the frame.
-  const frame = mapFrame({count: 6, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075});
-  const discs = [entry('understable-fast', .05, .95), entry('overstable-fast', .95, .95), entry('understable-slow', .05, .1), entry('overstable-slow', .95, .1), entry('neutral-fast', .5, 1), entry('flippy-mid', .1, .55)];
-  const spots = mapSpots(discs, frame), x = key => spots.get(key).position[0], y = key => spots.get(key).position[1];
-  assert.ok(x('understable-fast') < x('neutral-fast') && x('neutral-fast') < x('overstable-fast'), 'Stability runs left to right');
-  assert.ok(y('understable-slow') < y('flippy-mid') && y('flippy-mid') < y('understable-fast'), 'Speed runs bottom to top');
-  assert.ok(y('neutral-fast') > BAG_BOX.yMax, 'A neutral fast disc rests above the bag');
-  // A neutral slow disc would land on the bag: it steps out to the side its stability leans to.
-  const pushed = mapSpots([entry('neutral-slow-under', .48, .2), entry('neutral-slow-over', .52, .2), ...discs.slice(0, 4)], frame);
-  assert.ok(pushed.get('neutral-slow-under').position[0] < BAG_BOX.xMin && pushed.get('neutral-slow-over').position[0] > BAG_BOX.xMax, 'Pushed off the bag toward its own side');
-  // Two copies of one mold share an Atlas position and part side by side.
-  const twins = mapSpots([entry('a', .2, .5), entry('b', .2, .5), ...discs.slice(0, 4)], frame);
-  assert.ok(Math.hypot(twins.get('a').position[0] - twins.get('b').position[0], twins.get('a').position[1] - twins.get('b').position[1]) >= 2 * DISC.radius * STAGE.map.scale);
-});
-
-test('the map frame pulls back only as far as the count needs, and keeps the zoom corner clear', () => {
-  const pulls = [6, 12, 20, 30].map(count => mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075}).pull);
-  assert.equal(pulls[0], STAGE.map.pull, 'Six discs take the least pull-back');
-  assert.ok(pulls.every((pull, i) => i === 0 || pull >= pulls[i - 1]) && pulls.at(-1) <= STAGE.map.maxPull, 'More discs pull back further, within the cap: ' + pulls);
-  const frame = mapFrame({count: 12, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .3, height: .15}});
-  const corner = frame.avoid[1], spots = mapSpots(Array.from({length: 12}, (_, i) => entry('c' + i, .9 + i * .008, .9 + i * .008)), frame);
-  for (const spot of spots.values()) assert.ok(!(spot.position[0] > corner.xMin && spot.position[1] > corner.yMin), 'No disc under the zoom buttons ' + spot.position);
-});
-
-test('a typical bag, bunched around neutral, keeps its stability order on the map', () => {
-  // Real bags cluster near the middle of the stability axis; most of them land beside the bag.
-  const discs = [[.38, .85], [.44, .78], [.47, .6], [.52, .55], [.55, .82], [.58, .35], [.61, .4], [.64, .2], [.66, .12], [.7, .1], [.5, .25], [.42, .15]].map(([x, y], i) => entry('t' + i, x, y));
-  const spots = mapSpots(discs, mapFrame({count: discs.length, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075}));
-  const rank = values => { const order = values.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]), r = []; order.forEach(([, i], k) => r[i] = k); return r; };
-  const rho = (a, b) => { const ra = rank(a), rb = rank(b), n = a.length; return 1 - 6 * ra.reduce((sum, r, i) => sum + (r - rb[i]) ** 2, 0) / (n * (n * n - 1)); };
-  const xs = rho(discs.map(d => spots.get(d.key).position[0]), discs.map(d => d.atlas.x)), ys = rho(discs.map(d => spots.get(d.key).position[1]), discs.map(d => d.atlas.y));
-  assert.ok(xs >= .8, 'Stability order: rank correlation ' + xs.toFixed(3));
-  assert.ok(ys >= .9, 'Speed order: rank correlation ' + ys.toFixed(3));
-  for (const d of discs) assert.equal(Math.sign(spots.get(d.key).position[0]), d.atlas.x < .5 ? -1 : 1, d.key + ' on the side of the bag its stability leans to');
+test('the ring keeps the zoom corner and the kept-clear boxes free, pulling back only as far as it needs', () => {
+  const reserve = {width: .2, height: .06}, clear = [{left: 0, top: 0, right: .2, bottom: .06}, {left: 0, top: .97, right: .2, bottom: 1}, {left: .75, top: .97, right: 1, bottom: 1}];
+  for (const count of [6, 8, 12, 16]) {
+    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = ringFrame({...FRAME, reserve, clear, entries: discs});
+    const keep = frame.avoid.map(box => inflateBy(box, -DISC.radius * STAGE.map.scale));
+    assert.equal(keep.length, 1 + clear.length);
+    for (const [key, spot] of frame.spots) for (const box of keep) assert.ok(!boxesOverlap(footBox(spot, DESKTOP, frame.pull), box), `${count}: ${key} clear of a kept-clear box`);
+    assert.ok(frame.pull >= 1 && frame.pull < 2.2, `${count}: pull ${frame.pull}`);
+  }
+  // Names cost room: the same discs pull back at least as far with them.
+  const discs = mixes(10).mixed;
+  assert.ok(ringFrame({...FRAME, entries: named(discs, PHONE.width, PHONE.height)}).pull >= ringFrame({...FRAME, entries: discs}).pull);
+  // A crowd whose names cannot fit says so (the viewer then shrinks the names or leaves them out),
+  // while the same discs without names always fit.
+  const crowd = mixes(40).mixed;
+  assert.equal(ringFrame({...FRAME, entries: named(crowd, .2, .08)}).fits, false);
+  assert.equal(ringFrame({...FRAME, entries: crowd}).fits, true);
 });

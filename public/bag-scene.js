@@ -32,16 +32,21 @@ export class BagScene {
   this.tag=div('bag-name-pill bag-hover-name',{'aria-hidden':'true'});this.tag.hidden=true;
   // Each out disc carries its name under it.
   this.names=div('bag-out-names',{'aria-hidden':'true'});this.nameById=new Map();
-  // Six or more out discs lay out on a flight map around the bag, drawn on the Stitch grid.
+  // Six or more out discs spread evenly on a ring around the bag, drawn on the Stitch grid. The
+  // ring runs clockwise from the most understable (lower left) to the most overstable (lower right).
   this.mapGrid=div('bag-map-grid',{'aria-hidden':'true'});
-  for(const [side,text] of [['left','← More turn'],['right','Stronger fade →'],['speed','Speed ↑']]){const caption=document.createElement('span');caption.className='bag-map-caption';caption.dataset.side=side;caption.textContent=text;this.mapGrid.append(caption);}
+  for(const [side,text] of [['left','← More turn'],['right','Stronger fade →']]){const caption=document.createElement('span');caption.className='bag-map-caption';caption.dataset.side=side;caption.textContent=text;this.mapGrid.append(caption);}
   this.pockets=div('bag-pocket-labels',{'aria-hidden':'true'});
   // Zoom: these buttons, a pinch, or Ctrl/⌘ + scroll (a plain scroll keeps scrolling the page).
   this.zoomControls=div('bag-zoom',{role:'group','aria-label':'Zoom the bag'});
   const zoomButton=(label,text,action)=>{const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',label);button.textContent=text;button.addEventListener('click',action);return button;};
   this.zoomOut=zoomButton('Zoom out','−',()=>this.zoomBy(1/ZOOM_STEP));this.zoomReset=zoomButton('Reset zoom','100%',()=>this.zoomTo(1));this.zoomIn=zoomButton('Zoom in','+',()=>this.zoomBy(ZOOM_STEP));
   this.zoomReset.className='bag-zoom-level';this.zoomControls.append(this.zoomOut,this.zoomReset,this.zoomIn);
-  this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.zoomControls,this.status);
+  // Return all: shown while any disc is out (top left, across from zoom); every out disc slides back in at once.
+  this.returnAll=document.createElement('button');this.returnAll.type='button';this.returnAll.className='bag-return-all';this.returnAll.hidden=true;
+  this.returnAll.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 2.5 7 6 10.5"/><path d="M2.5 7h7a4 4 0 0 1 0 8h-2"/></svg><span>Return all</span><b data-return-count></b>';
+  this.returnAll.addEventListener('click',()=>void this.returnAllOut());
+  this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.zoomControls,this.returnAll,this.status);
   this.canvas.addEventListener('wheel',event=>{
    if(!this.ready || !(event.ctrlKey || event.metaKey))return;event.preventDefault();
    const box=this.canvas.getBoundingClientRect(),delta=Math.max(-100,Math.min(100,event.deltaY*(event.deltaMode===1?16:1)));
@@ -221,11 +226,22 @@ export class BagScene {
   if(index<0)this.keepAboveSheet(id);
   await settled;
  }
- // Stages every out disc in the viewer: their Atlas positions (stability and speed) place them,
- // each with room for its name; the zoom buttons' corner and the map's captions stay clear.
- // Resolves true once this staging settles.
+ // Return all: every out disc slides back into its pocket at once (closing the details the bag
+ // opened); focus moves to the bag's toggle, as the button itself goes away.
+ async returnAllOut(){
+  if(!this.ready || this.running || !this.out.length || this.viewer.cameraMoving)return;
+  const focused=this.returnAll.contains(document.activeElement);this.clearLift();
+  if(this.inspected)this.closeDetails();this.out=[];
+  const settled=this.stageOut();
+  if(focused)this.toggle.focus({preventScroll:true});
+  await settled;
+ }
+ // Stages every out disc in the viewer: their Atlas positions order them (stability, and speed
+ // beside the bag), each with room for its name; the zoom buttons, the return button and the
+ // map's captions stay clear. Resolves true once this staging settles.
  stageOut({instant=reduced()}={}){
   if(!this.ready || !this.items)return Promise.resolve(false);
+  this.showReturnAll();
   const token=++this.stageToken,atlas=new Map();
   for(const id of this.out){
    const item=this.items.find(i=>i.id===id),mold=item && this.lookup(item.mold_id);
@@ -234,12 +250,15 @@ export class BagScene {
   // Names take the coming mode's style before they are measured.
   const coming=this.viewer.stageMode(this.out.length);
   if(coming){this.root.dataset.stage=coming;this.root.dataset.out=String(this.out.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}
-  const labels=new Map();
-  for(const id of this.out){const node=this.nameNode(id);node.hidden=false;labels.set(id,{width:node.offsetWidth+2*NAME_SPACE,height:node.offsetHeight+NAME_GAP+NAME_SPACE});}
+  // Each name's room, in the coming mode's style and (for a crowd on the ring) the compact one.
+  const measure=()=>new Map(this.out.map(id=>{const node=this.nameNode(id);node.hidden=false;return [id,{width:node.offsetWidth+2*NAME_SPACE,height:node.offsetHeight+NAME_GAP+NAME_SPACE}];}));
+  delete this.root.dataset.names;const labels=measure();let compact=null;
+  if(coming==='map'){this.root.dataset.names='compact';compact=measure();delete this.root.dataset.names;}
   const box=this.canvas.getBoundingClientRect(),zoom=this.zoomControls.getBoundingClientRect();
   const reserve=zoom.width && box.width?{width:(box.right-zoom.left+6)/box.width,height:(zoom.bottom-box.top+6)/box.height}:{width:0,height:0};
-  const clear=box.width?this.captionBoxes().map(c=>({left:c.left/box.width,top:c.top/box.height,right:c.right/box.width,bottom:c.bottom/box.height})):[];
-  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,reserve,clear,instant}),mode=this.viewer.stage.mode;
+  const clear=box.width?[...this.captionBoxes(),...this.returnBoxes()].map(c=>({left:c.left/box.width,top:c.top/box.height,right:c.right/box.width,bottom:c.bottom/box.height})):[];
+  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,compact,reserve,clear,instant}),mode=this.viewer.stage.mode,names=this.viewer.stage.names;
+  if(names==='full')delete this.root.dataset.names;else this.root.dataset.names=names;
   if(mode!==coming){if(mode){this.root.dataset.stage=mode;this.root.dataset.out=String(this.viewer.outDiscs.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}}
   this.root.dataset.staging='moving';
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]'))this.label(disc);
@@ -255,6 +274,16 @@ export class BagScene {
   const box=this.canvas.getBoundingClientRect();
   return [...this.mapGrid.querySelectorAll('.bag-map-caption')].map(n=>n.getBoundingClientRect()).filter(r=>r.width)
    .map(r=>({left:r.left-box.left-6,top:r.top-box.top-6,right:r.right-box.left+6,bottom:r.bottom-box.top+6}));
+ }
+ // The return button (canvas px, a little room around it) while it shows; discs and names keep off it.
+ returnBoxes(){
+  if(this.returnAll.hidden)return [];
+  const box=this.canvas.getBoundingClientRect(),r=this.returnAll.getBoundingClientRect();
+  return r.width?[{left:r.left-box.left-6,top:r.top-box.top-6,right:r.right-box.left+6,bottom:r.bottom-box.top+6}]:[];
+ }
+ showReturnAll(){
+  const count=this.out.length;this.returnAll.hidden=!count;
+  if(count){this.returnAll.querySelector('[data-return-count]').textContent=String(count);this.returnAll.setAttribute('aria-label',`Return all ${count} out ${count===1?'disc':'discs'} to the bag`);}
  }
  // An out disc's name (made on first use). Clicking it reopens the disc's details (the disc itself toggles).
  nameNode(id){
@@ -289,14 +318,15 @@ export class BagScene {
   const width=this.canvas.clientWidth,height=this.canvas.clientHeight,canvas=this.canvas.getBoundingClientRect();
   const edges=rect=>({key:rect.key,left:rect.left,top:rect.top,right:rect.left+rect.width,bottom:rect.top+rect.height});
   const zoom=this.zoomControls.getBoundingClientRect(),bag=this.viewer.bagRect();
-  const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[]),...this.captionBoxes(),
+  const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[]),...this.captionBoxes(),...this.returnBoxes(),
    ...(zoom.width?[{left:zoom.left-canvas.left-4,top:zoom.top-canvas.top-4,right:zoom.right-canvas.left+4,bottom:zoom.bottom-canvas.top+4}]:[])];
   const covered=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
   const centerX=width/2;
   for(const id of this.out){
    const rect=rects.get(id),node=this.nameNode(id);
    const cx=rect && rect.left+rect.width/2,cy=rect && rect.top+rect.height/2;
-   if(!rect || cx<0 || cx>width || cy<0 || cy>height){node.hidden=true;delete node.dataset.shown;continue;}
+   // A crowd too big for names on the ring shows them on hover and focus only.
+   if(!rect || cx<0 || cx>width || cy<0 || cy>height || this.root.dataset.names==='none'){node.hidden=true;delete node.dataset.shown;continue;}
    node.hidden=false;
    const w=node.offsetWidth,h=node.offsetHeight,out=cx<centerX?-1:1,bottom=rect.top+rect.height;
    const spots=[[cx,bottom+NAME_GAP],[cx+out*Math.max(0,(w-rect.width)/2),bottom+NAME_GAP],[cx,rect.top-NAME_GAP-h],
@@ -388,7 +418,7 @@ export class BagScene {
  }
  reset(){
   this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();
-  this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging'])delete this.root.dataset[key];this.names.replaceChildren();this.nameById.clear();
+  this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging','names'])delete this.root.dataset[key];this.names.replaceChildren();this.nameById.clear();this.returnAll.hidden=true;
   this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
   if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;

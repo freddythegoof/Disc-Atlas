@@ -141,6 +141,10 @@ header nav button::after { background:var(--accent-fill); }
 .my-bag-meter { border-color:var(--hairline); }
 #bagSort { background:var(--panel); border-color:var(--hairline); }
 #bagSortHint { font-family:var(--mono); letter-spacing:-.01em; }
+.bag-zoom,.bag-return-all { background:var(--glass); border-color:var(--hairline); }
+.bag-return-all:hover { background:var(--glass); border-color:var(--accent-edge); box-shadow:0 4px 14px var(--shadow),var(--accent-glow); }
+.bag-return-all b { background:var(--accent-fill); color:var(--accent-ink); font-family:var(--mono); letter-spacing:-.02em; }
+.bag-return-all:hover b { background:var(--accent-fill); }
 .my-map-host,#myMapHost #map { border-color:var(--hairline); }
 
 /* Focus stays lime everywhere. */

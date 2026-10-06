@@ -123,6 +123,16 @@ body[data-view="bag"] main {display:none!important}
 .bag-zoom button:disabled {opacity:.4;cursor:default}
 .bag-zoom .bag-zoom-level:disabled {opacity:1}
 .bag-scene:not([data-engine="ready"]) .bag-zoom,.bag-scene[data-dragging] .bag-zoom {visibility:hidden}
+/* Return all: across from the zoom pill and as tall, shown while any disc is out. */
+.bag-return-all {position:absolute;z-index:4;top:10px;left:10px;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:3px 7px 3px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow);font:600 13px/1 'Space Grotesk',sans-serif;color:var(--text);cursor:pointer;animation:bag-return-in 220ms ease-out both}
+.bag-return-all[hidden] {display:none}
+.bag-return-all svg {width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.bag-return-all b {display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--selected);font:600 11px/1 'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.bag-return-all:hover {background:var(--selected)}
+.bag-return-all:hover b {background:var(--panel)}
+.bag-scene:not([data-engine="ready"]) .bag-return-all,.bag-scene[data-dragging] .bag-return-all {visibility:hidden}
+@keyframes bag-return-in {from {opacity:0;transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){.bag-return-all {animation:none}}
 .bag-3d-status {position:absolute;left:0;right:0;top:46%;margin:0;text-align:center;font-size:12px;color:var(--muted);pointer-events:none}
 .bag-3d-status:empty {display:none}
 /* Positioned slot targets over the canvas: focus, hover/touch and labels for each disc. */
@@ -158,6 +168,8 @@ body[data-view="bag"] main {display:none!important}
 .bag-out-name:hover {border-color:#ffffff66;background:#1d242ef5}
 .bag-scene[data-staging="moving"] .bag-out-name {pointer-events:none}
 .bag-scene[data-stage="map"] .bag-out-name {max-width:132px;padding:3px 9px;font-size:calc(11px * var(--bag-type))}
+/* A crowd on the ring (mostly on phones) takes compact names when they let the bag show larger. */
+.bag-scene[data-stage="map"][data-names="compact"] .bag-out-name {max-width:88px;padding:2px 7px;font-size:10.5px;letter-spacing:0}
 .bag-hit-slot[data-out] .bag-physical-disc {border-radius:50%}
 /* Map mode: the Stitch grid, lined up with the page's, under a flight map around the bag. */
 .bag-map-grid {position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 420ms ease}
@@ -168,7 +180,6 @@ body[data-view="bag"] main {display:none!important}
 .bag-map-caption {position:absolute;bottom:10px;font:500 10px/1.2 var(--mono,'Space Grotesk',sans-serif);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .bag-map-caption[data-side="left"] {left:12px}
 .bag-map-caption[data-side="right"] {right:12px}
-.bag-map-caption[data-side="speed"] {left:12px;bottom:auto;top:14px}
 @media(prefers-reduced-motion:reduce){.bag-out-names,.bag-map-grid {transition:none}}
 /* The details card stays as the screen-reader description of the hovered or focused disc. */
 .bag-lift-info {clip-path:inset(50%);opacity:0}
