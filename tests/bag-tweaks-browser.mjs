@@ -71,6 +71,7 @@ try {
  await shot('map-1x-360-midnight');
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{measureMap();});await setTheme('light');
  assert.ok(await page.locator('#atlasLens').isHidden(),'Signed out: no bag lens');
+ assert.ok(await page.locator('#siteMenu [data-map-choice="mine"]').evaluate(n=>!!n.closest('[hidden]')),'Signed out: no Default map setting');
  check(`1x map: 62px disc art; discs within ${Math.round(wide.left)}/${Math.round(wide.right)}px of the sides, ${Math.round(wide.top)}px under the search bar, ${Math.round(wide.bottom)}px above the legend at 1440 (${wide.large} named leads); phone ${Math.round(narrow.left)}/${Math.round(narrow.right)}/${Math.round(narrow.top)}/${Math.round(narrow.bottom)}px`);
 
  // 2. Sign in and seed the bag.
@@ -99,7 +100,7 @@ try {
  // 3. The atlas is the player's own: bag discs in their bag colors, leading their groups.
  await page.locator('#mapTab').click();await page.waitForFunction(()=>document.body.dataset.view==='map');
  await page.locator('#atlasLens').waitFor();await page.waitForFunction(n=>window.BagApp.mapColors().size===n,want.size);await overview();
- assert.equal(await page.locator('#atlasLens [aria-checked="true"]').getAttribute('data-lens'),'mine','Signed in, the atlas opens on My bag');
+ assert.equal(await page.locator('#lensButton').textContent().then(t=>t.trim()),'Personalized','Signed in, the atlas opens on Personalized');assert.equal(await page.evaluate(()=>activeLens()),'mine');
  const lens=await page.evaluate(want=>{
   const bag=new Map(want),rated=[...bag.keys()].filter(id=>discs.find(d=>d.id===id)?.speed!=null);
   return {rated:rated.length,
@@ -117,29 +118,60 @@ try {
  await page.evaluate(()=>closeDetail(false));await overview();await shot('map-mine-1x-1440-light');
  await page.evaluate(()=>{const d=discs.find(d=>d.id==='3d60892b6812'),c=AtlasLayout.camera(atlasPositions.get(d.id),canvas.clientWidth,canvas.clientHeight,2.8);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});await mapReady();
  await shot('map-mine-2.8x-1440-light');
- // Only my discs.
- await page.locator('[data-lens="only"]').click();await mapReady();
+ // The map dropdown: Standard, Personalized, My discs. Its button names the map on screen.
+ const lensButton=page.locator('#lensButton'),lensMenu=page.locator('#lensMenu'),label=async()=>(await lensButton.textContent()).trim();
+ const visit=async()=>{await page.reload();await page.locator('#atlasLens').waitFor();await page.waitForFunction(()=>window.BagApp.mapColors().size>0);await mapReady();};
+ const chooseMap=async name=>{await lensButton.click();await lensMenu.getByRole('menuitemradio',{name,exact:true}).click();await mapReady();};
+ const setDefaultMap=async name=>{await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.locator('#siteMenu').getByRole('menuitemradio',{name,exact:true}).click();await page.keyboard.press('Escape');await mapReady();};
+ await lensButton.click();
+ assert.ok(await lensMenu.isVisible(),'The map button opens its menu');
+ assert.deepEqual(await lensMenu.getByRole('menuitemradio').evaluateAll(list=>list.map(n=>[n.textContent.trim(),n.dataset.lens])),[['Standard','default'],['Personalized','mine'],['My discs','only']],'Three maps, in order');
+ assert.equal(await lensMenu.locator('[aria-checked="true"]').getAttribute('data-lens'),'mine','The menu marks the map on screen');
+ assert.ok(await lensMenu.locator('[aria-checked="true"]').evaluate(n=>n===document.activeElement),'Focus starts on the current map');
+ await page.keyboard.press('Escape');
+ assert.ok(await lensMenu.isHidden() && await lensButton.evaluate(n=>n===document.activeElement),'Escape closes and returns focus');
+ // My discs.
+ await chooseMap('My discs');
+ assert.ok(await lensMenu.isHidden(),'Choosing closes the menu');assert.equal(await label(),'My discs');
  const only=await page.evaluate(()=>({filtered:filtered.length,all:filtered.every(d=>window.BagApp.mapColors().has(d.id)),zoom}));
- assert.ok(only.all && only.filtered===want.size && only.zoom===1,'Only my discs, framed at 1x: '+JSON.stringify(only));
+ assert.ok(only.all && only.filtered===want.size && only.zoom===1,'My discs, framed at 1x: '+JSON.stringify(only));
  await shot('map-only-1x-1440-light');
- // Default: the shared atlas.
- await page.locator('[data-lens="default"]').click();await mapReady();
- assert.equal(await page.locator('#mapMarkers .atlas-marker.is-mine').count(),0,'Default has no bag colors');
+ // Standard: the shared atlas.
+ await chooseMap('Standard');assert.equal(await label(),'Standard');
+ assert.equal(await page.locator('#mapMarkers .atlas-marker.is-mine').count(),0,'Standard has no bag colors');
  assert.equal(await page.locator('#legend .dot.mine').count(),0);
  await overview();await shot('map-default-1x-1440-light');
- // Keyboard: arrows move the choice, and it is remembered.
- await page.locator('[data-lens="default"]').focus();await page.keyboard.press('ArrowLeft');await mapReady();
- assert.equal(await page.evaluate(()=>[activeLens(),document.activeElement.dataset.lens].join()),'mine,mine','Arrow keys choose');
- await page.locator('[data-lens="only"]').click();await page.reload();await page.locator('#atlasLens').waitFor();await page.waitForFunction(()=>window.BagApp.mapColors().size>0);
- assert.equal(await page.evaluate(()=>activeLens()),'only','The choice is remembered');
- await setTheme('midnight');await mapReady();await shot('map-only-1x-1440-midnight');
- await page.locator('[data-lens="mine"]').click();await overview();await shot('map-mine-1x-1440-midnight');
+ // Keyboard: ArrowDown opens on the current map, arrows move, Enter chooses and returns focus.
+ await lensButton.focus();await page.keyboard.press('ArrowDown');
+ assert.ok(await lensMenu.isVisible(),'ArrowDown opens the menu');
+ await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await mapReady();
+ assert.equal(await page.evaluate(()=>activeLens()),'mine','Arrow keys and Enter choose');
+ assert.ok(await lensMenu.isHidden() && await lensButton.evaluate(n=>n===document.activeElement),'Focus returns to the button');
+ // A switch lasts for the visit: the next visit opens on the default map.
+ await chooseMap('My discs');await visit();
+ assert.equal(await page.evaluate(()=>activeLens()),'mine','A new visit opens on the default map (Personalized)');
+ // Settings, Default map: the pick shows now and opens every visit.
+ await setDefaultMap('Standard');
+ assert.equal(await page.evaluate(()=>activeLens()),'default','The setting applies now');assert.equal(await label(),'Standard');
+ await visit();assert.equal(await page.evaluate(()=>activeLens()),'default','The setting opens every visit');
+ await page.getByRole('button',{name:'Site menu',exact:true}).click();
+ assert.equal(await page.locator('#siteMenu [data-map-choice][aria-checked="true"]').getAttribute('data-map-choice'),'default','The menu marks the default map');
+ await page.keyboard.press('Escape');
+ // A choice saved by the old three-way switch becomes the default map.
+ await page.evaluate(()=>{localStorage.clear();localStorage.setItem('atlas-lens','only');});await visit();
+ assert.equal(await page.evaluate(()=>activeLens()),'only','A saved Only my discs opens as My discs');
+ await setDefaultMap('Personalized');assert.equal(await page.evaluate(()=>activeLens()),'mine');
+ await setTheme('midnight');await chooseMap('My discs');await shot('map-only-1x-1440-midnight');
+ await chooseMap('Personalized');await overview();await shot('map-mine-1x-1440-midnight');
  await page.setViewportSize({width:360,height:800});await page.evaluate(()=>measureMap());await overview();
  const bar=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();return {tools:r('.explore-tools'),lens:r('#atlasLens'),search:r('.explore-tools .search')};});
- assert.ok(bar.lens.right<=bar.tools.right+1 && Math.abs(bar.lens.top-bar.search.top)<2 && bar.search.width>=90,'Phone: the lens shares the search row: '+JSON.stringify(bar));
+ assert.ok(bar.lens.right<=bar.tools.right+1 && Math.abs(bar.lens.top-bar.search.top)<2 && bar.search.width>=90,'Phone: the map button shares the search row: '+JSON.stringify(bar));
+ await lensButton.click();const menuBox=await lensMenu.boundingBox();
+ assert.ok(menuBox.x>=0 && menuBox.x+menuBox.width<=360.5,'Phone: the map menu stays on screen: '+JSON.stringify(menuBox));
+ await shot('map-menu-360-midnight');await page.keyboard.press('Escape');
  await shot('map-mine-1x-360-midnight');
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');
- check(`Bag on the atlas: ${lens.rated} rated bag molds all lead (or share) a bag-led group in their bag colors, ringed, with a legend entry; Only my discs shows ${only.filtered}; Default restores the atlas; arrow keys; remembered; fits the phone search row`);
+ check(`Bag on the atlas: ${lens.rated} rated bag molds all lead (or share) a bag-led group in their bag colors, ringed, with a legend entry; map dropdown Standard / Personalized / My discs (My discs shows ${only.filtered}); keyboard; a switch lasts the visit; Default map setting applies now and every visit; old saved switch migrates; fits the phone search row`);
 
  // 4. My Bag: one size (no S/M/L), a little larger than the old Medium.
  await page.locator('#bagTab').click();

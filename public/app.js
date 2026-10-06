@@ -2,8 +2,13 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const selectedBrands=new Set();
 const featuredRanks=new Map((window.DiscAtlasFeatured||[]).map((disc,index)=>[disc.id,index]));
 // Signed in, the atlas is the player's own: discs in their bag wear their bag colors and lead
-// their flight groups ('mine'), or show alone ('only'). 'default' is the shared atlas.
-let atlasLens='mine';try{atlasLens=localStorage.getItem('atlas-lens')||'mine';}catch{}
+// their flight groups ('mine', Personalized), or show alone ('only', My discs). 'default' is the
+// shared atlas (Standard). Each visit opens on the Default map from the site menu; switching in the
+// toolbar lasts for the visit. The old switch saved its last pick as 'atlas-lens': it becomes the default.
+const lensNames={default:'Standard',mine:'Personalized',only:'My discs'};
+let defaultMap='mine';
+try{const saved=localStorage.getItem('atlas-default-map')??localStorage.getItem('atlas-lens');if(lensNames[saved]){defaultMap=saved;localStorage.setItem('atlas-default-map',saved);}localStorage.removeItem('atlas-lens');}catch{}
+let atlasLens=defaultMap;
 const bagColors=()=>window.BagApp?.mapColors?.()||new Map();
 // My Map (on the My Bag page) is this same map showing only the player's bagged discs at their
 // personal positions. The shared atlas keeps its positions, filters and camera for their return.
@@ -35,7 +40,7 @@ applyTheme(document.documentElement.dataset.theme||'light');
 // Keep source loading separate so an unavailable catalog has an explicit recovery state.
 async function load(){try{const response=await fetch('data.json');if(!response.ok)throw new Error('Catalog unavailable');const data=await response.json();discs=data.discs;sharedPositions=window.AtlasLayout.positions(discs);if(!myMap)atlasPositions=sharedPositions;meta=data.meta;manufacturers=[...new Set(discs.map(d=>d.brand))].sort();renderBrands();const rated=discs.filter(d=>d.speed!=null).length,photos=discs.length;$('#coverage').innerHTML=`<strong>${discs.length.toLocaleString()} discs</strong> in the registry<br>${rated.toLocaleString()} with flight ratings · original disc illustrations`;$('#snapshot').textContent=`Registry snapshot · ${meta.date}`;$('#dataSummary').innerHTML=`Snapshot: ${esc(meta.date)}<br>${discs.length.toLocaleString()} approval records · ${rated.toLocaleString()} matched flight ratings · original labeled illustrations for every record.<br>${esc(meta.note||'')}`;filter();if(view==='map')focusFeatured();window.BagApp?.catalogReady();if(window.requestIdleCallback)requestIdleCallback(prepareFeaturedDetails);else setTimeout(prepareFeaturedDetails,200);}catch(e){$('#coverage').textContent='The catalog could not load. Refresh to try again.';$('#count').textContent='Catalog unavailable';$('#empty').hidden=false;$('#empty').firstChild.textContent='Unable to load the catalog. Please reload.';}}
 function compareOptional(a,b,ascending){const missingA=a==null||!Number.isFinite(a),missingB=b==null||!Number.isFinite(b);return missingA?Number(!missingB):missingB?-1:ascending?a-b:b-a;}
-function filter(){stopCamera();closeCluster();document.querySelectorAll('#typeChips button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.type===type)));const q=$('#search').value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(),s=Number($('#speed').value),st=$('#stability').value;filtered=discs.filter(d=>myMap?myMap.ids.has(d.id):inLens(d)&&(!q||searchText(d).includes(q))&&(!selectedBrands.size||selectedBrands.has(d.brand))&&(type==='all'||typeOf(d)===type)&&(!s||d.speed===s)&&(!st||(st==='unknown'?d.speed==null:d.speed!=null&&(st==='under'?score(d)<40:st==='over'?score(d)>60:score(d)>=40&&score(d)<=60))));const sort=$('#sort').value;filtered.sort((a,b)=>sort==='featured'?((featuredRanks.get(a.id)??Infinity)-(featuredRanks.get(b.id)??Infinity)||a.name.localeCompare(b.name)||a.brand.localeCompare(b.brand)||a.id.localeCompare(b.id)):sort==='speed'?(a.speed==null?Number(b.speed!=null):b.speed==null?-1:(speedAscending?a.speed-b.speed:b.speed-a.speed)):sort==='stability'?compareOptional(score(a),score(b),stabilityAscending):sort==='brand'?a.brand.localeCompare(b.brand)||a.name.localeCompare(b.name):sort==='new'?compareOptional(a.date?Date.parse(a.date):null,b.date?Date.parse(b.date):null,newestAscending):a.name.localeCompare(b.name));if(selected&&!filtered.includes(selected)){selected=null;closeDetail(false);}renderSearchCoverage(q);limit=80;$('#count').textContent=view==='map'?`${filtered.filter(d=>d.speed!=null).length.toLocaleString()} mapped`:`${filtered.length.toLocaleString()} discs`;$('#unratedBtn').textContent=`${filtered.filter(d=>d.speed==null).length.toLocaleString()} unrated in directory ↗`;$('#speedValue').textContent=s?`Speed ${s}`:'Any speed';draw();if(view==='map'&&groupCache?.items===filtered&&!mapClusters.length&&filtered.some(d=>d.speed!=null)){zoom=1;pan={x:0,y:0};draw();}renderList();renderBrands();renderContextTitle();renderLegend();updateCollectionNote();}
+function filter(){stopCamera();closeCluster();document.querySelectorAll('#typeChips button[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.type===type)));const q=$('#search').value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(),s=Number($('#speed').value),st=$('#stability').value;filtered=discs.filter(d=>myMap?myMap.ids.has(d.id):inLens(d)&&(!q||searchText(d).includes(q))&&(!selectedBrands.size||selectedBrands.has(d.brand))&&(type==='all'||typeOf(d)===type)&&(!s||d.speed===s)&&(!st||(st==='unknown'?d.speed==null:d.speed!=null&&(st==='under'?score(d)<40:st==='over'?score(d)>60:score(d)>=40&&score(d)<=60))));const sort=$('#sort').value;filtered.sort((a,b)=>sort==='featured'?((featuredRanks.get(a.id)??Infinity)-(featuredRanks.get(b.id)??Infinity)||a.name.localeCompare(b.name)||a.brand.localeCompare(b.brand)||a.id.localeCompare(b.id)):sort==='speed'?(a.speed==null?Number(b.speed!=null):b.speed==null?-1:(speedAscending?a.speed-b.speed:b.speed-a.speed)):sort==='stability'?compareOptional(score(a),score(b),stabilityAscending):sort==='brand'?a.brand.localeCompare(b.brand)||a.name.localeCompare(b.name):sort==='new'?compareOptional(a.date?Date.parse(a.date):null,b.date?Date.parse(b.date):null,newestAscending):a.name.localeCompare(b.name));if(selected&&!filtered.includes(selected)){selected=null;closeDetail(false);}renderSearchCoverage(q);limit=80;$('#count').textContent=view==='map'?`${filtered.filter(d=>d.speed!=null).length.toLocaleString()} mapped`:`${filtered.length.toLocaleString()} discs`;$('#unratedBtn').textContent=`${filtered.filter(d=>d.speed==null).length.toLocaleString()} unrated in directory ↗`;$('#speedValue').textContent=s?`Speed ${s}`:'Any speed';draw();if(view==='map'&&groupCache?.items===filtered&&!mapClusters.length&&filtered.some(d=>d.speed!=null)){zoom=1;pan={x:0,y:0};draw();}renderList();renderBrands();renderContextTitle();renderLegend();updateCollectionNote();}
 function setType(next){type=next;document.querySelectorAll('#types button').forEach(b=>b.classList.toggle('active',b.dataset.type===next));filter();}
 function reset(){stopCamera();$('#search').value='';selectedBrands.clear();$('#brandSearch').value='';$('#collection').value='current';$('#speed').value=0;$('#stability').value='';type='all';document.querySelectorAll('#types button').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));zoom=1;pan={x:0,y:0};filter();renderCompare();if(selected)detail();}
 function setView(v){stopCamera();closeCluster();closeDetail(false);document.body.dataset.view=v;view=v;$('#count').textContent=v==='map'?`${filtered.filter(d=>d.speed!=null).length.toLocaleString()} mapped`:`${filtered.length.toLocaleString()} discs`;$('#mapWrap').hidden=v!=='map';$('#directory').hidden=v!=='list';$('#mapTab').classList.toggle('active',v==='map');$('#listTab').classList.toggle('active',v==='list');$('#viewTitle').textContent=v==='map'?'Find your line.':'Every mold. Every maker.';if(v==='map')requestAnimationFrame(draw);else renderList();}
@@ -136,7 +141,10 @@ function inCollection(d){return $('#collection').value==='all'||isCurrentOrRecen
 function productionLabel(d){const p=d.production||{};if(p.status==='active')return 'Active · manufacturer confirmed';if(p.status==='catalog_listed')return 'Catalog-listed · production unverified';if(p.status==='retired')return 'Retirement announced '+esc(p.retirementAnnouncedAt)+(isCurrentOrRecent(d)?' · within 2 years':'');if(p.status==='retired_date_unknown')return 'Out of production · retirement date unknown';return 'Production status unknown';}
 function updateCollectionNote(){const current=discs.filter(isCurrentOrRecent).length;$('#coverage').innerHTML=`<strong>${current.toLocaleString()} current + recent</strong><br>${discs.length.toLocaleString()} total approval records<br>Original labeled disc illustrations`;const all=$('#collection').value==='all';$('#collectionNote').textContent=all?'All approval records, including historical molds and unverified production status.':'Catalog-listed + retirements since Sep 23, 2024. Production status is not fully verified.';}
 function toggleBrand(brand){if(selectedBrands.has(brand))selectedBrands.delete(brand);else selectedBrands.add(brand);filter();renderCompare();if(selected)detail();}
-function renderBrands(){if(!manufacturers.length)return;const query=$('#brandSearch').value.toLowerCase().trim(),counts=new Map();for(const d of discs)if(inCollection(d))counts.set(d.brand,(counts.get(d.brand)||0)+1);const shown=manufacturers.filter(b=>!query||b.toLowerCase().includes(query)).sort((a,b)=>Number(selectedBrands.has(b))-Number(selectedBrands.has(a))||(counts.get(b)||0)-(counts.get(a)||0)||a.localeCompare(b));$('#brandOptions').innerHTML=shown.length?shown.map(b=>`<label class="brand-option"><input type="checkbox" value="${esc(b)}" ${selectedBrands.has(b)?'checked':''}><span>${esc(b)}</span><small>${counts.get(b)||0}</small></label>`).join(''):'<p class="micro">No manufacturers found.</p>';$('#brandSummary').textContent=selectedBrands.size?`${selectedBrands.size} selected`:'All manufacturers';$('#clearBrands').disabled=!selectedBrands.size;}
+// One brand list, drawn in the Filters drawer and in the Brand chip's panel: picks first, then by count.
+function brandList(search){const query=search.toLowerCase().trim(),counts=new Map();for(const d of discs)if(inCollection(d))counts.set(d.brand,(counts.get(d.brand)||0)+1);const shown=manufacturers.filter(b=>!query||b.toLowerCase().includes(query)).sort((a,b)=>Number(selectedBrands.has(b))-Number(selectedBrands.has(a))||(counts.get(b)||0)-(counts.get(a)||0)||a.localeCompare(b));return shown.length?shown.map(b=>`<label class="brand-option"><input type="checkbox" value="${esc(b)}" ${selectedBrands.has(b)?'checked':''}><span>${esc(b)}</span><small>${counts.get(b)||0}</small></label>`).join(''):'<p class="micro">No manufacturers found.</p>';}
+function renderBrands(){renderBrandChip();if(!manufacturers.length)return;$('#brandOptions').innerHTML=brandList($('#brandSearch').value);$('#brandSummary').textContent=selectedBrands.size?`${selectedBrands.size} selected`:'All manufacturers';$('#clearBrands').disabled=!selectedBrands.size;}
+function renderBrandChip(){const chip=$('#brandChip'),n=selectedBrands.size;chip.textContent=n===1?[...selectedBrands][0]:n?`${n} brands`:'Brand';chip.dataset.active=String(n>0);if(!$('#brandPanel').hidden)$('#brandChipOptions').innerHTML=brandList($('#brandChipSearch').value);}
 function brandColor(brand){const i=Math.max(0,[...selectedBrands].indexOf(brand));return brandPalette[i%brandPalette.length];}
 function discColor(d){return myColor(d)||(selectedBrands.size>1?(selectedBrands.has(d.brand)?brandColor(d.brand):colors.unknown):colors[typeOf(d)]);}
 function renderContextTitle(){
@@ -164,19 +172,31 @@ $('#contextTitle').onclick=()=>{
 };
 function renderLegend(){const names=[...selectedBrands];$('#legend').innerHTML=names.length>1?`<span class="legend-label">BRANDS</span>`+names.slice(0,7).map(b=>`<span><i class="dot" style="background:${brandColor(b)}"></i>${esc(b)}</span>`).join('')+(names.length>7?`<span>+${names.length-7} more</span>`:''):'<span><i class="dot putter"></i>Putter</span><span><i class="dot mid"></i>Mid</span><span><i class="dot fairway"></i>Fairway</span><span><i class="dot distance"></i>Distance</span>';if(activeLens()!=='default')$('#legend').insertAdjacentHTML('beforeend','<span class="legend-mine"><i class="dot mine"></i>Your bag</span>');}
 function renderLens(){
- const group=$('#atlasLens'),lens=activeLens();group.hidden=!bagColors().size;
- for(const button of group.querySelectorAll('[data-lens]')){const on=button.dataset.lens===(group.hidden?atlasLens:lens);button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
+ const group=$('#atlasLens'),shown=bagColors().size?activeLens():atlasLens;group.hidden=!bagColors().size;
+ if(group.hidden&&!$('#lensMenu').hidden)closeDropdown(false);
+ $('#lensButton').textContent=lensNames[shown];
+ for(const item of $('#lensMenu').querySelectorAll('[data-lens]'))item.setAttribute('aria-checked',String(item.dataset.lens===shown));
+ for(const item of document.querySelectorAll('[data-map-choice]'))item.setAttribute('aria-checked',String(item.dataset.mapChoice===defaultMap));
 }
 function setLens(value){
- if(value===atlasLens)return;const only=value==='only'||atlasLens==='only';atlasLens=value;try{localStorage.setItem('atlas-lens',value);}catch{}
+ if(value===atlasLens)return;const only=value==='only'||atlasLens==='only';atlasLens=value;
  // Showing only (or no longer only) the player's discs reframes the whole map.
  if(only){zoom=1;pan={x:0,y:0};}renderLens();filter();
 }
-$('#atlasLens').addEventListener('click',e=>{const button=e.target.closest('[data-lens]');if(button)setLens(button.dataset.lens);});
-$('#atlasLens').addEventListener('keydown',e=>{
- const keys={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1};if(!keys[e.key])return;e.preventDefault();
- const buttons=[...$('#atlasLens').querySelectorAll('[data-lens]')],next=buttons[(buttons.indexOf(document.activeElement)+keys[e.key]+buttons.length)%buttons.length];
- setLens(next.dataset.lens);next.focus();
+// The map dropdown: a menu of the three maps. ArrowDown/Up open it on the current map.
+function openLensMenu(){showDropdown($('#lensMenu'),$('#lensButton'));$('#lensMenu [aria-checked="true"]').focus({preventScroll:true});}
+$('#lensButton').onclick=()=>openDropdown?.button===$('#lensButton')?closeDropdown(false):openLensMenu();
+$('#lensButton').addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();openLensMenu();}});
+$('#lensMenu').addEventListener('click',e=>{const item=e.target.closest('[data-lens]');if(item){closeDropdown();setLens(item.dataset.lens);}});
+$('#lensMenu').addEventListener('keydown',e=>{
+ const items=[...$('#lensMenu').querySelectorAll('[data-lens]')],i=items.indexOf(document.activeElement);
+ const next={ArrowDown:i+1,ArrowUp:i-1,Home:0,End:items.length-1}[e.key];
+ if(next!==undefined){e.preventDefault();items[(next+items.length)%items.length].focus();}else if(e.key==='Tab')closeDropdown(false);
+});
+// Site menu, Default map: saved for every visit, and shown now.
+for(const item of document.querySelectorAll('[data-map-choice]'))item.addEventListener('click',()=>{
+ defaultMap=item.dataset.mapChoice;try{localStorage.setItem('atlas-default-map',defaultMap);}catch{}
+ setLens(defaultMap);renderLens();
 });
 // The bag loads after the catalog and changes as the player edits it.
 window.addEventListener('atlas-bag-change',()=>{renderLens();if(discs.length)filter();});
@@ -184,6 +204,33 @@ $('#collection').onchange=()=>{zoom=1;pan={x:0,y:0};filter();};
 $('#brandSearch').oninput=renderBrands;
 $('#brandOptions').onchange=e=>{if(e.target.matches('input[type="checkbox"]')){const brand=e.target.value;toggleBrand(brand);const replacement=[...document.querySelectorAll('#brandOptions input')].find(x=>x.value===brand);replacement?.focus({preventScroll:true});}};
 $('#clearBrands').onclick=()=>{selectedBrands.clear();filter();renderCompare();if(selected)detail();};
+// Toolbar dropdowns: one open at a time, fixed under their button so a scrolling chip row never clips
+// them. Escape or a click elsewhere closes; Escape hands focus back to the button.
+let openDropdown=null;
+function showDropdown(panel,button){
+ closeDropdown(false);panel.hidden=false;button.setAttribute('aria-expanded','true');openDropdown={panel,button};placeDropdown();
+}
+function placeDropdown(){
+ if(!openDropdown)return;const {panel,button}=openDropdown,r=button.getBoundingClientRect();
+ panel.style.left=Math.max(8,Math.min(r.left,innerWidth-panel.offsetWidth-8))+'px';panel.style.top=(r.bottom+6)+'px';
+ panel.style.maxHeight=Math.min(420,Math.max(160,innerHeight-r.bottom-18))+'px';
+}
+function closeDropdown(focus=true){
+ if(!openDropdown)return;const {panel,button}=openDropdown;openDropdown=null;
+ panel.hidden=true;button.setAttribute('aria-expanded','false');if(focus)button.focus({preventScroll:true});
+}
+document.addEventListener('pointerdown',e=>{if(openDropdown&&!openDropdown.panel.contains(e.target)&&!openDropdown.button.contains(e.target))closeDropdown(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openDropdown){e.preventDefault();e.stopPropagation();closeDropdown();}},true);
+// Phone keyboards resize the viewport and pages scroll under an open panel: keep it under its button.
+addEventListener('resize',placeDropdown);
+document.addEventListener('scroll',placeDropdown,{passive:true,capture:true});
+$('#brandChip').onclick=()=>{
+ if(openDropdown?.button===$('#brandChip'))return closeDropdown(false);
+ $('#brandChipSearch').value='';showDropdown($('#brandPanel'),$('#brandChip'));renderBrandChip();$('#brandChipSearch').focus({preventScroll:true});
+};
+$('#brandChipSearch').oninput=renderBrandChip;
+$('#brandChipOptions').onchange=e=>{if(e.target.matches('input[type="checkbox"]')){const brand=e.target.value;toggleBrand(brand);[...document.querySelectorAll('#brandChipOptions input')].find(x=>x.value===brand)?.focus({preventScroll:true});}};
+$('#brandChipClear').onclick=()=>{selectedBrands.clear();filter();renderCompare();if(selected)detail();};
 
 function renderSearchCoverage(q){const node=$('#searchCoverage');if(!node)return;const matches=q?discs.filter(d=>searchText(d).includes(q)):[],hidden=matches.filter(d=>!filtered.includes(d));node.hidden=!q;node.innerHTML=!q?'':hidden.length?`${hidden.length} matching approval record${hidden.length===1?' is':'s are'} outside these filters. <button id="searchAllRecords" class="pill-button">Search all approvals</button>`:matches.length?`${matches.length} matching approval record${matches.length===1?'':'s'}.`:'No matching approval in this registry snapshot. Try another spelling or manufacturer.';$('#searchAllRecords')?.addEventListener('click',()=>{if(window.BagApp?.isMapActive())$('#listTab').click();$('#collection').value='all';selectedBrands.clear();type='all';$('#speed').value=0;$('#stability').value='';document.querySelectorAll('#types button').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));$('#search').value=q;filter();setView('list');});}
 

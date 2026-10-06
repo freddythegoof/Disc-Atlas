@@ -132,7 +132,7 @@ export async function checkThemePicker(browser,base){
    await page.keyboard.press(name==='Midnight'?'Space':'Enter');
    assert.equal(await page.locator('html').getAttribute('data-theme'),value);
    assert.equal(await choice.getAttribute('aria-checked'),'true');
-   assert.equal(await menu.locator('[role="menuitemradio"][aria-checked="true"]').count(),1);
+   assert.equal(await menu.locator('[data-theme-choice][aria-checked="true"]').count(),1,'One theme is checked');
    assert.equal(await page.evaluate(()=>localStorage.getItem('disc-atlas-theme')),value);
    assert.ok(await choice.evaluate(n=>n===document.activeElement),'Applying retains keyboard focus');
    assert.ok(await choice.evaluate(n=>getComputedStyle(n).outlineStyle!=='none'),'Theme choice has visible keyboard focus');

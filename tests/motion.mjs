@@ -52,6 +52,9 @@ try{
  }else if(process.argv.includes('--context-header')){
   const {checkContextHeader}=await import('./context-header.mjs');
   await checkContextHeader(browser,base);
+ }else if(process.argv.includes('--brand-dropdown')){
+  const {checkBrandDropdown}=await import('./brand-dropdown.mjs');
+  await checkBrandDropdown(browser,base);
  }else if(process.argv.includes('--type-chips')){
   const {checkTypeChips}=await import('./type-chips.mjs');
   await checkTypeChips(browser,base);

@@ -8,7 +8,7 @@ export async function checkTypeChips(browser,base){
   try{
    await page.goto(base);await page.waitForFunction(()=>discs.length&&filtered.length);
    if(name==='mobile')await page.locator('#mapTab').click();
-   const chips=page.locator('#typeChips button');
+   const chips=page.locator('#typeChips button[data-type]');
    assert.deepEqual(await chips.allTextContents(),['Driver','Fairway','Midrange','Putter'],name+': chips in the required order');
    const pressed=()=>chips.evaluateAll(list=>list.filter(b=>b.getAttribute('aria-pressed')==='true').map(b=>b.textContent));
    const state=()=>page.evaluate(()=>({type,types:[...new Set(filtered.map(typeOf))],count:filtered.length,sidebar:document.querySelector('#types .active').dataset.type}));
