@@ -145,7 +145,7 @@ try {
  await mainDisc.hover();await settle();assert.equal(await viewer(v=>v.liftedDisc),null,'Hover does not move the disc');
  assert.deepEqual(await viewer((v,id)=>v.discScreenRect(id),driver.id),resting);assert.equal((await page.locator('.bag-hover-name').innerText()).trim(),'Destroyer','Hover names the disc');
  // A click slides the disc out of the compartment, face-on.
- await mainDisc.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');await settle();
+ await mainDisc.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);await settle();
  const lifted=await viewer((v,id)=>v.discScreenRect(id),driver.id),box=await page.locator('[data-bag-canvas]').evaluate(n=>({w:n.clientWidth,h:n.clientHeight}));
  assert.ok(lifted.left>=0 && lifted.top>=0 && lifted.left+lifted.width<=box.w && lifted.top+lifted.height<=box.h,'Slid-out disc stays inside the canvas');
  // Color fidelity: the slid-out disc's face renders close to the saved color (#ed7868).
@@ -153,8 +153,11 @@ try {
  const rendered=await page.evaluate(async b64=>{const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();const c=document.createElement('canvas');c.width=5;c.height=5;const x=c.getContext('2d');x.drawImage(img,0,0);return [...x.getImageData(2,2,1,1).data.slice(0,3)];},crop.toString('base64'));
  const wanted=[0xed,0x78,0x68],drift=Math.max(...rendered.map((v,i)=>Math.abs(v-wanted[i])));perf.liftedFace={rendered:'#'+rendered.map(v=>v.toString(16).padStart(2,'0')).join(''),wanted:'#ed7868',drift};
  assert.ok(drift<=40,`Slid-out disc keeps its color: rendered ${perf.liftedFace.rendered} vs #ed7868`);
- await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().every(d=>d.slide===0));
- await page.mouse.move(5,5);await settle();assert.equal(await viewer(v=>v.slidDisc),null);assert.ok(await mainDisc.evaluate(n=>n===document.activeElement),'Escape returns focus to the disc');
+ // Escape closes its details and returns focus to it; the disc stays out until it is clicked again.
+ await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
+ assert.deepEqual(await viewer(v=>v.outDiscs),[driver.id],'Escape leaves the disc out');assert.ok(await mainDisc.evaluate(n=>n===document.activeElement),'Escape returns focus to the disc');
+ await mainDisc.click();await page.waitForFunction(()=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().every(d=>d.slide===0));
+ await page.mouse.move(5,5);await settle();assert.deepEqual(await viewer(v=>v.outDiscs),[],'A second click puts it back');
  // Drag sideways turns the bag and it stays turned; a drag never toggles.
  const canvas=await page.locator('.bag-3d-stage canvas').boundingBox(),cx=canvas.x+canvas.width*.15,cy=canvas.y+canvas.height*.6;
  await page.mouse.move(cx,cy);await page.mouse.down();await page.mouse.move(cx+160,cy+6,{steps:10});
@@ -165,7 +168,7 @@ try {
  assert.ok(await page.evaluate(b=>scrollY>b,before),'The wheel scrolls the page over the bag (no zoom capture)');
  await page.evaluate(()=>scrollTo(0,0));
  check(`Slid-out disc color ${perf.liftedFace.rendered} vs saved #ed7868 (max channel drift ${perf.liftedFace.drift})`);
- check('Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus name pill, click slide-out, Escape, drag-to-turn, page scroll preserved');
+ check('Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus name pill, click slide-out (stays out through Escape, back on a second click), drag-to-turn, page scroll preserved');
 
  // 5. One size (Oct 5 tweaks), re-rendered (not upscaled), and zoomed instead of S/M/L.
  const measure=()=>page.locator('[data-bag-canvas]').evaluate(n=>{const c=n.querySelector('canvas'),r=n.bagViewer.renderer;return {css:Math.round(c.clientWidth),buffer:c.width,ratio:r.pixelRatio,target:Math.round(n.querySelector(`[data-pocket="main"] > [data-physical-disc]`).getBoundingClientRect().height)};});

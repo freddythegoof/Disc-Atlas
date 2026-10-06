@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideSpots,mapFrame,mapSpots} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -110,4 +110,107 @@ test('stowed putters sit at one height inside the top pocket with only their rim
     assert.ok(rim > TOP.mouth && rim - TOP.mouth < .015, `Only the rim shows above the mouth: ${(rim - TOP.mouth).toFixed(3)} m`);
   }
   assert.ok(!placements.find(p => p.pocket === 'goTo').stow, 'The go-to does not stow');
+});
+
+// Staging: out discs stay out until clicked again; 1–5 rest beside the bag, 6+ go on a map around it.
+const HALF_HEIGHT = 1.3507 * Math.tan(33 / 2 * Math.PI / 180);
+const entry = (key, x, y) => ({key, atlas: x === null ? null : {x, y}});
+const minGap = spots => {
+  const points = [...spots.values()].map(spot => spot.position);let gap = Infinity;
+  for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) gap = Math.min(gap, Math.hypot(points[i][0] - points[j][0], points[i][1] - points[j][1]));
+  return gap;
+};
+const clearOfBag = (spot, radius) => spot.position[0] <= BAG_BOX.xMin - radius || spot.position[0] >= BAG_BOX.xMax + radius || spot.position[1] >= BAG_BOX.yMax + radius;
+
+test('staging switches from the side layout to the map at the sixth out disc', () => {
+  assert.deepEqual([0, 1, 5, 6, 7, 24].map(stageMode), [null, 'side', 'side', 'map', 'map', 'map']);
+  assert.equal(STAGE.sideMax, 5);
+});
+
+test('beside the bag, discs sort by stability: understable left, overstable right, balanced', () => {
+  const discs = [entry('fade', .9, .4), entry('turn', .1, .6), entry('neutral', .52, .5), entry('flip', .3, .8), entry('stable', .7, .2)];
+  for (let count = 1; count <= 5; count++) {
+    const list = discs.slice(0, count), sides = assignSides(list);
+    const left = list.filter(d => sides.get(d.key) === 'left'), right = list.filter(d => sides.get(d.key) === 'right');
+    assert.ok(Math.abs(left.length - right.length) <= 1, `${count}: balanced ${left.length}/${right.length}`);
+    if (left.length && right.length) assert.ok(Math.max(...left.map(d => d.atlas.x)) <= Math.min(...right.map(d => d.atlas.x)), `${count}: every left disc is less stable than every right disc`);
+  }
+  // A lone disc (or the middle one of an odd count) takes the side its own stability is on.
+  assert.equal(assignSides([entry('fade', .9, .4)]).get('fade'), 'right');
+  assert.equal(assignSides([entry('turn', .2, .4)]).get('turn'), 'left');
+  assert.equal(assignSides([entry('a', .1, 0), entry('m', .8, 0), entry('b', .9, 0)]).get('m'), 'right');
+  assert.equal(assignSides([entry('a', .1, 0), entry('m', .3, 0), entry('b', .9, 0)]).get('m'), 'left');
+});
+
+test('side spots rest just clear of the bag, faster discs higher, with room for names', () => {
+  const discs = [entry('fast', .2, .9), entry('slow', .25, .1), entry('mid', .3, .5), entry('r1', .8, .7), entry('r2', .9, .2)];
+  const sides = assignSides(discs), spots = sideSpots(discs, sides), radius = DISC.radius * STAGE.side.scale;
+  assert.equal(spots.size, 5);
+  for (const [key, spot] of spots) {
+    assert.ok(clearOfBag(spot, radius), `${key} clears the bag`);
+    assert.equal(Math.sign(spot.position[0]), sides.get(key) === 'left' ? -1 : 1, `${key} on its side`);
+  }
+  const y = key => spots.get(key).position[1];
+  assert.ok(y('fast') > y('mid') && y('mid') > y('slow'), 'Faster discs sit higher in their column');
+  assert.ok(minGap(spots) >= 2 * radius + STAGE.side.row - 1e-9, 'Room for a name between discs');
+  // Unrated discs count as neutral and still get a spot.
+  assert.equal(sideSpots([entry('x', null), entry('y', .2, .3)]).size, 2);
+});
+
+test('map spots follow Atlas positions around the bag without overlapping it or each other', () => {
+  // Every disc also stays on the side of the bag its stability leans to, even when one side is crowded.
+  const lopsided = Array.from({length: 14}, (_, i) => entry('o' + i, .55 + i * .02, (i * 7 % 14) / 14));
+  const leftCount = 0, crowded = mapSpots(lopsided, mapFrame({count: 14, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, left: leftCount, right: 14}));
+  for (const [key, spot] of crowded) assert.ok(spot.position[0] > 0, `${key} (overstable) stays right of center`);
+  assert.ok(minGap(crowded) >= 2 * DISC.radius * STAGE.map.scale + STAGE.map.gap - 1e-6, 'A crowded side still has no overlaps');
+  const radius = DISC.radius * STAGE.map.scale, apart = 2 * radius + STAGE.map.gap;
+  for (const count of [6, 10, 18, 26]) {
+    const discs = Array.from({length: count}, (_, i) => entry('d' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97));
+    const frame = mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .2, height: .1}});
+    const spots = mapSpots(discs, frame), {region} = frame;
+    assert.equal(spots.size, count);
+    assert.ok(minGap(spots) >= apart - 1e-6, `${count}: no overlaps (${minGap(spots).toFixed(4)})`);
+    for (const [key, spot] of spots) {
+      assert.ok(clearOfBag(spot, radius), `${count}: ${key} is not on the bag ${spot.position}`);
+      assert.ok(spot.position[0] >= region.xMin - 1e-9 && spot.position[0] <= region.xMax + 1e-9 && spot.position[1] >= region.yMin - 1e-9 && spot.position[1] <= region.yMax + 1e-9, `${count}: ${key} inside the frame`);
+    }
+    assert.deepEqual([...mapSpots(discs, frame)], [...spots], 'Deterministic');
+  }
+});
+
+test('the map keeps the Atlas order: stability left to right, speed bottom to top', () => {
+  // Well-separated discs land where the Atlas puts them, scaled to the frame.
+  const frame = mapFrame({count: 6, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075});
+  const discs = [entry('understable-fast', .05, .95), entry('overstable-fast', .95, .95), entry('understable-slow', .05, .1), entry('overstable-slow', .95, .1), entry('neutral-fast', .5, 1), entry('flippy-mid', .1, .55)];
+  const spots = mapSpots(discs, frame), x = key => spots.get(key).position[0], y = key => spots.get(key).position[1];
+  assert.ok(x('understable-fast') < x('neutral-fast') && x('neutral-fast') < x('overstable-fast'), 'Stability runs left to right');
+  assert.ok(y('understable-slow') < y('flippy-mid') && y('flippy-mid') < y('understable-fast'), 'Speed runs bottom to top');
+  assert.ok(y('neutral-fast') > BAG_BOX.yMax, 'A neutral fast disc rests above the bag');
+  // A neutral slow disc would land on the bag: it steps out to the side its stability leans to.
+  const pushed = mapSpots([entry('neutral-slow-under', .48, .2), entry('neutral-slow-over', .52, .2), ...discs.slice(0, 4)], frame);
+  assert.ok(pushed.get('neutral-slow-under').position[0] < BAG_BOX.xMin && pushed.get('neutral-slow-over').position[0] > BAG_BOX.xMax, 'Pushed off the bag toward its own side');
+  // Two copies of one mold share an Atlas position and part side by side.
+  const twins = mapSpots([entry('a', .2, .5), entry('b', .2, .5), ...discs.slice(0, 4)], frame);
+  assert.ok(Math.hypot(twins.get('a').position[0] - twins.get('b').position[0], twins.get('a').position[1] - twins.get('b').position[1]) >= 2 * DISC.radius * STAGE.map.scale);
+});
+
+test('the map frame pulls back only as far as the count needs, and keeps the zoom corner clear', () => {
+  const pulls = [6, 12, 20, 30].map(count => mapFrame({count, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075}).pull);
+  assert.equal(pulls[0], STAGE.map.pull, 'Six discs take the least pull-back');
+  assert.ok(pulls.every((pull, i) => i === 0 || pull >= pulls[i - 1]) && pulls.at(-1) <= STAGE.map.maxPull, 'More discs pull back further, within the cap: ' + pulls);
+  const frame = mapFrame({count: 12, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075, reserve: {width: .3, height: .15}});
+  const corner = frame.avoid[1], spots = mapSpots(Array.from({length: 12}, (_, i) => entry('c' + i, .9 + i * .008, .9 + i * .008)), frame);
+  for (const spot of spots.values()) assert.ok(!(spot.position[0] > corner.xMin && spot.position[1] > corner.yMin), 'No disc under the zoom buttons ' + spot.position);
+});
+
+test('a typical bag, bunched around neutral, keeps its stability order on the map', () => {
+  // Real bags cluster near the middle of the stability axis; most of them land beside the bag.
+  const discs = [[.38, .85], [.44, .78], [.47, .6], [.52, .55], [.55, .82], [.58, .35], [.61, .4], [.64, .2], [.66, .12], [.7, .1], [.5, .25], [.42, .15]].map(([x, y], i) => entry('t' + i, x, y));
+  const spots = mapSpots(discs, mapFrame({count: discs.length, aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075}));
+  const rank = values => { const order = values.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]), r = []; order.forEach(([, i], k) => r[i] = k); return r; };
+  const rho = (a, b) => { const ra = rank(a), rb = rank(b), n = a.length; return 1 - 6 * ra.reduce((sum, r, i) => sum + (r - rb[i]) ** 2, 0) / (n * (n * n - 1)); };
+  const xs = rho(discs.map(d => spots.get(d.key).position[0]), discs.map(d => d.atlas.x)), ys = rho(discs.map(d => spots.get(d.key).position[1]), discs.map(d => d.atlas.y));
+  assert.ok(xs >= .8, 'Stability order: rank correlation ' + xs.toFixed(3));
+  assert.ok(ys >= .9, 'Speed order: rank correlation ' + ys.toFixed(3));
+  for (const d of discs) assert.equal(Math.sign(spots.get(d.key).position[0]), d.atlas.x < .5 ? -1 : 1, d.key + ' on the side of the bag its stability leans to');
 });

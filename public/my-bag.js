@@ -33,8 +33,9 @@ function openBagDetail(d,item){
  if(detailPanel.parentNode!==$('#myBagView'))$('#myBagView').append(detailPanel);
  select(d);
 }
-// Putting a slid-out disc back closes its details too.
-function closeBagDetail(){if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);}
+// Putting an out disc back closes its details (when they show that disc); Escape or a click on
+// empty space closes the details the bag opened.
+function closeBagDetail(item){if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden && (!item || !detailItem || detailItem.id===item.id))closeDetail(false);}
 function undockDetail(){detailItem=null;if(detailPanel.parentNode!==detailHome)detailHome.append(detailPanel);}
 function refreshBagDetail(){
  if(!detailItem || detailPanel.hidden || detailPanel.parentNode!==$('#myBagView'))return;
@@ -124,7 +125,7 @@ function activateBag() {
  history.replaceState(null,'','/?bag=1');render();window.scrollTo(0,0);
 }
 function leaveBag(view) {
- active=false;syncMyMap();scene.slideIn();undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
+ active=false;syncMyMap();scene.release();undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
  for(const id of ['mapTab','listTab','bagTab'])$('#'+id).setAttribute('aria-current',id===(view==='map'?'mapTab':'listTab')?'page':'false');
  history.replaceState(null,'','/');setView(view);
 }
@@ -148,7 +149,7 @@ function syncMyMap(){
 }
 function setBagView(next){
  if(mapOpen===(next==='map'))return;mapOpen=next==='map';
- if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);undockDetail();scene.slideIn();render();
+ if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);undockDetail();scene.release();render();
 }
 $('#myBagViews').addEventListener('click',event=>{const button=event.target.closest('[data-bag-view]');if(button)setBagView(button.dataset.bagView);});
 $('#myBagViews').addEventListener('keydown',event=>{

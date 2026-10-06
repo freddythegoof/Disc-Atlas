@@ -41,8 +41,9 @@ try {
  const navigations=[];page.on('framenavigated',frame=>{if(frame===page.mainFrame())navigations.push(frame.url());});
  const phase=want=>page.waitForFunction(w=>document.querySelector('#bagScene').dataset.phase===w,want);
  const camera=want=>page.waitForFunction(w=>document.querySelector('#bagScene').dataset.camera===w,want);
- const slideOut=()=>page.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');
- const slidHome=()=>page.waitForFunction(()=>{const v=document.querySelector('[data-bag-canvas]').bagViewer;return v.slidDisc===null && v.getBagLayoutState().every(d=>d.slide===0);});
+ // Waits until every staged disc (and the camera) has settled with at least one disc out.
+ const slideOut=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.staging==='still' && Number(s.dataset.out)>0;});
+ const slidHome=()=>page.waitForFunction(()=>{const v=document.querySelector('[data-bag-canvas]').bagViewer;return !v.outDiscs.length && !v.stage.moving && v.getBagLayoutState().every(d=>d.slide===0);});
  const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
  const canvasBox=()=>page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));
  const local=locator=>locator.evaluate(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};});
@@ -65,7 +66,7 @@ try {
   metrics[label]={rect:{top:Math.round(rect.top),left:Math.round(rect.left),size:Math.round(rect.width)},colorDrift:drift};
   inside(rect,await canvasBox(),label);assert.ok(drift<=48,`${label}: the whole face shows (max channel drift ${drift} from ${color}) ${JSON.stringify(samples)}`);
  };
- const scene=page.locator('#bagScene'),card=page.locator('[data-bag-slide-out]'),detail=page.locator('#detail'),pill=page.locator('.bag-hover-name'),label=page.locator('.bag-slide-name');
+ const scene=page.locator('#bagScene'),detail=page.locator('#detail'),pill=page.locator('.bag-hover-name'),nameOf=id=>page.locator(`[data-out-name="${id}"]`);
  const onBagPage=async name=>{
   assert.equal(await page.evaluate(()=>location.pathname+location.search),'/?bag=1',`${name}: URL stays on My Bag`);
   assert.ok(await page.locator('#myBagView').isVisible(),`${name}: My Bag stays visible`);
@@ -114,7 +115,7 @@ try {
  await driverSlot.hover();await settle();
  assert.ok(await pill.isVisible(),'Hover shows a name pill');assert.equal((await pill.innerText()).trim(),'Destroyer');
  assert.deepEqual(await viewer((v,id)=>v.discScreenRect(id),driver.id),restRect,'The hovered disc does not move');
- assert.equal(await viewer(v=>v.liftedDisc),null);assert.equal(await viewer(v=>v.slidDisc),null);
+ assert.equal(await viewer(v=>v.liftedDisc),null);assert.deepEqual(await viewer(v=>v.outDiscs),[]);
  assert.equal(await page.locator('#bagLiftInfo').evaluate(n=>getComputedStyle(n).clipPath),'inset(50%)','No details card on hover (description is for screen readers)');
  inside(await local(pill),box,'Hover pill');
  const pillStyle=await pill.evaluate(n=>{const s=getComputedStyle(n);return {bg:s.backgroundColor,color:s.color,radius:parseFloat(s.borderTopLeftRadius),height:n.offsetHeight};});
@@ -128,70 +129,82 @@ try {
  await page.locator('[data-bag-toggle]').focus();
  check('Hover/focus: a dark rounded pill with the name in white, inside the canvas; the disc stays exactly in place; no details card');
 
- // 4. Click slides out along the pocket's axis. A back putter: straight up, then a short step forward.
+ // 4. Click slides out along the pocket's axis, then on to a spot beside the bag, and stays out.
  // A back putter shows only its rim above the ones in front: click there, as a person would.
  const clickRim=async slot=>{const r=await slot.boundingBox();await page.mouse.click(r.x+r.width/2,r.y+3);};
  const putter=row.at(-1),putterColor=seeded.find(d=>d.id===putter.id).color,putterLabel=putterName(seeded.find(d=>d.id===putter.id).mold_id),backSlot=page.locator(`[data-physical-disc="${putter.id}"]`);
- await page.locator('[data-bag-canvas]').evaluate((n,id)=>{const s=n.pathSamples=[];const tick=()=>{s.push(n.bagViewer.getBagLayoutState().find(d=>d.id===id).pose);if(s.length<90)requestAnimationFrame(tick);};requestAnimationFrame(tick);},putter.id);
+ // Records a disc's pose every frame; `rising` is the part before it leaves its pocket's axis (x changes).
+ const recordPath=id=>page.locator('[data-bag-canvas]').evaluate((n,id)=>{const s=n.pathSamples=[];const tick=()=>{s.push(n.bagViewer.getBagLayoutState().find(d=>d.id===id).pose);if(s.length<120)requestAnimationFrame(tick);};requestAnimationFrame(tick);},id);
+ const readPath=async start=>{const path=await page.locator('[data-bag-canvas]').evaluate(n=>n.pathSamples),moving=path.filter(p=>Math.hypot(p[0]-start[0],p[1]-start[1],p[2]-start[2])>1e-4),leave=moving.findIndex(p=>Math.abs(p[0]-start[0])>1e-6);return {moving,rising:leave<0?moving:moving.slice(0,leave),end:path.at(-1)};};
+ await recordPath(putter.id);
  await clickRim(backSlot);await slideOut();await settle();
- const path=await page.locator('[data-bag-canvas]').evaluate(n=>n.pathSamples);
- const moving=path.filter(p=>Math.abs(p[1]-putter.position[1])>1e-4),end=moving.at(-1),halfway=moving.find(p=>p[1]-putter.position[1]>(end[1]-putter.position[1])*.5);
- assert.ok(moving.length>=10,'Animated: '+moving.length+' frames');
- assert.ok(moving.every(p=>Math.abs(p[0]-putter.position[0])<1e-6),'Putter keeps its x the whole way');
- assert.ok(moving.every((p,i)=>i===0 || p[1]>=moving[i-1][1]-1e-9),'Putter only rises');
+ const putterPath=await readPath(putter.position),rise=putterPath.rising,halfway=rise.find(p=>p[1]-putter.position[1]>(rise.at(-1)[1]-putter.position[1])*.5);
+ assert.ok(rise.length>=8,'Animated rise: '+rise.length+' frames');
+ assert.ok(rise.every((p,i)=>i===0 || p[1]>=rise[i-1][1]-1e-9),'Putter only rises while it leaves the pocket');
+ // The top pocket's mouth is at y .252; a putter's face is .101 × .92 in radius.
+ assert.ok(rise.at(-1)[1]-.101*.92>=.252-.002,'Its whole face clears the pocket mouth before it moves aside: '+rise.at(-1)[1]);
  assert.ok(Math.abs(halfway[2]-putter.position[2])<.004,'It rises before it steps forward');
- assert.ok(end[2]>row[0].position[2],'It ends in front of the stack');
+ assert.ok(putterPath.end[2]>row[0].position[2],'It ends in front of the stack');
+ assert.ok(Math.abs(putterPath.end[0])>.3,'It rests beside the bag: '+putterPath.end[0]);
  await onBagPage('Slide-out');
- assert.equal(await viewer(v=>v.slidDisc),putter.id);assert.equal((await label.innerText()).trim(),putterLabel,'Name label');
+ assert.deepEqual(await viewer(v=>v.outDiscs),[putter.id]);assert.equal((await nameOf(putter.id).innerText()).trim(),putterLabel,'Name label');
+ assert.equal(await backSlot.getAttribute('aria-pressed'),'true','The disc reads as pressed (out)');
  await detail.waitFor({state:'visible'});assert.equal(await detail.locator('h2').first().innerText(),putterLabel,'Details open with the first click (Oct 5 tweaks)');
- await fullyVisible(putter.id,putterColor,'Slid-out putter');inside(await local(label),box,'Putter label');
- metrics.putterPathFrames=moving.length;
- // Another disc: the first returns home before the second leaves.
- await page.locator('[data-bag-canvas]').evaluate((n,[a,b])=>{const s=n.swapSamples=[];const tick=()=>{const st=n.bagViewer.getBagLayoutState();s.push([st.find(d=>d.id===a).slide,st.find(d=>d.id===b).slide]);if(s.length<150)requestAnimationFrame(tick);};requestAnimationFrame(tick);},[putter.id,driver.id]);
+ await fullyVisible(putter.id,putterColor,'Slid-out putter');inside(await local(nameOf(putter.id)),box,'Putter label');
+ metrics.putterPathFrames=rise.length;
+ // Another disc comes out too: each disc is independent and the first stays out.
+ const driverStart=await viewer((v,id)=>v.getBagLayoutState().find(d=>d.id===id).pose,driver.id);
+ await recordPath(driver.id);
  await driverSlot.click();await slideOut();await settle();
- const swap=await page.locator('[data-bag-canvas]').evaluate(n=>n.swapSamples),firstHome=swap.findIndex(([a])=>a===0),secondMoves=swap.findIndex(([,b])=>b>0);
- assert.ok(firstHome>=0 && secondMoves>=firstHome,'The first disc is home before the second moves: '+JSON.stringify({firstHome,secondMoves}));
- assert.ok(swap.every(([a,b])=>!(a>0 && b>0)),'Never two discs out at once');
- // Main disc: forward out of the compartment, then up and face-on.
+ const driverPath=await readPath(driverStart);
+ assert.deepEqual(await viewer(v=>v.outDiscs),[putter.id,driver.id],'Both discs are out');
+ // Main disc: forward out of the compartment first, then on to its spot face-on.
+ assert.ok(driverPath.rising.length>=4 && driverPath.rising.at(-1)[2]>driverStart[2]+.05,'Main disc comes forward first');
  const mainEnd=await viewer((v,id)=>v.getBagLayoutState().find(d=>d.id===id),driver.id);
- assert.ok(mainEnd.pose[2]>.25 && mainEnd.pose[1]>mainEnd.position[1],'Main disc comes up and out');
- await fullyVisible(driver.id,'#ed7868','Slid-out main disc');inside(await local(label),box,'Main label');
- assert.equal((await label.innerText()).trim(),'Destroyer');
- check(`Click: a putter rises straight up (constant x, ${metrics.putterPathFrames} frames) then steps in front of the stack; a main disc comes forward, up and face-on; each fully visible (color drift ${metrics['Slid-out putter'].colorDrift}/${metrics['Slid-out main disc'].colorDrift}) with its name; a second click returns the first before the second leaves`);
+ assert.ok(mainEnd.out && Math.abs(mainEnd.pose[0])>.3,'Main disc rests beside the bag');
+ await fullyVisible(driver.id,'#ed7868','Slid-out main disc');inside(await local(nameOf(driver.id)),box,'Main label');
+ assert.equal((await nameOf(driver.id).innerText()).trim(),'Destroyer');
+ check(`Click: a putter rises straight up (${metrics.putterPathFrames} frames) clear of its pocket, a main disc comes forward, then each rests face-on beside the bag, fully visible (color drift ${metrics['Slid-out putter'].colorDrift}/${metrics['Slid-out main disc'].colorDrift}) with its name; a second disc comes out without sending the first home`);
 
- // 5. Clicking the slid-out disc's label (or the disc) opens the details panel on My Bag.
- await label.click();await detail.waitFor({state:'visible'});await onBagPage('Details');
+ // 5. Details: Escape or an empty-space click closes them; out discs stay out. A name reopens them.
+ await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
+ assert.ok(await driverSlot.evaluate(n=>n===document.activeElement),'Focus returns to the disc');
+ assert.deepEqual(await viewer(v=>v.outDiscs),[putter.id,driver.id],'Escape leaves both discs out');
+ await nameOf(driver.id).click();await detail.waitFor({state:'visible'});await onBagPage('Details');
  assert.equal(await detail.evaluate(n=>n.parentNode.id),'myBagView','The details panel is docked on My Bag');
  assert.equal(await detail.locator('h2').first().innerText(),'Destroyer');
  const personal=detail.locator('.bag-detail-personal');
  assert.match(await personal.innerText(),/Star[\s\S]*171 g[\s\S]*4\/10[\s\S]*Less stable[\s\S]*Flips up to flat on a hyzer/,'Personal notes');
  assert.ok(await page.locator('[data-show-on-atlas]').isEnabled(),'Show on Atlas');
- // Escape closes everything at once: panel shut, disc home, focus on its slot.
- await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});
- assert.ok(await driverSlot.evaluate(n=>n===document.activeElement),'Focus returns to the disc');
- // The go-to comes up and forward; clicking the disc itself opens details; empty space closes everything.
+ const body=await page.locator('.bag-3d-stage canvas').boundingBox();await page.mouse.click(body.x+body.width*.5,body.y+body.height*.97);
+ await detail.waitFor({state:'hidden'});assert.equal(await scene.getAttribute('data-phase'),'open','Empty-space click does not toggle the flap');
+ assert.deepEqual(await viewer(v=>v.outDiscs),[putter.id,driver.id],'An empty-space click leaves the discs out');
+ // The go-to comes up and forward, then aside.
  const gotoSlot=page.locator(`[data-physical-disc="${goto.id}"]`),gotoRest=layout.find(d=>d.id===goto.id);
+ await recordPath(goto.id);
  await gotoSlot.click({force:true});await slideOut();await settle();
- const gotoEnd=await viewer((v,id)=>v.getBagLayoutState().find(d=>d.id===id),goto.id);
- assert.ok(gotoEnd.pose[1]>gotoRest.position[1] && gotoEnd.pose[2]>gotoRest.position[2] && gotoEnd.pose[0]===gotoRest.position[0],'Go-to comes up and forward');
+ const gotoPath=await readPath(gotoRest.position);
+ assert.ok(gotoPath.rising.length>=4 && gotoPath.rising.at(-1)[1]>gotoRest.position[1]+.05,'Go-to comes up out of its pocket first');
  await fullyVisible(goto.id,GOTO.color,'Slid-out go-to');
- await card.click();await detail.waitFor({state:'visible'});
  assert.match(await personal.innerText(),/Go-to[\s\S]*K1[\s\S]*Upshots and the drive on 7/);
- const body=await page.locator('.bag-3d-stage canvas').boundingBox();await page.mouse.click(body.x+body.width*.1,body.y+body.height*.66);
- await slidHome();await detail.waitFor({state:'hidden'});assert.equal(await scene.getAttribute('data-phase'),'open','Empty-space click does not toggle the flap');
- await driverSlot.click();await slideOut();await page.mouse.click(10,300);await slidHome();
- // Keyboard: one Enter slides the disc out and opens its details; Escape closes everything.
+ // Clicking an out disc puts just that disc back, and closes its details.
+ await gotoSlot.click();await page.waitForFunction(id=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.includes(id),goto.id);await detail.waitFor({state:'hidden'});
+ assert.deepEqual(await viewer(v=>v.outDiscs),[putter.id,driver.id],'Only the clicked disc goes back');
+ await driverSlot.click();await backSlot.click();await slidHome();
+ assert.equal(await backSlot.getAttribute('aria-pressed'),'false');
+ // Keyboard: one Enter slides the disc out and opens its details; Escape closes them; Enter puts it back.
  await driverSlot.focus();await page.keyboard.press('Enter');await slideOut();await detail.waitFor({state:'visible'});
- await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});
+ await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});assert.deepEqual(await viewer(v=>v.outDiscs),[driver.id]);
+ await driverSlot.focus();await page.keyboard.press('Enter');await slidHome();
  // The list's names open the same panel; an unrated mold's Show on Atlas is disabled with a reason.
  await page.locator(`#bagStorage [data-bag-inspect="${odd.id}"]`).click();await detail.waitFor({state:'visible'});
  assert.ok(await page.locator('[data-show-on-atlas]').isDisabled());assert.match(await detail.locator('#bagDetailUnmapped').innerText(),/no flight ratings/);
  await page.locator('#closeDetail').click();await detail.waitFor({state:'hidden'});
  assert.deepEqual(navigations,[],'No navigation or reload on My Bag');
- check('Details: clicking the slid-out disc or its label opens the docked panel with personal notes and Show on Atlas; Escape or an empty-space click slides the disc home and closes the panel in one step (flap untouched); keyboard Enter → Escape; go-to comes up and forward');
+ check('Details: open with the slide-out, reopen from the disc\'s name, docked with personal notes and Show on Atlas; Escape or an empty-space click closes them and leaves the discs out (flap untouched); a click on an out disc puts back only that disc; keyboard Enter → Escape → Enter; go-to comes up first');
 
  // 6. Show on Atlas jumps to the disc on the map.
- await driverSlot.click();await slideOut();await label.click();await detail.waitFor({state:'visible'});
+ await driverSlot.click();await slideOut();await detail.waitFor({state:'visible'});
  await page.locator('[data-show-on-atlas]').click();
  await page.waitForFunction(()=>document.body.dataset.view==='map' && !cameraTween);await page.waitForTimeout(500);
  const atlas=await page.evaluate(()=>({url:location.pathname+location.search,selected:selected?.id,zoom,docked:document.querySelector('#detail').parentNode.id,visible:!document.querySelector('#detail').hidden}));
@@ -199,6 +212,8 @@ try {
  const marker=await page.evaluate(()=>{const r=document.querySelector('#mapMarkers .atlas-marker.is-selected[data-cluster="3d60892b6812"] .marker-stack')?.getBoundingClientRect(),panel=document.querySelector('#detail').getBoundingClientRect();return r&&{x:r.left+r.width/2,y:r.top+r.height/2,panelLeft:panel.left,height:innerHeight};});
  assert.ok(marker && marker.x>0 && marker.x<marker.panelLeft && marker.y>0 && marker.y<marker.height,'Its own marker is selected and visible');
  await page.locator('#bagTab').click();await phase('open');await scene.scrollIntoViewIfNeeded();await page.mouse.move(0,0);
+ // Back on My Bag the disc is still out, until it is clicked again.
+ assert.deepEqual(await viewer(v=>v.outDiscs),[driver.id],'The disc stays out across pages');await driverSlot.click();await slidHome();
  check(`Show on Atlas: map at zoom ${atlas.zoom}, the disc's own marker selected beside its details`);
 
  // 7. Camera persistence: a turned bag stays exactly where the user left it.
@@ -213,7 +228,12 @@ try {
  const slotRect=await local(driverSlot),discRect=turnedRects.find(r=>r.id===driver.id);assert.ok(Math.abs(slotRect.left-discRect.left)<1.5,'The slot sits on the turned disc');
  await driverSlot.hover();await settle();assert.ok(await pill.isVisible());
  await driverSlot.click();await slideOut();await settle();await fullyVisible(driver.id,'#ed7868','Slid-out main disc on the turned bag');
- await page.keyboard.press('Escape');await slidHome();assert.equal(await viewer(v=>v.turn),turned,'Hover, slide-out and Escape keep the turn');
+ // An out disc holds still in the room while the bag turns under it.
+ const heldSpot=await local(driverSlot);await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
+ await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+30,sy+2,{steps:6});await page.mouse.up();await settle();
+ const afterTurn=await local(driverSlot);assert.ok(Math.abs(afterTurn.left-heldSpot.left)<2 && Math.abs(afterTurn.top-heldSpot.top)<2,'The out disc stays put while the bag turns: '+JSON.stringify({heldSpot,afterTurn}));
+ const turnedMore=await viewer(v=>v.turn);
+ await driverSlot.click();await slidHome();assert.equal(await viewer(v=>v.turn),turnedMore,'Hover, slide-out, Escape and putting it back keep the turn');
  // Turned far enough that the front faces away, only the top pocket stays in reach.
  await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+120,sy+2,{steps:8});await page.mouse.up();await settle();
  assert.equal(await viewer(v=>v.frontFacing),false);assert.equal(await driverSlot.getAttribute('aria-hidden'),'true');assert.equal(await putterSlot.getAttribute('aria-hidden'),'false');
@@ -238,7 +258,7 @@ try {
  const touchTurn=await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.turn);await mobile.waitForTimeout(2000);
  assert.ok(Math.abs(touchTurn)>.3 && await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.turn)===touchTurn,'Touch turn holds: '+touchTurn);
  const tapSlot=mobile.locator(`[data-physical-disc="${driver.id}"]`);await tapSlot.tap();
- await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');assert.ok(!await mobile.locator('.bag-hover-name').isVisible(),'No hover pill on touch');
+ await mobile.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.staging==='still' && s.dataset.out==='1';});assert.ok(!await mobile.locator('.bag-hover-name').isVisible(),'No hover pill on touch');
  await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'The same tap opens its details on My Bag');
  await touch.close();
  check(`Touch: a finger drag turn (${touchTurn.toFixed(2)} rad) holds; one tap slides a disc out and opens its details on My Bag`);
@@ -254,8 +274,8 @@ try {
  assert.deepEqual(labels.map(l=>l.pocket),['putter'],'Only the putter pocket is labeled');for(const l of labels)inside(l,box,l.pocket+' label');
  assert.ok(PUTTERS.every(([,name])=>labels[0].text.includes(name)),'It names the putters: '+labels[0].text);
  assert.equal(await viewer(v=>v.fabricOpaque),true,'The fabric stays opaque');
- await putterSlot.click({force:true});await slideOut();await settle();assert.equal(await viewer(v=>v.slidDisc),row[0].id,'Slide-out works from above');
- await page.keyboard.press('Escape');await slidHome();await page.keyboard.press('Escape');await camera('front');
+ await putterSlot.click({force:true});await slideOut();await settle();assert.deepEqual(await viewer(v=>v.outDiscs),[row[0].id],'Slide-out works from above');
+ await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await putterSlot.evaluate(n=>n.click());await slidHome();await page.keyboard.press('Escape');await camera('front');
  check(`Top view: ${Math.round(ms)} ms to straight above, into the putter pocket with one label naming its putters, opaque fabric, slide-out works from above, Escape returns`);
 
  // 10. Screenshots in every theme, desktop and 360 px: hover label, slid-out putter, slid-out main disc,
@@ -269,15 +289,15 @@ try {
   inside(await local(pill),wbox,`Hover pill (${theme} ${width})`);await shot('hover-label',width,theme,canvas);
   await page.locator('[data-bag-toggle]').focus();await page.mouse.move(0,0);
   await clickRim(backSlot);await slideOut();await detail.waitFor({state:'visible'});
-  await fullyVisible(putter.id,putterColor,`Putter (${theme} ${width})`);inside(await local(label),wbox,`Putter label (${theme} ${width})`);
+  await fullyVisible(putter.id,putterColor,`Putter (${theme} ${width})`);inside(await local(nameOf(putter.id)),wbox,`Putter label (${theme} ${width})`);
   await shot('slid-out-putter',width,theme,canvas);
-  await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});
+  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await backSlot.click();await slidHome();
   await driverSlot.click();await slideOut();await detail.waitFor({state:'visible'});
-  await fullyVisible(driver.id,'#ed7868',`Main (${theme} ${width})`);inside(await local(label),wbox,`Main label (${theme} ${width})`);
+  await fullyVisible(driver.id,'#ed7868',`Main (${theme} ${width})`);inside(await local(nameOf(driver.id)),wbox,`Main label (${theme} ${width})`);
   await shot('slid-out-main',width,theme,canvas);
   if(width===360)await detail.evaluate(n=>{n.scrollTop=n.querySelector('h2').offsetTop-90;});
   await shot('details-from-label',width,theme,page);
-  await page.keyboard.press('Escape');await slidHome();await detail.waitFor({state:'hidden'});
+  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await driverSlot.click();await slidHome();
   await page.locator('[data-bag-top-view]').click();await camera('top');await page.mouse.move(0,0);await shot('top-view',width,theme,canvas);
   await page.keyboard.press('Escape');await camera('front');
   const st=await page.locator('.bag-3d-stage canvas').boundingBox(),x=st.x+st.width*.1,y=st.y+st.height*.8;

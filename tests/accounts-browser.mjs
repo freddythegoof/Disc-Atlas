@@ -55,7 +55,7 @@ try{
   await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);await button.click();
   for(const name of ['Profile','Account settings','Sign out'])assert.ok(await menu.getByRole('menuitem',{name,exact:true}).isVisible());assert.equal(await menu.getByRole('menuitem',{name:'Sign in',exact:true}).count(),0);
   const r=await menu.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=width&&r.y+r.height<=800);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  await capture(`menu-signed-in-${width}-${theme}`);await page.keyboard.press('Home');await page.keyboard.press('ArrowUp');assert.ok(await menu.getByRole('menuitemradio',{name:'My discs',exact:true}).evaluate(n=>n===document.activeElement),'ArrowUp from the top wraps to the last item, Default map: My discs');await page.keyboard.press('Escape');assert.ok(await button.evaluate(n=>n===document.activeElement));
+  await capture(`menu-signed-in-${width}-${theme}`);await page.keyboard.press('Home');await page.keyboard.press('ArrowUp');assert.ok(await menu.getByRole('menuitemradio',{name:'My Bag',exact:true}).evaluate(n=>n===document.activeElement),'ArrowUp from the top wraps to the last item, Default map: My Bag');await page.keyboard.press('Escape');assert.ok(await button.evaluate(n=>n===document.activeElement));
  }
  for(const route of ['profile','account-settings'])for(const theme of ['light','midnight','charcoal'])for(const width of [1440,360]){
   await page.goto(base+'/'+route);await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);

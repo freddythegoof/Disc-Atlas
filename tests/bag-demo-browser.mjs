@@ -74,6 +74,8 @@ try {
  assert.ok(await page.locator('#detail [data-show-on-atlas]').isEnabled(),'Show on Atlas works');
  await shot('signed-out-1440-midnight-detail');
  await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('#detail').hidden || document.querySelector('#detail').parentNode.id!=='myBagView');
+ // The putter stays out until clicked again.
+ await putter.click();await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
  await page.locator('#myBagContents [data-bag-inspect]').first().click();await page.locator('#bagDetailTitle').waitFor();
  assert.equal(await page.locator('[data-bag-detail-edit]').count(),0);
  await page.keyboard.press('Escape');

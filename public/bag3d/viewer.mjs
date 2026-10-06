@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures } from './disc-features.mjs';
-import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC } from './bag-layout.mjs';
+import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, stageMode, assignSides, sideSpots, mapFrame, mapSpots } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -23,10 +23,18 @@ const spring = t => { let lo = 0, hi = 1, u = t; const b = (p, a, c) => 3 * (1 -
 const easeOut = t => 1 - (1 - t) ** 3;
 const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650, SLIDE_MS = 620, TOP_MS = 600, STOW_MS = 520, STOW_STAGGER = 70, STOW_WAVE = 240, GLOW_MS = 160, ZOOM_MS = 220;
+// After the slide out of its pocket (most of SLIDE_MS), an out disc travels to its staged spot
+// beside or around the bag. Discs already out glide to new spots when the staging changes, and
+// the camera pulls back (or comes in) as far as the staged discs need.
+const TRAVEL_MS = 480, TRAVEL_AT = .75, SLIDE_TOTAL = SLIDE_MS * TRAVEL_AT + TRAVEL_MS, RESTAGE_MS = 650, PULL_MS = 650;
+// A path that would cross the bag arcs out in front of it, through this depth.
+const ARC_Z = .42;
+// Staged discs and their names stay this far (px) inside the canvas.
+const FRAME_MARGIN = 8;
 // A hovered disc lights up in its own color at this emissive intensity.
 const GLOW = 1.1;
 export const MAX_ZOOM = 3;
-const Y_AXIS = new THREE.Vector3(0, 1, 0), WHITE = new THREE.Color(1, 1, 1);
+const Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0), WHITE = new THREE.Color(1, 1, 1);
 const clamp01 = value => Math.min(1, Math.max(0, value));
 // Slide-out runs in two overlapping stages, like pulling a disc out by hand.
 const stage = (progress, from, to) => easeInOut(clamp01((progress - from) / (to - from)));
@@ -156,6 +164,9 @@ export async function mountBag(container, {
   // and labels all follow it. zoomCenter is the window's center in the frame (0–1).
   let zoomLevel = 1, zoomCenter = { x: .5, y: .5 }, zoomTween = null;
   let puttersOutState = Boolean(puttersOut), glowKey = null;
+  // Staging: the out discs in the order they came out, each one's side (beside the bag), the
+  // layout in use ('side', 'map' or null) and the camera's pull-back (1 = the page view).
+  let outKeys = [], sides = new Map(), stagedMode = null, pull = 1, pullGoal = 1, pullTween = null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -320,7 +331,7 @@ export async function mountBag(container, {
   const discGroup = new THREE.Group();
   const records = new Map();
   let discGeometry, discTemplate, ghostMaterial, fabric = [], accentMaterials = [], placeholders = [], accents = [], glbDiscs = [];
-  let layoutMode = false, appliedBagColor = null, accent = new THREE.Color(accentColor ?? '#80bcb0'), liftedKey = null, slidKey = null, clipped = { main: 0, putter: 0, goTo: 0 };
+  let layoutMode = false, appliedBagColor = null, accent = new THREE.Color(accentColor ?? '#80bcb0'), liftedKey = null, clipped = { main: 0, putter: 0, goTo: 0 };
   const dispose = () => {
     if (disposed) return;
     disposed = true;
@@ -456,14 +467,16 @@ export async function mountBag(container, {
         stow: placement.stow ? restPose(placement.stow) : null, out, outFrom: out, outTo: out, outStart: 0, outDuration: 0, glow: 0, glowFrom: 0, glowTo: 0, glowStart: 0 };
       // A disc that changed pockets glides from where it was.
       const before = previous.get(placement.key);
-      if (before && active && !before.mesh.position.equals(rest.position)) {
+      // An out disc stays out (or keeps sliding) through a redraw.
+      if (before) for (const field of ['slide', 'slideFrom', 'slideTo', 'slideStart', 'slideDuration', 'spot']) record[field] = before[field];
+      if (before && active && !before.slideTo && !before.mesh.position.equals(rest.position)) {
         record.move = { position: before.mesh.position.clone(), quaternion: before.mesh.quaternion.clone(), scale: before.mesh.scale.clone(), start: now };
       }
       records.set(placement.key, record);
       paintDisc(record);
     }
     if (!records.has(liftedKey)) liftedKey = null;
-    if (!records.has(slidKey)) slidKey = null;
+    outKeys = outKeys.filter(key => records.has(key));
     if (glowKey !== null && records.has(glowKey)) { const record = records.get(glowKey); record.glow = record.glowFrom = record.glowTo = 1; paintDisc(record); } else glowKey = null;
     const assigned = result.placements.some(p => p.pocket === 'goTo' && !p.empty);
     // The GLB draws the accent rim and dashed outline around a top-pocket disc; carry them
@@ -534,24 +547,118 @@ export async function mountBag(container, {
   };
   // A slid-out disc leaves its pocket along the pocket's own axis (see bag-layout's `slide`
   // poses): putters and the go-to straight up and a step forward, main discs forward out of
-  // the compartment, then up and turned face-on. One disc is out at a time.
-  const slideDisc = (key = null, { instant = !active } = {}) => {
-    if (key !== null && !records.has(key)) throw new RangeError(`Unknown disc ${key}`);
-    slidKey = key;
+  // the compartment, then up and turned face-on. It then travels to its staged spot and stays
+  // there until it is staged back in. Every disc is independent: `keys` lists all out discs, in
+  // the order they came out. Up to five rest beside the bag, understable left and overstable
+  // right; six or more take their Atlas places
+  // (`atlas`: key → {x, y}, AtlasLayout's 0–1 stability and speed) on a map around the bag.
+  // `reserve` keeps a top-right corner of the canvas clear on the map; `labelSpace` (px) is room
+  // for a name under each disc beside the bag. Resolves when every disc and the camera settle.
+  const stageDiscs = (keys = [], { atlas = new Map(), reserve, labelSpace = 0, instant = !active } = {}) => {
+    keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
+    outKeys = keys;
+    const mode = stageMode(keys.length);
+    const entries = keys.map(key => ({ key, atlas: atlas.get(key) ?? null }));
+    let spots = new Map();
+    const home = homeCamera(), halfHeight = home.position.distanceTo(home.target) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    // Room between discs beside the bag for a name, in the bag's meters at about the pull-back they take.
+    if (mode === 'side') { sides = assignSides(entries); spots = sideSpots(entries, sides, { row: (labelSpace + 8) * 2 * halfHeight * 1.25 / Math.max(container.clientHeight, 1) }); }
+    if (mode === 'map') {
+      const left = entries.filter(entry => entry.atlas && entry.atlas.x < .5).length + entries.filter(entry => !entry.atlas).length;
+      spots = mapSpots(entries, mapFrame({ count: keys.length, aspect: camera.aspect, halfHeight, centerY: home.target.y, reserve, left, right: keys.length - left }));
+    }
+    if (mode !== 'side') sides = new Map();
+    stagedMode = mode;
+    const goal = mode ? pullToFit(spots, mode === 'side' ? labelSpace : 0, mode === 'map' ? reserve : null) : 1, eye = pulledHome(goal).position;
     const now = performance.now();
     let longest = 0;
     for (const record of records.values()) {
-      const to = record.key === key ? 1 : 0;
+      const spot = spots.get(record.key), to = spot ? 1 : 0;
+      if (spot) {
+        // Each staged disc turns its face to the camera.
+        const position = new THREE.Vector3(...spot.position);
+        const pose = { position, quaternion: new THREE.Quaternion().setFromUnitVectors(X_AXIS, eye.clone().sub(position).normalize()), scale: new THREE.Vector3(spot.scale, spot.scale, spot.scale) };
+        // A disc already out glides from where it is; one still on its way heads straight for the new spot.
+        const moved = !record.spot || record.spot.to.position.distanceToSquared(position) > 1e-10 || record.spot.to.scale.x !== spot.scale;
+        const glide = !instant && record.slideTo === 1 && record.spot && moved;
+        if (moved || instant || record.slideTo !== 1) record.spot = { from: glide ? spotAt(record, now) : null, to: pose, start: now, duration: glide ? RESTAGE_MS : 0 };
+        if (glide) longest = Math.max(longest, RESTAGE_MS);
+      }
       if (record.slideTo === to && !instant) continue;
       // Progress is linear in time; reversing mid-way covers only the remaining distance.
-      const duration = instant ? 0 : Math.abs(to - record.slide) * SLIDE_MS;
+      const duration = instant ? 0 : Math.abs(to - record.slide) * SLIDE_TOTAL;
       record.slideFrom = record.slide; record.slideTo = to; record.slideStart = now; record.slideDuration = duration;
       if (instant) record.slide = to;
       longest = Math.max(longest, duration);
     }
+    longest = Math.max(longest, setPull(goal, instant));
     invalidate();
+    container.dispatchEvent(new CustomEvent('bagviewlayout'));
     return new Promise(resolve => setTimeout(resolve, longest));
   };
+  // The page camera, pulled straight back from its target by `factor`.
+  const pulledHome = factor => { const home = homeCamera(); return { position: home.position.clone().sub(home.target).multiplyScalar(factor).add(home.target), target: home.target }; };
+  const placePulled = () => { const home = pulledHome(pull); camera.position.copy(home.position); target.copy(home.target); camera.lookAt(target); };
+  // Moves the camera's pull-back toward `goal`; returns how long that takes. In the top view the
+  // camera returns to the new pull-back when it comes down, so nothing moves now.
+  const setPull = (goal, instant) => {
+    pullGoal = goal;
+    if (controls || (Math.abs(goal - pull) < 1e-4 && !pullTween)) { pullTween = null; return 0; }
+    if (instant || topView || cameraTween) { pullTween = null; pull = goal; if (!topView && !cameraTween) placePulled(); return 0; }
+    const motion = pullTween = { from: pull, to: goal, start: performance.now() };
+    // Settle on time even if no frame finishes it (offscreen, hidden tab).
+    setTimeout(() => { if (pullTween === motion && !disposed) { pullTween = null; pull = goal; if (!topView && !cameraTween) placePulled(); invalidate(); container.dispatchEvent(new CustomEvent('bagviewlayout')); } }, PULL_MS + 250);
+    return PULL_MS;
+  };
+  // The least pull-back (at least 1) that keeps every staged disc, and the room for its name
+  // below it, inside the canvas and out of the reserved top-right corner. The bag itself always
+  // fits the page view.
+  const fitCamera = new THREE.PerspectiveCamera();
+  const pullToFit = (spots, labelSpace, reserve) => {
+    if (!spots.size) return 1;
+    const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
+    fitCamera.copy(camera); fitCamera.clearViewOffset(); fitCamera.aspect = width / height; fitCamera.updateProjectionMatrix();
+    const points = [];
+    for (const { position: [x, y, z], scale } of spots.values()) {
+      const r = DISC.radius * scale;
+      for (const [dx, dy] of [[-r, 0], [r, 0], [0, r], [0, -r]]) points.push([new THREE.Vector3(x + dx, y + dy, z), dy < 0 ? labelSpace : 0]);
+    }
+    const fits = factor => {
+      const home = pulledHome(factor);
+      fitCamera.position.copy(home.position); fitCamera.lookAt(home.target); fitCamera.updateMatrixWorld();
+      return points.every(([point, below]) => {
+        const ndc = point.clone().project(fitCamera), x = (ndc.x + 1) / 2 * width, y = (1 - ndc.y) / 2 * height;
+        const cornered = reserve && x > width * (1 - reserve.width) && y < height * reserve.height;
+        return !cornered && x >= FRAME_MARGIN && x <= width - FRAME_MARGIN && y >= FRAME_MARGIN && y + below <= height - FRAME_MARGIN;
+      });
+    };
+    if (fits(1)) return 1;
+    let low = 1, high = 4;
+    for (let i = 0; i < 24; i++) { const mid = (low + high) / 2; if (fits(mid)) high = mid; else low = mid; }
+    return high;
+  };
+  // Where a staged disc rests now (gliding between spots after a restage), in the room's frame.
+  const spotAt = (record, now) => {
+    const { from, to, start, duration } = record.spot;
+    if (!from || now - start >= duration) return to;
+    const e = easeInOut(clamp01((now - start) / duration)), a = toBagFrame(from), b = toBagFrame(to);
+    return { position: arc(from.position, to.position, e, bulge(a.position, b.position, DISC.radius * to.scale.y), new THREE.Vector3()), quaternion: from.quaternion.clone().slerp(to.quaternion, e), scale: from.scale.clone().lerp(to.scale, e) };
+  };
+  // Staged spots hold still in the room while the bag's frame turns with the user's drag: undo the turn.
+  const toBagFrame = pose => {
+    const turnBack = new THREE.Quaternion().setFromAxisAngle(Y_AXIS, -yaw);
+    return { position: pose.position.clone().applyAxisAngle(Y_AXIS, -yaw), quaternion: turnBack.multiply(pose.quaternion), scale: pose.scale };
+  };
+  // A straight path that would pass through the bag bows forward in front of it instead.
+  const bulge = (a, b, radius) => {
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+      if (x > BAG_BOX.xMin - radius && x < BAG_BOX.xMax + radius && y > BAG_BOX.yMin && y < BAG_BOX.yMax + radius) return Math.max(0, ARC_Z - (a.z + b.z) / 2);
+    }
+    return 0;
+  };
+  const arc = (a, b, e, depth, out) => { out.copy(a).lerp(b, e); out.z += depth * Math.sin(Math.PI * e); return out; };
+  const isOut = key => records.get(key)?.slideTo === 1;
   // The slid-out pose; from above, the disc also turns its face up to the camera.
   const slidePose = (record, progress, base) => {
     const { placement } = record, out = placement.slide, main = placement.pocket === 'main';
@@ -585,6 +692,7 @@ export async function mountBag(container, {
       record.slide = t >= 1 ? record.slideTo : record.slideFrom + (record.slideTo - record.slideFrom) * t;
       busy = busy || t < 1;
     }
+    if (record.spot?.from && now - record.spot.start < record.spot.duration) busy = true;
     if (record.out !== record.outTo) {
       const t = record.outDuration ? Math.min(1, Math.max(0, (now - record.outStart) / record.outDuration)) : 1;
       record.out = t >= 1 ? record.outTo : record.outFrom + (record.outTo - record.outFrom) * t;
@@ -619,7 +727,16 @@ export async function mountBag(container, {
       mesh.scale.lerp(scratch.one, Math.min(1, Math.max(0, record.lift)));
     }
     if (record.slide !== 0 && placement.slide) {
-      const pose = slidePose(record, record.slide, { position: mesh.position, quaternion: mesh.quaternion, scale: mesh.scale });
+      // Out of the pocket first (the slide keeps its own pace), then on to the staged spot.
+      const elapsed = record.slide * SLIDE_TOTAL;
+      const pose = slidePose(record, Math.min(1, elapsed / SLIDE_MS), { position: mesh.position, quaternion: mesh.quaternion, scale: mesh.scale });
+      const travel = record.spot ? easeInOut(clamp01((elapsed - SLIDE_MS * TRAVEL_AT) / TRAVEL_MS)) : 0;
+      if (travel > 0) {
+        const spot = toBagFrame(spotAt(record, now));
+        arc(pose.position, spot.position, travel, bulge(scratch.seat.set(...placement.slide.position), spot.position, DISC.radius * spot.scale.y), pose.position);
+        pose.quaternion.slerp(spot.quaternion, travel);
+        pose.scale.lerp(spot.scale, travel);
+      }
       mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.scale.copy(pose.scale);
     }
     return busy;
@@ -649,7 +766,8 @@ export async function mountBag(container, {
     // Leaving the top view returns to wherever the camera was (orbit mode keeps the user's angle).
     if (next && !beforeTop) beforeTop = { position: camera.position.clone(), target: target.clone() };
     topView = next;
-    const back = beforeTop ?? homeCamera();
+    // The page camera comes back at the staged discs' pull-back.
+    const back = controls ? beforeTop ?? homeCamera() : pulledHome(pullGoal);
     const goal = next ? topPose() : { target: back.target.clone(), spherical: sphericalAt(back.position, back.target) };
     const from = sphericalAt(camera.position, target);
     // Turn the short way round.
@@ -670,7 +788,7 @@ export async function mountBag(container, {
     showFrontPocket();
     if (t < 1) return true;
     cameraTween = null;
-    if (!topView) beforeTop = null;
+    if (!topView) { beforeTop = null; if (!controls) pull = pullGoal; }
     if (controls) { controls.minPolarAngle = topView ? 0 : .30; controls.enabled = true; controls.update(); }
     finishCamera();
     return false;
@@ -727,6 +845,13 @@ export async function mountBag(container, {
     // The move's clock starts on its first drawn frame.
     if (cameraTween) cameraTween.start ??= now;
     if (cameraTween && stepCamera(cameraTween, Math.min(1, (now - cameraTween.start) / Math.max(cameraTween.duration, 1)))) busy = true;
+    if (pullTween && !topView && !cameraTween) {
+      const t = Math.min(1, (now - pullTween.start) / PULL_MS);
+      pull = pullTween.from + (pullTween.to - pullTween.from) * easeInOut(t);
+      placePulled();
+      if (t >= 1) pullTween = null; else busy = true;
+      container.dispatchEvent(new CustomEvent('bagviewlayout'));
+    }
     if (zoomTween) {
       const t = Math.min(1, (now - zoomTween.start) / ZOOM_MS), e = easeOut(t), { from, to } = zoomTween;
       zoomLevel = from.level + (to.level - from.level) * e;
@@ -774,21 +899,22 @@ export async function mountBag(container, {
 
   // Screen rectangles in container pixels, measured at the resting pose (no float or turn).
   // Points are in the bag's frame; turn them with the bag (the user's drag), ignoring the float.
-  const project = point => {
-    const ndc = point.clone().applyAxisAngle(Y_AXIS, yaw).project(camera);
+  const project = (point, view = camera) => {
+    const ndc = point.clone().applyAxisAngle(Y_AXIS, yaw).project(view);
     return { x: (ndc.x + 1) / 2 * container.clientWidth, y: (1 - ndc.y) / 2 * container.clientHeight };
   };
   // Where a disc sits now: a putter's stowed seat while they are stowed, otherwise its slot.
   const seatPose = placement => restPose(placement.stow && !puttersOutState ? placement.stow : placement);
-  const boxOf = (placement, pose = seatPose(placement), clip = false) => {
+  const boxOf = (placement, pose = seatPose(placement), clip = false, rim = false, view = camera) => {
     const matrix = new THREE.Matrix4().compose(pose.position, pose.quaternion, pose.scale);
     // A pocketed disc's lower part sits inside the pocket; clip the box at the mouth.
     const below = clip && placement.mouth !== undefined ? Math.min(.09, Math.max(-.101, (placement.mouth - pose.position.y) / pose.scale.y)) : -.101;
     let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-    for (const x of [-.005, .005]) for (const y of [below, .101]) for (const z of [-.101, .101]) {
-      const p = project(new THREE.Vector3(x, y, z).applyMatrix4(matrix));
-      left = Math.min(left, p.x); right = Math.max(right, p.x); top = Math.min(top, p.y); bottom = Math.max(bottom, p.y);
-    }
+    const add = point => { const p = project(point.applyMatrix4(matrix), view); left = Math.min(left, p.x); right = Math.max(right, p.x); top = Math.min(top, p.y); bottom = Math.max(bottom, p.y); };
+    // A whole disc (out of its pocket) is measured around its rim, so its box hugs the face
+    // whatever its roll; a pocketed one by its clipped local box.
+    if (rim) for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; add(new THREE.Vector3(0, Math.cos(a) * .101, Math.sin(a) * .101)); }
+    else for (const x of [-.005, .005]) for (const y of [below, .101]) for (const z of [-.101, .101]) add(new THREE.Vector3(x, y, z));
     return { left, top, width: right - left, height: bottom - top };
   };
   const discRects = () => {
@@ -799,10 +925,13 @@ export async function mountBag(container, {
     if (!all.some(p => p.pocket === 'goTo')) all.push(goTo);
     // Main slots are adjacent edge-on discs; split the opening into columns at the
     // midpoints between neighbors so hit areas never overlap.
-    const mains = all.filter(p => p.pocket === 'main');
+    const mains = all.filter(p => p.pocket === 'main' && !isOut(p.key));
     const centers = mains.map(p => project(new THREE.Vector3(p.position[0], p.position[1], .10)).x);
     const edge = i => (centers[i] + centers[i + 1]) / 2;
     return all.map(placement => {
+      // An out disc's target is where it rests (or is heading), whole and face-on.
+      const record = records.get(placement.key);
+      if (isOut(placement.key) && record.spot) return { key: placement.key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: false, shape: 'ellipse', out: true, position: placement.position, ...boxOf(placement, toBagFrame(record.spot.to), false, true) };
       const box = boxOf(placement, undefined, true);
       const rect = { key: placement.key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty, shape: placement.mouth === undefined ? 'ellipse' : 'dome', position: placement.position, ...box };
       const i = mains.indexOf(placement), n = mains.length;
@@ -858,8 +987,25 @@ export async function mountBag(container, {
     setAccentColor,
     liftDisc,
     get liftedDisc() { return liftedKey; },
-    slideDisc,
-    get slidDisc() { return slidKey; },
+    stageDiscs,
+    // The out discs, in the order they came out.
+    get outDiscs() { return outKeys.slice(); },
+    // Staging state for QA: the layout ('side', 'map' or null), each side's discs, the camera's
+    // pull-back now and where it is heading, and whether anything is still moving.
+    get stage() {
+      const now = performance.now(), moving = pullTween !== null || [...records.values()].some(r => r.slide !== r.slideTo || (r.spot?.from && now - r.spot.start < r.spot.duration));
+      return { mode: stagedMode, sides: Object.fromEntries(sides), pull, pullGoal, moving };
+    },
+    // Where an out disc rests (or is heading), in container pixels, once the camera has
+    // settled at its pull-back (so a page can scroll it into view while it still moves).
+    outRect(key) {
+      const record = records.get(key);
+      if (!isOut(key) || !record.spot) return null;
+      const view = camera.clone();
+      if (!controls && !topView && !cameraTween) { const home = pulledHome(pullGoal); view.position.copy(home.position); view.lookAt(home.target); }
+      view.updateMatrixWorld();
+      return boxOf(record.placement, toBagFrame(record.spot.to), false, true, view);
+    },
     setTopView,
     setPuttersOut,
     get puttersOut() { return puttersOutState; },
@@ -885,13 +1031,6 @@ export async function mountBag(container, {
     get cameraState() { const s = sphericalAt(camera.position, target); return { polar: s.phi, azimuth: s.theta, radius: s.radius, overhead }; },
     // Screen points (container pixels) for labels anchored to the bag, at the resting pose.
     projectPoint(point) { camera.updateMatrixWorld(); return project(new THREE.Vector3(...point)); },
-    // Where the slid-out disc comes to rest, in container pixels.
-    slideRect() {
-      const record = records.get(slidKey);
-      if (!record) return null;
-      camera.updateMatrixWorld();
-      return boxOf(record.placement, slidePose(record, 1, seatPose(record.placement)));
-    },
     // Each pocket's volume projected to container pixels (for top-view pocket labels).
     pocketRects() {
       camera.updateMatrixWorld();
@@ -910,6 +1049,7 @@ export async function mountBag(container, {
     turnHome,
     discRects,
     discScreenRect,
+    get bagBounds() { gltf.scene.updateMatrixWorld(true); const box = new THREE.Box3(); gltf.scene.traverseVisible(o => { if (o.isMesh && !glbDiscs.includes(o)) box.expandByObject(o); }); return { min: box.min.toArray(), max: box.max.toArray() }; },
     get clipped() { return { ...clipped }; },
     getBagLayoutState() {
       return [...records.values()].map(record => ({ record, ...record })).map(({ record, key, placement, mesh }) => ({
@@ -918,6 +1058,8 @@ export async function mountBag(container, {
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
         pose: mesh.position.toArray(), slide: record.slide, glow: placement.empty ? 0 : mesh.material.emissiveIntensity,
+        // Staged out (or heading out), and the spot it rests at in the room's frame.
+        out: record.slideTo === 1, spot: record.slideTo === 1 && record.spot ? record.spot.to.position.toArray() : null, spotScale: record.slideTo === 1 && record.spot ? record.spot.to.scale.x : null,
       }));
     },
     get renderer() { return { pixelRatio: renderer.getPixelRatio(), width: renderer.domElement.width, height: renderer.domElement.height, rendering: loopOn, visible, quality: low ? 'low' : 'high' }; },

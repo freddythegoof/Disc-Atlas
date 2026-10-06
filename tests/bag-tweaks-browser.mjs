@@ -118,23 +118,23 @@ try {
  await page.evaluate(()=>closeDetail(false));await overview();await shot('map-mine-1x-1440-light');
  await page.evaluate(()=>{const d=discs.find(d=>d.id==='3d60892b6812'),c=AtlasLayout.camera(atlasPositions.get(d.id),canvas.clientWidth,canvas.clientHeight,2.8);zoom=c.zoom;pan={x:c.x,y:c.y};draw();});await mapReady();
  await shot('map-mine-2.8x-1440-light');
- // The map dropdown: Standard, Personalized, My discs. Its button names the map on screen.
+ // The map dropdown: Standard, Personalized, My Bag. Its button names the map on screen.
  const lensButton=page.locator('#lensButton'),lensMenu=page.locator('#lensMenu'),label=async()=>(await lensButton.textContent()).trim();
  const visit=async()=>{await page.reload();await page.locator('#atlasLens').waitFor();await page.waitForFunction(()=>window.BagApp.mapColors().size>0);await mapReady();};
  const chooseMap=async name=>{await lensButton.click();await lensMenu.getByRole('menuitemradio',{name,exact:true}).click();await mapReady();};
  const setDefaultMap=async name=>{await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.locator('#siteMenu').getByRole('menuitemradio',{name,exact:true}).click();await page.keyboard.press('Escape');await mapReady();};
  await lensButton.click();
  assert.ok(await lensMenu.isVisible(),'The map button opens its menu');
- assert.deepEqual(await lensMenu.getByRole('menuitemradio').evaluateAll(list=>list.map(n=>[n.textContent.trim(),n.dataset.lens])),[['Standard','default'],['Personalized','mine'],['My discs','only']],'Three maps, in order');
+ assert.deepEqual(await lensMenu.getByRole('menuitemradio').evaluateAll(list=>list.map(n=>[n.textContent.trim(),n.dataset.lens])),[['Standard','default'],['Personalized','mine'],['My Bag','only']],'Three maps, in order');
  assert.equal(await lensMenu.locator('[aria-checked="true"]').getAttribute('data-lens'),'mine','The menu marks the map on screen');
  assert.ok(await lensMenu.locator('[aria-checked="true"]').evaluate(n=>n===document.activeElement),'Focus starts on the current map');
  await page.keyboard.press('Escape');
  assert.ok(await lensMenu.isHidden() && await lensButton.evaluate(n=>n===document.activeElement),'Escape closes and returns focus');
- // My discs.
- await chooseMap('My discs');
- assert.ok(await lensMenu.isHidden(),'Choosing closes the menu');assert.equal(await label(),'My discs');
+ // My Bag.
+ await chooseMap('My Bag');
+ assert.ok(await lensMenu.isHidden(),'Choosing closes the menu');assert.equal(await label(),'My Bag');
  const only=await page.evaluate(()=>({filtered:filtered.length,all:filtered.every(d=>window.BagApp.mapColors().has(d.id)),zoom}));
- assert.ok(only.all && only.filtered===want.size && only.zoom===1,'My discs, framed at 1x: '+JSON.stringify(only));
+ assert.ok(only.all && only.filtered===want.size && only.zoom===1,'My Bag, framed at 1x: '+JSON.stringify(only));
  await shot('map-only-1x-1440-light');
  // Standard: the shared atlas.
  await chooseMap('Standard');assert.equal(await label(),'Standard');
@@ -148,7 +148,7 @@ try {
  assert.equal(await page.evaluate(()=>activeLens()),'mine','Arrow keys and Enter choose');
  assert.ok(await lensMenu.isHidden() && await lensButton.evaluate(n=>n===document.activeElement),'Focus returns to the button');
  // A switch lasts for the visit: the next visit opens on the default map.
- await chooseMap('My discs');await visit();
+ await chooseMap('My Bag');await visit();
  assert.equal(await page.evaluate(()=>activeLens()),'mine','A new visit opens on the default map (Personalized)');
  // Settings, Default map: the pick shows now and opens every visit.
  await setDefaultMap('Standard');
@@ -159,9 +159,9 @@ try {
  await page.keyboard.press('Escape');
  // A choice saved by the old three-way switch becomes the default map.
  await page.evaluate(()=>{localStorage.clear();localStorage.setItem('atlas-lens','only');});await visit();
- assert.equal(await page.evaluate(()=>activeLens()),'only','A saved Only my discs opens as My discs');
+ assert.equal(await page.evaluate(()=>activeLens()),'only','A saved Only my discs opens as My Bag');
  await setDefaultMap('Personalized');assert.equal(await page.evaluate(()=>activeLens()),'mine');
- await setTheme('midnight');await chooseMap('My discs');await shot('map-only-1x-1440-midnight');
+ await setTheme('midnight');await chooseMap('My Bag');await shot('map-only-1x-1440-midnight');
  await chooseMap('Personalized');await overview();await shot('map-mine-1x-1440-midnight');
  await page.setViewportSize({width:360,height:800});await page.evaluate(()=>measureMap());await overview();
  const bar=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();return {tools:r('.explore-tools'),lens:r('#atlasLens'),search:r('.explore-tools .search')};});
@@ -171,7 +171,7 @@ try {
  await shot('map-menu-360-midnight');await page.keyboard.press('Escape');
  await shot('map-mine-1x-360-midnight');
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');
- check(`Bag on the atlas: ${lens.rated} rated bag molds all lead (or share) a bag-led group in their bag colors, ringed, with a legend entry; map dropdown Standard / Personalized / My discs (My discs shows ${only.filtered}); keyboard; a switch lasts the visit; Default map setting applies now and every visit; old saved switch migrates; fits the phone search row`);
+ check(`Bag on the atlas: ${lens.rated} rated bag molds all lead (or share) a bag-led group in their bag colors, ringed, with a legend entry; map dropdown Standard / Personalized / My Bag (My Bag shows ${only.filtered}); keyboard; a switch lasts the visit; Default map setting applies now and every visit; old saved switch migrates; fits the phone search row`);
 
  // 4. My Bag: one size (no S/M/L), a little larger than the old Medium.
  await page.locator('#bagTab').click();
@@ -234,20 +234,24 @@ try {
  const detail=page.locator('#detail');
  await driverSlot.click();await detail.waitFor({state:'visible'});
  assert.equal(await detail.locator('h2').first().innerText(),'Destroyer','Details on the first click');
- await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');
+ await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);
  assert.ok(await detail.evaluate(n=>n.contains(document.activeElement)),'Focus moves into the details');
  await shot('bag-click-slide-and-details-1440-light');
+ // Escape closes the details; the disc stays out until it is clicked again.
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
- await page.waitForFunction(()=>document.querySelector('[data-bag-canvas]').bagViewer.slidDisc===null);
- // Keyboard: one Enter does both.
+ assert.deepEqual(await page.evaluate(()=>document.querySelector('[data-bag-canvas]').bagViewer.outDiscs),[driver.id],'Escape leaves it out');
+ await driverSlot.click();await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
+ // Keyboard: one Enter does both; the next Enter puts it back.
  await driverSlot.focus();await page.keyboard.press('Enter');await detail.waitFor({state:'visible'});
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
+ await driverSlot.focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
  const front=out[0].id,frontName=PUTTERS.find(p=>p[0]===seeded.find(d=>d.id===front).mold_id)[1];
  await page.locator(`[data-physical-disc="${front}"]`).click();await detail.waitFor({state:'visible'});
  assert.equal(await detail.locator('h2').first().innerText(),frontName,'A putter opens its details on the first click too');
- await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.slide==='out');await shot('bag-click-putter-details-1440-light');
+ await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);await shot('bag-click-putter-details-1440-light');
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
- check('One click (or Enter) slides the disc out and opens its details together; Escape closes both');
+ await page.locator(`[data-physical-disc="${front}"]`).click();await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
+ check('One click (or Enter) slides the disc out and opens its details together; Escape closes the details and the disc stays out until clicked (or Entered) again');
 
  // 8. Top view: opaque bag, looking down into the putter pocket only.
  await page.mouse.move(0,0);

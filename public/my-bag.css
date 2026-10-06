@@ -144,26 +144,39 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-text {font-size:12px;color:var(--muted)}
 .bag-scene figcaption button {min-height:44px;font-size:12px;padding:10px 18px}
 .bag-scene-hint {font-size:11px;color:var(--muted);text-align:center;margin:16px 0 0;line-height:1.6}
-/* Disc names: one dark pill with white text in every theme, on hover and on a slid-out disc. */
+/* Disc names: one dark pill with white text in every theme, on hover and under each out disc. */
 .bag-name-pill {position:absolute;z-index:3;width:max-content;max-width:min(260px,calc(100% - 12px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:calc(6px * var(--bag-type)) calc(13px * var(--bag-type));border:1px solid #ffffff24;border-radius:999px;background:#151a21f0;color:#fff;box-shadow:0 8px 22px #0000004d;font:600 calc(13px * var(--bag-type))/1.25 'Space Grotesk',sans-serif;letter-spacing:.1px;pointer-events:none}
 .bag-name-pill[hidden] {display:none}
 .bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both}
 .bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
 @keyframes bag-pill-in {from {opacity:0}}
-/* Slide-out: a clicked disc leaves its pocket; only its name shows. Click it again for details. */
-.bag-slide-out {position:absolute;z-index:2;display:none;border-radius:50%;cursor:pointer;outline:none;pointer-events:auto}
-.bag-scene[data-slide="out"] .bag-slide-out {display:block}
-.bag-slide-out:focus-visible {box-shadow:0 0 0 2px var(--lime),0 0 0 6px var(--accent-soft)}
-.bag-slide-name {left:50%;top:calc(100% + 10px);transform:translate(-50%,4px);opacity:0;pointer-events:auto;cursor:pointer;transition:opacity 160ms,transform 260ms cubic-bezier(.2,1.35,.35,1)}
-.bag-slide-out[data-label="above"] .bag-slide-name {top:auto;bottom:calc(100% + 10px)}
-.bag-scene[data-slide="out"] .bag-slide-name {opacity:1;transform:translate(-50%,0)}
-.bag-slide-out:hover .bag-slide-name {border-color:#ffffff66}
+/* Out discs: a click slides a disc out and it stays out until clicked again. Each carries its
+   name under it; on the map the names are compact, and one that would cover a disc or another
+   name waits for hover. Names fade while discs move. */
+.bag-out-names {position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;transition:opacity 200ms ease}
+.bag-scene[data-staging="moving"] .bag-out-names {opacity:0;transition-duration:90ms}
+.bag-out-name {transform:translateX(-50%);pointer-events:auto;cursor:pointer}
+.bag-out-name:hover {border-color:#ffffff66}
+.bag-scene[data-staging="moving"] .bag-out-name {pointer-events:none}
+.bag-scene[data-stage="map"] .bag-out-name {max-width:132px;padding:3px 9px;border-radius:7px;font:500 11px/1.3 var(--mono,'Space Grotesk',sans-serif);letter-spacing:0}
+.bag-hit-slot[data-out] .bag-physical-disc {border-radius:50%}
+/* Map mode: the Stitch grid, lined up with the page's, under a flight map around the bag. */
+.bag-map-grid {position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 420ms ease}
+.bag-map-grid::before {content:'';position:absolute;inset:0;
+ background:linear-gradient(to right,var(--stitch-grid) 1px,transparent 1px) var(--grid-x,0) var(--grid-y,0)/48px 48px,linear-gradient(to bottom,var(--stitch-grid) 1px,transparent 1px) var(--grid-x,0) var(--grid-y,0)/48px 48px;
+ -webkit-mask-image:radial-gradient(ellipse 75% 72% at 50% 50%,#000 62%,transparent);mask-image:radial-gradient(ellipse 75% 72% at 50% 50%,#000 62%,transparent)}
+.bag-scene[data-stage="map"] .bag-map-grid {opacity:1}
+.bag-map-caption {position:absolute;bottom:10px;font:500 10px/1.2 var(--mono,'Space Grotesk',sans-serif);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.bag-map-caption[data-side="left"] {left:12px}
+.bag-map-caption[data-side="right"] {right:12px}
+.bag-map-caption[data-side="speed"] {left:12px;bottom:auto;top:14px}
+@media(prefers-reduced-motion:reduce){.bag-out-names,.bag-map-grid {transition:none}}
 /* The details card stays as the screen-reader description of the hovered or focused disc. */
 .bag-lift-info {clip-path:inset(50%);opacity:0}
 /* While the bag turns under a drag, targets and labels wait for it to settle. */
 .bag-scene[data-dragging] :is(.bag-hit-layer,.bag-name-pill,.bag-pocket-labels) {visibility:hidden}
 .bag-pocket-labels {transition:opacity 160ms}
-.bag-scene:is([data-slide="out"],[data-hovered]) .bag-pocket-labels {opacity:0}
+.bag-scene:is([data-staging="moving"],[data-hovered]) .bag-pocket-labels {opacity:0}
 /* Top view: animated camera; pocket labels and the hit layer wait until it settles. */
 .bag-top-toggle {display:inline-flex;align-items:center;gap:8px}
 .bag-top-toggle svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
@@ -178,7 +191,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-label:is([data-pocket="putter"],[data-pocket="goto"]) {top:var(--bottom);transform:translate(-50%,10px)}
 .bag-pocket-label:is([data-pocket="putter"],[data-pocket="goto"])::after {bottom:auto;top:-5px;border-width:1px 0 0 1px}
 @keyframes bag-pocket-in {from {opacity:0}}
-@media(prefers-reduced-motion:reduce){.bag-slide-name {transition:none}.bag-pocket-label,.bag-hover-name {animation:none}}
+@media(prefers-reduced-motion:reduce){.bag-pocket-label,.bag-hover-name {animation:none}}
 /* Disc details on the My Bag page: this copy, with its personal notes. */
 .bag-detail-personal {margin:14px 0 4px;padding:14px 16px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .bag-detail-heading {display:flex;align-items:center;gap:12px}

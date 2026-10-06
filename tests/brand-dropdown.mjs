@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-// The Brand chip sits after Putter in the type-chip row and opens a searchable, multi-select brand
-// list. It edits the same brand filter as the Filters drawer, so either place shows the other's picks.
+// The Manufacturer chip leads the type-chip row (before Driver) and opens a searchable, multi-select
+// manufacturer list. It edits the same brand filter as the Filters drawer, so either place shows the other's picks.
 // Phones keep the chip row on one line; it scrolls sideways instead of wrapping.
 export async function checkBrandDropdown(browser,base){
  const dir='outputs/brand-dropdown',errors=[];
@@ -17,14 +17,14 @@ export async function checkBrandDropdown(browser,base){
    const drawerBox=brand=>page.locator(`#brandOptions input[value="${brand}"]`);
    const state=()=>page.evaluate(()=>({brands:[...selectedBrands].sort(),onlyThose:filtered.every(d=>selectedBrands.has(d.brand)),count:filtered.length}));
 
-   // Placement: last in the chip row, right after Putter.
+   // Placement: first in the chip row, right before Driver.
    const row=await page.locator('#typeChips').evaluate(n=>[...n.children].map(c=>c.id||c.querySelector('button')?.id||c.textContent.trim()));
-   assert.deepEqual(row.slice(-2),['Putter','brandChip'],name+': Brand follows Putter: '+row);
-   assert.equal((await chip.textContent()).trim(),'Brand',name+': idle label');
+   assert.deepEqual(row.slice(0,2),['brandChip','Driver'],name+': Manufacturer comes before Driver: '+row);
+   assert.equal((await chip.textContent()).trim(),'Manufacturer',name+': idle label');
    assert.equal(await chip.getAttribute('aria-expanded'),'false');
-   const putter=await page.locator('#typeChips button[data-type="putter"]').boundingBox();
+   const driver=await page.locator('#typeChips button[data-type="distance"]').boundingBox();
    const box=await chip.boundingBox();
-   assert.ok(Math.abs(box.y-putter.y)<1,name+': same line as Putter '+JSON.stringify({box,putter}));
+   assert.ok(Math.abs(box.y-driver.y)<1 && box.x+box.width<=driver.x,name+': same line, left of Driver '+JSON.stringify({box,driver}));
 
    if(name==='mobile'){
     // One line, scrolling sideways.
@@ -69,7 +69,7 @@ export async function checkBrandDropdown(browser,base){
    await page.locator('#brandChipSearch').fill('discraft');
    await page.locator('#brandChipOptions input[value="Discraft"]').check();
    assert.deepEqual((await state()).brands,['Discraft','Innova']);
-   assert.equal((await chip.textContent()).trim(),'2 brands',name+': two brands');
+   assert.equal((await chip.textContent()).trim(),'2 manufacturers',name+': two manufacturers');
    await page.screenshot({path:`${dir}/${name}-two.png`});
 
    // Escape closes and hands focus back to the chip.
@@ -94,7 +94,7 @@ export async function checkBrandDropdown(browser,base){
    await chip.click();await page.locator('#brandChipClear').click();
    s=await state();
    assert.deepEqual(s.brands,[],name+': Clear empties the filter');
-   assert.equal((await chip.textContent()).trim(),'Brand');
+   assert.equal((await chip.textContent()).trim(),'Manufacturer');
    assert.equal(await chip.getAttribute('data-active'),'false');
    assert.ok(!(await drawerBox('Innova').isChecked()),name+': drawer cleared too');
    await page.keyboard.press('Escape');
@@ -102,7 +102,7 @@ export async function checkBrandDropdown(browser,base){
    // Type chips still work beside it.
    await page.locator('#typeChips button[data-type="putter"]').click();
    assert.equal(await page.evaluate(()=>type),'putter',name+': type chips unaffected');
-   assert.equal(await chip.getAttribute('data-active'),'false',name+': a type chip does not press Brand');
+   assert.equal(await chip.getAttribute('data-active'),'false',name+': a type chip does not press Manufacturer');
    if(name==='mobile'){
     // The Directory scrolls under the toolbar: an open panel stays under its chip.
     await page.locator('#listTab').click();await page.waitForTimeout(300);
@@ -115,5 +115,5 @@ export async function checkBrandDropdown(browser,base){
   }finally{await context.close();}
  }
  assert.deepEqual(errors,[],'No page errors');
- console.log('PASS: Brand chip after Putter, searchable multi-select synced with the drawer, labels, Escape/outside close, Clear, phone row scrolls on one line.');
+ console.log('PASS: Manufacturer chip before Driver, searchable multi-select synced with the drawer, labels, Escape/outside close, Clear, phone row scrolls on one line.');
 }

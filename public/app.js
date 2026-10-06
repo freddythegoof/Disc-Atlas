@@ -2,10 +2,10 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const selectedBrands=new Set();
 const featuredRanks=new Map((window.DiscAtlasFeatured||[]).map((disc,index)=>[disc.id,index]));
 // Signed in, the atlas is the player's own: discs in their bag wear their bag colors and lead
-// their flight groups ('mine', Personalized), or show alone ('only', My discs). 'default' is the
+// their flight groups ('mine', Personalized), or show alone ('only', My Bag). 'default' is the
 // shared atlas (Standard). Each visit opens on the Default map from the site menu; switching in the
 // toolbar lasts for the visit. The old switch saved its last pick as 'atlas-lens': it becomes the default.
-const lensNames={default:'Standard',mine:'Personalized',only:'My discs'};
+const lensNames={default:'Standard',mine:'Personalized',only:'My Bag'};
 let defaultMap='mine';
 try{const saved=localStorage.getItem('atlas-default-map')??localStorage.getItem('atlas-lens');if(lensNames[saved]){defaultMap=saved;localStorage.setItem('atlas-default-map',saved);}localStorage.removeItem('atlas-lens');}catch{}
 let atlasLens=defaultMap;
@@ -141,10 +141,10 @@ function inCollection(d){return $('#collection').value==='all'||isCurrentOrRecen
 function productionLabel(d){const p=d.production||{};if(p.status==='active')return 'Active · manufacturer confirmed';if(p.status==='catalog_listed')return 'Catalog-listed · production unverified';if(p.status==='retired')return 'Retirement announced '+esc(p.retirementAnnouncedAt)+(isCurrentOrRecent(d)?' · within 2 years':'');if(p.status==='retired_date_unknown')return 'Out of production · retirement date unknown';return 'Production status unknown';}
 function updateCollectionNote(){const current=discs.filter(isCurrentOrRecent).length;$('#coverage').innerHTML=`<strong>${current.toLocaleString()} current + recent</strong><br>${discs.length.toLocaleString()} total approval records<br>Original labeled disc illustrations`;const all=$('#collection').value==='all';$('#collectionNote').textContent=all?'All approval records, including historical molds and unverified production status.':'Catalog-listed + retirements since Sep 23, 2024. Production status is not fully verified.';}
 function toggleBrand(brand){if(selectedBrands.has(brand))selectedBrands.delete(brand);else selectedBrands.add(brand);filter();renderCompare();if(selected)detail();}
-// One brand list, drawn in the Filters drawer and in the Brand chip's panel: picks first, then by count.
+// One brand list, drawn in the Filters drawer and in the Manufacturer chip's panel: picks first, then by count.
 function brandList(search){const query=search.toLowerCase().trim(),counts=new Map();for(const d of discs)if(inCollection(d))counts.set(d.brand,(counts.get(d.brand)||0)+1);const shown=manufacturers.filter(b=>!query||b.toLowerCase().includes(query)).sort((a,b)=>Number(selectedBrands.has(b))-Number(selectedBrands.has(a))||(counts.get(b)||0)-(counts.get(a)||0)||a.localeCompare(b));return shown.length?shown.map(b=>`<label class="brand-option"><input type="checkbox" value="${esc(b)}" ${selectedBrands.has(b)?'checked':''}><span>${esc(b)}</span><small>${counts.get(b)||0}</small></label>`).join(''):'<p class="micro">No manufacturers found.</p>';}
 function renderBrands(){renderBrandChip();if(!manufacturers.length)return;$('#brandOptions').innerHTML=brandList($('#brandSearch').value);$('#brandSummary').textContent=selectedBrands.size?`${selectedBrands.size} selected`:'All manufacturers';$('#clearBrands').disabled=!selectedBrands.size;}
-function renderBrandChip(){const chip=$('#brandChip'),n=selectedBrands.size;chip.textContent=n===1?[...selectedBrands][0]:n?`${n} brands`:'Brand';chip.dataset.active=String(n>0);if(!$('#brandPanel').hidden)$('#brandChipOptions').innerHTML=brandList($('#brandChipSearch').value);}
+function renderBrandChip(){const chip=$('#brandChip'),n=selectedBrands.size;chip.textContent=n===1?[...selectedBrands][0]:n?`${n} manufacturers`:'Manufacturer';chip.dataset.active=String(n>0);if(!$('#brandPanel').hidden)$('#brandChipOptions').innerHTML=brandList($('#brandChipSearch').value);}
 function brandColor(brand){const i=Math.max(0,[...selectedBrands].indexOf(brand));return brandPalette[i%brandPalette.length];}
 function discColor(d){return myColor(d)||(selectedBrands.size>1?(selectedBrands.has(d.brand)?brandColor(d.brand):colors.unknown):colors[typeOf(d)]);}
 function renderContextTitle(){

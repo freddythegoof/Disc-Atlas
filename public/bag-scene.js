@@ -9,13 +9,18 @@ const DEFAULT_BAG='#343c49';
 // Each zoom button step (the viewer allows 1× to its maxZoom).
 const ZOOM_STEP=1.4;
 const POCKET={main:'main',putter:'putter',goTo:'goto'};
+// The Stitch grid's pitch (stitch.css): the bag's map grid lines up with the page's.
+const GRID=48;
 const div=(className,attributes={})=>{const node=document.createElement('div');node.className=className;for(const [key,value]of Object.entries(attributes))node.setAttribute(key,value);return node;};
 
 // The 3D bag renders in a canvas. A matching layer of positioned slot elements carries
 // focus, hover/touch targets and labels, so keyboard and screen-reader use stay intact.
 export class BagScene {
  constructor(root,{lookup,inspect,deselect}){
-  this.root=root;this.lookup=lookup;this.inspect=inspect;this.deselect=deselect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;this.top=false;this.slid=null;this.slideToken=0;
+  this.root=root;this.lookup=lookup;this.inspect=inspect;this.deselect=deselect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;this.top=false;this.stageToken=0;
+  // Out discs (item ids, in the order they came out) stay out until they are clicked again.
+  // `inspected` is the disc whose details the bag opened.
+  this.out=[];this.inspected=null;
   this.toggle=root.querySelector('[data-bag-toggle]');this.info=root.querySelector('[data-bag-lift-info]');this.canvas=root.querySelector('[data-bag-canvas]');
   this.topToggle=root.querySelector('[data-bag-top-view]');
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
@@ -23,16 +28,18 @@ export class BagScene {
   this.stage=div('bag-3d-stage');this.layer=div('bag-hit-layer',{role:'group','aria-label':'Your disc golf bag'});this.status=div('bag-3d-status',{role:'status'});
   // Hovering (or focusing) a disc shows only its name; the disc itself stays put.
   this.tag=div('bag-name-pill bag-hover-name',{'aria-hidden':'true'});this.tag.hidden=true;
-  // A clicked disc slides out of its pocket; this card covers it and carries its name.
-  this.card=div('bag-slide-out',{role:'button',tabindex:'-1','aria-hidden':'true','data-bag-slide-out':''});this.cardName=document.createElement('span');this.cardName.className='bag-name-pill bag-slide-name';
-  this.card.append(this.cardName);
+  // Each out disc carries its name under it.
+  this.names=div('bag-out-names',{'aria-hidden':'true'});this.nameById=new Map();
+  // Six or more out discs lay out on a flight map around the bag, drawn on the Stitch grid.
+  this.mapGrid=div('bag-map-grid',{'aria-hidden':'true'});
+  for(const [side,text] of [['left','← More turn'],['right','Stronger fade →'],['speed','Speed ↑']]){const caption=document.createElement('span');caption.className='bag-map-caption';caption.dataset.side=side;caption.textContent=text;this.mapGrid.append(caption);}
   this.pockets=div('bag-pocket-labels',{'aria-hidden':'true'});
   // Zoom: these buttons, a pinch, or Ctrl/⌘ + scroll (a plain scroll keeps scrolling the page).
   this.zoomControls=div('bag-zoom',{role:'group','aria-label':'Zoom the bag'});
   const zoomButton=(label,text,action)=>{const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',label);button.textContent=text;button.addEventListener('click',action);return button;};
   this.zoomOut=zoomButton('Zoom out','−',()=>this.zoomBy(1/ZOOM_STEP));this.zoomReset=zoomButton('Reset zoom','100%',()=>this.zoomTo(1));this.zoomIn=zoomButton('Zoom in','+',()=>this.zoomBy(ZOOM_STEP));
   this.zoomReset.className='bag-zoom-level';this.zoomControls.append(this.zoomOut,this.zoomReset,this.zoomIn);
-  this.canvas.replaceChildren(this.stage,this.pockets,this.layer,this.tag,this.card,this.zoomControls,this.status);
+  this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.zoomControls,this.status);
   this.canvas.addEventListener('wheel',event=>{
    if(!this.ready || !(event.ctrlKey || event.metaKey))return;event.preventDefault();
    const box=this.canvas.getBoundingClientRect(),delta=Math.max(-100,Math.min(100,event.deltaY*(event.deltaMode===1?16:1)));
@@ -51,22 +58,18 @@ export class BagScene {
    this.viewer.setZoom(pinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance,{anchor:{x:(a.x+b.x)/2-box.left,y:(a.y+b.y)/2-box.top},instant:true});
   });
   for(const type of ['pointerup','pointercancel'])this.canvas.addEventListener(type,event=>{touches.delete(event.pointerId);if(touches.size<2)pinch=null;});
-  this.onTap(this.card,()=>this.openSlid());
-  this.card.addEventListener('keydown',event=>{
-   if(event.key==='Enter'||event.key===' '){event.preventDefault();this.openSlid();}
-   if(event.key==='Tab'){const disc=this.slid?.disc;event.preventDefault();void this.slideIn();if(disc?.isConnected)this.tabFrom(disc,event.shiftKey);}
-  });
-  // Clicking empty space slides the disc back and closes its details. Clicks on the details
-  // panel or dialogs do not count; a click on another disc swaps discs (its click handler does that).
+  // Clicking empty space closes the details the bag opened; out discs stay out. Clicks on the
+  // details panel, dialogs or a disc do not count (a disc's own click toggles it).
   document.addEventListener('pointerdown',event=>{
    this.swallowClick=false;
-   if(!this.slid || event.target.closest?.('[data-bag-slide-out],#detail,dialog,[popover],[data-physical-disc]'))return;
-   this.swallowClick=this.stage.contains(event.target);void this.slideIn();
+   if(!this.detailOpen() || event.target.closest?.('#detail,dialog,[popover],[data-physical-disc],[data-out-name]'))return;
+   this.swallowClick=this.stage.contains(event.target);this.closeDetails();
   },true);
-  // Escape puts the slid-out disc back and closes everything; with nothing out, it leaves the top view.
+  // Escape closes the details the bag opened (focus returns to that disc); with none open, it
+  // leaves the top view. Out discs stay out either way.
   document.addEventListener('keydown',event=>{
    if(event.key!=='Escape' || !this.ready || !this.root.checkVisibility() || document.querySelector('dialog[open],:popover-open'))return;
-   if(this.slid){event.preventDefault();event.stopPropagation();void this.slideIn({focus:true});return;}
+   if(this.detailOpen()){event.preventDefault();event.stopPropagation();const disc=this.discFor(this.inspected);this.closeDetails();(disc && this.reachable(disc)?disc:this.toggle).focus({preventScroll:true});return;}
    const detail=document.querySelector('#detail');if(detail && !detail.hidden && !detail.inert)return;
    if(this.top){event.preventDefault();void this.setTopView(false);}
   },true);
@@ -88,7 +91,7 @@ export class BagScene {
     // Exposed for QA scripts that verify the rendered state matches the saved bag.
     Object.defineProperty(this.canvas,'bagViewer',{value:viewer,configurable:true});
     this.stage.addEventListener('bagviewlayout',()=>this.place());
-    // A click that only slid a disc back in leaves the flap alone.
+    // A click that only closed the details leaves the flap alone.
     this.stage.addEventListener('bagclick',()=>{if(this.swallowClick){this.swallowClick=false;return;}void this.setOpen(!this.open);});
     // The bag stays turned where the user leaves it; targets and labels follow once the drag ends.
     this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.root.dataset.dragging='';});
@@ -96,6 +99,8 @@ export class BagScene {
     this.stage.addEventListener('bagviewererror',event=>{this.status.textContent=event.detail;});
     this.stage.addEventListener('bagzoom',event=>this.showZoom(event.detail.zoom));
     this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';this.showZoom(viewer.zoom);
+    // The map's frame follows the canvas size.
+    new ResizeObserver(()=>{if(this.out.length)void this.stageOut();}).observe(this.canvas);
     if(this.data)this.draw();
    }catch{
     this.root.dataset.engine='error';this.status.textContent='The 3D bag could not load. Your discs are listed below.';this.toggle.disabled=true;
@@ -113,13 +118,16 @@ export class BagScene {
  }
  bagColor(settings){const color=settings.bag_color || DEFAULT_BAG;return color===DEFAULT_BAG?null:color;}
  draw(){
-  this.clearLift();void this.slideIn();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);this.items=items;
+  this.clearLift();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);this.items=items;
   // The default charcoal keeps the model's original tonal fabric.
   this.viewer.setBagColor(this.bagColor(settings));this.root.dataset.bagColor=this.viewer.bagColor;
   this.viewer.setBagLayout(layout);
   const clipped=this.viewer.clipped,extra=slots.overflow.length+clipped.main+clipped.putter+clipped.goTo;
   this.root.querySelector('[data-bag-overflow]').textContent=extra?`${extra} more ${extra===1?'disc':'discs'} listed below · beyond the illustrated slots`:'';
   const byId=new Map(items.map(item=>[item.id,item])),rects=this.viewer.discRects();
+  // Out discs stay out through a redraw; a disc that left the bag (or its illustrated slots) drops out.
+  this.out=this.out.filter(id=>rects.some(rect=>rect.key===id && !rect.empty));
+  if(this.inspected && !this.out.includes(this.inspected))this.inspected=null;
   // Hit order: back-most first so a front disc wins where pockets overlap. Keyboard order
   // follows the pockets instead: main left to right, then putters front to back, then go-to.
   const keyboard={main:0,putter:1,goTo:2},painted=this.depthOrder(rects);
@@ -131,7 +139,8 @@ export class BagScene {
    const item=byId.get(rect.id);
    if(!item){slot.setAttribute('aria-hidden','true');slot.append(div('bag-slot-hollow'));continue;}
    const mold=this.lookup(item.mold_id),title=mold?.catalogName||mold?.name||'Saved disc';
-   const disc=div('bag-physical-disc',{'data-physical-disc':item.id,'data-pocket':pocket,'data-slot-order':tabOrder.get(rect.key),role:'button',tabindex:'-1','aria-label':`${title}, ${item.plastic}, wear ${item.wear} of 10, ${item.weight_g} grams, ${pocketLabel(item.pocket)}. Enter to slide it out.`,'aria-describedby':'bagLiftInfo'});
+   const disc=div('bag-physical-disc',{'data-physical-disc':item.id,'data-pocket':pocket,'data-slot-order':tabOrder.get(rect.key),role:'button',tabindex:'-1','aria-describedby':'bagLiftInfo'});
+   disc.bagItem=item;disc.bagTitle=title;this.label(disc);
    disc.style.setProperty('--disc-color',item.color||'#e6c668');
    // Touch has no hover: a tap is a click.
    disc.addEventListener('pointerenter',event=>{if(event.pointerType!=='touch')this.lift(disc,item,title);});
@@ -139,14 +148,15 @@ export class BagScene {
    disc.addEventListener('focus',()=>this.lift(disc,item,title));disc.addEventListener('blur',()=>this.settle(disc));
    disc.addEventListener('keydown',event=>{
     if(event.key==='Tab'){event.preventDefault();this.tabFrom(disc,event.shiftKey);}
-    if(event.key==='Enter'||event.key===' '){event.preventDefault();void this.slideOut(disc,item,title);}
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();void this.toggleOut(disc);}
     if(event.key==='Escape'){this.settle(disc);this.toggle.focus();}
    });
-   // One click (or tap) slides the disc out; clicking the slid-out disc opens its details.
-   this.onTap(disc,()=>void this.slideOut(disc,item,title));
+   // One click (or tap) slides the disc out and opens its details; the next puts it back.
+   this.onTap(disc,()=>void this.toggleOut(disc));
    slot.append(disc);
   }
-  this.place();this.interactive(!this.running);
+  this.names.replaceChildren();this.nameById.clear();
+  this.place();this.interactive(!this.running);void this.stageOut();
  }
  // Touch has no hover: a tap is a click. Taps are read from the pointer events themselves,
  // because a browser may drop the click for the first tap after a drag (as Chrome does after
@@ -172,7 +182,17 @@ export class BagScene {
  }
  // Main discs sit behind the flap, so they only respond while the bag is open. Turned away
  // (front facing back), and in the top view, only the top pocket's putters are in reach.
- reachable(disc){return this.ready && !this.running && (this.open || disc.dataset.pocket!=='main') && (disc.dataset.pocket==='putter' || (this.viewer.frontFacing && !this.top));}
+ // Out discs rest in front of the room, so they stay in reach while the bag is closed or turned.
+ reachable(disc){
+  if(!this.ready || this.running)return false;
+  const pocket=disc.dataset.pocket;if(this.top)return pocket==='putter';
+  return this.out.includes(disc.dataset.physicalDisc) || ((this.open || pocket!=='main') && (pocket==='putter' || this.viewer.frontFacing));
+ }
+ label(disc){
+  const item=disc.bagItem,out=this.out.includes(item.id);disc.setAttribute('aria-pressed',String(out));
+  disc.setAttribute('aria-label',`${disc.bagTitle}, ${item.plastic}, wear ${item.wear} of 10, ${item.weight_g} grams, ${pocketLabel(item.pocket)}. ${out?'Out of the bag. Enter to put it back.':'Enter to slide it out.'}`);
+ }
+ discFor(id){return id?this.layer.querySelector(`[data-physical-disc="${CSS.escape(id)}"]`):null;}
  interactive(on){
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]')){const ok=on && this.reachable(disc);disc.setAttribute('tabindex',ok?'0':'-1');disc.setAttribute('aria-hidden',String(!ok));}
  }
@@ -181,52 +201,91 @@ export class BagScene {
   for(const rect of this.viewer.discRects()){
    const slot=this.slotsByKey.get(rect.key);if(!slot)continue;
    Object.assign(slot.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
+   slot.dataset.shape=rect.shape;if(rect.out)slot.dataset.out='';else delete slot.dataset.out;
   }
-  this.placeCard();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
+  this.placeNames();this.placePockets();this.placeGrid();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
  }
- // One click slides the disc out and opens its details together. One disc is out at a time:
- // a second disc waits for the first to slide home.
- async slideOut(disc,item,title){
+ // A click toggles one disc: in its pocket, it slides out and its details open; out, it goes
+ // back (closing its details if they show). Every disc is independent and stays out until
+ // clicked again. Up to five rest beside the bag; six or more lay out on a map around it.
+ async toggleOut(disc){
   if(!this.reachable(disc) || this.viewer.cameraMoving)return;
-  if(this.slid?.disc===disc){if(this.root.dataset.slide==='out')this.openSlid();return;}
-  const token=++this.slideToken;this.clearLift();
-  if(this.slid){await this.putBack();if(token!==this.slideToken || !disc.isConnected)return;}
-  const slid=this.slid={disc,item,title,mold:this.lookup(item.mold_id)};
-  this.cardName.textContent=title;this.card.setAttribute('aria-label',`${title}, out of the bag. Enter for disc details, Escape to put it back.`);
-  this.cardName.style.setProperty('--disc-color',item.color||'#e6c668');
-  this.root.dataset.slide='moving';
-  const moving=this.viewer.slideDisc(disc.dataset.physicalDisc,{instant:reduced()});
-  // The details panel opens (and takes focus) while the disc slides out.
-  this.openSlid();this.keepAboveSheet();
-  await moving;
-  if(this.slid!==slid)return;
-  this.root.dataset.slide='out';this.card.setAttribute('aria-hidden','false');this.card.tabIndex=0;
-  this.placeCard();
+  const item=disc.bagItem,id=item.id,index=this.out.indexOf(id);this.clearLift();
+  if(index>=0){this.out.splice(index,1);if(this.inspected===id)this.closeDetails();}
+  else{this.out.push(id);this.inspected=id;this.inspect(this.lookup(item.mold_id),item);}
+  this.label(disc);
+  const settled=this.stageOut();
+  // On phones the details are a bottom sheet: scroll the page so the disc rests above it.
+  if(index<0)this.keepAboveSheet(id);
+  await settled;
  }
- // Escape, a click on empty space and every other reset put the disc back and close its details.
- slideIn(options){this.slideToken++;return this.putBack(options);}
- putBack({focus=false}={}){
-  const slid=this.slid;if(!slid)return Promise.resolve();this.slid=null;
-  delete this.root.dataset.slide;this.card.setAttribute('aria-hidden','true');this.card.tabIndex=-1;
-  this.deselect?.();
-  if(focus)(slid.disc.isConnected && this.reachable(slid.disc)?slid.disc:this.toggle).focus({preventScroll:true});
-  return this.viewer?.slidDisc?this.viewer.slideDisc(null,{instant:reduced()}):Promise.resolve();
+ // Stages every out disc in the viewer: their Atlas positions (stability and speed) place them,
+ // the zoom buttons' corner stays clear. Resolves true once this staging settles.
+ stageOut({instant=reduced()}={}){
+  if(!this.ready || !this.items)return Promise.resolve(false);
+  const token=++this.stageToken,atlas=new Map();
+  for(const id of this.out){
+   const item=this.items.find(i=>i.id===id),mold=item && this.lookup(item.mold_id);
+   atlas.set(id,mold && window.AtlasLayout?.positions([mold]).get(mold.id) || null);
+  }
+  const box=this.canvas.getBoundingClientRect(),zoom=this.zoomControls.getBoundingClientRect();
+  const reserve=zoom.width && box.width?{width:(box.right-zoom.left+6)/box.width,height:(zoom.bottom-box.top+6)/box.height}:{width:0,height:0};
+  const motion=this.viewer.stageDiscs(this.out,{atlas,reserve,labelSpace:this.labelSpace(),instant}),mode=this.viewer.stage.mode;
+  if(mode){this.root.dataset.stage=mode;this.root.dataset.out=String(this.out.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}
+  this.root.dataset.staging='moving';
+  for(const disc of this.layer.querySelectorAll('[data-physical-disc]'))this.label(disc);
+  this.place();this.interactive(!this.running);
+  return motion.then(()=>{
+   if(token!==this.stageToken)return false;
+   this.root.dataset.staging='still';this.place();return true;
+  });
  }
- openSlid(){if(this.slid?.mold)this.inspect(this.slid.mold,this.slid.item);}
- // On phones the details are a bottom sheet: scroll the page so the disc comes out above it, name included.
- keepAboveSheet(){
-  const panel=document.querySelector('#detail'),rect=this.viewer?.slideRect();
+ // Room under a disc beside the bag for its name pill and the gap above it.
+ labelSpace(){return Math.ceil((parseFloat(getComputedStyle(this.canvas).getPropertyValue('--bag-type'))||1)*30)+14;}
+ detailOpen(){const panel=document.querySelector('#detail');return !!this.inspected && !!panel && !panel.hidden;}
+ closeDetails(){const id=this.inspected;this.inspected=null;if(id)this.deselect?.(this.items?.find(i=>i.id===id));}
+ // My Bag hands the details panel elsewhere (leaving the page, My Map): the bag forgets it opened them.
+ release(){this.inspected=null;}
+ keepAboveSheet(id){
+  const panel=document.querySelector('#detail'),rect=this.viewer?.outRect(id);
   if(!panel || panel.hidden || !rect || !matchMedia('(max-width:700px)').matches)return;
-  const box=this.canvas.getBoundingClientRect(),sheetTop=innerHeight-panel.offsetHeight,top=box.top+rect.top,bottom=top+rect.height+48;
+  const box=this.canvas.getBoundingClientRect(),sheetTop=innerHeight-panel.offsetHeight,top=box.top+rect.top,bottom=top+rect.height+40;
   const by=Math.min(bottom-(sheetTop-8),top-8);
   if(by>0)scrollBy({top:by,behavior:reduced()?'instant':'smooth'});
  }
- // The card covers the slid-out disc where it rests; its name sits under it (above, if the
- // canvas ends first).
- placeCard(){
-  const rect=this.slid && this.root.dataset.slide==='out' && this.viewer?.slideRect();if(!rect)return;
-  Object.assign(this.card.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
-  const room=this.canvas.clientHeight-(rect.top+rect.height);this.card.dataset.label=room<this.cardName.offsetHeight+18?'above':'below';
+ // Each out disc's name sits under it (above, where the canvas ends first). On the map, a name
+ // that would cover another disc or an earlier name stays hidden; hovering still shows it.
+ placeNames(){
+  if(!this.viewer || !this.items)return;
+  const rects=new Map(this.viewer.discRects().filter(rect=>rect.out).map(rect=>[rect.key,rect]));
+  for(const [id,node] of this.nameById)if(!rects.has(id)){node.remove();this.nameById.delete(id);}
+  const width=this.canvas.clientWidth,height=this.canvas.clientHeight,taken=[...rects.values()].map(rect=>({key:rect.key,left:rect.left,top:rect.top,right:rect.left+rect.width,bottom:rect.top+rect.height}));
+  const overlaps=(a,b)=>a.left<b.right && b.left<a.right && a.top<b.bottom && b.top<a.bottom;
+  for(const id of this.out){
+   const rect=rects.get(id);if(!rect)continue;
+   let node=this.nameById.get(id);
+   if(!node){
+    const item=this.items.find(i=>i.id===id),mold=item && this.lookup(item.mold_id);
+    node=div('bag-name-pill bag-out-name',{'data-out-name':id});node.textContent=mold?.catalogName || mold?.name || 'Saved disc';
+    // A name reopens its disc's details (the disc itself toggles).
+    node.addEventListener('click',()=>{if(!item || !this.out.includes(id))return;this.inspected=id;this.inspect(mold,item);});
+    this.names.append(node);this.nameById.set(id,node);
+   }
+   node.hidden=false;
+   const w=node.offsetWidth,h=node.offsetHeight,x=Math.min(width-w/2-4,Math.max(w/2+4,rect.left+rect.width/2));
+   const below=rect.top+rect.height+6+h<=height-4,top=below?rect.top+rect.height+6:rect.top-6-h;
+   const box={left:x-w/2,right:x+w/2,top,bottom:top+h};
+   const clear=taken.every(other=>other.key===id || !overlaps(box,other));
+   node.hidden=!clear;if(clear){node.dataset.shown='';taken.push({key:id,...box});}else delete node.dataset.shown;
+   Object.assign(node.style,{left:x+'px',top:top+'px'});
+  }
+  this.names.replaceChildren(...this.out.map(id=>this.nameById.get(id)).filter(Boolean));
+  if(this.lifted && this.nameById.get(this.lifted.dataset.physicalDisc)?.dataset.shown!==undefined)this.tag.hidden=true;
+ }
+ // The bag's map grid lines up with the page's Stitch grid.
+ placeGrid(){
+  const box=this.canvas.getBoundingClientRect(),x=-((box.left+scrollX)%GRID),y=-((box.top+scrollY)%GRID);
+  this.mapGrid.style.setProperty('--grid-x',x+'px');this.mapGrid.style.setProperty('--grid-y',y+'px');
  }
  // The hover name sits just above its disc (below, near the canvas top), kept inside the canvas.
  placeTag(disc){
@@ -237,7 +296,7 @@ export class BagScene {
  }
  async setTopView(on){
   if(!this.ready || on===this.top)return;
-  this.top=on;void this.slideIn();this.clearLift();this.interactive(false);
+  this.top=on;this.clearLift();this.interactive(false);
   this.topToggle.setAttribute('aria-pressed',String(on));this.root.dataset.camera='moving';
   const view=await this.viewer.setTopView(on,{instant:reduced()});
   if(view!==this.top)return;
@@ -269,7 +328,8 @@ export class BagScene {
   if(!this.reachable(disc) || this.root.dataset.dragging!==undefined)return;if(this.lifted && this.lifted!==disc)this.settle(this.lifted);
   this.lifted=disc;disc.classList.add('is-hovered');this.root.dataset.hovered='';this.viewer.glowDisc(disc.dataset.physicalDisc,{instant:reduced()});
   this.tag.textContent=title;this.tag.style.setProperty('--disc-color',item.color||'#e6c668');
-  this.tag.hidden=this.slid?.disc===disc;if(!this.tag.hidden)this.placeTag(disc);
+  // An out disc whose name already shows needs no hover name.
+  this.tag.hidden=this.nameById.get(item.id)?.dataset.shown!==undefined;if(!this.tag.hidden)this.placeTag(disc);
   this.info.querySelector('strong').textContent=title;this.info.querySelector('span').textContent=`${item.plastic} · ${item.wear}/10 ${wearLabel(item.wear)} · ${item.weight_g} g · ${pocketLabel(item.pocket)}`;
   const note=this.info.querySelector('[data-lift-note]'),bias=this.info.querySelector('[data-lift-bias]');
   note.textContent=item.notes || '';note.hidden=!item.notes;
@@ -283,7 +343,7 @@ export class BagScene {
  clearLift(){if(this.lifted)this.settle(this.lifted);this.tag.hidden=true;this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');if(this.viewer?.glowingDisc)this.viewer.glowDisc(null,{instant:reduced()});}
  async reveal(){this.visible=true;await this.load();if(this.revealed||!this.ready||this.open||this.running||!this.visible)return;this.revealed=true;void this.setOpen(true);}
  async setOpen(open){
-  if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();void this.slideIn();this.toggle.setAttribute('aria-disabled','true');
+  if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();this.toggle.setAttribute('aria-disabled','true');
   this.root.dataset.phase=open?'opening':'closing';this.interactive(false);
   // The flap and the putters move together: closed, the putters stow in the top pocket;
   // open, they come back out into their row. The flap sets the pace (the putters' wave is no
@@ -294,9 +354,10 @@ export class BagScene {
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
  }
  reset(){
-  this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();void this.slideIn();
+  this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();
+  this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging'])delete this.root.dataset[key];this.names.replaceChildren();this.nameById.clear();
   this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
-  if(this.ready){void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
+  if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;
   if(this.root.dataset.engine!=='error')this.toggle.disabled=false;
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent='Open bag';this.toggle.setAttribute('aria-expanded','false');this.root.dataset.phase='closed';
