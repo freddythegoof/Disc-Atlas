@@ -34,6 +34,11 @@ const FRAME_MARGIN = 8;
 // The furthest the camera pulls back for a ring with names: a crowd needing more takes compact
 // names, then none (names keep their pixel size, so beyond this the bag would shrink to a token).
 const NAMED_PULL = 2.6;
+// Turntable: px of horizontal travel before a press becomes a drag (less stays a tap), and the
+// turn per px. A release coasts at the swipe's speed over its last SPIN_SAMPLE_MS (capped at
+// SPIN_MAX rad/s, none if it held still for SPIN_HOLD_MS), slowing by SPIN_FRICTION per second
+// until it falls under SPIN_STOP rad/s.
+const DRAG_PX = 8, TURN_PER_PX = .012, SPIN_SAMPLE_MS = 90, SPIN_HOLD_MS = 70, SPIN_MAX = 12, SPIN_FRICTION = 3, SPIN_STOP = .15;
 // A hovered disc lights up in its own color at this emissive intensity.
 const GLOW = 1.1;
 export const MAX_ZOOM = 3;
@@ -81,6 +86,7 @@ export async function mountBag(container, {
   quality = 'high',
   toneMapping = 'aces',
   puttersOut = true,
+  dragSurface = null,
 } = {}) {
   const low = quality === 'low' || (quality === 'auto' && softwareRenderer());
   if (low) animated = false;
@@ -253,7 +259,8 @@ export async function mountBag(container, {
   };
   const intersection = new IntersectionObserver(entries => {
     visible = entries.at(-1).isIntersecting || onScreen();
-    if (visible) invalidate(); else stopLoop();
+    // A coast nobody can see ends where it is.
+    if (visible) invalidate(); else { settleTurn(); stopLoop(); }
   });
   intersection.observe(container);
   if (controls) {
@@ -261,7 +268,7 @@ export async function mountBag(container, {
     controls.addEventListener('end', () => { dragging = false; resumeAt = performance.now() + 1800; });
     controls.addEventListener('change', () => invalidate());
   }
-  const visibilityChanged = () => { last = performance.now(); if (!document.hidden) invalidate(); };
+  const visibilityChanged = () => { last = performance.now(); if (!document.hidden) invalidate(); else settleTurn(); };
   document.addEventListener('visibilitychange', visibilityChanged);
   const contextLost = event => {
     event.preventDefault();
@@ -270,59 +277,85 @@ export async function mountBag(container, {
   };
   renderer.domElement.addEventListener('webglcontextlost', contextLost);
 
-  // Turntable: a horizontal drag turns the bag and it eases back to the front on release.
-  // Vertical swipes stay with the page (touch-action: pan-y), and wheel never zooms.
+  // Turntable: a horizontal drag spins the bag. Let go mid-swipe and it coasts to a stop
+  // (momentum); let go after holding still and it stops right there. Either way it holds the
+  // angle it is left at. A press that moves less than DRAG_PX, or mostly vertically, stays a
+  // tap, so a disc under it still toggles. A press on a coasting bag catches it (and is no tap).
+  // Vertical swipes stay with the page (touch-action: pan-y), and wheel never zooms. The press
+  // can start anywhere on `dragSurface` (the page's box that also holds the discs' hit targets),
+  // except on its buttons; a tap on the canvas itself (empty space) is a `bagclick`.
   const pointer = { press: null };
   const turntable = interaction === 'turntable';
+  const surface = dragSurface ?? renderer.domElement, listening = new AbortController();
+  // The coast: `velocity` in radians per second, decaying by SPIN_FRICTION per second.
+  let spin = null;
+  // The turn (a drag, or its coast) is over: targets and labels follow the bag again.
+  const settleTurn = () => {
+    spin = null;
+    if (!turntable || !dragging) return;
+    dragging = false;
+    surface.style.cursor = '';
+    if (turntable) renderer.domElement.style.cursor = 'pointer';
+    container.dispatchEvent(new CustomEvent('bagdragend'));
+    container.dispatchEvent(new CustomEvent('bagviewlayout'));
+  };
+  // The swipe's speed over its last SPIN_SAMPLE_MS (0 if it held still before letting go).
+  const releaseVelocity = (samples, now) => {
+    const end = samples.at(-1), from = samples.find(sample => now - sample.t <= SPIN_SAMPLE_MS) ?? end;
+    if (!end || now - end.t > SPIN_HOLD_MS || end.t - from.t < 8) return 0;
+    const velocity = (end.yaw - from.yaw) / ((end.t - from.t) / 1000);
+    return Math.max(-SPIN_MAX, Math.min(SPIN_MAX, velocity));
+  };
   if (turntable) {
-    const el = renderer.domElement;
+    const el = renderer.domElement, signal = listening.signal;
     el.style.touchAction = 'pan-y';
     el.style.cursor = 'pointer';
-    el.addEventListener('pointerdown', event => {
-      if (event.button !== 0) return;
-      pointer.press = { id: event.pointerId, x: event.clientX, y: event.clientY, yaw, drag: false };
-    });
-    el.addEventListener('pointermove', event => {
+    surface.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || event.target.closest?.('button,a,input,select,textarea')) return;
+      // A second finger makes it a pinch (the page's): drop the turn.
+      if (!event.isPrimary) { cancelPress(); return; }
+      const caught = spin !== null;
+      spin = null;
+      pointer.press = { id: event.pointerId, x: event.clientX, y: event.clientY, yaw, drag: false, caught, empty: event.target === el, samples: [{ t: event.timeStamp, yaw }] };
+    }, { signal });
+    surface.addEventListener('pointermove', event => {
       const press = pointer.press;
       if (!press || event.pointerId !== press.id) return;
       const dx = event.clientX - press.x, dy = event.clientY - press.y;
       if (!press.drag) {
-        if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
-        press.drag = dragging = true;
-        el.setPointerCapture(event.pointerId);
-        el.style.cursor = 'grabbing';
-        container.dispatchEvent(new CustomEvent('bagdragstart'));
+        if (Math.abs(dx) < DRAG_PX || Math.abs(dx) < Math.abs(dy)) return;
+        press.drag = true;
+        surface.setPointerCapture(event.pointerId);
+        surface.style.cursor = el.style.cursor = 'grabbing';
+        if (!dragging) { dragging = true; container.dispatchEvent(new CustomEvent('bagdragstart')); }
       }
       yawTween = null;
-      yaw = press.yaw + dx * .012;
+      yaw = press.yaw + dx * TURN_PER_PX;
+      press.samples.push({ t: event.timeStamp, yaw });
+      if (press.samples.length > 24) press.samples.shift();
       invalidate();
-    });
+    }, { signal });
     const release = event => {
       const press = pointer.press;
       if (!press || event.pointerId !== press.id) return;
       pointer.press = null;
       if (press.drag) {
-        dragging = false;
-        el.style.cursor = 'pointer';
-        // The bag stays turned exactly where the user let go: no ease back to the front.
-        container.dispatchEvent(new CustomEvent('bagdragend'));
-        container.dispatchEvent(new CustomEvent('bagviewlayout'));
-      } else if (event.type === 'pointerup') container.dispatchEvent(new CustomEvent('bagclick'));
+        // Reduced motion (and the software path) stops where the user let go.
+        const velocity = event.type === 'pointerup' && active ? releaseVelocity(press.samples, event.timeStamp) : 0;
+        if (Math.abs(velocity) > SPIN_STOP * 2) { spin = { velocity }; invalidate(); } else settleTurn();
+      } else if (press.caught) settleTurn();
+      else if (event.type === 'pointerup' && press.empty) container.dispatchEvent(new CustomEvent('bagclick'));
     };
-    el.addEventListener('pointerup', release);
-    el.addEventListener('pointercancel', release);
+    surface.addEventListener('pointerup', release, { signal });
+    surface.addEventListener('pointercancel', release, { signal });
   }
-  // A second finger turns the gesture into a pinch (handled by the page): drop the turn.
+  // A second finger turns the gesture into a pinch (handled by the page): drop the turn, coast included.
   const cancelPress = () => {
-    const press = pointer.press;
     pointer.press = null;
-    if (!press?.drag) return;
-    dragging = false;
-    renderer.domElement.style.cursor = 'pointer';
-    container.dispatchEvent(new CustomEvent('bagdragend'));
-    container.dispatchEvent(new CustomEvent('bagviewlayout'));
+    settleTurn();
   };
   const turnHome = (instant = !active) => {
+    settleTurn();
     const home = Math.round(yaw / (Math.PI * 2)) * Math.PI * 2;
     if (instant || Math.abs(yaw - home) < 1e-4) { yaw = 0; yawTween = null; invalidate(); return; }
     yawTween = { from: yaw - home, start: performance.now() };
@@ -343,6 +376,7 @@ export async function mountBag(container, {
     stopLoop();
     observer.disconnect();
     intersection.disconnect();
+    listening.abort();
     document.removeEventListener('visibilitychange', visibilityChanged);
     renderer.domElement.removeEventListener('webglcontextlost', contextLost);
     controls?.dispose();
@@ -890,6 +924,12 @@ export async function mountBag(container, {
       setFlap(flapMotion.from + (flapMotion.to - flapMotion.from) * t);
       if (t >= 1) { flapMotion = null; finishFlap(); } else busy = true;
     }
+    // The coast turns the bag first, so out discs (held still in the room) pose for this frame's turn.
+    if (spin) {
+      yaw += spin.velocity * delta;
+      spin.velocity *= Math.exp(-SPIN_FRICTION * delta);
+      if (Math.abs(spin.velocity) < SPIN_STOP) settleTurn(); else busy = true;
+    }
     for (const record of records.values()) if (poseRecord(record, now)) busy = true;
     if (yawTween) {
       const t = Math.min(1, (now - yawTween.start) / YAW_MS);
@@ -1036,6 +1076,7 @@ export async function mountBag(container, {
     view(side = 'home') {
       time = 0;
       offset = 0;
+      settleTurn();
       yaw = 0;
       yawTween = null;
       if (cameraTween) stepCamera(cameraTween, 1);
@@ -1097,6 +1138,11 @@ export async function mountBag(container, {
     get topView() { return topView; },
     // The bag's turn from the user's drag (radians); it persists until the user drags again.
     get turn() { return yaw; },
+    // Whether the bag is coasting after a swipe, and its speed (rad/s).
+    get spinning() { return spin !== null; },
+    get spinVelocity() { return spin ? spin.velocity : 0; },
+    // Whether a drag or its coast is under way (targets and labels wait for it).
+    get turning() { return dragging; },
     // Whether the front pockets and main opening face the camera (or the camera is above).
     // Whether any of the GLB's go-to accent rim is drawn (it should not be).
     get goToAccentVisible() { return accents.some(object => object.visible); },
@@ -1137,7 +1183,7 @@ export async function mountBag(container, {
         color: placement.empty ? null : '#' + mesh.material.color.getHexString(),
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
-        pose: mesh.position.toArray(), slide: record.slide, glow: placement.empty ? 0 : mesh.material.emissiveIntensity,
+        pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : mesh.material.emissiveIntensity,
         // Staged out (or heading out), and the spot it rests at in the room's frame.
         out: record.slideTo === 1, spot: record.slideTo === 1 && record.spot ? record.spot.to.position.toArray() : null, spotScale: record.slideTo === 1 && record.spot ? record.spot.to.scale.x : null,
       }));

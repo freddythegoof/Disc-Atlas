@@ -25,6 +25,9 @@ export class BagScene {
   this.out=[];this.inspected=null;this.panelEdge=null;
   this.toggle=root.querySelector('[data-bag-toggle]');this.info=root.querySelector('[data-bag-lift-info]');this.canvas=root.querySelector('[data-bag-canvas]');
   this.topToggle=root.querySelector('[data-bag-top-view]');
+  // The putter pocket collapses (its putters slide down inside) and expands again with the bag left open.
+  this.pocketOpen=true;this.pocketToggle=root.querySelector('[data-bag-pocket]');root.dataset.putterPocket='open';
+  this.pocketToggle?.addEventListener('click',()=>void this.setPocket(!this.pocketOpen));
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
   this.topToggle.addEventListener('click',()=>void this.setTopView(!this.top));
   this.stage=div('bag-3d-stage');this.layer=div('bag-hit-layer',{role:'group','aria-label':'Your disc golf bag'});this.status=div('bag-3d-status',{role:'status'});
@@ -100,7 +103,7 @@ export class BagScene {
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
     // The bag starts closed, so its putters start stowed in the top pocket.
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.open,
+     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.open && this.pocketOpen,dragSurface:this.canvas,
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
     // The hit layer and the list carry the content; the canvas itself is decorative.
@@ -212,7 +215,7 @@ export class BagScene {
  discFor(id){return id?this.layer.querySelector(`[data-physical-disc="${CSS.escape(id)}"]`):null;}
  interactive(on){
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]')){const ok=on && this.reachable(disc);disc.setAttribute('tabindex',ok?'0':'-1');disc.setAttribute('aria-hidden',String(!ok));}
-  this.syncTypeButtons();
+  this.syncTypeButtons();this.syncPocket();
  }
  // A disc's type as the Atlas types it (distance, fairway, mid, putter), from its mold.
  typeOfItem(item){const mold=this.lookup(item.mold_id);return mold && typeof typeOf==='function'?typeOf(mold):null;}
@@ -424,6 +427,35 @@ export class BagScene {
   const above=top>this.tag.offsetHeight+14;
   Object.assign(this.tag.style,{left:x+'px',top:(above?top-8:top+slot.offsetHeight+8)+'px'});this.tag.dataset.side=above?'above':'below';
  }
+ // The putter pocket's control: collapsing slides every putter down into the pocket, expanding
+ // brings them back up into their row; the bag stays open throughout. A putter that is out comes
+ // home first, then the row goes down. It works only while the bag is open (closed, the putters
+ // are stowed anyway); the choice holds through closing and opening the bag.
+ async setPocket(open){
+  if(!this.ready || this.running || !this.open || open===this.pocketOpen || this.viewer.cameraMoving)return;
+  const epoch=this.epoch;this.running=true;this.pocketOpen=open;this.clearLift();
+  this.root.dataset.putterPocket='moving';this.interactive(false);
+  if(!open){
+   const putters=this.out.filter(id=>this.discFor(id)?.dataset.pocket==='putter');
+   if(putters.length){
+    this.out=this.out.filter(id=>!putters.includes(id));if(putters.includes(this.inspected))this.closeDetails();
+    for(const disc of this.layer.querySelectorAll('[data-physical-disc]'))this.label(disc);
+    await this.stageOut();if(epoch!==this.epoch)return;
+   }
+  }
+  await this.viewer.setPuttersOut(open,{instant:reduced()});
+  if(epoch!==this.epoch)return;
+  this.running=false;this.root.dataset.putterPocket=open?'open':'collapsed';this.place();
+  if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
+ }
+ syncPocket(){
+  const button=this.pocketToggle;if(!button)return;
+  const putters=!!this.layer.querySelector('[data-physical-disc][data-pocket="putter"]'),open=this.pocketOpen;
+  button.setAttribute('aria-expanded',String(open));
+  // Mid-move it only refuses clicks (aria-disabled), so keyboard focus stays on it.
+  button.disabled=!this.ready || !this.open || !putters;if(this.running)button.setAttribute('aria-disabled','true');else button.removeAttribute('aria-disabled');
+  button.title=!putters?'No putters in the bag':!this.open?'Open the bag to use the putter pocket':open?'Collapse the putter pocket':'Expand the putter pocket';
+ }
  async setTopView(on){
   if(!this.ready || on===this.top)return;
   this.top=on;this.clearLift();this.interactive(false);
@@ -478,7 +510,7 @@ export class BagScene {
   // The flap and the putters move together: closed, the putters stow in the top pocket;
   // open, they come back out into their row. The flap sets the pace (the putters' wave is no
   // longer), so a slow frame delaying the putters' timer never holds up the bag's state.
-  void this.viewer.setPuttersOut(open,{instant:reduced()});await this.viewer.setCompartmentOpen(open,{instant:reduced()});
+  void this.viewer.setPuttersOut(open && this.pocketOpen,{instant:reduced()});await this.viewer.setCompartmentOpen(open,{instant:reduced()});
   if(epoch!==this.epoch)return;this.open=open;this.running=false;this.root.dataset.phase=open?'open':'closed';
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent=open?'Close bag':'Open bag';this.toggle.setAttribute('aria-expanded',String(open));
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
@@ -487,6 +519,7 @@ export class BagScene {
   this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();
   this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging','names'])delete this.root.dataset[key];this.wideCanvas(false);this.syncTypeButtons();this.names.replaceChildren();this.nameById.clear();this.returnAll.hidden=true;
   this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
+  this.pocketOpen=true;this.root.dataset.putterPocket='open';this.syncPocket();
   if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;
   if(this.root.dataset.engine!=='error')this.toggle.disabled=false;

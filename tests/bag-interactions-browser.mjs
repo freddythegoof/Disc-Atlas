@@ -216,10 +216,11 @@ try {
  assert.deepEqual(await viewer(v=>v.outDiscs),[driver.id],'The disc stays out across pages');await driverSlot.click();await slidHome();
  check(`Show on Atlas: map at zoom ${atlas.zoom}, the disc's own marker selected beside its details`);
 
- // 7. Camera persistence: a turned bag stays exactly where the user left it.
+ // 7. Camera persistence: a turned bag stays exactly where the user left it. These drags hold still
+ // before letting go, so the bag stops right there (a flick's momentum is in bag-spin-pocket-browser).
  const stage=await page.locator('.bag-3d-stage canvas').boundingBox(),sx=stage.x+stage.width*.1,sy=stage.y+stage.height*.8;
  const frontRects=await viewer(v=>v.discRects());
- await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+50,sy+2,{steps:8});await page.mouse.up();
+ await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+50,sy+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();
  const turned=await viewer(v=>v.turn);assert.ok(Math.abs(turned)>.3,'The drag turns the bag');
  await page.waitForTimeout(2500);assert.equal(await viewer(v=>v.turn),turned,'No snap-back after 2.5 s');
  assert.equal(await scene.getAttribute('data-phase'),'open','A drag never toggles the flap');
@@ -230,14 +231,14 @@ try {
  await driverSlot.click();await slideOut();await settle();await fullyVisible(driver.id,'#ed7868','Slid-out main disc on the turned bag');
  // An out disc holds still in the room while the bag turns under it.
  const heldSpot=await local(driverSlot);await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
- await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+30,sy+2,{steps:6});await page.mouse.up();await settle();
+ await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+30,sy+2,{steps:6});await page.waitForTimeout(150);await page.mouse.up();await settle();
  const afterTurn=await local(driverSlot);assert.ok(Math.abs(afterTurn.left-heldSpot.left)<2 && Math.abs(afterTurn.top-heldSpot.top)<2,'The out disc stays put while the bag turns: '+JSON.stringify({heldSpot,afterTurn}));
  const turnedMore=await viewer(v=>v.turn);
  await driverSlot.click();await slidHome();assert.equal(await viewer(v=>v.turn),turnedMore,'Hover, slide-out, Escape and putting it back keep the turn');
  // Turned far enough that the front faces away, only the top pocket stays in reach.
- await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+120,sy+2,{steps:8});await page.mouse.up();await settle();
+ await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+120,sy+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();await settle();
  assert.equal(await viewer(v=>v.frontFacing),false);assert.equal(await driverSlot.getAttribute('aria-hidden'),'true');assert.equal(await putterSlot.getAttribute('aria-hidden'),'false');
- await page.mouse.move(sx+120,sy);await page.mouse.down();await page.mouse.move(sx,sy+2,{steps:8});await page.mouse.up();await settle();
+ await page.mouse.move(sx+120,sy);await page.mouse.down();await page.mouse.move(sx,sy+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();await settle();
  const kept=await viewer(v=>v.turn);await page.waitForTimeout(1500);assert.equal(await viewer(v=>v.turn),kept);
  // Top view keeps the turn, and leaving it returns to the same camera.
  const cam=await viewer(v=>v.cameraState);await page.locator('[data-bag-top-view]').click();await camera('top');
@@ -254,7 +255,7 @@ try {
  const cdp=await touch.newCDPSession(mobile),mstage=await mobile.locator('.bag-3d-stage canvas').boundingBox(),tx=mstage.x+mstage.width*.12,ty=mstage.y+mstage.height*.8;
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:tx,y:ty}]});
  for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:tx+i*5,y:ty+i*.2}]});await mobile.waitForTimeout(16);}
- await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ await mobile.waitForTimeout(150);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  const touchTurn=await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.turn);await mobile.waitForTimeout(2000);
  assert.ok(Math.abs(touchTurn)>.3 && await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.turn)===touchTurn,'Touch turn holds: '+touchTurn);
  const tapSlot=mobile.locator(`[data-physical-disc="${driver.id}"]`);await tapSlot.tap();
@@ -301,7 +302,7 @@ try {
   await page.locator('[data-bag-top-view]').click();await camera('top');await page.mouse.move(0,0);await shot('top-view',width,theme,canvas);
   await page.keyboard.press('Escape');await camera('front');
   const st=await page.locator('.bag-3d-stage canvas').boundingBox(),x=st.x+st.width*.1,y=st.y+st.height*.8;
-  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+45,y+2,{steps:8});await page.mouse.up();
+  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+45,y+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();
   const held=await viewer(v=>v.turn);await page.mouse.move(0,0);await page.waitForTimeout(2000);
   assert.ok(Math.abs(held)>.3 && await viewer(v=>v.turn)===held,`Rotation holds (${theme} ${width})`);
   await shot('rotated-held',width,theme,canvas);
