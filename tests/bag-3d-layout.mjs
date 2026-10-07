@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideSpots,RING_BAG,flankOrder,flankFrame} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideOrder,sideFrame,spotBox,SIDE_BAG} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -112,39 +112,43 @@ test('stowed putters sit at one height inside the top pocket with only their rim
   assert.ok(!placements.find(p => p.pocket === 'goTo').stow, 'The go-to does not stow');
 });
 
-// Staging: out discs stay out until clicked again; 1–5 rest beside the bag, 6+ go on a map around it.
+// Staging: out discs stay out until clicked again and, however many there are, rest in side
+// columns beside the bag, every one named.
 const HALF_HEIGHT = 1.3507 * Math.tan(33 / 2 * Math.PI / 180);
 const entry = (key, x, y) => ({key, atlas: x === null ? null : {x, y}});
-const minGap = spots => {
-  const points = [...spots.values()].map(spot => spot.position);let gap = Infinity;
-  for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) gap = Math.min(gap, Math.hypot(points[i][0] - points[j][0], points[i][1] - points[j][1]));
-  return gap;
-};
-const clearOfBag = (spot, radius) => spot.position[0] <= BAG_BOX.xMin - radius || spot.position[0] >= BAG_BOX.xMax + radius || spot.position[1] >= BAG_BOX.yMax + radius;
 
-test('staging switches from the side layout to the map at the sixth out disc', () => {
-  assert.deepEqual([0, 1, 5, 6, 7, 24].map(stageMode), [null, 'side', 'side', 'map', 'map', 'map']);
-  assert.equal(STAGE.sideMax, 5);
+test('staging always uses the side layout: there is no map mode at any count', () => {
+  assert.deepEqual([0, 1, 5, 6, 7, 12, 24, 48].map(stageMode), [null, 'side', 'side', 'side', 'side', 'side', 'side', 'side']);
+  assert.equal(STAGE.map, undefined);
 });
 
 // Left and right columns from assignSides, each listed by key.
 const columns = list => { const sides = assignSides(list); return {left: list.filter(d => sides.get(d.key) === 'left').map(d => d.key), right: list.filter(d => sides.get(d.key) === 'right').map(d => d.key)}; };
 const stabilityOf = list => key => list.find(d => d.key === key).atlas?.x ?? .5;
+// Stability mixes of any size: spread over the whole range, all overstable, all understable, all neutral.
+const mixes = count => ({
+  mixed: Array.from({length: count}, (_, i) => entry('m' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)),
+  overstable: Array.from({length: count}, (_, i) => entry('o' + i, .7 + ((i * 7) % count) * .25 / count, ((i * 53) % 97) / 97)),
+  understable: Array.from({length: count}, (_, i) => entry('u' + i, .05 + ((i * 5) % count) * .2 / count, ((i * 31) % 89) / 89)),
+  neutral: Array.from({length: count}, (_, i) => entry('n' + i, .5, .5)),
+});
 
-test('beside the bag, discs split relative to each other: less overstable half left, more overstable half right, balanced', () => {
-  const mixed = [entry('fade', .9, .4), entry('turn', .1, .6), entry('neutral', .52, .5), entry('flip', .3, .8), entry('stable', .7, .2)];
-  const allOver = [entry('o1', .78, .9), entry('o2', .95, .3), entry('o3', .7, .5), entry('o4', .88, .6), entry('o5', .82, .1)];
-  const allUnder = [entry('u1', .05, .9), entry('u2', .3, .3), entry('u3', .12, .5), entry('u4', .2, .6), entry('u5', .26, .1)];
-  for (const [name, discs] of [['mixed', mixed], ['all overstable', allOver], ['all understable', allUnder]]) {
-    for (let count = 1; count <= 5; count++) {
-      const list = discs.slice(0, count), {left, right} = columns(list), x = stabilityOf(list);
-      assert.ok(Math.abs(left.length - right.length) <= 1, `${name} ${count}: even ${left.length}/${right.length}`);
-      if (left.length && right.length) assert.ok(Math.max(...left.map(x)) <= Math.min(...right.map(x)), `${name} ${count}: every left disc is less overstable than every right disc`);
-    }
+test('the split is relative to the out discs, at the median, never a fixed threshold, at any count', () => {
+  for (let count = 1; count <= 24; count++) for (const [mix, list] of Object.entries(mixes(count))) {
+    const {left, right} = columns(list), x = stabilityOf(list), name = `${mix} ${count}`;
+    assert.ok(Math.abs(left.length - right.length) <= 1, `${name}: even ${left.length}/${right.length}`);
+    if (count % 2 === 0) assert.equal(left.length, right.length, `${name}: an even count splits exactly at the median`);
+    if (left.length && right.length) assert.ok(Math.max(...left.map(x)) <= Math.min(...right.map(x)), `${name}: every left disc is no more overstable than every right disc`);
   }
   // An all-overstable (or all-understable) set still spreads evenly: no fixed threshold.
+  const allOver = [entry('o1', .78, .9), entry('o2', .95, .3), entry('o3', .7, .5), entry('o4', .88, .6), entry('o5', .82, .1), entry('o6', .91, .4), entry('o7', .74, .7)];
+  const allUnder = [entry('u1', .05, .9), entry('u2', .3, .3), entry('u3', .12, .5), entry('u4', .2, .6), entry('u5', .26, .1)];
   assert.deepEqual(columns(allOver.slice(0, 4)), {left: ['o1', 'o3'], right: ['o2', 'o4']}, 'Four overstable discs: the two least overstable go left');
+  assert.deepEqual(columns(allOver.slice(0, 6)), {left: ['o1', 'o3', 'o5'], right: ['o2', 'o4', 'o6']}, 'Six overstable discs split 3/3');
   assert.deepEqual(columns(allUnder.slice(0, 4)), {left: ['u1', 'u3'], right: ['u2', 'u4']}, 'Four understable discs: the two most overstable go right');
+  // Mixed set: understable left, overstable right, around this set's own median.
+  assert.deepEqual(columns([entry('fade', .9, .4), entry('turn', .1, .6), entry('neutral', .52, .5), entry('flip', .3, .8), entry('stable', .7, .2), entry('beef', .95, .1)]),
+    {left: ['turn', 'neutral', 'flip'], right: ['fade', 'stable', 'beef']});
   // Even counts split exactly at the median.
   assert.deepEqual(columns([entry('a', .61, 0), entry('b', .6, 0)]), {left: ['b'], right: ['a']});
   // Odd counts: the median joins the neighbor it is nearer in stability; the right on a tie.
@@ -152,6 +156,7 @@ test('beside the bag, discs split relative to each other: less overstable half l
   assert.deepEqual(columns([entry('a', .7, 0), entry('m', .93, 0), entry('b', .95, 0)]), {left: ['a'], right: ['m', 'b']}, 'Median near the upper neighbor goes right');
   assert.deepEqual(columns([entry('a', .2, 0), entry('m', .5, 0), entry('b', .8, 0)]), {left: ['a'], right: ['m', 'b']}, 'A tie goes right');
   assert.deepEqual(columns([entry('a', .1, 0), entry('b', .2, 0), entry('m', .5, 0), entry('c', .52, 0), entry('d', .9, 0)]), {left: ['a', 'b'], right: ['m', 'c', 'd']});
+  assert.deepEqual(columns(allOver), {left: ['o1', 'o3', 'o5', 'o7'], right: ['o2', 'o4', 'o6']}, 'Seven overstable: the median (.82) is nearer .78 than .88, so it joins the left');
   // A lone disc rests on the right whatever its stability.
   assert.deepEqual(columns([entry('turn', .1, .4)]), {left: [], right: ['turn']});
   assert.deepEqual(columns([entry('fade', .9, .4)]), {left: [], right: ['fade']});
@@ -160,130 +165,125 @@ test('beside the bag, discs split relative to each other: less overstable half l
   assert.equal(assignSides([entry('x', null), entry('y', .9, .3)]).get('x'), 'left');
 });
 
-test('side spots rest just clear of the bag, faster discs higher, with room for names', () => {
-  const discs = [entry('fast', .2, .9), entry('slow', .25, .1), entry('mid', .3, .5), entry('r1', .8, .7), entry('r2', .9, .2)];
-  const sides = assignSides(discs), spots = sideSpots(discs, sides), radius = DISC.radius * STAGE.side.scale;
-  assert.equal(spots.size, 5);
-  for (const [key, spot] of spots) {
-    assert.ok(clearOfBag(spot, radius), `${key} clears the bag`);
-    assert.equal(Math.sign(spot.position[0]), sides.get(key) === 'left' ? -1 : 1, `${key} on its side`);
-  }
-  const y = key => spots.get(key).position[1];
-  assert.ok(y('fast') > y('mid') && y('mid') > y('slow'), 'Faster discs sit higher in their column');
-  assert.ok(minGap(spots) >= 2 * radius + STAGE.side.row - 1e-9, 'Room for a name between discs');
-  // Unrated discs count as neutral and still get a spot.
-  assert.equal(sideSpots([entry('x', null), entry('y', .2, .3)]).size, 2);
-});
-
-// Out discs with a name of `width` × `height` (page-view meters, gap above included) under each.
-const named = (list, width, height) => list.map(d => ({...d, label: {width, height}}));
-// The disc-and-name box of a staged spot, for a name of label × pull.
-const footBox = (spot, label, pull) => {
-  const r = DISC.radius * spot.scale, reach = Math.max(r, label.width * pull / 2), [x, y] = spot.position;
-  return {xMin: x - reach, xMax: x + reach, yMin: y - r - label.height * pull, yMax: y + r};
-};
-const boxesOverlap = (a, b, by = 0) => a.xMin < b.xMax + by - 1e-6 && b.xMin < a.xMax + by - 1e-6 && a.yMin < b.yMax + by - 1e-6 && b.yMin < a.yMax + by - 1e-6;
-
-test('beside the bag, wide names step their column out so no name reaches the bag; tall names open the rows', () => {
-  const discs = named([entry('a', .2, .9), entry('b', .25, .1), entry('c', .3, .5), entry('d', .8, .7), entry('e', .9, .2)], .2, .05);
-  for (const pull of [1, 1.4]) {
-    const spots = sideSpots(discs, undefined, {pull}), label = {width: .2, height: .05};
-    const boxes = [...spots.values()].map(spot => footBox(spot, label, pull));
-    for (const box of boxes) assert.ok(!boxesOverlap(box, BAG_BOX), `${pull}: name clear of the bag ${JSON.stringify(box)}`);
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i], boxes[j]), `${pull}: discs and names apart`);
-  }
-  // Narrow names leave the columns where they were.
-  const plain = sideSpots(discs.map(({label, ...d}) => d)), narrow = sideSpots(named(discs, .01, .01));
-  assert.deepEqual([...narrow].map(([k, s]) => [k, s.position[0]]), [...plain].map(([k, s]) => [k, s.position[0]]));
-});
-
-const inflateBy = (box, by) => ({xMin: box.xMin - by, xMax: box.xMax + by, yMin: box.yMin - by, yMax: box.yMax + by});
-
-// Map mode: the discs flank the bag in columns that fill the free canvas, and the bag keeps its
-// full size. A wide desktop canvas (the page's free width at the bag's usual height) and a phone's.
-const WIDE = {aspect: 1392 / 850, halfHeight: HALF_HEIGHT, centerY: .075}, NARROW = {aspect: 374 / 468, halfHeight: HALF_HEIGHT, centerY: .075};
-// Names keep their pixel size: about .09 × .03 m at the page view on a desktop canvas, .14 × .06 m on a phone's.
-const DESKTOP = {width: .09, height: .03}, PHONE = {width: .14, height: .06};
-const mixes = count => ({
-  mixed: Array.from({length: count}, (_, i) => entry('m' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)),
-  overstable: Array.from({length: count}, (_, i) => entry('o' + i, .7 + ((i * 7) % count) * .25 / count, ((i * 53) % 97) / 97)),
-  understable: Array.from({length: count}, (_, i) => entry('u' + i, .05 + ((i * 5) % count) * .2 / count, ((i * 31) % 89) / 89)),
-  neutral: Array.from({length: count}, (_, i) => entry('n' + i, .5, .5)),
-});
-
-test('flank order: the relative split, each side listed outermost (most extreme) first', () => {
+test('side order: each side listed most extreme first', () => {
   const list = [entry('fade', .9, 0), entry('x', null), entry('turn', .1, 0), entry('p', .55, 0), entry('flip', .3, 0), entry('beef', .8, 0)];
-  const {left, right} = flankOrder(list);
+  const {left, right} = sideOrder(list);
   assert.deepEqual(left.map(d => d.key), ['turn', 'flip', 'x']);
   assert.deepEqual(right.map(d => d.key), ['fade', 'beef', 'p']);
 });
 
-test('map mode flanks the full-size bag: more turn left, more fade right, outermost the most extreme, faster higher', () => {
-  for (const count of [6, 8, 12, 18]) for (const [mix, list] of Object.entries(mixes(count))) {
-    const discs = named(list, DESKTOP.width, DESKTOP.height), frame = flankFrame({...WIDE, entries: discs}), name = `${count} ${mix}`;
-    const stability = key => discs.find(d => d.key === key).atlas?.x ?? .5, speed = key => discs.find(d => d.key === key).atlas?.y ?? .5;
-    assert.ok(frame.fits, `${name}: fits with names`);
+// Out discs with a name of `width` × `height` (page-view meters, room around it included) each.
+const named = (list, width, height) => list.map(d => ({...d, label: {width, height}}));
+const boxesOverlap = (a, b) => a.xMin < b.xMax - 1e-6 && b.xMin < a.xMax - 1e-6 && a.yMin < b.yMax - 1e-6 && b.yMin < a.yMax - 1e-6;
+// A wide desktop canvas (the page's free width at the bag's usual height) and a phone's. Names keep
+// their pixel size: about .09 × .03 m at the page view on a desktop canvas, .16 × .06 m on a phone's.
+const WIDE = {aspect: 1392 / 850, halfHeight: HALF_HEIGHT, centerY: .075}, NARROW = {aspect: 344 / 430, halfHeight: HALF_HEIGHT, centerY: .075};
+const DESKTOP = {width: .09, height: .03}, PHONE = {width: .16, height: .06};
+// The zoom corner and the pocket button, as the page keeps them clear.
+const RESERVE = {width: .12, height: .08}, CLEAR = [{left: 0, top: 0, right: .13, bottom: .08}];
+
+// Every rule the side layout keeps, for one frame.
+const sideChecks = (frame, discs, label, name) => {
+  const stability = key => discs.find(d => d.key === key).atlas?.x ?? .5, speed = key => discs.find(d => d.key === key).atlas?.y ?? .5;
+  const sides = assignSides(discs);
+  assert.ok(frame.fits, `${name}: fits with every name`);
+  assert.equal(frame.spots.size, discs.length, `${name}: every disc placed`);
+  assert.ok(['below', 'flush', 'outer'].includes(frame.labels), `${name}: names under or beside`);
+  const left = [...frame.spots].filter(([, s]) => s.side === 'left').map(([k]) => k), right = [...frame.spots].filter(([, s]) => s.side === 'right').map(([k]) => k);
+  for (const [key, spot] of frame.spots) {
+    assert.equal(spot.side, sides.get(key), `${name}: ${key} on its relative side`);
+    assert.ok(spot.side === 'left' ? spot.position[0] < SIDE_BAG.xMin : spot.position[0] > SIDE_BAG.xMax, `${name}: ${key} beside the bag`);
+  }
+  if (left.length && right.length) assert.ok(Math.max(...left.map(stability)) <= Math.min(...right.map(stability)), `${name}: every left disc is less overstable than every right disc`);
+  // Side columns: the first column of each side hugs the bag, the rest step outward; faster discs higher in each.
+  for (const side of ['left', 'right']) {
+    const cols = frame.columns.filter(c => c.side === side), sign = side === 'left' ? -1 : 1;
+    for (let i = 1; i < cols.length; i++) assert.ok(sign * (cols[i].x - cols[i - 1].x) > 0, `${name}: ${side} columns run from the bag outward`);
+    if (cols.length) {
+      const inner = cols[0], spot = frame.spots.get(inner.keys[0]), box = spotBox(spot, {width: label.width * frame.pull, height: label.height * frame.pull}, frame.labels);
+      const gapToBag = side === 'left' ? SIDE_BAG.xMin - box.xMax : box.xMin - SIDE_BAG.xMax;
+      assert.ok(gapToBag < STAGE.side.gap + 1e-6, `${name}: ${side} column hugs the bag (gap ${gapToBag.toFixed(3)})`);
+    }
+    for (const column of cols) for (let i = 1; i < column.keys.length; i++) {
+      const [a, b] = [column.keys[i - 1], column.keys[i]];
+      assert.ok(frame.spots.get(a).position[1] > frame.spots.get(b).position[1] && speed(a) >= speed(b), `${name}: faster discs higher (${a} over ${b})`);
+    }
+  }
+  // Nothing on the bag, a kept-clear box or another disc or name; everything inside the frame.
+  const boxes = [...frame.spots].map(([key, spot]) => [key, spotBox(spot, {width: label.width * frame.pull, height: label.height * frame.pull}, frame.labels)]);
+  for (const [key, box] of boxes) {
+    assert.ok(!boxesOverlap(box, SIDE_BAG), `${name}: ${key} and its name clear of the bag`);
+    for (const other of frame.avoid) assert.ok(!boxesOverlap(box, other), `${name}: ${key} clear of a kept-clear box`);
+    assert.ok(box.xMin >= frame.region.xMin - 1e-6 && box.xMax <= frame.region.xMax + 1e-6 && box.yMin >= frame.region.yMin - 1e-6 && box.yMax <= frame.region.yMax + 1e-6, `${name}: ${key} inside the frame`);
+  }
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${name}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
+};
+
+test('desktop: any count rests in side columns beside the full-size bag, every disc named', () => {
+  for (const count of [1, 2, 3, 5, 6, 8, 10, 12, 14, 18, 24]) for (const [mix, list] of Object.entries(mixes(count))) {
+    const discs = named(list, DESKTOP.width, DESKTOP.height), frame = sideFrame({...WIDE, reserve: RESERVE, clear: CLEAR, entries: discs}), name = `${count} ${mix}`;
+    sideChecks(frame, discs, DESKTOP, name);
     assert.equal(frame.pull, 1, `${name}: the bag keeps its full size`);
-    assert.equal(frame.spots.size, count);
-    const sides = assignSides(discs), {left, right} = flankOrder(discs);
-    for (const [key, spot] of frame.spots) {
-      assert.equal(spot.side, sides.get(key), `${name}: ${key} on its side`);
-      assert.ok(spot.side === 'left' ? spot.position[0] < RING_BAG.xMin : spot.position[0] > RING_BAG.xMax, `${name}: ${key} beside the bag, not over or under it`);
-    }
-    assert.ok(Math.max(...left.map(d => stability(d.key))) <= Math.min(...right.map(d => stability(d.key))), `${name}: every left disc is less overstable than every right disc`);
-    // Columns: outermost first on each side, each one's discs at least as extreme as the next one in; faster discs higher.
-    for (const side of ['left', 'right']) {
-      const columns = frame.columns.filter(c => c.side === side), sign = side === 'left' ? 1 : -1;
-      for (let i = 1; i < columns.length; i++) {
-        assert.ok(sign * (columns[i].x - columns[i - 1].x) > 0, `${name}: ${side} columns run outermost first`);
-        assert.ok(Math.max(...columns[i - 1].keys.map(stability)) * sign <= Math.min(...columns[i].keys.map(stability)) * sign || sign < 0 && Math.min(...columns[i - 1].keys.map(stability)) >= Math.max(...columns[i].keys.map(stability)), `${name}: ${side} outer column is the more extreme`);
-      }
-      for (const column of columns) for (let i = 1; i < column.keys.length; i++) {
-        const [a, b] = [frame.spots.get(column.keys[i - 1]), frame.spots.get(column.keys[i])];
-        assert.ok(a.position[1] > b.position[1] && speed(column.keys[i - 1]) >= speed(column.keys[i]), `${name}: faster discs higher`);
-      }
-    }
-    // Nothing on the bag or another disc or name; every disc and name inside the frame.
-    const boxes = [...frame.spots].map(([key, spot]) => [key, footBox(spot, DESKTOP, frame.pull)]);
-    for (const [key, box] of boxes) {
-      assert.ok(!boxesOverlap(box, RING_BAG), `${name}: ${key} and its name clear of the bag`);
-      assert.ok(box.xMin >= frame.region.xMin - DISC.radius * STAGE.map.scale - 1e-6 && box.xMax <= frame.region.xMax + DISC.radius * STAGE.map.scale + 1e-6, `${name}: ${key} inside the frame`);
-    }
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${name}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
-    assert.deepEqual([...flankFrame({...WIDE, entries: discs}).spots], [...frame.spots], `${name}: deterministic`);
+    assert.deepEqual([...sideFrame({...WIDE, reserve: RESERVE, clear: CLEAR, entries: discs}).spots], [...frame.spots], `${name}: deterministic`);
   }
 });
 
-test('the flanks use all the room: columns spread to the canvas edge, rows over its full height', () => {
-  const discs = named(mixes(18).mixed, DESKTOP.width, DESKTOP.height), frame = flankFrame({...WIDE, entries: discs});
-  const reach = Math.max(DISC.radius * STAGE.map.scale, DESKTOP.width / 2), xs = [...frame.spots.values()].map(s => s.position[0]), ys = [...frame.spots.values()].map(s => s.position[1]);
-  assert.ok(Math.abs(Math.min(...xs) - (frame.region.xMin + reach - DISC.radius * STAGE.map.scale)) < 1e-9 && Math.abs(Math.max(...xs) - (frame.region.xMax - reach + DISC.radius * STAGE.map.scale)) < 1e-9, 'Outermost columns reach the edges');
-  assert.ok(Math.abs(Math.max(...ys) - frame.region.yMax) < 1e-9 && Math.min(...ys) - DESKTOP.height <= frame.region.yMin + 1e-9, 'Rows run from the top of the frame to its bottom');
-  assert.ok(frame.columns.length >= 4, 'Eighteen discs take two columns a side: ' + frame.columns.length);
-  // A few discs take one column a side, midway between the bag and the edge.
-  const six = flankFrame({...WIDE, entries: named(mixes(6).mixed, DESKTOP.width, DESKTOP.height)});
-  assert.equal(six.columns.length, 2);
-  for (const column of six.columns) assert.ok(Math.abs(column.x) > RING_BAG.xMax + .1, 'One column a side sits out in the room, not hugging the bag');
+test('a column grows before it wraps: one column a side up to fourteen out, the largest discs while they fit', () => {
+  const frame = count => sideFrame({...WIDE, reserve: RESERVE, clear: CLEAR, entries: named(mixes(count).mixed, DESKTOP.width, DESKTOP.height)});
+  for (const count of [1, 2, 5, 6, 8]) {
+    const f = frame(count);
+    assert.deepEqual([f.scale, f.labels], [.58, 'below'], `${count}: full-size discs, names under them`);
+    assert.ok(f.columns.length <= 2, `${count}: one column a side`);
+  }
+  for (const count of [10, 12, 14]) {
+    const f = frame(count);
+    assert.equal(f.columns.length, 2, `${count}: still one column a side (${f.columns.map(c => c.keys.length)})`);
+  }
+  // Names move beside the discs before the discs shrink much: ten keep their full size.
+  assert.deepEqual([frame(10).scale, frame(10).labels], [.58, 'outer']);
+  // The rows close up as the column grows, and the column stays centered on the bag while it is short.
+  const pitch = f => { const ys = f.columns[0].keys.map(k => f.spots.get(k).position[1]); return ys.length > 1 ? ys[0] - ys[1] : 0; };
+  assert.ok(pitch(frame(4)) >= pitch(frame(8)) - 1e-9, 'Rows close up as the column grows');
+  const two = frame(2);
+  for (const spot of two.spots.values()) assert.ok(Math.abs(spot.position[1] - STAGE.side.y) < 1e-9, 'A lone disc a side rests level with the bag\'s middle');
+  // Past what one column holds, a side wraps into a second column beside the first, rows by speed.
+  const many = frame(24);
+  assert.equal(many.columns.length, 4, '24 out: two columns a side');
+  for (const side of ['left', 'right']) {
+    const [inner, outer] = many.columns.filter(c => c.side === side), speed = k => mixes(24).mixed.find(d => d.key === k).atlas.y;
+    const rowOf = k => many.spots.get(k).row;
+    for (const a of [...inner.keys, ...outer.keys]) for (const b of [...inner.keys, ...outer.keys]) if (rowOf(a) < rowOf(b)) assert.ok(speed(a) >= speed(b), `${side}: every row is faster than the rows under it`);
+  }
 });
 
-test('the flanks keep the panel strip, the zoom corner and the kept-clear boxes free, pulling back only as far as they need', () => {
-  const reserve = {width: .12, height: .08}, clear = [{left: 0, top: 0, right: .13, bottom: .08}, {left: 0, top: .96, right: .1, bottom: 1}, {left: .9, top: .96, right: 1, bottom: 1}];
-  for (const count of [6, 8, 12, 16]) {
-    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = flankFrame({...WIDE, reserve, clear, entries: discs});
-    const keep = frame.avoid.map(box => inflateBy(box, -DISC.radius * STAGE.map.scale));
-    for (const [key, spot] of frame.spots) for (const box of keep) assert.ok(!boxesOverlap(footBox(spot, DESKTOP, frame.pull), box), `${count}: ${key} clear of a kept-clear box`);
-    assert.equal(frame.pull, 1, `${count}: full-size bag with kept-clear boxes`);
-  }
+test('the side layout keeps the panel strip free, and on a phone pulls back only as far as it must, never dropping names', () => {
   // A full-height strip at one side (a details panel over the canvas) is left empty.
-  const panel = {left: .75, top: 0, right: 1, bottom: 1}, discs = named(mixes(8).mixed, DESKTOP.width, DESKTOP.height);
-  const beside = flankFrame({...WIDE, clear: [panel], entries: discs}), w = WIDE.halfHeight * beside.pull * WIDE.aspect, strip = -w + 2 * w * panel.left;
-  for (const [key, spot] of beside.spots) assert.ok(footBox(spot, DESKTOP, beside.pull).xMax <= strip + 1e-9, `${key} keeps out of the panel strip`);
-  // A phone's narrow canvas has no room beside a full-size bag: it pulls back, names kept, below the named limit.
-  const phone = flankFrame({...NARROW, entries: named(mixes(8).mixed, PHONE.width, PHONE.height)});
-  assert.ok(phone.fits && phone.pull > 1 && phone.pull < 2.6, 'Phone pull ' + phone.pull);
-  // A crowd whose names cannot fit says so (the viewer then shrinks the names or leaves them out),
-  // while the same discs without names fit.
-  const crowd = mixes(40).mixed;
-  assert.equal(flankFrame({...NARROW, entries: named(crowd, .3, .12)}).fits, false);
-  assert.equal(flankFrame({...WIDE, entries: crowd}).fits, true);
+  const panel = {left: .75, top: 0, right: 1, bottom: 1};
+  for (const count of [3, 8, 12]) {
+    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = sideFrame({...WIDE, reserve: RESERVE, clear: [...CLEAR, panel], entries: discs});
+    sideChecks(frame, discs, DESKTOP, `${count} beside the panel`);
+    const w = WIDE.halfHeight * frame.pull * WIDE.aspect, strip = -w + 2 * w * panel.left;
+    for (const [key, spot] of frame.spots) assert.ok(spotBox(spot, {width: DESKTOP.width * frame.pull, height: DESKTOP.height * frame.pull}, frame.labels).xMax <= strip + 1e-9, `${count}: ${key} keeps out of the panel strip`);
+  }
+  // A phone's narrow canvas has little room beside a full-size bag: it pulls back, names kept.
+  const pulls = {};
+  for (const count of [1, 3, 5, 6, 8, 10, 12, 18]) for (const [mix, list] of Object.entries(mixes(count))) {
+    const discs = named(list, PHONE.width, PHONE.height), frame = sideFrame({...NARROW, reserve: RESERVE, clear: CLEAR, entries: discs});
+    sideChecks(frame, discs, PHONE, `phone ${count} ${mix}`);
+    pulls[count] = Math.max(pulls[count] ?? 0, frame.pull);
+  }
+  assert.ok(pulls[1] > 1 && pulls[1] < 2, 'Phone, one disc: pull ' + pulls[1]);
+  assert.ok(pulls[8] < 2, 'Phone, eight discs: pull ' + pulls[8]);
+  assert.ok(pulls[18] < 2.6, 'Phone, eighteen discs: pull ' + pulls[18]);
+  for (let i = 1; i < Object.keys(pulls).length; i++) { const [a, b] = Object.keys(pulls).map(Number).slice(i - 1, i + 1); assert.ok(pulls[b] >= pulls[a] - 1e-9, `More discs never bring the camera in (${a}: ${pulls[a]}, ${b}: ${pulls[b]})`); }
+  // On a phone a few discs keep their names under them (flush with the disc's inner edge when
+  // centered names would not fit), and a flush name reaches only outward, away from the bag.
+  for (const count of [1, 3, 5]) assert.ok(['below', 'flush'].includes(sideFrame({...NARROW, reserve: RESERVE, clear: CLEAR, entries: named(mixes(count).mixed, PHONE.width, PHONE.height)}).labels), `Phone ${count}: names under the discs`);
+  for (const side of ['left', 'right']) {
+    const spot = {position: [side === 'left' ? -.4 : .4, 0, 0], scale: .5, side}, r = DISC.radius * .5, box = spotBox(spot, {width: .3, height: .05}, 'flush');
+    assert.ok(Math.abs(side === 'left' ? box.xMax - (-.4 + r) : box.xMin - (.4 - r)) < 1e-9, `${side}: a flush name's inner edge is the disc's`);
+    assert.ok(Math.abs(box.xMax - box.xMin - .3) < 1e-9, `${side}: it reaches only outward`);
+  }
+  // A crowd past every layout says so (the page still names every disc, placed as clear as it can).
+  assert.equal(sideFrame({...NARROW, entries: named(mixes(60).mixed, .3, .12)}).fits, false);
 });

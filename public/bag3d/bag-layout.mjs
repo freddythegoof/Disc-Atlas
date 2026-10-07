@@ -94,20 +94,25 @@ export function depthOrder(placements) {
 }
 
 // Staging: a clicked disc slides out of its pocket and stays out until it is clicked again.
-// One to five out discs rest beside the bag, understable left and overstable right; from the sixth, every out disc
-// takes its place on an even ring around the bag (map mode), in stability order along the arc. Positions are in the bag's frame with the
-// user's turn removed, so out discs hold still while the bag turns between them.
+// However many are out, they rest beside the bag in side columns: split relative to each other
+// (the less overstable half left, the more overstable half right), faster discs higher, every
+// disc named. Positions are in the bag's frame with the user's turn removed, so out discs hold
+// still while the bag turns between them.
 // The bag's silhouette (meshes measured from the GLB, putters standing): x ±.228, top .39 with
 // putters out. The open flap hangs forward to y −.47, so nothing rests below the bag.
 export const BAG_BOX = {xMin: -.235, xMax: .235, yMin: -.50, yMax: .40};
+// The bag as the page sees it in the out discs' plane (measured from the GLB at the page view:
+// x ±.23, bottom −.27, putters standing to .40). The columns keep clear of it.
+export const SIDE_BAG = {xMin: -.235, xMax: .235, yMin: -.28, yMax: .40};
 export const STAGE = {
-  sideMax: 5,
-  // Beside the bag: columns just clear of its sides, room for a name under each disc.
-  side: {scale: .58, gap: .02, row: .09, y: .03, z: .05},
-  // Around the bag: smaller discs on a ring; the camera pulls back as far as the ring needs, up to `maxPull`.
-  map: {scale: .40, gap: .014, z: .05, maxPull: 4, edge: .012},
+  // `scales` are the disc sizes a column may take, largest first: a column that grows past the
+  // canvas's height first closes up its rows, then takes the next size down, then wraps into a
+  // second column beside it (up to `maxColumns` a side), and only then does the camera pull back
+  // (up to `maxPull`). `row` is the room under a disc for its name when rows are not crowded;
+  // `edge` keeps discs and names inside the canvas (page-view meters).
+  side: {scales: [.58, .52, .46, .40], gap: .02, row: .09, y: .03, z: .05, maxColumns: 3, maxPull: 5, edge: .012},
 };
-export const stageMode = count => count < 1 ? null : count <= STAGE.sideMax ? 'side' : 'map';
+export const stageMode = count => count < 1 ? null : 'side';
 
 /**
  * Splits out discs between the bag's sides relative to each other, never by a fixed stability
@@ -130,171 +135,171 @@ export function assignSides(entries) {
   return sides;
 }
 
-// A name rests under its disc. Entries may carry `label: {width, height}`, the name's size in the
-// bag's meters at the page view (pull-back 1, including the gap above it); it grows with the
-// pull-back because names keep their pixel size while the scene shrinks.
-const labelAt = (entry, pull) => ({width: (entry.label?.width ?? 0) * pull, height: (entry.label?.height ?? 0) * pull});
-
-// Beside the bag: each side is one column centered on the bag, faster discs higher (the Atlas's
-// speed axis). `row` is the room between discs for a name (at least STAGE.side.row, and at least
-// the tallest name at `pull`); a column whose names are wider than its discs steps out from the
-// bag so no name reaches it.
-export function sideSpots(entries, sides = assignSides(entries), {row = STAGE.side.row, pull = 1} = {}) {
-  const {scale, gap, y, z} = STAGE.side, radius = DISC.radius * scale, spots = new Map();
-  const tallest = Math.max(0, ...entries.map(entry => labelAt(entry, pull).height));
-  const step = 2 * radius + Math.max(row, STAGE.side.row, tallest + gap);
-  const speed = entry => entry.atlas?.y ?? .5;
-  for (const [side, sign] of [['left', -1], ['right', 1]]) {
-    const column = entries.map((entry, index) => ({entry, index})).filter(({entry}) => sides.get(entry.key) === side)
-      .sort((a, b) => speed(b.entry) - speed(a.entry) || a.index - b.index).map(({entry}) => entry);
-    const reach = Math.max(radius, ...column.map(entry => labelAt(entry, pull).width / 2));
-    const x = sign * (Math.max(-BAG_BOX.xMin, BAG_BOX.xMax) + gap + reach);
-    column.forEach((entry, index) => spots.set(entry.key, {position: [x, y + ((column.length - 1) / 2 - index) * step, z], scale, side}));
-  }
-  return spots;
-}
-
-// Around the bag (map mode) the out discs flank it: the bag keeps its full size at the page view,
-// and at that size it fills nearly the canvas's height, so the room is beside it, not above or
-// below. The discs split relative to each other as beside the bag (assignSides: the less overstable
-// half left, the more overstable half right) and fill the free canvas on each side in columns: the
-// most extreme discs in the outermost column (more turn far left, more fade far right, as on the
-// Atlas), faster discs higher in each column, rows spread over the full height and columns over the
-// side's full width. The columns clear the bag's silhouette as the page sees it in the discs' plane
-// (measured from the GLB at the page view: x ±.23, bottom −.27, putters standing to .40).
-export const RING_BAG = {xMin: -.235, xMax: .235, yMin: -.28, yMax: .40};
-
 /**
- * Splits `entries` for the flanks: {left, right}, each outermost first (left: least overstable first;
- * right: most overstable first; unrated discs count as neutral; equal stability keeps the out order).
+ * Splits `entries` for the sides: {left, right}, each most extreme first (left: least overstable
+ * first; right: most overstable first; unrated discs count as neutral; equal stability keeps the out order).
  */
-export function flankOrder(entries) {
+export function sideOrder(entries) {
   const stability = entry => entry.atlas?.x ?? .5, sides = assignSides(entries);
   const ranked = entries.map((entry, index) => ({entry, index})).sort((a, b) => stability(a.entry) - stability(b.entry) || a.index - b.index).map(({entry}) => entry);
   return {left: ranked.filter(entry => sides.get(entry.key) === 'left'), right: ranked.filter(entry => sides.get(entry.key) === 'right').reverse()};
 }
 
+// A name rests centered under its disc ('below'); where the sides are narrow, under it with its
+// inner edge flush with the disc's (the side toward the bag, 'flush'), so it reaches only outward;
+// or, when the columns are tall, beside the disc on the side away from the bag ('outer'), so a
+// column reads like a legend. One layout uses one of the three for every name. Entries may carry `label: {width,
+// height}`, the name's size in the bag's meters at the page view (pull-back 1, the room around it
+// included); it grows with the pull-back because names keep their pixel size while the scene shrinks.
+const labelAt = (entry, pull) => ({width: (entry.label?.width ?? 0) * pull, height: (entry.label?.height ?? 0) * pull});
+// A disc and its name as one box around the disc's center: how far it reaches toward the bag
+// (`inner`) and away from it (`outer`), above (`up`) and below (`down`).
+const footprint = (radius, label, labels) => labels === 'outer'
+  ? {inner: radius, outer: radius + label.width, up: Math.max(radius, label.height / 2), down: Math.max(radius, label.height / 2)}
+  : labels === 'flush' ? {inner: radius, outer: Math.max(radius, label.width - radius), up: radius, down: radius + label.height}
+  : {inner: Math.max(radius, label.width / 2), outer: Math.max(radius, label.width / 2), up: radius, down: radius + label.height};
+// The disc-and-name box of a spot, in the bag's meters, for a name of `label` (already at the pull).
+export function spotBox(spot, label, labels) {
+  const f = footprint(DISC.radius * spot.scale, label, labels), [x, y] = spot.position, left = spot.side === 'left';
+  return {xMin: x - (left ? f.outer : f.inner), xMax: x + (left ? f.inner : f.outer), yMin: y - f.down, yMax: y + f.up};
+}
+const overlaps = (a, b) => a.xMin < b.xMax - 1e-9 && b.xMin < a.xMax - 1e-9 && a.yMin < b.yMax - 1e-9 && b.yMin < a.yMax - 1e-9;
+
 /**
- * The flanks' frame. The view's half height at the page distance is `halfHeight` around `centerY`;
- * `aspect` is width / height. Every disc and name stays at least `edge` (page-view meters, at least
- * STAGE.map.edge) inside the canvas and clear of the kept-clear boxes: `reserve` keeps a top-right
- * corner clear (fractions of the canvas), e.g. for the zoom buttons; `clear` lists more boxes
- * ({left, top, right, bottom}, fractions of the canvas), e.g. the captions and the return button.
- * A clear box that spans the canvas's full height at one side (a details panel over it) takes that
- * strip out of the free canvas.
- * Each side uses the fewest columns that hold its discs, spread over `fill` of the side's free width
- * and height. The camera stays at the page view (pull 1) unless the columns cannot fit there; then
- * it pulls back as little as it can, up to `maxPull` (names keep their pixel size while the scene
- * shrinks, so they grow in meters).
- * Returns {pull, region, avoid, spots: Map key → {position, scale, side, column, row}, columns:
- * [{side, x, keys}], fill, fits}, where `fits` is false when nothing fits even at `maxPull` (the
- * caller may then make the names smaller or leave them out).
+ * The side columns' frame. The view's half height at the page distance (in the discs' plane) is
+ * `halfHeight` around `centerY`; `aspect` is width / height. Every disc and name stays at least
+ * `edge` (page-view meters, at least STAGE.side.edge) inside the canvas and clear of the bag and
+ * the kept-clear boxes: `reserve` keeps a top-right corner clear (fractions of the canvas), e.g.
+ * for the zoom buttons; `clear` lists more boxes ({left, top, right, bottom}, fractions of the
+ * canvas), e.g. the putter-pocket button. A clear box that spans the canvas's full height at one
+ * side (a details panel over it) takes that strip out of the free canvas.
+ * Each side is one column hugging the bag, faster discs higher, rows centered on the bag. A column
+ * too tall for the canvas closes up its rows, then takes smaller discs, then names its discs beside
+ * them instead of under them, then wraps into more columns (the more extreme discs of a row
+ * further out); the camera pulls back only when none of that fits, as little as it can.
+ * `verify` (optional) gets each layout that fits as planned, at its pull-back, and may turn it down
+ * (the viewer projects it for real); the next preference, or the next pull-back, is tried instead.
+ * A caller that knows the view exactly (the camera looks on at an angle, so the canvas covers a
+ * skewed patch of the discs' plane) passes `view`, the page view's rectangle in the discs' plane
+ * ({xMin, xMax, yMin, yMax}, meters), `center`, where the camera aims in it ({x, y}), and `keep`,
+ * more kept-clear boxes in those meters; then `aspect` and `halfHeight` are not needed.
+ * Returns {pull, region, spots: Map key → {position, scale, side, column, row}, columns: [{side,
+ * x, keys}], scale, labels: 'below' | 'flush' | 'outer', fits} (`fits` false: nothing fit even at `maxPull`).
  */
-export function flankFrame({aspect, halfHeight, centerY, reserve = {width: 0, height: 0}, clear = [], edge = 0, entries, fill = 1, maxPull = STAGE.map.maxPull}) {
-  const {scale, gap, z} = STAGE.map, radius = DISC.radius * scale, {left, right} = flankOrder(entries);
-  const speed = entry => entry.atlas?.y ?? .5;
-  const frameAt = pull => {
-    const h = halfHeight * pull, w = h * aspect, margin = radius + Math.max(STAGE.map.edge, edge) * pull;
-    const region = {xMin: -w + margin, xMax: w - margin, yMin: centerY - h + margin, yMax: centerY + h - margin};
+export function sideFrame({aspect, halfHeight, centerY, view = null, center = null, keep = [], reserve = {width: 0, height: 0}, clear = [], edge = 0, entries, maxPull = STAGE.side.maxPull, verify = null}) {
+  const {gap, row: roomy, y: middle, z, scales, maxColumns} = STAGE.side, order = sideOrder(entries);
+  const speed = entry => entry.atlas?.y ?? .5, index = new Map(entries.map((entry, i) => [entry.key, i]));
+  // The view at a pull-back: the page view's rectangle (and the kept-clear boxes) grown about the
+  // view's center, as the camera pulls straight back.
+  const page = view ?? {xMin: -halfHeight * aspect, xMax: halfHeight * aspect, yMin: centerY - halfHeight, yMax: centerY + halfHeight};
+  const origin = center ?? {x: (page.xMin + page.xMax) / 2, y: (page.yMin + page.yMax) / 2};
+  const grow = (box, pull) => ({xMin: origin.x + (box.xMin - origin.x) * pull, xMax: origin.x + (box.xMax - origin.x) * pull, yMin: origin.y + (box.yMin - origin.y) * pull, yMax: origin.y + (box.yMax - origin.y) * pull});
+  // `inset` draws the free region in about the view's center (1: none), for a layout the caller turned down.
+  const frameAt = (pull, inset = 1) => {
+    const v = grow(page, pull), w = v.xMax - v.xMin, h = v.yMax - v.yMin, margin = Math.max(STAGE.side.edge, edge) * pull;
+    const drawn = grow(v, inset);
+    const region = {xMin: drawn.xMin + margin, xMax: drawn.xMax - margin, yMin: drawn.yMin + margin, yMax: drawn.yMax - margin};
     for (const box of clear) if (box.top <= .02 && box.bottom >= .98) {
-      if (box.right >= .98) region.xMax = Math.min(region.xMax, -w + 2 * w * box.left - margin);
-      if (box.left <= .02) region.xMin = Math.max(region.xMin, -w + 2 * w * box.right + margin);
+      if (box.right >= .98) region.xMax = Math.min(region.xMax, v.xMin + w * box.left - margin);
+      if (box.left <= .02) region.xMin = Math.max(region.xMin, v.xMin + w * box.right + margin);
     }
-    const corner = {xMin: w - 2 * w * reserve.width - radius, xMax: Infinity, yMin: centerY + h - 2 * h * reserve.height - radius, yMax: Infinity};
-    const boxes = clear.map(box => inflate({xMin: -w + 2 * w * box.left, xMax: -w + 2 * w * box.right, yMin: centerY + h - 2 * h * box.bottom, yMax: centerY + h - 2 * h * box.top}, radius));
-    return {pull, region, avoid: [corner, ...boxes]};
+    const toBox = box => ({xMin: v.xMin + w * box.left, xMax: v.xMin + w * box.right, yMin: v.yMax - h * box.bottom, yMax: v.yMax - h * box.top});
+    const avoid = [...(reserve.width && reserve.height ? [toBox({left: 1 - reserve.width, top: 0, right: 1, bottom: reserve.height})] : []),
+      ...clear.filter(box => !(box.top <= .02 && box.bottom >= .98)).map(toBox), ...keep.map(box => grow(box, pull))];
+    return {pull, region, avoid};
   };
-  const attempt = pull => {
-    const frame = frameAt(pull), {region, avoid} = frame, spots = new Map(), columns = [];
-    const feet = entries.map(entry => footprint(radius, labelAt(entry, pull)));
-    const reach = Math.max(radius, ...feet.map(f => f.reach)), below = Math.max(0, ...feet.map(f => f.below));
-    const rowPitch = 2 * radius + below + gap, columnPitch = 2 * reach + gap;
-    // Disc centers' vertical room: names hang under their discs; `fill` shrinks it about its middle.
-    const top0 = region.yMax, bottom0 = region.yMin + below, middle = (top0 + bottom0) / 2;
-    const top = middle + (top0 - middle) * fill, bottom = middle - (middle - bottom0) * fill;
-    for (const [side, list, sign] of [['left', left, -1], ['right', right, 1]]) {
+  const attempt = (pull, count, scale, labels, inset = 1) => {
+    const frame = frameAt(pull, inset), {region, avoid} = frame, radius = DISC.radius * scale;
+    const feet = new Map(entries.map(entry => [entry.key, footprint(radius, labelAt(entry, pull), labels)]));
+    const widest = list => list.reduce((most, entry) => {
+      const f = feet.get(entry.key);
+      return {inner: Math.max(most.inner, f.inner), outer: Math.max(most.outer, f.outer), up: Math.max(most.up, f.up), down: Math.max(most.down, f.down)};
+    }, {inner: radius, outer: radius, up: radius, down: radius});
+    // Rows run by speed, fastest first, `count` discs to a row; within a row the more extreme discs
+    // sit further out. A short last row keeps to the columns nearest the bag.
+    const sides = [];
+    for (const [side, list, sign] of [['left', order.left, -1], ['right', order.right, 1]]) {
       if (!list.length) continue;
-      // From just clear of the bag out to the region's edge (outermost first); `fill` draws the outer edge in.
-      const inner = sign < 0 ? RING_BAG.xMin - gap - reach : RING_BAG.xMax + gap + reach;
-      const edgeX = sign < 0 ? region.xMin + reach - radius : region.xMax - (reach - radius);
-      const outer = inner + (edgeX - inner) * fill, span = (outer - inner) * sign;
-      if (span < -1e-9) return null;
-      let placed = null;
-      for (let count = 1; count <= list.length && !placed; count++) {
-        if (count > 1 && span / (count - 1) < columnPitch - 1e-9) break;
-        // Column centers, outermost first, spread over the side's width (one column sits mid-side).
-        const xs = Array.from({length: count}, (_, i) => count === 1 ? (inner + outer) / 2 : outer - sign * i * span / (count - 1));
-        // Each column's own vertical room: kept-clear boxes over it trim its top or bottom.
-        const rooms = xs.map(x => {
-          let high = top, low = bottom;
-          for (const box of avoid) if (x + (reach - radius) > box.xMin && x - (reach - radius) < box.xMax) {
-            if (box.yMin > middle) high = Math.min(high, box.yMin);
-            else low = Math.max(low, box.yMax + below);
-          }
-          return {high, low, capacity: high < low ? 0 : Math.floor((high - low) / rowPitch + 1e-9) + 1};
-        });
-        // The discs, outermost first, shared out as evenly as the columns hold them.
-        const sizes = rooms.map(() => 0);
-        for (let n = 0; n < list.length; n++) {
-          let best = -1;
-          for (let i = 0; i < count; i++) if (sizes[i] < rooms[i].capacity && (best < 0 || sizes[i] < sizes[best])) best = i;
-          if (best < 0) break;
-          sizes[best]++;
-        }
-        if (sizes.reduce((sum, size) => sum + size, 0) < list.length) continue;
-        let next = 0;
-        placed = xs.map((x, i) => {
-          const keys = list.slice(next, next += sizes[i]), room = rooms[i];
-          const rows = keys.map((entry, index) => ({entry, index})).sort((a, b) => speed(b.entry) - speed(a.entry) || a.index - b.index).map(({entry}) => entry);
-          // Rows spread over the column's full height, faster discs higher.
-          const step = rows.length > 1 ? Math.min((room.high - room.low) / (rows.length - 1), Infinity) : 0;
-          rows.forEach((entry, row) => spots.set(entry.key, {position: [x, rows.length > 1 ? room.high - row * step : (room.high + room.low) / 2, z], scale, side, column: columns.length + i, row}));
-          return {side, x, keys: rows.map(entry => entry.key)};
-        });
+      const columns = Math.min(count, list.length), byRow = [...list].sort((a, b) => speed(b) - speed(a) || index.get(a.key) - index.get(b.key));
+      const rows = [];
+      for (let i = 0; i < byRow.length; i += columns) rows.push(byRow.slice(i, i + columns));
+      const cells = rows.map(row => {
+        const extreme = [...row].sort((a, b) => list.indexOf(a) - list.indexOf(b));
+        // Most extreme outermost: column (row.length − 1) … 0 counted from the bag.
+        return extreme.map((entry, i) => ({entry, column: row.length - 1 - i}));
+      });
+      // Column centers, from the bag outward: each clears the one inside it, names included.
+      const reach = Array.from({length: columns}, (_, c) => widest(cells.flatMap(row => row.filter(cell => cell.column === c).map(cell => cell.entry))));
+      const xs = [];
+      for (let c = 0; c < columns; c++) {
+        const from = c === 0 ? (sign < 0 ? -SIDE_BAG.xMin : SIDE_BAG.xMax) : Math.abs(xs[c - 1]) + reach[c - 1].outer;
+        xs.push(sign * (from + gap + reach[c].inner));
       }
-      if (!placed) return null;
-      columns.push(...placed);
+      sides.push({side, sign, columns, rows: cells, xs, reach});
     }
-    if (!fitsFrame(entries, frame, spots)) return null;
-    return {...frame, spots, columns, fill, fits: true};
+    // One row pitch for both sides, so the rows line up across the bag: roomy when the column is
+    // short, closing up to just clear of the names when it is tall.
+    const all = widest(entries), tight = all.up + all.down + gap, ideal = Math.max(tight, labels === 'outer' ? tight + gap : 2 * radius + Math.max(roomy, all.down - radius + gap));
+    let pitch = ideal;
+    for (const s of sides) {
+      // Each side's vertical room: its columns' spans, trimmed by kept-clear boxes over them.
+      let high = region.yMax - all.up, low = region.yMin + all.down;
+      for (let c = 0; c < s.columns; c++) {
+        const x = s.xs[c], span = {xMin: x - (s.sign < 0 ? s.reach[c].outer : s.reach[c].inner), xMax: x + (s.sign < 0 ? s.reach[c].inner : s.reach[c].outer)};
+        for (const box of avoid) if (span.xMin < box.xMax && box.xMin < span.xMax) {
+          if ((box.yMin + box.yMax) / 2 > middle) high = Math.min(high, box.yMin - all.up);
+          else low = Math.max(low, box.yMax + all.down);
+        }
+      }
+      s.high = high; s.low = low;
+      if (s.rows.length > 1) pitch = Math.min(pitch, (high - low) / (s.rows.length - 1));
+      else if (high < low - 1e-9) return null;
+    }
+    if (pitch < tight - 1e-9) return null;
+    const spots = new Map(), columns = [];
+    for (const s of sides) {
+      const block = (s.rows.length - 1) * pitch, top = Math.min(s.high, Math.max(s.low + block, middle + block / 2));
+      s.rows.forEach((row, r) => row.forEach(({entry, column}) => spots.set(entry.key, {position: [s.xs[column], top - r * pitch, z], scale, side: s.side, column, row: r})));
+      for (let c = 0; c < s.columns; c++) columns.push({side: s.side, x: s.xs[c], keys: s.rows.flatMap(row => row.filter(cell => cell.column === c).map(cell => cell.entry.key))});
+    }
+    // Everything inside the region, clear of the bag and the kept-clear boxes.
+    for (const entry of entries) {
+      const box = spotBox(spots.get(entry.key), labelAt(entry, pull), labels);
+      if (box.xMin < region.xMin - 1e-9 || box.xMax > region.xMax + 1e-9 || box.yMin < region.yMin - 1e-9 || box.yMax > region.yMax + 1e-9) return null;
+      if (overlaps(box, SIDE_BAG) || avoid.some(other => overlaps(box, other))) return null;
+    }
+    return {...frame, spots, columns, scale, labels, fits: true};
   };
-  let pull = 1, fit = attempt(pull);
-  while (!fit && pull < maxPull - 1e-9) { pull = Math.min(maxPull, pull + .2); fit = attempt(pull); }
-  if (!fit) {
-    // Nothing fits: one column a side at the furthest pull-back, flagged.
-    const frame = frameAt(maxPull), spots = new Map(), columns = [];
-    for (const [side, list, sign] of [['left', left, -1], ['right', right, 1]]) {
-      const x = sign * (Math.max(-RING_BAG.xMin, RING_BAG.xMax) + gap + radius), step = 2 * radius + gap;
-      list.forEach((entry, row) => spots.set(entry.key, {position: [x, centerY + ((list.length - 1) / 2 - row) * step, z], scale, side, column: columns.length, row}));
-      if (list.length) columns.push({side, x, keys: list.map(entry => entry.key)});
+  // Preference: one column a side, the largest discs, names centered under them; then flush under
+  // them; then beside them; then smaller discs; then more columns.
+  const candidates = [];
+  for (let count = 1; count <= maxColumns; count++) for (const scale of scales) for (const labels of ['below', 'flush', 'outer']) candidates.push([count, scale, labels]);
+  const first = pull => {
+    for (const [count, scale, labels] of candidates) {
+      // A layout the caller turns down first draws in a little (rows closing up) before the next preference.
+      for (const inset of verify ? [1, .97, .94, .91, .88] : [1]) {
+        const fit = attempt(pull, count, scale, labels, inset);
+        if (!fit) break;
+        if (!verify || verify(fit)) return {fit, choice: [count, scale, labels, inset]};
+      }
     }
-    return {...frame, spots, columns, fill, fits: false};
+    return null;
+  };
+  let pull = 1, found = first(pull);
+  while (!found && pull < maxPull - 1e-9) { pull = Math.min(maxPull, pull + .1); found = first(pull); }
+  if (!found) {
+    // Nothing fits: the most compact layout at the furthest pull-back, flagged.
+    const [count, scale, labels] = candidates.at(-1), frame = frameAt(maxPull), radius = DISC.radius * scale, spots = new Map(), columns = [];
+    for (const [side, list, sign] of [['left', order.left, -1], ['right', order.right, 1]]) {
+      const x = sign * (Math.max(-SIDE_BAG.xMin, SIDE_BAG.xMax) + gap + radius), step = 2 * radius + gap;
+      const rows = [...list].sort((a, b) => speed(b) - speed(a) || index.get(a.key) - index.get(b.key));
+      rows.forEach((entry, row) => spots.set(entry.key, {position: [x, middle + ((rows.length - 1) / 2 - row) * step, z], scale, side, column: 0, row}));
+      if (rows.length) columns.push({side, x, keys: rows.map(entry => entry.key)});
+    }
+    return {...frame, spots, columns, scale, labels, fits: false, count};
   }
-  // Back in finer steps from the first pull-back that fits.
-  for (let finer = pull - .02; pull > 1 && finer > Math.max(1, pull - .2) - 1e-9; finer -= .02) { const next = attempt(finer); if (!next) break; fit = next; }
+  // Back in finer steps from the first pull-back that fits, keeping the layout that fit.
+  let {fit} = found;
+  for (let finer = pull - .02; pull > 1 && finer > Math.max(1, pull - .1) - 1e-9; finer -= .02) { const next = attempt(finer, ...found.choice); if (!next || (verify && !verify(next))) break; fit = next; }
   return fit;
-}
-// Whether every disc and its name lie inside the frame's region, clear of its kept-clear boxes.
-function fitsFrame(entries, {pull, region, avoid}, spots) {
-  const radius = DISC.radius * STAGE.map.scale;
-  return entries.every(entry => {
-    const [x, y] = spots.get(entry.key).position, point = {x, y, ...footprint(radius, labelAt(entry, pull))}, extra = point.reach - radius;
-    return point.x - extra >= region.xMin - 1e-6 && point.x + extra <= region.xMax + 1e-6 && point.y - point.below >= region.yMin - 1e-6 && point.y <= region.yMax + 1e-6
-      && !avoid.some(box => blocks(point, box, radius));
-  });
-}
-// A disc with its name under it: `reach` is how far it spans either side of the disc's center
-// (the disc or its name, whichever is wider), `below` how far the name hangs under the disc.
-const footprint = (radius, label) => ({reach: Math.max(radius, label.width / 2), below: label.height});
-// Whether a disc at `point` (with its footprint) would reach into `box`, a box disc centers keep
-// out of: its name widens the box by its extra reach and raises the box's top by the name's height.
-const blocks = (point, box, radius) => point.x > box.xMin - (point.reach - radius) && point.x < box.xMax + (point.reach - radius) && point.y > box.yMin && point.y < box.yMax + point.below;
-const inflate = (box, by) => ({xMin: box.xMin - by, xMax: box.xMax + by, yMin: box.yMin - by, yMax: box.yMax + by});
-// How far two discs' footprints (disc and name) overlap, `gap` apart counted: the shorter way out
-// ('x' or 'y'), by how much, and which way b lies from a (0 when they coincide). Null when clear.
-function overlapOf(a, b, radius, gap) {
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const x = a.reach + b.reach + gap - Math.abs(dx), y = radius + (dy >= 0 ? b.below : a.below) + radius + gap - Math.abs(dy);
-  if (x <= 1e-6 || y <= 1e-6) return null;
-  return x <= y ? {axis: 'x', by: x, sign: Math.sign(dx)} : {axis: 'y', by: y, sign: Math.sign(dy) || 1};
 }

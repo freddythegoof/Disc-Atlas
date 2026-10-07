@@ -177,28 +177,21 @@ body[data-view="bag"] main {display:none!important}
 .bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both}
 .bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
 @keyframes bag-pill-in {from {opacity:0}}
-/* Out discs: a click slides a disc out and it stays out until clicked again. Every out disc
-   carries its name under it, beside the bag and on the map (more compact there); the layout keeps
-   room for each, clear of the bag, the discs and each other. Names fade while discs move. */
+/* Out discs: a click slides a disc out and it stays out until clicked again. However many are
+   out, they rest in side columns beside the bag, and every one carries its name: under it
+   (centered, or flush with its inner edge where the sides are narrow), or beside it on the side
+   away from the bag when the columns run tall (data-names="outer"), so a column reads like a legend. The layout keeps room for each, clear of the bag, the discs and each
+   other. Names fade while discs move. */
 .bag-out-names {position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;transition:opacity 200ms ease}
 .bag-scene[data-staging="moving"] .bag-out-names {opacity:0;transition-duration:90ms}
 .bag-out-name {transform:translateX(-50%);max-width:min(180px,calc(100% - 12px));padding:calc(4px * var(--bag-type)) calc(11px * var(--bag-type));font-size:calc(12px * var(--bag-type));letter-spacing:.15px;box-shadow:0 4px 14px #00000038;pointer-events:auto;cursor:pointer;transition:border-color 120ms,background-color 120ms}
 .bag-out-name:hover {border-color:#ffffff66;background:#1d242ef5}
 .bag-scene[data-staging="moving"] .bag-out-name {pointer-events:none}
-.bag-scene[data-stage="map"] .bag-out-name {max-width:132px;padding:3px 9px;font-size:calc(11px * var(--bag-type))}
-/* A crowd on the ring (mostly on phones) takes compact names when they let the bag show larger. */
-.bag-scene[data-stage="map"][data-names="compact"] .bag-out-name {max-width:88px;padding:2px 7px;font-size:10.5px;letter-spacing:0}
 .bag-hit-slot[data-out] .bag-physical-disc {border-radius:50%}
-/* Map mode: the Stitch grid, lined up with the page's, under a flight map around the bag. */
-.bag-map-grid {position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 420ms ease}
-.bag-map-grid::before {content:'';position:absolute;inset:0;
- background:linear-gradient(to right,var(--stitch-grid) 1px,transparent 1px) var(--grid-x,0) var(--grid-y,0)/48px 48px,linear-gradient(to bottom,var(--stitch-grid) 1px,transparent 1px) var(--grid-x,0) var(--grid-y,0)/48px 48px;
- -webkit-mask-image:radial-gradient(ellipse 75% 72% at 50% 50%,#000 62%,transparent);mask-image:radial-gradient(ellipse 75% 72% at 50% 50%,#000 62%,transparent)}
-.bag-scene[data-stage="map"] .bag-map-grid {opacity:1}
-.bag-map-caption {position:absolute;bottom:10px;font:500 10px/1.2 var(--mono,'Space Grotesk',sans-serif);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.bag-map-caption[data-side="left"] {left:12px}
-.bag-map-caption[data-side="right"] {right:12px}
-@media(prefers-reduced-motion:reduce){.bag-out-names,.bag-map-grid {transition:none}}
+/* On a phone the bag's sides are narrow and the zoom and pocket buttons take the canvas's top, so
+   every out-disc name is a size smaller there: still read at a glance, and the bag stays larger. */
+@media(max-width:700px){.bag-out-name {max-width:112px;padding:3px 8px;font-size:11px;letter-spacing:.1px}}
+@media(prefers-reduced-motion:reduce){.bag-out-names {transition:none}}
 /* The details card stays as the screen-reader description of the hovered or focused disc. */
 .bag-lift-info {clip-path:inset(50%);opacity:0}
 /* While the bag turns under a drag, targets and labels wait for it to settle. */

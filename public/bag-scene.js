@@ -9,8 +9,6 @@ const DEFAULT_BAG='#343c49';
 // Each zoom button step (the viewer allows 1× to its maxZoom).
 const ZOOM_STEP=1.4;
 const POCKET={main:'main',putter:'putter',goTo:'goto'};
-// The Stitch grid's pitch (stitch.css): the bag's map grid lines up with the page's.
-const GRID=48;
 // An out disc's name: px between it and its disc, and the room kept around it (so names never touch).
 const NAME_GAP=6,NAME_SPACE=4;
 const div=(className,attributes={})=>{const node=document.createElement('div');node.className=className;for(const [key,value]of Object.entries(attributes))node.setAttribute(key,value);return node;};
@@ -33,10 +31,6 @@ export class BagScene {
   this.tag=div('bag-name-pill bag-hover-name',{'aria-hidden':'true'});this.tag.hidden=true;
   // Each out disc carries its name under it.
   this.names=div('bag-out-names',{'aria-hidden':'true'});this.nameById=new Map();
-  // Six or more out discs spread evenly on a ring around the bag, drawn on the Stitch grid. The
-  // ring runs clockwise from the most understable (lower left) to the most overstable (lower right).
-  this.mapGrid=div('bag-map-grid',{'aria-hidden':'true'});
-  for(const [side,text] of [['left','← More turn'],['right','Stronger fade →']]){const caption=document.createElement('span');caption.className='bag-map-caption';caption.dataset.side=side;caption.textContent=text;this.mapGrid.append(caption);}
   this.pockets=div('bag-pocket-labels',{'aria-hidden':'true'});
   // Zoom: these buttons, a pinch, or Ctrl/⌘ + scroll (a plain scroll keeps scrolling the page).
   this.zoomControls=div('bag-zoom',{role:'group','aria-label':'Zoom the bag'});
@@ -50,7 +44,7 @@ export class BagScene {
   // The type buttons beside the sort pull out every disc of one type, or put them all back.
   this.typeButtons=[...document.querySelectorAll('[data-type-out]')];
   for(const button of this.typeButtons)button.addEventListener('click',()=>void this.toggleType(button.dataset.typeOut));
-  this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.pocketToggle,this.zoomControls,this.status);
+  this.canvas.replaceChildren(this.stage,this.pockets,this.names,this.layer,this.tag,this.pocketToggle,this.zoomControls,this.status);
   this.actions=div('bag-scene-actions');this.actions.append(this.returnAll);this.canvas.after(this.actions);
   this.canvas.addEventListener('wheel',event=>{
    if(!this.ready || !(event.ctrlKey || event.metaKey))return;event.preventDefault();
@@ -252,11 +246,11 @@ export class BagScene {
    Object.assign(slot.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
    slot.dataset.shape=rect.shape;if(rect.out)slot.dataset.out='';else delete slot.dataset.out;
   }
-  this.placeNames();this.placePockets();this.placeGrid();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
+  this.placeNames();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
  }
  // A click toggles one disc: in its pocket, it slides out and its details open; out, it goes
  // back (closing its details if they show). Every disc is independent and stays out until
- // clicked again. Up to five rest beside the bag; six or more lay out on a map around it.
+ // clicked again. However many are out, they rest in side columns beside the bag.
  async toggleOut(disc){
   if(!this.reachable(disc) || this.viewer.cameraMoving)return;
   const item=disc.bagItem,id=item.id,index=this.out.indexOf(id);this.clearLift();
@@ -278,9 +272,9 @@ export class BagScene {
   if(focused)this.toggle.focus({preventScroll:true});
   await settled;
  }
- // Stages every out disc in the viewer: their Atlas positions order them (stability, and speed
- // beside the bag), each with room for its name; the zoom buttons, the return button and the
- // map's captions stay clear. Resolves true once this staging settles.
+ // Stages every out disc in the viewer, in side columns beside the bag: their Atlas positions
+ // order them (stability picks the side, speed the height), each with room for its name; the zoom
+ // buttons and the pocket button stay clear. Resolves true once this staging settles.
  stageOut({instant=reduced()}={}){
   if(!this.ready || !this.items)return Promise.resolve(false);
   this.showReturnAll();
@@ -289,20 +283,17 @@ export class BagScene {
    const item=this.items.find(i=>i.id===id),mold=item && this.lookup(item.mold_id);
    atlas.set(id,mold && window.AtlasLayout?.positions([mold]).get(mold.id) || null);
   }
-  // Names take the coming mode's style before they are measured; a ring gets its wide canvas first.
+  // Any out disc gets the wide canvas first, so the columns are laid out for the room they get.
   const coming=this.viewer.stageMode(this.out.length);
   this.wideCanvas(!!coming);
-  if(coming){this.root.dataset.stage=coming;this.root.dataset.out=String(this.out.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}
-  // Each name's room, in the coming mode's style and (for a crowd on the ring) the compact one.
-  const measure=()=>new Map(this.out.map(id=>{const node=this.nameNode(id);node.hidden=false;return [id,{width:node.offsetWidth+2*NAME_SPACE,height:node.offsetHeight+NAME_GAP+NAME_SPACE}];}));
-  delete this.root.dataset.names;const labels=measure();let compact=null;
-  if(coming==='map'){this.root.dataset.names='compact';compact=measure();delete this.root.dataset.names;}
+  // Each name's room: the name with NAME_SPACE around it, and NAME_GAP from its disc.
+  const labels=new Map(this.out.map(id=>{const node=this.nameNode(id);node.hidden=false;return [id,{width:node.offsetWidth+2*NAME_SPACE+NAME_GAP,height:node.offsetHeight+NAME_GAP+NAME_SPACE}];}));
   const box=this.canvas.getBoundingClientRect(),zoom=this.zoomControls.getBoundingClientRect();
   const reserve=zoom.width && box.width?{width:(box.right-zoom.left+6)/box.width,height:(zoom.bottom-box.top+6)/box.height}:{width:0,height:0};
-  const clear=box.width?[...this.captionBoxes(),...this.controlBoxes()].map(c=>({left:c.left/box.width,top:c.top/box.height,right:c.right/box.width,bottom:c.bottom/box.height})):[];
-  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,compact,reserve,clear,instant}),mode=this.viewer.stage.mode,names=this.viewer.stage.names;
-  if(names==='full')delete this.root.dataset.names;else this.root.dataset.names=names;
-  if(mode!==coming){if(mode){this.root.dataset.stage=mode;this.root.dataset.out=String(this.viewer.outDiscs.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}}
+  const clear=box.width?this.controlBoxes().map(c=>({left:c.left/box.width,top:c.top/box.height,right:c.right/box.width,bottom:c.bottom/box.height})):[];
+  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,reserve,clear,instant}),stage=this.viewer.stage;
+  if(stage.mode){this.root.dataset.stage=stage.mode;this.root.dataset.out=String(this.viewer.outDiscs.length);this.root.dataset.names=stage.labels;}
+  else{delete this.root.dataset.stage;delete this.root.dataset.out;delete this.root.dataset.names;}
   this.root.dataset.staging='moving';
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]'))this.label(disc);
   this.place();this.interactive(!this.running);
@@ -310,13 +301,6 @@ export class BagScene {
    if(token!==this.stageToken)return false;
    this.root.dataset.staging='still';this.place();return true;
   });
- }
- // The map's axis captions (canvas px, a little room around each) while the map shows; names and discs keep off them.
- captionBoxes(){
-  if(this.root.dataset.stage!=='map')return [];
-  const box=this.canvas.getBoundingClientRect();
-  return [...this.mapGrid.querySelectorAll('.bag-map-caption')].map(n=>n.getBoundingClientRect()).filter(r=>r.width)
-   .map(r=>({left:r.left-box.left-6,top:r.top-box.top-6,right:r.right-box.left+6,bottom:r.bottom-box.top+6}));
  }
  // Out discs use all the room the page has: the canvas spans from the page's left gutter to its
  // right gutter, or to the details panel when it shows beside the bag, at its usual height. The bag
@@ -374,11 +358,13 @@ export class BagScene {
   const by=Math.min(bottom-(sheetTop-8),top-8);
   if(by>0)scrollBy({top:by,behavior:reduced()?'instant':'smooth'});
  }
- // Every out disc shows its name, beside the bag and on the map. The layout leaves room under each
- // disc, so a name sits there, centered; where that spot is taken (zoomed in, an odd size), it
- // tries under the disc's outer edge, above it, then beside it, and takes the first spot clear of
- // the bag, every disc, every placed name, the zoom buttons and the map's captions (or, failing
- // all, the one that covers least). A disc zoomed out of the canvas has no name.
+ // Every out disc shows its name. The layout leaves room for it under the disc (centered, or flush
+ // with the disc's inner edge where the sides are narrow: data-names="flush"), or beside it on the
+ // side away from the bag when the columns are tall (data-names="outer"), so a name sits there;
+ // where that spot is taken (zoomed in, an odd size), it tries the other of the two, flush under
+ // the disc, above it, then its inner side, and takes the first spot clear of the bag,
+ // every disc, every placed name and the zoom and pocket buttons (or, failing all, the one that
+ // covers least). A disc zoomed out of the canvas has no name.
  placeNames(){
   if(!this.viewer || !this.items)return;
   const rects=new Map(this.viewer.discRects().filter(rect=>rect.out).map(rect=>[rect.key,rect]));
@@ -386,19 +372,20 @@ export class BagScene {
   const width=this.canvas.clientWidth,height=this.canvas.clientHeight,canvas=this.canvas.getBoundingClientRect();
   const edges=rect=>({key:rect.key,left:rect.left,top:rect.top,right:rect.left+rect.width,bottom:rect.top+rect.height});
   const zoom=this.zoomControls.getBoundingClientRect(),bag=this.viewer.bagRect();
-  const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[]),...this.captionBoxes(),...this.controlBoxes(),
+  const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[]),...this.controlBoxes(),
    ...(zoom.width?[{left:zoom.left-canvas.left-4,top:zoom.top-canvas.top-4,right:zoom.right-canvas.left+4,bottom:zoom.bottom-canvas.top+4}]:[])];
   const covered=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
-  const centerX=width/2;
+  const centerX=width/2,stage=this.viewer.stage,outer=stage.labels==='outer';
   for(const id of this.out){
    const rect=rects.get(id),node=this.nameNode(id);
    const cx=rect && rect.left+rect.width/2,cy=rect && rect.top+rect.height/2;
-   // A crowd too big for names on the ring shows them on hover and focus only.
-   if(!rect || cx<0 || cx>width || cy<0 || cy>height || this.root.dataset.names==='none'){node.hidden=true;delete node.dataset.shown;continue;}
+   if(!rect || cx<0 || cx>width || cy<0 || cy>height){node.hidden=true;delete node.dataset.shown;continue;}
    node.hidden=false;
-   const w=node.offsetWidth,h=node.offsetHeight,out=cx<centerX?-1:1,bottom=rect.top+rect.height;
-   const spots=[[cx,bottom+NAME_GAP],[cx+out*Math.max(0,(w-rect.width)/2),bottom+NAME_GAP],[cx,rect.top-NAME_GAP-h],
-    [rect.left+rect.width+NAME_GAP+w/2,cy-h/2],[rect.left-NAME_GAP-w/2,cy-h/2]];
+   const w=node.offsetWidth,h=node.offsetHeight,out=(stage.sides[id]??(cx<centerX?'left':'right'))==='left'?-1:1,bottom=rect.top+rect.height;
+   // Under the disc (centered, or flush with its inner edge toward the bag), or beside it away from the bag.
+   const under=[stage.labels==='flush'?(out<0?rect.left+rect.width-w/2:rect.left+w/2):cx,bottom+NAME_GAP],beside=[out<0?rect.left-NAME_GAP-w/2:rect.left+rect.width+NAME_GAP+w/2,cy-h/2];
+   const spots=[...(outer?[beside,under]:[under,beside]),[out<0?rect.left+rect.width-w/2:rect.left+w/2,bottom+NAME_GAP],[cx,rect.top-NAME_GAP-h],
+    [out<0?rect.left+rect.width+NAME_GAP+w/2:rect.left-NAME_GAP-w/2,cy-h/2]];
    let best=null;
    for(const [sx,sy] of spots){
     const x=Math.min(width-w/2-4,Math.max(w/2+4,sx)),top=Math.min(height-h-4,Math.max(4,sy));
@@ -407,17 +394,13 @@ export class BagScene {
     if(!best || cost<best.cost)best={x,top,box,cost};
     if(!cost)break;
    }
-   node.dataset.shown='';taken.push({key:id,...best.box});
+   node.dataset.shown='';node.dataset.side=out<0?'left':'right';taken.push({key:id,...best.box});
    Object.assign(node.style,{left:best.x+'px',top:best.top+'px'});
   }
   this.names.replaceChildren(...this.out.map(id=>this.nameById.get(id)).filter(Boolean));
   if(this.lifted && this.nameById.get(this.lifted.dataset.physicalDisc)?.dataset.shown!==undefined)this.tag.hidden=true;
  }
- // The bag's map grid lines up with the page's Stitch grid.
- placeGrid(){
-  const box=this.canvas.getBoundingClientRect(),x=-((box.left+scrollX)%GRID),y=-((box.top+scrollY)%GRID);
-  this.mapGrid.style.setProperty('--grid-x',x+'px');this.mapGrid.style.setProperty('--grid-y',y+'px');
- }
+
  // The hover name sits just above its disc (below, near the canvas top), kept inside the canvas.
  placeTag(disc){
   const slot=disc.parentNode,width=this.canvas.clientWidth,left=slot.offsetLeft,top=slot.offsetTop;

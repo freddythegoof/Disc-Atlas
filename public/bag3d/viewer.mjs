@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures } from './disc-features.mjs';
-import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, assignSides, sideSpots, flankFrame } from './bag-layout.mjs';
+import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, sideFrame } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -29,11 +29,9 @@ const LIFT_MS = 360, MOVE_MS = 450, YAW_MS = 650, SLIDE_MS = 620, TOP_MS = 600, 
 const TRAVEL_MS = 480, TRAVEL_AT = .75, SLIDE_TOTAL = SLIDE_MS * TRAVEL_AT + TRAVEL_MS, RESTAGE_MS = 650, PULL_MS = 650;
 // A path that would cross the bag arcs out in front of it, through this depth.
 const ARC_Z = .42;
-// Staged discs and their names stay this far (px) inside the canvas.
-const FRAME_MARGIN = 8;
-// The furthest the camera pulls back for a ring with names: a crowd needing more takes compact
-// names, then none (names keep their pixel size, so beyond this the bag would shrink to a token).
-const NAMED_PULL = 2.6;
+// Staged discs and their names stay this far (px) inside the canvas; the columns are planned with
+// STAGE_EDGE (px) to the canvas's edges, so the ends of a tall column have room to breathe.
+const FRAME_MARGIN = 8, STAGE_EDGE = 12;
 // Turntable: px of horizontal travel before a press becomes a drag (less stays a tap), and the
 // turn per px. A release coasts at the swipe's speed over its last SPIN_SAMPLE_MS (capped at
 // SPIN_MAX rad/s, none if it held still for SPIN_HOLD_MS), slowing by SPIN_FRICTION per second
@@ -174,8 +172,9 @@ export async function mountBag(container, {
   let zoomLevel = 1, zoomCenter = { x: .5, y: .5 }, zoomTween = null;
   let puttersOutState = Boolean(puttersOut), glowKey = null;
   // Staging: the out discs in the order they came out, each one's side (beside the bag), the
-  // layout in use ('side', 'map' or null) and the camera's pull-back (1 = the page view).
-  let outKeys = [], sides = new Map(), stagedMode = null, ring = null, names = 'full', pull = 1, pullGoal = 1, pullTween = null;
+  // layout in use ('side' or null), its columns, disc size and names ('below', 'flush' or 'outer'
+  // their discs), and the camera's pull-back (1 = the page view).
+  let outKeys = [], sides = new Map(), stagedMode = null, columns = [], stageScale = null, nameSpot = 'below', stageFits = true, pull = 1, pullGoal = 1, pullTween = null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -588,71 +587,60 @@ export async function mountBag(container, {
   // poses): putters and the go-to straight up and a step forward, main discs forward out of
   // the compartment, then up and turned face-on. It then travels to its staged spot and stays
   // there until it is staged back in. Every disc is independent: `keys` lists all out discs, in
-  // the order they came out. Up to five rest beside the bag, split relative to each other (the
-  // less overstable half left, the more overstable half right); six or more spread evenly on a
-  // ring around the bag, in stability order along the arc (`atlas`: key → {x, y}, AtlasLayout's
-  // 0–1 stability and speed; speed only orders the columns beside the bag).
-  // `labels` (key → {width, height}, px, the gap above included) is the name under each disc: the
-  // layout keeps room for every name, clear of the bag, the other discs and the other names.
-  // `compact` (the same, measured in a smaller style) is for a crowd on the ring: those names are
-  // used when the full ones cannot fit within NAMED_PULL; when neither can, the ring leaves the
-  // names out (`stage.names`: 'full', 'compact' or 'none').
+  // the order they came out. However many there are, they rest in side columns beside the bag
+  // (bag-layout's sideFrame): split relative to each other (the less overstable half left, the
+  // more overstable half right), faster discs higher (`atlas`: key → {x, y}, AtlasLayout's 0–1
+  // stability and speed). The bag keeps its page-view size unless the columns cannot fit beside it.
+  // `labels` (key → {width, height}, px, the room around it included) is the name of each disc:
+  // the layout keeps room for every name, under its disc or beside it (`stage.labels`), clear of
+  // the bag, the other discs and the other names.
   // `reserve` keeps a top-right corner of the canvas clear, `clear` more boxes ({left, top, right,
   // bottom}, canvas fractions). Resolves when every disc and the camera settle.
-  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), compact = null, reserve, clear = [], instant = !active } = {}) => {
+  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active } = {}) => {
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
-    // The page may have just resized the canvas for this mode (a ring widens it): catch up now
-    // rather than on the next resize observation, so the ring is laid out for the canvas it gets.
+    // The page may have just resized the canvas (out discs widen it): catch up now rather than on
+    // the next resize observation, so the columns are laid out for the canvas they get.
     if (container.clientWidth !== sized.width || container.clientHeight !== sized.height) resize();
     const mode = stageMode(keys.length);
     const home = homeCamera(), halfHeight = home.position.distanceTo(home.target) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    // Names in the bag's meters at the page view, measured at the target's depth with a tenth to
-    // spare: the camera looks on from one side and above, so the canvas's far parts hold more
-    // meters per pixel. pullToFit, which projects for real, settles any remainder.
-    const unit = 1.1 * 2 * halfHeight / Math.max(container.clientHeight, 1);
-    const entriesFor = sizes => keys.map(key => { const label = sizes.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
-    const entries = entriesFor(labels);
+    // Names in the bag's meters at the page view, measured at the target's depth: the camera looks
+    // on from one side and above, so the canvas's near and far parts hold fewer or more meters per
+    // pixel. Every layout the planner would take is projected for real before it is taken.
+    const unit = 2 * halfHeight / Math.max(container.clientHeight, 1);
+    const entries = keys.map(key => { const label = labels.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
     let spots = new Map(), goal = 1;
-    names = 'full';
+    sides = new Map(); columns = []; stageScale = null; nameSpot = 'below'; stageFits = true;
     if (mode === 'side') {
-      // Names grow with the pull-back: lay the columns out for the pull-back they end up taking.
-      sides = assignSides(entries);
-      for (let guess = 1, i = 0; i < 4; i++) {
-        spots = sideSpots(entries, sides, { pull: guess });
-        goal = pullToFit(spots, labels, reserve, clear);
-        if (goal <= guess + 1e-3) break;
-        guess = goal;
-      }
+      // The canvas at the page view, laid on the discs' plane: the camera looks on from one side and
+      // above, so the canvas covers a skewed patch of it. The planner gets that patch's rectangle (its
+      // sides at mid-height), where the camera aims, and the kept-clear boxes (STAGE_EDGE larger, as
+      // the canvas's edges are planned) as they land on the plane. A box spanning the canvas's full
+      // height at one side (a details panel over it) takes that strip out of the view instead.
+      const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
+      const page = pulledHome(1), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -STAGE.side.z), ray = new THREE.Raycaster(), hit = new THREE.Vector3();
+      fitCamera.copy(camera); fitCamera.clearViewOffset(); fitCamera.aspect = width / height; fitCamera.updateProjectionMatrix();
+      fitCamera.position.copy(page.position); fitCamera.lookAt(page.target); fitCamera.updateMatrixWorld();
+      const onPlane = (px, py) => { ray.setFromCamera(new THREE.Vector2(px / width * 2 - 1, 1 - py / height * 2), fitCamera); return ray.ray.intersectPlane(plane, hit) ? { x: hit.x, y: hit.y } : { x: 0, y: home.target.y }; };
+      const spanOf = (left, top, right, bottom) => { const c = [onPlane(left, top), onPlane(right, top), onPlane(left, bottom), onPlane(right, bottom)]; return { tl: c[0], tr: c[1], bl: c[2], br: c[3] }; };
+      const strip = box => box.top <= .02 && box.bottom >= .98;
+      let left = 0, right = width;
+      for (const box of clear) if (strip(box)) { if (box.right >= .98) right = Math.min(right, box.left * width); if (box.left <= .02) left = Math.max(left, box.right * width); }
+      const corners = spanOf(left, 0, right, height);
+      const view = { xMin: (corners.tl.x + corners.bl.x) / 2, xMax: (corners.tr.x + corners.br.x) / 2, yMin: (corners.bl.y + corners.br.y) / 2, yMax: (corners.tl.y + corners.tr.y) / 2 };
+      const keep = [...(reserve && reserve.width && reserve.height ? [{ left: 1 - reserve.width, top: 0, right: 1, bottom: reserve.height }] : []), ...clear.filter(box => !strip(box))].map(box => {
+        const c = spanOf(box.left * width - STAGE_EDGE, box.top * height - STAGE_EDGE, box.right * width + STAGE_EDGE, box.bottom * height + STAGE_EDGE);
+        return { xMin: Math.min(c.tl.x, c.bl.x), xMax: Math.max(c.tr.x, c.br.x), yMin: Math.min(c.bl.y, c.br.y), yMax: Math.max(c.tl.y, c.tr.y) };
+      });
+      // Each layout the planner would take is also projected for real at its pull-back; one that would
+      // touch the canvas's edge or a kept-clear box takes the next preference. pullToFit then settles
+      // the least pull-back the chosen layout needs.
+      const verify = frame => pullToFit(frame.spots, labels, reserve, clear, frame.labels, { at: frame.pull });
+      const frame = sideFrame({ view, center: onPlane(width / 2, height / 2), centerY: home.target.y, keep, edge: STAGE_EDGE * unit, entries, verify });
+      ({ spots, columns, scale: stageScale, labels: nameSpot, fits: stageFits } = frame);
+      for (const [key, spot] of spots) sides.set(key, spot.side);
+      goal = pullToFit(spots, labels, reserve, clear, nameSpot);
     }
-    if (mode === 'map') {
-      // The discs flank the bag in columns that fill the free canvas, and the camera stays at the page
-      // view, so the bag keeps its size. The frame works in estimated meters; pullToFit projects for
-      // real, and where the two disagree the columns draw in a little rather than the camera pulling back.
-      // The discs stand a little in front of the target, so the view there is a little smaller.
-      const distance = home.position.distanceTo(home.target), discHalfHeight = halfHeight * (distance - STAGE.map.z * (home.position.z - home.target.z) / distance) / distance;
-      const plan = (sizes, maxPull) => {
-        const base = { aspect: camera.aspect, halfHeight: discHalfHeight, centerY: home.target.y, reserve, clear, edge: (FRAME_MARGIN + 2) * unit, entries: entriesFor(sizes), maxPull };
-        let frame = flankFrame(base), fit = pullToFit(frame.spots, sizes, reserve, clear);
-        for (let i = 0; i < 24 && frame.fits && fit > frame.pull + 1e-6 && frame.fill > .32; i++) {
-          frame = flankFrame({ ...base, fill: frame.fill - .02 });
-          fit = pullToFit(frame.spots, sizes, reserve, clear);
-        }
-        return { spots: frame.spots, ring: { columns: frame.columns }, goal: fit, fits: frame.fits && fit <= maxPull + 1e-3 };
-      };
-      // Full names at the page view, then compact ones; only then pull back (keeping names), and
-      // last of all leave the names out.
-      const tries = [[labels, 'full', 1], [compact, 'compact', 1], [labels, 'full', NAMED_PULL], [compact, 'compact', NAMED_PULL], [new Map(), 'none', STAGE.map.maxPull]];
-      let best = null;
-      for (const [sizes, kind, maxPull] of tries) {
-        if (!sizes) continue;
-        best = plan(sizes, maxPull); names = kind;
-        if (best.fits) break;
-      }
-      ({ spots, ring, goal } = best);
-    }
-    if (mode !== 'side') sides = new Map();
-    if (mode !== 'map') ring = null;
     stagedMode = mode;
     const eye = pulledHome(goal).position;
     const now = performance.now();
@@ -695,33 +683,43 @@ export async function mountBag(container, {
     setTimeout(() => { if (pullTween === motion && !disposed) { pullTween = null; pull = goal; if (!topView && !cameraTween) placePulled(); invalidate(); container.dispatchEvent(new CustomEvent('bagviewlayout')); } }, PULL_MS + 250);
     return PULL_MS;
   };
-  // The least pull-back (at least 1) that keeps every staged disc, and its name under it (`labels`,
-  // px), inside the canvas and out of the reserved top-right corner and the `clear` boxes. The bag
-  // itself always fits the page view.
+  // The least pull-back (at least 1) that keeps every staged disc, and its name under or beside it
+  // (`labels`, px; `labelSpot`: 'below', 'flush' or 'outer', see bag-layout), inside the canvas and out of the reserved top-right corner and the
+  // `clear` boxes. The bag itself always fits the page view. With `at`, it only says whether they
+  // fit at that pull-back.
   const fitCamera = new THREE.PerspectiveCamera();
-  const pullToFit = (spots, labels, reserve, clear = []) => {
-    if (!spots.size) return 1;
+  const pullToFit = (spots, labels, reserve, clear = [], labelSpot = 'below', { at = null } = {}) => {
+    if (!spots.size) return at === null ? 1 : true;
     const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
     fitCamera.copy(camera); fitCamera.clearViewOffset(); fitCamera.aspect = width / height; fitCamera.updateProjectionMatrix();
     const keep = [...(reserve ? [{ left: 1 - reserve.width, top: 0, right: 1, bottom: reserve.height }] : []), ...clear]
       .map(box => ({ left: box.left * width, top: box.top * height, right: box.right * width, bottom: box.bottom * height }));
-    const discs = [...spots].map(([key, { position: [x, y, z], scale }]) => {
+    const discs = [...spots].map(([key, { position: [x, y, z], scale, side }]) => {
       const r = DISC.radius * scale;
-      return { label: labels.get(key), points: [[-r, 0], [r, 0], [0, r], [0, -r]].map(([dx, dy]) => new THREE.Vector3(x + dx, y + dy, z)) };
+      return { label: labels.get(key), side, points: [[-r, 0], [r, 0], [0, r], [0, -r]].map(([dx, dy]) => new THREE.Vector3(x + dx, y + dy, z)) };
     });
     const fits = factor => {
       const home = pulledHome(factor);
       fitCamera.position.copy(home.position); fitCamera.lookAt(home.target); fitCamera.updateMatrixWorld();
-      return discs.every(({ label, points }) => {
+      return discs.every(({ label, side, points }) => {
         const [left, right, top, bottom] = points.map(point => { const ndc = point.clone().project(fitCamera); return [(ndc.x + 1) / 2 * width, (1 - ndc.y) / 2 * height]; });
         const boxes = [{ left: left[0], right: right[0], top: top[1], bottom: bottom[1] }];
-        if (label) { const center = (left[0] + right[0]) / 2; boxes.push({ left: center - label.width / 2, right: center + label.width / 2, top: bottom[1], bottom: bottom[1] + label.height }); }
+        if (label && labelSpot === 'outer') {
+          // Beside the disc, away from the bag, centered on its middle.
+          const middle = (top[1] + bottom[1]) / 2, from = side === 'left' ? left[0] - label.width : right[0];
+          boxes.push({ left: from, right: from + label.width, top: middle - label.height / 2, bottom: middle + label.height / 2 });
+        } else if (label) {
+          // Under the disc: centered, or ('flush') its inner edge, toward the bag, flush with the disc's.
+          const from = labelSpot === 'flush' ? (side === 'left' ? right[0] - label.width : left[0]) : (left[0] + right[0] - label.width) / 2;
+          boxes.push({ left: from, right: from + label.width, top: bottom[1], bottom: bottom[1] + label.height });
+        }
         return boxes.every(box => box.left >= FRAME_MARGIN && box.right <= width - FRAME_MARGIN && box.top >= FRAME_MARGIN && box.bottom <= height - FRAME_MARGIN
           && !keep.some(k => box.left < k.right && k.left < box.right && box.top < k.bottom && k.top < box.bottom));
       });
     };
+    if (at !== null) return fits(at);
     if (fits(1)) return 1;
-    let low = 1, high = 4;
+    let low = 1, high = STAGE.side.maxPull;
     for (let i = 0; i < 24; i++) { const mid = (low + high) / 2; if (fits(mid)) high = mid; else low = mid; }
     return high;
   };
@@ -1106,13 +1104,13 @@ export async function mountBag(container, {
     stageDiscs,
     // The out discs, in the order they came out.
     get outDiscs() { return outKeys.slice(); },
-    // Staging state for QA: the layout ('side', 'map' or null), each side's discs, the ring (its
-    // center, half width a and height b in the bag's meters, and each disc's angle), the names on
-    // the ring ('full', 'compact' or 'none'), the
-    // camera's pull-back now and where it is heading, and whether anything is still moving.
+    // Staging state for QA: the layout ('side' or null), each disc's side, the columns ({side, x,
+    // keys} from the bag outward, each top to bottom), the discs' scale, where names sit ('below',
+    // 'flush' or 'outer' their discs), whether the planned layout fit (false only past every layout), the camera's
+    // pull-back now and where it is heading, and whether anything is still moving.
     get stage() {
       const now = performance.now(), moving = pullTween !== null || [...records.values()].some(r => r.slide !== r.slideTo || (r.spot?.from && now - r.spot.start < r.spot.duration));
-      return { mode: stagedMode, sides: Object.fromEntries(sides), ring, names: stagedMode === 'map' ? names : 'full', pull, pullGoal, moving };
+      return { mode: stagedMode, sides: Object.fromEntries(sides), columns: columns.map(c => ({ ...c, keys: c.keys.slice() })), scale: stageScale, labels: nameSpot, fits: stageFits, pull, pullGoal, moving };
     },
     // Where an out disc rests (or is heading), in container pixels, once the camera has
     // settled at its pull-back (so a page can scroll it into view while it still moves).
