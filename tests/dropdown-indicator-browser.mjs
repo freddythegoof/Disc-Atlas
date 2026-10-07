@@ -102,7 +102,7 @@ try {
 
  // 5. My Bag: the sort select and each disc's pocket select; the bag and disc sheets.
  await everyTheme(async(width,theme)=>{
-  await view('bag');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-pocket]').length===3);
+  await view('bag');await page.waitForFunction(()=>document.querySelectorAll('select[data-bag-pocket]').length===3);
   await shoot(`bag-sort-${width}-${theme}`,['.bag-sort-bar']);
   await shoot(`bag-pockets-${width}-${theme}`,['#myBagContents .bag-pocket-inline']);
   await page.locator('[data-bag-edit]').first().click();await page.locator('#addDiscDialog').waitFor();
@@ -143,7 +143,7 @@ try {
   await view('list');await page.locator('#rows .disc-row').first().click();await page.locator('#detail').waitFor();await audit('details');
   await page.evaluate(()=>document.querySelector('#closeDetail')?.click());
   await page.locator('#filtersToggle').click();await audit('filters');await page.locator('#closeFilters').click();
-  await view('bag');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-pocket]').length===3);await audit('my bag');
+  await view('bag');await page.waitForFunction(()=>document.querySelectorAll('select[data-bag-pocket]').length===3);await audit('my bag');
   await page.locator('[data-bag-edit]').first().click();await audit('disc sheet');await page.locator('#addDiscDialog button.close[data-bag-close]').click();
   await page.locator('#editBagModel').click();await audit('bag sheet');await page.locator('#bagModelDialog button.close[data-bag-close]').click();
   await page.goto(base+'/about.html');await audit('about');
@@ -173,7 +173,7 @@ try {
    const lg=await measure('#detail details>summary');assert.deepEqual([lg.box,lg.glyph,lg.stroke],[[20,20],[12,7],2],`${theme}: large = 20 px box, 12 × 7 glyph, 2 stroke`);
    await page.evaluate(()=>document.querySelector('#closeDetail')?.click());
    // Disabled: a pocket select mid-save.
-   await view('bag');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-pocket]').length===3);
+   await view('bag');await page.waitForFunction(()=>document.querySelectorAll('select[data-bag-pocket]').length===3);
    await page.locator('#bagSort').evaluate(n=>{n.disabled=true;});await page.waitForTimeout(200);
    const off=await measure('.dd-select:has(#bagSort)');assert.equal(off.opacity,.35,`${theme}: disabled at 35%`);
    await page.locator('#bagSort').evaluate(n=>{n.disabled=false;});
