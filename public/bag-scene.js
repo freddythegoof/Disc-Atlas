@@ -22,7 +22,7 @@ export class BagScene {
   this.root=root;this.lookup=lookup;this.inspect=inspect;this.deselect=deselect;this.open=false;this.ready=false;this.running=false;this.key='';this.epoch=0;this.top=false;this.stageToken=0;
   // Out discs (item ids, in the order they came out) stay out until they are clicked again.
   // `inspected` is the disc whose details the bag opened.
-  this.out=[];this.inspected=null;
+  this.out=[];this.inspected=null;this.panelEdge=null;
   this.toggle=root.querySelector('[data-bag-toggle]');this.info=root.querySelector('[data-bag-lift-info]');this.canvas=root.querySelector('[data-bag-canvas]');
   this.topToggle=root.querySelector('[data-bag-top-view]');
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
@@ -46,6 +46,9 @@ export class BagScene {
   this.returnAll=document.createElement('button');this.returnAll.type='button';this.returnAll.className='bag-return-all';this.returnAll.hidden=true;
   this.returnAll.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 2.5 7 6 10.5"/><path d="M2.5 7h7a4 4 0 0 1 0 8h-2"/></svg><span>Return all</span><b data-return-count></b>';
   this.returnAll.addEventListener('click',()=>void this.returnAllOut());
+  // The type buttons beside the sort pull out every disc of one type, or put them all back.
+  this.typeButtons=[...document.querySelectorAll('[data-type-out]')];
+  for(const button of this.typeButtons)button.addEventListener('click',()=>void this.toggleType(button.dataset.typeOut));
   this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.zoomControls,this.returnAll,this.status);
   this.canvas.addEventListener('wheel',event=>{
    if(!this.ready || !(event.ctrlKey || event.metaKey))return;event.preventDefault();
@@ -80,6 +83,13 @@ export class BagScene {
    const detail=document.querySelector('#detail');if(detail && !detail.hidden && !detail.inert)return;
    if(this.top){event.preventDefault();void this.setTopView(false);}
   },true);
+  // Out discs lay out again when the details panel opens or closes beside the canvas, or the page resizes.
+  const staged=()=>this.ready && this.out.length>0;
+  const detail=document.querySelector('#detail');
+  if(detail)new MutationObserver(()=>requestAnimationFrame(()=>{if(staged() && this.sidePanelEdge()!==this.panelEdge)void this.stageOut();}))
+   .observe(detail,{attributes:true,attributeFilter:['hidden','class','inert']});
+  let resizing=0;
+  addEventListener('resize',()=>{clearTimeout(resizing);resizing=setTimeout(()=>{if(staged())void this.stageOut({instant:true});},150);});
   addEventListener('atlas-theme-change',()=>this.viewer?.setAccentColor(accent()));
   matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>this.viewer?.setAnimated(!reduced()));
  }
@@ -202,6 +212,36 @@ export class BagScene {
  discFor(id){return id?this.layer.querySelector(`[data-physical-disc="${CSS.escape(id)}"]`):null;}
  interactive(on){
   for(const disc of this.layer.querySelectorAll('[data-physical-disc]')){const ok=on && this.reachable(disc);disc.setAttribute('tabindex',ok?'0':'-1');disc.setAttribute('aria-hidden',String(!ok));}
+  this.syncTypeButtons();
+ }
+ // A disc's type as the Atlas types it (distance, fairway, mid, putter), from its mold.
+ typeOfItem(item){const mold=this.lookup(item.mold_id);return mold && typeof typeOf==='function'?typeOf(mold):null;}
+ // The bag's discs of one type that can come out (each one drawn in a pocket).
+ idsOfType(type){return (this.items||[]).filter(item=>this.slotsByKey && this.discFor(item.id) && this.typeOfItem(item)===type).map(item=>item.id);}
+ // A type button pulls out every disc of its type (opening the bag, or leaving the top view, if
+ // need be); once they are all out, it puts them all back. Discs out on their own stay out.
+ async toggleType(type){
+  if(!this.ready || this.running || this.viewer.cameraMoving)return;
+  const ids=this.idsOfType(type);if(!ids.length)return;
+  this.clearLift();
+  if(ids.every(id=>this.out.includes(id))){
+   this.out=this.out.filter(id=>!ids.includes(id));if(ids.includes(this.inspected))this.closeDetails();
+  }else{
+   if(this.top)await this.setTopView(false);
+   if(!this.open)await this.setOpen(true);
+   if(!this.open || this.top)return;
+   for(const id of this.idsOfType(type))if(!this.out.includes(id))this.out.push(id);
+  }
+  for(const disc of this.layer.querySelectorAll('[data-physical-disc]'))this.label(disc);
+  await this.stageOut();
+ }
+ syncTypeButtons(){
+  for(const button of this.typeButtons){
+   const ids=this.ready?this.idsOfType(button.dataset.typeOut):[],all=ids.length>0 && ids.every(id=>this.out.includes(id));
+   button.disabled=!ids.length;button.setAttribute('aria-pressed',String(all));
+   const name=button.textContent.trim().toLowerCase();
+   button.title=!ids.length?`No ${name} discs in the bag`:all?`Put the ${ids.length} ${name} ${ids.length===1?'disc':'discs'} back`:`Pull out the ${ids.length} ${name} ${ids.length===1?'disc':'discs'}`;
+  }
  }
  place(){
   if(!this.viewer || !this.slotsByKey)return;
@@ -247,8 +287,9 @@ export class BagScene {
    const item=this.items.find(i=>i.id===id),mold=item && this.lookup(item.mold_id);
    atlas.set(id,mold && window.AtlasLayout?.positions([mold]).get(mold.id) || null);
   }
-  // Names take the coming mode's style before they are measured.
+  // Names take the coming mode's style before they are measured; a ring gets its wide canvas first.
   const coming=this.viewer.stageMode(this.out.length);
+  this.wideCanvas(!!coming);
   if(coming){this.root.dataset.stage=coming;this.root.dataset.out=String(this.out.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}
   // Each name's room, in the coming mode's style and (for a crowd on the ring) the compact one.
   const measure=()=>new Map(this.out.map(id=>{const node=this.nameNode(id);node.hidden=false;return [id,{width:node.offsetWidth+2*NAME_SPACE,height:node.offsetHeight+NAME_GAP+NAME_SPACE}];}));
@@ -274,6 +315,32 @@ export class BagScene {
   const box=this.canvas.getBoundingClientRect();
   return [...this.mapGrid.querySelectorAll('.bag-map-caption')].map(n=>n.getBoundingClientRect()).filter(r=>r.width)
    .map(r=>({left:r.left-box.left-6,top:r.top-box.top-6,right:r.right-box.left+6,bottom:r.bottom-box.top+6}));
+ }
+ // Out discs use all the room the page has: the canvas spans from the page's left gutter to its
+ // right gutter, or to the details panel when it shows beside the bag, at its usual height. The bag
+ // stays centered in it at full size (the camera keeps the page view), with the discs beside it.
+ // When the canvas's middle moves (the panel opens or closes), the bag slides there.
+ wideCanvas(on){
+  const style=this.root.style,before=this.canvas.getBoundingClientRect();
+  this.panelEdge=on?this.sidePanelEdge():null;
+  if(!on){delete this.root.dataset.wide;for(const name of ['--bag-wide-left','--bag-wide-width','--bag-wide-height'])style.removeProperty(name);}
+  else{
+   // The usual box, as the stylesheet sizes it: at most --bag-width, the scene's width and 0.8 of the viewport height less 150px.
+   const width=Math.min(parseFloat(getComputedStyle(this.root).getPropertyValue('--bag-width'))||680,this.root.clientWidth,Math.max(300,(innerHeight-150)*.8));
+   const scene=this.root.getBoundingClientRect(),gutter=innerWidth<700?8:24,left=gutter;
+   const right=Math.max(left+width,this.panelEdge===null?document.documentElement.clientWidth-gutter:this.panelEdge-16);
+   style.setProperty('--bag-wide-left',(left-scene.left).toFixed(1)+'px');style.setProperty('--bag-wide-width',(right-left).toFixed(1)+'px');
+   style.setProperty('--bag-wide-height',(width*1.25).toFixed(1)+'px');this.root.dataset.wide='';
+  }
+  const after=this.canvas.getBoundingClientRect(),shift=before.left+before.width/2-(after.left+after.width/2);
+  if(Math.abs(shift)>2 && !reduced())this.canvas.animate([{translate:shift.toFixed(1)+'px 0'},{translate:'0 0'}],{duration:380,easing:'cubic-bezier(.2,.8,.2,1)'});
+ }
+ // The details panel's left edge (viewport px) while it shows as a side panel; null otherwise (hidden, or a phone's bottom sheet).
+ sidePanelEdge(){
+  const panel=document.querySelector('#detail');
+  if(!panel || panel.hidden || !panel.checkVisibility?.())return null;
+  // Layout box, not the painted one: the panel may still be sliding in.
+  return panel.offsetHeight>innerHeight*.5 && panel.offsetLeft>innerWidth*.5?panel.offsetLeft:null;
  }
  // The return button (canvas px, a little room around it) while it shows; discs and names keep off it.
  returnBoxes(){
@@ -418,7 +485,7 @@ export class BagScene {
  }
  reset(){
   this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();
-  this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging','names'])delete this.root.dataset[key];this.names.replaceChildren();this.nameById.clear();this.returnAll.hidden=true;
+  this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging','names'])delete this.root.dataset[key];this.wideCanvas(false);this.syncTypeButtons();this.names.replaceChildren();this.nameById.clear();this.returnAll.hidden=true;
   this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
   if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideSpots,RING_BAG,ringOrder,ringAngle,ringLayout,ringFrame} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideSpots,RING_BAG,flankOrder,flankFrame} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -199,12 +199,11 @@ test('beside the bag, wide names step their column out so no name reaches the ba
 
 const inflateBy = (box, by) => ({xMin: box.xMin - by, xMax: box.xMax + by, yMin: box.yMin - by, yMax: box.yMax + by});
 
-// Map mode: an even ring around the bag. A spot's angle as seen from the ring's center, measured
-// clockwise from straight down (0 at the bottom, then up the left side, over the top, down the right).
-const clockwise = (spot, center, below = 0) => { const dx = spot.position[0] - center[0], dy = spot.position[1] - below / 2 - center[1]; return ((Math.atan2(-dx, -dy) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); };
-const FRAME = {aspect: .8, halfHeight: HALF_HEIGHT, centerY: .075};
-// Names keep their pixel size: about .07 × .03 m at the page view on a desktop canvas, .14 × .06 m on a phone's.
-const DESKTOP = {width: .07, height: .03}, PHONE = {width: .14, height: .06};
+// Map mode: the discs flank the bag in columns that fill the free canvas, and the bag keeps its
+// full size. A wide desktop canvas (the page's free width at the bag's usual height) and a phone's.
+const WIDE = {aspect: 1392 / 850, halfHeight: HALF_HEIGHT, centerY: .075}, NARROW = {aspect: 374 / 468, halfHeight: HALF_HEIGHT, centerY: .075};
+// Names keep their pixel size: about .09 × .03 m at the page view on a desktop canvas, .14 × .06 m on a phone's.
+const DESKTOP = {width: .09, height: .03}, PHONE = {width: .14, height: .06};
 const mixes = count => ({
   mixed: Array.from({length: count}, (_, i) => entry('m' + i, ((i * 37) % 100) / 100, ((i * 53) % 97) / 97)),
   overstable: Array.from({length: count}, (_, i) => entry('o' + i, .7 + ((i * 7) % count) * .25 / count, ((i * 53) % 97) / 97)),
@@ -212,69 +211,79 @@ const mixes = count => ({
   neutral: Array.from({length: count}, (_, i) => entry('n' + i, .5, .5)),
 });
 
-test('ring angles are evenly spaced, clockwise from just left of the bottom with the seam at the bottom', () => {
-  for (const count of [6, 7, 12, 25]) {
-    const step = 2 * Math.PI / count, angles = Array.from({length: count}, (_, rank) => ringAngle(rank, count));
-    for (let i = 1; i < count; i++) assert.ok(Math.abs(angles[i - 1] - angles[i] - step) < 1e-12, `${count}: even, clockwise`);
-    // First and last sit half a step either side of straight down.
-    assert.ok(Math.abs(Math.cos(angles[0]) + Math.sin(step / 2)) < 1e-12 && Math.abs(Math.sin(angles[0]) + Math.cos(step / 2)) < 1e-12, `${count}: first just left of the bottom`);
-    assert.ok(Math.abs(Math.cos(angles.at(-1)) - Math.sin(step / 2)) < 1e-12, `${count}: last just right of the bottom`);
-  }
-  // Ring order: least overstable first; unrated discs count as neutral; equal stability keeps the out order.
-  assert.deepEqual(ringOrder([entry('fade', .9, 0), entry('x', null), entry('turn', .1, 0), entry('p', .5, 0), entry('flip', .3, 0)]).map(d => d.key), ['turn', 'flip', 'x', 'p', 'fade']);
+test('flank order: the relative split, each side listed outermost (most extreme) first', () => {
+  const list = [entry('fade', .9, 0), entry('x', null), entry('turn', .1, 0), entry('p', .55, 0), entry('flip', .3, 0), entry('beef', .8, 0)];
+  const {left, right} = flankOrder(list);
+  assert.deepEqual(left.map(d => d.key), ['turn', 'flip', 'x']);
+  assert.deepEqual(right.map(d => d.key), ['fade', 'beef', 'p']);
 });
 
-test('map mode spreads the out discs evenly around the bag, in stability order along the arc, whatever the mix', () => {
-  for (const count of [6, 8, 12, 20]) for (const label of [DESKTOP, PHONE]) for (const [mix, list] of Object.entries(mixes(count))) {
-    const discs = named(list, label.width, label.height), frame = ringFrame({...FRAME, entries: discs}), {spots, ring} = frame, name = `${count} ${mix} ${label === PHONE ? 'phone' : 'desktop'}`;
-    assert.equal(spots.size, count);
-    if (count <= 12 || label === DESKTOP) assert.ok(frame.fits, `${name}: fits with names`);
-    // Even angles, in stability order clockwise from the bottom left.
-    const order = ringOrder(discs).map(d => d.key);
-    order.forEach((key, rank) => assert.ok(Math.abs(spots.get(key).angle - ringAngle(rank, count)) < 1e-12, `${name}: ${key} at rank ${rank}`));
-    const turns = order.map(key => clockwise(spots.get(key), ring.center, label.height * frame.pull));
-    for (let i = 0; i < count; i++) {
-      assert.ok(Math.abs(turns[i] - (i + .5) * 2 * Math.PI / count) < 1e-9, `${name}: ${order[i]} at its even angle (${turns[i].toFixed(3)})`);
-      const [x, y] = spots.get(order[i]).position, below = label.height * frame.pull, dx = x - ring.center[0], dy = y - below / 2 - ring.center[1];
-      assert.ok(Math.abs(dx * dx / ring.a ** 2 + dy * dy / ring.b ** 2 - 1) < 1e-9, `${name}: ${order[i]} on the ellipse`);
+test('map mode flanks the full-size bag: more turn left, more fade right, outermost the most extreme, faster higher', () => {
+  for (const count of [6, 8, 12, 18]) for (const [mix, list] of Object.entries(mixes(count))) {
+    const discs = named(list, DESKTOP.width, DESKTOP.height), frame = flankFrame({...WIDE, entries: discs}), name = `${count} ${mix}`;
+    const stability = key => discs.find(d => d.key === key).atlas?.x ?? .5, speed = key => discs.find(d => d.key === key).atlas?.y ?? .5;
+    assert.ok(frame.fits, `${name}: fits with names`);
+    assert.equal(frame.pull, 1, `${name}: the bag keeps its full size`);
+    assert.equal(frame.spots.size, count);
+    const sides = assignSides(discs), {left, right} = flankOrder(discs);
+    for (const [key, spot] of frame.spots) {
+      assert.equal(spot.side, sides.get(key), `${name}: ${key} on its side`);
+      assert.ok(spot.side === 'left' ? spot.position[0] < RING_BAG.xMin : spot.position[0] > RING_BAG.xMax, `${name}: ${key} beside the bag, not over or under it`);
     }
-    // Less overstable discs on the left half of the arc, more overstable ones on the right.
-    for (let i = 0; i < count; i++) assert.equal(Math.sign(spots.get(order[i]).position[0]) || 1, i < count / 2 ? -1 : 1, `${name}: ${order[i]} on its half`);
+    assert.ok(Math.max(...left.map(d => stability(d.key))) <= Math.min(...right.map(d => stability(d.key))), `${name}: every left disc is less overstable than every right disc`);
+    // Columns: outermost first on each side, each one's discs at least as extreme as the next one in; faster discs higher.
+    for (const side of ['left', 'right']) {
+      const columns = frame.columns.filter(c => c.side === side), sign = side === 'left' ? 1 : -1;
+      for (let i = 1; i < columns.length; i++) {
+        assert.ok(sign * (columns[i].x - columns[i - 1].x) > 0, `${name}: ${side} columns run outermost first`);
+        assert.ok(Math.max(...columns[i - 1].keys.map(stability)) * sign <= Math.min(...columns[i].keys.map(stability)) * sign || sign < 0 && Math.min(...columns[i - 1].keys.map(stability)) >= Math.max(...columns[i].keys.map(stability)), `${name}: ${side} outer column is the more extreme`);
+      }
+      for (const column of columns) for (let i = 1; i < column.keys.length; i++) {
+        const [a, b] = [frame.spots.get(column.keys[i - 1]), frame.spots.get(column.keys[i])];
+        assert.ok(a.position[1] > b.position[1] && speed(column.keys[i - 1]) >= speed(column.keys[i]), `${name}: faster discs higher`);
+      }
+    }
     // Nothing on the bag or another disc or name; every disc and name inside the frame.
-    const boxes = [...spots].map(([key, spot]) => [key, footBox(spot, label, frame.pull)]);
+    const boxes = [...frame.spots].map(([key, spot]) => [key, footBox(spot, DESKTOP, frame.pull)]);
     for (const [key, box] of boxes) {
       assert.ok(!boxesOverlap(box, RING_BAG), `${name}: ${key} and its name clear of the bag`);
-      if (frame.fits) assert.ok(box.xMin >= frame.region.xMin - DISC.radius * STAGE.map.scale - 1e-6 && box.xMax <= frame.region.xMax + DISC.radius * STAGE.map.scale + 1e-6, `${name}: ${key} inside the frame`);
+      assert.ok(box.xMin >= frame.region.xMin - DISC.radius * STAGE.map.scale - 1e-6 && box.xMax <= frame.region.xMax + DISC.radius * STAGE.map.scale + 1e-6, `${name}: ${key} inside the frame`);
     }
     for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${name}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
-    assert.deepEqual([...ringFrame({...FRAME, entries: discs}).spots], [...spots], `${name}: deterministic`);
-    // The ring is the least that is clean: 3% smaller brings a disc or name within the gap of the bag or another.
-    const smaller = ringLayout(discs, {pull: frame.pull, center: ring.center, ratio: frame.ratio, size: ring.a * .97}).spots;
-    const tight = [...smaller].map(([, spot]) => footBox(spot, label, frame.pull));
-    assert.ok(tight.some((a, i) => boxesOverlap(a, RING_BAG, STAGE.map.gap) || tight.some((b, j) => j > i && boxesOverlap(a, b, STAGE.map.gap))), `${name}: the ring hugs the bag`);
-  }
-  // Evenness comes from the count alone: every stability mix lays out the same ring.
-  for (const count of [6, 9]) {
-    const rings = Object.values(mixes(count)).map(list => { const {spots} = ringFrame({...FRAME, entries: named(list, DESKTOP.width, DESKTOP.height)}); return [...spots.values()].map(spot => spot.position.map(v => +v.toFixed(9)).join()).sort(); });
-    for (const other of rings.slice(1)) assert.deepEqual(other, rings[0], `${count}: same ring for every mix`);
+    assert.deepEqual([...flankFrame({...WIDE, entries: discs}).spots], [...frame.spots], `${name}: deterministic`);
   }
 });
 
-test('the ring keeps the zoom corner and the kept-clear boxes free, pulling back only as far as it needs', () => {
-  const reserve = {width: .2, height: .06}, clear = [{left: 0, top: 0, right: .2, bottom: .06}, {left: 0, top: .97, right: .2, bottom: 1}, {left: .75, top: .97, right: 1, bottom: 1}];
+test('the flanks use all the room: columns spread to the canvas edge, rows over its full height', () => {
+  const discs = named(mixes(18).mixed, DESKTOP.width, DESKTOP.height), frame = flankFrame({...WIDE, entries: discs});
+  const reach = Math.max(DISC.radius * STAGE.map.scale, DESKTOP.width / 2), xs = [...frame.spots.values()].map(s => s.position[0]), ys = [...frame.spots.values()].map(s => s.position[1]);
+  assert.ok(Math.abs(Math.min(...xs) - (frame.region.xMin + reach - DISC.radius * STAGE.map.scale)) < 1e-9 && Math.abs(Math.max(...xs) - (frame.region.xMax - reach + DISC.radius * STAGE.map.scale)) < 1e-9, 'Outermost columns reach the edges');
+  assert.ok(Math.abs(Math.max(...ys) - frame.region.yMax) < 1e-9 && Math.min(...ys) - DESKTOP.height <= frame.region.yMin + 1e-9, 'Rows run from the top of the frame to its bottom');
+  assert.ok(frame.columns.length >= 4, 'Eighteen discs take two columns a side: ' + frame.columns.length);
+  // A few discs take one column a side, midway between the bag and the edge.
+  const six = flankFrame({...WIDE, entries: named(mixes(6).mixed, DESKTOP.width, DESKTOP.height)});
+  assert.equal(six.columns.length, 2);
+  for (const column of six.columns) assert.ok(Math.abs(column.x) > RING_BAG.xMax + .1, 'One column a side sits out in the room, not hugging the bag');
+});
+
+test('the flanks keep the panel strip, the zoom corner and the kept-clear boxes free, pulling back only as far as they need', () => {
+  const reserve = {width: .12, height: .08}, clear = [{left: 0, top: 0, right: .13, bottom: .08}, {left: 0, top: .96, right: .1, bottom: 1}, {left: .9, top: .96, right: 1, bottom: 1}];
   for (const count of [6, 8, 12, 16]) {
-    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = ringFrame({...FRAME, reserve, clear, entries: discs});
+    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = flankFrame({...WIDE, reserve, clear, entries: discs});
     const keep = frame.avoid.map(box => inflateBy(box, -DISC.radius * STAGE.map.scale));
-    assert.equal(keep.length, 1 + clear.length);
     for (const [key, spot] of frame.spots) for (const box of keep) assert.ok(!boxesOverlap(footBox(spot, DESKTOP, frame.pull), box), `${count}: ${key} clear of a kept-clear box`);
-    assert.ok(frame.pull >= 1 && frame.pull < 2.2, `${count}: pull ${frame.pull}`);
+    assert.equal(frame.pull, 1, `${count}: full-size bag with kept-clear boxes`);
   }
-  // Names cost room: the same discs pull back at least as far with them.
-  const discs = mixes(10).mixed;
-  assert.ok(ringFrame({...FRAME, entries: named(discs, PHONE.width, PHONE.height)}).pull >= ringFrame({...FRAME, entries: discs}).pull);
+  // A full-height strip at one side (a details panel over the canvas) is left empty.
+  const panel = {left: .75, top: 0, right: 1, bottom: 1}, discs = named(mixes(8).mixed, DESKTOP.width, DESKTOP.height);
+  const beside = flankFrame({...WIDE, clear: [panel], entries: discs}), w = WIDE.halfHeight * beside.pull * WIDE.aspect, strip = -w + 2 * w * panel.left;
+  for (const [key, spot] of beside.spots) assert.ok(footBox(spot, DESKTOP, beside.pull).xMax <= strip + 1e-9, `${key} keeps out of the panel strip`);
+  // A phone's narrow canvas has no room beside a full-size bag: it pulls back, names kept, below the named limit.
+  const phone = flankFrame({...NARROW, entries: named(mixes(8).mixed, PHONE.width, PHONE.height)});
+  assert.ok(phone.fits && phone.pull > 1 && phone.pull < 2.6, 'Phone pull ' + phone.pull);
   // A crowd whose names cannot fit says so (the viewer then shrinks the names or leaves them out),
-  // while the same discs without names always fit.
+  // while the same discs without names fit.
   const crowd = mixes(40).mixed;
-  assert.equal(ringFrame({...FRAME, entries: named(crowd, .2, .08)}).fits, false);
-  assert.equal(ringFrame({...FRAME, entries: crowd}).fits, true);
+  assert.equal(flankFrame({...NARROW, entries: named(crowd, .3, .12)}).fits, false);
+  assert.equal(flankFrame({...WIDE, entries: crowd}).fits, true);
 });

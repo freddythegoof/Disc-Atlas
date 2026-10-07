@@ -44,6 +44,19 @@ body[data-view="bag"] main {display:none!important}
 .bag-sort-bar {display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
 .bag-sort-bar select {min-height:44px;padding:10px 32px 10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
 .bag-sort-bar select:disabled {opacity:.6}
+/* Sorting saves to the account, so the demo bag keeps only the type buttons. */
+.bag-sort-bar[data-demo] :is(label[for="bagSort"],.dd-select,#bagSortHint) {display:none}
+/* Type buttons: each pulls out every disc of its type; pressed while they are all out. */
+.bag-type-out {display:flex;flex-wrap:wrap;gap:8px}
+.bag-type-out button {min-height:44px;padding:0 14px 0 27px;border:1px solid var(--line);border-radius:999px;background:radial-gradient(circle at 14px 50%,var(--chip-dot,var(--muted)) 3.5px,transparent 4.2px) no-repeat var(--surface);color:var(--muted);font:inherit;font-size:12px;cursor:pointer;transition:border-color .15s,color .15s}
+.bag-type-out button[data-type-out="distance"] {--chip-dot:var(--distance)}
+.bag-type-out button[data-type-out="fairway"] {--chip-dot:var(--fairway)}
+.bag-type-out button[data-type-out="mid"] {--chip-dot:var(--mid)}
+.bag-type-out button[data-type-out="putter"] {--chip-dot:var(--putter)}
+.bag-type-out button:hover:not(:disabled) {color:var(--text);border-color:var(--accent-edge,var(--lime))}
+.bag-type-out button[aria-pressed="true"] {color:var(--text);border-color:var(--accent-edge,var(--lime));background-color:var(--selected,var(--accent-soft));box-shadow:inset 0 0 0 1px var(--accent-edge,var(--lime))}
+.bag-type-out button:disabled {opacity:.45;cursor:default}
+.bag-type-out button:focus-visible {outline:2px solid var(--lime);outline-offset:2px}
 .bag-sort-bar>span:not(.dd-select) {margin-left:auto;line-height:1.6}
 .bag-ordered-list {margin-top:0}
 .bag-stability-field {border:0;margin:0 0 20px;padding:0;min-width:0;font-size:13px}
@@ -105,6 +118,10 @@ body[data-view="bag"] main {display:none!important}
 .bag-scene {position:relative;margin:4px auto 36px;isolation:isolate;--bag-width:680px;--bag-type:1.18}
 /* The 3D canvas re-renders at its displayed size; the cap keeps the whole bag inside the viewport height. */
 .bag-scene-canvas {position:relative;width:100%;max-width:min(var(--bag-width),100%,max(300px,calc((100dvh - 150px) * .8)));margin:auto;aspect-ratio:4/5}
+/* Any disc out: the canvas spans the page's free width (to the gutters, or to the details panel) at
+   its usual height, so the bag keeps its full size and the discs have the room beside it. The scene
+   sets the box (data-wide and the --bag-wide-* sizes). */
+.bag-scene[data-wide] .bag-scene-canvas {max-width:none;width:var(--bag-wide-width,100%);height:var(--bag-wide-height,auto);margin-left:var(--bag-wide-left,auto)}
 .bag-3d-stage {position:absolute;inset:0}
 /* Vertical swipes scroll the page; a pinch anywhere on the bag (discs included) zooms it, not the page. */
 .bag-scene-canvas {touch-action:pan-y}

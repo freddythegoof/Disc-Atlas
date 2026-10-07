@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures } from './disc-features.mjs';
-import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, assignSides, sideSpots, ringFrame, ringLayout } from './bag-layout.mjs';
+import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, assignSides, sideSpots, flankFrame } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -205,8 +205,10 @@ export async function mountBag(container, {
     renderer.setSize(Math.max(container.clientWidth, 1), Math.max(container.clientHeight, 1), false);
     motionRatio = ratio !== fullRatio;
   };
+  let sized = { width: 0, height: 0 };
   const resize = () => {
     const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
+    sized = { width, height };
     fullRatio = Math.max(.5, Math.min(devicePixelRatio, low ? 1 : 2, Math.sqrt(maxPixels / (width * height))));
     renderer.setPixelRatio(fullRatio);
     motionRatio = false;
@@ -566,6 +568,9 @@ export async function mountBag(container, {
   const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), compact = null, reserve, clear = [], instant = !active } = {}) => {
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
+    // The page may have just resized the canvas for this mode (a ring widens it): catch up now
+    // rather than on the next resize observation, so the ring is laid out for the canvas it gets.
+    if (container.clientWidth !== sized.width || container.clientHeight !== sized.height) resize();
     const mode = stageMode(keys.length);
     const home = homeCamera(), halfHeight = home.position.distanceTo(home.target) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     // Names in the bag's meters at the page view, measured at the target's depth with a tenth to
@@ -587,23 +592,30 @@ export async function mountBag(container, {
       }
     }
     if (mode === 'map') {
-      // The ring's frame estimates the pull-back; pullToFit projects for real. If that pulls back
-      // further, the names grow in the scene's meters, so the ring is laid out again for it.
-      const plan = sizes => {
-        const list = entriesFor(sizes), frame = ringFrame({ aspect: camera.aspect, halfHeight, centerY: home.target.y, reserve, clear, edge: (FRAME_MARGIN + 2) * unit, entries: list });
-        let { spots: planned, ring: shape } = frame, fit = pullToFit(planned, sizes, reserve, clear);
-        for (let guess = frame.pull, i = 0; i < 4 && fit > guess + 1e-3; i++) {
-          guess = fit;
-          ({ spots: planned, ring: shape } = ringLayout(list, { pull: guess, center: [0, home.target.y], ratio: frame.ratio }));
-          fit = pullToFit(planned, sizes, reserve, clear);
+      // The discs flank the bag in columns that fill the free canvas, and the camera stays at the page
+      // view, so the bag keeps its size. The frame works in estimated meters; pullToFit projects for
+      // real, and where the two disagree the columns draw in a little rather than the camera pulling back.
+      // The discs stand a little in front of the target, so the view there is a little smaller.
+      const distance = home.position.distanceTo(home.target), discHalfHeight = halfHeight * (distance - STAGE.map.z * (home.position.z - home.target.z) / distance) / distance;
+      const plan = (sizes, maxPull) => {
+        const base = { aspect: camera.aspect, halfHeight: discHalfHeight, centerY: home.target.y, reserve, clear, edge: (FRAME_MARGIN + 2) * unit, entries: entriesFor(sizes), maxPull };
+        let frame = flankFrame(base), fit = pullToFit(frame.spots, sizes, reserve, clear);
+        for (let i = 0; i < 24 && frame.fits && fit > frame.pull + 1e-6 && frame.fill > .32; i++) {
+          frame = flankFrame({ ...base, fill: frame.fill - .02 });
+          fit = pullToFit(frame.spots, sizes, reserve, clear);
         }
-        return { spots: planned, ring: shape, goal: fit, fits: frame.fits && fit <= (sizes.size ? NAMED_PULL : STAGE.map.maxPull) };
+        return { spots: frame.spots, ring: { columns: frame.columns }, goal: fit, fits: frame.fits && fit <= maxPull + 1e-3 };
       };
-      let best = plan(labels);
-      if (!best.fits && compact) { best = plan(compact); names = 'compact'; }
-      if (!best.fits) { best = plan(new Map()); names = 'none'; }
+      // Full names at the page view, then compact ones; only then pull back (keeping names), and
+      // last of all leave the names out.
+      const tries = [[labels, 'full', 1], [compact, 'compact', 1], [labels, 'full', NAMED_PULL], [compact, 'compact', NAMED_PULL], [new Map(), 'none', STAGE.map.maxPull]];
+      let best = null;
+      for (const [sizes, kind, maxPull] of tries) {
+        if (!sizes) continue;
+        best = plan(sizes, maxPull); names = kind;
+        if (best.fits) break;
+      }
       ({ spots, ring, goal } = best);
-      ring = { ...ring, angles: Object.fromEntries([...spots].map(([key, spot]) => [key, spot.angle])) };
     }
     if (mode !== 'side') sides = new Map();
     if (mode !== 'map') ring = null;

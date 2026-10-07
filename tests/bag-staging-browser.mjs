@@ -7,9 +7,12 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE ||
 // Out discs on My Bag (Oct 6): a click slides a disc out and it stays out until clicked again,
 // each disc on its own. One to five rest beside the bag, split relative to each other (the less
 // overstable half left, the more overstable half right, even for a bag that leans one way);
-// the sixth turns on map mode, where the out discs spread evenly on a ring around the bag (even
-// angles, in stability order clockwise from the lower left), on the Stitch grid; back to five
-// returns to the sides. A Return all button, shown while any disc is out, stows them all at once.
+// the sixth turns on map mode, where the out discs flank the bag in columns that fill the free
+// canvas (more turn left, more fade right, outermost the most extreme, faster higher), on the
+// Stitch grid; back to five returns to the sides. With any disc out the canvas spans the page's
+// free width (to the details panel when it shows) at its usual height, so the bag keeps its full
+// size. A Return all button, shown while any disc is out, stows them all at once. Type buttons
+// beside the sort pull out every disc of one type and put them back.
 // The same grid sits under the main atlas in every theme. Every out disc shows its name in both
 // layouts (a phone crowd too big for names keeps them on hover and focus), clear of the bag, the
 // discs, the other names, the zoom buttons, the return button and the map's captions. Runs on
@@ -42,13 +45,13 @@ try {
  const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
  const scene=page.locator('#bagScene'),detail=page.locator('#detail'),slot=id=>page.locator(`[data-physical-disc="${id}"]`),nameOf=id=>page.locator(`[data-out-name="${id}"]`);
  const setTheme=theme=>page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);
- const settled=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene'),v=s.querySelector('[data-bag-canvas]').bagViewer;return !v.stage.moving && (s.dataset.staging===undefined || s.dataset.staging==='still');},null,{timeout:15000});
+ const settled=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene'),v=s.querySelector('[data-bag-canvas]').bagViewer;return !v.stage.moving && (s.dataset.staging===undefined || s.dataset.staging==='still') && !s.querySelector('[data-bag-canvas]').getAnimations().length;},null,{timeout:15000});
  const outIds=()=>viewer(v=>v.outDiscs);
  const canvasBox=()=>page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));
  const local=locator=>locator.evaluate(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};});
  const shot=async(name,target=page.locator('[data-bag-canvas]'))=>{await page.evaluate(()=>{document.activeElement?.blur?.();return document.fonts.ready;});await page.waitForTimeout(350);await target.screenshot({path:`${dir}/${name}.png`});shots.push(name);};
  // A click that leaves no details open, so the next disc is never under the phone's bottom sheet.
- const toggle=async id=>{await slot(id).click();await settled();if(await detail.isVisible()){await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});}await page.mouse.move(2,2);};
+ const toggle=async id=>{await slot(id).click();await settled();if(await detail.isVisible()){await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await page.waitForTimeout(60);await settled();}await page.mouse.move(2,2);};
  const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.engine==='ready' && s.dataset.phase==='open';},null,{timeout:30000});await scene.scrollIntoViewIfNeeded();await page.mouse.move(2,2);};
  // Each demo disc's Atlas position, the same AtlasLayout.positions the map uses.
  const atlasOf=()=>page.evaluate(async()=>{const {DEMO_DISCS}=await import('/bag-demo.js');return Object.fromEntries(DEMO_DISCS.map(item=>{const mold=discs.find(d=>d.id===item.mold_id),p=mold && window.AtlasLayout.positions([mold]).get(mold.id);return [item.id,p?{x:p.x,y:p.y,name:mold.catalogName||mold.name}:null];}));});
@@ -213,36 +216,36 @@ try {
   await layoutChecks(`${out.length} out`);
  }
  metrics.sidePull=await viewer(v=>v.stage.pull);
- assert.ok(metrics.sidePull>=1 && metrics.sidePull<1.4,'The bag stays near full size beside five discs: pull '+metrics.sidePull);
+ assert.equal(metrics.sidePull,1,'The bag keeps its full size beside five discs: pull '+metrics.sidePull);
  const sideNames=await page.locator('[data-out-name][data-shown]').count();assert.equal(sideNames,5,'Every disc beside the bag shows its name');
  await shot('side-5-1440-midnight');
  check(`1–5 out: beside the bag, balanced, every left disc less stable than every right disc, names shown, nothing overlapping; camera pulled back only to ${metrics.sidePull.toFixed(2)}×`);
 
- // Map mode is an even ring: each out disc's angle (as seen from the ring's center) is one even
- // step from the next, in stability order clockwise from just left of the bottom (most turn) up,
- // over the top and down to just right of the bottom (most fade). Checked exactly in the ring's
- // own state and, as drawn, from the discs' screen positions.
- const ringOrderOf=ids=>ids.map((id,i)=>({id,i})).sort((p,q)=>(atlas[p.id]?.x ?? .5)-(atlas[q.id]?.x ?? .5)||p.i-q.i).map(o=>o.id);
- const ringChecks=async label=>{
-  const st=await viewer(v=>v.stage),out=await outIds(),n=out.length,step=2*Math.PI/n,order=ringOrderOf(out);
-  assert.equal(st.mode,'map',`${label}: map mode`);assert.ok(st.ring,`${label}: a ring`);
-  order.forEach((id,rank)=>assert.ok(Math.abs(st.ring.angles[id]-(-Math.PI/2-(rank+.5)*step))<1e-9,`${label}: ${atlas[id]?.name} at even angle ${rank} of ${n}`));
-  // As drawn: angles clockwise from straight down around the ring's center (where the disc centers' ring is).
-  const state=await viewer(v=>v.getBagLayoutState().filter(d=>d.out)),spot=Object.fromEntries(state.map(d=>[d.id,d.spot]));
-  const {center,a,b}=st.ring,first=order[0],t=st.ring.angles[first],r=a*b/Math.hypot(b*Math.cos(t),a*Math.sin(t)),lift=spot[first][1]-center[1]-r*Math.sin(t);
-  const hub=await viewer((v,p)=>v.projectPoint(p),[center[0],center[1]+lift,spot[first][2]]);
+ // Map mode flanks the bag: the out discs split relative to each other (less overstable half
+ // left, more overstable half right) into columns beside it, the outermost column the most
+ // extreme, faster discs higher in each. Checked in the layout's own state and as drawn.
+ const flankChecks=async label=>{
+  const st=await viewer(v=>v.stage),out=await outIds(),n=out.length,x=id=>atlas[id]?.x ?? .5,y=id=>atlas[id]?.y ?? .5;
+  assert.equal(st.mode,'map',`${label}: map mode`);assert.ok(st.ring?.columns?.length,`${label}: columns`);
+  const columns=st.ring.columns;
+  assert.deepEqual(columns.flatMap(c=>c.keys).sort(),[...out].sort(),`${label}: every out disc in one column`);
   const rects=Object.fromEntries((await viewer(v=>v.discRects())).filter(d=>d.out).map(d=>[d.id,{x:d.left+d.width/2,y:d.top+d.height/2}]));
-  const turn=id=>{const p=rects[id];return ((Math.atan2(-(p.x-hub.x),p.y-hub.y)%(2*Math.PI))+2*Math.PI)%(2*Math.PI);};
-  const turns=order.map(turn),drawnOrder=[...order].sort((p,q)=>turn(p)-turn(q));
-  assert.deepEqual(drawnOrder,order,`${label}: drawn clockwise from the bottom in stability order `+JSON.stringify(order.map(id=>[atlas[id]?.name,(atlas[id]?.x??.5).toFixed(2),(turn(id)*180/Math.PI).toFixed(0)])));
-  const gaps=turns.map((v,i)=>((turns[(i+1)%n]-v)+2*Math.PI)%(2*Math.PI)),spacing=order.map((id,i)=>{const p=rects[id],q=rects[order[(i+1)%n]];return Math.hypot(p.x-q.x,p.y-q.y);});
-  const evenness={gapMin:+(Math.min(...gaps)/step).toFixed(2),gapMax:+(Math.max(...gaps)/step).toFixed(2),spacingRatio:+(Math.max(...spacing)/Math.min(...spacing)).toFixed(2)};
-  assert.ok(evenness.gapMin>=.75 && evenness.gapMax<=1.3,`${label}: even angles as drawn ${JSON.stringify(evenness)}`);
-  assert.ok(evenness.spacingRatio<=1.8,`${label}: a fairly even spread ${JSON.stringify(evenness)}`);
-  // The less overstable half of the arc on the left of the bag, the more overstable half on the right.
-  const mid=(await viewer(v=>v.bagRect())),bagX=mid.left+mid.width/2;
-  order.forEach((id,rank)=>{if(n%2 && rank===(n-1)/2)return;assert.equal(Math.sign(rects[id].x-bagX),rank<n/2?-1:1,`${label}: ${atlas[id]?.name} on its half of the arc`);});
-  metrics[label]={count:n,names:st.names,pull:+st.pull.toFixed(2),...evenness};
+  const bag=await viewer(v=>v.bagRect());
+  const left=columns.filter(c=>c.side==='left').flatMap(c=>c.keys),right=columns.filter(c=>c.side==='right').flatMap(c=>c.keys);
+  assert.ok(Math.abs(left.length-right.length)<=1,`${label}: balanced ${left.length}/${right.length}`);
+  if(left.length && right.length)assert.ok(Math.max(...left.map(x))<=Math.min(...right.map(x)),`${label}: more turn left, more fade right`);
+  for(const id of left)assert.ok(rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
+  for(const id of right)assert.ok(rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
+  for(const side of ['left','right']){
+   const cols=columns.filter(c=>c.side===side);
+   for(let i=1;i<cols.length;i++){
+    const outer=cols[i-1].keys.map(x),inner=cols[i].keys.map(x),further=side==='left'?rects[cols[i-1].keys[0]].x<rects[cols[i].keys[0]].x:rects[cols[i-1].keys[0]].x>rects[cols[i].keys[0]].x;
+    assert.ok(side==='left'?Math.max(...outer)<=Math.min(...inner):Math.min(...outer)>=Math.max(...inner),`${label}: ${side} outer column the more extreme`);
+    assert.ok(further,`${label}: ${side} outer column drawn further out`);
+   }
+   for(const c of cols)for(let i=1;i<c.keys.length;i++)assert.ok(rects[c.keys[i-1]].y<rects[c.keys[i]].y && y(c.keys[i-1])>=y(c.keys[i]),`${label}: faster discs higher`);
+  }
+  metrics[label]={count:n,names:st.names,pull:+st.pull.toFixed(2),columns:columns.map(c=>c.side[0]+c.keys.length).join(' ')};
   return st;
  };
  // Puts the given discs out (and every other one back), by a direct click on each; Escape closes the details.
@@ -251,7 +254,7 @@ try {
   for(const id of out)if(!ids.includes(id))await slot(id).evaluate(n=>n.click());
   for(const id of ids)if(!out.includes(id))await slot(id).evaluate(n=>n.click());
   await settled();if(await detail.isVisible()){await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});}
-  await page.mouse.move(2,2);await settled();
+  await page.mouse.move(2,2);await page.waitForTimeout(60);await settled();
   assert.deepEqual([...await outIds()].sort(),[...ids].sort());
  };
  const returnButton=page.locator('.bag-return-all');
@@ -268,20 +271,30 @@ try {
  // 4. The sixth turns on map mode: every out disc spreads evenly around the bag.
  await startSampling();
  await toggle(mains[12]);
- smooth(await stopSampling(),'5 → 6 (ring)');
+ smooth(await stopSampling(),'5 → 6 (map)');
  let st=await viewer(v=>v.stage);assert.equal(st.mode,'map');assert.equal(await scene.getAttribute('data-stage'),'map');assert.equal(await scene.getAttribute('data-out'),'6');
- await ringChecks('ring 6 (1440, from the sides)');await layoutChecks('ring 6');
+ await flankChecks('map 6 (1440, from the sides)');await layoutChecks('map 6');
  for(const id of [mains[2],mains[7]])await toggle(id);
- await ringChecks('ring 8 (1440)');await layoutChecks('ring 8');
+ await flankChecks('map 8 (1440)');await layoutChecks('map 8');
  st=await viewer(v=>v.stage);metrics.mapPull=st.pull;
- assert.ok(st.pull>=1 && st.pull<1.7,'The bag stays roughly full size around the ring: pull '+st.pull);
- assert.equal(st.names,'full','Every name shows on a desktop ring of eight');
- assert.ok(await page.locator('.bag-map-grid').evaluate(n=>getComputedStyle(n).opacity==='1'),'The Stitch grid shows under the ring');
- assert.equal(await page.locator('.bag-map-caption').allInnerTexts().then(t=>t.join('|')),'← MORE TURN|STRONGER FADE →','The arc runs from more turn to stronger fade; no speed caption');
- // Toggling works in map mode too, and the ring re-spaces evenly.
- await toggle(mains[2]);assert.equal((await outIds()).length,7);await ringChecks('ring 7 (1440)');
+ assert.equal(st.pull,1,'The bag keeps its full size beside eight discs: pull '+st.pull);
+ assert.equal(st.names,'full','Every name shows on a desktop map of eight');
+ const wide=await page.locator('[data-bag-canvas]').evaluate(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,height:r.height,page:document.documentElement.clientWidth};});
+ assert.ok(wide.left<=24.5 && wide.right>=wide.page-24.5,'The canvas spans the page to its gutters: '+JSON.stringify(wide));
+ assert.ok(await page.locator('.bag-map-grid').evaluate(n=>getComputedStyle(n).opacity==='1'),'The Stitch grid shows under the map');
+ assert.equal(await page.locator('.bag-map-caption').allInnerTexts().then(t=>t.join('|')),'← MORE TURN|STRONGER FADE →','The sides run from more turn to stronger fade; no speed caption');
+ // Toggling works in map mode too, and the columns re-spread.
+ await toggle(mains[2]);assert.equal((await outIds()).length,7);await flankChecks('map 7 (1440)');
  await toggle(mains[2]);assert.equal((await outIds()).length,8);
- check(`6th out: map mode is an even ring around the bag (angles exactly 360°/n apart, drawn within ${metrics['ring 8 (1440)'].gapMin}–${metrics['ring 8 (1440)'].gapMax}× of a step, neighbor spacing ratio ${metrics['ring 8 (1440)'].spacingRatio}), stability order clockwise from the lower left; none on the bag, none overlapping, every name shown; bag at pull ${metrics.mapPull.toFixed(2)}×; toggles re-space the ring`);
+ // With the details panel open the canvas ends at the panel and the bag slides over, still full size.
+ await nameOf(mains[2]).click();await detail.waitFor({state:'visible'});await settled();await page.waitForTimeout(450);
+ const beside=await page.evaluate(()=>{const c=document.querySelector('[data-bag-canvas]').getBoundingClientRect(),d=document.querySelector('#detail');return {right:c.right,panel:d.offsetLeft};});
+ assert.ok(beside.right<=beside.panel,'The canvas ends at the details panel: '+JSON.stringify(beside));
+ st=await viewer(v=>v.stage);assert.ok(st.pull<=1.0001,'Full-size bag with the panel open: pull '+st.pull);
+ await flankChecks('map 8 with details (1440)');await layoutChecks('map 8 with details');await shot('map-8-details-1440-midnight',page);
+ await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await settled();await page.waitForTimeout(450);
+ assert.ok(await page.locator('[data-bag-canvas]').evaluate(n=>n.getBoundingClientRect().right>=document.documentElement.clientWidth-24.5),'Closing the panel gives the room back');
+ check(`6th out: map mode flanks the full-size bag (pull ${metrics.mapPull.toFixed(2)}×) on a canvas the page's width, in columns (${metrics['map 8 (1440)'].columns}): more turn left, more fade right, outermost the most extreme, faster higher; none on the bag, none overlapping, every name shown; toggles re-spread; with the details open the canvas ends at the panel and the bag stays full size`);
 
  // 5. Back to five: a smooth glide back to the sides, no popping; then 5 → 6 again.
  await toggle(mains[2]);await toggle(mains[7]);
@@ -300,7 +313,7 @@ try {
  const sawMoving=await page.evaluate(()=>new Promise(resolve=>{const s=document.querySelector('#bagScene'),seen=[];const o=new MutationObserver(()=>seen.push(s.dataset.staging));o.observe(s,{attributes:true,attributeFilter:['data-staging']});document.querySelector(`[data-physical-disc="${s.querySelector('[aria-pressed="true"]').dataset.physicalDisc}"]`).click();setTimeout(()=>{o.disconnect();resolve(seen);},1600);}));
  assert.deepEqual([sawMoving[0],sawMoving.at(-1)],['moving','still'],'Staging goes moving → still');
  await settled();await page.keyboard.press('Escape').catch(()=>{});
- check(`Threshold both ways: 5→6 and 6→5 (twice) glide frame by frame with no pops (largest disc step ${metrics['5 → 6 (ring)'].worstStep}/${metrics['6 → 5 (side)'].worstStep} m, camera ${metrics['5 → 6 (ring)'].worstPullStep}/${metrics['6 → 5 (side)'].worstPullStep} per frame); back at five the camera returns to the side framing; names hide while moving`);
+ check(`Threshold both ways: 5→6 and 6→5 (twice) glide frame by frame with no pops (largest disc step ${metrics['5 → 6 (map)'].worstStep}/${metrics['6 → 5 (side)'].worstStep} m, camera ${metrics['5 → 6 (map)'].worstPullStep}/${metrics['6 → 5 (side)'].worstPullStep} per frame); back at five the camera returns to the side framing; names hide while moving`);
 
  // 6. Return all: shown while any disc is out, it stows every out disc at once with the slide-in feel.
  await stageSet([]);
@@ -320,10 +333,10 @@ try {
  // Map mode, by click, with the details of one out disc open: every disc slides back together.
  await stageSet(sets['mixed-8']);await nameOf(sets['mixed-8'][3]).click();await detail.waitFor({state:'visible'});
  assert.equal(await returnButton.getAttribute('aria-label'),'Return all 8 out discs to the bag');
- await shot('ring-8-return-button-1440-midnight');
+ await shot('map-8-return-button-1440-midnight');
  await startSampling();const pressed=Date.now();
  await returnButton.click();await settled();const tookAll=Date.now()-pressed;
- const stowSamples=await stopSampling();smooth(stowSamples,'return all 8 (ring → bag)');
+ const stowSamples=await stopSampling();smooth(stowSamples,'return all 8 (map → bag)');
  await detail.waitFor({state:'hidden'});
  assert.deepEqual(await outIds(),[],'Every disc is back');
  assert.equal(await scene.getAttribute('data-stage'),null);assert.equal(await scene.getAttribute('data-out'),null);
@@ -346,18 +359,53 @@ try {
  await page.keyboard.press('Escape').catch(()=>{});
  metrics.returnAll={allMs:tookAll,oneMs:tookOne,startSpreadMs:Math.round(Math.max(...starts)-Math.min(...starts)),endSpreadMs:Math.round(Math.max(...ends)-Math.min(...ends))};
  assert.ok(tookAll<tookOne*1.6+400,`Return all takes about as long as one disc going home (${tookAll} vs ${tookOne} ms)`);
- check(`Return all: hidden with nothing out, "Return all n" from one disc up; Enter or click stows every out disc at once (side and ring), closes the details, brings the camera home and moves focus to the bag toggle; eight discs leave within ${metrics.returnAll.startSpreadMs} ms and land within ${metrics.returnAll.endSpreadMs} ms of each other, each sliding steadily (${tookAll} ms vs ${tookOne} ms for one disc)`);
+ check(`Return all: hidden with nothing out, "Return all n" from one disc up; Enter or click stows every out disc at once (side and map), closes the details, brings the camera home and moves focus to the bag toggle; eight discs leave within ${metrics.returnAll.startSpreadMs} ms and land within ${metrics.returnAll.endSpreadMs} ms of each other, each sliding steadily (${tookAll} ms vs ${tookOne} ms for one disc)`);
 
- // 7. Screenshots: the ring with various counts and stability mixes, in all three themes.
+ // 6b. Type buttons: each pulls out every disc of its type (as the Atlas types it) and puts them back.
+ await stageSet([]);
+ const typeButton=type=>page.locator(`[data-type-out="${type}"]`);
+ const ofType=type=>page.evaluate(type=>{const scene=document.querySelector('#bagScene'),ids=[...scene.querySelectorAll('[data-physical-disc]')].map(n=>n.dataset.physicalDisc);
+  return ids.filter(id=>{const disc=scene.querySelector(`[data-physical-disc="${id}"]`).bagItem,mold=discs.find(d=>d.id===disc.mold_id);return mold && typeOf(mold)===type;});},type);
+ const typed={};for(const type of ['distance','fairway','mid','putter'])typed[type]=await ofType(type);
+ assert.ok(Object.values(typed).every(ids=>ids.length>0),'The demo bag has all four types: '+JSON.stringify(Object.fromEntries(Object.entries(typed).map(([k,v])=>[k,v.length]))));
+ for(const type of Object.keys(typed))assert.equal(await typeButton(type).getAttribute('aria-pressed'),'false');
+ await typeButton('distance').click();await settled();
+ assert.deepEqual([...await outIds()].sort(),[...typed.distance].sort(),'Distance pulls out every distance driver');
+ assert.equal(await typeButton('distance').getAttribute('aria-pressed'),'true');
+ assert.equal(await viewer(v=>v.stage.pull),1,'Full-size bag');
+ await typeButton('fairway').click();await settled();
+ assert.deepEqual([...await outIds()].sort(),[...typed.distance,...typed.fairway].sort(),'Fairway adds every fairway driver');
+ await flankChecks('types distance + fairway (1440)');await layoutChecks('types distance + fairway');await shot('types-distance-fairway-1440-midnight',page);
+ await typeButton('distance').click();await settled();
+ assert.deepEqual([...await outIds()].sort(),[...typed.fairway].sort(),'A second click puts the distance drivers back and leaves the fairways out');
+ assert.equal(await typeButton('distance').getAttribute('aria-pressed'),'false');assert.equal(await typeButton('fairway').getAttribute('aria-pressed'),'true');
+ // A disc out on its own counts toward its type; returning the type returns it too.
+ await toggle(typed.mid[0]);
+ await typeButton('mid').click();await settled();{const out=await outIds();assert.ok(typed.mid.every(id=>out.includes(id)),'Mid pulls out the rest of the midranges');}
+ assert.equal(await typeButton('mid').getAttribute('aria-pressed'),'true');
+ await typeButton('mid').click();await settled();assert.ok((await outIds()).every(id=>!typed.mid.includes(id)),'Mid goes back, including the one out on its own');
+ // With the bag closed, a type button opens it first (putters too).
+ await returnButton.click();await settled();await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');
+ await typeButton('putter').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open' && document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length>0,null,{timeout:15000});await settled();
+ assert.equal(await scene.getAttribute('data-phase'),'open','The bag opens for a type button');
+ assert.deepEqual([...await outIds()].sort(),[...typed.putter].sort(),'Putter pulls out every putter');
+ await returnButton.click();await settled();
+ for(const type of Object.keys(typed))assert.equal(await typeButton(type).getAttribute('aria-pressed'),'false','Return all releases every type');
+ check(`Type buttons: Distance, Fairway, Midrange and Putter each pull out every disc of that type (${Object.entries(typed).map(([k,v])=>`${k} ${v.length}`).join(', ')}) and put them back on a second click, leaving other out discs out; pressed while all of a type are out; a closed bag opens first; the bag stays full size`);
+
+ // 7. Screenshots: the map with various counts and stability mixes, in all three themes.
  const themeShots=async name=>{for(const theme of ['midnight','light','charcoal']){await setTheme(theme);await page.waitForTimeout(250);await layoutChecks(`${name} ${theme}`);await shot(`${name}-${theme}`);}};
  for(const [name,ids] of Object.entries(sets)){
-  await stageSet(ids);await ringChecks(`ring ${name} (1440)`);await layoutChecks(`ring ${name} (1440)`);
-  await themeShots(`ring-${name}-1440`);
+  await stageSet(ids);await flankChecks(`map ${name} (1440)`);await layoutChecks(`map ${name} (1440)`);
+  assert.equal(metrics[`map ${name} (1440)`].pull,1,`${name}: full-size bag`);
+  await themeShots(`map-${name}-1440`);
  }
- assert.ok(['mixed-6','overstable-8','understable-8','mixed-8','mixed-12','all'].every(k=>metrics[`ring ${k} (1440)`].names==='full'),'Every name shows on desktop rings up to all eighteen');
- check(`Desktop rings (1440): ${Object.keys(sets).map(k=>`${k} pull ${metrics[`ring ${k} (1440)`].pull}× gaps ${metrics[`ring ${k} (1440)`].gapMin}–${metrics[`ring ${k} (1440)`].gapMax}`).join('; ')}; every mix spreads evenly with every name; midnight, light and charcoal`);
+ assert.ok(['mixed-6','overstable-8','understable-8','mixed-8','mixed-12'].every(k=>metrics[`map ${k} (1440)`].names==='full'),'Every full name shows on desktop maps up to twelve');
+ // Compact names before a smaller bag: all eighteen keep the bag at full size with every name shown.
+ assert.notEqual(metrics['map all (1440)'].names,'none','Every name shows on a desktop map of all eighteen');
+ check(`Desktop maps (1440): ${Object.keys(sets).map(k=>`${k} columns ${metrics[`map ${k} (1440)`].columns}`).join('; ')}; full-size bag and every name for every mix (all eighteen in the compact style: ${metrics['map all (1440)'].names}); midnight, light and charcoal`);
 
- // 8. Phone: side layout and the ring inside a 360 px canvas.
+ // 8. Phone: side layout and the map inside a 360 px canvas.
  await stageSet([]);await setTheme('light');
  await page.setViewportSize({width:360,height:800});await openBag();
  for(const id of [mains[0],goto,mains[9]])await toggle(id);
@@ -367,22 +415,22 @@ try {
  await sideCheck(leaning,'phone overstable 5');await shot('side-overstable-5-360-light');
  const phoneSets={'mixed-6':sets['mixed-6'],'overstable-8':sets['overstable-8'],'understable-8':sets['understable-8'],'mixed-10':spread(ranked,10),'mixed-12':sets['mixed-12'],'all':sets.all};
  for(const [name,ids] of Object.entries(phoneSets)){
-  await stageSet(ids);await ringChecks(`ring ${name} (360)`);await layoutChecks(`ring ${name} (360)`);
-  await themeShots(`ring-${name}-360`);
+  await stageSet(ids);await flankChecks(`map ${name} (360)`);await layoutChecks(`map ${name} (360)`);
+  await themeShots(`map-${name}-360`);
  }
- // A crowd too big for names on a phone ring keeps every disc clean and names on focus.
- const crowd=Object.keys(phoneSets).filter(k=>metrics[`ring ${k} (360)`].names==='none');
+ // A crowd too big for names on a phone map keeps every disc clean and names on focus.
+ const crowd=Object.keys(phoneSets).filter(k=>metrics[`map ${k} (360)`].names==='none');
  if(crowd.length){
   await stageSet(phoneSets[crowd.at(-1)]);const id=phoneSets[crowd.at(-1)][0];
   assert.equal(await scene.getAttribute('data-names'),'none');
   await slot(id).focus();await page.locator('.bag-hover-name').waitFor({state:'visible'});
-  assert.equal(await page.locator('.bag-hover-name').innerText(),atlas[id].name,'Focus names a disc on a crowded ring');
+  assert.equal(await page.locator('.bag-hover-name').innerText(),atlas[id].name,'Focus names a disc on a crowded map');
   await page.mouse.move(2,2);await slot(id).blur();
  }
- assert.ok(['mixed-6','overstable-8','understable-8'].every(k=>metrics[`ring ${k} (360)`].names==='full'),'Every name shows on phone rings up to eight');
+ assert.ok(['mixed-6','overstable-8','understable-8'].every(k=>metrics[`map ${k} (360)`].names==='full'),'Every name shows on phone maps up to eight');
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal scroll on a phone');
- await page.setViewportSize({width:1440,height:1000});await setTheme('light');await stageSet(sets['mixed-8']);await layoutChecks('desktop ring after resize');await ringChecks('ring after resize (1440)');
- check(`Phone (360 px): side layout (also the overstable-leaning five) and the ring fit the canvas, clear of the bag, discs, names, zoom, the return button and the captions; ${Object.keys(phoneSets).map(k=>`${k} pull ${metrics[`ring ${k} (360)`].pull}× names ${metrics[`ring ${k} (360)`].names}`).join('; ')}; a crowd too big for names keeps them on focus; restaged on resize`);
+ await page.setViewportSize({width:1440,height:1000});await setTheme('light');await stageSet(sets['mixed-8']);await layoutChecks('desktop map after resize');await flankChecks('map after resize (1440)');
+ check(`Phone (360 px): side layout (also the overstable-leaning five) and the map fit the canvas, clear of the bag, discs, names, zoom, the return button and the captions; ${Object.keys(phoneSets).map(k=>`${k} pull ${metrics[`map ${k} (360)`].pull}× names ${metrics[`map ${k} (360)`].names}`).join('; ')}; a crowd too big for names keeps them on focus; restaged on resize`);
 
  // 9. Reduced motion stages instantly, return all included.
  await page.emulateMedia({reducedMotion:'reduce'});

@@ -95,7 +95,7 @@ function render() {
  $('#bagSort').value=settings.sort_mode || 'speed';$('#bagSort').disabled=loading || !!loadError || ordering;
  $('#bagSortHint').textContent=settings.sort_mode==='custom'?'Drag the grip, or use Move earlier / later.':settings.sort_mode==='stability'?'Most stable first · shared atlas index':'Fastest first · stability within each speed';
  $('#bagScene').hidden=!shown || loading || !!loadError || mapOpen;
- $('#myBagViews').hidden=!signedIn;$('.bag-sort-bar').hidden=mapOpen || demo;
+ $('#myBagViews').hidden=!signedIn;$('.bag-sort-bar').hidden=mapOpen;$('.bag-sort-bar').toggleAttribute('data-demo',!!demo);
  for(const button of $('#myBagViews').querySelectorAll('[data-bag-view]')){const on=(button.dataset.bagView==='map')===mapOpen;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
  $('#myBagContents').hidden||=mapOpen;$('#myMapPanel').hidden=!signedIn || loading || !!loadError || !mapOpen;syncMyMap();
  $('#bagSlotMeter').textContent=`${count} / ${settings.capacity}`;
