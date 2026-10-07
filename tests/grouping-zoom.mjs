@@ -236,7 +236,7 @@ export async function checkLowZoomLabels(browser,base){
     if(points.length){
      const [a,b]=points,w=mapViewport.width,h=mapViewport.height;
      const grid=points.length===2&&((a.x===31&&b.x===w-16&&a.y===b.y)||
-      (a.x===b.x&&a.y===82&&b.y===h-110));
+      (a.x===b.x&&a.y===0&&b.y===h));
      if(!grid)leaders++;
     }
     return original.stroke.apply(this,args);

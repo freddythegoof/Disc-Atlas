@@ -58,7 +58,7 @@ try {
  await shot('map-landing-1440-light');
  await overview();
  const wide=await coverage();metrics.map1440=wide;
- assert.equal(Math.round(wide.largeSize),62,'Large disc art is 62px (was 54)');
+ assert.equal(Math.round(wide.largeSize),68,'Large disc art is 68px (was 62)');
  assert.ok(wide.left<70 && wide.right<70,'Discs reach close to both sides at 1440: '+JSON.stringify(wide));
  assert.ok(wide.top<40,'Discs start just under the search bar at 1440: '+JSON.stringify(wide));
  assert.ok(wide.bottom<90 && wide.overlaps===0,'Discs reach down toward the axis legend without covering it: '+JSON.stringify(wide));
@@ -72,7 +72,7 @@ try {
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{measureMap();});await setTheme('light');
  assert.ok(await page.locator('#atlasLens').isHidden(),'Signed out: no bag lens');
  assert.ok(await page.locator('#siteMenu [data-map-choice="mine"]').evaluate(n=>!!n.closest('[hidden]')),'Signed out: no Default map setting');
- check(`1x map: 62px disc art; discs within ${Math.round(wide.left)}/${Math.round(wide.right)}px of the sides, ${Math.round(wide.top)}px under the search bar, ${Math.round(wide.bottom)}px above the legend at 1440 (${wide.large} named leads); phone ${Math.round(narrow.left)}/${Math.round(narrow.right)}/${Math.round(narrow.top)}/${Math.round(narrow.bottom)}px`);
+ check(`1x map: 68px disc art; discs within ${Math.round(wide.left)}/${Math.round(wide.right)}px of the sides, ${Math.round(wide.top)}px under the search bar, ${Math.round(wide.bottom)}px above the legend at 1440 (${wide.large} named leads); phone ${Math.round(narrow.left)}/${Math.round(narrow.right)}/${Math.round(narrow.top)}/${Math.round(narrow.bottom)}px`);
 
  // 2. Sign in and seed the bag.
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>window.AtlasAccount?.current);

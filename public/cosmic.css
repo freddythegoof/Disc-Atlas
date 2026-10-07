@@ -70,7 +70,7 @@ body[data-view="map"]:not(.my-bag-mode) .workspace-head>div:first-child{display:
 .count{padding:8px 0;background:none;font-size:12px;color:var(--muted)}
 body[data-view="map"]:not(.my-bag-mode) #mapWrap{position:absolute;inset:0}
 body[data-view="map"]:not(.my-bag-mode) #map{height:100%;width:100%;border:0;border-radius:0;box-shadow:none}
-#map{background:radial-gradient(ellipse at 55% 35%,var(--ambient),transparent 60%),var(--map-bg);overflow:hidden}
+#map{background:radial-gradient(ellipse at 55% 35%,var(--ambient),transparent 60%),var(--map-bg);overflow:hidden;overflow:clip}
 body[data-view="map"]:not(.my-bag-mode) .axis-top{position:absolute;left:60px;right:28px;top:90px;z-index:3;padding:0;font-size:10px;letter-spacing:1.4px;pointer-events:none}
 body[data-view="map"]:not(.my-bag-mode) .axis-bottom{position:absolute;bottom:78px;left:60px;right:28px;z-index:8;padding:0;font-size:10px;pointer-events:none}
 .axis-bottom .stability-help{pointer-events:auto}
@@ -89,15 +89,15 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .marker-position:hover,.marker-position:focus-within{z-index:6!important}
 .atlas-marker{left:0;top:0;transform:translate(-50%,-50%);transition:none!important;width:48px;height:48px;padding:0;min-height:0;touch-action:none;contain:layout style}
 .atlas-marker:hover,.atlas-marker:focus-visible,.atlas-marker.is-open{transform:translate(-50%,-50%)}
-.atlas-marker.is-large.overview,.atlas-marker.is-large.brand-view{width:62px;height:62px}
-.atlas-marker.is-large .disc-art,.atlas-marker.is-large.overview .disc-art{width:62px;height:62px}
+.atlas-marker.is-large.overview,.atlas-marker.is-large.brand-view{width:68px;height:68px}
+.atlas-marker.is-large .disc-art,.atlas-marker.is-large.overview .disc-art{width:68px;height:68px}
 .atlas-marker .marker-stack{display:block}.atlas-marker .stack-0{position:absolute;inset:0;transform:none}.atlas-marker .marker-halo{inset:-8px;border:1px solid var(--lime);background:none;box-shadow:none;opacity:0}
 .atlas-marker.is-selected .marker-halo,.atlas-marker:focus-visible .marker-halo{opacity:1}
 .atlas-marker.is-dot .map-dot{inset:7px;background:var(--disc-color);opacity:.68;border:0;box-shadow:0 0 8px color-mix(in srgb,var(--disc-color) 12%,transparent)}
 .atlas-marker.is-dot.is-stack .map-dot{inset:6px;border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:none}
-.atlas-marker .marker-name{display:block;position:absolute;left:50%;top:74px;transform:translateX(-50%);width:max-content;max-width:145px;white-space:normal;word-break:normal;overflow-wrap:normal;text-align:center;color:var(--text);font-size:12px;font-weight:500;line-height:1.3;opacity:1;background:none;border:0;padding:0;pointer-events:none;text-shadow:0 1px 4px var(--map-bg);box-shadow:none}
+.atlas-marker .marker-name{display:block;position:absolute;left:50%;top:80px;transform:translateX(-50%);width:max-content;max-width:145px;white-space:normal;word-break:normal;overflow-wrap:normal;text-align:center;color:var(--text);font-size:12px;font-weight:500;line-height:1.3;opacity:1;background:none;border:0;padding:0;pointer-events:none;text-shadow:0 1px 4px var(--map-bg);box-shadow:none}
 .atlas-marker .marker-name small{display:block;margin-top:4px;font-size:9px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
-.atlas-marker.is-large.overview .marker-name{top:74px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
+.atlas-marker.is-large.overview .marker-name{top:80px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
 .atlas-marker.is-dot .marker-name{opacity:0;top:30px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;z-index:5}
 .atlas-marker.is-dot:hover .marker-name,.atlas-marker.is-dot:focus-visible .marker-name{opacity:1}
 .atlas-marker .cluster-count{right:-9px;top:-7px;background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:10px;height:19px;min-width:19px;box-shadow:none}
@@ -286,10 +286,12 @@ body[data-view="list"] .graph-dock{background:none}
 @media(prefers-reduced-motion:reduce){#mapMarkers .marker-position,#mapMarkers .marker-position.is-updating,#mapMarkers .is-updating .marker-stack,#mapMarkers .is-updating .map-dot{transition:none}}
 
 /* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
-/* Clip painting at the chrome while retaining overscan nodes through edge reversals. */
-#mapMarkers{clip-path:inset(70px 0 110px)}
-.my-bag-mode #mapMarkers{clip-path:inset(0 0 24px)}
-@media(max-width:699px){#mapMarkers{clip-path:inset(70px 0 155px)}}
+/* Discs run on under the toolbar and legend and off the map's edges; the chrome paints above them.
+ Clip only to the map itself, while retaining overscan nodes through edge reversals. */
+#mapMarkers{clip-path:inset(0)}
+body[data-view="map"]:not(.my-bag-mode) :is(.explore-tools .search,#filtersToggle,.atlas-lens,.explore-tools .type-chips button,.map-controls){-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+body[data-view="map"]:not(.my-bag-mode) .graph-dock::before{content:"";position:absolute;inset:-30px -110px -12px;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--map-bg) 96%,transparent) 72%,transparent)}
+@media(max-width:699px){body[data-view="map"]:not(.my-bag-mode) .graph-dock::before{inset:-20px -16px -12px}}
 .atlas-marker.is-large::before{content:"";position:absolute;inset:-8px;border-radius:50%}
 
 /* Filter context takes the wordmark's place, leaving the atlas its full height. */

@@ -130,8 +130,8 @@ function buildClusters(items,w,h){
   // Keep the entire enlarged disc beyond the clipped plot viewport.
   // A 48px entry band covers its radius; the wider exit band prevents DOM churn.
   const margin=markerNodes.has(g.key)?80:48;
-  const top=immersive?70:0,bottom=h-(immersive?(w<700?155:110):24);
-  if(x < -margin||x>w+margin||y<top-margin||y>bottom+margin)continue;
+  // Discs run on under the toolbar and legend to the map's own edges.
+  if(x < -margin||x>w+margin||y < -margin||y>h+margin)continue;
   const original=g.pos;
   const dx=g.markerOffset?.x||0,dy=g.markerOffset?.y||0;
   const leader=g.leader?{x1:x+g.leader.x1-g.px*zoom/(2**(groupCache.level/3)),
@@ -169,8 +169,9 @@ function draw(){
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
  ctx.lineWidth=1;
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
- for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
- for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,immersive?82:24);ctx.lineTo(xx,plotBottom);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
+ // The grid runs under the chrome with the discs; speed numbers stay clear of the captions.
+ for(let n=1;n<=15;n+=zoom<1.8?2:1){const yy=y(n);if(yy<0||yy>h)continue;ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(31,yy);ctx.lineTo(w-16,yy);ctx.stroke();if(yy<(immersive?82:26)||yy>plotBottom)continue;ctx.fillStyle=themePalette.muted;ctx.fillText(n,10,yy+4);}
+ for(let n=0;n<=100;n+=zoom<1.8?20:10){const xx=x(n);if(xx<28||xx>w-15)continue;ctx.strokeStyle=n===50?themePalette.center:themePalette.grid;ctx.setLineDash(n===50?[]:[2,6]);ctx.beginPath();ctx.moveTo(xx,0);ctx.lineTo(xx,h);ctx.stroke();}ctx.setLineDash([]);ctx.globalAlpha=1;
  // My Map: a disc moved by the player's stability notes keeps a faint ring where the consensus puts it.
  if(myMap){
   ctx.save();ctx.strokeStyle=themePalette.muted;ctx.globalAlpha=.6;ctx.setLineDash([3,4]);
@@ -193,9 +194,7 @@ function draw(){
 }
 function drawSatelliteLeaders(){
  if(zoom<7)return;
- const immersive=!document.body.classList.contains('my-bag-mode'),top=immersive?70:0;
- const bottom=mapViewport.height-(immersive?(mapViewport.width<700?155:110):24);
- ctx.save();ctx.beginPath();ctx.rect(0,top,mapViewport.width,bottom-top);ctx.clip();
+ ctx.save();
  ctx.strokeStyle=themePalette.muted;ctx.fillStyle=themePalette.muted;ctx.globalAlpha=.35;ctx.lineWidth=1;
  for(const g of mapClusters){
   const node=markerNodes.get(g.key),l=g.leader;
@@ -366,7 +365,7 @@ function initAtlasMap(){
    group=null;
    for(const g of mapClusters){
     const node=markerNodes.get(g.key);if(!node||node.position.inert)continue;
-    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?31*mapMarkerScale()+8:22;
+    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?34*mapMarkerScale()+8:22;
     if(distance<=radius&&distance<best){best=distance;group=g;}
    }
   }
