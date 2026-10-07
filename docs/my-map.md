@@ -22,6 +22,8 @@ A personal flight map on the My Bag page: **my bag, my map**. It shows only the 
 
 Copies of one mold average their notes. With no notes, every disc sits exactly at its consensus position. A disc that a note moved keeps a faint dashed ring at its consensus spot.
 
+My Map uses those personal coordinates directly for initial rendering and worker regrouping. The Atlas's adaptive spread for sparse filters does not run on My Map: amplifying scatter and repelling neighbors there could invert nearby discs' speed ordering. This leaves the main Atlas's spread, positions and camera behavior intact.
+
 `COPY_BIAS_SHIFT` is the single place to tune the ±10.
 
 ## Follow-ups

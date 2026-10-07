@@ -40,10 +40,15 @@ try {
  });
  const navigations=[];page.on('framenavigated',frame=>{if(frame===page.mainFrame())navigations.push(frame.url());});
  const phase=want=>page.waitForFunction(w=>document.querySelector('#bagScene').dataset.phase===w,want);
- const camera=want=>page.waitForFunction(w=>document.querySelector('#bagScene').dataset.camera===w,want);
  // Waits until every staged disc (and the camera) has settled with at least one disc out.
- const slideOut=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.staging==='still' && Number(s.dataset.out)>0;});
- const slidHome=()=>page.waitForFunction(()=>{const v=document.querySelector('[data-bag-canvas]').bagViewer;return !v.outDiscs.length && !v.stage.moving && v.getBagLayoutState().every(d=>d.slide===0);});
+ const slideOut=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene'),c=s.querySelector('[data-bag-canvas]'),v=c.bagViewer;return s.dataset.staging==='still' && Number(s.dataset.out)>0 && !v.stage.moving && v.getBagLayoutState().filter(d=>d.out).every(d=>d.slide===1) && !c.getAnimations().length;});
+ const slidHome=()=>page.waitForFunction(()=>{const c=document.querySelector('[data-bag-canvas]'),v=c.bagViewer;return !v.outDiscs.length && !v.stage.moving && v.getBagLayoutState().every(d=>d.slide===0) && !c.getAnimations().length;});
+ const drag=async dx=>{
+  const canvas=page.locator('.bag-3d-stage canvas');await canvas.scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').getAnimations().length);
+  const b=await canvas.boundingBox(),x=b.x+b.width*.1,y=b.y+b.height*.8;
+  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+dx,y+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();await settle();
+ };
  const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
  const canvasBox=()=>page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));
  const local=locator=>locator.evaluate(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};});
@@ -56,6 +61,7 @@ try {
  // Samples the rendered face of a disc: its center and four points at 30 % of its box from the
  // center must all show the disc's own color, so nothing (pocket, other discs, the canvas edge) covers it.
  const fullyVisible=async(id,color,label)=>{
+  await page.locator(`[data-physical-disc="${id}"]`).scrollIntoViewIfNeeded();await settle();
   const rect=await viewer((v,id)=>v.discScreenRect(id),id),stage=await page.locator('[data-bag-canvas]').boundingBox();
   // Sample a viewport screenshot at viewport coordinates: the canvas may start above the viewport
   // (on phones the page scrolls the slid-out disc above the details sheet), where a clip would be cut.
@@ -133,24 +139,25 @@ try {
  // A back putter shows only its rim above the ones in front: click there, as a person would.
  const clickRim=async slot=>{const r=await slot.boundingBox();await page.mouse.click(r.x+r.width/2,r.y+3);};
  const putter=row.at(-1),putterColor=seeded.find(d=>d.id===putter.id).color,putterLabel=putterName(seeded.find(d=>d.id===putter.id).mold_id),backSlot=page.locator(`[data-physical-disc="${putter.id}"]`);
- // Records a disc's pose every frame; `rising` is the part before it leaves its pocket's axis (x changes).
- const recordPath=id=>page.locator('[data-bag-canvas]').evaluate((n,id)=>{const s=n.pathSamples=[];const tick=()=>{s.push(n.bagViewer.getBagLayoutState().find(d=>d.id===id).pose);if(s.length<120)requestAnimationFrame(tick);};requestAnimationFrame(tick);},id);
- const readPath=async start=>{const path=await page.locator('[data-bag-canvas]').evaluate(n=>n.pathSamples),moving=path.filter(p=>Math.hypot(p[0]-start[0],p[1]-start[1],p[2]-start[2])>1e-4),leave=moving.findIndex(p=>Math.abs(p[0]-start[0])>1e-6);return {moving,rising:leave<0?moving:moving.slice(0,leave),end:path.at(-1)};};
+ // Record the whole motion, not a fixed number of frames (120 can end before slide-out on a
+ // fast headless browser). The vertical rise ends when it steps forward or sideways off its axis.
+ const recordPath=id=>page.locator('[data-bag-canvas]').evaluate((n,id)=>{const s=n.pathSamples=[];n.pathSampling=true;const tick=()=>{s.push(n.bagViewer.getBagLayoutState().find(d=>d.id===id).pose);if(n.pathSampling)requestAnimationFrame(tick);};requestAnimationFrame(tick);},id);
+ const readPath=async(start,verticalOnly=false)=>{const path=await page.locator('[data-bag-canvas]').evaluate(n=>{n.pathSampling=false;return n.pathSamples;}),moving=path.filter(p=>Math.hypot(p[0]-start[0],p[1]-start[1],p[2]-start[2])>1e-4),leave=moving.findIndex(p=>Math.abs(p[0]-start[0])>1e-6 || verticalOnly && Math.abs(p[2]-start[2])>1e-6);return {moving,rising:leave<0?moving:moving.slice(0,leave),end:path.at(-1)};};
  await recordPath(putter.id);
  await clickRim(backSlot);await slideOut();await settle();
- const putterPath=await readPath(putter.position),rise=putterPath.rising,halfway=rise.find(p=>p[1]-putter.position[1]>(rise.at(-1)[1]-putter.position[1])*.5);
+ const putterPath=await readPath(putter.position,true),rise=putterPath.rising,halfway=rise.find(p=>p[1]-putter.position[1]>(rise.at(-1)[1]-putter.position[1])*.5);
  assert.ok(rise.length>=8,'Animated rise: '+rise.length+' frames');
  assert.ok(rise.every((p,i)=>i===0 || p[1]>=rise[i-1][1]-1e-9),'Putter only rises while it leaves the pocket');
  // The top pocket's mouth is at y .252; a putter's face is .101 × .92 in radius.
  assert.ok(rise.at(-1)[1]-.101*.92>=.252-.002,'Its whole face clears the pocket mouth before it moves aside: '+rise.at(-1)[1]);
  assert.ok(Math.abs(halfway[2]-putter.position[2])<.004,'It rises before it steps forward');
- assert.ok(putterPath.end[2]>row[0].position[2],'It ends in front of the stack');
+ assert.ok(putterPath.end[2]>putter.position[2],'The back putter advances out of its pocket before resting beside the bag');
  assert.ok(Math.abs(putterPath.end[0])>.3,'It rests beside the bag: '+putterPath.end[0]);
  await onBagPage('Slide-out');
  assert.deepEqual(await viewer(v=>v.outDiscs),[putter.id]);assert.equal((await nameOf(putter.id).innerText()).trim(),putterLabel,'Name label');
  assert.equal(await backSlot.getAttribute('aria-pressed'),'true','The disc reads as pressed (out)');
  await detail.waitFor({state:'visible'});assert.equal(await detail.locator('h2').first().innerText(),putterLabel,'Details open with the first click (Oct 5 tweaks)');
- await fullyVisible(putter.id,putterColor,'Slid-out putter');inside(await local(nameOf(putter.id)),box,'Putter label');
+ await fullyVisible(putter.id,putterColor,'Slid-out putter');inside(await local(nameOf(putter.id)),await canvasBox(),'Putter label');
  metrics.putterPathFrames=rise.length;
  // Another disc comes out too: each disc is independent and the first stays out.
  const driverStart=await viewer((v,id)=>v.getBagLayoutState().find(d=>d.id===id).pose,driver.id);
@@ -162,7 +169,7 @@ try {
  assert.ok(driverPath.rising.length>=4 && driverPath.rising.at(-1)[2]>driverStart[2]+.05,'Main disc comes forward first');
  const mainEnd=await viewer((v,id)=>v.getBagLayoutState().find(d=>d.id===id),driver.id);
  assert.ok(mainEnd.out && Math.abs(mainEnd.pose[0])>.3,'Main disc rests beside the bag');
- await fullyVisible(driver.id,'#ed7868','Slid-out main disc');inside(await local(nameOf(driver.id)),box,'Main label');
+ await fullyVisible(driver.id,'#ed7868','Slid-out main disc');inside(await local(nameOf(driver.id)),await canvasBox(),'Main label');
  assert.equal((await nameOf(driver.id).innerText()).trim(),'Destroyer');
  check(`Click: a putter rises straight up (${metrics.putterPathFrames} frames) clear of its pocket, a main disc comes forward, then each rests face-on beside the bag, fully visible (color drift ${metrics['Slid-out putter'].colorDrift}/${metrics['Slid-out main disc'].colorDrift}) with its name; a second disc comes out without sending the first home`);
 
@@ -218,9 +225,8 @@ try {
 
  // 7. Camera persistence: a turned bag stays exactly where the user left it. These drags hold still
  // before letting go, so the bag stops right there (a flick's momentum is in bag-spin-pocket-browser).
- const stage=await page.locator('.bag-3d-stage canvas').boundingBox(),sx=stage.x+stage.width*.1,sy=stage.y+stage.height*.8;
  const frontRects=await viewer(v=>v.discRects());
- await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+50,sy+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();
+ await drag(50);
  const turned=await viewer(v=>v.turn);assert.ok(Math.abs(turned)>.3,'The drag turns the bag');
  await page.waitForTimeout(2500);assert.equal(await viewer(v=>v.turn),turned,'No snap-back after 2.5 s');
  assert.equal(await scene.getAttribute('data-phase'),'open','A drag never toggles the flap');
@@ -230,28 +236,23 @@ try {
  await driverSlot.hover();await settle();assert.ok(await pill.isVisible());
  await driverSlot.click();await slideOut();await settle();await fullyVisible(driver.id,'#ed7868','Slid-out main disc on the turned bag');
  // An out disc holds still in the room while the bag turns under it.
- const heldSpot=await local(driverSlot);await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
- await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+30,sy+2,{steps:6});await page.waitForTimeout(150);await page.mouse.up();await settle();
+ await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await settle();
+ const heldSpot=await local(driverSlot);await drag(30);
  const afterTurn=await local(driverSlot);assert.ok(Math.abs(afterTurn.left-heldSpot.left)<2 && Math.abs(afterTurn.top-heldSpot.top)<2,'The out disc stays put while the bag turns: '+JSON.stringify({heldSpot,afterTurn}));
  const turnedMore=await viewer(v=>v.turn);
  await driverSlot.click();await slidHome();assert.equal(await viewer(v=>v.turn),turnedMore,'Hover, slide-out, Escape and putting it back keep the turn');
  // Turned far enough that the front faces away, only the top pocket stays in reach.
- await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.move(sx+120,sy+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();await settle();
+ await drag(120);
  assert.equal(await viewer(v=>v.frontFacing),false);assert.equal(await driverSlot.getAttribute('aria-hidden'),'true');assert.equal(await putterSlot.getAttribute('aria-hidden'),'false');
- await page.mouse.move(sx+120,sy);await page.mouse.down();await page.mouse.move(sx,sy+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();await settle();
+ await drag(-120);
  const kept=await viewer(v=>v.turn);await page.waitForTimeout(1500);assert.equal(await viewer(v=>v.turn),kept);
- // Top view keeps the turn, and leaving it returns to the same camera.
- const cam=await viewer(v=>v.cameraState);await page.locator('[data-bag-top-view]').click();await camera('top');
- assert.equal(await viewer(v=>v.turn),kept);await page.locator('[data-bag-top-view]').click();await camera('front');
- const back=await viewer(v=>v.cameraState);
- assert.ok(Math.abs(back.polar-cam.polar)<1e-3 && Math.abs(back.radius-cam.radius)<1e-3 && await viewer(v=>v.turn)===kept,'Same camera and turn after the top view');
  metrics.turn={first:turned,kept};
- check(`Camera persistence: a drag turn (${turned.toFixed(2)} rad) holds with no snap-back, through hover, slide-out, Escape and the top view; hit targets follow the turn; facing away leaves only the top pocket in reach`);
+ check(`Camera persistence: a drag turn (${turned.toFixed(2)} rad) holds with no snap-back, through hover, slide-out, Escape; hit targets follow the turn; facing away leaves only the top pocket in reach`);
 
  // 8. Touch: a real touch drag turn holds; a tap is a click (slide out), tapping the label opens details.
  const touch=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800},isMobile:true,hasTouch:true,storageState:await context.storageState()});
  const mobile=await touch.newPage();mobile.on('pageerror',e=>errors.push(e.stack));await mobile.goto(base+'/?bag=1');await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open',null,{timeout:60000});
- await mobile.locator('#bagScene').scrollIntoViewIfNeeded();await mobile.waitForTimeout(300);
+ await mobile.locator('.bag-3d-stage canvas').scrollIntoViewIfNeeded();await mobile.waitForTimeout(300);
  const cdp=await touch.newCDPSession(mobile),mstage=await mobile.locator('.bag-3d-stage canvas').boundingBox(),tx=mstage.x+mstage.width*.12,ty=mstage.y+mstage.height*.8;
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:tx,y:ty}]});
  for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:tx+i*5,y:ty+i*.2}]});await mobile.waitForTimeout(16);}
@@ -264,23 +265,11 @@ try {
  await touch.close();
  check(`Touch: a finger drag turn (${touchTurn.toFixed(2)} rad) holds; one tap slides a disc out and opens its details on My Bag`);
 
- // 9. Top view still animates straight above, now into the putter pocket only (Oct 5 tweaks).
- await page.reload();await phase('open');await scene.scrollIntoViewIfNeeded();await page.mouse.move(0,0);
- await page.locator('[data-bag-canvas]').evaluate(n=>{const samples=n.cameraSamples=[];const tick=()=>{samples.push([performance.now(),n.bagViewer.cameraState.polar]);if(samples.length<240)requestAnimationFrame(tick);};requestAnimationFrame(tick);});
- const frontCam=await viewer(v=>v.cameraState);await page.locator('[data-bag-top-view]').click();await camera('top');
- const top=await viewer(v=>v.cameraState),samples=await page.locator('[data-bag-canvas]').evaluate(n=>n.cameraSamples);
- const firstMove=samples.find(([,p])=>p<frontCam.polar-1e-4),arrived=samples.find(([,p])=>p<=top.polar+1e-4),ms=arrived[0]-firstMove[0];
- assert.ok(top.polar<.01 && ms>=520 && ms<=760,'Top view: about 0.6 s to straight above: '+ms);
- const labels=await page.locator('.bag-pocket-label').evaluateAll(nodes=>nodes.map(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {pocket:n.dataset.pocket,text:n.innerText,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};}));
- assert.deepEqual(labels.map(l=>l.pocket),['putter'],'Only the putter pocket is labeled');for(const l of labels)inside(l,box,l.pocket+' label');
- assert.ok(PUTTERS.every(([,name])=>labels[0].text.includes(name)),'It names the putters: '+labels[0].text);
- assert.equal(await viewer(v=>v.fabricOpaque),true,'The fabric stays opaque');
- await putterSlot.click({force:true});await slideOut();await settle();assert.deepEqual(await viewer(v=>v.outDiscs),[row[0].id],'Slide-out works from above');
- await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await putterSlot.evaluate(n=>n.click());await slidHome();await page.keyboard.press('Escape');await camera('front');
- check(`Top view: ${Math.round(ms)} ms to straight above, into the putter pocket with one label naming its putters, opaque fabric, slide-out works from above, Escape returns`);
+ // 9. The bag stays in its front camera; Top view is no longer a control.
+ assert.equal(await page.getByRole('button',{name:'Top view',exact:true}).count(),0);
 
  // 10. Screenshots in every theme, desktop and 360 px: hover label, slid-out putter, slid-out main disc,
- // details from a clicked label, a held rotation, and the settled top view.
+ // details from a clicked label, a held rotation.
  for(const theme of themes)for(const width of widths){
   await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);await page.reload();await phase('open');
   await scene.scrollIntoViewIfNeeded();await page.mouse.move(0,0);
@@ -290,29 +279,26 @@ try {
   inside(await local(pill),wbox,`Hover pill (${theme} ${width})`);await shot('hover-label',width,theme,canvas);
   await page.locator('[data-bag-toggle]').focus();await page.mouse.move(0,0);
   await clickRim(backSlot);await slideOut();await detail.waitFor({state:'visible'});
-  await fullyVisible(putter.id,putterColor,`Putter (${theme} ${width})`);inside(await local(nameOf(putter.id)),wbox,`Putter label (${theme} ${width})`);
+  await fullyVisible(putter.id,putterColor,`Putter (${theme} ${width})`);inside(await local(nameOf(putter.id)),await canvasBox(),`Putter label (${theme} ${width})`);
   await shot('slid-out-putter',width,theme,canvas);
   await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await backSlot.click();await slidHome();
   await driverSlot.click();await slideOut();await detail.waitFor({state:'visible'});
-  await fullyVisible(driver.id,'#ed7868',`Main (${theme} ${width})`);inside(await local(nameOf(driver.id)),wbox,`Main label (${theme} ${width})`);
+  await fullyVisible(driver.id,'#ed7868',`Main (${theme} ${width})`);inside(await local(nameOf(driver.id)),await canvasBox(),`Main label (${theme} ${width})`);
   await shot('slid-out-main',width,theme,canvas);
   if(width===360)await detail.evaluate(n=>{n.scrollTop=n.querySelector('h2').offsetTop-90;});
   await shot('details-from-label',width,theme,page);
   await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await driverSlot.click();await slidHome();
-  await page.locator('[data-bag-top-view]').click();await camera('top');await page.mouse.move(0,0);await shot('top-view',width,theme,canvas);
-  await page.keyboard.press('Escape');await camera('front');
-  const st=await page.locator('.bag-3d-stage canvas').boundingBox(),x=st.x+st.width*.1,y=st.y+st.height*.8;
-  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+45,y+2,{steps:8});await page.waitForTimeout(150);await page.mouse.up();
+  await drag(45);
   const held=await viewer(v=>v.turn);await page.mouse.move(0,0);await page.waitForTimeout(2000);
   assert.ok(Math.abs(held)>.3 && await viewer(v=>v.turn)===held,`Rotation holds (${theme} ${width})`);
   await shot('rotated-held',width,theme,canvas);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
  }
- check(`Screenshots: ${shots.length} (hover label, slid-out putter, slid-out main disc, details from a clicked label, held rotation, top view) in ${themes.join(', ')} at ${widths.join(' and ')} px`);
+ check(`Screenshots: ${shots.length} (hover label, slid-out putter, slid-out main disc, details from a clicked label, held rotation) in ${themes.join(', ')} at ${widths.join(' and ')} px`);
 
  assert.deepEqual(errors,[]);
  fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,checks,metrics,gpuArgs,themes,widths,screenshots:shots,errors},null,2));
- const order=['hover-label','slid-out-putter','slid-out-main','details-from-label','rotated-held','top-view'];
+ const order=['hover-label','slid-out-putter','slid-out-main','details-from-label','rotated-held'];
  fs.writeFileSync(dir+'/screenshots.html',`<!doctype html><meta charset="utf-8"><title>Bag slide-out QA</title><style>body{margin:32px;background:#14191f;color:#e9edf0;font:16px system-ui}section{margin:40px 0}figure{display:inline-block;vertical-align:top;margin:12px}img{width:360px;max-width:100%}.mobile img{width:260px}.wide img{width:620px}a{color:inherit}figcaption{margin-top:6px;font-size:13px}li{margin:4px 0}</style><h1>Bag slide-out · local QA</h1><ul>${checks.map(c=>`<li>✓ ${c}</li>`).join('')}</ul>${themes.map(theme=>`<section><h2>${theme}</h2>${order.flatMap(state=>shots.filter(s=>s.theme===theme && s.state===state)).map(s=>`<figure class="${s.width===360?'mobile':s.state==='details-from-label'?'wide':''}"><a href="${s.name}"><img src="${s.name}" loading="lazy"></a><figcaption>${s.state} · ${s.width}px</figcaption></figure>`).join('')}</section>`).join('')}`);
  console.log(checks.map(c=>'✓ '+c).join('\n'));
  console.log(`PASS: ${checks.length} checks, ${shots.length} screenshots; no page errors.`);

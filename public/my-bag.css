@@ -140,8 +140,9 @@ body[data-view="bag"] main {display:none!important}
 .bag-zoom button:disabled {opacity:.4;cursor:default}
 .bag-zoom .bag-zoom-level:disabled {opacity:1}
 .bag-scene:not([data-engine="ready"]) .bag-zoom,.bag-scene[data-dragging] .bag-zoom {visibility:hidden}
-/* Return all: across from the zoom pill and as tall, shown while any disc is out. */
-.bag-return-all {position:absolute;z-index:4;top:10px;left:10px;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:3px 7px 3px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow);font:600 13px/1 'Space Grotesk',sans-serif;color:var(--text);cursor:pointer;animation:bag-return-in 220ms ease-out both}
+/* Return all has a reserved row below the drawing area. Pocket and zoom share the top corners. */
+.bag-scene-actions {display:flex;justify-content:center;min-height:44px;margin-top:12px}
+.bag-return-all {display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:3px 7px 3px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow);font:600 13px/1 'Space Grotesk',sans-serif;color:var(--text);cursor:pointer;animation:bag-return-in 220ms ease-out both}
 .bag-return-all[hidden] {display:none}
 .bag-return-all svg {width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .bag-return-all b {display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--selected);font:600 11px/1 'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
@@ -204,13 +205,10 @@ body[data-view="bag"] main {display:none!important}
 .bag-scene[data-dragging] :is(.bag-hit-layer,.bag-name-pill,.bag-pocket-labels) {visibility:hidden}
 .bag-pocket-labels {transition:opacity 160ms}
 .bag-scene:is([data-staging="moving"],[data-hovered]) .bag-pocket-labels {opacity:0}
-/* Top view: animated camera; pocket labels and the hit layer wait until it settles. */
-.bag-top-toggle {display:inline-flex;align-items:center;gap:8px}
-.bag-top-toggle svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
-.bag-top-toggle[aria-pressed="true"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
 .bag-scene[data-camera="moving"] :is(.bag-hit-layer,.bag-pocket-labels) {visibility:hidden}
 /* Putter pocket: collapsed, the putters sit down inside it (the icon's putters drop in with them). */
-.bag-pocket-toggle {display:inline-flex;align-items:center;gap:8px}
+.bag-pocket-toggle {position:absolute;z-index:4;top:10px;left:10px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px;font-size:12px}
+.bag-scene:not([data-engine="ready"]) .bag-pocket-toggle,.bag-scene[data-dragging] .bag-pocket-toggle {visibility:hidden}
 .bag-pocket-toggle svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .bag-pocket-putters {transition:transform 420ms cubic-bezier(.4,0,.2,1)}
 .bag-pocket-toggle[aria-expanded="false"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}

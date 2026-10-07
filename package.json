@@ -25,7 +25,9 @@
     "test:bag:v13": "node tests/bag-v13-browser.mjs",
     "test:bag:3d": "node tests/bag-3d-browser.mjs",
     "test:bag:staging": "node tests/bag-staging-browser.mjs",
-    "test:bag:spin": "node tests/bag-spin-pocket-browser.mjs"
+    "test:bag:spin": "node tests/bag-spin-pocket-browser.mjs",
+    "test:bag:controls": "node tests/bag-map-controls-browser.mjs",
+    "test:my-map": "node --test tests/personal-lens.mjs tests/personal-map-worker.mjs && node tests/my-map-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

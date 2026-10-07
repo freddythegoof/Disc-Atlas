@@ -22,7 +22,8 @@ const errors=[],shots=[],checks=[],metrics={};
 const check=label=>{checks.push(label);console.log('ok -',label);};
 // Destroyer: two copies, both More stable (one mold, +10). Firebird: Less stable (−10). The rest carry no note.
 const BAG=[['3d60892b6812','#ed7868','more_stable'],['3d60892b6812','#f0a35e','more_stable'],['e70f48273d7f','#70b7cd','less_stable'],['da3c28085382','#a7c68c',null],
- ['0fcd1f2937b1','#b99bdd',null],['e9a88cc4f3b1','#e6c668',null],['ba675aed468a','#d9a3c3',null],['df3915bf7676','#79b3a8',null],['ff4bf9e7743c','#e2d8c1',null],['761c90d342f5','#f29b6b',null]];
+ ['0fcd1f2937b1','#b99bdd',null],['e9a88cc4f3b1','#e6c668',null],['ba675aed468a','#d9a3c3',null],['df3915bf7676','#79b3a8',null],['ff4bf9e7743c','#e2d8c1',null],['761c90d342f5','#f29b6b',null],
+ ['9554f962a394','#f09474',null],['a5ca585ab070','#79bcb0',null],['b52c5cb1753a','#c6a3dc',null]];
 try {
  const deadline=Date.now()+45000;
  while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(logs);await new Promise(r=>setTimeout(r,200));}
@@ -93,11 +94,23 @@ try {
   const [dx,dy]=plotted.dx[id],want=(plotted.shift[id]||0)/100;
   assert.ok(Math.abs(dx-want)<1e-9,`${id} moves ${want} on the stability axis (got ${dx})`);assert.equal(dy,0,`${id} keeps its speed`);
  }
- assert.match(await page.locator('#myMapSummary').textContent(),/9 discs · 2 moved by your stability notes/);
+ assert.match(await page.locator('#myMapSummary').textContent(),/12 discs · 2 moved by your stability notes/);
  assert.match(await page.locator('#myMapNote').textContent(),/1 disc in your bag has no flight ratings yet/);
  assert.ok(await page.locator('#bagScene').isHidden() && await page.locator('#myBagContents').isHidden(),'The bag scene and list step aside');
  await shot('populated-1440-light');await shot('populated-map-1440-light',page.locator('#myMapPanel'));
  check('Populated: only bagged rated molds, consensus ± stability notes (speed unchanged), summary and unrated note');
+
+ // The personal lens is already the position transform. Sparse Atlas spreading must not run a
+ // second time: it can invert DD1/DD3 speed ordering even with no copy notes.
+ const shown=await page.evaluate(()=>{
+  const w=canvas.clientWidth,h=canvas.clientHeight,shown=shownPositions(filtered,w,h,false);
+  return {personal:[...atlasPositions],shown:[...shown],pair:Object.fromEntries(['9554f962a394','a5ca585ab070','b52c5cb1753a'].map(id=>[id,shown.get(id)]))};
+ });
+ metrics.personalRendering=shown;
+ assert.deepEqual(shown.shown,shown.personal,'My Map renders the personal lens directly, without sparse Atlas spreading');
+ assert.ok(shown.pair['9554f962a394'].y<shown.pair['a5ca585ab070'].y && shown.pair['9554f962a394'].y<shown.pair['b52c5cb1753a'].y,'Both speed-12 DD3 approvals stay above speed-11 Premier DD1');
+ assert.ok(shown.pair['9554f962a394'].x<shown.pair['a5ca585ab070'].x,'Regular DD3 is more stable than Premier DD1');
+ check('DD1/DD3: My Map renders personal coordinates directly; both DD3 speeds and regular DD3 stability preserve their ordering');
 
  // 5. Details: a disc picked on My Map opens the docked panel with its personal position.
  const destroyer=await page.evaluate(()=>{const g=mapClusters.find(g=>g.members.some(m=>m.id==='3d60892b6812'));return g.key==='3d60892b6812' && g.members.length===1;});
@@ -122,15 +135,55 @@ try {
  assert.match(await page.locator('#myMapSummary').textContent(),/3 moved/);
  check('A saved stability note moves its disc on My Map');
 
+ // Exercise the reported flight relationship in the test account only: a Less stable DD1,
+ // DD3 at consensus, with the already tagged Destroyer still farther to the stable side.
+ await page.evaluate(async()=>{
+  const headers={'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken};
+  const data=await (await fetch('/api/bag',{cache:'no-store'})).json();
+  for(const [id,bias] of [['9554f962a394','less_stable'],['b52c5cb1753a',null]]){
+   const copy=data.discs.find(d=>d.mold_id===id),r=await fetch('/api/bag/discs/'+copy.id,{method:'PATCH',headers,body:JSON.stringify({stability_bias:bias})});
+   if(!r.ok)throw Error(await r.text());
+  }
+ });
+ await page.reload();await page.waitForFunction(()=>discs.length>0 && window.BagApp.mapColors().size>0);
+ await page.getByRole('radio',{name:'My map'}).click();await page.waitForFunction(()=>myMap?.shifts.get('9554f962a394')===-10 && myMap?.shifts.get('b52c5cb1753a')===0);await mapReady();
+ assert.ok(await page.evaluate(()=>atlasPositions.get('9554f962a394').x<atlasPositions.get('b52c5cb1753a').x && atlasPositions.get('b52c5cb1753a').x<atlasPositions.get('3d60892b6812').x),'The reported flight relationship survives the personal transform');
+ check('Test-only Less stable DD1: DD3 is more stable than DD1, and Destroyer farther to the stable side');
+
  // 7. Themes and phone width.
  await page.evaluate(()=>{zoom=1;pan={x:0,y:0};draw();});await mapReady();
- await setTheme('midnight');await mapReady();await shot('populated-1440-midnight',page.locator('#myMapPanel'));
- await page.setViewportSize({width:360,height:800});await page.evaluate(()=>{measureMap();draw();});await mapReady();
- await page.locator('#myMapPanel').scrollIntoViewIfNeeded();await shot('populated-360-midnight');
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal scroll at 360');
- assert.ok(await page.evaluate(()=>{const r=document.querySelector('.my-map-axis span:last-child').getBoundingClientRect();return r.right<=innerWidth-2;}),'The axis caption fits at 360');
+ for(const width of [1440,360])for(const theme of ['midnight','light','charcoal']){
+  await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);
+  await page.evaluate(()=>{measureMap();draw();});await mapReady();
+  assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>{const p=atlasPositions.get(g.key);return p.x===g.pos.x && p.y===g.pos.y;})),`${width} ${theme}: worker uses personal positions too`);
+  await page.locator('#myMapPanel').scrollIntoViewIfNeeded();await shot(`populated-${width}-${theme}`,page.locator('#myMapPanel'));
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal scroll');
+  assert.ok(await page.evaluate(()=>{const r=document.querySelector('.my-map-axis span:last-child').getBoundingClientRect();return r.right<=innerWidth-2;}),'The axis caption fits');
+  assert.ok(await page.evaluate(()=>{const p=shownPositions(filtered,canvas.clientWidth,canvas.clientHeight,false);return p.get('9554f962a394').y<p.get('a5ca585ab070').y && p.get('9554f962a394').y<p.get('b52c5cb1753a').y;}),`${width} ${theme}: DD3 remains faster than DD1`);
+  // Close-up fitted to the pair: both Premier discs must have their own markers,
+  // not disappear under a group lead in the overview screenshot.
+  await page.evaluate(()=>{
+   const a=atlasPositions.get('9554f962a394'),b=atlasPositions.get('b52c5cb1753a'),area=AtlasLayout.bounds(canvas.clientWidth,canvas.clientHeight,false);
+   stopCamera();zoom=Math.min(MAX_MAP_ZOOM,(canvas.clientWidth-110)/(Math.abs(a.x-b.x)*area.width));prepareZoomLevel(zoom);draw();
+  });await mapReady();
+  // Set the camera after the new worker level lands; its extent can differ from overview groups.
+  await page.evaluate(()=>{
+   const a=atlasPositions.get('9554f962a394'),b=atlasPositions.get('b52c5cb1753a'),area=AtlasLayout.bounds(canvas.clientWidth,canvas.clientHeight,false);
+   stopCamera();prepareZoomLevel(zoom);
+   pan={x:canvas.clientWidth/2-area.left-(a.x+b.x)/2*area.width*zoom,y:canvas.clientHeight*.48-area.bottom+(a.y+b.y)/2*area.height*zoom};draw();
+  });await mapReady();
+  assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>{const p=atlasPositions.get(g.key);return p.x===g.pos.x && p.y===g.pos.y;})),`${width} ${theme}: zoom regroup keeps personal positions`);
+  await shot(`dd1-dd3-${width}-${theme}`,page.locator('#myMapPanel'));
+  for(const id of ['9554f962a394','b52c5cb1753a']){
+   const marker=page.locator(`#mapMarkers .atlas-marker[data-cluster="${id}"]`);
+   assert.equal(await marker.count(),1,`${width} ${theme}: Premier disc has its own marker`);
+   const [m,c]=await Promise.all([marker.boundingBox(),page.locator('#mapWrap').boundingBox()]);
+   assert.ok(m.x>=c.x && m.y>=c.y && m.x+m.width<=c.x+c.width && m.y+m.height<=c.y+c.height,`${width} ${theme}: Premier disc is inside the map ${JSON.stringify({id,marker:m,map:c})}`);
+  }
+  await page.evaluate(()=>{stopCamera();zoom=1;pan={x:0,y:0};draw();});await mapReady();
+ }
  await setTheme('light');await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{measureMap();draw();});await mapReady();
- check('Populated in Midnight at 1440 and 360');
+ check('Populated, including Premier DD1 and both DD3 approvals, in all three themes at 1440 and 360');
 
  // 8. Back to Bag, then the shared atlas: the map returns home with shared positions and the full catalog.
  await page.getByRole('radio',{name:'Bag'}).click();
@@ -144,6 +197,7 @@ try {
  metrics.shared=shared;
  assert.ok(shared.home && shared.same && shared.immersive && shared.consensus,'The atlas is untouched: '+JSON.stringify(shared));
  assert.ok(shared.count>molds.length*20,'The atlas shows the catalog, not just the bag');
+ assert.ok(await page.evaluate(()=>{const p=shownPositions(filtered,canvas.clientWidth,canvas.clientHeight,true),want=AtlasLayout.adapt(filtered,sharedPositions,canvas.clientWidth,canvas.clientHeight,true);return p===want;}),'Main Atlas retains its existing adaptive spread');
  check('Leaving: the neutral atlas has its map, consensus positions, full catalog and immersive frame back');
 
  // 9. Deep return: My Bag remembers My Map, and the map docks again.

@@ -48,7 +48,7 @@ try {
  const settled=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene'),v=s.querySelector('[data-bag-canvas]').bagViewer;return !v.stage.moving && (s.dataset.staging===undefined || s.dataset.staging==='still') && !s.querySelector('[data-bag-canvas]').getAnimations().length;},null,{timeout:15000});
  const outIds=()=>viewer(v=>v.outDiscs);
  const canvasBox=()=>page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));
- const local=locator=>locator.evaluate(n=>{const c=n.closest('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};});
+ const local=locator=>locator.evaluate(n=>{const c=n.closest('.bag-scene').querySelector('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};});
  const shot=async(name,target=page.locator('[data-bag-canvas]'))=>{await page.evaluate(()=>{document.activeElement?.blur?.();return document.fonts.ready;});await page.waitForTimeout(350);await target.screenshot({path:`${dir}/${name}.png`});shots.push(name);};
  // A click that leaves no details open, so the next disc is never under the phone's bottom sheet.
  const toggle=async id=>{await slot(id).click();await settled();if(await detail.isVisible()){await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await page.waitForTimeout(60);await settled();}await page.mouse.move(2,2);};
@@ -164,17 +164,14 @@ try {
  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');
  assert.deepEqual(await outIds(),[a],'Closing the bag leaves it out');assert.equal(await slot(a).getAttribute('tabindex'),'0','An out main disc stays in reach with the flap shut');
  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');
- await page.locator('[data-bag-top-view]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.camera==='top');
- assert.deepEqual(await outIds(),[a],'The top view leaves it out');
- await page.locator('[data-bag-top-view]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.camera==='front');await settled();
- assert.deepEqual(await outIds(),[a]);
+ assert.equal(await page.getByRole('button',{name:'Top view',exact:true}).count(),0,'Top view is removed');
  await toggle(b);await toggle(c);assert.deepEqual(await outIds(),[a,b,c],'Each disc comes out on its own');
  await toggle(b);assert.deepEqual(await outIds(),[a,c],'Clicking one puts back only that one');
  assert.equal(await slot(b).getAttribute('aria-pressed'),'false');
  await slot(c).focus();await page.keyboard.press('Enter');await settled();assert.deepEqual(await outIds(),[a],'Enter toggles too');
  await toggle(a);assert.deepEqual(await outIds(),[]);assert.equal(await scene.getAttribute('data-stage'),null);
  assert.equal(await viewer(v=>v.stage.pull),1,'With nothing out the camera is back at the page view');
- check('Toggle: a click (or Enter) slides a disc out with its details and it stays out through Escape, empty-space clicks, closing the bag and the top view; each disc is independent; the next click puts back just that disc');
+ check('Toggle: a click (or Enter) slides a disc out with its details and it stays out through Escape, empty-space clicks, closing the bag; each disc is independent; the next click puts back just that disc');
 
  // 3a. A bag that leans overstable: the five most overstable discs still split evenly, the less
  // overstable half left. Covers a single disc, even counts (exactly at the median) and odd ones.

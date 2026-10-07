@@ -61,7 +61,7 @@ function hydrateGroups(raw,items,w,h,level,immersive){
 function prepareGroups(level,items,w,h,immersive){
  if(preparedGroups.has(level)||pendingGroups.has(level)||!groupWorker)return;
  pendingGroups.add(level);
- groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,footprints:groupContext.footprints,featured:atlasPriority(),
+ groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,personal:!!myMap,footprints:groupContext.footprints,featured:atlasPriority(),
   items:items.map(d=>({id:d.id,name:d.name,brand:d.brand,speed:d.speed})),
   positions:items.filter(d=>atlasPositions.has(d.id)).map(d=>[d.id,atlasPositions.get(d.id)])});
 }
@@ -146,7 +146,11 @@ function buildClusters(items,w,h){
  return result;
 }
 // Where discs are drawn: a filtered map spreads into the room it frees, as the worker does.
-function shownPositions(items,w,h,immersive){return window.AtlasLayout.adapt(items,atlasPositions,w,h,immersive);}
+function shownPositions(items,w,h,immersive){
+ // My Map's lens already supplies consensus + copy notes. Amplifying its scatter and repelling
+ // neighbors again can reverse speed ordering (Premier DD1/DD3). Only the Atlas adapts filters.
+ return myMap?atlasPositions:window.AtlasLayout.adapt(items,atlasPositions,w,h,immersive);
+}
 function shownPosition(id){
  const {width:w,height:h}=mapViewport||canvas.getBoundingClientRect();
  return shownPositions(filtered,w,h,!document.body.classList.contains('my-bag-mode')).get(id)??atlasPositions.get(id);

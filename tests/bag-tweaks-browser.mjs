@@ -5,8 +5,7 @@ import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 // Oct 5 tweaks: a fuller 1x map with larger discs, the signed-in player's bag on the atlas,
-// putters that stow and come back out, hover glow, one-click details, an opaque putter-pocket
-// top view, one bag size and zoom.
+// putters that stow and come back out, hover glow, one-click details, one bag size and zoom.
 const config='tests/auth.wrangler.jsonc',state='work/bag-tweaks/d1-qa',base='https://localhost:8804',dir='outputs/bag-3d/tweaks';
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
 fs.mkdirSync(dir,{recursive:true});
@@ -38,8 +37,6 @@ try {
   await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});
  });
  const setTheme=async theme=>{await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.getByRole('menuitemradio',{name:theme[0].toUpperCase()+theme.slice(1),exact:true}).click();await page.keyboard.press('Escape');};
- // Without the menu: its Escape would also leave the bag's top view.
- const quietTheme=theme=>page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);
  const shot=async(name,target=page)=>{await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(450);await target.screenshot({path:`${dir}/${name}.png`});shots.push(name);};
  const mapReady=async()=>{await page.waitForFunction(()=>typeof cameraTween!=='undefined' && !cameraTween && groupCache?.items===filtered && !document.querySelector('#mapMarkers').classList.contains('is-regrouping') && !retirementTimer && !retirementFrame);await page.waitForTimeout(300);};
  const overview=async()=>{await page.evaluate(()=>{closeDetail(false);selected=null;zoom=1;pan={x:0,y:0};draw();});await mapReady();};
@@ -267,25 +264,9 @@ try {
  await page.locator(`[data-physical-disc="${front}"]`).click();await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
  check('One click (or Enter) slides the disc out and opens its details together; Escape closes the details and the disc stays out until clicked (or Entered) again');
 
- // 8. Top view: opaque bag, looking down into the putter pocket only.
- await page.mouse.move(0,0);
- await page.locator('[data-bag-top-view]').click();
- await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.camera==='top',null,{timeout:5000}).catch(async e=>{console.error(JSON.stringify(await page.evaluate(()=>({data:{...document.querySelector('#bagScene').dataset},pressed:document.querySelector('[data-bag-top-view]').getAttribute('aria-pressed'),v:(({topView,cameraMoving,cameraState,renderer})=>({topView,cameraMoving,cameraState,renderer}))(document.querySelector('[data-bag-canvas]').bagViewer)}))));throw e;});
- const top=await viewer(v=>v.cameraState);assert.ok(top.polar<.01 && top.overhead===1,'Straight down');
- assert.equal(await page.locator('.bag-pocket-label').count(),1,'Only the putter pocket is labeled');
- const pocketLabel=await page.locator('.bag-pocket-label').innerText();
- assert.ok(/Top pocket · Putters/i.test(pocketLabel) && PUTTERS.every(([,name])=>pocketLabel.includes(name)),'The label names the putters: '+pocketLabel);
- const reach=await page.locator('#bagScene [data-physical-disc]').evaluateAll(nodes=>nodes.map(n=>[n.dataset.pocket,n.getAttribute('aria-hidden')]));
- assert.ok(reach.every(([pocket,hidden])=>(pocket==='putter')===(hidden==='false')),'Only putters are in reach: '+JSON.stringify(reach));
- assert.equal(await viewer(v=>v.fabricOpaque),true,'The fabric stays opaque');
- // The putter pocket fills the view.
- const view=await viewer(v=>{const rects=v.discRects(),box={w:v.renderer.width/v.renderer.pixelRatio,h:v.renderer.height/v.renderer.pixelRatio};return {box,putters:rects.filter(r=>r.pocket==='putter' && !r.empty).map(r=>({l:r.left,t:r.top,w:r.width,h:r.height}))};});
- const span=Math.max(...view.putters.map(r=>r.l+r.w))-Math.min(...view.putters.map(r=>r.l));
- assert.ok(span>view.box.w*.5,'The putter pocket fills the view: '+Math.round(span)+' of '+view.box.w);
- await shot('bag-top-view-putter-pocket-1440-light',scene);
- await quietTheme('midnight');await page.waitForTimeout(200);await shot('bag-top-view-putter-pocket-1440-midnight',scene);await quietTheme('light');
- await page.locator('[data-bag-top-view]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.camera==='front');
- check(`Top view: straight down into the putter pocket (putters span ${Math.round(span)}px of ${view.box.w}px), fabric opaque, one label, only putters in reach`);
+ // 8. Top view is removed; the putter pocket control remains available.
+ assert.equal(await page.getByRole('button',{name:'Top view',exact:true}).count(),0);
+ assert.equal(await page.locator('#bagScene [data-bag-pocket]').isEnabled(),true);
 
  // 9. Zoom: buttons, Ctrl + scroll at the pointer, reset.
  const zoomIn=scene.getByRole('button',{name:'Zoom in'}),zoomOut=scene.getByRole('button',{name:'Zoom out'}),reset=scene.getByRole('button',{name:/^Reset zoom/});

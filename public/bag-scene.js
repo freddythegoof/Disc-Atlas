@@ -24,12 +24,10 @@ export class BagScene {
   // `inspected` is the disc whose details the bag opened.
   this.out=[];this.inspected=null;this.panelEdge=null;
   this.toggle=root.querySelector('[data-bag-toggle]');this.info=root.querySelector('[data-bag-lift-info]');this.canvas=root.querySelector('[data-bag-canvas]');
-  this.topToggle=root.querySelector('[data-bag-top-view]');
   // The putter pocket collapses (its putters slide down inside) and expands again with the bag left open.
   this.pocketOpen=true;this.pocketToggle=root.querySelector('[data-bag-pocket]');root.dataset.putterPocket='open';
   this.pocketToggle?.addEventListener('click',()=>void this.setPocket(!this.pocketOpen));
   this.toggle.addEventListener('click',()=>void this.setOpen(!this.open));
-  this.topToggle.addEventListener('click',()=>void this.setTopView(!this.top));
   this.stage=div('bag-3d-stage');this.layer=div('bag-hit-layer',{role:'group','aria-label':'Your disc golf bag'});this.status=div('bag-3d-status',{role:'status'});
   // Hovering (or focusing) a disc shows only its name; the disc itself stays put.
   this.tag=div('bag-name-pill bag-hover-name',{'aria-hidden':'true'});this.tag.hidden=true;
@@ -45,14 +43,15 @@ export class BagScene {
   const zoomButton=(label,text,action)=>{const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',label);button.textContent=text;button.addEventListener('click',action);return button;};
   this.zoomOut=zoomButton('Zoom out','−',()=>this.zoomBy(1/ZOOM_STEP));this.zoomReset=zoomButton('Reset zoom','100%',()=>this.zoomTo(1));this.zoomIn=zoomButton('Zoom in','+',()=>this.zoomBy(ZOOM_STEP));
   this.zoomReset.className='bag-zoom-level';this.zoomControls.append(this.zoomOut,this.zoomReset,this.zoomIn);
-  // Return all: shown while any disc is out (top left, across from zoom); every out disc slides back in at once.
+  // Return all has its own row below the canvas, clear of the bag, discs and names.
   this.returnAll=document.createElement('button');this.returnAll.type='button';this.returnAll.className='bag-return-all';this.returnAll.hidden=true;
   this.returnAll.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 2.5 7 6 10.5"/><path d="M2.5 7h7a4 4 0 0 1 0 8h-2"/></svg><span>Return all</span><b data-return-count></b>';
   this.returnAll.addEventListener('click',()=>void this.returnAllOut());
   // The type buttons beside the sort pull out every disc of one type, or put them all back.
   this.typeButtons=[...document.querySelectorAll('[data-type-out]')];
   for(const button of this.typeButtons)button.addEventListener('click',()=>void this.toggleType(button.dataset.typeOut));
-  this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.zoomControls,this.returnAll,this.status);
+  this.canvas.replaceChildren(this.mapGrid,this.stage,this.pockets,this.names,this.layer,this.tag,this.pocketToggle,this.zoomControls,this.status);
+  this.actions=div('bag-scene-actions');this.actions.append(this.returnAll);this.canvas.after(this.actions);
   this.canvas.addEventListener('wheel',event=>{
    if(!this.ready || !(event.ctrlKey || event.metaKey))return;event.preventDefault();
    const box=this.canvas.getBoundingClientRect(),delta=Math.max(-100,Math.min(100,event.deltaY*(event.deltaMode===1?16:1)));
@@ -300,7 +299,7 @@ export class BagScene {
   if(coming==='map'){this.root.dataset.names='compact';compact=measure();delete this.root.dataset.names;}
   const box=this.canvas.getBoundingClientRect(),zoom=this.zoomControls.getBoundingClientRect();
   const reserve=zoom.width && box.width?{width:(box.right-zoom.left+6)/box.width,height:(zoom.bottom-box.top+6)/box.height}:{width:0,height:0};
-  const clear=box.width?[...this.captionBoxes(),...this.returnBoxes()].map(c=>({left:c.left/box.width,top:c.top/box.height,right:c.right/box.width,bottom:c.bottom/box.height})):[];
+  const clear=box.width?[...this.captionBoxes(),...this.controlBoxes()].map(c=>({left:c.left/box.width,top:c.top/box.height,right:c.right/box.width,bottom:c.bottom/box.height})):[];
   const motion=this.viewer.stageDiscs(this.out,{atlas,labels,compact,reserve,clear,instant}),mode=this.viewer.stage.mode,names=this.viewer.stage.names;
   if(names==='full')delete this.root.dataset.names;else this.root.dataset.names=names;
   if(mode!==coming){if(mode){this.root.dataset.stage=mode;this.root.dataset.out=String(this.viewer.outDiscs.length);}else{delete this.root.dataset.stage;delete this.root.dataset.out;}}
@@ -345,10 +344,9 @@ export class BagScene {
   // Layout box, not the painted one: the panel may still be sliding in.
   return panel.offsetHeight>innerHeight*.5 && panel.offsetLeft>innerWidth*.5?panel.offsetLeft:null;
  }
- // The return button (canvas px, a little room around it) while it shows; discs and names keep off it.
- returnBoxes(){
-  if(this.returnAll.hidden)return [];
-  const box=this.canvas.getBoundingClientRect(),r=this.returnAll.getBoundingClientRect();
+ // The pocket control now occupies the former Return all corner; reserve it for discs and names.
+ controlBoxes(){
+  const box=this.canvas.getBoundingClientRect(),r=this.pocketToggle.getBoundingClientRect();
   return r.width?[{left:r.left-box.left-6,top:r.top-box.top-6,right:r.right-box.left+6,bottom:r.bottom-box.top+6}]:[];
  }
  showReturnAll(){
@@ -388,7 +386,7 @@ export class BagScene {
   const width=this.canvas.clientWidth,height=this.canvas.clientHeight,canvas=this.canvas.getBoundingClientRect();
   const edges=rect=>({key:rect.key,left:rect.left,top:rect.top,right:rect.left+rect.width,bottom:rect.top+rect.height});
   const zoom=this.zoomControls.getBoundingClientRect(),bag=this.viewer.bagRect();
-  const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[]),...this.captionBoxes(),...this.returnBoxes(),
+  const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[]),...this.captionBoxes(),...this.controlBoxes(),
    ...(zoom.width?[{left:zoom.left-canvas.left-4,top:zoom.top-canvas.top-4,right:zoom.right-canvas.left+4,bottom:zoom.bottom-canvas.top+4}]:[])];
   const covered=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
   const centerX=width/2;
@@ -459,7 +457,7 @@ export class BagScene {
  async setTopView(on){
   if(!this.ready || on===this.top)return;
   this.top=on;this.clearLift();this.interactive(false);
-  this.topToggle.setAttribute('aria-pressed',String(on));this.root.dataset.camera='moving';
+  this.root.dataset.camera='moving';
   const view=await this.viewer.setTopView(on,{instant:reduced()});
   if(view!==this.top)return;
   this.root.dataset.camera=on?'top':'front';this.place();this.interactive(!this.running);
@@ -518,7 +516,7 @@ export class BagScene {
  reset(){
   this.epoch++;this.running=false;this.open=false;this.visible=false;this.revealed=false;this.pendingDraw=false;this.data=null;this.key='';this.items=null;this.clearLift();
   this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging','names'])delete this.root.dataset[key];this.wideCanvas(false);this.syncTypeButtons();this.names.replaceChildren();this.nameById.clear();this.returnAll.hidden=true;
-  this.top=false;this.topToggle.setAttribute('aria-pressed','false');delete this.root.dataset.camera;this.pockets.replaceChildren();
+  this.top=false;delete this.root.dataset.camera;this.pockets.replaceChildren();
   this.pocketOpen=true;this.root.dataset.putterPocket='open';this.syncPocket();
   if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;

@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 // My Bag (Oct 6): a collapsible putter pocket and drag-to-spin.
-// Pocket: the "Putter pocket" button beside Top view slides every putter down into the top pocket
+// Pocket: the "Putter pocket" button at the upper left slides every putter down into the top pocket
 // and back up into its row, with the bag left open the whole time; a putter that is out goes home
 // first, then the row goes down. The choice holds through closing and opening the bag.
 // Spin: a horizontal drag spins the bag from anywhere on it (discs included), with momentum on a
@@ -137,8 +137,7 @@ try {
  }
  check('Catch: pressing a coasting bag stops it on the spot; the press is not a tap');
 
- // 5. The angle persists through everything else: pulling discs out and returning them, the top
- // view, closing and opening the bag, collapsing the pocket, and a theme change.
+ // 5. The angle persists through everything else: pulling discs out and returning them, closing and opening the bag, collapsing the pocket, and a theme change.
  {
   // Back to a front-facing angle (held, no coast), so every pocket stays in reach.
   let turn=await viewer(v=>v.turn),k=Math.round(turn/(2*Math.PI))*2*Math.PI-turn+.5;
@@ -147,8 +146,6 @@ try {
   const same=async label=>assert.ok(Math.abs(await viewer(v=>v.turn)-kept)<1e-9,`${label} keeps the angle`);
   await page.locator('[data-type-out="distance"]').click();await settled();await same('Pulling out a type');
   await page.locator('.bag-return-all').click();await settled();await same('Return all');
-  await page.locator('[data-bag-top-view]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.camera==='top');await same('Top view');
-  await page.locator('[data-bag-top-view]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.camera==='front');await settled();
   await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');await same('Closing the bag');
   await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');await settled();await same('Opening it');
   await pocket.click();await settled();await pocket.click();await settled();await same('Collapsing and expanding the pocket');
@@ -162,7 +159,7 @@ try {
   await page.locator('.bag-return-all').click();await settled();
   metrics.persist=+kept.toFixed(3);
  }
- check(`Angle persists (${metrics.persist} rad) through a type pull-out, Return all, the top view, closing and opening the bag, the pocket and a theme change; an out disc holds still while the bag coasts`);
+ check(`Angle persists (${metrics.persist} rad) through a type pull-out, Return all, closing and opening the bag, the pocket and a theme change; an out disc holds still while the bag coasts`);
 
  // 6. Reduced motion: a flick stops where it is let go.
  await page.emulateMedia({reducedMotion:'reduce'});
@@ -173,17 +170,17 @@ try {
 
  // ── Putter pocket ─────────────────────────────────────────────────────────────────────────────
  await openBag();
- // 7. The control: beside Top view, under the canvas (clear of the bag, discs, names, zoom and Return all).
+ // 7. The control: in the upper-left control corner (clear of the bag, discs, names, zoom and Return all).
  assert.equal((await pocket.innerText()).trim(),'Putter pocket');
  assert.equal(await pocket.getAttribute('aria-expanded'),'true');assert.equal(await pocket.isEnabled(),true);
  assert.equal(await scene.getAttribute('data-putter-pocket'),'open');assert.equal(await viewer(v=>v.puttersOut),true);
  {
-  const [p,top,c]=await Promise.all([pocket.boundingBox(),page.locator('[data-bag-top-view]').boundingBox(),page.locator('[data-bag-canvas]').boundingBox()]);
-  assert.ok(p.y>=c.y+c.height,'The control sits below the canvas, clear of everything drawn in it');
-  assert.ok(Math.abs(p.y-top.y)<2 && p.x>top.x,'…in the row beside Top view');
+  const [p,c]=await Promise.all([pocket.boundingBox(),page.locator('[data-bag-canvas]').boundingBox()]);
+  assert.ok(Math.abs(p.y-c.y-10)<1 && Math.abs(p.x-c.x-10)<1,'The control sits in the upper-left corner, with its space reserved for discs and names');
+  assert.equal(await page.getByRole('button',{name:'Top view',exact:true}).count(),0,'Top view is gone');
   assert.ok(p.height>=44,'44 px target');
  }
- check('Control: "Putter pocket" (aria-expanded) in the bag\'s button row beside Top view, below the canvas, 44 px tall');
+ check('Control: "Putter pocket" (aria-expanded) in the upper-left control corner, 44 px tall');
 
  // 8. Collapse: every putter slides down into the pocket; the bag stays open throughout and the main
  // discs never move.

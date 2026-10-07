@@ -134,7 +134,7 @@ test('score ordering is never violated at any visible count, filter or screen',(
   }
  }
 });
-test('My Map: personal positions spread too, ordered by the personal stability index',()=>{
+test('adaptive layout accepts shifted positions and orders cohorts by the shifted index',()=>{
  const bag=random(rated,14,7),shift=d=>[-10,0,10][parseInt(d.id.slice(-2),16)%3],base=layout.positions(bag,shift);
  for(const [w,h,immersive] of sizes){
   const shown=layout.adapt(bag,base,w,h,immersive),order=cohorts(bag,shown,d=>Math.max(0,Math.min(100,score(d)+shift(d))));
