@@ -67,6 +67,8 @@
 .explore-tools .type-chips .brand-chip[data-active="true"]>.dd-indicator {color:var(--dd-accent)}
 /* On an accent-filled button (a primary action, a pressed toggle) the chevron takes the button's ink. */
 :where(.primary,[aria-pressed="true"])>.dd-indicator,:where(.primary,[aria-pressed="true"]):hover>.dd-indicator {color:inherit;box-shadow:none}
+/* Open on a lime button, the turned chevron alone shows the state: a lime tint on lime only muddies it. */
+:where(.primary)>.dd-indicator {background-color:transparent}
 /* Sort toggles: the chevron takes the width the old " ↓" text had. */
 #sortBar button {display:inline-flex;align-items:center;gap:3px}
 #sortBar button:has(>.dd-indicator) {padding-right:8px}

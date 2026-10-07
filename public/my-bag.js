@@ -47,7 +47,7 @@ function bagDetailMarkup(d){
  const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;if(!active || !item)return '';
  const rated=d.speed!=null,index=rated?Math.max(0,Math.min(100,50+10*(d.turn+d.fade))):null;
  const shift=mapOpen && rated?moldShifts(bagged().filter(i=>i.mold_id===d.id)).get(d.id):0,personal=Math.round(Math.max(0,Math.min(100,index+shift)));
- return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(item.color||'#e6c668')}" aria-hidden="true"></span><div><h3 id="bagDetailTitle">${isDemo()?'Sample disc':'Your disc'}</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}${shift && personal!==index?`<div><dt>On your map</dt><dd>Stability ${personal} · consensus ${index}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide primary" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button>${isDemo()?'':`<button type="button" class="wide" data-bag-detail-edit="${esc(item.id)}">Edit disc</button>`}</div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
+ return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(item.color||'#e6c668')}" aria-hidden="true"></span><div><h3 id="bagDetailTitle">${isDemo()?'Sample disc':'Your disc'}</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}${shift && personal!==index?`<div><dt>On your map</dt><dd>Stability ${personal} · consensus ${index}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide bag-detail-atlas" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button>${isDemo()?'':`<button type="button" class="wide bag-detail-edit" data-bag-detail-edit="${esc(item.id)}">Edit disc</button>`}</div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
 }
 detailPanel.addEventListener('click',event=>{
  const show=event.target.closest('[data-show-on-atlas]'),edit=event.target.closest('[data-bag-detail-edit]');
@@ -310,17 +310,20 @@ const addMenu=$('#addDestinationMenu');let addMenuTrigger=null;
 function closeAddMenu(restore=false){addMenuTrigger?.setAttribute('aria-expanded','false');if(addMenu.matches(':popover-open'))addMenu.hidePopover();if(restore && addMenuTrigger?.isConnected)addMenuTrigger.focus({preventScroll:true});}
 function positionAddMenu(){
  if(!addMenuTrigger?.isConnected){closeAddMenu();return;}
- const rect=addMenuTrigger.getBoundingClientRect(),width=180,height=106;
+ const rect=addMenuTrigger.getBoundingClientRect();
  if(rect.bottom<0 || rect.top>innerHeight){closeAddMenu();return;}
- addMenu.style.left=Math.max(8,Math.min(innerWidth-width-8,rect.right-width))+'px';
- addMenu.style.top=(rect.bottom+height+8<=innerHeight?rect.bottom+6:Math.max(8,rect.top-height-6))+'px';
+ // A full-width trigger (Add to in the details) gets a menu as wide as itself, under its left edge;
+ // a small one (a directory row's +) keeps a 200 px menu under its right edge.
+ const wide=rect.width>=220,width=Math.min(innerWidth-16,wide?rect.width:200);
+ addMenu.style.width=width+'px';const height=addMenu.offsetHeight,below=rect.bottom+height+8<=innerHeight;
+ addMenu.style.left=Math.max(8,Math.min(innerWidth-width-8,wide?rect.left:rect.right-width))+'px';
+ addMenu.style.top=(below?rect.bottom+6:Math.max(8,rect.top-height-6))+'px';addMenu.dataset.placement=below?'below':'above';
 }
 document.addEventListener('click',event=>{
  const action=event.target.closest('[data-add-menu]');
  if(action){event.preventDefault();if(addMenu.matches(':popover-open') && addMenuTrigger===action){closeAddMenu(true);return;}
   closeAddMenu();addMenuTrigger=action;addMenu.dataset.moldId=action.dataset.addMenu;
-  positionAddMenu();
-  action.setAttribute('aria-expanded','true');addMenu.showPopover();addMenu.querySelector('button').focus({preventScroll:true});return;
+  action.setAttribute('aria-expanded','true');addMenu.showPopover();positionAddMenu();addMenu.querySelector('button').focus({preventScroll:true});return;
  }
  const choice=event.target.closest('[data-add-destination]');
  if(choice){const disc=mold(addMenu.dataset.moldId),destination=choice.dataset.addDestination;closeAddMenu(true);void openDisc(disc,null,destination);}

@@ -59,7 +59,7 @@ try {
  for(const selector of ['#addBagDisc','#editBagModel','#bagSort','#bagSortHint','#myBagViews','#myMapPanel'])assert.ok(await page.locator(selector).isHidden(),`${selector} is hidden`);
  // Sorting saves to the account; the type buttons only stage discs, so the demo keeps them.
  assert.equal(await page.locator('.bag-type-out button:visible').count(),4,'The demo keeps the four type buttons');
- for(const selector of ['[data-bag-edit]','[data-bag-remove]','[data-bag-move]','[data-bag-pocket]','[data-bag-drag]','[data-bag-earlier]','[data-bag-later]','#myBagEmpty'])assert.equal(await page.locator(selector).count(),0,`No ${selector} in the demo`);
+ for(const selector of ['[data-bag-edit]','[data-bag-remove]','[data-bag-move]','select[data-bag-pocket]','[data-bag-drag]','[data-bag-earlier]','[data-bag-later]','#myBagEmpty'])assert.equal(await page.locator(selector).count(),0,`No ${selector} in the demo`);
  assert.deepEqual(bagCalls,[],'The demo never calls the bag API');
  assert.equal((await page.request.get(base+'/api/bag')).status(),401,'The API still requires an account');
  assert.equal(await page.evaluate(()=>window.BagApp.mapColors().size),0,'The demo never colors the atlas');

@@ -103,7 +103,7 @@ try{
   const compare=page.locator('#compareBar');await compare.locator('[data-add-menu]').click();await shot('add-comparison',width,name);await page.keyboard.press('Escape');
   await add(compare,'Storage');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});assert.equal((await data()).discs.at(-1).in_bag,false);
   // Keyboard menu navigation, Escape and focus restoration.
-  const trigger=compare.locator('[data-add-menu]');await trigger.focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.textContent.trim()),'Storage');await page.keyboard.press('Escape');assert.ok(await trigger.evaluate(n=>document.activeElement===n));
+  const trigger=compare.locator('[data-add-menu]');await trigger.focus();await page.keyboard.press('Enter');await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.dataset.addDestination),'storage');await page.keyboard.press('Escape');assert.ok(await trigger.evaluate(n=>document.activeElement===n));
   await page.evaluate(()=>{comparison=[];renderCompare();});await page.locator('#search').fill('');
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
   const map=page.locator('#map'),rect=await map.boundingBox();await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
