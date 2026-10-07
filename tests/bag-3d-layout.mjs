@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,sideOrder,sideFrame,spotBox,SIDE_BAG} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,scatterFrame,spotBox,tiltOf,SIDE_BAG} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -112,17 +112,18 @@ test('stowed putters sit at one height inside the top pocket with only their rim
   assert.ok(!placements.find(p => p.pocket === 'goTo').stow, 'The go-to does not stow');
 });
 
-// Staging: out discs stay out until clicked again and, however many there are, rest in side
-// columns beside the bag, every one named.
+// Staging: out discs stay out until clicked again and, however many there are, rest scattered
+// beside the bag like discs tossed on a table, every one named.
 const HALF_HEIGHT = 1.3507 * Math.tan(33 / 2 * Math.PI / 180);
 const entry = (key, x, y) => ({key, atlas: x === null ? null : {x, y}});
 
-test('staging always uses the side layout: there is no map mode at any count', () => {
-  assert.deepEqual([0, 1, 5, 6, 7, 12, 24, 48].map(stageMode), [null, 'side', 'side', 'side', 'side', 'side', 'side', 'side']);
+test('staging always scatters: there is no map mode or column layout at any count', () => {
+  assert.deepEqual([0, 1, 5, 6, 7, 12, 24, 48].map(stageMode), [null, 'scatter', 'scatter', 'scatter', 'scatter', 'scatter', 'scatter', 'scatter']);
   assert.equal(STAGE.map, undefined);
+  assert.equal(STAGE.side, undefined);
 });
 
-// Left and right columns from assignSides, each listed by key.
+// Left and right sides from assignSides, each listed by key.
 const columns = list => { const sides = assignSides(list); return {left: list.filter(d => sides.get(d.key) === 'left').map(d => d.key), right: list.filter(d => sides.get(d.key) === 'right').map(d => d.key)}; };
 const stabilityOf = list => key => list.find(d => d.key === key).atlas?.x ?? .5;
 // Stability mixes of any size: spread over the whole range, all overstable, all understable, all neutral.
@@ -160,16 +161,10 @@ test('the split is relative to the out discs, at the median, never a fixed thres
   // A lone disc rests on the right whatever its stability.
   assert.deepEqual(columns([entry('turn', .1, .4)]), {left: [], right: ['turn']});
   assert.deepEqual(columns([entry('fade', .9, .4)]), {left: [], right: ['fade']});
-  // Equal stability splits in out order; unrated discs count as neutral.
+  // Equal stability splits by key, whatever order the discs came out in; unrated discs count as neutral.
   assert.deepEqual(columns([entry('p', .6, 0), entry('q', .6, 0), entry('r', .6, 0), entry('s', .6, 0)]), {left: ['p', 'q'], right: ['r', 's']});
+  assert.deepEqual(columns([entry('s', .6, 0), entry('r', .6, 0), entry('q', .6, 0), entry('p', .6, 0)]), {left: ['q', 'p'], right: ['s', 'r']});
   assert.equal(assignSides([entry('x', null), entry('y', .9, .3)]).get('x'), 'left');
-});
-
-test('side order: each side listed most extreme first', () => {
-  const list = [entry('fade', .9, 0), entry('x', null), entry('turn', .1, 0), entry('p', .55, 0), entry('flip', .3, 0), entry('beef', .8, 0)];
-  const {left, right} = sideOrder(list);
-  assert.deepEqual(left.map(d => d.key), ['turn', 'flip', 'x']);
-  assert.deepEqual(right.map(d => d.key), ['fade', 'beef', 'p']);
 });
 
 // Out discs with a name of `width` × `height` (page-view meters, room around it included) each.
@@ -179,35 +174,28 @@ const boxesOverlap = (a, b) => a.xMin < b.xMax - 1e-6 && b.xMin < a.xMax - 1e-6 
 // their pixel size: about .09 × .03 m at the page view on a desktop canvas, .16 × .06 m on a phone's.
 const WIDE = {aspect: 1392 / 850, halfHeight: HALF_HEIGHT, centerY: .075}, NARROW = {aspect: 344 / 430, halfHeight: HALF_HEIGHT, centerY: .075};
 const DESKTOP = {width: .09, height: .03}, PHONE = {width: .16, height: .06};
-// The zoom corner and the pocket button, as the page keeps them clear.
+// A kept-clear corner and box, as a page could ask for.
 const RESERVE = {width: .12, height: .08}, CLEAR = [{left: 0, top: 0, right: .13, bottom: .08}];
+// Spearman's rank correlation of two equal-length lists.
+const ranks = values => { const order = values.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]), out = []; order.forEach(([, i], r) => { out[i] = r; }); return out; };
+const spearman = (a, b) => { const ra = ranks(a), rb = ranks(b), n = a.length; return 1 - 6 * ra.reduce((sum, r, i) => sum + (r - rb[i]) ** 2, 0) / (n * (n * n - 1)); };
 
-// Every rule the side layout keeps, for one frame.
-const sideChecks = (frame, discs, label, name) => {
-  const stability = key => discs.find(d => d.key === key).atlas?.x ?? .5, speed = key => discs.find(d => d.key === key).atlas?.y ?? .5;
-  const sides = assignSides(discs);
+// Every rule the scatter keeps, for one frame.
+const scatterChecks = (frame, discs, label, name) => {
+  const sides = assignSides(discs), speed = key => discs.find(d => d.key === key).atlas?.y ?? .5;
   assert.ok(frame.fits, `${name}: fits with every name`);
   assert.equal(frame.spots.size, discs.length, `${name}: every disc placed`);
-  assert.ok(['below', 'flush', 'outer'].includes(frame.labels), `${name}: names under or beside`);
-  const left = [...frame.spots].filter(([, s]) => s.side === 'left').map(([k]) => k), right = [...frame.spots].filter(([, s]) => s.side === 'right').map(([k]) => k);
+  // Names under the discs; staggered rows (a crowd on a phone) may set them beside the discs instead.
+  assert.ok(['below', 'flush'].includes(frame.labels) || (frame.brick && frame.labels === 'outer'), `${name}: names under the discs (${frame.labels})`);
+  const [low, high] = STAGE.scatter.tilt;
   for (const [key, spot] of frame.spots) {
     assert.equal(spot.side, sides.get(key), `${name}: ${key} on its relative side`);
-    assert.ok(spot.side === 'left' ? spot.position[0] < SIDE_BAG.xMin : spot.position[0] > SIDE_BAG.xMax, `${name}: ${key} beside the bag`);
-  }
-  if (left.length && right.length) assert.ok(Math.max(...left.map(stability)) <= Math.min(...right.map(stability)), `${name}: every left disc is less overstable than every right disc`);
-  // Side columns: the first column of each side hugs the bag, the rest step outward; faster discs higher in each.
-  for (const side of ['left', 'right']) {
-    const cols = frame.columns.filter(c => c.side === side), sign = side === 'left' ? -1 : 1;
-    for (let i = 1; i < cols.length; i++) assert.ok(sign * (cols[i].x - cols[i - 1].x) > 0, `${name}: ${side} columns run from the bag outward`);
-    if (cols.length) {
-      const inner = cols[0], spot = frame.spots.get(inner.keys[0]), box = spotBox(spot, {width: label.width * frame.pull, height: label.height * frame.pull}, frame.labels);
-      const gapToBag = side === 'left' ? SIDE_BAG.xMin - box.xMax : box.xMin - SIDE_BAG.xMax;
-      assert.ok(gapToBag < STAGE.side.gap + 1e-6, `${name}: ${side} column hugs the bag (gap ${gapToBag.toFixed(3)})`);
-    }
-    for (const column of cols) for (let i = 1; i < column.keys.length; i++) {
-      const [a, b] = [column.keys[i - 1], column.keys[i]];
-      assert.ok(frame.spots.get(a).position[1] > frame.spots.get(b).position[1] && speed(a) >= speed(b), `${name}: faster discs higher (${a} over ${b})`);
-    }
+    assert.equal(spot.scale, frame.scale, `${name}: ${key} the same size as every other out disc`);
+    // A disc stays in its own half; beside the bag unless the scatter runs around it.
+    const r = DISC.radius * spot.scale, [x] = spot.position;
+    const edge = frame.around ? STAGE.scatter.gap / 2 - 1e-6 : SIDE_BAG.xMax;
+    assert.ok(spot.side === 'left' ? x + r <= -edge + 1e-6 : x - r >= edge - 1e-6, `${name}: ${key} on the ${spot.side} (${x.toFixed(3)})`);
+    assert.ok(spot.tilt.angle >= low && spot.tilt.angle <= high && spot.tilt.toward >= 0 && spot.tilt.toward < 2 * Math.PI, `${name}: ${key} tips a little`);
   }
   // Nothing on the bag, a kept-clear box or another disc or name; everything inside the frame.
   const boxes = [...frame.spots].map(([key, spot]) => [key, spotBox(spot, {width: label.width * frame.pull, height: label.height * frame.pull}, frame.labels)]);
@@ -217,73 +205,118 @@ const sideChecks = (frame, discs, label, name) => {
     assert.ok(box.xMin >= frame.region.xMin - 1e-6 && box.xMax <= frame.region.xMax + 1e-6 && box.yMin >= frame.region.yMin - 1e-6 && box.yMax <= frame.region.yMax + 1e-6, `${name}: ${key} inside the frame`);
   }
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.ok(!boxesOverlap(boxes[i][1], boxes[j][1]), `${name}: ${boxes[i][0]} and ${boxes[j][0]} (with names) apart`);
+  // Faster discs toward the top: on each side, the fastest disc sits higher than the slowest, and
+  // heights follow speed overall (a lean, not rows).
+  for (const side of ['left', 'right']) {
+    const keys = [...frame.spots].filter(([, s]) => s.side === side).map(([k]) => k);
+    if (keys.length < 2) continue;
+    const y = key => frame.spots.get(key).position[1], speeds = keys.map(speed);
+    if (Math.max(...speeds) - Math.min(...speeds) < .05) continue;
+    const fastest = keys.reduce((a, b) => speed(b) > speed(a) ? b : a), slowest = keys.reduce((a, b) => speed(b) < speed(a) ? b : a);
+    // (Staggered rows may seat them in one row.)
+    assert.ok(frame.brick ? y(fastest) >= y(slowest) - 1e-9 : y(fastest) > y(slowest), `${name}: ${side}: the fastest disc rests above the slowest`);
+    if (keys.length >= 4) assert.ok(spearman(speeds, keys.map(y)) >= .5, `${name}: ${side}: heights lean with speed (ρ ${spearman(speeds, keys.map(y)).toFixed(2)})`);
+  }
 };
 
-test('desktop: any count rests in side columns beside the full-size bag, every disc named', () => {
-  for (const count of [1, 2, 3, 5, 6, 8, 10, 12, 14, 18, 24]) for (const [mix, list] of Object.entries(mixes(count))) {
-    const discs = named(list, DESKTOP.width, DESKTOP.height), frame = sideFrame({...WIDE, reserve: RESERVE, clear: CLEAR, entries: discs}), name = `${count} ${mix}`;
-    sideChecks(frame, discs, DESKTOP, name);
-    assert.equal(frame.pull, 1, `${name}: the bag keeps its full size`);
-    assert.deepEqual([...sideFrame({...WIDE, reserve: RESERVE, clear: CLEAR, entries: discs}).spots], [...frame.spots], `${name}: deterministic`);
-  }
-});
-
-test('a column grows before it wraps: one column a side up to fourteen out, the largest discs while they fit', () => {
-  const frame = count => sideFrame({...WIDE, reserve: RESERVE, clear: CLEAR, entries: named(mixes(count).mixed, DESKTOP.width, DESKTOP.height)});
-  for (const count of [1, 2, 5, 6, 8]) {
-    const f = frame(count);
-    assert.deepEqual([f.scale, f.labels], [.58, 'below'], `${count}: full-size discs, names under them`);
-    assert.ok(f.columns.length <= 2, `${count}: one column a side`);
-  }
-  for (const count of [10, 12, 14]) {
-    const f = frame(count);
-    assert.equal(f.columns.length, 2, `${count}: still one column a side (${f.columns.map(c => c.keys.length)})`);
-  }
-  // Names move beside the discs before the discs shrink much: ten keep their full size.
-  assert.deepEqual([frame(10).scale, frame(10).labels], [.58, 'outer']);
-  // The rows close up as the column grows, and the column stays centered on the bag while it is short.
-  const pitch = f => { const ys = f.columns[0].keys.map(k => f.spots.get(k).position[1]); return ys.length > 1 ? ys[0] - ys[1] : 0; };
-  assert.ok(pitch(frame(4)) >= pitch(frame(8)) - 1e-9, 'Rows close up as the column grows');
-  const two = frame(2);
-  for (const spot of two.spots.values()) assert.ok(Math.abs(spot.position[1] - STAGE.side.y) < 1e-9, 'A lone disc a side rests level with the bag\'s middle');
-  // Past what one column holds, a side wraps into a second column beside the first, rows by speed.
-  const many = frame(24);
-  assert.equal(many.columns.length, 4, '24 out: two columns a side');
+// Evenness: a side's discs spread over its room, without clumps or lonely outliers, and never
+// line up as a shelf. The room is the strip beside the bag (or its half of the canvas, when the
+// scatter runs around the bag).
+const evenChecks = (frame, name) => {
+  const stats = {};
   for (const side of ['left', 'right']) {
-    const [inner, outer] = many.columns.filter(c => c.side === side), speed = k => mixes(24).mixed.find(d => d.key === k).atlas.y;
-    const rowOf = k => many.spots.get(k).row;
-    for (const a of [...inner.keys, ...outer.keys]) for (const b of [...inner.keys, ...outer.keys]) if (rowOf(a) < rowOf(b)) assert.ok(speed(a) >= speed(b), `${side}: every row is faster than the rows under it`);
+    const points = [...frame.spots.values()].filter(s => s.side === side).map(s => s.position);
+    if (!points.length) continue;
+    const area = frame.areas[side], inner = frame.around ? 0 : side === 'left' ? SIDE_BAG.xMin : SIDE_BAG.xMax;
+    const room = side === 'left' ? {xMin: area.xMin, xMax: inner} : {xMin: inner, xMax: area.xMax};
+    const fx = x => (x - room.xMin) / (room.xMax - room.xMin), fy = y => (y - area.yMin) / (area.yMax - area.yMin);
+    // Not clumped in a corner: the discs' middle sits in the middle half of the room either way.
+    const cx = points.reduce((s, p) => s + fx(p[0]), 0) / points.length, cy = points.reduce((s, p) => s + fy(p[1]), 0) / points.length;
+    assert.ok(cx > .2 && cx < .8 && cy > .25 && cy < .75, `${name}: ${side} discs centered in their room (${cx.toFixed(2)}, ${cy.toFixed(2)})`);
+    if (points.length >= 3) {
+      // Spread: from the room's top part to its bottom part.
+      const ys = points.map(p => fy(p[1]));
+      assert.ok(Math.max(...ys) - Math.min(...ys) >= .45, `${name}: ${side} discs spread down the room (${(Math.max(...ys) - Math.min(...ys)).toFixed(2)})`);
+      // No clump, no lonely outlier: each disc's nearest neighbor is about as near as anyone's.
+      const nearest = points.map((p, i) => Math.min(...points.filter((_, j) => j !== i).map(q => Math.hypot(p[0] - q[0], p[1] - q[1]))));
+      const mean = nearest.reduce((a, b) => a + b, 0) / nearest.length;
+      assert.ok(Math.min(...nearest) >= .45 * mean && Math.max(...nearest) <= 2.2 * mean, `${name}: ${side} spacing even (nearest ${Math.min(...nearest).toFixed(3)}–${Math.max(...nearest).toFixed(3)}, mean ${mean.toFixed(3)})`);
+      // Not a shelf: never all in one column, and no three level in a row or plumb in a column.
+      const xs = points.map(p => p[0]), spreadX = Math.max(...xs) - Math.min(...xs);
+      assert.ok(spreadX > DISC.radius * frame.scale * .5, `${name}: ${side} discs not stacked in one column`);
+      for (const axis of [0, 1]) {
+        const values = points.map(p => p[axis]).sort((a, b) => a - b);
+        for (let i = 2; i < values.length; i++) assert.ok(values[i] - values[i - 2] > .002, `${name}: ${side}: no three discs ${axis ? 'level in a row' : 'plumb in a column'}`);
+      }
+      stats[side] = {cx: +cx.toFixed(2), cy: +cy.toFixed(2), nn: +(Math.max(...nearest) / Math.min(...nearest)).toFixed(2)};
+    }
   }
+  return stats;
+};
+
+test('desktop: 1–24 out scatter beside the full-size bag, evenly, every disc named, the same way every time', () => {
+  for (let count = 1; count <= 24; count++) for (const [mix, list] of Object.entries(mixes(count))) {
+    const discs = named(list, DESKTOP.width, DESKTOP.height), frame = scatterFrame({...WIDE, entries: discs}), name = `${count} ${mix}`;
+    scatterChecks(frame, discs, DESKTOP, name);
+    if (mix !== 'neutral') evenChecks(frame, name);
+    assert.equal(frame.pull, 1, `${name}: the bag keeps its full size`);
+    assert.equal(frame.around, false, `${name}: beside the bag`);
+    // Deterministic: the same set lands the same way, whatever order its discs came out in.
+    for (const order of [[...discs].reverse(), [...discs].sort((a, b) => (a.key.length * 7 + a.key.charCodeAt(1)) % 5 - (b.key.length * 7 + b.key.charCodeAt(1)) % 5)]) {
+      const again = scatterFrame({...WIDE, entries: order});
+      for (const [key, spot] of frame.spots) assert.deepEqual(again.spots.get(key), spot, `${name}: ${key} lands the same way`);
+    }
+  }
+  // Few discs keep the largest size; a crowd shrinks every disc alike before the camera moves.
+  for (const count of [1, 6, 12, 16]) assert.equal(scatterFrame({...WIDE, entries: named(mixes(count).mixed, DESKTOP.width, DESKTOP.height)}).scale, .58, `${count}: full-size discs`);
+  for (const count of [18, 24]) assert.ok(scatterFrame({...WIDE, entries: named(mixes(count).mixed, DESKTOP.width, DESKTOP.height)}).scale < .58, `${count}: smaller discs, the bag still full size`);
 });
 
-test('the side layout keeps the panel strip free, and on a phone pulls back only as far as it must, never dropping names', () => {
-  // A full-height strip at one side (a details panel over the canvas) is left empty.
+test('adding a disc moves the others only a little', () => {
+  // The scatter starts each disc from its own key and speed rank, so one more disc shifts the rest
+  // rather than shuffling them.
+  const list = mixes(12).mixed, a = scatterFrame({...WIDE, entries: named(list.slice(0, 11), DESKTOP.width, DESKTOP.height)}), b = scatterFrame({...WIDE, entries: named(list, DESKTOP.width, DESKTOP.height)});
+  const moves = [...a.spots].filter(([key]) => b.spots.get(key).side === a.spots.get(key).side).map(([key, spot]) => Math.hypot(spot.position[0] - b.spots.get(key).position[0], spot.position[1] - b.spots.get(key).position[1]));
+  const median = moves.sort((x, y) => x - y)[Math.floor(moves.length / 2)];
+  assert.ok(median < .2, `Median move ${median.toFixed(3)} m`);
+});
+
+test('kept-clear boxes and the panel strip stay free', () => {
+  // A full-height strip at one side (a details panel over the canvas) is left empty, as are kept-clear boxes.
   const panel = {left: .75, top: 0, right: 1, bottom: 1};
-  for (const count of [3, 8, 12]) {
-    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = sideFrame({...WIDE, reserve: RESERVE, clear: [...CLEAR, panel], entries: discs});
-    sideChecks(frame, discs, DESKTOP, `${count} beside the panel`);
+  for (const count of [3, 8, 12, 18]) {
+    const discs = named(mixes(count).mixed, DESKTOP.width, DESKTOP.height), frame = scatterFrame({...WIDE, reserve: RESERVE, clear: [...CLEAR, panel], entries: discs});
+    scatterChecks(frame, discs, DESKTOP, `${count} beside the panel`);
     const w = WIDE.halfHeight * frame.pull * WIDE.aspect, strip = -w + 2 * w * panel.left;
     for (const [key, spot] of frame.spots) assert.ok(spotBox(spot, {width: DESKTOP.width * frame.pull, height: DESKTOP.height * frame.pull}, frame.labels).xMax <= strip + 1e-9, `${count}: ${key} keeps out of the panel strip`);
   }
-  // A phone's narrow canvas has little room beside a full-size bag: it pulls back, names kept.
+});
+
+test('phone: 1–24 out fit a 360 px canvas with every name, pulling back only as far as they must', () => {
   const pulls = {};
-  for (const count of [1, 3, 5, 6, 8, 10, 12, 18]) for (const [mix, list] of Object.entries(mixes(count))) {
-    const discs = named(list, PHONE.width, PHONE.height), frame = sideFrame({...NARROW, reserve: RESERVE, clear: CLEAR, entries: discs});
-    sideChecks(frame, discs, PHONE, `phone ${count} ${mix}`);
+  for (let count = 1; count <= 24; count++) for (const [mix, list] of Object.entries(mixes(count))) {
+    const discs = named(list, PHONE.width, PHONE.height), frame = scatterFrame({...NARROW, entries: discs}), name = `phone ${count} ${mix}`;
+    scatterChecks(frame, discs, PHONE, name);
     pulls[count] = Math.max(pulls[count] ?? 0, frame.pull);
   }
-  assert.ok(pulls[1] > 1 && pulls[1] < 2, 'Phone, one disc: pull ' + pulls[1]);
+  assert.ok(pulls[1] < 1.8, 'Phone, one disc: pull ' + pulls[1]);
   assert.ok(pulls[8] < 2, 'Phone, eight discs: pull ' + pulls[8]);
-  assert.ok(pulls[18] < 2.6, 'Phone, eighteen discs: pull ' + pulls[18]);
-  for (let i = 1; i < Object.keys(pulls).length; i++) { const [a, b] = Object.keys(pulls).map(Number).slice(i - 1, i + 1); assert.ok(pulls[b] >= pulls[a] - 1e-9, `More discs never bring the camera in (${a}: ${pulls[a]}, ${b}: ${pulls[b]})`); }
-  // On a phone a few discs keep their names under them (flush with the disc's inner edge when
-  // centered names would not fit), and a flush name reaches only outward, away from the bag.
-  for (const count of [1, 3, 5]) assert.ok(['below', 'flush'].includes(sideFrame({...NARROW, reserve: RESERVE, clear: CLEAR, entries: named(mixes(count).mixed, PHONE.width, PHONE.height)}).labels), `Phone ${count}: names under the discs`);
+  assert.ok(pulls[18] < 3, 'Phone, eighteen discs: pull ' + pulls[18]);
+  assert.ok(pulls[24] < 3, 'Phone, twenty-four discs: pull ' + pulls[24]);
+  // A crowd past every layout says so (the page still names every disc, placed as clear as it can).
+  assert.equal(scatterFrame({...NARROW, entries: named(mixes(60).mixed, .3, .12)}).fits, false);
+  // A flush name's inner edge is its disc's, so it reaches only outward.
   for (const side of ['left', 'right']) {
     const spot = {position: [side === 'left' ? -.4 : .4, 0, 0], scale: .5, side}, r = DISC.radius * .5, box = spotBox(spot, {width: .3, height: .05}, 'flush');
     assert.ok(Math.abs(side === 'left' ? box.xMax - (-.4 + r) : box.xMin - (.4 - r)) < 1e-9, `${side}: a flush name's inner edge is the disc's`);
     assert.ok(Math.abs(box.xMax - box.xMin - .3) < 1e-9, `${side}: it reaches only outward`);
   }
-  // A crowd past every layout says so (the page still names every disc, placed as clear as it can).
-  assert.equal(sideFrame({...NARROW, entries: named(mixes(60).mixed, .3, .12)}).fits, false);
+});
+
+test('each disc tips its own way, the same every time', () => {
+  const a = tiltOf('disc-a'), b = tiltOf('disc-b');
+  assert.deepEqual(tiltOf('disc-a'), a);
+  assert.notDeepEqual(a, b);
+  const angles = Array.from({length: 40}, (_, i) => tiltOf('k' + i).angle);
+  assert.ok(Math.max(...angles) - Math.min(...angles) > .05, 'Tips vary');
 });

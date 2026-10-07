@@ -304,7 +304,7 @@ export class BagScene {
  }
  // A click toggles one disc: in its pocket, it slides out; out, it goes back (closing its details
  // if they show). Every disc is independent and stays out until clicked again. However many are
- // out, they rest in side columns beside the bag. Details open only from a name's popup.
+ // out, they rest scattered beside the bag. Details open only from a name's popup.
  async toggleOut(disc){
   if(!this.reachable(disc) || this.viewer.cameraMoving)return;
   const item=disc.bagItem,id=item.id,index=this.out.indexOf(id);this.clearLift();
@@ -323,8 +323,8 @@ export class BagScene {
   if(focused)this.toggle.focus({preventScroll:true});
   await settled;
  }
- // Stages every out disc in the viewer, in side columns beside the bag: their Atlas positions
- // order them (stability picks the side, speed the height), each with room for its name. The
+ // Stages every out disc in the viewer, scattered beside the bag: their Atlas positions order them
+ // (stability picks the side, speed leans toward the top), each with room for its name. The
  // controls sit under the canvas, so the whole canvas is theirs. Resolves true once this staging settles.
  // A restage for the room alone (a resize, the details panel) keeps the popup, which follows its name.
  stageOut({instant=reduced(),keepPopup=false}={}){
@@ -335,7 +335,7 @@ export class BagScene {
    const item=this.items.find(i=>i.id===id),mold=item && this.lookup(item.mold_id);
    atlas.set(id,mold && window.AtlasLayout?.positions([mold]).get(mold.id) || null);
   }
-  // Any out disc gets the wide canvas first, so the columns are laid out for the room they get.
+  // Any out disc gets the wide canvas first, so the scatter is laid out for the room they get.
   const coming=this.viewer.stageMode(this.out.length);
   this.wideCanvas(!!coming);
   // Each name's room: the name with NAME_SPACE around it, and NAME_GAP from its disc.
@@ -515,7 +515,7 @@ export class BagScene {
  }
  // Every out disc shows its name. The layout leaves room for it under the disc (centered, or flush
  // with the disc's inner edge where the sides are narrow: data-names="flush"), or beside it on the
- // side away from the bag when the columns are tall (data-names="outer"), so a name sits there;
+ // side away from the bag in a crowd's staggered rows (data-names="outer"), so a name sits there;
  // where that spot is taken (zoomed in, an odd size), it tries the other of the two, flush under
  // the disc, above it, then its inner side, and takes the first spot clear of the bag,
  // every disc and every placed name (or, failing all, the one that covers least). A disc zoomed out of the canvas has no name.

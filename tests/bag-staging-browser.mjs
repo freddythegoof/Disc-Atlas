@@ -5,19 +5,19 @@ import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 // Out discs on My Bag: a click slides a disc out and it stays out until clicked again, each disc
-// on its own. However many are out, they rest in side columns beside the bag (no map mode): split
-// relative to each other at their median (the less overstable half left, the more overstable half
-// right, even for a bag that leans one way), faster discs higher in each column. A column grows
-// (rows close up, then smaller discs, then names beside the discs) before it wraps into a second
-// column. With any disc out the canvas spans the page's free width (to the details panel when it
-// shows) at its usual height, so the bag keeps its full size on a desktop. A Return all button,
+// on its own. However many are out, they rest scattered beside the bag like discs tossed on a table
+// (no map mode, no columns): split relative to each other at their median (the less overstable half
+// left, the more overstable half right, even for a bag that leans one way), spread evenly over each
+// side, all one size, each tipped a little, faster discs toward the top. The same set always lands
+// the same way. With any disc out the canvas spans the page's free width (to the details panel when
+// it shows) at its usual height, so the bag keeps its full size on a desktop. A Return all button,
 // shown while any disc is out, stows them all at once. Type buttons beside the sort pull out every
 // disc of one type and put them back. The Stitch grid sits under the main atlas in every theme.
 // Every out disc shows its name, clear of the bag, the discs and the other names, on desktops and
 // phones, in every theme. The controls (putter pocket, zoom, open/close) sit in one cluster under
 // the canvas, with the return button in the row under it, so none of them ever covers a disc or a
 // name. Since Oct 7 a disc's click opens no details: its name's popup does. Runs on the signed-out
-// demo bag (no account needed).
+// demo bag (no account needed), served with six more main discs so every count up to 24 can come out.
 const config='tests/auth.wrangler.jsonc',state='work/bag-staging/d1-qa',base='https://localhost:8807',dir='outputs/bag-staging';
 fs.rmSync(dir,{recursive:true,force:true});
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
@@ -33,11 +33,18 @@ const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?process.env.BAG3D_CHROMIUM_ARGS.sp
 const errors=[],shots=[],checks=[],metrics={};
 const check=label=>{checks.push(label);console.log('ok -',label);};
 const overlap=(a,b)=>a.left<b.left+b.width-1 && b.left<a.left+a.width-1 && a.top<b.top+b.height-1 && b.top<a.top+a.height-1;
+// The demo bag plus six main discs (24 in the bag), as the popup suite serves it.
+const EXTRA=[['cbb390068b86','Gold',174,8,'#ed7868'],['9554f962a394','Neo',173,9,'#70b7cd'],['0dc8d1cbf7b6','Neo',172,9,'#a7c68c'],['b880e2ae803c','Opto',175,8,'#b99bdd'],['f5fb00eb9fa5','Neo',177,9,'#e49376'],['d52158a41efd','ESP',174,9,'#79b3a8']];
+const demoSource=fs.readFileSync('public/bag-demo.js','utf8');
+const bigDemo=demoSource.replace("capacity:24,main_capacity:20","capacity:32,main_capacity:26")
+ .replace(' // Storage: off the course for now',EXTRA.map(([id,plastic,weight,wear,color])=>` ['${id}','${plastic}',${weight},${wear},'${color}','main',null,''],`).join('\n')+'\n // Storage: off the course for now');
+assert.notEqual(bigDemo,demoSource,'The test bag is built');
 try {
  const deadline=Date.now()+45000;
  while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(logs);await new Promise(r=>setTimeout(r,200));}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs});
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}});
+ await context.route('**/bag-demo.js',route=>route.fulfill({status:200,contentType:'text/javascript',body:bigDemo}));
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
@@ -59,7 +66,9 @@ try {
  // control cluster or the return button; every out disc shows its name, clear of the bag, every disc,
  // every other name, the cluster's controls and the return button.
  const layoutChecks=async label=>{
-  const box=await canvasBox(),rects=(await viewer(v=>v.discRects())).filter(r=>r.out);
+  const all=await viewer(v=>v.discRects()),box=await canvasBox(),rects=all.filter(r=>r.out);
+  // The discs standing in the top and front pockets (their visible part) count as the bag.
+  const standing=all.filter(r=>!r.out && !r.empty && (r.pocket==='putter' || r.pocket==='goTo'));
   const cluster=await local(page.locator('[data-bag-controls]')),controls=await Promise.all(['[data-bag-pocket]','.bag-zoom','[data-bag-toggle]'].map(s=>local(page.locator(`#bagScene ${s}`))));
   assert.ok(cluster.top>=box.height-.5,`${label}: the control cluster sits under the canvas`);
   const ret=await page.locator('.bag-return-all').isVisible()?await local(page.locator('.bag-return-all')):null;
@@ -70,6 +79,7 @@ try {
   for(const r of rects){
    assert.ok(r.left>=-1 && r.top>=-1 && r.left+r.width<=box.width+1 && r.top+r.height<=box.height+1,`${label}: ${r.id} inside the canvas ${JSON.stringify(r)}`);
    for(const c of controls)assert.ok(!overlap(r,c),`${label}: ${r.id} clear of the control cluster`);
+   for(const p of standing)assert.ok(!overlap(r,p),`${label}: ${r.id} clear of ${p.id} standing in its pocket`);
    if(ret)assert.ok(!overlap(r,ret),`${label}: ${r.id} clear of the return button`);
   }
   for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
@@ -82,6 +92,7 @@ try {
   for(const n of names){
    assert.ok(!n.clipped,`${label}: name of ${n.id} shows in full`);
    assert.ok(!overlap(n,bag),`${label}: name of ${n.id} clear of the bag `+JSON.stringify({n,bag}));
+   for(const p of standing)assert.ok(!overlap(n,p),`${label}: name of ${n.id} clear of ${p.id} standing in its pocket`);
    for(const c of controls)assert.ok(!overlap(n,c),`${label}: name of ${n.id} clear of the control cluster`);
    if(ret)assert.ok(!overlap(n,ret),`${label}: name of ${n.id} clear of the return button`);
    assert.ok(n.left>=0 && n.left+n.width<=box.width+1 && n.top>=0 && n.top+n.height<=box.height+1,`${label}: name of ${n.id} inside the canvas`);
@@ -90,29 +101,54 @@ try {
   }
   return {rects,names};
  };
- // The side layout, in the layout's own state and as drawn: every out disc in one column, the
- // relative split (balanced, every left disc no more overstable than every right disc, an even
- // count exactly at the median), columns from the bag outward drawn beside it, faster discs higher
- // in each column; then every layout check.
+ // The scatter, in the layout's own state and as drawn: the relative split (balanced, every left
+ // disc no more overstable than every right disc, an even count exactly at the median), each disc
+ // drawn on its side of the bag (beside it, unless the scatter runs around it on a crowded phone),
+ // every disc the same size, faster discs toward the top, each side spread evenly (not clumped in a
+ // corner, not one column); then every layout check.
  const sideCheck=async(out,label)=>{
   const st=await viewer(v=>v.stage),x=id=>atlas[id]?.x ?? .5,y=id=>atlas[id]?.y ?? .5;
-  assert.equal(st.mode,'side',`${label}: side layout`);assert.equal(await scene.getAttribute('data-stage'),'side');
+  assert.equal(st.mode,'scatter',`${label}: scatter layout`);assert.equal(await scene.getAttribute('data-stage'),'scatter');
   assert.equal(await scene.getAttribute('data-names'),st.labels,`${label}: names ${st.labels}`);
-  assert.deepEqual(st.columns.flatMap(c=>c.keys).sort(),[...out].sort(),`${label}: every out disc in one column`);
+  assert.equal(st.columns,undefined,`${label}: no columns`);
+  assert.deepEqual(Object.keys(st.sides).sort(),[...out].sort(),`${label}: every out disc placed`);
   const left=out.filter(id=>st.sides[id]==='left'),right=out.filter(id=>st.sides[id]==='right');
   assert.ok(Math.abs(left.length-right.length)<=1,`${label}: even ${left.length}/${right.length}`);
   if(out.length%2===0)assert.equal(left.length,right.length,`${label}: an even count splits exactly at the median`);
   if(left.length && right.length)assert.ok(Math.max(...left.map(x))<=Math.min(...right.map(x)),`${label}: every left disc less overstable than every right disc `+JSON.stringify(out.map(id=>[atlas[id]?.name,x(id).toFixed(2),st.sides[id]])));
-  const rects=Object.fromEntries((await viewer(v=>v.discRects())).filter(d=>d.out).map(d=>[d.id,{x:d.left+d.width/2,y:d.top+d.height/2}]));
-  const bag=await viewer(v=>v.bagRect());
-  for(const id of left)assert.ok(rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
-  for(const id of right)assert.ok(rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
-  for(const side of ['left','right']){
-   const cols=st.columns.filter(c=>c.side===side);
-   for(let i=1;i<cols.length;i++)assert.ok(side==='left'?rects[cols[i].keys[0]].x<rects[cols[i-1].keys[0]].x:rects[cols[i].keys[0]].x>rects[cols[i-1].keys[0]].x,`${label}: ${side} columns run from the bag outward`);
-   for(const c of cols)for(let i=1;i<c.keys.length;i++)assert.ok(rects[c.keys[i-1]].y<rects[c.keys[i]].y && y(c.keys[i-1])>=y(c.keys[i]),`${label}: faster discs higher (${atlas[c.keys[i-1]]?.name} over ${atlas[c.keys[i]]?.name})`);
+  const drawn=Object.fromEntries((await viewer(v=>v.discRects())).filter(d=>d.out).map(d=>[d.id,d]));
+  const rects=Object.fromEntries(Object.entries(drawn).map(([id,d])=>[id,{x:d.left+d.width/2,y:d.top+d.height/2}]));
+  const bag=await viewer(v=>v.bagRect()),middle=bag.left+bag.width/2,box=await canvasBox();
+  for(const id of left)assert.ok(st.around || st.brick?drawn[id].left+drawn[id].width<=middle+1:rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
+  for(const id of right)assert.ok(st.around || st.brick?drawn[id].left>=middle-1:rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
+  // One size: every out disc takes the same scale; drawn, they differ only by the camera's
+  // perspective (it looks on from one side and above, so nearer discs draw a little larger).
+  const scales=(await viewer(v=>v.getBagLayoutState().filter(d=>d.out).map(d=>d.spotScale)));
+  assert.ok(scales.every(v=>v===st.scale),`${label}: every out disc the same size (${[...new Set(scales)]})`);
+  const sizes=Object.values(drawn).map(d=>Math.max(d.width,d.height));
+  assert.ok(Math.max(...sizes)/Math.min(...sizes)<1.2,`${label}: drawn sizes differ only by perspective (${Math.min(...sizes).toFixed(1)}–${Math.max(...sizes).toFixed(1)} px)`);
+  const spread={};
+  for(const [side,ids] of [['left',left],['right',right]]){
+   if(ids.length<2)continue;
+   // Faster toward the top, as a lean: a side's fastest disc rests above its slowest when they are
+   // clearly apart (a driver and a putter), and with four or more a side, heights follow speed.
+   const fastest=ids.reduce((p,q)=>y(q)>y(p)?q:p),slowest=ids.reduce((p,q)=>y(q)<y(p)?q:p);
+   if(y(fastest)-y(slowest)>=.3)assert.ok(rects[fastest].y<=rects[slowest].y+1,`${label}: ${side}: the fastest (${atlas[fastest]?.name}) rests above the slowest (${atlas[slowest]?.name})`);
+   if(ids.length>=4){
+    const rank=v=>{const o=v.map((x,i)=>[x,i]).sort((a,b)=>a[0]-b[0]),r=[];o.forEach(([,i],k)=>{r[i]=k;});return r;};
+    const a=rank(ids.map(y)),b=rank(ids.map(id=>-rects[id].y)),n=ids.length,rho=1-6*a.reduce((s,v,i)=>s+(v-b[i])**2,0)/(n*(n*n-1));
+    // Firmly on a desktop; on a phone, where a crowd spills above and below the bag, never inverted.
+    assert.ok(rho>=(box.width>700?.5:0),`${label}: ${side}: heights lean with speed (ρ ${rho.toFixed(2)})`);
+   }
+   if(ids.length>=3){
+    const ys=ids.map(id=>rects[id].y),xs=ids.map(id=>rects[id].x),cy=ys.reduce((p,q)=>p+q,0)/ys.length/box.height;
+    assert.ok(cy>.25 && cy<.75,`${label}: ${side} discs centered down the canvas (${cy.toFixed(2)})`);
+    assert.ok((Math.max(...ys)-Math.min(...ys))/box.height>.3,`${label}: ${side} discs spread down the canvas`);
+    if(!st.brick)assert.ok(Math.max(...xs)-Math.min(...xs)>Math.min(...sizes)*.25,`${label}: ${side} discs not stacked in one column`);
+    spread[side]=+((Math.max(...ys)-Math.min(...ys))/box.height).toFixed(2);
+   }
   }
-  metrics[label]={count:out.length,labels:st.labels,scale:st.scale,pull:+st.pull.toFixed(2),columns:st.columns.map(c=>c.side[0]+c.keys.length).join(' ')};
+  metrics[label]={count:out.length,labels:st.labels,scale:st.scale,pull:+st.pull.toFixed(2),around:st.around,brick:st.brick,spread};
   await layoutChecks(label);
   return {left,right};
  };
@@ -221,7 +257,7 @@ try {
  const five=[mains[0],mains[4],goto,mains[9],putterFront];
  for(let i=0;i<five.length;i++){
   await toggle(five[i]);const out=five.slice(0,i+1);
-  await sideCheck(out,`${out.length} out`);assert.equal(await scene.getAttribute('data-stage'),'side');
+  await sideCheck(out,`${out.length} out`);assert.equal(await scene.getAttribute('data-stage'),'scatter');
   const st=await viewer(v=>v.stage),state=await viewer(v=>v.getBagLayoutState().filter(d=>d.out));
   for(const d of state)assert.ok(Math.abs(d.spot[0])>.25 && Math.sign(d.spot[0])===(st.sides[d.id]==='left'?-1:1),`${d.id} rests beside the bag on its side`);
  }
@@ -250,11 +286,11 @@ try {
  };
  metrics.mixes=Object.fromEntries(Object.entries(sets).map(([k,ids])=>[k,ids.map(id=>+(atlas[id]?.x ?? .5).toFixed(2))]));
 
- // 4. The sixth and beyond stay in side columns: no map mode, no grid, no captions.
+ // 4. The sixth and beyond stay scattered beside the bag: no map mode, no grid, no captions.
  await startSampling();
  await toggle(mains[12]);
  smooth(await stopSampling(),'5 → 6');
- assert.equal(await scene.getAttribute('data-stage'),'side');assert.equal(await scene.getAttribute('data-out'),'6');
+ assert.equal(await scene.getAttribute('data-stage'),'scatter');assert.equal(await scene.getAttribute('data-out'),'6');
  assert.equal(await page.locator('.bag-map-grid,.bag-map-caption').count(),0,'No map grid or captions around the bag');
  await sideCheck(await outIds(),'6 out (1440, from five)');
  for(const id of [mains[2],mains[7]])await toggle(id);
@@ -263,7 +299,7 @@ try {
  assert.equal(st.pull,1,'The bag keeps its full size beside eight discs: pull '+st.pull);
  const wide=await page.locator('[data-bag-canvas]').evaluate(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,height:r.height,page:document.documentElement.clientWidth};});
  assert.ok(wide.left<=24.5 && wide.right>=wide.page-24.5,'The canvas spans the page to its gutters: '+JSON.stringify(wide));
- // Toggling re-stacks the columns.
+ // Toggling re-scatters them.
  await toggle(mains[2]);assert.equal((await outIds()).length,7);await sideCheck(await outIds(),'7 out (1440)');
  await toggle(mains[2]);assert.equal((await outIds()).length,8);
  // With the details panel open the canvas ends at the panel and the bag slides over, still full size.
@@ -274,7 +310,7 @@ try {
  await sideCheck(await outIds(),'8 out with details (1440)');await shot('side-8-details-1440-midnight',page);
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await settled();await page.waitForTimeout(450);
  assert.ok(await page.locator('[data-bag-canvas]').evaluate(n=>n.getBoundingClientRect().right>=document.documentElement.clientWidth-24.5),'Closing the panel gives the room back');
- check(`6+ out: still side columns beside the full-size bag (pull ${metrics.eightPull.toFixed(2)}×; eight as ${metrics['8 out (1440)'].columns}, names ${metrics['8 out (1440)'].labels}), no map grid or captions; toggles re-stack; with the details open the canvas ends at the panel and the bag stays full size`);
+ check(`6+ out: still scattered beside the full-size bag (pull ${metrics.eightPull.toFixed(2)}×; eight with names ${metrics['8 out (1440)'].labels}, scale ${metrics['8 out (1440)'].scale}), no map grid or captions; toggles re-scatter; with the details open the canvas ends at the panel and the bag stays full size`);
 
  // 5. Back to five and out to six again: smooth glides, no popping, the camera unmoved.
  await toggle(mains[2]);await toggle(mains[7]);
@@ -283,7 +319,7 @@ try {
  const back=await stopSampling();
  await page.keyboard.press('Escape').catch(()=>{});
  smooth(back,'6 → 5');
- st=await viewer(v=>v.stage);assert.equal(st.mode,'side');assert.equal(await scene.getAttribute('data-stage'),'side');
+ st=await viewer(v=>v.stage);assert.equal(st.mode,'scatter');assert.equal(await scene.getAttribute('data-stage'),'scatter');
  assert.ok(Math.abs(st.pull-metrics.sidePull)<1e-6,'The camera keeps the side framing');
  await startSampling();await toggle(mains[12]);smooth(await stopSampling(),'5 → 6 again');
  await startSampling();await toggle(mains[12]);smooth(await stopSampling(),'6 → 5 again');
@@ -371,30 +407,56 @@ try {
  for(const type of Object.keys(typed))assert.equal(await typeButton(type).getAttribute('aria-pressed'),'false','Return all releases every type');
  check(`Type buttons: Distance, Fairway, Midrange and Putter each pull out every disc of that type (${Object.entries(typed).map(([k,v])=>`${k} ${v.length}`).join(', ')}) and put them back on a second click, leaving other out discs out; pressed while all of a type are out; a closed bag opens first; the bag stays full size`);
 
- // 7. Screenshots: the side columns with various counts and stability mixes, in all three themes.
- for(const [name,ids] of Object.entries(sets)){
+ // 7. The same set always lands the same way: staged in reverse click order, every disc rests where it did.
+ const spotsOf=async()=>Object.fromEntries((await viewer(v=>v.getBagLayoutState().filter(d=>d.out))).map(d=>[d.id,[...d.spot,d.spotScale]]));
+ await stageSet([]);await stageSet(sets['mixed-12']);const firstSpots=await spotsOf();
+ await stageSet([]);for(const id of [...sets['mixed-12']].reverse())await slot(id).evaluate(n=>n.click());await settled();await page.mouse.move(2,2);
+ const againSpots=await spotsOf();
+ assert.deepEqual(Object.keys(againSpots).sort(),Object.keys(firstSpots).sort());
+ for(const [id,spot] of Object.entries(firstSpots))assert.ok(spot.every((v,i)=>Math.abs(v-againSpots[id][i])<1e-9),`${atlas[id]?.name} lands the same way: ${spot} vs ${againSpots[id]}`);
+ check('Deterministic: twelve discs staged in reverse click order rest exactly where they did');
+
+ // The requested matrix: 1, 6, 12 and 18 out, a mixed set (spread over the bag's stability range)
+ // and the most overstable discs of the bag, in all three themes; then 1–24 out, each count checked
+ // in all three themes for zero overlaps.
+ const pool=[...ranked,...reachable.map(([id])=>id).filter(id=>!ranked.includes(id))];
+ const mixedOf=count=>count===1?[ranked[Math.floor(ranked.length/2)]]:spread(pool,count);
+ const matrix=width=>Object.fromEntries([1,6,12,18].flatMap(count=>[[`mixed-${count}`,mixedOf(count)],[`overstable-${count}`,ranked.slice(-count)]]));
+ metrics.overstableSets=Object.fromEntries([1,6,12,18].map(count=>[count,ranked.slice(-count).map(id=>+atlas[id].x.toFixed(2))]));
+ const sweep=async width=>{
+  const pulls=[];
+  for(let count=1;count<=pool.length;count++){
+   const ids=mixedOf(count);await stageSet(ids);await sideCheck(ids,`sweep ${count} (${width})`);
+   for(const theme of ['light','charcoal']){await setTheme(theme);await page.waitForTimeout(200);await layoutChecks(`sweep ${count} (${width}) ${theme}`);}
+   await setTheme('midnight');await page.waitForTimeout(150);
+   pulls.push(`${count}:${metrics[`sweep ${count} (${width})`].pull}${metrics[`sweep ${count} (${width})`].brick?'r':metrics[`sweep ${count} (${width})`].around?'a':''}`);
+  }
+  return pulls;
+ };
+ assert.equal(pool.length,24,'All 24 discs can come out');
+ for(const [name,ids] of Object.entries(matrix(1440))){
   await stageSet(ids);await sideCheck(ids,`${name} (1440)`);
   assert.equal(metrics[`${name} (1440)`].pull,1,`${name}: full-size bag`);
-  await themeShots(`side-${name}-1440`);
+  await themeShots(`scatter-${name}-1440`);
  }
- check(`Desktop (1440): ${Object.keys(sets).map(k=>`${k} as ${metrics[`${k} (1440)`].columns} (names ${metrics[`${k} (1440)`].labels}, scale ${metrics[`${k} (1440)`].scale})`).join('; ')}; full-size bag and every name for every mix, all eighteen included; midnight, light and charcoal`);
+ const desktopPulls=await sweep(1440);
+ // The bag keeps its full size up to twenty out; past that the camera eases back a little.
+ for(const p of desktopPulls){const [count,pull]=p.split(':').map(parseFloat);assert.ok(count<=20?pull===1:pull<1.25,`${count} out: pull ${pull} (${desktopPulls})`);}
+ check(`Desktop (1440): 1, 6, 12 and 18 out, mixed and most-overstable (stability ${Object.entries(metrics.overstableSets).map(([k,v])=>`${k}: ${Math.min(...v)}–${Math.max(...v)}`).join('; ')}), shot in midnight, light and charcoal; 1–24 out, every count in all three themes: every disc on its side, one size, faster toward the top, spread evenly, every name in full, no disc, name, bag, control or button overlapping; full-size bag up to twenty out (scale ${[1,6,12,18].map(c=>metrics[`mixed-${c} (1440)`].scale).join('/')}); pull per count ${desktopPulls.join(' ')}`);
 
- // 8. Phone: the same side columns inside a 360 px canvas, every name shown.
- await stageSet([]);await setTheme('light');
+ // 8. Phone: the same inside a 360 px canvas.
+ await stageSet([]);await setTheme('midnight');
  await page.setViewportSize({width:360,height:800});await openBag();
- for(const id of [mains[0],goto,mains[9]])await toggle(id);
- await sideCheck([mains[0],goto,mains[9]],'phone 3');await shot('side-3-360-light');
- await stageSet([]);
  for(const id of leaning)await toggle(id);
- await sideCheck(leaning,'phone overstable 8');await themeShots('side-overstable-8-360');
- const phoneSets={'mixed-6':sets['mixed-6'],'understable-8':sets['understable-8'],'mixed-10':spread(ranked,10),'mixed-12':sets['mixed-12'],'all':sets.all};
- for(const [name,ids] of Object.entries(phoneSets)){
+ await sideCheck(leaning,'phone overstable 8');
+ for(const [name,ids] of Object.entries(matrix(360))){
   await stageSet(ids);await sideCheck(ids,`${name} (360)`);
-  await themeShots(`side-${name}-360`);
+  await themeShots(`scatter-${name}-360`);
  }
+ const phonePulls=await sweep(360);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal scroll on a phone');
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');await stageSet(sets['mixed-8']);await sideCheck(sets['mixed-8'],'after resize (1440)');
- check(`Phone (360 px): side columns fit the canvas with every name, clear of the bag, discs, names, zoom and the pocket button; overstable 8 pull ${metrics['phone overstable 8'].pull}×; ${Object.keys(phoneSets).map(k=>`${k} pull ${metrics[`${k} (360)`].pull}× ${metrics[`${k} (360)`].columns} names ${metrics[`${k} (360)`].labels}`).join('; ')}; restaged on resize`);
+ check(`Phone (360 px): 1, 6, 12 and 18 out, mixed and most-overstable, shot in all three themes; 1–24 out in all three themes with every name, nothing overlapping; pull per count ${phonePulls.join(' ')} (a: around the bag, r: staggered rows); restaged on resize`);
 
  // 9. Reduced motion stages instantly, return all included.
  await page.emulateMedia({reducedMotion:'reduce'});
@@ -407,7 +469,7 @@ try {
 
  assert.deepEqual(errors,[],'No page errors');
  const gallery=shots.map(name=>`<figure><img src="${name}.png" alt="${name}"><figcaption>${name}</figcaption></figure>`).join('\n');
- fs.writeFileSync(`${dir}/screenshots.html`,`<!doctype html><meta charset="utf-8"><title>Out discs in side columns</title><style>body{font:14px system-ui;background:#111;color:#eee;margin:24px}figure{display:inline-block;margin:0 16px 24px 0;vertical-align:top}img{max-width:680px;border:1px solid #333}</style>\n${gallery}`);
+ fs.writeFileSync(`${dir}/screenshots.html`,`<!doctype html><meta charset="utf-8"><title>Out discs scattered</title><style>body{font:14px system-ui;background:#111;color:#eee;margin:24px}figure{display:inline-block;margin:0 16px 24px 0;vertical-align:top}img{max-width:680px;border:1px solid #333}</style>\n${gallery}`);
  fs.writeFileSync(`${dir}/qa.json`,JSON.stringify({checks,shots,metrics},null,1));
  console.log(`PASS bag staging: ${checks.length} checks, ${shots.length} screenshots in ${dir} ${JSON.stringify(metrics)}`);
 } catch(error) {

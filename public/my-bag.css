@@ -194,10 +194,10 @@ body[data-view="bag"] main {display:none!important}
 .bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
 @keyframes bag-pill-in {from {opacity:0}}
 /* Out discs: a click slides a disc out and it stays out until clicked again. However many are
-   out, they rest in side columns beside the bag, and every one carries its name: under it
-   (centered, or flush with its inner edge where the sides are narrow), or beside it on the side
-   away from the bag when the columns run tall (data-names="outer"), so a column reads like a legend. The layout keeps room for each, clear of the bag, the discs and each
-   other. Names fade while discs move. */
+   out, they rest scattered beside the bag, and every one carries its name under it (centered, or
+   flush with its inner edge where the sides are narrow), or beside it in a crowd's staggered rows
+   (data-names="outer"). The layout keeps room for each, clear of
+   the bag, the discs and each other. Names fade while discs move. */
 .bag-out-names {position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;transition:opacity 200ms ease}
 .bag-scene[data-staging="moving"] .bag-out-names {opacity:0;transition-duration:90ms}
 .bag-out-name {transform:translateX(-50%);max-width:min(180px,calc(100% - 12px));padding:calc(4px * var(--bag-type)) calc(11px * var(--bag-type));font-size:calc(12px * var(--bag-type));letter-spacing:.15px;box-shadow:0 4px 14px #00000038;pointer-events:auto;cursor:pointer;transition:border-color 120ms,background-color 120ms}
