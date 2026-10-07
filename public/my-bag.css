@@ -143,15 +143,22 @@ body[data-view="bag"] main {display:none!important}
 .bag-scene[data-camera="top"] .bag-3d-stage {--bag-top-fade:0}
 .bag-scene:is([data-camera="top"],[data-camera="moving"]) .bag-3d-stage {mask-image:linear-gradient(to right,rgb(0 0 0/var(--bag-top-fade)) 4%,#000 12%,#000 88%,rgb(0 0 0/var(--bag-top-fade)) 96%),linear-gradient(to bottom,rgb(0 0 0/var(--bag-top-fade)) 25%,#000 33%,#000 62%,rgb(0 0 0/var(--bag-top-fade)) 70%);mask-composite:intersect}
 @media(prefers-reduced-motion:reduce){.bag-3d-stage {transition:none}}
-.bag-zoom {position:absolute;z-index:4;top:10px;right:10px;display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow)}
+.bag-zoom {display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow)}
 .bag-zoom button {display:grid;place-items:center;min-width:36px;height:36px;padding:0 6px;border-radius:999px;font:600 18px/1 'Space Grotesk',sans-serif;color:var(--text)}
 .bag-zoom .bag-zoom-level {min-width:52px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
 .bag-zoom button:hover:not(:disabled) {background:var(--selected)}
 .bag-zoom button:disabled {opacity:.4;cursor:default}
 .bag-zoom .bag-zoom-level:disabled {opacity:1}
-.bag-scene:not([data-engine="ready"]) .bag-zoom,.bag-scene[data-dragging] .bag-zoom {visibility:hidden}
-/* Return all has a reserved row below the drawing area. Pocket and zoom share the top corners. */
-.bag-scene-actions {display:flex;justify-content:center;min-height:44px;margin-top:12px}
+/* The bag's controls sit together under the canvas: putter pocket, zoom, open/close. Nothing floats
+   over the drawing, so no control ever covers the bag, a disc, a name or a popup. */
+.bag-controls {display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin-top:12px}
+.bag-controls>.pill-button {min-height:44px;font-size:12px;padding:10px 18px}
+.bag-scene:not([data-engine="ready"]) :is(.bag-zoom,.bag-pocket-toggle) {visibility:hidden}
+.bag-pocket-short {display:none}
+/* A phone keeps the cluster on one row: tighter buttons, and the pocket button reads "Putters". */
+@media(max-width:420px){.bag-controls {gap:8px}.bag-controls>.pill-button {padding:10px 14px}.bag-pocket-toggle {gap:6px}.bag-pocket-long {display:none}.bag-pocket-short {display:inline}.bag-zoom button {min-width:34px}.bag-zoom .bag-zoom-level {min-width:44px}}
+/* Return all has a reserved row under the controls. */
+.bag-scene-actions {display:flex;justify-content:center;min-height:44px;margin-top:10px}
 .bag-return-all {display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:3px 7px 3px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow);font:600 13px/1 'Space Grotesk',sans-serif;color:var(--text);cursor:pointer;animation:bag-return-in 220ms ease-out both}
 .bag-return-all[hidden] {display:none}
 .bag-return-all svg {width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -179,12 +186,11 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-inline select {min-height:44px;padding:8px 28px 8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
 .bag-pocket-inline select:disabled {opacity:.6;cursor:progress}
 .bag-pocket-text {font-size:12px;color:var(--muted)}
-.bag-scene figcaption button {min-height:44px;font-size:12px;padding:10px 18px}
 .bag-scene-hint {font-size:11px;color:var(--muted);text-align:center;margin:16px 0 0;line-height:1.6}
 /* Disc names: one dark pill with white text in every theme, on hover and under each out disc. */
 .bag-name-pill {position:absolute;z-index:3;width:max-content;max-width:min(260px,calc(100% - 12px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:calc(6px * var(--bag-type)) calc(13px * var(--bag-type));border:1px solid #ffffff24;border-radius:999px;background:#151a21f0;color:#fff;box-shadow:0 8px 22px #0000004d;font:600 calc(13px * var(--bag-type))/1.25 'Space Grotesk',sans-serif;letter-spacing:.1px;pointer-events:none}
 .bag-name-pill[hidden] {display:none}
-.bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both}
+.bag-hover-name {transform:translate(-50%,-100%);animation:bag-pill-in 140ms ease-out both;pointer-events:auto;cursor:pointer}
 .bag-hover-name[data-side="below"] {transform:translate(-50%,0)}
 @keyframes bag-pill-in {from {opacity:0}}
 /* Out discs: a click slides a disc out and it stays out until clicked again. However many are
@@ -198,10 +204,33 @@ body[data-view="bag"] main {display:none!important}
 .bag-out-name:hover {border-color:#ffffff66;background:#1d242ef5}
 .bag-scene[data-staging="moving"] .bag-out-name {pointer-events:none}
 .bag-hit-slot[data-out] .bag-physical-disc {border-radius:50%}
-/* On a phone the bag's sides are narrow and the zoom and pocket buttons take the canvas's top, so
-   every out-disc name is a size smaller there: still read at a glance, and the bag stays larger. */
+/* On a phone the bag's sides are narrow, so every out-disc name is a size smaller there: still read
+   at a glance, and the bag stays larger. */
 @media(max-width:700px){.bag-out-name {max-width:112px;padding:3px 8px;font-size:11px;letter-spacing:.1px}}
 @media(prefers-reduced-motion:reduce){.bag-out-names {transition:none}}
+/* A name's popup: the disc's key numbers in the name pill's dark style, by its name and clear of
+   every other name. Clicking it opens the disc's details. */
+.bag-disc-popup {position:absolute;z-index:5;display:grid;gap:8px;width:max-content;min-width:184px;max-width:min(240px,calc(100% - 12px));margin:0;padding:10px 12px 9px;border:1px solid #ffffff24;border-radius:14px;background:#151a21f5;color:#fff;box-shadow:0 12px 30px #00000059;text-align:left;font:500 12px/1.3 'Space Grotesk',sans-serif;letter-spacing:.1px;cursor:pointer;animation:bag-pill-in 140ms ease-out both}
+.bag-disc-popup[hidden] {display:none}
+.bag-disc-popup:hover {border-color:#ffffff5c;background:#1b212af7;color:#fff}
+.bag-disc-popup:focus-visible {outline:2px solid var(--lime);outline-offset:3px}
+.bag-popup-head {display:flex;align-items:center;gap:8px;min-width:0}
+.bag-popup-swatch {flex:none;width:12px;height:12px;border-radius:50%;background:var(--disc-color);box-shadow:inset 0 0 0 1px #00000038}
+.bag-popup-name {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600}
+.bag-popup-numbers {display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.bag-popup-number {display:grid;justify-items:center;gap:3px;padding:6px 2px 5px;border-radius:8px;background:#ffffff12}
+.bag-popup-number b {font:600 15px/1 var(--mono,'Space Grotesk'),sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.bag-popup-label {font-size:9px;line-height:1;letter-spacing:.7px;text-transform:uppercase;color:#ffffffa8}
+.bag-popup-unrated {grid-column:1/-1;padding:4px 0;color:#ffffffa8}
+.bag-popup-meta {font-size:11px;color:#ffffffb8;overflow-wrap:anywhere}
+.bag-popup-cta {display:flex;align-items:center;justify-content:space-between;padding-top:7px;border-top:1px solid #ffffff1f;font-size:11px;font-weight:600}
+.bag-popup-cta::after {content:'→';font-size:13px;transition:transform 120ms ease}
+.bag-disc-popup:hover .bag-popup-cta::after {transform:translateX(2px)}
+.bag-scene:is([data-dragging],[data-staging="moving"]) .bag-disc-popup {visibility:hidden}
+/* Where no spot in the canvas clears every name (a crowded phone), the names it would cover step aside while it shows. */
+.bag-out-name[data-under-popup] {visibility:hidden}
+@media(max-width:700px){.bag-disc-popup {gap:6px;min-width:0;width:168px;padding:8px 10px 7px;border-radius:12px}.bag-popup-name {font-size:13px}.bag-popup-swatch {width:10px;height:10px}.bag-popup-number {padding:5px 1px 4px}.bag-popup-number b {font-size:13px}.bag-popup-label {font-size:8px;letter-spacing:.4px}.bag-popup-meta {font-size:10px}.bag-popup-cta {padding-top:6px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.bag-disc-popup {animation:none}.bag-popup-cta::after {transition:none}}
 /* The details card stays as the screen-reader description of the hovered or focused disc. */
 .bag-lift-info {clip-path:inset(50%);opacity:0}
 /* While the bag turns under a drag, targets and labels wait for it to settle. */
@@ -210,8 +239,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-scene:is([data-staging="moving"],[data-hovered]) .bag-pocket-labels {opacity:0}
 .bag-scene[data-camera="moving"] :is(.bag-hit-layer,.bag-pocket-labels) {visibility:hidden}
 /* Putter pocket: collapsed, the putters sit down inside it (the icon's putters drop in with them). */
-.bag-pocket-toggle {position:absolute;z-index:4;top:10px;left:10px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px;font-size:12px}
-.bag-scene:not([data-engine="ready"]) .bag-pocket-toggle,.bag-scene[data-dragging] .bag-pocket-toggle {visibility:hidden}
+.bag-pocket-toggle {display:inline-flex;align-items:center;gap:8px}
 .bag-pocket-toggle svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .bag-pocket-putters {transition:transform 420ms cubic-bezier(.4,0,.2,1)}
 .bag-pocket-toggle[aria-expanded="false"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
@@ -219,7 +247,7 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-toggle:disabled {opacity:.5;cursor:default}
 .bag-pocket-toggle[aria-disabled="true"] {cursor:progress}
 /* Spinning: the whole bag box takes the drag (discs included); vertical swipes still scroll the page. */
-.bag-scene-canvas :is(.bag-physical-disc,.bag-out-name) {touch-action:pan-y}
+.bag-scene-canvas :is(.bag-physical-disc,.bag-name-pill,.bag-disc-popup) {touch-action:pan-y}
 @media(prefers-reduced-motion:reduce){.bag-pocket-putters {transition:none}}
 .bag-pocket-labels {position:absolute;inset:0;pointer-events:none;z-index:1}
 .bag-pocket-label {position:absolute;left:var(--x);top:var(--top);transform:translate(-50%,calc(-100% - 8px));width:max-content;max-width:min(260px,72%);padding:calc(6px * var(--bag-type)) calc(11px * var(--bag-type));border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 92%,transparent);box-shadow:0 8px 22px var(--shadow);text-align:center;animation:bag-pocket-in 220ms ease-out both}

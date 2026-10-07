@@ -349,7 +349,7 @@ body[data-view="list"] .coach-label{display:none}
 
 .atlas-marker.is-dot.is-minor-label .marker-name{top:40px;bottom:auto;max-width:116px;font-size:11px;line-height:1.25;opacity:1;background:none;border:0;border-radius:0;padding:0;box-shadow:none;transition:none}
 .atlas-marker.is-dot.is-minor-label .marker-name small{display:none}
-/* Your bag on the atlas (signed in): My bag / Default / Only my discs. */
+/* Your bag on the atlas (signed in): My Bag / Default / Only my discs. */
 .atlas-lens{display:flex;flex-shrink:0;gap:2px;height:46px;padding:3px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:12px;background:color-mix(in srgb,var(--panel) 92%,transparent);box-shadow:0 2px 8px var(--shadow)}
 .atlas-lens[hidden]{display:none}
 .explore-tools .atlas-lens button{padding:0 12px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);background:none;transform:none}

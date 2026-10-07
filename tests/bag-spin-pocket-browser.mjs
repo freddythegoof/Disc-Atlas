@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 // My Bag (Oct 6): a collapsible putter pocket and drag-to-spin.
-// Pocket: the "Putter pocket" button at the upper left slides every putter down into the top pocket
+// Pocket: the "Putter pocket" button (in the control cluster under the bag) slides every putter down into the top pocket
 // and back up into its row, with the bag left open the whole time; a putter that is out goes home
 // first, then the row goes down. The choice holds through closing and opening the bag.
 // Spin: a horizontal drag spins the bag from anywhere on it (discs included), with momentum on a
@@ -73,7 +73,7 @@ try {
  const disc=mains[3];
  {const c=await center(slot(disc));await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+4,c.y+1,{steps:2});await page.mouse.up();}
  await settled();assert.deepEqual(await outIds(),[disc],'A press that moves 4 px is a tap: the disc slides out');
- await detail.waitFor({state:'visible'});await closeDetails();
+ assert.equal(await detail.isVisible(),false,'A tap opens no details (they open from the popup on its name)');await closeDetails();
  await slot(disc).click();await settled();await closeDetails();assert.deepEqual(await outIds(),[],'A second tap puts it back');
  assert.equal(await viewer(v=>v.turn),0,'Taps never turn the bag');
  {
@@ -170,17 +170,18 @@ try {
 
  // ── Putter pocket ─────────────────────────────────────────────────────────────────────────────
  await openBag();
- // 7. The control: in the upper-left control corner (clear of the bag, discs, names, zoom and Return all).
+ // 7. The control: in the control cluster under the canvas, with zoom and open/close (clear of the bag, discs and names).
  assert.equal((await pocket.innerText()).trim(),'Putter pocket');
  assert.equal(await pocket.getAttribute('aria-expanded'),'true');assert.equal(await pocket.isEnabled(),true);
  assert.equal(await scene.getAttribute('data-putter-pocket'),'open');assert.equal(await viewer(v=>v.puttersOut),true);
  {
   const [p,c]=await Promise.all([pocket.boundingBox(),page.locator('[data-bag-canvas]').boundingBox()]);
-  assert.ok(Math.abs(p.y-c.y-10)<1 && Math.abs(p.x-c.x-10)<1,'The control sits in the upper-left corner, with its space reserved for discs and names');
+  assert.ok(await pocket.evaluate(n=>n.parentNode.matches('[data-bag-controls]')),'The control is in the cluster');
+  assert.ok(p.y>=c.y+c.height,'The control sits under the canvas, leaving all of it to the bag, discs and names');
   assert.equal(await page.getByRole('button',{name:'Top view',exact:true}).count(),0,'Top view is gone');
   assert.ok(p.height>=44,'44 px target');
  }
- check('Control: "Putter pocket" (aria-expanded) in the upper-left control corner, 44 px tall');
+ check('Control: "Putter pocket" (aria-expanded) in the control cluster under the canvas, 44 px tall');
 
  // 8. Collapse: every putter slides down into the pocket; the bag stays open throughout and the main
  // discs never move.
@@ -239,7 +240,8 @@ try {
  {
   const putter=putterIds.at(-1);
   await slot(mains[0]).click();await settled();await closeDetails();
-  await slot(putter).click();await settled();await detail.waitFor({state:'visible'});
+  await slot(putter).click();await settled();
+  await page.locator(`[data-out-name="${putter}"][data-shown]`).click();await page.locator('.bag-disc-popup:not([hidden])').click();await detail.waitFor({state:'visible'});
   assert.deepEqual(await outIds(),[mains[0],putter]);
   await startSampling();await pocket.click();
   await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:10000});await settled();
@@ -338,7 +340,7 @@ try {
   await swipe(b.x+b.width*.15,b.y+b.height*.85,Math.round(k/.012),1,{hold:200,steps:14});await m.settled();
   const id=(await mobile.locator('[data-physical-disc][data-pocket="main"][tabindex="0"]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc)))[3];
   await m.slot(id).tap();await m.settled();assert.deepEqual(await m.outIds(),[id],'A tap toggles the disc out');
-  await mobile.locator('#detail').waitFor({state:'visible'});await mobile.keyboard.press('Escape');await mobile.locator('#detail').waitFor({state:'hidden'});
+  await mobile.waitForTimeout(250);assert.equal(await mobile.locator('#detail').isVisible(),false,'A tap opens no details');
   await m.scene.scrollIntoViewIfNeeded();await m.settled();
   await m.slot(id).tap();await m.settled();assert.deepEqual(await m.outIds(),[],'…and back');
   if(await mobile.locator('#detail').isVisible()){await mobile.keyboard.press('Escape');await mobile.locator('#detail').waitFor({state:'hidden'});}

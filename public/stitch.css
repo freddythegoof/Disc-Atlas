@@ -132,7 +132,7 @@ header nav button::after { background:var(--accent-fill); }
 .disc-row .nums { color:var(--text); }
 .disc-row .score { color:var(--lime); font-family:var(--mono); font-weight:600; }
 
-/* My bag */
+/* My Bag */
 #myBagTitle,#myMapTitle { font-weight:700; letter-spacing:-.04em; }
 .eyebrow { font-family:var(--mono); letter-spacing:.14em; }
 .my-bag-views { background:var(--bg); border-color:var(--hairline); border-radius:999px; }

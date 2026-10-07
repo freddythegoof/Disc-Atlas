@@ -1,13 +1,13 @@
 # My Map
 
-A personal flight map on the My Bag page: **my bag, my map**. It shows only the signed-in player's bagged discs, each at its consensus position shifted by the player's own stability bias. The shared Flight atlas is unchanged.
+A personal flight map on the My Bag page: **my bag, my map**. It shows only the signed-in player's bagged discs, each at its consensus position shifted by the player's own stability bias. The shared Flight Atlas is unchanged.
 
 ## What it does
 
 - **Where:** My Bag has a Bag / My map switch (a radio group, like the atlas lens; arrow keys move between them). It appears only when signed in. My Bag reopens on whichever view was last used.
 - **Which discs:** bagged copies only (Storage is excluded), one marker per mold. A bagged mold without flight ratings is not plotted, and a note under the map counts it.
 - **Rendering:** this is the atlas's own map (`#mapWrap`), docked into `#myMapHost` while My Map is open, in the existing non-immersive `my-bag-mode` frame. Grouping, labels, zoom, pan, keyboard access and the details panel all work as on the atlas. Markers wear their bag colors. Picking a disc opens the details panel docked on My Bag, with the first bagged copy's facts and, for a moved disc, "On your map: Stability X · consensus Y".
-- **Leaving** (Bag view, Flight atlas, Directory, Show on Atlas): the map goes back to the atlas with the shared positions and the camera it had. Filters on the atlas are never touched, and My Map ignores them.
+- **Leaving** (Bag view, Flight Atlas, Directory, Show on Atlas): the map goes back to the atlas with the shared positions and the camera it had. Filters on the atlas are never touched, and My Map ignores them.
 
 ## Personal lens
 

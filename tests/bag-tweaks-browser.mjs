@@ -235,34 +235,38 @@ try {
  await page.mouse.move(rim.x+rim.width/2,rim.y+3);await page.waitForTimeout(300);
  const lit2=await glows();assert.ok(lit2[back]>.3 && lit2[driver.id]===0 && Object.values(lit2).filter(g=>g>0).length===1,'Moving to a putter moves the light');
  await shot('bag-hover-glow-putter-1440-light',scene);
- await page.mouse.move(0,0);await page.waitForTimeout(300);
+ // The hover lingers a moment (so the pointer can reach the disc's name and its popup), then fades.
+ await page.mouse.move(0,0);await page.waitForTimeout(600);
  assert.ok(Object.values(await glows()).every(g=>g===0),'Pointer gone: nothing glows');
  await driverSlot.focus();await page.waitForTimeout(250);assert.ok((await glows())[driver.id]>.3,'Keyboard focus lights it too');
  await page.locator('[data-bag-toggle]').focus();await page.waitForTimeout(250);
  check('Hover or focus lights only that disc in its own color; it goes out when the pointer or focus leaves');
 
- // 7. One click: the disc slides out and its details open together.
- const detail=page.locator('#detail');
- await driverSlot.click();await detail.waitFor({state:'visible'});
- assert.equal(await detail.locator('h2').first().innerText(),'Destroyer','Details on the first click');
+ // 7. One click slides the disc out (Oct 7: no details); its name's popup opens the details.
+ const detail=page.locator('#detail'),openDetails=async id=>{await page.locator(`[data-out-name="${id}"][data-shown]`).click();await page.locator('.bag-disc-popup:not([hidden])').click();await detail.waitFor({state:'visible'});};
+ await driverSlot.click();
  await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);
+ assert.equal(await detail.isVisible(),false,'A disc click opens no details');
+ await openDetails(driver.id);assert.equal(await detail.locator('h2').first().innerText(),'Destroyer','The popup opens its details');
  assert.ok(await detail.evaluate(n=>n.contains(document.activeElement)),'Focus moves into the details');
  await shot('bag-click-slide-and-details-1440-light');
  // Escape closes the details; the disc stays out until it is clicked again.
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
  assert.deepEqual(await page.evaluate(()=>document.querySelector('[data-bag-canvas]').bagViewer.outDiscs),[driver.id],'Escape leaves it out');
  await driverSlot.click();await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
- // Keyboard: one Enter does both; the next Enter puts it back.
- await driverSlot.focus();await page.keyboard.press('Enter');await detail.waitFor({state:'visible'});
+ // Keyboard: Enter slides it out; Tab reaches its popup and Enter there opens the details; the next Enter on the disc puts it back.
+ await driverSlot.focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);
+ assert.equal(await detail.isVisible(),false);
+ await driverSlot.blur();await driverSlot.focus();await page.keyboard.press('Tab');await page.keyboard.press('Enter');await detail.waitFor({state:'visible'});
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
  await driverSlot.focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
  const front=out[0].id,frontName=PUTTERS.find(p=>p[0]===seeded.find(d=>d.id===front).mold_id)[1];
- await page.locator(`[data-physical-disc="${front}"]`).click();await detail.waitFor({state:'visible'});
- assert.equal(await detail.locator('h2').first().innerText(),frontName,'A putter opens its details on the first click too');
+ await page.locator(`[data-physical-disc="${front}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);
+ await openDetails(front);assert.equal(await detail.locator('h2').first().innerText(),frontName,'A putter opens its details from its popup too');
  await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);await shot('bag-click-putter-details-1440-light');
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});
  await page.locator(`[data-physical-disc="${front}"]`).click();await page.waitForFunction(()=>!document.querySelector('[data-bag-canvas]').bagViewer.outDiscs.length);
- check('One click (or Enter) slides the disc out and opens its details together; Escape closes the details and the disc stays out until clicked (or Entered) again');
+ check('One click (or Enter) slides the disc out without details; the popup on its name (Tab, by keyboard) opens them; Escape closes the details and the disc stays out until clicked (or Entered) again');
 
  // 8. Top view is removed; the putter pocket control remains available.
  assert.equal(await page.getByRole('button',{name:'Top view',exact:true}).count(),0);

@@ -31,19 +31,22 @@ try{
    const clip=await scene.evaluate(n=>{const s=n.getBoundingClientRect(),c=n.querySelector('[data-bag-canvas]').getBoundingClientRect(),x=Math.max(0,Math.min(s.left,c.left)),y=Math.min(s.top,c.top)+scrollY;return {x,y,width:Math.min(innerWidth,Math.max(s.right,c.right))-x,height:Math.max(s.bottom,c.bottom)+scrollY-y};});
    await page.screenshot({path:`${dir}/${name}.png`,fullPage:true,clip});shots.push(name);
   };
+  // The putter pocket, zoom and open/close sit in one cluster right under the canvas; Return all is in
+  // the row under that. Every control is a 44 px target, clear of the bag, the discs, the names and each other.
   const geometry=async label=>{
    await page.mouse.move(2,2);await settled();
-   const [p,r,c,z]=await Promise.all([pocket.boundingBox(),back.boundingBox(),canvas.boundingBox(),scene.locator('.bag-zoom').boundingBox()]);
-   assert.ok(p.y>=c.y+6 && p.y<=c.y+14 && Math.abs(p.x-(c.x+10))<1,`${label}: pocket stays in the upper-left control corner, including its hover lift`);
-   assert.ok(r.y>=c.y+c.height+4,`${label}: Return all is below the drawing area`);
-   for(const [name,b] of [['pocket',p],['Return all',r]]){
-    assert.ok(b.height>=44-.01 && b.x>=0 && b.x+b.width<=width,`${label}: ${name} fits with a 44px target ${JSON.stringify(b)}`);
-    assert.ok(!overlaps(b,z),`${label}: ${name} clears zoom`);
-    for(const disc of await scene.locator('[data-out-name]:visible,[data-physical-disc][aria-hidden="false"]').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};})))assert.ok(!overlaps(b,disc),`${label}: ${name} clears discs and names`);
-   }
-   assert.ok(!overlaps(p,r),`${label}: controls are separate`);
+   const [p,r,c,z,t,k]=await Promise.all([pocket.boundingBox(),back.boundingBox(),canvas.boundingBox(),scene.locator('.bag-zoom').boundingBox(),scene.locator('[data-bag-toggle]').boundingBox(),scene.locator('[data-bag-controls]').boundingBox()]);
+   assert.ok(k.y>=c.y+c.height-.5 && k.y<=c.y+c.height+24,`${label}: the control cluster sits right under the canvas`);
+   assert.ok(r.y>=k.y+k.height,`${label}: Return all is below the cluster`);
+   const controls=[['pocket',p],['zoom',z],['open/close',t],['Return all',r]];
+   const discs=await scene.locator('[data-out-name]:visible,[data-physical-disc][aria-hidden="false"]').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};}));
    const bag=await canvas.evaluate(n=>{const c=n.getBoundingClientRect(),r=n.bagViewer.bagRect();return {x:c.x+r.left,y:c.y+r.top,width:r.width,height:r.height};});
-   assert.ok(!overlaps(p,bag) && !overlaps(r,bag),`${label}: both controls clear the bag`);
+   for(const [name,b] of controls){
+    assert.ok(b.height>=44-.01 && b.x>=0 && b.x+b.width<=width,`${label}: ${name} fits with a 44px target ${JSON.stringify(b)}`);
+    for(const disc of discs)assert.ok(!overlaps(b,disc),`${label}: ${name} clears discs and names`);
+    assert.ok(!overlaps(b,bag),`${label}: ${name} clears the bag`);
+    for(const [other,o] of controls)if(other!==name)assert.ok(!overlaps(b,o),`${label}: ${name} and ${other} are separate`);
+   }
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${label}: no sideways scroll`);
   };
   await settled();

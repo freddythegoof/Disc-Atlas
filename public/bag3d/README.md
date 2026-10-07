@@ -150,7 +150,7 @@ This is a visual web approximation, not measured product geometry or a manufactu
 
 ## Disc Atlas integration (extensions to this viewer)
 
-Disc Atlas mounts this viewer directly in the My bag page (`public/bag-scene.js`), with no iframe. three.js and `charcoal-bag.glb` load on demand, through the page's import map, only when the Bag tab first shows a signed-in bag. Everything above still works unchanged: the 12-ID disc API, URL parsing, orbit controls and the original defaults. These additions are opt-in:
+Disc Atlas mounts this viewer directly in the My Bag page (`public/bag-scene.js`), with no iframe. three.js and `charcoal-bag.glb` load on demand, through the page's import map, only when the Bag tab first shows a signed-in bag. Everything above still works unchanged: the 12-ID disc API, URL parsing, orbit controls and the original defaults. These additions are opt-in:
 
 | Option | Meaning |
 | --- | --- |

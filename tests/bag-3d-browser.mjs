@@ -153,7 +153,8 @@ try {
  const rendered=await page.evaluate(async b64=>{const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();const c=document.createElement('canvas');c.width=5;c.height=5;const x=c.getContext('2d');x.drawImage(img,0,0);return [...x.getImageData(2,2,1,1).data.slice(0,3)];},crop.toString('base64'));
  const wanted=[0xed,0x78,0x68],drift=Math.max(...rendered.map((v,i)=>Math.abs(v-wanted[i])));perf.liftedFace={rendered:'#'+rendered.map(v=>v.toString(16).padStart(2,'0')).join(''),wanted:'#ed7868',drift};
  assert.ok(drift<=40,`Slid-out disc keeps its color: rendered ${perf.liftedFace.rendered} vs #ed7868`);
- // Escape closes its details and returns focus to it; the disc stays out until it is clicked again.
+ // Its name's popup opens its details; Escape closes them and returns focus to it; the disc stays out until it is clicked again.
+ await page.locator(`[data-out-name="${driver.id}"][data-shown]`).click();await page.locator('.bag-disc-popup:not([hidden])').click();await page.locator('#detail').waitFor({state:'visible'});
  await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
  assert.deepEqual(await viewer(v=>v.outDiscs),[driver.id],'Escape leaves the disc out');assert.ok(await mainDisc.evaluate(n=>n===document.activeElement),'Escape returns focus to the disc');
  await mainDisc.click();await page.waitForFunction(()=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().every(d=>d.slide===0));

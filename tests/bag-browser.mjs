@@ -29,7 +29,7 @@ try {
  const theme=async value=>{await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.getByRole('menuitemradio',{name:value[0].toUpperCase()+value.slice(1),exact:true}).click();await page.keyboard.press('Escape');};
  const capture=async name=>{await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(150);await page.screenshot({path:`${dir}/${name}.png`,fullPage:!/^sheet-|^add-/.test(name)});};
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>window.AtlasAccount?.current);
- await page.getByRole('heading',{name:'My bag',exact:true}).waitFor();
+ await page.getByRole('heading',{name:'My Bag',exact:true}).waitFor();
  // Signed out shows the read-only demo bag (tests/bag-demo-browser.mjs covers it in depth).
  await page.locator('#myBagDemo').waitFor();assert.equal(await page.locator('#myBagContents [data-bag-edit]').count(),0);
  assert.equal((await page.request.get(base+'/api/bag')).status(),401);

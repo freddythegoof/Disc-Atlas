@@ -68,9 +68,9 @@ try {
  await shot('signed-out-1440-light',{fullPage:true});
  await quietTheme('midnight');await shot('signed-out-1440-midnight');
 
- // 3. Viewing still works: a disc slides out with its sample details, without an Edit button.
- const putter=page.locator('#bagScene [data-physical-disc][data-pocket="putter"][tabindex="0"]').last();
- await putter.click();await page.locator('#myBagView #detail #bagDetailTitle').waitFor();
+ // 3. Viewing still works: a disc slides out, and its name's popup opens its sample details, without an Edit button.
+ const putter=page.locator('#bagScene [data-physical-disc][data-pocket="putter"][tabindex="0"]').last(),putterId=await putter.getAttribute('data-physical-disc');
+ await putter.click();await page.locator(`[data-out-name="${putterId}"][data-shown]`).click();await page.locator('.bag-disc-popup:not([hidden])').click();await page.locator('#myBagView #detail #bagDetailTitle').waitFor();
  assert.equal(await page.locator('#bagDetailTitle').innerText(),'Sample disc');
  assert.equal(await page.locator('[data-bag-detail-edit]').count(),0,'No Edit disc in the demo');
  assert.ok(await page.locator('#detail [data-show-on-atlas]').isEnabled(),'Show on Atlas works');
@@ -94,7 +94,8 @@ try {
  // 5. Mobile.
  await quietTheme('light');await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));
  const box=await cta.boundingBox();assert.ok(box && box.x>=0 && box.x+box.width<=390,'CTA fits a phone');
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal scroll on a phone');
+ {const wide=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,over:[...document.querySelectorAll('body *')].filter(n=>n.getBoundingClientRect().right>innerWidth+1 && n.checkVisibility()).slice(0,6).map(n=>`${n.tagName.toLowerCase()}.${n.className} ${Math.round(n.getBoundingClientRect().right)}`)}));
+ assert.ok(wide.scroll<=390,'No horizontal scroll on a phone: '+JSON.stringify(wide));}
  await shot('signed-out-390-light');await shot('signed-out-390-light-full',{fullPage:true});
  await quietTheme('midnight');await shot('signed-out-390-midnight');
  check('Phone: banner, CTA and demo bag fit 390px without horizontal scroll');

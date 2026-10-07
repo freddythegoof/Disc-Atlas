@@ -27,6 +27,7 @@
     "test:bag:staging": "node tests/bag-staging-browser.mjs",
     "test:bag:spin": "node tests/bag-spin-pocket-browser.mjs",
     "test:bag:controls": "node tests/bag-map-controls-browser.mjs",
+    "test:bag:popup": "node tests/bag-popup-browser.mjs",
     "test:my-map": "node --test tests/personal-lens.mjs tests/personal-map-worker.mjs && node tests/my-map-browser.mjs"
   },
   "dependencies": {

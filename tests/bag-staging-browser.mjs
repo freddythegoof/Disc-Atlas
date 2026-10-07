@@ -13,9 +13,11 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE ||
 // shows) at its usual height, so the bag keeps its full size on a desktop. A Return all button,
 // shown while any disc is out, stows them all at once. Type buttons beside the sort pull out every
 // disc of one type and put them back. The Stitch grid sits under the main atlas in every theme.
-// Every out disc shows its name, clear of the bag, the discs, the other names, the zoom buttons,
-// the pocket button and the return button, on desktops and phones, in every theme. Runs on the
-// signed-out demo bag (no account needed).
+// Every out disc shows its name, clear of the bag, the discs and the other names, on desktops and
+// phones, in every theme. The controls (putter pocket, zoom, open/close) sit in one cluster under
+// the canvas, with the return button in the row under it, so none of them ever covers a disc or a
+// name. Since Oct 7 a disc's click opens no details: its name's popup does. Runs on the signed-out
+// demo bag (no account needed).
 const config='tests/auth.wrangler.jsonc',state='work/bag-staging/d1-qa',base='https://localhost:8807',dir='outputs/bag-staging';
 fs.rmSync(dir,{recursive:true,force:true});
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
@@ -46,26 +48,28 @@ try {
  const canvasBox=()=>page.locator('[data-bag-canvas]').evaluate(n=>({width:n.clientWidth,height:n.clientHeight}));
  const local=locator=>locator.evaluate(n=>{const c=n.closest('.bag-scene').querySelector('[data-bag-canvas]').getBoundingClientRect(),r=n.getBoundingClientRect();return {left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};});
  const shot=async(name,target=page.locator('[data-bag-canvas]'))=>{await page.evaluate(()=>{document.activeElement?.blur?.();return document.fonts.ready;});await page.waitForTimeout(350);await target.screenshot({path:`${dir}/${name}.png`});shots.push(name);};
+ // Details open from a name's popup: click the name (it pins the popup), then the popup.
+ const openDetails=async id=>{await nameOf(id).click();await page.locator('.bag-disc-popup:not([hidden])').click();await detail.waitFor({state:'visible'});};
  // A click that leaves no details open, so the next disc is never under the phone's bottom sheet.
  const toggle=async id=>{await slot(id).click();await settled();if(await detail.isVisible()){await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await page.waitForTimeout(60);await settled();}await page.mouse.move(2,2);};
  const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.engine==='ready' && s.dataset.phase==='open';},null,{timeout:30000});await scene.scrollIntoViewIfNeeded();await page.mouse.move(2,2);};
  // Each demo disc's Atlas position, the same AtlasLayout.positions the map uses.
  const atlasOf=()=>page.evaluate(async()=>{const {DEMO_DISCS}=await import('/bag-demo.js');return Object.fromEntries(DEMO_DISCS.map(item=>{const mold=discs.find(d=>d.id===item.mold_id),p=mold && window.AtlasLayout.positions([mold]).get(mold.id);return [item.id,p?{x:p.x,y:p.y,name:mold.catalogName||mold.name}:null];}));});
- // Out discs' rects and names must sit inside the canvas, discs never on each other, under the zoom
- // buttons, the pocket button or the return button; every out disc shows its name, clear of the
- // bag, every disc, every other name, the zoom buttons, the pocket button and the return button.
+ // Out discs' rects and names must sit inside the canvas, discs never on each other, nor under the
+ // control cluster or the return button; every out disc shows its name, clear of the bag, every disc,
+ // every other name, the cluster's controls and the return button.
  const layoutChecks=async label=>{
-  const box=await canvasBox(),rects=(await viewer(v=>v.discRects())).filter(r=>r.out),zoom=await local(page.locator('.bag-zoom'));
-  const pocket=await page.locator('[data-bag-pocket]').isVisible()?await local(page.locator('[data-bag-pocket]')):null;
+  const box=await canvasBox(),rects=(await viewer(v=>v.discRects())).filter(r=>r.out);
+  const cluster=await local(page.locator('[data-bag-controls]')),controls=await Promise.all(['[data-bag-pocket]','.bag-zoom','[data-bag-toggle]'].map(s=>local(page.locator(`#bagScene ${s}`))));
+  assert.ok(cluster.top>=box.height-.5,`${label}: the control cluster sits under the canvas`);
   const ret=await page.locator('.bag-return-all').isVisible()?await local(page.locator('.bag-return-all')):null;
   assert.equal(!!ret,rects.length>0,`${label}: the return button shows exactly while discs are out`);
-  if(ret)assert.ok(!overlap(ret,zoom),`${label}: return button clear of the zoom buttons`);
+  if(ret)assert.ok(ret.top>=cluster.top+cluster.height,`${label}: return button under the cluster`);
   const bag=await viewer(v=>v.bagRect());
   assert.ok(bag && bag.width>40,`${label}: the bag's silhouette is measured`);
   for(const r of rects){
    assert.ok(r.left>=-1 && r.top>=-1 && r.left+r.width<=box.width+1 && r.top+r.height<=box.height+1,`${label}: ${r.id} inside the canvas ${JSON.stringify(r)}`);
-   assert.ok(!overlap(r,zoom),`${label}: ${r.id} clear of the zoom buttons`);
-   if(pocket)assert.ok(!overlap(r,pocket),`${label}: ${r.id} clear of the pocket button`);
+   for(const c of controls)assert.ok(!overlap(r,c),`${label}: ${r.id} clear of the control cluster`);
    if(ret)assert.ok(!overlap(r,ret),`${label}: ${r.id} clear of the return button`);
   }
   for(let i=0;i<rects.length;i++)for(let j=i+1;j<rects.length;j++){
@@ -78,8 +82,7 @@ try {
   for(const n of names){
    assert.ok(!n.clipped,`${label}: name of ${n.id} shows in full`);
    assert.ok(!overlap(n,bag),`${label}: name of ${n.id} clear of the bag `+JSON.stringify({n,bag}));
-   assert.ok(!overlap(n,zoom),`${label}: name of ${n.id} clear of the zoom buttons`);
-   if(pocket)assert.ok(!overlap(n,pocket),`${label}: name of ${n.id} clear of the pocket button`);
+   for(const c of controls)assert.ok(!overlap(n,c),`${label}: name of ${n.id} clear of the control cluster`);
    if(ret)assert.ok(!overlap(n,ret),`${label}: name of ${n.id} clear of the return button`);
    assert.ok(n.left>=0 && n.left+n.width<=box.width+1 && n.top>=0 && n.top+n.height<=box.height+1,`${label}: name of ${n.id} inside the canvas`);
    for(const r of rects)if(r.id!==n.id)assert.ok(!overlap(n,r),`${label}: name of ${n.id} clear of ${r.id}`);
@@ -176,10 +179,12 @@ try {
  const [a,b,c]=[mains[1],mains[6],mains[11]];
  await slot(a).click();await settled();
  assert.deepEqual(await outIds(),[a]);assert.equal(await slot(a).getAttribute('aria-pressed'),'true');assert.match(await slot(a).getAttribute('aria-label'),/Enter to put it back/);
- await detail.waitFor({state:'visible'});assert.equal(await detail.locator('h2').first().innerText(),atlas[a].name,'One click opens its details too');
+ await page.waitForTimeout(300);assert.equal(await detail.isVisible(),false,'A click opens no details (Oct 7)');
+ // Its name's popup opens the details; Escape closes them and leaves the disc out.
+ await openDetails(a);assert.equal(await detail.locator('h2').first().innerText(),atlas[a].name,'The popup opens its details');
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});assert.deepEqual(await outIds(),[a],'Escape closes the details only');
- // Its name reopens the details; an empty-space click closes them (flap untouched) and leaves the disc out.
- await nameOf(a).click();await detail.waitFor({state:'visible'});
+ // An empty-space click closes them (flap untouched) and leaves the disc out.
+ await openDetails(a);
  const stage=await page.locator('.bag-3d-stage canvas').boundingBox();await page.mouse.click(stage.x+stage.width*.5,stage.y+stage.height*.985);
  await detail.waitFor({state:'hidden'});await settled();
  assert.deepEqual(await outIds(),[a],'An empty-space click leaves it out');assert.equal(await scene.getAttribute('data-phase'),'open','The dismissing click does not toggle the flap');
@@ -193,7 +198,7 @@ try {
  await slot(c).focus();await page.keyboard.press('Enter');await settled();assert.deepEqual(await outIds(),[a],'Enter toggles too');
  await toggle(a);assert.deepEqual(await outIds(),[]);assert.equal(await scene.getAttribute('data-stage'),null);
  assert.equal(await viewer(v=>v.stage.pull),1,'With nothing out the camera is back at the page view');
- check('Toggle: a click (or Enter) slides a disc out with its details and it stays out through Escape, empty-space clicks, closing the bag; each disc is independent; the next click puts back just that disc');
+ check('Toggle: a click (or Enter) slides a disc out (no details; the popup on its name opens them) and it stays out through Escape, empty-space clicks, closing the bag; each disc is independent; the next click puts back just that disc');
 
  // 3a. A bag that leans overstable: its eight most overstable discs, out one by one, still split
  // evenly at their own median, the less overstable half left. Covers a single disc, even counts
@@ -262,7 +267,7 @@ try {
  await toggle(mains[2]);assert.equal((await outIds()).length,7);await sideCheck(await outIds(),'7 out (1440)');
  await toggle(mains[2]);assert.equal((await outIds()).length,8);
  // With the details panel open the canvas ends at the panel and the bag slides over, still full size.
- await nameOf(mains[2]).click();await detail.waitFor({state:'visible'});await settled();await page.waitForTimeout(450);
+ await openDetails(mains[2]);await settled();await page.waitForTimeout(450);
  const beside=await page.evaluate(()=>{const c=document.querySelector('[data-bag-canvas]').getBoundingClientRect(),d=document.querySelector('#detail');return {right:c.right,panel:d.offsetLeft};});
  assert.ok(beside.right<=beside.panel,'The canvas ends at the details panel: '+JSON.stringify(beside));
  st=await viewer(v=>v.stage);assert.ok(st.pull<=1.0001,'Full-size bag with the panel open: pull '+st.pull);
@@ -304,7 +309,7 @@ try {
  assert.equal(await page.evaluate(()=>document.activeElement?.matches('[data-bag-toggle]')),true,'Focus moves to the bag toggle');
  assert.equal(await scene.getAttribute('data-stage'),null);
  // Eight out, by click, with the details of one out disc open: every disc slides back together.
- await stageSet(sets['mixed-8']);await nameOf(sets['mixed-8'][3]).click();await detail.waitFor({state:'visible'});
+ await stageSet(sets['mixed-8']);await openDetails(sets['mixed-8'][3]);
  assert.equal(await returnButton.getAttribute('aria-label'),'Return all 8 out discs to the bag');
  await shot('side-8-return-button-1440-midnight');
  await startSampling();const pressed=Date.now();
