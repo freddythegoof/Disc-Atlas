@@ -140,6 +140,28 @@ try{
  assert.deepEqual([await add.getAttribute('aria-expanded'),await second.getAttribute('aria-expanded')],['false','true']);
  await second.click();await page.waitForTimeout(120);
  assert.ok(!(await menuOpen()),'Clicking that Add again closes it');
+ // A press anywhere outside the menu closes it, with a mouse on desktop and a tap on a phone.
+ for(const touch of [false,true]){
+  const tab=touch?await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true}):page;
+  if(touch){await tab.goto(base);await tab.waitForFunction(()=>typeof filtered!=='undefined'&&filtered.length>0);await tab.waitForTimeout(200);}
+  else await page.evaluate(()=>scrollTo(0,0));
+  const press=async(x,y)=>{if(touch)await tab.touchscreen.tap(x,y);else await tab.mouse.click(x,y);await tab.waitForTimeout(150);};
+  const middle=async l=>{const b=await l.boundingBox();return [b.x+b.width/2,b.y+b.height/2];};
+  const isOpen=()=>tab.evaluate(()=>document.querySelector('#addDestinationMenu').matches(':popover-open'));
+  const first=tab.locator('#rows .directory-add').first();
+  const places={'Add again':()=>middle(first),'header':async()=>[touch?120:400,30],'page title':()=>middle(tab.locator('#viewTitle')),'list head':()=>middle(tab.locator('.list-head>span').first()),'a sort tab':()=>middle(tab.locator('[data-sort="name"]')),'the search box':()=>middle(tab.locator('#search')),'another row':()=>middle(tab.locator('#rows .row-identity strong').nth(3))};
+  for(const [place,where] of Object.entries(places)){
+   await press(...await middle(first));assert.ok(await isOpen(),`${touch?'Tap':'Click'} opens the menu`);
+   await press(...await where());
+   assert.ok(!(await isOpen()),`${touch?'Tapping':'Clicking'} ${place} closes the menu`);
+   assert.equal(await first.getAttribute('aria-expanded'),'false');
+   await tab.evaluate(()=>{document.querySelector('#closeDetail')?.click();});await tab.keyboard.press('Escape');
+  }
+  // Escape closes it even after focus has left the menu.
+  await press(...await middle(first));await tab.evaluate(()=>document.activeElement.blur());await tab.keyboard.press('Escape');
+  assert.ok(!(await isOpen()),'Escape closes the menu wherever focus is');
+  if(touch)await tab.close();
+ }
  for(const [name,id] of [['Bag','addHintBag'],['Storage','addHintStorage']])assert.equal(await page.locator('#addDestinationMenu').getByRole('menuitem',{name,exact:true}).getAttribute('aria-describedby'),id);
  await add.click();await shoot('menu-1440-light');
  await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Storage',exact:true}).click();
@@ -153,7 +175,7 @@ try{
  assert.ok(wide,'Add to in the details opens a menu as wide as itself');await assertMenu('details Add to');
  await page.locator('#addToBag').click();await page.waitForTimeout(120);
  assert.ok(!(await page.evaluate(()=>document.querySelector('#addDestinationMenu').matches(':popover-open'))),'Clicking Add to again closes its menu');
- check('Reclicking Add (or details Add to) closes its menu, another row’s Add takes it over; keyboard: Enter opens on Bag, arrows move, Escape returns focus; a choice closes the menu and continues; details Add to menu still matches its width');
+ check('Reclicking Add (or details Add to) or pressing anywhere outside the menu (mouse and touch) closes it, Escape closes it wherever focus is, another row’s Add takes it over; keyboard: Enter opens on Bag, arrows move, Escape returns focus; a choice closes the menu and continues; details Add to menu still matches its width');
 
  // Type and flight numbers: larger and columned on desktop, the phone row as before.
  for(const width of [...desktop,...phone]){

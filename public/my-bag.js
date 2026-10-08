@@ -321,14 +321,17 @@ function positionAddMenu(){
  addMenu.style.left=Math.max(8,Math.min(viewW-width-8,wide?rect.left:rect.right-width))+'px';
  addMenu.style.top=(below?rect.bottom+6:Math.max(8,rect.top-height-6))+'px';addMenu.dataset.placement=below?'below':'above';
 }
-// Pressing the open menu's own trigger light-dismisses the popover before its click lands, so
-// remember that press: the click then leaves the menu closed instead of opening it again.
-let addMenuReclick=false;
-document.addEventListener('pointerdown',event=>{addMenuReclick=addMenu.matches(':popover-open') && !!addMenuTrigger && event.target.closest('[data-add-menu]')===addMenuTrigger;},true);
+// The menu is a manual popover, so closing never depends on the browser's light dismiss: a press anywhere
+// outside it closes it (a press on another Add then opens that one), a click on its own Add closes it,
+// and Escape closes it wherever focus is.
+document.addEventListener('pointerdown',event=>{
+ if(!addMenu.matches(':popover-open') || addMenu.contains(event.target) || addMenuTrigger?.contains(event.target))return;
+ closeAddMenu();
+},true);
+document.addEventListener('keydown',event=>{if(event.key==='Escape' && addMenu.matches(':popover-open')){event.preventDefault();closeAddMenu(true);}});
 document.addEventListener('click',event=>{
  const action=event.target.closest('[data-add-menu]');
- const reclick=addMenuReclick;addMenuReclick=false;
- if(action){event.preventDefault();if((reclick || addMenu.matches(':popover-open')) && addMenuTrigger===action){closeAddMenu(true);return;}
+ if(action){event.preventDefault();if(addMenu.matches(':popover-open') && addMenuTrigger===action){closeAddMenu(true);return;}
   closeAddMenu();addMenuTrigger=action;addMenu.dataset.moldId=action.dataset.addMenu;
   action.setAttribute('aria-expanded','true');addMenu.showPopover();positionAddMenu();addMenu.querySelector('button').focus({preventScroll:true});return;
  }
