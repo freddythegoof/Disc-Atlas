@@ -127,6 +127,19 @@ try{
  assert.equal(await page.evaluate(()=>document.activeElement.dataset.addDestination),'storage','ArrowDown reaches Storage');
  await page.keyboard.press('Escape');
  assert.ok(await add.evaluate(n=>document.activeElement===n));
+ // Clicking Add again closes its menu (the press would otherwise light-dismiss and the click reopen it).
+ const menuOpen=()=>page.evaluate(()=>document.querySelector('#addDestinationMenu').matches(':popover-open'));
+ for(const expected of [true,false,true,false]){
+  await add.click();await page.waitForTimeout(120);
+  assert.equal(await menuOpen(),expected,`Repeated clicks toggle the menu (${expected?'open':'closed'})`);
+  assert.equal(await add.getAttribute('aria-expanded'),String(expected));
+ }
+ const second=page.locator('#rows .directory-add').nth(1);
+ await add.click();await second.click();await page.waitForTimeout(120);
+ assert.ok(await menuOpen(),'Another row\'s Add moves the menu to that row');
+ assert.deepEqual([await add.getAttribute('aria-expanded'),await second.getAttribute('aria-expanded')],['false','true']);
+ await second.click();await page.waitForTimeout(120);
+ assert.ok(!(await menuOpen()),'Clicking that Add again closes it');
  for(const [name,id] of [['Bag','addHintBag'],['Storage','addHintStorage']])assert.equal(await page.locator('#addDestinationMenu').getByRole('menuitem',{name,exact:true}).getAttribute('aria-describedby'),id);
  await add.click();await shoot('menu-1440-light');
  await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Storage',exact:true}).click();
@@ -138,8 +151,9 @@ try{
  await page.locator('#addToBag').click();
  const wide=await page.evaluate(()=>{const t=document.querySelector('#addToBag').getBoundingClientRect(),m=document.querySelector('#addDestinationMenu').getBoundingClientRect();return Math.abs(t.width-m.width)<1&&Math.abs(t.left-m.left)<1;});
  assert.ok(wide,'Add to in the details opens a menu as wide as itself');await assertMenu('details Add to');
- await page.keyboard.press('Escape');
- check('Keyboard: Enter opens on Bag, arrows move, Escape returns focus; a choice closes the menu and continues; details Add to menu still matches its width');
+ await page.locator('#addToBag').click();await page.waitForTimeout(120);
+ assert.ok(!(await page.evaluate(()=>document.querySelector('#addDestinationMenu').matches(':popover-open'))),'Clicking Add to again closes its menu');
+ check('Reclicking Add (or details Add to) closes its menu, another row’s Add takes it over; keyboard: Enter opens on Bag, arrows move, Escape returns focus; a choice closes the menu and continues; details Add to menu still matches its width');
 
  // Type and flight numbers: larger and columned on desktop, the phone row as before.
  for(const width of [...desktop,...phone]){
