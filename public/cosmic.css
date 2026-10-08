@@ -284,6 +284,12 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers .is-updating .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
 #mapMarkers .is-updating .is-dot .map-dot{opacity:1}
 @media(prefers-reduced-motion:reduce){#mapMarkers .marker-position,#mapMarkers .marker-position.is-updating,#mapMarkers .is-updating .marker-stack,#mapMarkers .is-updating .map-dot{transition:none}}
+/* Organic overview (main Atlas): each disc rests tipped a little along its own seeded angle, like a disc
+   lying on a table (AtlasGroups.organicTilt). Squashing never grows the footprint, and the glint stays
+   lit from the same side. Hidden neighbors are not counted on the art, so the overview stays clean;
+   a complete view (every match shows) counts its stacks. */
+#mapMarkers.atlas-organic .atlas-marker.is-large .marker-stack>.disc-art{transform:rotate(var(--tilt,0deg)) scaleY(var(--tip,1)) rotate(calc(-1*var(--tilt,0deg)))}
+#mapMarkers.atlas-organic .atlas-marker:not(.is-counted) .cluster-count{display:none}
 
 /* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
 /* Discs run on under the toolbar and legend and off the map's edges; the chrome paints above them.

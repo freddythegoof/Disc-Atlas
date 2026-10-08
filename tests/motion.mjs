@@ -145,7 +145,9 @@ try{
    await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
   }
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
-  assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Expanded graph fits the entire catalog');
+  // The organic overview (Oct 7) shows a curated set; its groups still hold the entire catalog.
+  assert.ok(await page.evaluate(()=>groupCache.groups.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length&&
+   mapClusters.length===AtlasGroups.organicCap(AtlasLayout.bounds(mapViewport.width,mapViewport.height).view,zoom)),'Expanded graph groups the entire catalog and shows the curated cap');
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
   // A real stack in the dense catalog, which keeps its positions and its stacks.
   await page.waitForFunction(()=>!cameraTween&&groupCache.items===filtered&&groupCache.level===AtlasGroups.level(zoom,groupCache.level)&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));

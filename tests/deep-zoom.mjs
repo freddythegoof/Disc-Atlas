@@ -68,7 +68,9 @@ export async function checkDeepZoom(browser,base){
   await page.screenshot({path:`${dir}/light-labels.png`});
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);
   await page.evaluate(()=>{focusFeatured();animateZoom(100);});await page.waitForFunction(()=>!cameraTween&&groupCache.level===10&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));await page.waitForTimeout(250);
-  assert.ok(await page.evaluate(()=>zoom===9&&mapClusters.filter(g=>g.x>0&&g.x<390&&g.y>70&&g.y<canvas.clientHeight-155).length>=6),'Mobile deepest view retains a neighborhood');
+  // The organic overview keeps 100px between phone disc centers, and 9x art is 84px: four or more
+  // full discs in this band is a neighborhood (the plotted map counted dots too).
+  assert.ok(await page.evaluate(()=>zoom===9&&mapClusters.filter(g=>g.x>0&&g.x<390&&g.y>70&&g.y<canvas.clientHeight-155).length>=4),'Mobile deepest view retains a neighborhood');
   await page.screenshot({path:`${dir}/mobile-deepest.png`});
  }finally{const video=page.video();await context.close();if(video)await video.saveAs(`${dir}/${baseline?'before':'after'}.webm`);}
 }

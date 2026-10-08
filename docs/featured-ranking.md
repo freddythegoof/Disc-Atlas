@@ -7,7 +7,8 @@ matching. These are recognizable editorial picks across disc types and brands,
 not measured market shares or a claim about today's best sellers.
 
 Filters still apply first. Ranked matches come first, then every unranked match
-alphabetically (brand and ID break name ties). Clicking Featured again does not
+alphabetically (brand and ID break name ties). The main Flight Atlas uses the same
+order to choose which discs show: see [atlas-organic.md](atlas-organic.md). Clicking Featured again does not
 reverse it. Other sorts retain their existing directions. Reload starts with
 Featured; changing filters keeps the chosen sort. A missing ranking asset leaves
 the complete catalog available alphabetically rather than preventing startup.

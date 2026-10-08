@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {frameBand,measureBand,settleMap,verifySatelliteFallbacks} from './zoom-candidates.mjs';
+import {frameBand,measureBand,settleMap} from './zoom-candidates.mjs';
 
 export async function checkGroupingZoom(browser,base){
  const before=process.argv.includes('--baseline'),suffix=before?'before':'after',dir='outputs/grouping-zoom';
@@ -40,19 +40,20 @@ export async function checkGroupingZoom(browser,base){
       anonymousSingles:visible.filter(g=>!g.large&&g.members.length===1&&!planetLabels.get(g.key)?.opacity).map(g=>g.lead.name),
       leaders:[...planetLabels.values()].filter(p=>p.opacity>.001&&p.leader!==false).length,
       overlaps:labels.flatMap((a,i)=>labels.slice(i+1).filter(b=>a.r.left<b.r.right&&a.r.right>b.r.left&&a.r.top<b.r.bottom&&a.r.bottom>b.r.top).map(b=>[a.name,b.name])),
-      honest:visible.filter(g=>g.large).every(g=>g.x===g.actualX&&g.y===g.actualY)};
+      // The organic Atlas (Oct 7) rests each disc within its reach of its true point.
+      honest:visible.filter(g=>g.large).every(g=>Math.hypot(g.x-g.actualX,g.y-g.actualY)<=groupCache.footprints.get(g.key).radius*AtlasGroups.ORGANIC.reach+.01)};
     });
     bands[`${band}-${theme}`]=state;
     await page.screenshot({path:`${dir}/${band}-${theme}-${suffix}.png`});
     if(!before){
-     assert.ok(state.primaries>0&&state.satellites>0,`${band}/${theme} mixes primaries and satellites`);
-     assert.ok(state.labeledSatellites<=state.satellites*.05,'At most 5% of satellites have automatic labels');
-     assert.ok(state.anonymousSingles.length>0,'Remaining single satellites render as plain dots');
+     // The 5x view is an organic overview: full discs only, no dots, no automatic minor labels.
+     assert.ok(state.primaries>0&&state.satellites===0,`${band}/${theme} shows full discs and no dots`);
+     assert.equal(state.labeledSatellites,0);
      assert.equal(state.leaders,0,'Deep labels have no leader thicket or leader collisions');
      assert.deepEqual(state.overlaps,[],'Measured primary labels do not overlap');
-     assert.ok(state.honest,'Primary orbs keep their actual coordinates');
-     const dot=await page.evaluate(()=>{const g=mapClusters.find(g=>!g.large&&g.members.length===1&&g.x>100&&g.x<900&&g.y>150&&g.y<600);return g?{key:g.key,name:g.lead.catalogName||g.lead.name,x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;});
-     assert.ok(dot,'A remaining single satellite is available to tap');
+     assert.ok(state.honest,'Discs rest within reach of their actual coordinates');
+     const dot=await page.evaluate(()=>{const g=mapClusters.find(g=>g.members.length===1&&g.x>100&&g.x<900&&g.y>150&&g.y<600);return g?{key:g.key,name:g.lead.catalogName||g.lead.name,x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;});
+     assert.ok(dot,'A single disc is available to tap');
      await page.keyboard.press('Tab');await page.locator(`[data-cluster="${dot.key}"]`).focus();
      await page.waitForTimeout(250);
      assert.ok(await page.locator(`[data-cluster="${dot.key}"] .marker-name`).evaluate(n=>getComputedStyle(n).visibility==='visible'&&Number(getComputedStyle(n).opacity)>.9),'Keyboard focus reveals the full dot name and brand');
@@ -72,8 +73,7 @@ export async function checkGroupingZoom(browser,base){
     await frameBand(page,z);
     assert.equal(await page.evaluate(()=>satelliteLabelsSuppressed),suppressed);
     const count=await page.evaluate(()=>groupCache.groups.filter(g=>g.minorLabel).length);
-    if(suppressed)assert.equal(count,0,'No automatic minor labels past the suppression boundary');
-    else assert.ok(count>0,'Fitting true-position minor labels return below the exit threshold');
+    assert.equal(count,0,'The organic overview adds no automatic minor labels on either side of the boundary');
    }
    await page.getByRole('button',{name:'Switch to dark mode'}).click();
    await page.mouse.move(10,80);
@@ -81,31 +81,37 @@ export async function checkGroupingZoom(browser,base){
    await page.mouse.move(720,430);await page.mouse.wheel(0,-1800);await settled();
    assert.equal(await page.evaluate(()=>zoom),9,'Wheel reaches the selected 9x ceiling');
    await frameBand(page,9);await page.mouse.move(10,80);const max=await measureBand(page);
-   assert.ok(max.stacks<five.stacks*.5,'Deeper putters have less than half as many visible stacks');
+   // Organic (Oct 7): 5x hides most stacks with their leads and the complete 9x view folds crowded
+   // leads into stacks, so visible stack counts no longer measure grouping; the whole band does.
    assert.ok(max.putters.wholeBandStackExtras<five.putters.wholeBandStackExtras,'Stacks also thin across the whole putter band, not only by leaving the viewport');
    assert.equal(five.putters.labeledSatellites,0,'Putter satellites have no canvas or DOM names at 5x');
-   assert.ok(max.crowdedDotPairs<five.crowdedDotPairs,'Crowded satellite pairs thin out');
-   assert.ok(max.satellites>0);
+   // 5x is an overview (no dots); 9x is complete, so its crowded leads rest as dots.
+   assert.equal(five.satellites,0,'The 5x overview shows no dots');
+   assert.ok(max.satellites>0,'The complete 9x view shows crowded leads as dots');
+   // A deep view is an overview (full discs only) until the catalog fits its cap; then it is complete:
+   // each disc shows at full size, as a dot, or in the stack of the nearest shown disc. The organic
+   // Atlas has no satellites or vectors.
    const deepBands=[];
    for(const z of [7,8,9]){
     await frameBand(page,z);await page.mouse.move(10,80);
-    const state=await measureBand(page);state.fallbacks=await verifySatelliteFallbacks(page);deepBands.push(state);
-    await page.screenshot({path:`${dir}/putter-${z}x-satellite-markers.png`});
+    const state=await measureBand(page);
+    Object.assign(state,await page.evaluate(()=>{
+     const shown=groupCache.groups.filter(g=>!g.hidden).flatMap(g=>[...g.members,...g.joined||[]].map(d=>d.id));
+     return {complete:groupCache.groups.every(g=>g.complete),covered:new Set(shown).size===shown.length&&shown.length===groupCache.groups.reduce((n,g)=>n+g.members.length,0)};
+    }));
+    deepBands.push(state);
+    await page.screenshot({path:`${dir}/putter-${z}x-organic.png`});
    }
-   fs.writeFileSync(`${dir}/satellite-markers-metrics.json`,JSON.stringify(deepBands,null,2));
-   console.log('Deep satellite markers',deepBands);
+   fs.writeFileSync(`${dir}/organic-deep-metrics.json`,JSON.stringify(deepBands,null,2));
+   assert.ok(deepBands.at(-1).complete,'9x is complete');
    for(const state of deepBands){
     const z=state.zoom;
-    assert.ok(state.readableSatellites>0,`${z}x satellites use readable markers`);
-    assert.equal(state.readableSatellites+state.fallbacks.length,state.unstackedSatellites,`${z}x every fitting unstacked satellite gets a labeled marker`);
-    assert.ok(state.fallbacks.every(f=>f.noCleanPlacement),`${z}x fallback dots have no clean nearby placement`);
-    const expectedFallbacks={7:[],8:['Bluebonnet'],9:['Scarab']};
-    assert.deepEqual(state.unlabeledSingles,expectedFallbacks[z],`${z}x remaining dots are only the genuinely blocked singles`);
+    assert.ok(state.complete?state.covered:state.satellites===0,`${z}x is a dot-free overview or shows every disc once`);
+    assert.equal(state.labeledSatellites,0,`${z}x dots name themselves only on hover and focus`);
+    assert.equal(state.leaders,0,`${z}x draws no vectors`);
     assert.deepEqual(state.overlaps,[],`${z}x DOM labels never overlap`);
     assert.deepEqual(state.markerOverlaps,[],`${z}x markers and labels never overlap`);
-    assert.deepEqual(state.leaderCollisions,[],`${z}x leaders avoid labels and one another`);
-    assert.ok(state.honest,`${z}x any displaced marker has a vector to its true position`);
-    assert.ok(state.maxOffset<=56,`${z}x leaders remain short`);
+    assert.ok(state.honest,`${z}x every disc rests within reach of its true position`);
    }
    // A selected displaced satellite must not acquire the legacy center-to-dot
    // vector on top of its subtle rim-to-coordinate leader.
@@ -114,7 +120,7 @@ export async function checkGroupingZoom(browser,base){
    for(const z of [9,8,7]){
     await frameBand(page,z);
     selectedVectors=await page.evaluate(()=>{
-    const g=mapClusters.find(g=>g.satellite&&g.leader&&g.x>100&&g.x<mapViewport.width-100&&g.y>150&&g.y<mapViewport.height-150);
+    const g=mapClusters.find(g=>Math.hypot(g.x-g.actualX,g.y-g.actualY)>8&&g.x>100&&g.x<mapViewport.width-100&&g.y>150&&g.y<mapViewport.height-150);
     if(!g)return null;
     const move=ctx.moveTo.bind(ctx),line=ctx.lineTo.bind(ctx),segments=[];let previous=null;
     ctx.moveTo=(x,y)=>{previous={x,y};move(x,y);};
@@ -125,12 +131,13 @@ export async function checkGroupingZoom(browser,base){
     });
     if(selectedVectors!==null)break;
    }
-   assert.equal(selectedVectors,1,'Selecting a displaced marker paints exactly one honest vector');
+   assert.equal(selectedVectors,0,'Selecting a tossed disc paints no vector: its rest offset is not a displacement');
    await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
-   for(const state of deepBands){
-    if(!state.fallbacks.length)continue;
-    await frameBand(page,state.zoom);
-    for(const fallback of state.fallbacks){
+   {
+    await frameBand(page,9);
+    const dots=await page.evaluate(()=>mapClusters.filter(g=>!g.large&&g.members.length===1&&g.x>100&&g.x<mapViewport.width-100&&g.y>150&&g.y<mapViewport.height-150).slice(0,2).map(g=>({key:g.key})));
+    assert.ok(dots.length,'The complete 9x view has a dot to reach');
+    for(const fallback of dots){
      const node=page.locator(`[data-cluster="${fallback.key}"]`);
      const point=await page.evaluate(key=>{const g=mapClusters.find(g=>g.key===key);return {x:mapViewport.left+g.x,y:mapViewport.top+g.y};},fallback.key);
      await node.hover();await page.waitForTimeout(250);
@@ -141,7 +148,7 @@ export async function checkGroupingZoom(browser,base){
      assert.equal(await page.evaluate(()=>selected.id),fallback.key,'Fallback keyboard activation preserves identity');
      await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});await page.evaluate(()=>document.activeElement.blur());
      await page.touchscreen.tap(point.x,point.y);await page.locator('#detail').waitFor({state:'visible'});
-     assert.equal(await page.evaluate(()=>selected.id),fallback.key,'Fallback dots remain clickable at their true positions');
+     assert.equal(await page.evaluate(()=>selected.id),fallback.key,'Dots remain clickable where they rest');
      await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
     }
    }
@@ -168,8 +175,7 @@ export async function checkGroupingZoom(browser,base){
    }
    for(const z of [6.99,7,6.99,7]){
     await frameBand(page,z);const state=await measureBand(page);
-    if(z<7){assert.equal(state.labeledSatellites,0);assert.equal(state.leaders,0);assert.equal(state.readableSatellites,0);assert.ok(state.honest);}
-    else assert.ok(state.readableSatellites>0,'Satellite markers return at exactly 7x');
+    assert.equal(state.labeledSatellites,0);assert.equal(state.leaders,0);assert.equal(state.readableSatellites,0);assert.ok(state.honest,'No satellite markers on either side of 7x');
     assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);assert.deepEqual(state.leaderCollisions,[]);
    }
    await frameBand(page,9);
@@ -188,7 +194,7 @@ export async function checkGroupingZoom(browser,base){
   assert.equal(deep.discs,overview.discs);assert.ok(overview.largest>3,'Overview remains coarsely grouped');
   // Pan an actual triple into view, then use its real clickable marker.
   const triple=await page.evaluate(()=>{
-   const g=groupCache.groups.find(g=>g.members.length===3);
+   const g=groupCache.groups.find(g=>g.members.length===3&&!g.hidden);
    const area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);pan={x:550-area.left-g.pos.x*area.width*zoom,y:350-area.bottom+g.pos.y*area.height*zoom};draw();return {key:g.key,names:g.members.map(d=>d.catalogName||d.name)};
   });await settled();await page.waitForTimeout(350);
   const point=await page.evaluate(key=>{const g=mapClusters.find(g=>g.key===key),r=canvas.getBoundingClientRect();return {x:r.left+g.x,y:r.top+g.y};},triple.key);
@@ -209,11 +215,13 @@ export async function checkGroupingZoom(browser,base){
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);
   await page.evaluate(()=>{stopCamera();zoom=5;const area=AtlasLayout.bounds(mapViewport.width,mapViewport.height);pan={x:195-area.left-.5*area.width*zoom,y:350-area.bottom+.8*area.height*zoom};draw();});
   await settled();await page.waitForTimeout(350);
-  const mobileDot=await page.evaluate(()=>{const g=mapClusters.find(g=>!g.large&&g.members.length===1&&g.x>35&&g.x<355&&g.y>150&&g.y<550);return g?{key:g.key,x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;});
-  assert.ok(mobileDot,'Mobile retains an unlabeled clickable satellite');
+  // Any shown disc: a tap opens it, or its stack chooser for two or three.
+  const mobileDot=await page.evaluate(()=>{const g=mapClusters.find(g=>g.x>35&&g.x<355&&g.y>150&&g.y<550);return g?{key:g.key,name:g.lead.catalogName||g.lead.name,stack:g.members.length>1&&g.members.length<=3,x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;});
+  assert.ok(mobileDot,'Mobile shows a disc to tap');
   await page.screenshot({path:`${dir}/distance-mobile-after.png`});
   await page.touchscreen.tap(mobileDot.x,mobileDot.y);await page.locator('#detail').waitFor({state:'visible'});
-  assert.equal(await page.evaluate(()=>selected.id),mobileDot.key,'Mobile dot taps open the correct disc');
+  if(mobileDot.stack)assert.ok((await page.locator('#detail').innerText()).includes(mobileDot.name),'Mobile taps open the correct stack');
+  else assert.equal(await page.evaluate(()=>selected.id),mobileDot.key,'Mobile taps open the correct disc');
   assert.deepEqual(errors,[]);
  }finally{await context.close();}
 }
@@ -275,9 +283,11 @@ export async function checkLowZoomLabels(browser,base){
    assert.ok(selectedMember,`${z}x exercises a selected member away from its stack lead`);
    assert.equal(await paintedLeaders(),0,`${z}x selected stack member draws no leader`);
   }
-  await frameBand(page,1,.8);
+  // The overview has no dots; a complete view (a brand that fits the cap) rests crowded leads as dots.
+  await page.evaluate(()=>{selected=null;closeDetail(false);selectedBrands.add('Axiom');zoom=1;pan={x:0,y:0};filter();});
+  await settleMap(page);await page.waitForTimeout(350);
   const hidden=await page.evaluate(()=>mapClusters.find(g=>!g.large&&!g.minorLabel&&g.members.length===1&&g.x>100&&g.x<1300&&g.y>150&&g.y<600)?.key);
-  assert.ok(hidden,'A blocked minor label remains an accessible dot');
+  assert.ok(hidden,'A crowded lead in a complete view remains an accessible dot');
   const node=page.locator(`[data-cluster="${hidden}"]`);await node.hover();await page.waitForTimeout(250);
   assert.ok(await node.locator('.marker-name').evaluate(n=>getComputedStyle(n).visibility==='visible'&&Number(getComputedStyle(n).opacity)>.9),'Blocked label reveals on hover');
   await page.mouse.move(10,80);await page.keyboard.press('Tab');await node.focus();await page.waitForTimeout(250);

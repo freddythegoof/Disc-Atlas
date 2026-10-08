@@ -159,5 +159,5 @@ window.AtlasLayout = (() => {
     memo = {items, base, width, height, immersive, result};
     return result;
   }
-  return {positions, camera, bounds, extent, constrain, spread, adapt, adaptStrength, FRAME, ADAPT};
+  return {positions, camera, bounds, extent, constrain, spread, adapt, adaptStrength, seed, FRAME, ADAPT};
 })();

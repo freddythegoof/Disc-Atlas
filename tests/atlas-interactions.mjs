@@ -53,7 +53,9 @@ export async function checkAtlasInteractions(browser,base){
   await page.locator('#search').fill('no-such-disc-123456');assert.equal(await page.locator('#empty').isVisible(),true,'Genuine empty filters retain their empty state');
   await page.setViewportSize({width:390,height:844});await page.reload();await page.locator('#mapTab').click();await page.waitForFunction(()=>filtered.length>0);await page.evaluate(()=>focusFeatured());await page.locator('.atlas-marker.is-selected').waitFor();
   await page.locator('#zoomReset').click();await page.waitForFunction(()=>!cameraTween);
-  assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Mobile overview retains every rated disc');
+  // The organic overview (Oct 7) shows a curated set; its groups still hold every rated disc.
+  assert.ok(await page.evaluate(()=>groupCache.groups.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length&&
+   mapClusters.length>0&&mapClusters.length<=AtlasGroups.organicCap(AtlasLayout.bounds(mapViewport.width,mapViewport.height).view,zoom)),'Mobile overview keeps every rated disc grouped and shows a curated set');
   await page.evaluate(()=>{selectedBrands.add('Axiom');filter();});
   assert.ok(await page.locator('.atlas-marker').count()>0);
   await map.focus();await page.keyboard.press('ArrowRight');

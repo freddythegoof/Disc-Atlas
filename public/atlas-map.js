@@ -45,7 +45,30 @@ function measureFullLabels(items){
 // after fonts.ready, so measure again whenever any font finishes loading.
 const remeasureLabels=()=>{fullLabelFootprints.clear();groupContext=null;scheduleMapDraw();};
 document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
-function measureMap(){mapViewport=canvas.getBoundingClientRect();}
+function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;}
+// The chrome over the map in map pixels. The organic overview keeps every disc and name clear of it at
+// 1x; deeper in, discs run on under it to the map's edges as before.
+let mapChrome=null;
+function measureChrome(){
+ const map=mapViewport||canvas.getBoundingClientRect();
+ mapChrome=[...document.querySelectorAll('.explore-tools,.map-caption,.map-toolbar,.map-controls,#coachButton')].flatMap(node=>{
+  const r=node.getBoundingClientRect();
+  if(!r.width||!r.height||node.checkVisibility?.({visibilityProperty:true})===false)return [];
+  const box={x:r.left-map.left,y:r.top-map.top,w:r.width,h:r.height};
+  return box.x<map.width&&box.y<map.height&&box.x+box.w>0&&box.y+box.h>0?[box]:[];
+ });
+ mapChrome.key=mapChrome.map(b=>[b.x,b.y,b.w,b.h].map(Math.round).join(',')).join(';');
+ return mapChrome;
+}
+// The main Atlas rests discs organically (AtlasGroups.curate); My Map keeps its plotted overview.
+function organicAtlas(){return !myMap;}
+// Curate options for a level at the current zoom (AtlasGroups.organicOptions), with the chrome measured here.
+function organicOptions(area,w,h,cache,first=null){
+ if(!mapChrome)measureChrome();
+ return {...window.AtlasGroups.organicOptions({area,width:w,height:h,level:cache.level,zoom,extent:cache.extent,chrome:mapChrome||[]}),first};
+}
+// The selected disc's group: the curate walk places it first when it would otherwise be hidden.
+function selectedGroup(groups){return selected?groups.find(g=>g.members.includes(selected)||g.members.includes(selected.id)):null;}
 function cancelRegroup(){
  regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
  retirementTimer=null;retirementFrame=0;regrouping=false;
@@ -54,14 +77,19 @@ function cancelRegroup(){
 }
 function hydrateGroups(raw,items,w,h,level,immersive){
  const byId=new Map(items.map(d=>[d.id,d]));
- return {items,w,h,level,immersive,footprints:measureFullLabels(items),extent:raw.extent,groups:raw.groups.map(g=>({
-  ...g,members:g.members.map(id=>byId.get(id)),lead:byId.get(g.key)
+ // A worker that curated for this camera already settled prominence (see prepareGroups).
+ return {items,w,h,level,immersive,footprints:measureFullLabels(items),extent:raw.extent,prominenceZoom:raw.prominence,groups:raw.groups.map(g=>({
+  ...g,members:g.members.map(id=>byId.get(id)),lead:byId.get(g.key),joined:g.joined?.map(id=>byId.get(id))
  }))};
 }
 function prepareGroups(level,items,w,h,immersive){
  if(preparedGroups.has(level)||pendingGroups.has(level)||!groupWorker)return;
  pendingGroups.add(level);
- groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,personal:!!myMap,footprints:groupContext.footprints,featured:atlasPriority(),
+ // The worker also curates the level (AtlasGroups.organicZoom), so the main thread curates only when
+ // the selection or chrome changed meanwhile, or a zoom-out tween runs below the level's floor.
+ if(organicAtlas()&&!mapChrome)measureChrome();
+ const organic=organicAtlas()?{chrome:mapChrome||[],chromeKey:mapChrome?.key,first:selected?.id}:null;
+ groupWorker.postMessage({revision:groupRevision,level,width:w,height:h,immersive,personal:!!myMap,footprints:groupContext.footprints,featured:atlasPriority(),organic,
   items:items.map(d=>({id:d.id,name:d.name,brand:d.brand,speed:d.speed})),
   positions:items.filter(d=>atlasPositions.has(d.id)).map(d=>[d.id,atlasPositions.get(d.id)])});
 }
@@ -92,7 +120,12 @@ function buildClusters(items,w,h){
   cancelRegroup();
   for(const node of markerNodes.values()){node.position.classList.remove('is-new','is-retiring');node.position.inert=false;}
   groupRevision++;groupContext={items,w,h,immersive,footprints:measureFullLabels(items)};preparedGroups.clear();pendingGroups.clear();
-  if(groupCache){groupCache.footprints=measureFullLabels(groupCache.items);groupCache.prominenceZoom=null;}
+  // The organic overview is a pure function of footprints and camera; keep it while they hold.
+  if(groupCache){
+   const footprints=measureFullLabels(groupCache.items);
+   if(!organicAtlas()||[...footprints].some(([key,f])=>groupCache.footprints.get(key)!==f))groupCache.prominenceZoom=null;
+   groupCache.footprints=footprints;
+  }
   ensureGroupWorker();
   // The initial map has no previous frame to retain. Later filter/size changes
   // use the same worker and staged swap as zoom changes, even at the same level.
@@ -114,18 +147,28 @@ function buildClusters(items,w,h){
   else if(groupWorker)prepareGroups(level,items,w,h,immersive);
   else {groupCache=hydrateGroups(window.AtlasGroups.build(items,shownPositions(items,w,h,immersive),w,h,level,immersive,groupContext.footprints,atlasPriority()),items,w,h,level,immersive);appliedContext=contextPending;}
  }
+ // The organic 1x overview is one composition, laid out for one camera: show all pins it.
+ const bounded=window.AtlasLayout.constrain({zoom,...(organicAtlas()&&zoom<=1.0001?{x:0,y:0}:pan)},area,groupCache.extent);
+ pan={x:bounded.x,y:bounded.y};
  // Labels do not scale with the camera. Recheck at the actual zoom, including
  // intermediate animation frames and while a new worker level is pending.
- if(groupCache.prominenceZoom!==zoom){
-  const satellites=zoom>=7?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
-  const minors=zoom<2.9&&(!satelliteLabelsSuppressed||zoom<=2.7)?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
-  window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3),satellites,minors);
-  groupCache.prominenceZoom=zoom;
+ const organic=organicAtlas(),first=organic?selectedGroup(groupCache.groups):null;
+ const options=organic&&organicOptions(area,w,h,groupCache,first);
+ const prominence=organic?options.key+'|'+first?.key:zoom;
+ groupCache.organicFirst=first?.key;
+ if(groupCache.prominenceZoom!==prominence){
+  if(organic)window.AtlasGroups.curate(groupCache.groups,groupCache.footprints,options.zoom,2**(groupCache.level/3),options);
+  else{
+   const satellites=zoom>=7?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
+   const minors=zoom<2.9&&(!satelliteLabelsSuppressed||zoom<=2.7)?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
+   window.AtlasGroups.promote(groupCache.groups,groupCache.footprints,zoom,2**(groupCache.level/3),satellites,minors);
+  }
+  groupCache.prominenceZoom=prominence;
  }
- const bounded=window.AtlasLayout.constrain({zoom,...pan},area,groupCache.extent);
- pan={x:bounded.x,y:bounded.y};
  const result=[];
  for(const g of groupCache.groups){
+  // The organic overview draws only the discs it placed; the rest wait for room deeper in.
+  if(organic&&g.hidden)continue;
   const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
   // Keep the entire enlarged disc beyond the clipped plot viewport.
   // A 48px entry band covers its radius; the wider exit band prevents DOM churn.
@@ -136,7 +179,7 @@ function buildClusters(items,w,h){
   const dx=g.markerOffset?.x||0,dy=g.markerOffset?.y||0;
   const leader=g.leader?{x1:x+g.leader.x1-g.px*zoom/(2**(groupCache.level/3)),
    y1:y+g.leader.y1+g.py*zoom/(2**(groupCache.level/3)),x2:x,y2:y}:null;
-  result.push({...g,x:x+dx,y:y+dy,leader,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
+  result.push({...g,members:g.joined?[...g.members,...g.joined]:g.members,x:x+dx,y:y+dy,leader,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
  }
  // Evaluate offscreen filter results only after their worker result is applied.
  // Keeping the old groups visible must not suppress the existing Show all fallback.
@@ -191,7 +234,8 @@ function draw(){
   ctx.restore();
  }
  // Explain the selected disc's offset without turning a dense view into a web of lines.
- for(const g of mapClusters){if(!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
+ // An organic rest offset is the disc's own small toss, not a displacement worth a line.
+ for(const g of mapClusters){if(!organicAtlas()&&!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  drawPlanetLabels();
  renderMarkers();drawSatelliteLeaders();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
@@ -220,6 +264,9 @@ function drawPlanetLabels(){
 }
 function renderMarkers(){
  const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||myMap);
+ layer.classList.toggle('atlas-organic',organicAtlas());
+ // select() repaints markers only; a new selection may need a curated spot (it always shows).
+ if(organicAtlas()&&groupCache.organicFirst!==selectedGroup(groupCache.groups)?.key)scheduleMapDraw();
  const scale=mapMarkerScale();
  const scaleValue=scale.toFixed(3);
  const filterPending=groupCache.items!==filtered;
@@ -248,6 +295,7 @@ function renderMarkers(){
    node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
    node.art=node.querySelector('.marker-stack');node.dot=node.querySelector('.map-dot');
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
+   const tilt=window.AtlasGroups.organicTilt(g.key);node.style.setProperty('--tilt',tilt.angle+'deg');node.style.setProperty('--tip',tilt.tip);
    node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';
    if(regrouping){node.position.classList.add('is-new');node.position.inert=true;}
    node.position.append(node);layer.append(node.position);
@@ -268,6 +316,7 @@ function renderMarkers(){
   node.querySelector('.marker-name').style.visibility=g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7?'':'hidden';
   if(node.classList.contains('is-minor-label')&&!g.minorLabel)node.querySelector('.marker-name').style.transition='none';
   node.classList.toggle('is-minor-label',!!g.minorLabel);
+  node.classList.toggle('is-counted',!!g.complete);
   node.classList.toggle('is-satellite',!!g.satellite);
   node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
   node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');

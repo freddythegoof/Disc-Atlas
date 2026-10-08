@@ -32,10 +32,9 @@ export async function checkLabelProminence(browser,base){
   assert.deepEqual(await overlaps(),[],'Overview full labels do not overlap');
   const overview=await page.evaluate(()=>({large:mapClusters.filter(g=>g.large).map(g=>g.lead.name),dots:mapClusters.filter(g=>!g.large).length}));
   console.log('Overview prominence',{featured:overview.large.filter(n=>['Destroyer','Buzzz','Zone','Crave','Envy','TeeBird'].includes(n)),large:overview.large.length,dots:overview.dots});
-  assert.ok(overview.large.includes('Destroyer')&&overview.large.includes('Buzzz')&&overview.dots>0);
-  const soloLabels=await page.evaluate(()=>mapClusters.filter(g=>!g.large&&g.members.length===1).map(g=>({name:g.lead.name,visible:!!g.minorLabel})));
-  assert.ok(soloLabels.length>0,'Overview includes single-disc dots');
-  assert.ok(soloLabels.some(label=>label.visible),'Some clean single-disc labels fit at true positions');
+  // The organic overview (Oct 7): featured leads at full size, and no dots or automatic minor labels.
+  assert.ok(overview.large.includes('Destroyer')&&overview.large.includes('Buzzz')&&overview.dots===0);
+  assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>!g.minorLabel)),'The organic overview has no minor labels');
   assert.ok(await page.evaluate(()=>planetLabels.size===0),'Overview names no longer use the canvas');
   // Inspect painted labels every frame, including old worker groups during zoom.
   for(const factor of [4,.25]){

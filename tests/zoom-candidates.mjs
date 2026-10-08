@@ -23,6 +23,8 @@ export const measureBand=page=>page.evaluate(()=>{
  }
 
  const pairs=visible.flatMap((g,i)=>visible.slice(i+1).map(h=>({g,h,d:Math.hypot(g.x-h.x,g.y-h.y)})));
+ // The organic Atlas (Oct 7) rests each disc within its reach of its true point; no vector needed.
+ const reach=g=>organicAtlas()&&!g.satellite?groupCache.footprints.get(g.key).radius*AtlasGroups.ORGANIC.reach+.01:.01;
  const putters=visible.filter(g=>typeOf(g.lead)==='putter');
  const putterGroups=groupCache.groups.filter(g=>g.members.some(d=>typeOf(d)==='putter'));
  return {zoom,level:groupCache.level,visible:visible.length,primaries:primaries.length,satellites:dots.length,labeledSatellites:dots.filter(labeled).length,
@@ -39,7 +41,7 @@ export const measureBand=page=>page.evaluate(()=>{
   scale:mapMarkerScale(),artScale:Math.max(...[...markerNodes.values()].filter(n=>n.classList.contains('is-large')&&!n.position.classList.contains('is-retiring')).map(n=>Number(n.art.style.scale))),
   leaders:vectors.length+[...planetLabels.values()].filter(p=>p.opacity>.01&&p.leader!==false).length,
   overlaps:labels.flatMap((a,i)=>labels.slice(i+1).filter(b=>a.r.left<b.r.right&&a.r.right>b.r.left&&a.r.top<b.r.bottom&&a.r.bottom>b.r.top).map(b=>[a.name,b.name])),
-  honest:visible.every(g=>Math.hypot(g.x-g.actualX,g.y-g.actualY)<.01||(g.satellite&&g.leader&&Math.hypot(g.leader.x2-g.actualX,g.leader.y2-g.actualY)<.01)),totalDiscs:groupCache.groups.reduce((n,g)=>n+g.members.length,0)};
+  honest:visible.every(g=>Math.hypot(g.x-g.actualX,g.y-g.actualY)<reach(g)||(g.satellite&&g.leader&&Math.hypot(g.leader.x2-g.actualX,g.leader.y2-g.actualY)<.01)),totalDiscs:groupCache.groups.reduce((n,g)=>n+g.members.length,0)};
 });
 // Independently search a dense 4px grid, beyond the runtime's radial candidates.
 // Fallbacks must genuinely have no clean marker/label/vector placement nearby.
@@ -86,9 +88,10 @@ export async function checkZoomCandidates(browser,base){
    await frameBand(page,z);const state=await measureBand(page);results.push(state);
    await page.screenshot({path:`${dir}/putter-${z}x-${suffix}.png`});
    if(!baseline){
-    if(z<7)assert.equal(state.labeledSatellites,0);
-    else assert.ok(state.labeledSatellites>0,'Max zoom promotes measured satellite labels');
-    if(z<7)assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);assert.deepEqual(state.leaderCollisions,[]);
+    // The organic Atlas has no satellites: a dot (complete views only) shows its name on hover and
+    // focus, never automatically, and nothing draws a vector at any zoom.
+    assert.equal(state.labeledSatellites,0);
+    assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);assert.deepEqual(state.leaderCollisions,[]);
     assert.ok(state.honest);assert.ok(state.scale<=1.24&&state.artScale<=1.24);assert.ok(state.primaries>0);
     assert.ok(state.largest<=(z===3?5:3));
    }
