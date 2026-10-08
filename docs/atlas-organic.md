@@ -1,7 +1,8 @@
 # Organic Atlas: how the main map chooses and places its discs
 
 Since October 7, 2026, the main Flight Atlas draws discs the way out discs rest beside the bag on
-My Bag. They lie scattered, each tipped a little, with room around every one. This changes the
+My Bag. They lie scattered, with room around every one. Since October 8 they face front: the
+discs are round and untipped, and full-size art is 76 px (My Map keeps 68 px). This changes the
 rendering only. Every disc keeps its computed position: `public/data.json`, the overrides, the
 consensus pipeline, `AtlasLayout.positions` and the adaptive spread (`AtlasLayout.adapt`) are
 untouched. My Map keeps its plotted overview (`AtlasGroups.promote`).
@@ -23,7 +24,7 @@ current filters, search and lens:
    and overstable edges are never left empty because popular neutral molds used up the slots. The
    second pass takes the remaining discs in selection order.
 3. **Room.** A disc must rest within its reach of its true point, with a 12 px gap to every placed
-   disc and name. In an overview, disc centers must also be at least 130 px apart (100 px on maps
+   disc and name. In an overview, disc centers must also be at least 138 px apart (112 px on maps
    under 700 px wide). At 1x it must also stay inside the map and clear of the controls: the search
    and filter chips, the speed caption, the stability legend, the zoom controls and the Coach
    button. A disc with no room is hidden at this zoom.
@@ -39,21 +40,24 @@ current filters, search and lens:
    a dot joins the stack of the nearest shown disc, and complete views show stack counts. The
    overview never shows dots or counts.
 
-On the unfiltered 1x map at 1440 × 900, this shows 29 discs. Most are featured molds. The rest are
-the best-known disc in an otherwise empty region, such as Mamba or Pestilence on the understable
-edge.
+On the unfiltered 1x map at 1440 × 900, this shows 24 discs, under the cap of 29: the 138 px
+spacing is what limits it. 22 are featured molds. The other two (Pestilence and Berg X) are the
+best-known disc in an otherwise empty region. A 390 × 844 phone shows 6, limited by the room
+between the controls (the cap there is 8).
 
 ## Where each disc rests
 
-- **Reach.** A disc rests within 0.6 marker radii of its true point: about 20 px for the 68 px art.
+- **Reach.** A disc rests within 0.6 marker radii of its true point: about 23 px for the 76 px art.
   Its first choice is a seeded "toss" at 45–100% of that reach in a seeded direction. If that spot
   is taken, it uses the free spot nearest to it, from 38 candidates. Dots use the same reach.
-- **Tilt.** Each disc tips along a seeded angle (−40° to 40°) to 84–94% of its height
-  (`AtlasGroups.organicTilt`). The CSS keeps the glint lit from the same side. The tilt never
-  enlarges the disc's footprint.
+- **Front facing.** Every disc is drawn round and face on, with no per-disc tilt. Full-size art is
+  76 px and its name starts 90 px below the marker's top (`#mapMarkers.atlas-organic` in
+  `public/cosmic.css`). That is 52 px below the center, scaled from the 68 px art's 46 px, so the
+  name stays clear of its art when the art grows past 4× and is selected (1.24 × 1.09). Label footprints are measured separately for the main Atlas and My Map,
+  and a click lands within the art's radius (38 px) plus 8 px.
 - **Determinism.** Every choice is seeded by disc ID, so the same data, view, zoom and selection
   always land the same way, to the pixel.
-- **Neighbors.** 20 px is small next to the 130 px spacing. A disc's nearest neighbor on screen is
+- **Neighbors.** 23 px is small next to the 138 px spacing. A disc's nearest neighbor on screen is
   always one of its three nearest by data, and two discs farther apart than both reaches keep
   their order on both axes.
 
@@ -74,7 +78,8 @@ layout work.
 - `node --test tests/atlas-organic.mjs`: the rules above, on controlled fixtures.
 - `PLAYWRIGHT_MODULE=… node tests/atlas-organic-browser.mjs` covers desktop and phone in all three
   themes. It runs on the full atlas, Putter, Axiom and a "buzzz" search. It checks each disc's
-  reach and its untouched position, and that discs, names and controls never overlap. It also
+  that each disc is round, untipped 76 px art with its name 90 px down, its reach and its untouched
+  position, and that discs, names and controls never overlap. It also
   checks the curation rules, neighborhoods, pixel-identical determinism, and the landing, 5×, 9×
   and selection views. Screenshots go to `outputs/atlas-organic/`.
 - The older map suites (`tests/motion.mjs --boundaries`, `--game-feel`, `--grouping-zoom`,

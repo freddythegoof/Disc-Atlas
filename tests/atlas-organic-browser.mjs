@@ -1,5 +1,5 @@
 // The main Atlas's organic overview in a real browser: discs rest near their atlas points like discs
-// tossed on a table, tipped a little, with room around each one. Every shown disc stays within its
+// tossed on a table, front facing and round (76px art at 1x), with room around each one. Every shown disc stays within its
 // reach of its true (computed, untouched) position; discs, names and the map's controls never touch;
 // a disc's neighbors stay its neighbors; the visible set follows the documented walk (selection
 // order, coverage then depth, the cap); and the same data always lands the same way, to the pixel.
@@ -84,11 +84,12 @@ const layout=page=>page.evaluate(()=>{
    region:Math.floor(g.px*ratio/AtlasGroups.ORGANIC.region)+':'+Math.floor(-g.py*ratio/AtlasGroups.ORGANIC.region),
    leadsOwn:own.every(m=>order(g.lead,m)<=0),members:g.members.map(m=>m.id),rank:rank.get(g.key)??Infinity,
    boxes:[box,...g.large&&getComputedStyle(name).visibility!=='hidden'&&getComputedStyle(name).opacity!=='0'?[rect(name)]:[]],
-   transform:node.position.style.transform,tilt:node.style.getPropertyValue('--tilt')+' '+node.style.getPropertyValue('--tip')};
+   transform:node.position.style.transform,artTransform:g.large?getComputedStyle(node.querySelector('.disc-art')).transform:'none',
+   label:g.large?rect(name).y-rect(node).y-(g.nudge?.y||0):null,selected:g.members.includes(selected)};
  });
  const chrome=[...document.querySelectorAll('.explore-tools,.map-caption,.map-toolbar,.map-controls,#coachButton')]
   .filter(n=>n.checkVisibility({visibilityProperty:true})).map(rect).filter(b=>b.w&&b.h);
- return {items,chrome,map:{w:map.width,h:map.height},zoom,cap:organicOptions(area,w,h,groupCache).cap,
+ return {items,chrome,map:{w:map.width,h:map.height},zoom,scale:mapMarkerScale(),cap:organicOptions(area,w,h,groupCache).cap,
   rated:filtered.filter(d=>d.speed!=null).length,complete:groupCache.groups.some(g=>g.complete),
   // Every disc a shown group carries, on screen or off: its own members and any that joined it.
   carried:groupCache.groups.filter(g=>!g.hidden).flatMap(g=>[...g.members,...g.joined||[]].map(d=>d.id))};
@@ -98,6 +99,14 @@ const near=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function verify(view,label,{chrome=true}={}){
  const {items}=view;
  assert.ok(items.length,label+': discs show');
+ // Front facing: round 76px art (grown with the camera past 1x, and 9% more when selected), no tip,
+ // and at 1x the name starts 90px under the marker's top (plus any featured label nudge).
+ for(const d of items.filter(d=>d.large)){
+  const art=d.boxes[0],size=76*view.scale*(d.selected?1.09:1);
+  assert.ok(Math.abs(art.w-size)<.6&&Math.abs(art.h-size)<.6,`${label}: ${d.name} is ${art.w.toFixed(1)}x${art.h.toFixed(1)}px, not ${size.toFixed(1)}px round`);
+  assert.equal(d.artTransform,'none',`${label}: ${d.name} is not tipped`);
+  if(view.zoom===1&&!d.selected)assert.ok(Math.abs(d.label-90)<.6,`${label}: ${d.name}'s name starts ${d.label.toFixed(1)}px under its marker's top, not 90px`);
+ }
  for(const d of items){
   assert.ok(d.untouched,`${label}: ${d.name} keeps its computed atlas position`);
   const off=near(d.center,d.truth);
@@ -146,7 +155,7 @@ try{
   assert.ok(featured/view.items.length>=.75,`${viewport}: ${featured} of ${view.items.length} shown discs are featured`);
   for(const d of view.items.filter(d=>!d.featured))
    assert.ok(!view.items.some(o=>o.region===d.region&&o.rank<d.rank)||featured<view.cap,`${viewport}: ${d.name} shows by coverage or after every featured disc`);
-  console.log(`  ${viewport}: ${view.items.length} shown (cap ${view.cap}), ${featured} featured; others: ${view.items.filter(d=>!d.featured).map(d=>d.name).join(', ')||'none'}`);
+  console.log(`  ${viewport}: ${view.items.length} shown at 1x (cap ${view.cap}), ${featured} featured; others: ${view.items.filter(d=>!d.featured).map(d=>d.name).join(', ')||'none'}`);
  }
  check('Full atlas: featured discs lead; others show by coverage or after every featured disc; the cap holds');
 
@@ -178,7 +187,7 @@ try{
   for(let i=0;i<2;i++){
    const page=await open(viewport);await show(page,scenario,'midnight');
    const view=await layout(page);
-   runs.push({layout:view.items.map(d=>[d.key,d.transform,d.tilt,d.large]),shot:await page.screenshot({animations:'disabled'})});
+   runs.push({layout:view.items.map(d=>[d.key,d.transform,d.large]),shot:await page.screenshot({animations:'disabled'})});
    await page.context().close();
   }
   assert.deepEqual(runs[1].layout,runs[0].layout,`${viewport} ${scenario}: same layout`);

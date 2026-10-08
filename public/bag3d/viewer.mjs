@@ -588,7 +588,7 @@ export async function mountBag(container, {
   // the compartment, then up and turned face-on. It then travels to its staged spot and stays
   // there until it is staged back in. Every disc is independent: `keys` lists all out discs, in
   // the order they came out. However many there are, they rest scattered beside the bag, each
-  // tipped a little like a tossed disc (bag-layout's scatterFrame): split relative to each other (the less overstable half left, the
+  // facing the camera round (restingPose), laid out by bag-layout's scatterFrame: split relative to each other (the less overstable half left, the
   // more overstable half right), faster discs higher (`atlas`: key → {x, y}, AtlasLayout's 0–1
   // stability and speed). The bag keeps its page-view size unless the scatter cannot fit beside it.
   // `labels` (key → {width, height}, px, the room around it included) is the name of each disc:
@@ -673,16 +673,13 @@ export async function mountBag(container, {
     container.dispatchEvent(new CustomEvent('bagviewlayout'));
     return new Promise(resolve => setTimeout(resolve, longest));
   };
-  // A staged disc at rest, seen from `view` ({position, target}): it turns its face to the camera,
-  // then tips a little its own way (spot.tilt), so they rest like discs tossed on a table rather
-  // than set out on a shelf. Every out disc draws the same size: one a little nearer the camera (it
-  // looks on from one side and above) is made that much smaller, one further away that much larger.
+  // A staged disc at rest, seen from `view` ({position, target}): it faces the camera square on, its
+  // face parallel to the screen (along the view's axis, not toward the eye), so under the camera's
+  // oblique look (from one side and above) every out disc draws as a round disc, never tipped or
+  // elliptical. Every out disc draws the same size: one a little nearer the camera is made that much
+  // smaller, one further away that much larger.
   const restingPose = (spot, view) => {
-    const position = new THREE.Vector3(...spot.position), face = view.position.clone().sub(position).normalize();
-    if (spot.tilt) {
-      const across = new THREE.Vector3().crossVectors(Y_AXIS, face).normalize(), up = new THREE.Vector3().crossVectors(face, across);
-      face.applyAxisAngle(across.multiplyScalar(Math.cos(spot.tilt.toward)).add(up.multiplyScalar(Math.sin(spot.tilt.toward))).normalize(), spot.tilt.angle);
-    }
+    const position = new THREE.Vector3(...spot.position), face = view.position.clone().sub(view.target).normalize();
     return { position, quaternion: new THREE.Quaternion().setFromUnitVectors(X_AXIS, face), size: spot.scale * depthRatio(position, view) };
   };
   // How much further from the camera than its target a point lies, along the view (1: at the

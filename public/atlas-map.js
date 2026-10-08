@@ -16,7 +16,9 @@ let satelliteLabelsSuppressed=false;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
 function measureFullLabels(items){
- const mobile=innerWidth<700,keyPrefix=mobile?'mobile:':'desktop:',pending=[];
+ // The main Atlas draws 76px art, My Map 68px (cosmic.css): measure under the layer's class for this map.
+ const organic=organicAtlas(),keyPrefix=(innerWidth<700?'mobile:':'desktop:')+(organic?'organic:':''),pending=[];
+ $('#mapMarkers').classList.toggle('atlas-organic',organic);
  const host=document.createElement('div');host.style.cssText='position:absolute;visibility:hidden;pointer-events:none';
  for(const d of items){
   const key=keyPrefix+d.id;if(fullLabelFootprints.has(key))continue;
@@ -295,7 +297,6 @@ function renderMarkers(){
    node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
    node.art=node.querySelector('.marker-stack');node.dot=node.querySelector('.map-dot');
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
-   const tilt=window.AtlasGroups.organicTilt(g.key);node.style.setProperty('--tilt',tilt.angle+'deg');node.style.setProperty('--tip',tilt.tip);
    node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';
    if(regrouping){node.position.classList.add('is-new');node.position.inert=true;}
    node.position.append(node);layer.append(node.position);
@@ -418,7 +419,7 @@ function initAtlasMap(){
    group=null;
    for(const g of mapClusters){
     const node=markerNodes.get(g.key);if(!node||node.position.inert)continue;
-    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?34*mapMarkerScale()+8:22;
+    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?(groupCache.footprints.get(g.key)?.radius??34)*mapMarkerScale()+8:22;
     if(distance<=radius&&distance<best){best=distance;group=g;}
    }
   }

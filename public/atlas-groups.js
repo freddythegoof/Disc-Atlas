@@ -109,7 +109,7 @@ globalThis.AtlasGroups = {
   }
  },
  // The main Atlas's organic overview (My Map keeps promote). Discs rest near their atlas point the
- // way out discs rest beside the bag: each tipped a little, none touching, room around every one.
+ // way out discs rest beside the bag: front facing, none touching, room around every one.
  // The visible set is an explicit walk, never a sample:
  // 1. Groups arrive in selection order (build's sort): the bag first on bag lenses, then featured.js
  //    rank, then name, brand and id. A group shows only its lead, its first member in that order.
@@ -129,9 +129,10 @@ globalThis.AtlasGroups = {
  //    within the same reach and clear of everything; with no room even for that, its discs join
  //    the stack of the nearest placed disc (`joined`). The overview never shows dots.
  // It is seeded by disc id, so the same data, view, zoom and selection always rest the same way.
- // `spacing` is the least distance between disc centers in an overview: 130px on desktop, 100px on
- // maps under 700px wide, where the same 68px art fills far more of the screen.
- ORGANIC:{perView:32,view:1320*640,min:8,reach:.6,gap:12,spacing:130,phoneSpacing:100,region:300,dot:8},
+ // `spacing` is the least distance between disc centers in an overview: 138px on desktop (24 discs
+ // at 1x on a 1440 x 900 map, under the cap of 29), 112px on maps under 700px wide, where the same
+ // 76px art fills far more of the screen.
+ ORGANIC:{perView:32,view:1320*640,min:8,reach:.6,gap:12,spacing:138,phoneSpacing:112,region:300,dot:8},
  organicCap(view,zoom){
   const O=this.ORGANIC;
   return Math.max(O.min,Math.round(O.perView*(view.right-view.left)*(view.bottom-view.top)/O.view*zoom*zoom));
@@ -169,11 +170,6 @@ globalThis.AtlasGroups = {
   }
   const result=spots.map((o,i)=>({o,i,d:Math.hypot(o.x-rest.x,o.y-rest.y)})).sort((a,b)=>a.d-b.d||a.i-b.i).map(s=>s.o);
   memo.set(id,result);return result;
- },
- // Each disc tips a little (an ellipse squashed to `tip` along `angle`), like a disc lying on a table.
- organicTilt(key){
-  const seed=globalThis.AtlasLayout.seed;
-  return {angle:Math.round(-40+80*seed(key+':tilt')),tip:+(.84+.1*seed(key+':tip')).toFixed(3)};
  },
  curate(groups,footprints,zoom,groupZoom,{cap=Infinity,gap=this.ORGANIC.gap,spacing=this.ORGANIC.spacing,obstacles=[],frame=null,first=null,artZoom=zoom,stretch=1}={}){
   // This can run on camera frames, so the grids use numeric keys and a lead fails fast.

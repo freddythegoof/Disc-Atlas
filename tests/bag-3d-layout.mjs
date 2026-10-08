@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,scatterFrame,spotBox,tiltOf,SIDE_BAG} from '../public/bag3d/bag-layout.mjs';
+import {bagLayout,depthOrder,DISC,MAIN,PUTTER,GOTO,TOP,FRONT,BAG_BOX,STAGE,stageMode,assignSides,scatterFrame,spotBox,SIDE_BAG} from '../public/bag3d/bag-layout.mjs';
 import {bagSlots} from '../public/bag-values.js';
 import models from '../source-data/bag-models.json' with {type:'json'};
 
@@ -187,7 +187,6 @@ const scatterChecks = (frame, discs, label, name) => {
   assert.equal(frame.spots.size, discs.length, `${name}: every disc placed`);
   // Names under the discs; staggered rows (a crowd on a phone) may set them beside the discs instead.
   assert.ok(['below', 'flush'].includes(frame.labels) || (frame.brick && frame.labels === 'outer'), `${name}: names under the discs (${frame.labels})`);
-  const [low, high] = STAGE.scatter.tilt;
   for (const [key, spot] of frame.spots) {
     assert.equal(spot.side, sides.get(key), `${name}: ${key} on its relative side`);
     assert.equal(spot.scale, frame.scale, `${name}: ${key} the same size as every other out disc`);
@@ -195,7 +194,7 @@ const scatterChecks = (frame, discs, label, name) => {
     const r = DISC.radius * spot.scale, [x] = spot.position;
     const edge = frame.around ? STAGE.scatter.gap / 2 - 1e-6 : SIDE_BAG.xMax;
     assert.ok(spot.side === 'left' ? x + r <= -edge + 1e-6 : x - r >= edge - 1e-6, `${name}: ${key} on the ${spot.side} (${x.toFixed(3)})`);
-    assert.ok(spot.tilt.angle >= low && spot.tilt.angle <= high && spot.tilt.toward >= 0 && spot.tilt.toward < 2 * Math.PI, `${name}: ${key} tips a little`);
+    assert.equal(spot.tilt, undefined, `${name}: ${key} faces the camera with no tip`);
   }
   // Nothing on the bag, a kept-clear box or another disc or name; everything inside the frame.
   const boxes = [...frame.spots].map(([key, spot]) => [key, spotBox(spot, {width: label.width * frame.pull, height: label.height * frame.pull}, frame.labels)]);
@@ -313,10 +312,6 @@ test('phone: 1–24 out fit a 360 px canvas with every name, pulling back only a
   }
 });
 
-test('each disc tips its own way, the same every time', () => {
-  const a = tiltOf('disc-a'), b = tiltOf('disc-b');
-  assert.deepEqual(tiltOf('disc-a'), a);
-  assert.notDeepEqual(a, b);
-  const angles = Array.from({length: 40}, (_, i) => tiltOf('k' + i).angle);
-  assert.ok(Math.max(...angles) - Math.min(...angles) > .05, 'Tips vary');
+test('out discs carry no tip: they face the camera round', () => {
+  assert.equal(STAGE.scatter.tilt, undefined);
 });

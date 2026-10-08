@@ -9,8 +9,8 @@ const runtime={};runtime.window=runtime;
 vm.createContext(runtime);
 for(const file of ['atlas-layout.js','atlas-groups.js'])vm.runInContext(fs.readFileSync('public/'+file,'utf8'),runtime);
 const {AtlasGroups}=runtime,O=AtlasGroups.ORGANIC;
-// The desktop footprint: a 68px disc with its name below.
-const footprint={x:-45,y:40,w:90,h:34,radius:34},reach=footprint.radius*O.reach;
+// The desktop footprint: a 76px disc with its name below.
+const footprint={x:-45,y:48,w:90,h:34,radius:38},reach=footprint.radius*O.reach;
 // Groups in selection order. Points are group-space pixels at zoom 1 (y grows upward, as in build).
 const groups=points=>points.map(([key,x,y],i)=>({key:key||'d'+i,px:x,py:y,members:[key||'d'+i],pos:{x,y}}));
 const prints=list=>new Map(list.map(g=>[g.key,footprint]));
@@ -26,7 +26,6 @@ const field=()=>groups(Array.from({length:400},(_,i)=>['f'+i,runtime.AtlasLayout
 test('the same groups always rest the same way',()=>{
  const a=curate(field(),{cap:60}),b=curate(field(),{cap:60});
  assert.deepEqual(a.map(g=>[g.key,g.hidden,g.large,g.markerOffset]),b.map(g=>[g.key,g.hidden,g.large,g.markerOffset]));
- assert.deepEqual(AtlasGroups.organicTilt('abc'),AtlasGroups.organicTilt('abc'));
 });
 
 test('every disc rests within its reach of its true point',()=>{
@@ -133,7 +132,8 @@ test('the cap keeps the room per disc on screen at every zoom',()=>{
  assert.equal(AtlasGroups.organicCap({left:0,right:300,top:0,bottom:400},1),O.min,'Phones keep a floor');
 });
 
-test('tilts are gentle and seeded',()=>{
- for(let i=0;i<200;i++){const {angle,tip}=AtlasGroups.organicTilt('k'+i);assert.ok(angle>=-40&&angle<=40);assert.ok(tip>=.84&&tip<=.94);}
- assert.ok(new Set(Array.from({length:50},(_,i)=>AtlasGroups.organicTilt('k'+i).angle)).size>20,'Angles vary');
+test('discs face front: there is no per-disc tilt',()=>{
+ assert.equal(AtlasGroups.organicTilt,undefined);
+ assert.doesNotMatch(fs.readFileSync('public/cosmic.css','utf8'),/--tilt|--tip/);
+ assert.doesNotMatch(fs.readFileSync('public/atlas-map.js','utf8'),/--tilt|--tip|organicTilt/);
 });

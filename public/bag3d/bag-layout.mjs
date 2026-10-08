@@ -113,9 +113,8 @@ export const STAGE = {
   // out from the bag (page-view meters, growing with the pull-back), so a few discs on a very wide
   // canvas still read as one group; `edge` keeps discs and names inside the canvas. `settle` is how
   // many relaxation rounds even a side out, `rise` how strongly a disc keeps to its speed's height
-  // while they do (0: evenness alone, 1: rows by speed), and `tilt` the range of each disc's tip
-  // (radians), so they read as tossed rather than shelved.
-  scatter: {scales: [.58, .52, .46, .40], gap: .024, z: .05, maxPull: 5, edge: .012, reach: .62, settle: 14, rise: .2, tilt: [.10, .22]},
+  // while they do (0: evenness alone, 1: rows by speed).
+  scatter: {scales: [.58, .52, .46, .40], gap: .024, z: .05, maxPull: 5, edge: .012, reach: .62, settle: 14, rise: .2},
 };
 // Each fallback (the scatter around the bag, then staggered rows) is taken only where it lets the
 // camera stay at least this much closer than the layout before it.
@@ -155,18 +154,12 @@ export function assignSides(entries) {
   return sides;
 }
 
-// Seeded randomness: a disc's own numbers come from its key, so it lands (and tips) the same way
-// every time. FNV-1a over the text, then one mulberry32 step.
+// Seeded randomness: a disc's own numbers come from its key, so it lands the same way every time. FNV-1a over the text, then one mulberry32 step.
 const hash = text => { let h = 2166136261; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
 const seeded = (key, salt) => {
   let t = (hash(`${salt}:${key}`) + 0x6D2B79F5) >>> 0;
   t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
-/** A disc's tip as it rests out: {angle (radians, within STAGE.scatter.tilt), toward (radians, the direction it tips in the view's plane)}. */
-export const tiltOf = key => {
-  const [low, high] = STAGE.scatter.tilt;
-  return {angle: low + (high - low) * seeded(key, 'tilt'), toward: 2 * Math.PI * seeded(key, 'toward')};
 };
 
 // A name rests centered under its disc ('below'), or, where the sides are narrow, under it with
@@ -436,7 +429,7 @@ function brickRows(lists, rooms, feet, gap, avoid, inner, bySpeed) {
  * ({xMin, xMax, yMin, yMax}, meters), `center`, where the camera aims in it ({x, y}), and `keep`,
  * more kept-clear boxes in those meters; then `aspect` and `halfHeight` are not needed.
  * Returns {pull, region, avoid, areas: {left, right} (each side's room), spots: Map key →
- * {position, scale, side, tilt}, scale, labels: 'below' | 'flush' | 'outer', around (above and below the bag
+ * {position, scale, side}, scale, labels: 'below' | 'flush' | 'outer', around (above and below the bag
  * too), brick (staggered rows), fits} (`fits` false: nothing
  * fit even at `maxPull`, and the discs are spread as best they can be).
  */
@@ -477,7 +470,7 @@ export function scatterFrame({aspect, halfHeight, centerY, view = null, center =
       let placed = null;
       for (const salt of brick ? [''] : SALTS) if ((placed = scatterSides(lists, frame.areas, radius, feet, gap, [...frame.avoid, bagClear], around, brick, bag, salt))) break;
       if (!placed) return null;
-      for (const [key, [x, y]] of placed) spots.set(key, {position: [x, y, z], scale, side: sides.get(key), tilt: tiltOf(key)});
+      for (const [key, [x, y]] of placed) spots.set(key, {position: [x, y, z], scale, side: sides.get(key)});
     }
     // Everything inside the region, clear of the bag, the kept-clear boxes and each other.
     const boxes = entries.map(entry => spotBox(spots.get(entry.key), labelAt(entry, pull), labels));
@@ -525,7 +518,7 @@ export function scatterFrame({aspect, halfHeight, centerY, view = null, center =
       const area = frame.areas[side], ranked = [...lists[side]].sort((a, b) => speedOf(b) - speedOf(a) || byKey(a, b));
       ranked.forEach((entry, rank) => {
         const x = side === 'left' ? bag.xMin - gap - radius : bag.xMax + gap + radius, y = area.yMax - radius - (area.yMax - area.yMin - 2 * radius) * (rank + .5) / ranked.length;
-        spots.set(entry.key, {position: [x, y, z], scale, side, tilt: tiltOf(entry.key)});
+        spots.set(entry.key, {position: [x, y, z], scale, side});
       });
     }
     return {...frame, spots, scale, labels: 'below', fits: false};

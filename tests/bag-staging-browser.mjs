@@ -8,7 +8,8 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE ||
 // on its own. However many are out, they rest scattered beside the bag like discs tossed on a table
 // (no map mode, no columns): split relative to each other at their median (the less overstable half
 // left, the more overstable half right, even for a bag that leans one way), spread evenly over each
-// side, all one size, each tipped a little, faster discs toward the top. The same set always lands
+// side, all one size, each facing the camera as a round disc (no tip, never elliptical under the
+// oblique camera), faster discs toward the top. The same set always lands
 // the same way. With any disc out the canvas spans the page's free width (to the details panel when
 // it shows) at its usual height, so the bag keeps its full size on a desktop. A Return all button,
 // shown while any disc is out, stows them all at once. Type buttons beside the sort pull out every
@@ -127,6 +128,10 @@ try {
   assert.ok(scales.every(v=>v===st.scale),`${label}: every out disc the same size (${[...new Set(scales)]})`);
   const sizes=Object.values(drawn).map(d=>Math.max(d.width,d.height));
   assert.ok(Math.max(...sizes)/Math.min(...sizes)<1.2,`${label}: drawn sizes differ only by perspective (${Math.min(...sizes).toFixed(1)}–${Math.max(...sizes).toFixed(1)} px)`);
+  // Round: each disc faces the camera square on, so its rim draws as a circle (as wide as it is tall), wherever it rests.
+  const ratios=Object.values(drawn).map(d=>d.width/d.height);
+  assert.ok(ratios.every(r=>Math.abs(r-1)<.01),`${label}: every out disc draws round (width/height ${Math.min(...ratios).toFixed(3)}–${Math.max(...ratios).toFixed(3)})`);
+  metrics.worstRoundness=Math.max(metrics.worstRoundness??0,...ratios.map(r=>+Math.abs(r-1).toFixed(4)));
   const spread={};
   for(const [side,ids] of [['left',left],['right',right]]){
    if(ids.length<2)continue;
