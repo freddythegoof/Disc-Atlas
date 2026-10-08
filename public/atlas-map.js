@@ -15,6 +15,7 @@ const planetLabels=new Map();
 let satelliteLabelsSuppressed=false;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
+const hoverLabelFootprints=new Map();
 function measureFullLabels(items){
  // The main Atlas draws 76px art, My Map 68px (cosmic.css): measure under the layer's class for this map.
  const organic=organicAtlas(),keyPrefix=(innerWidth<700?'mobile:':'desktop:')+(organic?'organic:':''),pending=[];
@@ -45,7 +46,7 @@ function measureFullLabels(items){
 }
 // Label footprints must use the real fonts. A face first requested by these measurements loads
 // after fonts.ready, so measure again whenever any font finishes loading.
-const remeasureLabels=()=>{fullLabelFootprints.clear();groupContext=null;scheduleMapDraw();};
+const remeasureLabels=()=>{fullLabelFootprints.clear();hoverLabelFootprints.clear();groupContext=null;scheduleMapDraw();};
 document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
 function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;}
 // The chrome over the map in map pixels. The organic overview keeps every disc and name clear of it at
@@ -216,6 +217,7 @@ function draw(){
  const area=window.AtlasLayout.bounds(w,h,immersive),plotBottom=h-(immersive?(w<700?155:110):16);
  mapClusters=buildClusters(filtered,w,h);
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
+ drawDepthDots(w,h,area);
  ctx.lineWidth=1;
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
  // The grid runs under the chrome with the discs; speed numbers stay clear of the captions.
@@ -241,6 +243,41 @@ function draw(){
  drawPlanetLabels();
  renderMarkers();drawSatelliteLeaders();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
+}
+// A dot's name opens above it on hover (cosmic.css). Measured once per disc and breakpoint, only for
+// discs drawn as dots, so the depth dots keep clear of it too. Batch writes before reads.
+function hoverLabels(leads){
+ const prefix=innerWidth<700?'mobile:':'desktop:',pending=[];
+ for(const d of new Set(leads)){
+  if(hoverLabelFootprints.has(prefix+d.id))continue;
+  const node=document.createElement('div');node.className='atlas-marker is-dot overview';node.style.visibility='hidden';
+  node.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'<small>'+esc(d.brand)+'</small></span>';
+  $('#mapMarkers').append(node);pending.push([prefix+d.id,node]);
+ }
+ for(const [key,node] of pending){
+  const marker=node.getBoundingClientRect(),label=node.firstChild.getBoundingClientRect();
+  hoverLabelFootprints.set(key,{x:label.x-marker.x-marker.width/2,y:label.y-marker.y-marker.height/2,w:label.width,h:label.height});
+ }
+ for(const [,node] of pending)node.remove();
+ return d=>hoverLabelFootprints.get(prefix+d.id);
+}
+// The main Atlas's background depth dots (atlas-depth.js): drawn under the grid and every disc,
+// and never under a disc, a name (shown or on hover) or a selected disc's glow.
+let depthDots=[];
+function drawDepthDots(w,h,area){
+ depthDots=[];
+ if(!organicAtlas()||!window.AtlasDepth||!themePalette.depth)return;
+ const scale=mapMarkerScale(),avoid=[],hover=hoverLabels(mapClusters.filter(g=>!g.large).map(g=>g.lead));
+ for(const g of mapClusters){
+  const f=groupCache.footprints.get(g.key),chosen=g.members.includes(selected);
+  avoid.push({x:g.x,y:g.y,r:g.large?38*scale*(chosen?1.09:1)+(chosen?18:0):13*scale*(chosen?1.12:1)+(chosen?10:0)});
+  const label=g.large?f&&{x:f.x+(g.nudge?.x||0),y:f.y+(g.nudge?.y||0),w:f.w,h:f.h}:hover(g.lead);
+  if(label)avoid.push({x:g.x+label.x,y:g.y+label.y,w:label.w,h:label.h});
+ }
+ depthDots=window.AtlasDepth.field({width:w,height:h,zoom,pan,area,avoid});
+ ctx.save();ctx.fillStyle=themePalette.depth;
+ for(const d of depthDots){ctx.globalAlpha=d.alpha;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();}
+ ctx.restore();
 }
 function drawSatelliteLeaders(){
  if(zoom<7)return;

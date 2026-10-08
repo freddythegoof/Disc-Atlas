@@ -28,7 +28,7 @@ function applyTheme(theme,persist=false){
  document.documentElement.dataset.theme=theme;
  if(persist){try{localStorage.setItem('disc-atlas-theme',theme);}catch{}}
  const css=getComputedStyle(document.documentElement),token=n=>css.getPropertyValue('--'+n).trim();
- themePalette={text:token('text'),muted:token('muted'),background:token('map-bg'),grid:token('grid'),center:token('center-line')};
+ themePalette={text:token('text'),muted:token('muted'),background:token('map-bg'),grid:token('grid'),center:token('center-line'),depth:token('depth-dot')};
  for(const kind of Object.keys(colors))colors[kind]=token(kind);
  brandPalette=['blue','orange','green','purple','sky','yellow','vermillion'].map(hue=>token('palette-'+hue));
 

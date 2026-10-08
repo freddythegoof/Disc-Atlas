@@ -73,6 +73,31 @@ under the controls to the map's edges, as before.
 The worker lays out each level it prepares, so after a filter change the main thread does no
 layout work.
 
+## Background depth dots
+
+Since October 8, 2026, a sparse field of small neutral specks sits behind the main Atlas, on the
+canvas under the grid and every disc. They are decoration. They carry no data and never move a disc,
+change the curation or affect a label. My Map draws none. The code is `AtlasDepth.field` in
+`public/atlas-depth.js`, drawn by `drawDepthDots` in `public/atlas-map.js`.
+
+- **Depth.** The dots lie in shells behind the disc plane. A shell `e` behind the discs draws at
+  scale `zoom / (1 + e·zoom)`, which is always below the discs' own zoom. Zooming in flies toward
+  the discs. Every shell spreads outward slower than the discs do, and nearer shells spread faster
+  than farther ones, so the field reads as parallax. Panning moves every dot less than the discs.
+- **Sparse at every zoom.** A shell's dot sites are spaced in proportion to its depth, so each
+  shell is equally sparse at 1x. Nearer shells thin out as you fly in. Far shells fade in from
+  nothing as they come into range, so no dot pops. A 1440 × 900 desktop shows about 70–120 dots and
+  a phone about 10–30.
+- **Clear of discs and names.** A dot is skipped, never moved, if it would come within 6 px of a
+  disc's art (and a selected disc's glow), a shown name, or the name a dot-sized disc opens on
+  hover.
+- **Small and quiet.** Dots are 1–2.2 px, far below a 10 px data dot or 76 px art. Their color is
+  the per-theme `--depth-dot` token in `public/cosmic.css`. Even at full alpha it stays under 5:1
+  contrast against the map and under a third of a name's contrast (light 3.2, midnight 4.4,
+  charcoal 4.3).
+- **Deterministic.** Every dot is seeded by its shell and cell. The same camera always draws the
+  same field.
+
 ## Tests
 
 - `node --test tests/atlas-organic.mjs`: the rules above, on controlled fixtures.
@@ -86,3 +111,9 @@ layout work.
   `--low-zoom-labels`, `--label-prominence`, `--deep-zoom` and `--zoom-candidates`) were updated.
   The overview no longer has dots, satellites, leader lines or automatic minor labels. Their
   overlap, stack, ceiling, DOM-identity and worker checks are unchanged.
+- `node --test tests/atlas-depth.mjs` covers the depth dots: determinism, sparseness, size, shells
+  behind the discs, parallax on zoom and pan, the fade-in, and avoidance.
+  `PLAYWRIGHT_MODULE=… node tests/atlas-depth-browser.mjs` checks that no dot touches a disc or name
+  at 1x, on the landing camera, at mid zoom and at 9x, on desktop and phone in three themes. It also
+  checks contrast and real parallax. Screenshots go to `outputs/atlas-depth/`
+  (`npm run test:atlas:depth`).

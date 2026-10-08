@@ -13,13 +13,15 @@
   --putter:var(--palette-purple);--mid:var(--palette-green);--fairway:var(--palette-blue);--distance:var(--palette-orange);--unknown:#637088;
   --marker-edge:#625b50;
   --header-height:68px;--ambient:#809bea12;
+  /* Background depth dots (atlas-depth.js): faint, neutral, never a disc color. */
+  --depth-dot:#505d76b3;
 }
 :root[data-theme="midnight"] {
   color-scheme:dark;
   --bg:#080b10;--panel:#13171e;--surface:#1c222c;--selected:#28354a;
   --line:#282f3a;--muted:#97a3b5;--text:#edf2fc;--lime:#9bbaff;
   --accent-soft:#1c2a40;--on-accent:#101b31;--map-bg:#080b10;--grid:#38475b;
-  --center-line:#536681;--shadow:#00000066;--ambient:#526c9820;
+  --center-line:#536681;--shadow:#00000066;--ambient:#526c9820;--depth-dot:#a3b3d0a6;
   --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
   --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
   --marker-edge:#c1c1bc;--unknown:#9aa7bd;
@@ -29,7 +31,7 @@
   --bg:#101113;--panel:#1a1b1e;--surface:#24262b;--selected:#343842;
   --line:#373b43;--muted:#aeb3bf;--text:#f1f2f5;--lime:#b9c9ed;
   --accent-soft:#2a3344;--on-accent:#151922;--map-bg:#101113;--grid:#484c55;
-  --center-line:#707785;--shadow:#0005;--ambient:#ffffff03;
+  --center-line:#707785;--shadow:#0005;--ambient:#ffffff03;--depth-dot:#b8bcc699;
   --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
   --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
   --marker-edge:#c1c1bc;--unknown:#a4a9b3;
