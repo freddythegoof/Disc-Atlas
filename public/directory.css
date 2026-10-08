@@ -1,0 +1,60 @@
+/* Directory rows (Oct 8). One row surface holds the disc button and its Add control, so the divider,
+   hover and selection run under both. Above 700 px the spacing, disc names, flight numbers and index
+   scale with the viewport, and the flight numbers sit in four labelled columns; at 700 px and below
+   the phone row keeps its type and widths. The Add control opens the Bag / Storage menu (my-bag.css). */
+
+#directory {--row-pad:clamp(16px,1.6vw,32px);--row-gap:clamp(12px,1.2vw,24px);--row-pad-y:clamp(13px,.9vw,18px);--nums-w:clamp(208px,16vw,304px);--index-w:clamp(56px,4.4vw,84px);--add-w:88px}
+
+.directory-row {display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--row-gap);align-items:center;padding-right:var(--row-pad);border-top:1px solid var(--hairline,var(--line));transition:background-color .15s}
+.directory-row:hover,.directory-row:has(.disc-row.selected) {background:var(--accent-soft)}
+.directory-row:has(.disc-row.selected) {box-shadow:inset 3px 0 var(--lime)}
+.directory-row .disc-row {width:100%;min-width:0;border-top:0;border-radius:0}
+.directory-row .disc-row:is(:hover,.selected) {background:none;box-shadow:none}
+#rows .directory-row .disc-row:focus-visible {outline:2px solid var(--lime);outline-offset:-2px}
+
+/* Add: a tonal button with a lime plus, its label and the dropdown indicator. Open, it fills lime like the active sort. */
+.directory-add {display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;width:var(--add-w);min-width:44px;height:38px;padding:0 10px 0 9px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--surface) 55%,var(--panel));color:var(--text);font-size:13px;font-weight:600;letter-spacing:.01em;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s,box-shadow .15s,transform .1s}
+.directory-add-icon {width:14px;height:14px;flex:none;fill:none;stroke:var(--lime);stroke-width:1.9px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.directory-row:hover .directory-add {border-color:var(--accent-edge)}
+.directory-add:hover {background:var(--panel);border-color:var(--accent-edge);box-shadow:0 2px 8px -2px var(--shadow)}
+.directory-add:active {transform:scale(.97)}
+.directory-add[aria-expanded="true"] {background:var(--accent-fill);border-color:transparent;color:var(--accent-ink);box-shadow:var(--accent-glow)}
+.directory-add[aria-expanded="true"] .directory-add-icon {stroke:currentColor}
+.directory-add[aria-expanded="true"]>.dd-indicator {color:currentColor;background-color:transparent}
+@media(prefers-reduced-motion:reduce){.directory-row,.directory-add {transition:none}.directory-add:active {transform:none}}
+
+.nums-head-cells {display:none}
+/* The rows scroll inside #rows; the head reserves the same scrollbar gutter so its columns stay over the cells. */
+#rows,#directory .list-head {scrollbar-gutter:stable}
+#directory .list-head {overflow-y:hidden}
+body[data-view="list"] #count {padding:6px 12px}
+
+/* Wide screens: more room around each row, larger names and numbers, flight numbers in four columns. */
+@media(min-width:701px){
+ body[data-view="list"]:not(.my-bag-mode) .workspace {padding-inline:clamp(28px,2.5vw,48px)}
+ #directory .list-head {grid-template-columns:minmax(0,1fr) var(--nums-w) var(--index-w);column-gap:var(--row-gap);padding:14px calc(var(--row-pad) + var(--add-w) + var(--row-gap)) 14px var(--row-pad)}
+ #directory .list-head>:last-child,.directory-row .score {text-align:center}
+ .nums-head-short {display:none}
+ .nums-head-cells {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));text-align:center}
+ .directory-row .disc-row {grid-template-columns:minmax(0,1fr) var(--nums-w) var(--index-w);column-gap:var(--row-gap);padding:var(--row-pad-y) 0 var(--row-pad-y) var(--row-pad)}
+ .directory-row .row-identity {gap:clamp(13px,1vw,18px)}
+ .directory-row .row-identity>.disc-art {width:clamp(49px,3.1vw,60px);height:clamp(49px,3.1vw,60px)}
+ .directory-row .row-identity strong {font-size:clamp(16px,.625vw + 8px,21px)}
+ .directory-row .row-identity small {font-size:clamp(10px,.3125vw + 6px,12px);margin-top:4px}
+ .directory-row .nums {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:baseline;text-align:center;font-size:clamp(15px,.3125vw + 11px,17px);font-weight:500}
+ .directory-row .nums-sep {display:none}
+ .directory-row .nums.is-unrated {display:block;font-size:13px;font-weight:400;color:var(--muted)}
+ .directory-row .score {font-size:clamp(21px,.47vw + 15px,24px)}
+}
+
+/* Phones: the row keeps its type and columns; Add shows only its plus and indicator. */
+@media(max-width:700px){
+ #directory {--row-pad:8px;--row-gap:4px;--add-w:auto}
+ .directory-row .disc-row {grid-template-columns:minmax(0,1fr) 74px 25px;gap:5px;padding-left:8px;padding-right:3px}
+ .directory-row .row-identity {gap:8px}
+ .directory-row .row-identity>.disc-art {display:none}
+ .directory-row .row-identity strong {font-size:14px}
+ .directory-row .nums {font-size:10px}
+ .directory-add {height:40px;padding:0 8px;gap:3px}
+ .directory-add-label {display:none}
+}

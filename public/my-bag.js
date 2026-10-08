@@ -313,10 +313,12 @@ function positionAddMenu(){
  const rect=addMenuTrigger.getBoundingClientRect();
  if(rect.bottom<0 || rect.top>innerHeight){closeAddMenu();return;}
  // A full-width trigger (Add to in the details) gets a menu as wide as itself, under its left edge;
- // a small one (a directory row's +) keeps a 200 px menu under its right edge.
- const wide=rect.width>=220,width=Math.min(innerWidth-16,wide?rect.width:200);
- addMenu.style.width=width+'px';const height=addMenu.offsetHeight,below=rect.bottom+height+8<=innerHeight;
- addMenu.style.left=Math.max(8,Math.min(innerWidth-width-8,wide?rect.left:rect.right-width))+'px';
+ // a small one (a directory row's Add) gets a menu sized to its choices, under its right edge.
+ // The visible viewport excludes a classic scrollbar (innerWidth includes it), and the menu stays 8 px inside it.
+ const viewW=document.documentElement.clientWidth,viewH=document.documentElement.clientHeight,wide=rect.width>=220;
+ addMenu.style.maxWidth=viewW-16+'px';addMenu.style.width=wide?Math.min(viewW-16,rect.width)+'px':'';
+ const width=addMenu.offsetWidth,height=addMenu.offsetHeight,below=rect.bottom+height+8<=viewH;
+ addMenu.style.left=Math.max(8,Math.min(viewW-width-8,wide?rect.left:rect.right-width))+'px';
  addMenu.style.top=(below?rect.bottom+6:Math.max(8,rect.top-height-6))+'px';addMenu.dataset.placement=below?'below':'above';
 }
 document.addEventListener('click',event=>{

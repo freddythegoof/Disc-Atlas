@@ -127,8 +127,6 @@ header nav button::after { background:var(--accent-fill); }
 #sortBar button[aria-pressed="true"] { background:var(--accent-fill); color:var(--accent-ink); box-shadow:var(--accent-glow); }
 .list-head { background:var(--surface); }
 .disc-row { border-top-color:var(--hairline); }
-.disc-row:hover { background:var(--accent-soft); }
-.disc-row.selected { background:var(--accent-soft); box-shadow:inset 3px 0 var(--lime); }
 .disc-row .nums { color:var(--text); }
 .disc-row .score { color:var(--lime); font-family:var(--mono); font-weight:600; }
 

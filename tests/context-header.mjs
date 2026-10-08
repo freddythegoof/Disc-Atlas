@@ -22,7 +22,7 @@ export async function checkContextHeader(browser,base){
   await page.locator('#closeFilters').click();await page.locator('#filters').waitFor({state:'hidden'});
   assert.match(await page.locator('header').innerText(),/Distance drivers/);
   await page.mouse.move(800,80);await capture('brand-and-type');
-  const title=page.getByRole('button',{name:/Clear brand and type filters/});
+  const title=page.getByRole('button',{name:/Clear manufacturer and type filters/});
   await title.hover();assert.equal(await title.evaluate(el=>getComputedStyle(el).cursor),'pointer');await capture('hover');
   await title.focus();await page.keyboard.press('Enter');await settle();
   assert.deepEqual(await page.evaluate(()=>({brands:[...selectedBrands],type})),{brands:[],type:'all'});
