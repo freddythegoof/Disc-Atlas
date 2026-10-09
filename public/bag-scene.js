@@ -132,9 +132,9 @@ export class BagScene {
    this.root.dataset.engine='loading';this.status.textContent='Loading your bag…';
    try{
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
-    // The bag starts closed, so its putters start stowed in the top pocket.
+    // The putter pocket state is independent: putters are initially out if pocketOpen is true.
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.open && this.pocketOpen,dragSurface:this.canvas,
+     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
     // The hit layer and the list carry the content; the canvas itself is decorative.
@@ -562,11 +562,11 @@ export class BagScene {
   Object.assign(this.tag.style,{left:x+'px',top:(above?top-8:top+slot.offsetHeight+8)+'px'});this.tag.dataset.side=above?'above':'below';
  }
  // The putter pocket's control: collapsing slides every putter down into the pocket, expanding
- // brings them back up into their row; the bag stays open throughout. A putter that is out comes
- // home first, then the row goes down. It works only while the bag is open (closed, the putters
- // are stowed anyway); the choice holds through closing and opening the bag.
+ // brings them back up into their row. A putter that is out comes home first, then the row goes down.
+ // The pocket state is independent of the bag open/close control and works regardless of whether
+ // the bag is open or closed. The choice holds through closing and opening the bag.
  async setPocket(open){
-  if(!this.ready || this.running || !this.open || open===this.pocketOpen || this.viewer.cameraMoving)return;
+  if(!this.ready || this.running || open===this.pocketOpen || this.viewer.cameraMoving)return;
   const epoch=this.epoch;this.running=true;this.pocketOpen=open;this.clearLift();
   this.root.dataset.putterPocket='moving';this.interactive(false);
   if(!open){
@@ -587,8 +587,8 @@ export class BagScene {
   const putters=!!this.layer.querySelector('[data-physical-disc][data-pocket="putter"]'),open=this.pocketOpen;
   button.setAttribute('aria-expanded',String(open));
   // Mid-move it only refuses clicks (aria-disabled), so keyboard focus stays on it.
-  button.disabled=!this.ready || !this.open || !putters;if(this.running)button.setAttribute('aria-disabled','true');else button.removeAttribute('aria-disabled');
-  button.title=!putters?'No putters in the bag':!this.open?'Open the bag to use the putter pocket':open?'Collapse the putter pocket':'Expand the putter pocket';
+  button.disabled=!this.ready || !putters;if(this.running)button.setAttribute('aria-disabled','true');else button.removeAttribute('aria-disabled');
+  button.title=!putters?'No putters in the bag':open?'Collapse the putter pocket':'Expand the putter pocket';
  }
  async setTopView(on){
   if(!this.ready || on===this.top)return;
@@ -644,10 +644,9 @@ export class BagScene {
  async setOpen(open){
   if(!this.ready||this.running||open===this.open)return;const epoch=++this.epoch;this.running=true;this.clearLift();this.toggle.setAttribute('aria-disabled','true');
   this.root.dataset.phase=open?'opening':'closing';this.interactive(false);
-  // The flap and the putters move together: closed, the putters stow in the top pocket;
-  // open, they come back out into their row. The flap sets the pace (the putters' wave is no
-  // longer), so a slow frame delaying the putters' timer never holds up the bag's state.
-  void this.viewer.setPuttersOut(open && this.pocketOpen,{instant:reduced()});await this.viewer.setCompartmentOpen(open,{instant:reduced()});
+  // The bag's open/close control is independent: it only changes the flap and never touches
+  // the putter pocket state. The pocket stays exactly as it was, regardless of bag open/close.
+  await this.viewer.setCompartmentOpen(open,{instant:reduced()});
   if(epoch!==this.epoch)return;this.open=open;this.running=false;this.root.dataset.phase=open?'open':'closed';
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent=open?'Close bag':'Open bag';this.toggle.setAttribute('aria-expanded',String(open));
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
@@ -657,7 +656,7 @@ export class BagScene {
   this.out=[];this.inspected=null;this.stageToken++;for(const key of ['stage','out','staging','names'])delete this.root.dataset[key];this.wideCanvas(false);this.syncTypeButtons();this.hidePopup();this.names.replaceChildren();this.nameById.clear();this.returnAll.hidden=true;
   this.top=false;delete this.root.dataset.camera;this.pockets.replaceChildren();
   this.pocketOpen=true;this.root.dataset.putterPocket='open';this.syncPocket();
-  if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(false,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
+  if(this.ready){void this.viewer.stageDiscs([],{instant:true});void this.viewer.setTopView(false,{instant:true});void this.viewer.setCompartmentOpen(false,{instant:true});void this.viewer.setPuttersOut(true,{instant:true});this.viewer.setZoom(1,{instant:true});this.viewer.setBagLayout({main:[],putter:[],goTo:[null]});this.viewer.setBagColor(null);}
   this.layer.replaceChildren();this.slotsByKey=null;
   if(this.root.dataset.engine!=='error')this.toggle.disabled=false;
   this.toggle.removeAttribute('aria-disabled');this.toggle.textContent='Open bag';this.toggle.setAttribute('aria-expanded','false');this.root.dataset.phase='closed';

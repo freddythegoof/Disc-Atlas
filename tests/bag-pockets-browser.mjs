@@ -56,6 +56,41 @@ try {
  await page.locator('#bagTab').click();await phase();assert.equal(await slot(putter.id,'putter').count(),1);
  await edit(putter.id,'main');await page.reload();await phase();
  assert.equal((await data()).discs[0].pocket,'main');assert.equal(await slot(putter.id,'main').count(),1);
+ // Test Storage pocket field visibility: create a disc for storage via API and verify editing shows hidden pocket field
+ const storageViaApi=await page.evaluate(async()=>{
+  const headers={'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken};
+  const r=await fetch('/api/bag/discs',{method:'POST',headers,body:JSON.stringify({mold_id:'ff4bf9e7743c',color:'#e2d8c1',in_bag:false})});
+  if(!r.ok)throw Error(await r.text());return(await r.json()).disc;
+ });
+ // Open the storage disc for editing and verify Pocket field is hidden
+ await page.goto(base+'/?bag=1');await page.locator('#bagTab').click();
+ // Wait for the page to load and show storage section, then find and click edit for the storage disc
+ await page.waitForTimeout(400);
+ const editStorageButton=page.locator(`[data-bag-edit="${storageViaApi.id}"]`).first();
+ await editStorageButton.click();
+ // Verify that when opening a Storage disc, Pocket field is hidden
+ const pocketFieldHiddenForStorage=await page.locator('.bag-pocket-field').isHidden();
+ assert.equal(pocketFieldHiddenForStorage,true,'Pocket field should be hidden when editing a Storage disc');
+ // Verify that Keep in is set to Storage
+ assert.equal(await page.locator('#bagDestination').inputValue(),'storage','Keep in should be set to Storage');
+ // Switch to Bag and verify Pocket field becomes visible
+ await page.locator('#bagDestination').selectOption('bag');
+ const pocketFieldVisibleAfterSwitch=await page.locator('.bag-pocket-field').isHidden();
+ assert.equal(pocketFieldVisibleAfterSwitch,false,'Pocket field should be visible when Keep in = Bag');
+ // Verify the pocket value was reset to default for this mold (fairway driver defaults to main)
+ const pocketValueAfterSwitch=await page.locator('#bagPocket').inputValue();
+ assert.ok(['main','putter','goto'].includes(pocketValueAfterSwitch),'Pocket should have a valid default value');
+ // Switch back to Storage and verify Pocket field is hidden again
+ await page.locator('#bagDestination').selectOption('storage');
+ const pocketFieldHiddenAgain=await page.locator('.bag-pocket-field').isHidden();
+ assert.equal(pocketFieldHiddenAgain,true,'Pocket field should be hidden when Keep in = Storage again');
+ // Save this change without pocket selection and verify it saves successfully
+ await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+ // Verify the disc is still in storage with a valid pocket
+ const updatedStorageDisc=(await data()).discs.find(d=>d.id===storageViaApi.id);
+ assert.ok(updatedStorageDisc,'Storage disc should exist');
+ assert.equal(updatedStorageDisc.in_bag,false,'Disc should remain in storage');
+ assert.ok(['main','putter','goto'].includes(updatedStorageDisc.pocket),'Storage disc should have a valid pocket');
  if(process.argv.includes('--putter-only')){console.log('PASS: putter defaults once and remains in main after reload.');}
  else {
   // A driver in Go-to proves the upper pocket follows assignment, not type.

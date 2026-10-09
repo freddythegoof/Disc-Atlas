@@ -261,11 +261,12 @@ try {
  }
  check(`Out putter: collapsing first slides the out putter home (closing its details), then lowers the row (${metrics.outPutter.homeToLowerMs} ms later); the out main disc stays out`);
 
- // 12. The choice holds through closing and opening the bag; closed, the control is off.
+ // 12. The choice persists through closing and opening the bag; the control is always available.
  {
   await pocket.click();await settled();
   await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');
-  assert.equal(await pocket.isDisabled(),true,'Off while the bag is closed');
+  assert.equal(await pocket.isEnabled(),true,'Pocket control enabled while bag is closed (independent behavior)');
+  assert.equal(await pocket.getAttribute('aria-expanded'),'false','Still collapsed after closing bag');
   await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');await settled();
   assert.equal(await pocket.isEnabled(),true);assert.equal(await pocket.getAttribute('aria-expanded'),'false','Still collapsed after reopening');
   assert.ok((await putters()).every(p=>p.rise===0),'The putters stay down when the bag opens');
@@ -276,7 +277,7 @@ try {
   assert.ok((await putters()).every(p=>p.rise===0 && p.slide===0),'…and Return all puts them back down in it');
   await pocket.click();await settled();assert.ok((await putters()).every(p=>p.rise===1));
  }
- check('Persistence: the collapsed pocket stays collapsed through closing and opening the bag (control off while closed); putters still come out of it and go back into it');
+ check('Persistence: the collapsed pocket stays collapsed through closing and opening the bag; putters still come out of it and go back into it');
 
  // 13. Keyboard: Enter and Space toggle it, and focus stays on the control.
  {
@@ -288,7 +289,54 @@ try {
  }
  check('Keyboard: Enter collapses, Space expands, focus stays on the control');
 
- // 14. Reduced motion: instant both ways.
+ // 14. Four-state independence: all combinations (bag open/closed × pocket open/closed) reachable in both orders.
+ {
+  const assertState=async(expectedPhase,expectedPocket,expectedRise,label)=>{
+   assert.equal(await scene.getAttribute('data-phase'),expectedPhase,`${label}: phase=${expectedPhase}`);
+   assert.equal(await scene.getAttribute('data-putter-pocket'),expectedPocket,`${label}: putterPocket=${expectedPocket}`);
+   assert.equal(await pocket.getAttribute('aria-expanded'),expectedPocket==='open'?'true':'false',`${label}: aria-expanded`);
+   assert.ok((await putters()).every(p=>p.rise===expectedRise),`${label}: putters rise=${expectedRise}`);
+  };
+  // Start: bag open, pocket open
+  assert.equal(await pocket.getAttribute('aria-expanded'),'true','Initial: pocket open');
+  // Combo 1: Bag open, pocket open
+  await assertState('open','open',1,'Combo 1: bag open, pocket open');
+  // Click pocket to close it (state should NOT change bag)
+  await pocket.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:8000});await settled();
+  // Combo 2: Bag open, pocket closed
+  await assertState('open','collapsed',0,'Combo 2: bag open, pocket closed');
+  // Click bag to close it (state should NOT change pocket)
+  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');await settled();
+  // Combo 3: Bag closed, pocket closed
+  await assertState('closed','collapsed',0,'Combo 3: bag closed, pocket closed');
+  // Click pocket to open it while bag closed (state should NOT change bag)
+  await pocket.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='open',null,{timeout:8000});await settled();
+  // Combo 4: Bag closed, pocket open
+  await assertState('closed','open',1,'Combo 4: bag closed, pocket open');
+  // Click bag to open it (state should NOT change pocket)
+  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');await settled();
+  // Back to Combo 1: Bag open, pocket open
+  await assertState('open','open',1,'Back to Combo 1: bag open, pocket open');
+  // Now test reverse order: start from combo 2
+  await pocket.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:8000});await settled();
+  // Combo 2 again: Bag open, pocket closed
+  await assertState('open','collapsed',0,'Combo 2 (reverse): bag open, pocket closed');
+  // Click bag to close it
+  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');await settled();
+  // Combo 3 again: Bag closed, pocket closed
+  await assertState('closed','collapsed',0,'Combo 3 (reverse): bag closed, pocket closed');
+  // Click pocket to open it
+  await pocket.click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='open',null,{timeout:8000});await settled();
+  // Combo 4 again: Bag closed, pocket open
+  await assertState('closed','open',1,'Combo 4 (reverse): bag closed, pocket open');
+  // Click bag to open it
+  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');await settled();
+  // Back to Combo 1 again
+  await assertState('open','open',1,'Back to Combo 1 (reverse order complete)');
+ }
+ check('Four-state independence: all four combinations reachable in both orders, each control independent');
+
+ // 15. Reduced motion: instant both ways.
  await page.emulateMedia({reducedMotion:'reduce'});
  await pocket.evaluate(n=>n.click());await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:2000});
  assert.ok((await putters()).every(p=>p.rise===0),'Instant collapse');
@@ -315,7 +363,7 @@ try {
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
  };
  const mobileMains=(await mobile.locator('[data-physical-disc][data-pocket="main"][tabindex="0"]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc)));
- // 15. A touch flick that starts on a disc spins the bag with momentum and leaves the disc alone.
+ // 16. A touch flick that starts on a disc spins the bag with momentum and leaves the disc alone.
  {
   const c=await m.center(m.slot(mobileMains[4]));
   await swipe(c.x,c.y,90,2);
@@ -327,14 +375,14 @@ try {
   await mobile.waitForTimeout(1500);assert.equal(await m.viewer(v=>v.turn),end,'Holds the angle');
   metrics.touch={release:+release.toFixed(3),coast:+(end-release).toFixed(3)};
  }
- // 16. A vertical swipe is the page's: no turn.
+ // 17. A vertical swipe is the page's: no turn.
  {
   const before=await m.viewer(v=>v.turn),c=await m.center(m.slot(mobileMains[2]));
   await swipe(c.x,c.y,3,-120);await mobile.waitForTimeout(300);
   assert.equal(await m.viewer(v=>v.turn),before,'A vertical swipe never turns the bag');assert.deepEqual(await m.outIds(),[]);
   await m.scene.scrollIntoViewIfNeeded();await m.settled();
  }
- // 17. A tap still toggles a disc (turn back to the front first, held).
+ // 18. A tap still toggles a disc (turn back to the front first, held).
  {
   const turn=await m.viewer(v=>v.turn),k=Math.round(turn/(2*Math.PI))*2*Math.PI-turn,b=await m.stageBox();
   await swipe(b.x+b.width*.15,b.y+b.height*.85,Math.round(k/.012),1,{hold:200,steps:14});await m.settled();
@@ -347,7 +395,7 @@ try {
  }
  check(`Touch: a flick that starts on a disc spins the bag ${metrics.touch.release} rad and coasts ${metrics.touch.coast} rad more, then holds; a vertical swipe never turns it; a tap still toggles the disc`);
 
- // 18. Phone pocket: the control fits the row (no sideways scroll); a tap collapses, the out putter goes home first.
+ // 19. Phone pocket: the control fits the row (no sideways scroll); a tap collapses, the out putter goes home first.
  {
   await m.scene.scrollIntoViewIfNeeded();
   const p=await m.pocket.boundingBox();assert.ok(p && p.x>=0 && p.x+p.width<=360,'The control fits a 360 px screen');

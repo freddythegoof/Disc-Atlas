@@ -1,4 +1,4 @@
-import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS} from './bag-values.js';
+import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
@@ -187,6 +187,7 @@ async function openDisc(d,item=null,destination='bag') {
  $('#plasticHint').textContent='Plastic families vary by mold and run.';
  $('#bagWear').value=values.wear;updateWear();$('#bagWeight').value=values.weight_g;$('#bagNotes').value=values.notes || '';
  $('#bagDestination').value=item?(item.in_bag?'bag':'storage'):destination;$('#bagPocket').value=values.pocket;
+ updatePocketField();
  setStabilityBias(values.stability_bias);
  $('#bagDiscColor').value=values.color || plasticColor(d.brand,values.plastic,plastics);colorCustomized=!!item;
  $('#addDiscStatus').textContent='';updateSaveLabel();$('#saveDisc').disabled=false;
@@ -211,7 +212,16 @@ function setStabilityBias(value){
 }
 document.querySelectorAll('[data-stability-bias]').forEach(button=>button.addEventListener('click',()=>setStabilityBias($('#bagStabilityBias').value===button.dataset.stabilityBias?null:button.dataset.stabilityBias)));
 function updateSaveLabel(){$('#saveDisc').textContent=editing?'Save changes':$('#bagDestination').value==='storage'?'Save to Storage':'Save to bag';}
-$('#bagDestination').addEventListener('change',updateSaveLabel);
+function updatePocketField(){
+ const isStorage=$('#bagDestination').value==='storage';
+ const pocketWrapper=document.querySelector('.bag-pocket-field');
+ if(pocketWrapper)pocketWrapper.hidden=isStorage;
+ if(isStorage){
+  const d=mold($('#addDiscId').value);
+  if(d)$('#bagPocket').value=defaultPocket(d);
+ }
+}
+$('#bagDestination').addEventListener('change',()=>{updateSaveLabel();updatePocketField();});
 $('#bagSort').addEventListener('change',async()=>{
  if(ordering)return;const epoch=generation;ordering=true;$('#bagSort').disabled=true;
  try{const data=await api('','PATCH',{sort_mode:$('#bagSort').value});settings=data.bag;readSequence++;loading=false;status('Disc order updated.');}
