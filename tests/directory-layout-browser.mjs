@@ -162,8 +162,8 @@ try{
   assert.ok(!(await isOpen()),'Escape closes the menu wherever focus is');
   if(touch)await tab.close();
  }
- for(const [name,id] of [['Bag','addHintBag'],['Storage','addHintStorage']])assert.equal(await page.locator('#addDestinationMenu').getByRole('menuitem',{name,exact:true}).getAttribute('aria-describedby'),id);
  await add.click();await shoot('menu-1440-light');
+ for(const [name,id] of [['Bag','addHintBag'],['Storage','addHintStorage']])assert.equal(await page.locator('#addDestinationMenu').getByRole('menuitem',{name,exact:true}).getAttribute('aria-describedby'),id);
  await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Storage',exact:true}).click();
  await page.waitForTimeout(200);
  assert.ok(!(await page.evaluate(()=>document.querySelector('#addDestinationMenu').matches(':popover-open'))),'Choosing closes the menu');

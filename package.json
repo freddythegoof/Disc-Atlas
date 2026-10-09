@@ -32,6 +32,7 @@
     "test:lens:corner": "node tests/lens-corner-browser.mjs",
     "test:atlas:depth": "node --test tests/atlas-depth.mjs && node tests/atlas-depth-browser.mjs",
     "test:directory:layout": "node tests/directory-layout-browser.mjs",
+    "test:add-menu": "node tests/add-menu-dismiss-browser.mjs",
     "test:my-map": "node --test tests/personal-lens.mjs tests/personal-map-worker.mjs && node tests/my-map-browser.mjs"
   },
   "dependencies": {

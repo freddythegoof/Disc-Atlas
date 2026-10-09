@@ -76,7 +76,7 @@ function sync(data) {
  account = data;
  if(changed) {
   generation++;mapOpen=false;scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;ordering=false;dragging=null;pendingPockets.clear();
-  if($('#addDestinationMenu').matches(':popover-open'))$('#addDestinationMenu').hidePopover();
+  window.AtlasDropdown.close(false);
   for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog']) if($('#'+id).open)$('#'+id).close();
   status('');
  }
@@ -306,12 +306,14 @@ $('#confirmRemoveDisc').addEventListener('click',async()=>{
 });
 $('#bagTab').onclick=activateBag;$('#mapTab').onclick=()=>leaveBag('map');$('#listTab').onclick=()=>leaveBag('list');
 $('#addBagDisc').onclick=directory;$('#retryMyBag').onclick=loadBag;
-const addMenu=$('#addDestinationMenu');let addMenuTrigger=null;
-function closeAddMenu(restore=false){addMenuTrigger?.setAttribute('aria-expanded','false');if(addMenu.matches(':popover-open'))addMenu.hidePopover();if(restore && addMenuTrigger?.isConnected)addMenuTrigger.focus({preventScroll:true});}
-function positionAddMenu(){
- if(!addMenuTrigger?.isConnected){closeAddMenu();return;}
- const rect=addMenuTrigger.getBoundingClientRect();
- if(rect.bottom<0 || rect.top>innerHeight){closeAddMenu();return;}
+const addMenu=$('#addDestinationMenu'),dropdown=window.AtlasDropdown;
+// The Add menu is one of the site's dropdowns: app.js opens it, closes it on an outside press, Escape,
+// another dropdown, a scroll that takes its button off screen and every view change.
+const addMenuOpen=()=>dropdown.current()?.panel===addMenu;
+function closeAddMenu(restore=false){if(addMenuOpen())dropdown.close(restore);}
+function positionAddMenu(panel,trigger){
+ const rect=trigger.getBoundingClientRect();
+ if(rect.bottom<0 || rect.top>innerHeight){dropdown.close(false);return;}
  // A full-width trigger (Add to in the details) gets a menu as wide as itself, under its left edge;
  // a small one (a directory row's Add) gets a menu sized to its choices, under its right edge.
  // The visible viewport excludes a classic scrollbar (innerWidth includes it), and the menu stays 8 px inside it.
@@ -321,31 +323,20 @@ function positionAddMenu(){
  addMenu.style.left=Math.max(8,Math.min(viewW-width-8,wide?rect.left:rect.right-width))+'px';
  addMenu.style.top=(below?rect.bottom+6:Math.max(8,rect.top-height-6))+'px';addMenu.dataset.placement=below?'below':'above';
 }
-// The menu is a manual popover, so closing never depends on the browser's light dismiss: a press anywhere
-// outside it closes it (a press on another Add then opens that one), a click on its own Add closes it,
-// and Escape closes it wherever focus is.
-document.addEventListener('pointerdown',event=>{
- if(!addMenu.matches(':popover-open') || addMenu.contains(event.target) || addMenuTrigger?.contains(event.target))return;
- closeAddMenu();
-},true);
-document.addEventListener('keydown',event=>{if(event.key==='Escape' && addMenu.matches(':popover-open')){event.preventDefault();closeAddMenu(true);}});
 document.addEventListener('click',event=>{
  const action=event.target.closest('[data-add-menu]');
- if(action){event.preventDefault();if(addMenu.matches(':popover-open') && addMenuTrigger===action){closeAddMenu(true);return;}
-  closeAddMenu();addMenuTrigger=action;addMenu.dataset.moldId=action.dataset.addMenu;
-  action.setAttribute('aria-expanded','true');addMenu.showPopover();positionAddMenu();addMenu.querySelector('button').focus({preventScroll:true});return;
+ if(action){event.preventDefault();
+  if(dropdown.current()?.button===action){dropdown.close(true);return;}
+  addMenu.dataset.moldId=action.dataset.addMenu;dropdown.show(addMenu,action,positionAddMenu);addMenu.querySelector('button').focus({preventScroll:true});return;
  }
  const choice=event.target.closest('[data-add-destination]');
  if(choice){const disc=mold(addMenu.dataset.moldId),destination=choice.dataset.addDestination;closeAddMenu(true);void openDisc(disc,null,destination);}
 });
-addMenu.addEventListener('toggle',event=>{if(event.newState==='closed' && !addMenu.matches(':popover-open') && addMenuTrigger)addMenuTrigger.setAttribute('aria-expanded','false');});
 addMenu.addEventListener('keydown',event=>{
  const keys=['ArrowDown','ArrowUp','Home','End'];
  if(keys.includes(event.key)){event.preventDefault();const options=[...addMenu.querySelectorAll('button')],index=options.indexOf(document.activeElement),next=event.key==='Home'?0:event.key==='End'?options.length-1:(index+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;options[next].focus();}
- if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeAddMenu(true);}
  if(event.key==='Tab')closeAddMenu(true);
 });
-window.addEventListener('resize',()=>closeAddMenu());window.addEventListener('scroll',event=>{if(addMenu.matches(':popover-open') && !addMenu.contains(event.target))positionAddMenu();},true);
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
 window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,mapColors:()=>bagColorMap};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

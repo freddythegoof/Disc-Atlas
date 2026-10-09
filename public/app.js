@@ -1,5 +1,6 @@
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const selectedBrands=new Set();
+let openDropdown=null;// the one open dropdown, see showDropdown
 const featuredRanks=new Map((window.DiscAtlasFeatured||[]).map((disc,index)=>[disc.id,index]));
 // Signed in, the atlas is the player's own: discs in their bag wear their bag colors and lead
 // their flight groups ('mine', Personalized), or show alone ('only', My Bag). 'default' is the
@@ -43,7 +44,7 @@ function compareOptional(a,b,ascending){const missingA=a==null||!Number.isFinite
 function filter(){stopCamera();closeCluster();document.querySelectorAll('#typeChips button[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.type===type)));const q=$('#search').value.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(),s=Number($('#speed').value),st=$('#stability').value;filtered=discs.filter(d=>myMap?myMap.ids.has(d.id):(view==='list'?inCollection(d):inLens(d))&&(!q||searchText(d).includes(q))&&(!selectedBrands.size||selectedBrands.has(d.brand))&&(type==='all'||typeOf(d)===type)&&(!s||d.speed===s)&&(!st||(st==='unknown'?d.speed==null:d.speed!=null&&(st==='under'?score(d)<40:st==='over'?score(d)>60:score(d)>=40&&score(d)<=60))));const sort=$('#sort').value;filtered.sort((a,b)=>sort==='featured'?((featuredRanks.get(a.id)??Infinity)-(featuredRanks.get(b.id)??Infinity)||a.name.localeCompare(b.name)||a.brand.localeCompare(b.brand)||a.id.localeCompare(b.id)):sort==='speed'?(a.speed==null?Number(b.speed!=null):b.speed==null?-1:(speedAscending?a.speed-b.speed:b.speed-a.speed)):sort==='stability'?compareOptional(score(a),score(b),stabilityAscending):sort==='brand'?a.brand.localeCompare(b.brand)||a.name.localeCompare(b.name):sort==='new'?compareOptional(a.date?Date.parse(a.date):null,b.date?Date.parse(b.date):null,newestAscending):a.name.localeCompare(b.name));if(selected&&!filtered.includes(selected)){selected=null;closeDetail(false);}renderSearchCoverage(q);limit=80;$('#count').textContent=view==='map'?`${filtered.filter(d=>d.speed!=null).length.toLocaleString()} mapped`:`${filtered.length.toLocaleString()} discs`;$('#unratedBtn').textContent=`${filtered.filter(d=>d.speed==null).length.toLocaleString()} unrated in directory ↗`;$('#speedValue').textContent=s?`Speed ${s}`:'Any speed';draw();if(view==='map'&&groupCache?.items===filtered&&!mapClusters.length&&filtered.some(d=>d.speed!=null)){zoom=1;pan={x:0,y:0};draw();}renderList();renderBrands();renderContextTitle();renderLegend();updateCollectionNote();}
 function setType(next){type=next;document.querySelectorAll('#types button').forEach(b=>b.classList.toggle('active',b.dataset.type===next));filter();}
 function reset(){stopCamera();$('#search').value='';selectedBrands.clear();$('#brandSearch').value='';$('#collection').value='current';$('#speed').value=0;$('#stability').value='';type='all';document.querySelectorAll('#types button').forEach(b=>b.classList.toggle('active',b.dataset.type==='all'));zoom=1;pan={x:0,y:0};filter();renderCompare();if(selected)detail();}
-function setView(v){stopCamera();closeCluster();closeDetail(false);document.body.dataset.view=v;view=v;$('#count').textContent=v==='map'?`${filtered.filter(d=>d.speed!=null).length.toLocaleString()} mapped`:`${filtered.length.toLocaleString()} discs`;$('#mapWrap').hidden=v!=='map';$('#directory').hidden=v!=='list';$('#mapTab').classList.toggle('active',v==='map');$('#listTab').classList.toggle('active',v==='list');$('#viewTitle').textContent=v==='map'?'Find your line.':'Every mold. Every maker.';renderLens();if(discs.length)filter();if(v==='map')requestAnimationFrame(draw);else renderList();}
+function setView(v){stopCamera();closeCluster();closeDropdown(false);closeDetail(false);document.body.dataset.view=v;view=v;$('#count').textContent=v==='map'?`${filtered.filter(d=>d.speed!=null).length.toLocaleString()} mapped`:`${filtered.length.toLocaleString()} discs`;$('#mapWrap').hidden=v!=='map';$('#directory').hidden=v!=='list';$('#mapTab').classList.toggle('active',v==='map');$('#listTab').classList.toggle('active',v==='list');$('#viewTitle').textContent=v==='map'?'Find your line.':'Every mold. Every maker.';renderLens();if(discs.length)filter();if(v==='map')requestAnimationFrame(draw);else renderList();}
 // Show one disc on the map: clear filters that hide it, zoom until it has its own marker, open its details.
 function showOnAtlas(d){
  if(!d||d.speed==null||!atlasPositions.has(d.id))return;
@@ -210,20 +211,26 @@ $('#brandOptions').onchange=e=>{if(e.target.matches('input[type="checkbox"]')){c
 $('#clearBrands').onclick=()=>{selectedBrands.clear();filter();renderCompare();if(selected)detail();};
 // Toolbar dropdowns: one open at a time, fixed under their button so a scrolling chip row never clips
 // them. Escape or a click elsewhere closes; Escape hands focus back to the button.
-let openDropdown=null;
-function showDropdown(panel,button){
- closeDropdown(false);panel.hidden=false;button.setAttribute('aria-expanded','true');openDropdown={panel,button};placeDropdown();
+// A panel is either a [hidden] element (toolbar menus) or a manual popover (the Add menu); `place` swaps in
+// that menu's own positioning. Everything that dismisses a dropdown lives here.
+function showDropdown(panel,button,place){
+ closeDropdown(false);if(panel.popover)panel.showPopover();else panel.hidden=false;button.setAttribute('aria-expanded','true');openDropdown={panel,button,place};placeDropdown();
 }
 function placeDropdown(){
- if(!openDropdown)return;const {panel,button}=openDropdown,r=button.getBoundingClientRect();
+ if(!openDropdown)return;const {panel,button,place}=openDropdown;
+ if(!button.isConnected){closeDropdown(false);return;}
+ if(place){place(panel,button);return;}
+ const r=button.getBoundingClientRect();
  const x=panel.dataset.align==='end'?r.right-panel.offsetWidth:r.left;
  panel.style.left=Math.max(8,Math.min(x,innerWidth-panel.offsetWidth-8))+'px';panel.style.top=(r.bottom+6)+'px';
  panel.style.maxHeight=Math.min(420,Math.max(160,innerHeight-r.bottom-18))+'px';
 }
 function closeDropdown(focus=true){
  if(!openDropdown)return;const {panel,button}=openDropdown;openDropdown=null;
- panel.hidden=true;button.setAttribute('aria-expanded','false');if(focus)button.focus({preventScroll:true});
+ if(panel.popover){if(panel.matches(':popover-open'))panel.hidePopover();}else panel.hidden=true;
+ button.setAttribute('aria-expanded','false');if(focus&&button.isConnected)button.focus({preventScroll:true});
 }
+window.AtlasDropdown={show:showDropdown,close:closeDropdown,current:()=>openDropdown};
 document.addEventListener('pointerdown',e=>{if(openDropdown&&!openDropdown.panel.contains(e.target)&&!openDropdown.button.contains(e.target))closeDropdown(false);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openDropdown){e.preventDefault();e.stopPropagation();closeDropdown();}},true);
 // Phone keyboards resize the viewport and pages scroll under an open panel: keep it under its button.
