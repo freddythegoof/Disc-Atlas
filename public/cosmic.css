@@ -293,10 +293,10 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers.atlas-organic .atlas-marker.is-large,#mapMarkers.atlas-organic .atlas-marker.is-large .disc-art{width:76px;height:76px}
 #mapMarkers.atlas-organic .atlas-marker.is-large .marker-name{top:90px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
 #mapMarkers.atlas-organic .atlas-marker:not(.is-counted) .cluster-count{display:none}
-/* Tier 2 (AtlasGroups.GAP): a complete view's dots are its small discs, and the canvas draws the
-   overview's to match them. A name curate cleared for one sits 11px below its center in muted text and
-   fades in with zoom (--gap-label, set on the dot by renderMarkers); the probe measureFullLabels uses shares this
-   rule. Hover still shows it in full. */
+/* Tiers 2 and 3 (AtlasGroups.GAP): a complete view's dots are its small discs, and the canvas draws the
+   overview's small discs and minis to match them. A name curate cleared for one sits 11px below its center
+   in muted text and fades in as the disc grows (--gap-label, set on the dot by renderMarkers); the probe
+   measureFullLabels uses shares this rule. Hover still shows it in full. */
 #mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name{top:calc(50% + 11px);bottom:auto;max-width:none;white-space:nowrap;font-size:11px;font-weight:500;letter-spacing:0;line-height:1.25;color:var(--muted);background:none;border:0;border-radius:0;padding:0;box-shadow:none;opacity:var(--gap-label,0)}
 #mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name small{display:none}
 #mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label:hover .marker-name,#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label:focus-visible .marker-name{opacity:1}
