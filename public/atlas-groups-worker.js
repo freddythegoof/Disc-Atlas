@@ -11,8 +11,9 @@ self.onmessage=event=>{
   const area=AtlasLayout.bounds(width,height,immersive),chrome=Object.assign(organic.chrome,{key:organic.chromeKey});
   const options=AtlasGroups.organicOptions({area,width,height,level,zoom:AtlasGroups.organicRange(level).floor,extent:result.extent,chrome});
   const first=organic.first?result.groups.find(g=>g.members.includes(organic.first)):null;
-  AtlasGroups.curate(result.groups,prints,options.zoom,2**(level/3),{...options,first});
+  result.gaps=AtlasGroups.curate(result.groups,prints,options.zoom,2**(level/3),{...options,first,points:AtlasGroups.pointIds(result.points,items)}).gaps;
   result.prominence=options.key+'|'+first?.key;
  }
- self.postMessage({revision,level,...result});
+ // The packed points move to the main thread rather than being copied.
+ self.postMessage({revision,level,...result},[result.points.index.buffer,result.points.xy.buffer]);
 };

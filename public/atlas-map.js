@@ -15,6 +15,7 @@ const planetLabels=new Map();
 let satelliteLabelsSuppressed=false;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
+let gapFont='';
 function measureFullLabels(items){
  // The main Atlas draws 76px art, My Map 68px (cosmic.css): measure under the layer's class for this map.
  const organic=organicAtlas(),keyPrefix=(innerWidth<700?'mobile:':'desktop:')+(organic?'organic:':''),pending=[];
@@ -25,19 +26,25 @@ function measureFullLabels(items){
   const node=document.createElement('div');node.className='atlas-marker is-large overview';
   node.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'<small>'+esc(d.brand)+'</small></span>';
   const satellite=node.cloneNode(true);satellite.className='atlas-marker is-dot is-satellite overview';
-  host.append(node,satellite);pending.push({key,node,satellite});
+  // A small disc's name (tier 2), as a dot shows it and the canvas draws it.
+  const small=document.createElement('div');small.className='atlas-marker is-dot is-gap-label overview';
+  small.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'</span>';
+  host.append(node,satellite,small);pending.push({key,node,satellite,small});
  }
  if(pending.length){
   $('#mapMarkers').append(host);
   // Batch writes before reads; this runs only for new labels/breakpoints/fonts.
-  for(const {key,node,satellite} of pending){
+  for(const {key,node,satellite,small} of pending){
    const marker=node.getBoundingClientRect(),label=node.firstChild.getBoundingClientRect();
    const gap=parseFloat(getComputedStyle(node.firstChild).lineHeight)/4;
    const dot=satellite.getBoundingClientRect(),dotLabel=satellite.firstChild.getBoundingClientRect();
+   const tier=small.getBoundingClientRect(),tierLabel=small.firstChild.getBoundingClientRect();
+   if(!gapFont){const style=getComputedStyle(small.firstChild);gapFont=style.fontWeight+' '+style.fontSize+' '+style.fontFamily;}
    fullLabelFootprints.set(key,{x:label.x-marker.x-marker.width/2-gap,y:label.y-marker.y-marker.height/2-gap,
     w:label.width+gap*2,h:label.height+gap*2,radius:marker.width/2,
     satellite:{x:dotLabel.x-dot.x-dot.width/2-gap,y:dotLabel.y-dot.y-dot.height/2-gap,
-     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:14}});
+     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:14},
+    gap:{x:tierLabel.x-tier.x-tier.width/2-2,y:tierLabel.y-tier.y-tier.height/2-2,w:tierLabel.width+4,h:tierLabel.height+4}});
   }
   host.remove();
  }
@@ -45,7 +52,7 @@ function measureFullLabels(items){
 }
 // Label footprints must use the real fonts. A face first requested by these measurements loads
 // after fonts.ready, so measure again whenever any font finishes loading.
-const remeasureLabels=()=>{fullLabelFootprints.clear();groupContext=null;scheduleMapDraw();};
+const remeasureLabels=()=>{fullLabelFootprints.clear();gapFont='';groupContext=null;scheduleMapDraw();};
 document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
 function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;}
 // The chrome over the map in map pixels. The organic overview keeps every disc and name clear of it at
@@ -80,10 +87,12 @@ function cancelRegroup(){
 function hydrateGroups(raw,items,w,h,level,immersive){
  const byId=new Map(items.map(d=>[d.id,d]));
  // A worker that curated for this camera already settled prominence (see prepareGroups).
- return {items,w,h,level,immersive,footprints:measureFullLabels(items),extent:raw.extent,prominenceZoom:raw.prominence,groups:raw.groups.map(g=>({
+ return {items,w,h,level,immersive,footprints:measureFullLabels(items),extent:raw.extent,prominenceZoom:raw.prominence,points:raw.points&&AtlasGroups.pointIds(raw.points,items),
+  gaps:hydrateGaps(raw.gaps,byId),levelGaps:raw.gaps,byId,groups:raw.groups.map(g=>({
   ...g,members:g.members.map(id=>byId.get(id)),lead:byId.get(g.key),joined:g.joined?.map(id=>byId.get(id))
  }))};
 }
+function hydrateGaps(gaps,byId){return gaps?gaps.map(g=>({...g,d:byId.get(g.id)})):null;}
 function prepareGroups(level,items,w,h,immersive){
  if(preparedGroups.has(level)||pendingGroups.has(level)||!groupWorker)return;
  pendingGroups.add(level);
@@ -104,7 +113,7 @@ function ensureGroupWorker(){
    if(revision!==groupRevision||!groupContext)return;
    pendingGroups.delete(level);
    const {items,w,h,immersive}=groupContext;
-   preparedGroups.set(level,hydrateGroups(raw,items,w,h,level,immersive));
+   const prepared=hydrateGroups(raw,items,w,h,level,immersive);preparedGroups.set(level,prepared);warmGapNames(prepared.gaps);
    if(!cameraTween&&AtlasGroups.level(zoom,groupCache?.level)===level)scheduleMapDraw();
   };
   groupWorker.onerror=()=>{groupWorker.terminate();groupWorker=null;pendingGroups.clear();scheduleMapDraw();};
@@ -159,7 +168,15 @@ function buildClusters(items,w,h){
  const prominence=organic?options.key+'|'+first?.key:zoom;
  groupCache.organicFirst=first?.key;
  if(groupCache.prominenceZoom!==prominence){
-  if(organic)window.AtlasGroups.curate(groupCache.groups,groupCache.footprints,options.zoom,2**(groupCache.level/3),options);
+  if(organic){
+   // A camera between levels (a tween still showing this one) is laid out on every frame: tier 2 then
+   // keeps the level's own small discs where they stay clear instead of walking the catalog again.
+   const between=options.zoom!==AtlasGroups.organicRange(groupCache.level).floor&&groupCache.levelGaps;
+   const {gaps}=window.AtlasGroups.curate(groupCache.groups,groupCache.footprints,options.zoom,2**(groupCache.level/3),{...options,points:groupCache.points,gapsFrom:between||null});
+   if(!between)groupCache.levelGaps=gaps;
+   groupCache.gaps=hydrateGaps(gaps,groupCache.byId);
+   if(!between)warmGapNames(groupCache.gaps);
+  }
   else{
    const satellites=zoom>=7?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
    const minors=zoom<2.9&&(!satelliteLabelsSuppressed||zoom<=2.7)?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
@@ -235,12 +252,100 @@ function draw(){
   }
   ctx.restore();
  }
+ drawGaps(area,w,h);
  // Explain the selected disc's offset without turning a dense view into a web of lines.
  // An organic rest offset is the disc's own small toss, not a displacement worth a line.
  for(const g of mapClusters){if(!organicAtlas()&&!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  drawPlanetLabels();
  renderMarkers();drawSatelliteLeaders();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
+}
+// Tier 2 (AtlasGroups.GAP): the rest of the rated catalog as small discs on the canvas, under every
+// curated disc, in the room curate left them. Their set follows the level; a disc or name that joins
+// or leaves fades over GAP_FADE ms instead of popping, and a name's strength follows the zoom.
+const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let gapClock=0,mapGaps=[];
+function gapSprite(color){
+ const key=color+themePalette.edge;let sprite=gapSprites.get(key);if(sprite)return sprite;
+ if(gapSprites.size>48)gapSprites.clear();
+ // A complete view's dot (cosmic.css .is-dot .map-dot) at 4x resolution: lit from the upper left, edged.
+ const n=60,c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d'),r=n/2;
+ const mix=(to,amount)=>{const a=parseInt(color.slice(1),16),b=parseInt(to.slice(1),16),ch=s=>Math.round(((a>>s)&255)*amount+((b>>s)&255)*(1-amount));return 'rgb('+ch(16)+','+ch(8)+','+ch(0)+')';};
+ const body=g.createRadialGradient(n*.32,n*.25,0,n*.32,n*.25,n*Math.hypot(.68,.75));
+ body.addColorStop(0,mix('#ffffff',.7));body.addColorStop(.55,color);body.addColorStop(1,mix('#000000',.7));
+ g.fillStyle=body;g.beginPath();g.arc(r,r,r,0,Math.PI*2);g.fill();
+ g.lineWidth=4;g.strokeStyle=themePalette.edge;g.beginPath();g.arc(r,r,r-2,0,Math.PI*2);g.stroke();
+ gapSprites.set(key,c);return c;
+}
+// A small disc's name, drawn once per theme and font with the curated names' halo (text-shadow
+// 0 1px 4px map-bg) and blitted after: a blurred fillText on every frame is far too slow.
+// At most `budget` new ones a frame (null when spent): a name first shows at a sliver of strength, so
+// one drawn a frame or two late is never seen, and a level's names never cost one long frame.
+let gapNameBudget=6;
+function gapName(text){
+ const dpr=Math.min(devicePixelRatio||1,2),font=gapFont||'500 11px sans-serif',key=text+'|'+font+'|'+themePalette.muted+themePalette.background+dpr;
+ let name=gapNames.get(key);if(name)return name;
+ if(gapNameBudget<=0)return null;gapNameBudget--;
+ if(gapNames.size>600)gapNames.clear();
+ const c=document.createElement('canvas'),g=c.getContext('2d');g.font=font;
+ const w=Math.ceil(g.measureText(text).width)+12,h=24;c.width=w*dpr;c.height=h*dpr;
+ g.scale(dpr,dpr);g.font=font;g.textAlign='center';g.textBaseline='middle';g.fillStyle=themePalette.muted;
+ g.shadowColor=themePalette.background;g.shadowBlur=4;g.shadowOffsetY=1;g.fillText(text,w/2,h/2);
+ name={canvas:c,w,h};gapNames.set(key,name);return name;
+}
+function drawGaps(area,w,h){
+ mapGaps=[];
+ const list=organicAtlas()&&groupCache.gaps||[],now=performance.now(),animate=gapClock&&window.AtlasMotion?.enabled();
+ gapNameBudget=6;let waiting=false;
+ const step=animate?Math.min(1,(now-gapClock)/GAP_FADE):1;gapClock=now;
+ for(const e of gapFade.values())e.on=false;
+ for(const g of list){
+  let e=gapFade.get(g.id);
+  if(!e){e={id:g.id,art:0,label:0,ox:g.x,oy:g.y};gapFade.set(g.id,e);}
+  e.on=true;e.d=g.d;e.pos=g.pos;e.tx=g.x;e.ty=g.y;e.named=g.label;
+ }
+ const toward=(v,t,s)=>v<t?Math.min(t,v+s):Math.max(t,v-s),dpr=Math.min(devicePixelRatio||1,2),snap=v=>Math.round(v*dpr)/dpr;
+ const size=AtlasGroups.gapSize(zoom),strength=AtlasGroups.gapLabelAlpha(zoom),depth=AtlasGroups.gapAlpha(zoom),r=size/2;let moving=false;
+ // Each entry is also its record in mapGaps (for tests): id, name, x, y, size, art (its presence),
+ // label (its name's presence), strength (what shows of its name), named, on, rest (at its rest
+ // spot), box (its name's box) and drawn (on screen).
+ for(const [id,e] of gapFade){
+  e.art=toward(e.art,e.on?1:0,step);const shown=e.label=toward(e.label,e.on&&e.named?1:0,step);
+  // A disc that stays across a level swap eases to its new rest spot (a few px at most).
+  e.ox=toward(e.ox,e.tx,step*12);e.oy=toward(e.oy,e.ty,step*12);
+  if(!e.on&&!e.art){gapFade.delete(id);continue;}
+  e.rest=e.ox===e.tx&&e.oy===e.ty;
+  if(e.art!==(e.on?1:0)||shown!==(e.on&&e.named?1:0)||!e.rest)moving=true;
+  const x=area.left+e.pos.x*area.width*zoom+pan.x+e.ox,y=area.bottom-e.pos.y*area.height*zoom+pan.y+e.oy;
+  e.x=x;e.y=y;e.size=size;e.name=e.d.catalogName||e.d.name;e.box=null;e.drawn=false;
+  // Its name's strength: present (fading with level swaps) times the zoom's.
+  const alpha=e.strength=shown*strength;
+  mapGaps.push(e);
+  if(x<-60||x>w+60||y<-30||y>h+30)continue;
+  ctx.globalAlpha=e.art*depth;ctx.drawImage(gapSprite(discColor(e.d)),x-r,y-r,size,size);
+  const f=groupCache.footprints.get(id)?.gap;
+  if(f){
+   e.box={x:x+f.x,y:y+f.y,w:f.w,h:f.h};
+   // Below 1% a name is invisible; skip the blit.
+   if(alpha>=.01){
+    const name=gapName(e.name);
+    if(name){ctx.globalAlpha=alpha;ctx.drawImage(name.canvas,snap(e.box.x+e.box.w/2-name.w/2),snap(e.box.y+e.box.h/2-name.h/2),name.w,name.h);}
+    else waiting=true;
+   }
+  }
+  e.drawn=true;
+ }
+ ctx.globalAlpha=1;
+ if(moving||waiting)scheduleMapDraw();
+}
+// Draw a level's small names ahead, while the browser is idle, so zooming in finds them ready.
+function warmGapNames(gaps){
+ const names=(gaps||[]).filter(g=>g.label).map(g=>g.d.catalogName||g.d.name);
+ if(!names.length||!window.requestIdleCallback)return;
+ const next=deadline=>{
+  while(names.length&&deadline.timeRemaining()>2){gapNameBudget=1;gapName(names.pop());}
+  if(names.length)requestIdleCallback(next);
+ };
+ requestIdleCallback(next);
 }
 function drawSatelliteLeaders(){
  if(zoom<7)return;
@@ -255,9 +360,8 @@ function drawSatelliteLeaders(){
  ctx.restore();
 }
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
-// Only artwork scales; names keep the places layout cleared for them. The main Atlas draws its discs
-// at depth (AtlasGroups.discScale: small at 1x, full size at 9x); My Map's growth settles at 4x.
-function mapMarkerScale(){return organicAtlas()?AtlasGroups.discScale(zoom):AtlasGroups.artRoom(zoom);}
+// Growth settles before the deepest regroup boundary; only artwork scales.
+function mapMarkerScale(){return AtlasGroups.artRoom(zoom);}
 function drawPlanetLabels(){
  // Preserve the shipped label-density hysteresis. Automatic low-zoom names
  // now come exclusively from measured DOM promotion at their true positions.
@@ -271,7 +375,7 @@ function renderMarkers(){
  // select() repaints markers only; a new selection may need a curated spot (it always shows).
  if(organicAtlas()&&groupCache.organicFirst!==selectedGroup(groupCache.groups)?.key)scheduleMapDraw();
  const scale=mapMarkerScale();
- const scaleValue=scale.toFixed(3);
+ const scaleValue=scale.toFixed(3),gapLabel=AtlasGroups.gapLabelAlpha(zoom).toFixed(3);
  const filterPending=groupCache.items!==filtered;
  // Artwork can retire in batches, but obsolete full labels must disappear
  // before a newly promoted neighbor paints. Do not fade colliding text out.
@@ -295,10 +399,10 @@ function renderMarkers(){
   }
   if(!node){
    node=document.createElement('button');node.type='button';node.dataset.cluster=g.key;node.className='atlas-marker';
-   node.innerHTML='<span class="marker-depth"><span class="marker-halo"></span><span class="map-dot"></span><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span></span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
-   // The camera's art scale sits on .marker-depth (halo, dot and art, in paint order); hover motion
-   // (atlas-motion.js) owns .marker-stack's transform inside it, so neither undoes the other.
-   node.art=node.querySelector('.marker-depth');node.dot=node.querySelector('.map-dot');
+   node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-zoom"><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span></span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
+   // The camera's art scale sits on .marker-zoom; hover motion (atlas-motion.js) owns .marker-stack's
+   // transform inside it, so neither undoes the other.
+   node.art=node.querySelector('.marker-zoom');node.dot=node.querySelector('.map-dot');
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
    node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';
    if(regrouping){node.position.classList.add('is-new');node.position.inert=true;}
@@ -326,13 +430,16 @@ function renderMarkers(){
   node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
   node.style.setProperty('--label-nudge-x',(g.nudge?.x||0)+'px');
   node.style.setProperty('--label-nudge-y',(g.nudge?.y||0)+'px');
-  // A counted stack at depth keeps its count by the art: it moves with the art's edge about the center.
-  const selectedScale=g.members.includes(selected)?1.12:1,counted=organicAtlas()&&g.large&&n>1&&!!g.complete;
-  if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large||node.countedArt!==counted){
+  // A complete view's dots are its small discs: their names show where curate cleared them (tier 2),
+  // at the zoom's strength. Set per named dot, never on the layer, which would restyle every marker.
+  const named=organicAtlas()&&!g.large&&!!g.gapLabel;
+  node.classList.toggle('is-gap-label',named);
+  if(named&&node.gapLabel!==gapLabel){node.style.setProperty('--gap-label',gapLabel);node.gapLabel=gapLabel;}
+  const selectedScale=g.members.includes(selected)?1.12:1;
+  if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
    if(g.large)node.art.style.scale=scaleValue;
    else{node.art.style.removeProperty('scale');node.dot.style.scale=(scale*selectedScale).toFixed(3);}
-   const shift=((scale-1)*30).toFixed(2)+'px';node.badge.style.translate=counted?shift+' '+shift:'';
-   node.markerScale=scaleValue;node.dotSelection=selectedScale;node.scaleLarge=g.large;node.countedArt=counted;
+   node.markerScale=scaleValue;node.dotSelection=selectedScale;node.scaleLarge=g.large;
   }
  }
  if(mapClusters.length)hasPaintedMarkers=true;

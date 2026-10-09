@@ -107,7 +107,7 @@ export async function checkGroupingZoom(browser,base){
    for(const state of deepBands){
     const z=state.zoom;
     assert.ok(state.complete?state.covered:state.satellites===0,`${z}x is a dot-free overview or shows every disc once`);
-    assert.equal(state.labeledSatellites,0,`${z}x dots name themselves only on hover and focus`);
+    assert.equal(state.strayDotNames,0,`${z}x dots name themselves only on hover and focus, or where tier 2 cleared their name`);
     assert.equal(state.leaders,0,`${z}x draws no vectors`);
     assert.deepEqual(state.overlaps,[],`${z}x DOM labels never overlap`);
     assert.deepEqual(state.markerOverlaps,[],`${z}x markers and labels never overlap`);

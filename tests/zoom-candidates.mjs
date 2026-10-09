@@ -28,6 +28,8 @@ export const measureBand=page=>page.evaluate(()=>{
  const putters=visible.filter(g=>typeOf(g.lead)==='putter');
  const putterGroups=groupCache.groups.filter(g=>g.members.some(d=>typeOf(d)==='putter'));
  return {zoom,level:groupCache.level,visible:visible.length,primaries:primaries.length,satellites:dots.length,labeledSatellites:dots.filter(labeled).length,
+  // Tier 2 (AtlasGroups.GAP): a dot shows its name only where curate cleared it, from labelFrom.
+  strayDotNames:dots.filter(g=>labeled(g)&&!g.gapLabel).length,labelFrom:AtlasGroups.GAP?.labelFrom??Infinity,
   readableSatellites:dots.filter(g=>g.members.length===1&&g.satellite&&labeled(g)).length,
   markerOverlaps,leaderCollisions,maxOffset:Math.max(0,...visible.map(g=>Math.hypot(g.x-g.actualX,g.y-g.actualY))),
   unstackedSatellites:dots.filter(g=>g.members.length===1).length,
@@ -89,8 +91,9 @@ export async function checkZoomCandidates(browser,base){
    await page.screenshot({path:`${dir}/putter-${z}x-${suffix}.png`});
    if(!baseline){
     // The organic Atlas has no satellites: a dot (complete views only) shows its name on hover and
-    // focus, never automatically, and nothing draws a vector at any zoom.
-    assert.equal(state.labeledSatellites,0);
+    // focus, or as a small disc (tier 2) where curate cleared room for it deep in, and nothing draws a
+    // vector at any zoom.
+    assert.equal(state.strayDotNames,0);if(z<state.labelFrom)assert.equal(state.labeledSatellites,0);
     assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);assert.deepEqual(state.leaderCollisions,[]);
     assert.ok(state.honest);assert.ok(state.scale<=1.24&&state.artScale<=1.24);assert.ok(state.primaries>0);
     assert.ok(state.largest<=(z===3?5:3));
