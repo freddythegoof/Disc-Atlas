@@ -17,6 +17,20 @@ globalThis.AtlasGroups = {
   }
   return true;
  },
+ // The art size layout keeps room for at a zoom, relative to the CSS art: modest growth that settles
+ // at 4x. promote and curate clear every disc for this, and My Map draws its art at this size.
+ artRoom(zoom){return 1+.08*(Math.min(4,zoom)-1);},
+ // The main Atlas's discs are drawn at depth: zooming flies the camera toward the disc plane, so the
+ // art reads small and distant at 1x and grows to full size at the 9x maximum. Size grows like
+ // zoom/(zoom+k), as an object's would when you approach it from a set distance: quickly at first,
+ // then settling. It is smooth and continuous up to the 9x maximum (full size holds past it), a pure
+ // function of zoom, and never above artRoom at any zoom, so discs only shrink inside the room layout
+ // gave them and names keep their places.
+ DISC_DEPTH:{far:.72,near:1.24,max:9},
+ discScale(zoom){
+  const {far,near,max}=this.DISC_DEPTH,ratio=far/near,k=max*(1-ratio)/(max*ratio-1),z=Math.min(zoom,max);
+  return near*(max+k)/max*z/(z+k);
+ },
  segmentsCross(a,b) {
   if(Math.max(a.x1,a.x2)<Math.min(b.x1,b.x2)||Math.max(b.x1,b.x2)<Math.min(a.x1,a.x2)||
    Math.max(a.y1,a.y2)<Math.min(b.y1,b.y2)||Math.max(b.y1,b.y2)<Math.min(a.y1,a.y2))return false;
@@ -27,7 +41,7 @@ globalThis.AtlasGroups = {
  // Rectangles are measured from the rendered name/brand label in CSS pixels.
  // Keep priority order; screen-space contention alone determines prominence.
  promote(groups, footprints, zoom, groupZoom, satelliteFootprints, minorFootprints) {
-  const occupied=new Map(),cellSize=128,scale=1+.08*(Math.min(4,zoom)-1),ratio=zoom/groupZoom;
+  const occupied=new Map(),cellSize=128,scale=this.artRoom(zoom),ratio=zoom/groupZoom;
   const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
   const cells=box=>{
    const keys=[];
@@ -173,7 +187,7 @@ globalThis.AtlasGroups = {
  },
  curate(groups,footprints,zoom,groupZoom,{cap=Infinity,gap=this.ORGANIC.gap,spacing=this.ORGANIC.spacing,obstacles=[],frame=null,first=null,artZoom=zoom,stretch=1}={}){
   // This can run on camera frames, so the grids use numeric keys and a lead fails fast.
-  const cellSize=128,scale=1+.08*(Math.min(4,Math.max(zoom,artZoom))-1),ratio=zoom/groupZoom,K=1<<20;
+  const cellSize=128,scale=this.artRoom(Math.max(zoom,artZoom)),ratio=zoom/groupZoom,K=1<<20;
   const near=(a,b,pad)=>a.x-pad<b.x+b.w&&a.x+a.w+pad>b.x&&a.y-pad<b.y+b.h&&a.y+a.h+pad>b.y;
   const outside=box=>frame&&(box.x<frame.x||box.y<frame.y||box.x+box.w>frame.x+frame.w||box.y+box.h>frame.y+frame.h);
   const region=g=>Math.floor(g.px*ratio/this.ORGANIC.region)*K+Math.floor(-g.py*ratio/this.ORGANIC.region);

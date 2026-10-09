@@ -13,15 +13,13 @@
   --putter:var(--palette-purple);--mid:var(--palette-green);--fairway:var(--palette-blue);--distance:var(--palette-orange);--unknown:#637088;
   --marker-edge:#625b50;
   --header-height:68px;--ambient:#809bea12;
-  /* Background depth dots (atlas-depth.js): faint, neutral, never a disc color. */
-  --depth-dot:#505d76b3;
 }
 :root[data-theme="midnight"] {
   color-scheme:dark;
   --bg:#080b10;--panel:#13171e;--surface:#1c222c;--selected:#28354a;
   --line:#282f3a;--muted:#97a3b5;--text:#edf2fc;--lime:#9bbaff;
   --accent-soft:#1c2a40;--on-accent:#101b31;--map-bg:#080b10;--grid:#38475b;
-  --center-line:#536681;--shadow:#00000066;--ambient:#526c9820;--depth-dot:#a3b3d0a6;
+  --center-line:#536681;--shadow:#00000066;--ambient:#526c9820;
   --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
   --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
   --marker-edge:#c1c1bc;--unknown:#9aa7bd;
@@ -31,7 +29,7 @@
   --bg:#101113;--panel:#1a1b1e;--surface:#24262b;--selected:#343842;
   --line:#373b43;--muted:#aeb3bf;--text:#f1f2f5;--lime:#b9c9ed;
   --accent-soft:#2a3344;--on-accent:#151922;--map-bg:#101113;--grid:#484c55;
-  --center-line:#707785;--shadow:#0005;--ambient:#ffffff03;--depth-dot:#b8bcc699;
+  --center-line:#707785;--shadow:#0005;--ambient:#ffffff03;
   --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
   --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
   --marker-edge:#c1c1bc;--unknown:#a4a9b3;
@@ -162,6 +160,7 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 
 /* Interaction feedback lives on the artwork, separate from camera transforms. */
 @keyframes atlas-arrive{from{opacity:0}to{opacity:1}}
+.atlas-marker .marker-depth{position:absolute;inset:0;display:block;transform-origin:50% 50%}
 .atlas-marker .marker-stack{position:absolute;inset:0;transform-origin:50% 50%}
 .atlas-marker .marker-halo{transition:opacity .22s ease,transform .45s cubic-bezier(.2,.8,.2,1)}
 .atlas-marker:hover .marker-halo{opacity:.5;transform:scale(1.07)}
@@ -287,7 +286,7 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers .is-updating .is-dot .map-dot{opacity:1}
 @media(prefers-reduced-motion:reduce){#mapMarkers .marker-position,#mapMarkers .marker-position.is-updating,#mapMarkers .is-updating .marker-stack,#mapMarkers .is-updating .map-dot{transition:none}}
 /* Organic overview (main Atlas): discs face front at 76px (My Map keeps 68px). The name sits 52px below the
-   center, scaled with the art from 68px's 46px, so it stays clear when the art grows past 4x and is selected
+   center, scaled with the art from 68px's 46px, so it stays clear when the art reaches full size at 9x and is selected
    (1.24 x 1.09); it takes its featured nudge in brand views too, where curate reserves it as well.
    Hidden neighbors are not counted on the art, so the overview stays clean; a complete view (every match
    shows) counts its stacks. */

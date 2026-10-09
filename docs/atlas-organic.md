@@ -53,8 +53,9 @@ between the controls (the cap there is 8).
 - **Front facing.** Every disc is drawn round and face on, with no per-disc tilt. Full-size art is
   76 px and its name starts 90 px below the marker's top (`#mapMarkers.atlas-organic` in
   `public/cosmic.css`). That is 52 px below the center, scaled from the 68 px art's 46 px, so the
-  name stays clear of its art when the art grows past 4× and is selected (1.24 × 1.09). Label footprints are measured separately for the main Atlas and My Map,
-  and a click lands within the art's radius (38 px) plus 8 px.
+  name stays clear of its art at full size, selected (1.24 × 1.09). The art is drawn smaller than
+  this when far away (see Discs at depth). Label footprints are measured separately for the main
+  Atlas and My Map, and a click lands within the drawn art's radius plus 8 px.
 - **Determinism.** Every choice is seeded by disc ID, so the same data, view, zoom and selection
   always land the same way, to the pixel.
 - **Neighbors.** 23 px is small next to the 138 px spacing. A disc's nearest neighbor on screen is
@@ -73,30 +74,30 @@ under the controls to the map's edges, as before.
 The worker lays out each level it prepares, so after a filter change the main thread does no
 layout work.
 
-## Background depth dots
+## Discs at depth
 
-Since October 8, 2026, a sparse field of small neutral specks sits behind the main Atlas, on the
-canvas under the grid and every disc. They are decoration. They carry no data and never move a disc,
-change the curation or affect a label. My Map draws none. The code is `AtlasDepth.field` in
-`public/atlas-depth.js`, drawn by `drawDepthDots` in `public/atlas-map.js`.
+Since October 8, 2026, zooming the main Atlas flies toward its discs, and the discs carry the depth
+themselves. The background dot field that briefly sat behind the map is gone. The canvas holds only
+the grid and its numbers. My Map is unchanged.
 
-- **Depth.** The dots lie in shells behind the disc plane. A shell `e` behind the discs draws at
-  scale `zoom / (1 + e·zoom)`, which is always below the discs' own zoom. Zooming in flies toward
-  the discs. Every shell spreads outward slower than the discs do, and nearer shells spread faster
-  than farther ones, so the field reads as parallax. Panning moves every dot less than the discs.
-- **Sparse at every zoom.** A shell's dot sites are spaced in proportion to its depth, so each
-  shell is equally sparse at 1x. Nearer shells thin out as you fly in. Far shells fade in from
-  nothing as they come into range, so no dot pops. A 1440 × 900 desktop shows about 70–120 dots and
-  a phone about 10–30.
-- **Clear of discs and names.** A dot is skipped, never moved, if it would come within 6 px of a
-  disc's art (and a selected disc's glow), a shown name, or the name a dot-sized disc opens on
-  hover.
-- **Small and quiet.** Dots are 1–2.2 px, far below a 10 px data dot or 76 px art. Their color is
-  the per-theme `--depth-dot` token in `public/cosmic.css`. Even at full alpha it stays under 5:1
-  contrast against the map and under a third of a name's contrast (light 3.2, midnight 4.4,
-  charcoal 4.3).
-- **Deterministic.** Every dot is seeded by its shell and cell. The same camera always draws the
-  same field.
+- **Size.** The art is drawn at `AtlasGroups.discScale(zoom)` times its 76 px CSS size: 0.72 at
+  1x (about 55 px), growing to 1.24 at the 9x maximum (about 94 px, the most it ever drew). In
+  between it grows like `zoom / (zoom + k)`, the way an object grows as you approach it from a set
+  distance: quickly at first, then settling. `k` follows from the ends (`DISC_DEPTH`). The curve is
+  smooth and continuous, with no step and no kink, and it is a pure function of zoom. The landing
+  camera (2.8x) draws about 78 px and 3x about 80 px.
+- **Only the art.** A disc's halo and stack count scale with its art about its center. Layout
+  still keeps room for the old growth (`AtlasGroups.artRoom`: 1 at 1x, settling at 1.24 from 4x),
+  and the drawn size never exceeds it at any zoom. So curation, rest spots and every name's place
+  are exactly as before, and a smaller disc only leaves more room. Names keep their size and their
+  boxes at every zoom, 52 px below the disc's center, so the gap under a far disc is wider than
+  under a near one.
+- **Hover.** The camera's scale sits on each marker's `.marker-depth`, and hover motion
+  (`atlas-motion.js`) animates the `.marker-stack` inside it. Hover lifts a disc 6% from its depth
+  size and returns it to exactly that size. Before, GSAP took over the stack's `scale` and left a
+  hovered disc at 1.0 until the zoom changed.
+- **Selection.** A selected disc is still drawn 9% larger. At 9x that is 1.24 × 1.09, as before, and
+  its name stays clear.
 
 ## Tests
 
@@ -111,9 +112,15 @@ change the curation or affect a label. My Map draws none. The code is `AtlasDept
   `--low-zoom-labels`, `--label-prominence`, `--deep-zoom` and `--zoom-candidates`) were updated.
   The overview no longer has dots, satellites, leader lines or automatic minor labels. Their
   overlap, stack, ceiling, DOM-identity and worker checks are unchanged.
-- `node --test tests/atlas-depth.mjs` covers the depth dots: determinism, sparseness, size, shells
-  behind the discs, parallax on zoom and pan, the fade-in, and avoidance.
-  `PLAYWRIGHT_MODULE=… node tests/atlas-depth-browser.mjs` checks that no dot touches a disc or name
-  at 1x, on the landing camera, at mid zoom and at 9x, on desktop and phone in three themes. It also
-  checks contrast and real parallax. Screenshots go to `outputs/atlas-depth/`
-  (`npm run test:atlas:depth`).
+- `node --test tests/atlas-depth.mjs` covers the depth curve: its ends, that it grows on every
+  0.001x step with no acceleration or jump, that it stays within `artRoom` from 1x to 9x, that
+  `artRoom` is unchanged, and determinism.
+  `PLAYWRIGHT_MODULE=… node tests/atlas-depth-browser.mjs` covers desktop and phone in three themes
+  at 1x, on the landing camera, at 3x and at 9x. Each disc must draw at its depth size, and no name
+  may touch a name or a disc. The canvas must hold only the grid, with no arcs and no paint off the
+  grid lines. A redraw must match to the pixel, and the discs, spots and name boxes must match the
+  old curve's. It flies 1x→9x and 9x→1x over 120 frames each. On every frame each disc must grow
+  (or shrink) by no more than the camera step allows, and no name may touch anything. On desktop,
+  hovering a disc at 1x and at 9x must lift it 6% and return it to its depth size. Two fresh
+  pages must render the same discs, sizes and names. Screenshots of far, mid and max in every theme
+  go to `outputs/atlas-depth/` (`npm run test:atlas:depth`).
