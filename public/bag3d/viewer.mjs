@@ -343,7 +343,11 @@ export async function mountBag(container, {
         const velocity = event.type === 'pointerup' && active ? releaseVelocity(press.samples, event.timeStamp) : 0;
         if (Math.abs(velocity) > SPIN_STOP * 2) { spin = { velocity }; invalidate(); } else settleTurn();
       } else if (press.caught) settleTurn();
-      else if (event.type === 'pointerup' && press.empty) container.dispatchEvent(new CustomEvent('bagclick'));
+      else if (event.type === 'pointerup' && press.empty) {
+        // Where the tap landed, in container pixels (the same frame as the pocket and bag rects).
+        const box = container.getBoundingClientRect();
+        container.dispatchEvent(new CustomEvent('bagclick', { detail: { x: event.clientX - box.left, y: event.clientY - box.top } }));
+      }
     };
     surface.addEventListener('pointerup', release, { signal });
     surface.addEventListener('pointercancel', release, { signal });

@@ -336,6 +336,38 @@ try {
  }
  check('Four-state independence: all four combinations reachable in both orders, each control independent');
 
+ // 14b. Clicking the bag's top section works the putter pocket (like a click on the bag works the flap);
+ // clicking elsewhere on the canvas still works the flap. Neither touches the other's state.
+ {
+  const topClick=async()=>{
+   await scene.scrollIntoViewIfNeeded();
+   const [zone,box]=[await viewer(v=>v.pocketRects().putter),await stageBox()];
+   // The flap below the pocket's mouth, toward its right edge (clear of the go-to disc's hit target).
+   await page.mouse.click(box.x+zone.left+zone.width*.9,box.y+zone.top+zone.height*1.4);
+  };
+  const state=async(phase,pocketState,label)=>{
+   await settled();
+   assert.equal(await scene.getAttribute('data-phase'),phase,`${label}: phase`);
+   assert.equal(await scene.getAttribute('data-putter-pocket'),pocketState,`${label}: putter pocket`);
+  };
+  await state('open','open','Before');
+  await topClick();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:8000});
+  await state('open','collapsed','Top click collapses the pocket, the bag stays open');
+  assert.ok((await putters()).every(p=>p.rise===0),'The putters go down into the pocket');
+  await topClick();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='open',null,{timeout:8000});
+  await state('open','open','A second top click expands it again');
+  await page.locator('[data-bag-toggle]').click();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='closed');
+  await topClick();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:8000});
+  await state('closed','collapsed','With the bag closed, a top click still works only the pocket');
+  await topClick();await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='open',null,{timeout:8000});
+  await state('closed','open','…and back');
+  // Empty canvas away from the top section still opens the flap.
+  await scene.scrollIntoViewIfNeeded();const box=await stageBox();await page.mouse.click(box.x+12,box.y+box.height*.5);
+  await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open',null,{timeout:8000});
+  await state('open','open','A click on empty canvas outside the top section works the flap, not the pocket');
+ }
+ check('Top-section click: toggles the putter pocket (bag open or closed) without touching the flap; a click elsewhere on the canvas still toggles the flap');
+
  // 15. Reduced motion: instant both ways.
  await page.emulateMedia({reducedMotion:'reduce'});
  await pocket.evaluate(n=>n.click());await page.waitForFunction(()=>document.querySelector('#bagScene').dataset.putterPocket==='collapsed',null,{timeout:2000});

@@ -143,7 +143,8 @@ export class BagScene {
     Object.defineProperty(this.canvas,'bagViewer',{value:viewer,configurable:true});
     this.stage.addEventListener('bagviewlayout',()=>this.place());
     // A click that only closed the details leaves the flap alone.
-    this.stage.addEventListener('bagclick',()=>{if(this.swallowClick){this.swallowClick=false;return;}void this.setOpen(!this.open);});
+    // A click on the bag's top section works the putter pocket; anywhere else on the bag works the flap.
+    this.stage.addEventListener('bagclick',event=>{if(this.swallowClick){this.swallowClick=false;return;}if(this.onPocketZone(event.detail))void this.setPocket(!this.pocketOpen);else void this.setOpen(!this.open);});
     // The bag stays turned where the user leaves it; targets and labels follow once the drag ends.
     this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.hidePopup();this.root.dataset.dragging='';});
     this.stage.addEventListener('bagdragend',()=>{delete this.root.dataset.dragging;this.interactive(!this.running);});
@@ -581,6 +582,13 @@ export class BagScene {
   if(epoch!==this.epoch)return;
   this.running=false;this.root.dataset.putterPocket=open?'open':'collapsed';this.place();
   if(this.pendingDraw){this.pendingDraw=false;this.draw();}else this.interactive(true);
+ }
+ // The bag's top section: the putter pocket's footprint plus the upper flap below its mouth (the same
+ // size again), measured with the bag as it is turned now. With no putters the pocket has no control.
+ onPocketZone(point){
+  if(!point || !this.viewer || this.pocketToggle?.disabled)return false;
+  const zone=this.viewer.pocketRects().putter;
+  return point.x>=zone.left && point.x<=zone.left+zone.width && point.y>=zone.top && point.y<=zone.top+zone.height*2;
  }
  syncPocket(){
   const button=this.pocketToggle;if(!button)return;
