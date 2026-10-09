@@ -58,7 +58,7 @@ try {
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
  await page.waitForFunction(()=>discs.length>0);
  assert.ok(await views.isVisible(),'Signed in, the view switch appears');
- await page.getByRole('radio',{name:'My map'}).click();
+ await page.getByRole('radio',{name:'My Map'}).click();
  await page.locator('#myMapEmpty').waitFor();
  assert.equal(await page.locator('#myMapEmptyTitle').textContent(),'Your map is empty.');
  assert.ok(await page.locator('#myMapHost').isHidden() && await page.locator('#bagScene').isHidden(),'Empty: no map, no bag scene');
@@ -79,7 +79,7 @@ try {
 
  // 4. Populated: only bagged rated molds, at consensus ± the notes; speed untouched.
  await page.reload();await page.waitForFunction(()=>discs.length>0 && window.BagApp.mapColors().size>0);
- await page.getByRole('radio',{name:'My map'}).click();
+ await page.getByRole('radio',{name:'My Map'}).click();
  await page.waitForFunction(()=>myMap && document.querySelector('#mapWrap').closest('#myMapHost'));await mapReady();
  const molds=[...new Set(BAG.map(b=>b[0]))];
  const plotted=await page.evaluate(()=>({ids:filtered.map(d=>d.id).sort(),markers:document.querySelectorAll('#mapMarkers .atlas-marker').length,
@@ -131,7 +131,7 @@ try {
   const r=await fetch('/api/bag/discs/'+copy.id,{method:'PATCH',headers,body:JSON.stringify({stability_bias:'more_stable'})});if(!r.ok)throw Error(await r.text());
  });
  await page.getByRole('radio',{name:'Bag'}).click();await page.reload();await page.waitForFunction(()=>discs.length>0 && window.BagApp.mapColors().size>0);
- await page.getByRole('radio',{name:'My map'}).click();await page.waitForFunction(()=>myMap?.shifts.get('da3c28085382')===10);await mapReady();
+ await page.getByRole('radio',{name:'My Map'}).click();await page.waitForFunction(()=>myMap?.shifts.get('da3c28085382')===10);await mapReady();
  assert.match(await page.locator('#myMapSummary').textContent(),/3 moved/);
  check('A saved stability note moves its disc on My Map');
 
@@ -146,7 +146,7 @@ try {
   }
  });
  await page.reload();await page.waitForFunction(()=>discs.length>0 && window.BagApp.mapColors().size>0);
- await page.getByRole('radio',{name:'My map'}).click();await page.waitForFunction(()=>myMap?.shifts.get('9554f962a394')===-10 && myMap?.shifts.get('b52c5cb1753a')===0);await mapReady();
+ await page.getByRole('radio',{name:'My Map'}).click();await page.waitForFunction(()=>myMap?.shifts.get('9554f962a394')===-10 && myMap?.shifts.get('b52c5cb1753a')===0);await mapReady();
  assert.ok(await page.evaluate(()=>atlasPositions.get('9554f962a394').x<atlasPositions.get('b52c5cb1753a').x && atlasPositions.get('b52c5cb1753a').x<atlasPositions.get('3d60892b6812').x),'The reported flight relationship survives the personal transform');
  check('Test-only Less stable DD1: DD3 is more stable than DD1, and Destroyer farther to the stable side');
 
@@ -190,7 +190,7 @@ try {
  assert.equal(await page.evaluate(()=>myMap),null,'Bag view: personal mode off');
  assert.ok(await page.locator('#bagScene').isVisible(),'The bag scene is back');
  // Leave straight from My Map: the header tab must undock it too.
- await page.getByRole('radio',{name:'My map'}).click();await page.waitForFunction(()=>myMap);
+ await page.getByRole('radio',{name:'My Map'}).click();await page.waitForFunction(()=>myMap);
  await page.locator('#mapTab').click();await page.waitForFunction(()=>view==='map' && document.body.dataset.view==='map');await mapReady();
  const shared=await page.evaluate(()=>({home:!!document.querySelector('#mapWrap').closest('#atlasMain'),same:atlasPositions===sharedPositions,count:filtered.length,
   immersive:!document.body.classList.contains('my-bag-mode'),consensus:[...atlasPositions].every(([id,p])=>{const d=discs.find(x=>x.id===id);return Math.abs(p.x-window.AtlasLayout.positions([d]).get(id).x)<1e-12;})}));
