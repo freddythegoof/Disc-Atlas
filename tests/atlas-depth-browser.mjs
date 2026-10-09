@@ -183,7 +183,7 @@ try{
     assert.equal(g.label,g.named?+view.labelAlpha.toFixed(4):0,`${label}: ${g.name}'s name shows at ${g.label}`);
    }
    if(name==='far'){
-    assert.ok(drawn.length>=(viewport==='desktop'?80:18),`${label}: ${drawn.length} small discs at 1x`);
+    assert.ok(drawn.length>=(viewport==='desktop'?45:12)&&drawn.length<=(viewport==='desktop'?75:20),`${label}: ${drawn.length} small discs at 1x`);
     assert.ok(drawn.every(g=>g.label===0)&&!view.marks.some(m=>!m.large&&m.strength>0),`${label}: a small disc is named at 1x`);
    }
    // Deep in, small discs show names (where any rest in view; a complete view may show every disc in full).

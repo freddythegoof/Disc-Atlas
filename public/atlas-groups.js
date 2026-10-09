@@ -29,7 +29,7 @@ globalThis.AtlasGroups = {
  // `apart` px from another small disc or its name, with `spacing` (`phoneSpacing` under 700px)
  // between small disc centers. At 1x they draw at `far` strength, quieter than the discs in front,
  // and come up to full strength as the art grows (4x).
- GAP:{size:12,room:8,reach:.6,spacing:40,phoneSpacing:36,art:20,label:8,apart:6,labelFrom:4.5,labelTo:6,far:.72},
+ GAP:{size:12,room:8,reach:.6,spacing:60,phoneSpacing:54,art:20,label:8,apart:6,labelFrom:4.5,labelTo:6,far:.72},
  gapSize(zoom){return this.GAP.size*this.artRoom(zoom);},
  gapAlpha(zoom){return this.GAP.far+(1-this.GAP.far)*(this.artRoom(zoom)-1)/.24;},
  // How visible small discs' names are at a zoom: none below labelFrom, all from labelTo, smooth between.

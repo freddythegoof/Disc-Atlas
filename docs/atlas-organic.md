@@ -100,7 +100,7 @@ Tier 2 is a final pass of `AtlasGroups.curate` (rule 7), run only in views that 
   its toss, its point and 6 around the reach, nearest the toss first.
 - **Clearance.** A small disc is placed only where it stays 20 px from every curated disc's art
   (`GAP.art`) and 8 px from every curated name (`GAP.label`). It also stays 6 px from other small
-  discs and names (`GAP.apart`), keeps 40 px between small centers (36 px on phones), and stays off
+  discs and names (`GAP.apart`), keeps 60 px between small centers (54 px on phones), and stays off
   the chrome and inside the map at 1x. These distances are stretch-aware, like the curated discs'
   own, so they hold at every zoom the level is shown at. A small disc that would crowd anything is
   not placed. Curated discs never move for tier 2: curating with and without it gives the same
@@ -113,8 +113,8 @@ Tier 2 is a final pass of `AtlasGroups.curate` (rule 7), run only in views that 
 - **Packed.** `build` hands curate its points as typed arrays (`index` into the items, then x, y and
   the atlas position), and the worker transfers them rather than copying them.
 
-The unfiltered 1440 × 900 map shows about 110 small discs at 1x, 87 at 3x and 25 at 6.5x. A phone
-shows 25 at 1x. A complete view (every match shows, such as a narrow filter or desktop past about
+The unfiltered 1440 × 900 map shows about 60 small discs at 1x, 62 at 3x and 22 at 6.5x. A phone
+shows 17 at 1x. A complete view (every match shows, such as a narrow filter or desktop past about
 7x) has no tier 2: its dots are its small discs. Their places are curate's, unchanged.
 
 ### How they look

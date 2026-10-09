@@ -79,7 +79,7 @@ test('small discs fill the room the curated set leaves, from the rest of the rat
  for(const view of Object.keys(VIEWS))for(const level of LEVELS){
   const L=layout(view,level),shown=new Set(L.groups.filter(g=>!g.hidden).map(g=>g.key)),ids=L.gaps.map(p=>p.id);
   if(L.groups[0].complete){assert.equal(L.gaps.length,0,`${view} level ${level}: a complete view has no tier 2`);continue;}
-  assert.ok(L.gaps.length>(view==='desktop'?60:10),`${view} level ${level}: ${L.gaps.length} small discs`);
+  assert.ok(L.gaps.length>(view==='desktop'?40:8),`${view} level ${level}: ${L.gaps.length} small discs`);
   assert.equal(new Set(ids).size,ids.length);
   for(const id of ids){assert.ok(!shown.has(id),`${id} is a curated disc`);assert.ok(positions.has(id));}
   // Real discs at their real points: each rests within its small reach of its own atlas point.
