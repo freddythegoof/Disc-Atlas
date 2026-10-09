@@ -29,6 +29,7 @@
     "test:bag:controls": "node tests/bag-map-controls-browser.mjs",
     "test:bag:popup": "node tests/bag-popup-browser.mjs",
     "test:atlas:organic": "node --test tests/atlas-organic.mjs && node tests/atlas-organic-browser.mjs",
+    "test:lens:corner": "node tests/lens-corner-browser.mjs",
     "test:atlas:depth": "node --test tests/atlas-depth.mjs && node tests/atlas-depth-browser.mjs",
     "test:directory:layout": "node tests/directory-layout-browser.mjs",
     "test:my-map": "node --test tests/personal-lens.mjs tests/personal-map-worker.mjs && node tests/my-map-browser.mjs"

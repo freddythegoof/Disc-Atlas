@@ -180,14 +180,14 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 .map-edge-feedback .right{right:0;background:linear-gradient(-90deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-right,0)}
 .map-edge-feedback .top{top:0;background:linear-gradient(180deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-top,0)}
 .map-edge-feedback .bottom{bottom:0;background:linear-gradient(0deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-bottom,0)}
-.explore-tools button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide{
+.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide{
  transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s;
 }
 @media(hover:hover) and (pointer:fine){
  .explore-tools button:hover,.map-controls button:hover,.coach-launch:hover,.pill-button:hover{transform:translateY(-2px)}
  .detail-actions button:hover,.wide:hover{background:var(--accent-soft);color:var(--text)}
 }
-.explore-tools button:active,.map-controls button:active,.detail-actions button:active,.coach-launch:active,.pill-button:active,.wide:active{transform:scale(.96)}
+.explore-tools button:active,.atlas-lens button:active,.map-controls button:active,.detail-actions button:active,.coach-launch:active,.pill-button:active,.wide:active{transform:scale(.96)}
 header nav button{position:relative;border-bottom-color:transparent!important}
 header nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:center;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 header nav button.active::after{transform:scaleX(1)}
@@ -362,18 +362,14 @@ body[data-view="list"] .coach-label{display:none}
 /* Your bag on the atlas (signed in): My Bag / Default / Only my discs. */
 .atlas-lens{display:flex;flex-shrink:0;gap:2px;height:46px;padding:3px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:12px;background:color-mix(in srgb,var(--panel) 92%,transparent);box-shadow:0 2px 8px var(--shadow)}
 .atlas-lens[hidden]{display:none}
-.explore-tools .atlas-lens button{padding:0 12px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);background:none;transform:none}
-.explore-tools .atlas-lens button:hover{color:var(--text);transform:none}
-.explore-tools .atlas-lens button[aria-checked="true"]{background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
+.atlas-lens button{padding:0 12px;border-radius:9px;font-size:12px;font-weight:500;white-space:nowrap;color:var(--muted);background:none;transform:none}
+.atlas-lens button:hover{color:var(--text);transform:none}
+.atlas-lens button[aria-checked="true"]{background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
 .atlas-lens button:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
 .atlas-lens .lens-short{display:none}
-body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:min(780px,calc(100% - 56px))}
 @media(max-width:700px){
- .atlas-lens{height:44px}.explore-tools .atlas-lens button{padding:0 9px}
+ .atlas-lens{height:44px}.atlas-lens button{padding:0 9px}
  .atlas-lens .lens-long{display:none}.atlas-lens .lens-short{display:inline}
- .explore-tools:has(.atlas-lens:not([hidden])) #filtersToggle{width:44px;padding:0;font-size:0;justify-content:center}
- .explore-tools:has(.atlas-lens:not([hidden])) #filtersToggle span{font-size:16px}
- body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:calc(100% - 32px)}
 }
 /* Discs from the player's bag wear their own color and a ring. */
 .atlas-marker.is-mine .disc-art,.atlas-marker.is-dot.is-mine .map-dot{outline:2px solid color-mix(in srgb,var(--text) 78%,transparent);outline-offset:2px}
@@ -388,9 +384,6 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidd
 .explore-tools .type-chips button:hover{color:var(--text)}
 .explore-tools .type-chips button[aria-pressed="true"]{background:var(--selected);color:var(--text);border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime)}
 body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100% - 56px));max-width:none}
-@media(min-width:1100px){
- body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:min(1040px,calc(100% - 56px))}
-}
 @media(max-width:1099px){
  .type-chips{flex:0 0 100%;order:3;margin-left:0}
  body[data-view="map"]:not(.my-bag-mode) .map-caption{top:156px}
@@ -399,7 +392,7 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100%
  .explore-tools .search{min-width:0}
  body[data-view="map"]:not(.my-bag-mode) .map-caption{top:132px}
  .explore-tools .type-chips button{height:38px;padding:0 15px;font-size:13px}
- body[data-view="map"]:not(.my-bag-mode) .explore-tools,body[data-view="map"]:not(.my-bag-mode) .explore-tools:has(.atlas-lens:not([hidden])){width:calc(100% - 32px)}
+ body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:calc(100% - 32px)}
 }
 
 /* Toolbar dropdowns (Brand chip, map lens): fixed panels that app.js places under their button. */
@@ -418,7 +411,7 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100%
  .type-chips::-webkit-scrollbar{display:none}
  .type-chips>button{flex-shrink:0}
 }
-.explore-tools .atlas-lens .lens-button{display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 14px;color:var(--text)}
+.atlas-lens .lens-button{display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 14px;color:var(--text)}
 .lens-menu{width:190px;gap:2px;padding:6px}
 .lens-menu [role="menuitemradio"]{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;color:var(--text)}
 .lens-menu [role="menuitemradio"]:hover,.lens-menu [role="menuitemradio"]:focus-visible{background:var(--selected);outline:none}
@@ -427,3 +420,10 @@ body[data-view="map"]:not(.my-bag-mode) .explore-tools{width:min(780px,calc(100%
 .lens-menu [aria-checked="true"]::after{opacity:1}
 /* A narrow search box ends its placeholder with an ellipsis instead of a cut-off word. */
 #search{text-overflow:ellipsis}
+/* The map dropdown (Standard / Personalized / My Bag) sits in the atlas's top-right corner: level with the
+   search row and in line with the zoom controls' right edge. It is map chrome, so the 1x layout keeps discs clear of it.
+   Phones have no spare room beside the search row, so it takes the right end of the caption row under the chips. */
+body[data-view="map"]:not(.my-bag-mode) .atlas-lens{position:absolute;top:22px;right:24px;z-index:12}
+@media(max-width:700px){
+ body[data-view="map"]:not(.my-bag-mode) .atlas-lens{top:124px;right:16px;height:40px}
+}

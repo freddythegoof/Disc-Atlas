@@ -174,7 +174,9 @@ $('#contextTitle').onclick=()=>{
 };
 function renderLegend(){const names=[...selectedBrands];$('#legend').innerHTML=names.length>1?`<span class="legend-label">MANUFACTURERS</span>`+names.slice(0,7).map(b=>`<span><i class="dot" style="background:${brandColor(b)}"></i>${esc(b)}</span>`).join('')+(names.length>7?`<span>+${names.length-7} more</span>`:''):'<span><i class="dot putter"></i>Putter</span><span><i class="dot mid"></i>Mid</span><span><i class="dot fairway"></i>Fairway</span><span><i class="dot distance"></i>Distance</span>';if(activeLens()!=='default')$('#legend').insertAdjacentHTML('beforeend','<span class="legend-mine"><i class="dot mine"></i>Your bag</span>');}
 function renderLens(){
- const group=$('#atlasLens'),shown=bagColors().size?activeLens():atlasLens;group.hidden=view!=='map'||!bagColors().size;
+ const group=$('#atlasLens'),shown=bagColors().size?activeLens():atlasLens,wasHidden=group.hidden;group.hidden=view!=='map'||!bagColors().size;
+ // The dropdown is map chrome in the top-right corner: when it comes or goes the layout re-measures what to keep clear.
+ if(wasHidden!==group.hidden&&typeof measureMap==='function')measureMap();
  if(group.hidden&&!$('#lensMenu').hidden)closeDropdown(false);
  $('#lensButton .dd-label').textContent=lensNames[shown];
  for(const item of $('#lensMenu').querySelectorAll('[data-lens]'))item.setAttribute('aria-checked',String(item.dataset.lens===shown));
@@ -214,7 +216,8 @@ function showDropdown(panel,button){
 }
 function placeDropdown(){
  if(!openDropdown)return;const {panel,button}=openDropdown,r=button.getBoundingClientRect();
- panel.style.left=Math.max(8,Math.min(r.left,innerWidth-panel.offsetWidth-8))+'px';panel.style.top=(r.bottom+6)+'px';
+ const x=panel.dataset.align==='end'?r.right-panel.offsetWidth:r.left;
+ panel.style.left=Math.max(8,Math.min(x,innerWidth-panel.offsetWidth-8))+'px';panel.style.top=(r.bottom+6)+'px';
  panel.style.maxHeight=Math.min(420,Math.max(160,innerHeight-r.bottom-18))+'px';
 }
 function closeDropdown(focus=true){

@@ -87,7 +87,7 @@ const layout=page=>page.evaluate(()=>{
    transform:node.position.style.transform,artTransform:g.large?getComputedStyle(node.querySelector('.disc-art')).transform:'none',
    label:g.large?rect(name).y-rect(node).y-(g.nudge?.y||0):null,selected:g.members.includes(selected)};
  });
- const chrome=[...document.querySelectorAll('.explore-tools,.map-caption,.map-toolbar,.map-controls,#coachButton')]
+ const chrome=[...document.querySelectorAll('.explore-tools,.atlas-lens,.map-caption,.map-toolbar,.map-controls,#coachButton')]
   .filter(n=>n.checkVisibility({visibilityProperty:true})).map(rect).filter(b=>b.w&&b.h);
  return {items,chrome,map:{w:map.width,h:map.height},zoom,scale:mapMarkerScale(),cap:organicOptions(area,w,h,groupCache).cap,
   rated:filtered.filter(d=>d.speed!=null).length,complete:groupCache.groups.some(g=>g.complete),

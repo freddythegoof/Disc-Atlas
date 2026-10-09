@@ -176,13 +176,13 @@ try {
  await chooseMap('Personalized');await overview();await shot('map-mine-1x-1440-midnight');
  await page.setViewportSize({width:360,height:800});await page.evaluate(()=>measureMap());await overview();
  const bar=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();return {tools:r('.explore-tools'),lens:r('#atlasLens'),search:r('.explore-tools .search')};});
- assert.ok(bar.lens.right<=bar.tools.right+1 && Math.abs(bar.lens.top-bar.search.top)<2 && bar.search.width>=90,'Phone: the map button shares the search row: '+JSON.stringify(bar));
+ assert.ok(bar.lens.right<=360-15 && bar.lens.left>=bar.tools.left && bar.lens.top>=bar.tools.bottom-1 && bar.search.width>=200,'Phone: the map button sits at the top right of the map, under the filter bar: '+JSON.stringify(bar));
  await lensButton.click();const menuBox=await lensMenu.boundingBox();
  assert.ok(menuBox.x>=0 && menuBox.x+menuBox.width<=360.5,'Phone: the map menu stays on screen: '+JSON.stringify(menuBox));
  await shot('map-menu-360-midnight');await page.keyboard.press('Escape');
  await shot('map-mine-1x-360-midnight');
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');
- check(`Bag on the atlas: ${lens.rated} rated bag molds all lead (or share) a bag-led group in their bag colors, ringed, with a legend entry; map dropdown Standard / Personalized / My Bag (My Bag shows ${only.filtered}); keyboard; a switch lasts the visit; Default map setting applies now and every visit; old saved switch migrates; fits the phone search row`);
+ check(`Bag on the atlas: ${lens.rated} rated bag molds all lead (or share) a bag-led group in their bag colors, ringed, with a legend entry; map dropdown Standard / Personalized / My Bag (My Bag shows ${only.filtered}); keyboard; a switch lasts the visit; Default map setting applies now and every visit; old saved switch migrates; sits top right of the map on the phone`);
 
  // 4. My Bag: one size (no S/M/L), a little larger than the old Medium.
  await page.locator('#bagTab').click();

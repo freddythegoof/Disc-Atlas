@@ -54,7 +54,7 @@ function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;
 let mapChrome=null;
 function measureChrome(){
  const map=mapViewport||canvas.getBoundingClientRect();
- mapChrome=[...document.querySelectorAll('.explore-tools,.map-caption,.map-toolbar,.map-controls,#coachButton')].flatMap(node=>{
+ mapChrome=[...document.querySelectorAll('.explore-tools,.atlas-lens,.map-caption,.map-toolbar,.map-controls,#coachButton')].flatMap(node=>{
   const r=node.getBoundingClientRect();
   if(!r.width||!r.height||node.checkVisibility?.({visibilityProperty:true})===false)return [];
   const box={x:r.left-map.left,y:r.top-map.top,w:r.width,h:r.height};
