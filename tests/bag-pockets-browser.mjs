@@ -66,6 +66,8 @@ try {
  await page.goto(base+'/?bag=1');await page.locator('#bagTab').click();
  // Wait for the page to load and show storage section, then find and click edit for the storage disc
  await page.waitForTimeout(400);
+ // My Bag shows one list at a time: the stored copy is in the Storage list.
+ await page.locator('#bagListPicker [data-bag-list="storage"]').click();
  const editStorageButton=page.locator(`[data-bag-edit="${storageViaApi.id}"]`).first();
  await editStorageButton.click();
  // Verify that when opening a Storage disc, Pocket field is hidden

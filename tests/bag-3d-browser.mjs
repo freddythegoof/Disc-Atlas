@@ -103,7 +103,7 @@ try {
  assert.ok(at(putter.id)[1]>at(goto.id)[1] && at(goto.id)[1]>at(driver.id)[1],'Putters in the top pocket, go-to in the front pocket above main');
  assert.ok(at(goto.id)[2]>at(putter.id)[2] && at(goto.id)[2]>at(driver.id)[2],'Go-to pocket is the front pocket');
  assert.equal(layout.find(d=>d.id===driver.id).color,'#ed7868','Per-disc color reaches the 3D material');
- assert.match(await page.locator('#bagSlotMeter').innerText(),/^6 \/ 23$/);assert.ok(await page.locator('#bagStorage').isVisible());
+ assert.match(await page.locator('#bagSlotMeter').innerText(),/^6 \/ 23$/);assert.ok(await page.locator('#bagStorage').isHidden(),'One list at a time: Storage waits behind the list picker');assert.equal(await page.locator('[data-list-count="storage"]').innerText(),'1');
  check('Parity: 19 main + 4 putter slots, putters in the top pocket, go-to in the front pocket above main, per-disc colors, meter and Storage');
 
  // 3. Live sync: every change applies to the 3D scene without a reload.
@@ -119,8 +119,10 @@ try {
  // Color via the edit sheet.
  await page.locator(`[data-bag-edit="${luna.id}"]`).click();await page.locator('#bagDiscColor').fill('#ffcc66');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  await inSync('disc color edit');
- // Storage and back.
+ // Storage and back (My Bag shows one list at a time: Storage, then Bag).
+ await page.locator('#bagListPicker [data-bag-list="storage"]').click();
  await page.locator(`[data-bag-move="${stored.id}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');await inSync('stored disc bagged');
+ await page.locator('#bagListPicker [data-bag-list="bag"]').click();
  await page.locator(`[data-bag-move="${stored.id}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');await inSync('disc stored');
  // Bag color and capacities via Bag settings.
  await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('__custom');await page.locator('#customBagName').fill('Tournament pack');

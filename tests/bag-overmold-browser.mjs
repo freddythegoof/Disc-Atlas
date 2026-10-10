@@ -34,6 +34,8 @@ try {
   await page.evaluate(async({name,destination})=>{const d=discs.find(d=>d.name===name);if(!d)throw Error('Missing mold '+name);await BagApp.add(d,null,destination);},{name,destination});
   await page.locator('#addDiscDialog').waitFor();
  };
+ // My Bag shows one list at a time (Bag, Storage or Lost).
+ const showList=name=>page.locator(`#bagListPicker [data-bag-list="${name}"]`).click();
  const save=async()=>{await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});};
  await open('Envy');
  assert.equal(await page.locator('#addDiscDialog input[type=color]:visible').count(),2);
@@ -55,11 +57,11 @@ try {
  assert.deepEqual(await page.evaluate(()=>({plate:Disc3D.viewer.debug.bodyMaterial.color.getHexString(),rim:Disc3D.viewer.debug.rimMaterial.color.getHexString()})),{plate:'0000ff',rim:'000000'});
  await page.locator('#detail').screenshot({path:dir+'/envy-preview.png'});
  await page.locator('#closeDetail').click();
- await page.locator(`[data-bag-move="${envy.id}"]`).click();await page.locator(`#bagStorage [data-bag-edit="${envy.id}"]`).waitFor();
+ await page.locator(`[data-bag-move="${envy.id}"]`).click();await showList('storage');await page.locator(`#bagStorage [data-bag-edit="${envy.id}"]`).waitFor();
  await page.locator(`#bagStorage [data-bag-edit="${envy.id}"]`).click();
  assert.equal(await page.locator('#bagRimColor').inputValue(),'#000000');
  await page.locator('#bagDiscColor').fill('#00ff00');assert.equal(await page.locator('#bagRimColor').inputValue(),'#000000');await save();
- await page.reload();await page.locator(`#bagStorage [data-bag-edit="${envy.id}"]`).waitFor();
+ await page.reload();await page.locator('#bagListPicker').waitFor();await showList('storage');await page.locator(`#bagStorage [data-bag-edit="${envy.id}"]`).waitFor();
  data=await (await page.request.get(base+'/api/bag')).json();assert.equal(data.discs[0].color,'#00ff00');assert.equal(data.discs[0].rim_color,'#000000');assert.equal(data.discs[0].in_bag,false);
  // Both single-mold cases retain the existing label, picker and save behavior.
  for(const name of ['Destroyer','Pilot']){
@@ -67,9 +69,10 @@ try {
   assert.equal(await page.locator('#bagDiscColorLabel').innerText(),'Disc color');
   await page.locator('#bagDiscColor').fill('#123456');await save();
   data=await (await page.request.get(base+'/api/bag')).json();const item=data.discs.at(-1);
-  await page.locator(`[data-bag-edit="${item.id}"]`).click();assert.equal(await page.locator('#addDiscDialog input[type=color]:visible').count(),1);
+  await showList('bag');await page.locator(`[data-bag-edit="${item.id}"]`).click();assert.equal(await page.locator('#addDiscDialog input[type=color]:visible').count(),1);
   assert.equal(await page.locator('#bagDiscColor').inputValue(),'#123456');await page.keyboard.press('Escape');
  }
+ await showList('storage');
  for(const theme of ['light','midnight','charcoal','black'])for(const width of [1440,360]){
   await page.setViewportSize({width,height:width===360?800:1000});
   await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);

@@ -83,7 +83,10 @@ try {
  check('Inline move to main persists across reload (API, list select and scene)');
  // Store and re-bag, change sort, and save an unrelated edit: still main after reload.
  await page.locator(`[data-bag-move="${putter.id}"]`).click();await page.waitForFunction(id=>document.querySelector(`[data-bag-move="${id}"]`)?.textContent==='Move to bag',putter.id);
+ // My Bag shows one list at a time: the stored copy is in the Storage list.
+ await page.locator('#bagListPicker [data-bag-list="storage"]').click();
  await page.locator(`[data-bag-move="${putter.id}"]`).click();await page.waitForFunction(id=>document.querySelector(`[data-bag-move="${id}"]`)?.textContent==='Store',putter.id);
+ await page.locator('#bagListPicker [data-bag-list="bag"]').click();
  await page.locator('#bagSort').selectOption('stability');await page.waitForFunction(()=>!document.querySelector('#bagSort').disabled);
  await page.locator(`[data-bag-edit="${putter.id}"]`).click();assert.equal(await page.locator('#bagPocket').inputValue(),'main');
  await page.locator('#bagWeight').fill('170');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});

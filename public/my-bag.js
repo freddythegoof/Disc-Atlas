@@ -3,11 +3,15 @@ import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
 import {isOvermold,overmoldColors} from './disc3d/overmold.mjs';
+import {StorageScene,LostScene} from './collection-scenes.js';
+import {rackOrder} from './collection3d/rack-layout.mjs';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custom bag',capacity:20}, items = [], active = false;
 let plastics, models, editing = null, removing = null, losing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
 let colorCustomized=false,rimCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
+// The view above (Bag, My Map, Storage or Lost) and the one list shown below it (Bag, Storage or Lost).
+let bagView='bag',listView='bag',removeOrigin=null;
 const pendingPockets=new Map();
 const pendingFound=new Set();
 const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async path => {const r = await fetch(path);if (!r.ok) throw Error('Bag choices could not load. Please try again.');return r.json();})).then(([p,m])=>{plastics=p;models=m;});
@@ -28,6 +32,23 @@ function publishBagColors(){
  window.dispatchEvent(new CustomEvent('atlas-bag-change'));
 }
 const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail,deselect:closeBagDetail});
+// Storage racks and the lost-disc graveyard: their 3D loads only when their tab first shows.
+const storageScene=new StorageScene($('#storageScene'),{lookup:mold,name,
+ moveToBag:(item,button)=>void moveDisc(item.id,button),
+ details:item=>openBagDetail(mold(item.mold_id),item),
+ remove:item=>openRemove(item,'card')});
+const lostScene=new LostScene($('#lostScene'),{lookup:mold,name,classOf:bagClass,
+ found:(item,button)=>void foundDisc(item.id,button),pending:id=>pendingFound.has(id)});
+const storedItems=()=>rackOrder(items.filter(i=>i.in_bag===false && i.status!=='lost'),{classOf:i=>bagClass(mold(i.mold_id)),compare:bagComparator(settings.sort_mode,mold)});
+const lostItems=()=>items.filter(i=>i.status==='lost').sort((a,b)=>b.lostDate.localeCompare(a.lostDate) || a.id.localeCompare(b.id));
+// Focus the first of these that is on screen (rows in a hidden list don't count).
+function focusFirst(...selectors){for(const selector of selectors){const node=selector && $(selector);if(node?.checkVisibility() && !node.disabled){node.focus({preventScroll:true});return node;}}return null;}
+// The row after this one in its own list (or before it, at the end), to keep focus nearby when it leaves.
+function neighborOf(id){
+ const row=$(`#myBagContents [data-disc-id="${CSS.escape(id)}"],#myBagContents [data-memorial-id="${CSS.escape(id)}"]`),list=row?.closest('#bagLineup,#bagStorage,#bagMemorial');if(!list)return null;
+ const rows=[...list.querySelectorAll('[data-disc-id],[data-memorial-id]')],i=rows.indexOf(row),next=rows[i+1]||rows[i-1];
+ return next?(next.dataset.discId||next.dataset.memorialId):null;
+}
 // Disc details open in the atlas's own panel, docked on the My Bag page, with this copy's details and notes.
 let detailItem=null;const detailPanel=$('#detail'),detailHome=detailPanel.parentNode;
 function openBagDetail(d,item){
@@ -81,7 +102,7 @@ function sync(data) {
  const changed = account?.csrfToken !== data.csrfToken || !!account?.user !== !!data.user;
  account = data;
  if(changed) {
-  generation++;mapOpen=false;scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;losing=null;ordering=false;dragging=null;pendingPockets.clear();pendingFound.clear();
+  generation++;mapOpen=false;bagView='bag';listView='bag';scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;losing=null;ordering=false;dragging=null;pendingPockets.clear();pendingFound.clear();
   window.AtlasDropdown.close(false);
   for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog','lostDiscDialog']) if($('#'+id).open)$('#'+id).close();
   status('');
@@ -100,10 +121,19 @@ function render() {
  const bagged=items.filter(i=>i.in_bag!==false).sort(bagComparator(settings.sort_mode,mold)),stored=items.filter(i=>i.in_bag===false && i.status!=='lost'),count=bagged.length;
  $('#bagSort').value=settings.sort_mode || 'speed';$('#bagSort').disabled=loading || !!loadError || ordering;
  $('#bagSortHint').textContent=settings.sort_mode==='custom'?'Drag the grip, or use Move earlier / later.':settings.sort_mode==='stability'?'Most stable first · shared atlas index':'Fastest first · stability within each speed';
- $('#bagScene').hidden=!shown || loading || !!loadError || mapOpen;
- $('#myBagViews').hidden=!signedIn;$('.bag-sort-bar').hidden=mapOpen;$('.bag-sort-bar').toggleAttribute('data-demo',!!demo);
- for(const button of $('#myBagViews').querySelectorAll('[data-bag-view]')){const on=(button.dataset.bagView==='map')===mapOpen;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
+ $('#bagScene').hidden=!shown || loading || !!loadError || bagView!=='bag';
+ $('#myBagViews').hidden=!signedIn;$('.bag-sort-bar').hidden=bagView!=='bag';$('.bag-sort-bar').toggleAttribute('data-demo',!!demo);
+ for(const button of $('#myBagViews').querySelectorAll('[data-bag-view]')){const on=button.dataset.bagView===bagView;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
  $('#myBagContents').hidden||=mapOpen;$('#myMapPanel').hidden=!signedIn || loading || !!loadError || !mapOpen;syncMyMap();
+ // One list at a time: the picker chooses Bag, Storage or Lost (the demo has no Lost list).
+ if(demo && listView==='lost')listView='bag';
+ const lost=items.filter(i=>i.status==='lost');
+ $('#bagListPicker').hidden=$('#myBagContents').hidden;$('#bagListPicker [data-bag-list="lost"]').hidden=!!demo;
+ for(const button of $('#bagListPicker').querySelectorAll('[data-bag-list]')){const on=button.dataset.bagList===listView;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
+ $('#bagListPicker [data-list-count="bag"]').textContent=count;$('#bagListPicker [data-list-count="storage"]').textContent=stored.length;$('#bagListPicker [data-list-count="lost"]').textContent=lost.length;
+ const ready=signedIn && !loading && !loadError && active;
+ storageScene.sync(ready && bagView==='storage',ready && bagView==='storage'?storedItems():[]);
+ lostScene.sync(ready && bagView==='lost',ready && bagView==='lost'?lostItems():[]);
  $('#bagSlotMeter').textContent=`${count} / ${settings.capacity}`;
  const breakdown=`${settings.main_capacity ?? settings.capacity} main + ${settings.putter_capacity ?? 0} putter${settings.extra_capacity?' + '+settings.extra_capacity+' extra':''}`;
  $('#bagSlotMeter').title=breakdown;$('#bagPocketBreakdown').textContent=breakdown;
@@ -113,7 +143,7 @@ function render() {
  $('#bagCapacityNotice').textContent=count===settings.capacity?'Your bag is full. You can still add a disc.':'A little over capacity. Move a spare to Storage, or keep carrying it.';
  $('#editBagModel').disabled=loading || !!loadError || ordering;
  if(!shown || loading || loadError){$('#myBagContents').replaceChildren();return;}
- scene.update(items,settings);if(active && !mapOpen)void scene.reveal();refreshBagDetail();
+ scene.update(items,settings);if(active && bagView==='bag')void scene.reveal();refreshBagDetail();
  const groups=[['distance','Distance drivers'],['fairway','Fairway drivers'],['mid','Midranges'],['putter','Putters'],['unknown','Unclassified discs']];
  const grouped=(collection,ordered=false)=>(ordered?[['lineup','Bag discs']]:groups).map(([key,label])=>{
   const rows=ordered?collection:collection.filter(i=>bagClass(mold(i.mold_id))===key).sort(bagComparator(settings.sort_mode,mold));if(!rows.length)return '';
@@ -123,12 +153,12 @@ function render() {
    return `<article class="my-bag-disc" data-disc-id="${i.id}"><span class="bag-disc-swatch" style="--disc-color:${esc(i.color||'#e6c668')}" aria-label="Disc color ${esc(i.color||'#e6c668')}"></span><div class="my-bag-disc-copy"><button class="my-bag-disc-name" data-bag-inspect="${esc(i.id)}" ${d?'':'disabled'}>${esc(name(d))}</button><span class="my-bag-brand">${esc(d?.brand || 'Saved disc')}</span><div class="my-bag-disc-details"><span>${esc(i.plastic)}</span><span>${i.weight_g} g</span><span class="wear-badge" data-beat="${i.wear<=2}">${i.wear}/10 · ${wearLabel(i.wear)}</span>${demo?`<span class="bag-pocket-text">${i.in_bag===false?'Storage':pocketLabel(i.pocket)}</span>`:`<label class="bag-pocket-inline"><span class="bag-sr">Pocket for ${esc(name(d))}</span><span class="dd-select dd-select-sm"><select data-bag-pocket="${i.id}" ${ordering||pendingPockets.has(i.id)?'disabled':''}>${POCKETS.map(([value,label])=>`<option value="${value}"${(pendingPockets.get(i.id) ?? i.pocket)===value?' selected':''}>${label}</option>`).join('')}</select>${window.DropdownIndicator.indicator('sm')}</span></label>`}${i.stability_bias?`<span class="bag-bias-label">${stabilityBiasLabel(i.stability_bias)}</span>`:''}</div>${i.notes?`<p class="my-bag-notes">${esc(i.notes)}</p>`:''}</div><div class="bag-consensus"><strong>${rated?[d.speed,d.glide,d.turn,d.fade].join(' / '):'Unrated'}</strong><small>${rated?'Consensus · stability '+index+'/100':'Consensus unavailable'}</small></div>${demo?'':`<div class="my-bag-disc-actions"><button type="button" data-bag-move="${i.id}" aria-label="${i.in_bag===false?'Bag':'Store'} ${esc(name(d))}">${i.in_bag===false?'Move to bag':'Store'}</button><button type="button" data-bag-edit="${i.id}" aria-label="Edit ${esc(name(d))}">Edit</button>${i.in_bag!==false?`<button type="button" data-bag-lost="${i.id}" aria-label="Mark ${esc(name(d))} lost">Lost</button>`:''}<button type="button" data-bag-remove="${i.id}" aria-label="Remove ${esc(name(d))}">Remove</button></div>`}${manual?`<div class="bag-reorder-controls"><button type="button" data-bag-drag="${i.id}" aria-label="Drag ${esc(name(d))} to reorder" aria-describedby="bagSortHint" ${ordering?'disabled':''}>⠿</button><button type="button" data-bag-earlier="${i.id}" aria-label="Move ${esc(name(d))} earlier" ${ordering||position===0?'disabled':''}>↑</button><button type="button" data-bag-later="${i.id}" aria-label="Move ${esc(name(d))} later" ${ordering||position===rows.length-1?'disabled':''}>↓</button></div>`:''}</article>`;
   }).join('')}</section>`;
  }).join('');
- $('#myBagContents').innerHTML=`<section id="bagLineup" aria-labelledby="bagLineupTitle"><div class="bag-section-heading"><h2 id="bagLineupTitle">Bag</h2><span>${count} ${count===1?'disc':'discs'} for the round</span></div>${count?grouped(bagged,true):'<div id="myBagEmpty" class="my-bag-empty"><h3>Your bag is empty.</h3><p>Add a disc from the Directory, or bring one over from Storage.</p><button id="emptyBagDirectory" class="pill-button primary" type="button">Explore the Directory ↗</button></div>'}</section><section id="bagStorage" aria-labelledby="bagStorageTitle"><div class="bag-section-heading"><h2 id="bagStorageTitle">Storage</h2><span>${stored.length} ${stored.length===1?'disc':'discs'} off the course</span></div><p class="bag-storage-note">The backups, the experiments, the ones waiting for their next round.</p>${stored.length?grouped(stored):'<div id="bagStorageEmpty" class="bag-storage-empty"><p>No discs in Storage yet. Tap Store on a disc to give it a rest.</p></div>'}</section>${demo?'':memorialWall()}`;
+ $('#myBagContents').innerHTML=`<section id="bagLineup" aria-labelledby="bagLineupTitle" ${listView==='bag'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagLineupTitle">Bag</h2><span>${count} ${count===1?'disc':'discs'} for the round</span></div>${count?grouped(bagged,true):'<div id="myBagEmpty" class="my-bag-empty"><h3>Your bag is empty.</h3><p>Add a disc from the Directory, or bring one over from Storage.</p><button id="emptyBagDirectory" class="pill-button primary" type="button">Explore the Directory ↗</button></div>'}</section><section id="bagStorage" aria-labelledby="bagStorageTitle" ${listView==='storage'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagStorageTitle">Storage</h2><span>${stored.length} ${stored.length===1?'disc':'discs'} off the course</span></div><p class="bag-storage-note">The backups, the experiments, the ones waiting for their next round.</p>${stored.length?grouped(stored):'<div id="bagStorageEmpty" class="bag-storage-empty"><p>No discs in Storage yet. Tap Store on a disc to give it a rest.</p></div>'}</section>${demo?'':memorialWall()}`;
 }
 function memorialWall(){
- const lost=items.filter(i=>i.status==='lost').sort((a,b)=>b.lostDate.localeCompare(a.lostDate) || a.id.localeCompare(b.id));
+ const lost=lostItems();
  const date=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'});
- return `<section id="bagMemorial" aria-labelledby="bagMemorialTitle"><div class="bag-section-heading"><h2 id="bagMemorialTitle" tabindex="-1">Gone But Not Forgotten</h2>${lost.length?`<span>${lost.length} ${lost.length===1?'disc':'discs'} remembered</span>`:''}</div>${lost.length?`<p class="bag-memorial-note">Good flights. Better stories. Until we meet again.</p><div class="bag-memorial-wall">${lost.map(i=>{
+ return `<section id="bagMemorial" aria-labelledby="bagMemorialTitle" ${listView==='lost'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagMemorialTitle" tabindex="-1">Gone But Not Forgotten</h2>${lost.length?`<span>${lost.length} ${lost.length===1?'disc':'discs'} remembered</span>`:''}</div>${lost.length?`<p class="bag-memorial-note">Good flights. Better stories. Until we meet again.</p><div class="bag-memorial-wall">${lost.map(i=>{
   const d=mold(i.mold_id);
   return `<article class="bag-memorial-card" data-memorial-id="${esc(i.id)}"><div class="bag-memorial-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(i.color||'#e6c668')}" aria-hidden="true"></span><div><h3>${esc(name(d))}</h3><p>${esc(i.plastic)}${d?.brand?` · ${esc(d.brand)}`:''}</p></div></div><p class="bag-memorial-place"><time datetime="${esc(i.lostDate)}">${date.format(new Date(i.lostDate+'T12:00:00'))}</time>${i.lostCourse?`<span data-lost-course>${esc(i.lostCourse)}</span>`:''}${i.lostHole!=null?`<span data-lost-hole>Hole ${i.lostHole}</span>`:''}</p>${i.lostStory?`<p class="bag-memorial-story">${esc(i.lostStory)}</p>`:''}<div class="bag-memorial-actions"><button type="button" data-bag-found="${esc(i.id)}" aria-label="Found ${esc(name(d))}!" ${pendingFound.has(i.id)?'disabled':''}>${pendingFound.has(i.id)?'Restoring…':'Found it!'}</button><button type="button" data-bag-remove="${esc(i.id)}" aria-label="Remove memorial for ${esc(name(d))}" ${pendingFound.has(i.id)?'disabled':''}>Remove</button></div></article>`;
  }).join('')}</div>`:'<div id="bagMemorialEmpty" class="bag-memorial-empty"><svg viewBox="0 0 80 48" aria-hidden="true"><path d="M4 34c16 0 14-22 30-22s15 22 30 22"/><ellipse cx="64" cy="34" rx="11" ry="4"/><path d="m61 6 2 4 4 1-4 2-2 4-1-4-4-2 4-1"/></svg><p>No discs to remember here.</p><span>May your throws stay findable.</span></div>'}</section>`;
@@ -139,7 +169,7 @@ function activateBag() {
  history.replaceState(null,'','/?bag=1');render();window.scrollTo(0,0);
 }
 function leaveBag(view) {
- active=false;syncMyMap();scene.release();undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
+ active=false;syncMyMap();scene.release();storageScene.sync(false,[]);lostScene.sync(false,[]);undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
  for(const id of ['mapTab','listTab','bagTab'])$('#'+id).setAttribute('aria-current',id===(view==='map'?'mapTab':'listTab')?'page':'false');
  history.replaceState(null,'','/');setView(view);
 }
@@ -162,7 +192,9 @@ function syncMyMap(){
  showMyMap({ids:new Set(rated.map(d=>d.id)),positions:personalPositions(window.AtlasLayout,rated,shifts),shifts},$('#myMapHost'));
 }
 function setBagView(next){
- if(mapOpen===(next==='map'))return;mapOpen=next==='map';
+ if(bagView===next)return;bagView=next;mapOpen=next==='map';
+ // The list follows the view: Storage shows the Storage list, Lost the memorials. My Map has no list.
+ if(next!=='map')listView=next;
  if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);undockDetail();scene.release();render();
 }
 $('#myBagViews').addEventListener('click',event=>{const button=event.target.closest('[data-bag-view]');if(button)setBagView(button.dataset.bagView);});
@@ -170,6 +202,13 @@ $('#myBagViews').addEventListener('keydown',event=>{
  const keys={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1};if(!keys[event.key])return;event.preventDefault();
  const buttons=[...$('#myBagViews').querySelectorAll('[data-bag-view]')],next=buttons[(buttons.indexOf(document.activeElement)+keys[event.key]+buttons.length)%buttons.length];
  setBagView(next.dataset.bagView);next.focus();
+});
+function setListView(next){if(listView===next)return;listView=next;render();}
+$('#bagListPicker').addEventListener('click',event=>{const button=event.target.closest('[data-bag-list]');if(button)setListView(button.dataset.bagList);});
+$('#bagListPicker').addEventListener('keydown',event=>{
+ const keys={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1};if(!keys[event.key])return;event.preventDefault();
+ const buttons=[...$('#bagListPicker').querySelectorAll('[data-bag-list]')].filter(b=>!b.hidden),next=buttons[(buttons.indexOf(document.activeElement)+keys[event.key]+buttons.length)%buttons.length];
+ setListView(next.dataset.bagList);next.focus();
 });
 $('#myMapDirectory').addEventListener('click',()=>directory());
 function directory() {leaveBag('list');$('#search').focus({preventScroll:true});window.scrollTo(0,0);}
@@ -312,13 +351,17 @@ $('#myBagContents').addEventListener('click',event=>{
  const edit=event.target.closest('[data-bag-edit]'),remove=event.target.closest('[data-bag-remove]'),inspect=event.target.closest('[data-bag-inspect]'),move=event.target.closest('[data-bag-move]');
  const lost=event.target.closest('[data-bag-lost]'),found=event.target.closest('[data-bag-found]');
  if(lost)openLostDisc(lost);
- if(found)void foundDisc(found);
- if(move)void moveDisc(move);
+ if(found)void foundDisc(found.dataset.bagFound,found);
+ if(move)void moveDisc(move.dataset.bagMove,move);
  if(edit){const item=items.find(i=>i.id===edit.dataset.bagEdit);void openDisc(mold(item.mold_id),item);}
- if(remove && !remove.disabled){removing=items.find(i=>i.id===remove.dataset.bagRemove);const memorial=removing.status==='lost';$('#removeDiscName').textContent=name(mold(removing.mold_id));$('#removeDiscHeading').textContent=memorial?'Remove this memorial?':'Remove this disc?';$('#removeDiscConsequence').textContent=memorial?'and its memorial will be permanently removed from your collection.':'will be removed from your collection.';$('#cancelRemoveDisc').textContent=memorial?'Keep memorial':'Keep disc';$('#confirmRemoveDisc').textContent=memorial?'Remove memorial':'Remove disc';$('#removeDiscStatus').textContent='';$('#confirmRemoveDisc').disabled=false;show($('#removeDiscDialog'));$('#cancelRemoveDisc').focus();}
- if(inspect){const item=items.find(i=>i.id===inspect.dataset.bagInspect);if(item)openBagDetail(mold(item.mold_id),item);}
+ if(remove && !remove.disabled)openRemove(items.find(i=>i.id===remove.dataset.bagRemove),'list');
+ // A Storage disc's name also pulls it out of its rack when the racks are showing.
+ if(inspect){const item=items.find(i=>i.id===inspect.dataset.bagInspect);if(item){if(bagView==='storage' && item.in_bag===false)storageScene.reveal(item.id);openBagDetail(mold(item.mold_id),item);}}
  if(event.target.closest('#emptyBagDirectory'))directory();
 });
+function openRemove(item,origin){
+ if(!item)return;removing=item;removeOrigin=origin;const memorial=removing.status==='lost';$('#removeDiscName').textContent=name(mold(removing.mold_id));$('#removeDiscHeading').textContent=memorial?'Remove this memorial?':'Remove this disc?';$('#removeDiscConsequence').textContent=memorial?'and its memorial will be permanently removed from your collection.':'will be removed from your collection.';$('#cancelRemoveDisc').textContent=memorial?'Keep memorial':'Keep disc';$('#confirmRemoveDisc').textContent=memorial?'Remove memorial':'Remove disc';$('#removeDiscStatus').textContent='';$('#confirmRemoveDisc').disabled=false;show($('#removeDiscDialog'));$('#cancelRemoveDisc').focus();
+}
 $('#myBagContents').addEventListener('change',event=>{const select=event.target.closest('[data-bag-pocket]');if(select)void setPocket(select);});
 // Inline pocket changes persist immediately; the stored column is the only source after insert.
 async function setPocket(select){
@@ -328,10 +371,15 @@ async function setPocket(select){
  catch(error){if(error.name!=='AbortError')status(error.message);}
  finally{if(epoch===generation){pendingPockets.delete(item.id);if(loading)void loadBag();render();if(focused)$(`[data-bag-pocket="${item.id}"]`)?.focus({preventScroll:true});}}
 }
-async function moveDisc(button){
- const item=items.find(i=>i.id===button.dataset.bagMove);if(!item || button.disabled)return;button.disabled=true;
- try{const data=await api('/discs/'+item.id,'PATCH',{in_bag:!item.in_bag});items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();$(`[data-bag-move="${item.id}"]`)?.focus({preventScroll:true});status(data.disc.in_bag?'Disc moved to your bag.':'Disc moved to Storage.');}
- catch(error){if(error.name!=='AbortError'){status(error.message);button.disabled=false;}}
+// Bag <-> Storage. The disc leaves the list (or rack card) it was in, so focus stays nearby: the next
+// row's same button, or the list picker; from a rack card, the racks.
+async function moveDisc(id,button){
+ const item=items.find(i=>i.id===id);if(!item || button?.disabled)return;if(button)button.disabled=true;
+ const fromCard=!!button?.closest('#storageScene'),next=neighborOf(item.id);
+ try{const data=await api('/discs/'+item.id,'PATCH',{in_bag:!item.in_bag});items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();
+  if(fromCard)focusFirst('#storageScene [data-collection-canvas]');else focusFirst(next && `[data-bag-move="${CSS.escape(next)}"]`,'#bagListPicker [aria-checked="true"]');
+  status(data.disc.in_bag?`${name(mold(item.mold_id))} moved to your bag.`:`${name(mold(item.mold_id))} moved to Storage.`);}
+ catch(error){if(error.name!=='AbortError'){status(error.message);if(button)button.disabled=false;}}
 }
 function openLostDisc(button){
  const item=items.find(i=>i.id===button.dataset.bagLost);if(!item || item.status==='lost')return;
@@ -342,27 +390,34 @@ function openLostDisc(button){
 }
 $('#lostDiscForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!losing || $('#confirmLostDisc').disabled)return;
- const epoch=generation,item=losing,button=$('#confirmLostDisc');button.disabled=true;$('#lostDiscStatus').textContent='Saving its story…';
+ const epoch=generation,item=losing,button=$('#confirmLostDisc'),next=neighborOf(item.id);button.disabled=true;$('#lostDiscStatus').textContent='Saving its story…';
  try {
   const value=validateLostDetails({status:'lost',lostDate:$('#lostDate').value,lostCourse:$('#lostCourse').value,lostHole:$('#lostHole').value?Number($('#lostHole').value):null,lostStory:$('#lostStory').value});
   const data=await api('/discs/'+item.id,'PATCH',value);items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();$('#lostDiscDialog').close();
-  $(`[data-bag-found="${item.id}"]`)?.focus({preventScroll:true});status(`${name(mold(item.mold_id))} moved to Gone But Not Forgotten.`);
+  focusFirst(next && `[data-bag-lost="${CSS.escape(next)}"]`,'#bagListPicker [aria-checked="true"]');status(`${name(mold(item.mold_id))} moved to Gone But Not Forgotten. Its headstone is in Lost.`);
  }catch(error){if(error.name!=='AbortError')$('#lostDiscStatus').textContent=error.message;}
  finally{if(epoch===generation)button.disabled=false;}
 });
-async function foundDisc(button){
- const item=items.find(i=>i.id===button.dataset.bagFound);if(!item || pendingFound.has(item.id))return;
- const epoch=generation;pendingFound.add(item.id);button.disabled=true;button.textContent='Restoring…';
- button.closest('.bag-memorial-card').querySelector('[data-bag-remove]').disabled=true;
+// Found it!, from a memorial card in the Lost list or a headstone's card in the graveyard.
+async function foundDisc(id,button){
+ const item=items.find(i=>i.id===id);if(!item || pendingFound.has(item.id))return;
+ const epoch=generation,fromGrave=!!button?.closest('#lostScene'),next=neighborOf(item.id);pendingFound.add(item.id);
+ for(const node of document.querySelectorAll(`[data-bag-found="${CSS.escape(item.id)}"],[data-grave-found="${CSS.escape(item.id)}"]`)){node.disabled=true;node.textContent='Restoring…';}
+ const remove=$(`[data-memorial-id="${CSS.escape(item.id)}"] [data-bag-remove]`);if(remove)remove.disabled=true;
  try{
   const data=await api('/discs/'+item.id,'PATCH',{status:'active'});items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();
-  $(`[data-bag-lost="${item.id}"]`)?.focus({preventScroll:true});status(`${name(mold(item.mold_id))} is back in your bag. Welcome home.`);
+  if(fromGrave)focusFirst('#lostScene [data-grave-found]','#lostScene [data-collection-canvas]','#myBagViews [aria-checked="true"]');
+  else focusFirst(next && `[data-bag-found="${CSS.escape(next)}"]`,'#bagListPicker [aria-checked="true"]');
+  status(`${name(mold(item.mold_id))} is back in your bag. Welcome home.`);
  }catch(error){if(error.name!=='AbortError')status(error.message);}
- finally{if(epoch===generation){pendingFound.delete(item.id);if(items.some(i=>i.id===item.id && i.status==='lost')){render();$(`[data-bag-found="${item.id}"]`)?.focus({preventScroll:true});}}}
+ finally{if(epoch===generation){pendingFound.delete(item.id);if(items.some(i=>i.id===item.id && i.status==='lost')){render();focusFirst(fromGrave?'#lostScene [data-grave-found]':`[data-bag-found="${CSS.escape(item.id)}"]`);}}}
 }
 $('#confirmRemoveDisc').addEventListener('click',async()=>{
- if(!removing)return;const epoch=generation,removed=removing,button=$('#confirmRemoveDisc'),index=items.findIndex(i=>i.id===removed.id);button.disabled=true;
- try {await api('/discs/'+removed.id,'DELETE');items=items.filter(i=>i.id!==removed.id);if(loading)void loadBag();render();$('#removeDiscDialog').close();status(removed.status==='lost'?'Memorial removed.':'Disc removed.');const next=items[Math.min(index,items.length-1)];(removed.status==='lost'?$('#bagMemorial [data-bag-remove]') || $('#bagMemorialTitle'):next?$(`[data-bag-remove="${next.id}"]`):$('#emptyBagDirectory'))?.focus({preventScroll:true});}
+ if(!removing)return;const epoch=generation,removed=removing,button=$('#confirmRemoveDisc');button.disabled=true;
+ const next=neighborOf(removed.id),origin=removeOrigin;
+ try {await api('/discs/'+removed.id,'DELETE');items=items.filter(i=>i.id!==removed.id);if(loading)void loadBag();render();$('#removeDiscDialog').close();status(removed.status==='lost'?'Memorial removed.':'Disc removed.');
+  if(origin==='card')focusFirst('#storageScene [data-collection-canvas]');
+  else focusFirst(next && `[data-bag-remove="${CSS.escape(next)}"]`,removed.status==='lost'?'#bagMemorialTitle':'#emptyBagDirectory','#bagListPicker [aria-checked="true"]');}
  catch(error){if(error.name!=='AbortError')$('#removeDiscStatus').textContent=error.message;}
  finally{if(epoch===generation)button.disabled=false;}
 });
@@ -400,5 +455,7 @@ addMenu.addEventListener('keydown',event=>{
  if(event.key==='Tab')closeAddMenu(true);
 });
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
-window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap};
+window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,
+ // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
+ scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;}}};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

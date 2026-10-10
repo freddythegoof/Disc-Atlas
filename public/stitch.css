@@ -155,11 +155,20 @@ body[data-view="map"]:not(.my-bag-mode) #map::before { -webkit-mask-image:linear
 .my-bag-meter { border-color:var(--hairline); }
 #bagSort { background:var(--panel); border-color:var(--hairline); }
 #bagSortHint { font-family:var(--mono); letter-spacing:-.01em; }
-.bag-zoom,.bag-return-all,.bag-dump { background:var(--glass); border-color:var(--hairline); }
+.bag-zoom,.collection-zoom,.bag-return-all,.bag-dump { background:var(--glass); border-color:var(--hairline); }
 :is(.bag-return-all,.bag-dump):hover { background:var(--glass); border-color:var(--accent-edge); box-shadow:0 4px 14px var(--shadow),var(--accent-glow); }
 :is(.bag-return-all,.bag-dump) b { background:var(--accent-fill); color:var(--accent-ink); font-family:var(--mono); letter-spacing:-.02em; }
 :is(.bag-return-all,.bag-dump):hover b { background:var(--accent-fill); }
 .my-map-host,#myMapHost #map { border-color:var(--hairline); }
+/* Storage and Lost: the list picker paints like the view switch; cards and chips like the bag's controls. */
+.bag-list-picker { background:var(--bg); border-color:var(--hairline); border-radius:999px; }
+.bag-list-picker button { border-radius:999px; }
+.bag-list-picker button[aria-checked="true"] { background:var(--surface); color:var(--text); box-shadow:inset 0 0 0 1px var(--accent-edge); }
+.bag-list-picker button span { font-family:var(--mono); letter-spacing:-.02em; }
+.collection-rack-picker button { background:var(--glass); border-color:var(--hairline); }
+.collection-rack-picker button span { font-family:var(--mono); }
+.collection-card,.epitaph-card,.lost-empty { border-color:var(--hairline); }
+.collection-empty-note { background:var(--glass); border-color:var(--hairline); }
 
 /* Focus stays lime everywhere. */
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible { outline-color:var(--lime); }

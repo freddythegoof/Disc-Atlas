@@ -28,6 +28,8 @@ try {
   await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});
  });
  const setTheme=theme=>page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);
+ // My Bag shows one list at a time; memorials are in the Lost list.
+ const showList=name=>page.locator(`#bagListPicker [data-bag-list="${name}"]`).click();
  const shot=async name=>{await page.evaluate(()=>document.fonts.ready);await page.locator('#bagMemorial').screenshot({path:`${dir}/${name}.png`});shots.push(name);};
  const api=async(path='',method='GET',body)=>{
   const response=await page.request.fetch(base+'/api/bag'+path,{method,headers:await page.evaluate(()=>({'Content-Type':'application/json',Origin:location.origin,'X-Atlas-CSRF':window.AtlasAccount.current.csrfToken})),...(body?{data:body}:{})});
@@ -45,6 +47,7 @@ try {
  const href=await page.getByRole('link',{name:'Continue with Google',exact:true}).getAttribute('href');
  const redirect=await page.request.get(base+href,{maxRedirects:0});await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
+ await showList('lost');
  assert.equal(await page.getByRole('heading',{name:'Gone But Not Forgotten',exact:true}).count(),1);
  assert.ok(await page.locator('#bagMemorialEmpty').isVisible());await captureWall('empty');
  const original=(await api('/discs','POST',{mold_id:'7446eb39abe5',plastic:'ESP',weight_g:177,wear:6,notes:'First ace. Keep this copy.',color:'#e99678',pocket:'goto',stability_bias:'less_stable'})).disc;
@@ -66,11 +69,12 @@ try {
  await page.locator('#confirmLostDisc').click();await page.locator('#lostDiscStatus').filter({hasText:'Please try again.'}).waitFor();
  assert.equal((await api('/discs/'+original.id)).disc.status,'active');assert.equal(await page.locator('#lostStory').inputValue(),story);
  await context.unroute(base+'/api/bag/discs/'+original.id);await page.locator('#confirmLostDisc').click();await page.locator('#lostDiscDialog').waitFor({state:'hidden'});
+ assert.ok(await page.locator(`[data-bag-lost="${minimal.id}"]`).evaluate(n=>n===document.activeElement),'Successful loss keeps focus in the Bag list, on the next disc');
+ await showList('lost');
  const card=page.locator(`[data-memorial-id="${original.id}"]`);
  await card.waitFor();assert.match(await card.innerText(),/Buzzz/);assert.match(await card.innerText(),/ESP/);assert.match(await card.innerText(),/Oct 8, 2026/);assert.match(await card.innerText(),/Maple Hill/);assert.match(await card.innerText(),/Hole 8/);
  assert.equal(await card.locator('.bag-memorial-story').textContent(),story);
  assert.equal(await card.locator('gone').count(),0,'Stories render as text');
- assert.ok(await card.locator('[data-bag-found]').evaluate(n=>n===document.activeElement),'Successful loss moves focus to the memorial');
  assert.equal(await page.locator('#bagLineup .my-bag-disc').count(),1);assert.equal(await page.locator('#bagStorage .my-bag-disc').count(),1);
  assert.match(await page.locator('#bagSlotMeter').textContent(),/^1 \/ 20$/);
  await page.getByRole('radio',{name:'My Map',exact:true}).click();
@@ -80,12 +84,13 @@ try {
  await page.locator(`[data-bag-lost="${minimal.id}"]`).click();assert.equal(await page.locator('#lostDate').inputValue(),today);
  for(const field of ['lostCourse','lostHole','lostStory'])assert.equal(await page.locator('#'+field).inputValue(),'','A new loss starts clean');
  await page.locator('#confirmLostDisc').click();await page.locator('#lostDiscDialog').waitFor({state:'hidden'});
+ await showList('lost');
  const minimalCard=page.locator(`[data-memorial-id="${minimal.id}"]`);await minimalCard.waitFor();
  assert.equal(await minimalCard.locator('.bag-memorial-story').count(),0);assert.equal(await minimalCard.locator('[data-lost-course],[data-lost-hole]').count(),0);
  assert.match(await page.locator('#bagSlotMeter').textContent(),/^0 \/ 20$/);assert.equal(await page.locator('#bagLineup .my-bag-disc').count(),0);
  await page.getByRole('radio',{name:'My Map',exact:true}).click();await page.locator('#myMapEmpty').waitFor();assert.equal(await page.evaluate(()=>myMap),null);
  await page.getByRole('radio',{name:'Bag',exact:true}).click();
- await page.reload();await page.locator('[data-memorial-id]').first().waitFor();assert.equal(await page.locator('[data-memorial-id]').count(),2);
+ await page.reload();await page.locator('#bagListPicker').waitFor();await showList('lost');await page.locator('[data-memorial-id]').first().waitFor();assert.equal(await page.locator('[data-memorial-id]').count(),2);
  await captureWall('populated');
  // While Found is pending, Remove must not race it and leave a stale memorial onscreen.
  let releaseFound,foundStarted;
@@ -99,9 +104,9 @@ try {
  await card.waitFor({state:'hidden'});await context.unroute(base+'/api/bag/discs/'+original.id);
  assert.deepEqual((await api('/discs/'+original.id)).disc,original,'Found restores every original field');
  assert.match(await page.locator('#bagLineup').textContent(),/First ace\. Keep this copy\./);assert.match(await page.locator('#bagSlotMeter').textContent(),/^1 \/ 20$/);
- assert.ok(await page.locator(`[data-bag-lost="${original.id}"]`).evaluate(n=>n===document.activeElement),'Found restores focus to the active copy');
+ assert.ok(await page.locator(`[data-bag-found="${minimal.id}"]`).evaluate(n=>n===document.activeElement),'Found keeps focus in the Lost list, on the next memorial');
  await page.getByRole('radio',{name:'My Map',exact:true}).click();await page.waitForFunction(id=>myMap && filtered.length===1 && filtered[0].id===id,original.mold_id);
- await page.getByRole('radio',{name:'Bag',exact:true}).click();
+ await page.getByRole('radio',{name:'Bag',exact:true}).click();await showList('lost');
  await minimalCard.locator('[data-bag-remove]').click();await page.locator('#removeDiscDialog').waitFor();await page.keyboard.press('Escape');assert.ok(await minimalCard.isVisible());
  await minimalCard.locator('[data-bag-remove]').click();await page.locator('#confirmRemoveDisc').click();await page.locator('#removeDiscDialog').waitFor({state:'hidden'});
  assert.equal(await page.locator('[data-memorial-id]').count(),0);assert.ok(await page.locator('#bagMemorialEmpty').isVisible());

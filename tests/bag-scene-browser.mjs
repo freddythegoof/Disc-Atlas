@@ -32,7 +32,10 @@ try{
  const href=await page.getByRole('link',{name:'Continue with Google',exact:true}).getAttribute('href'),redirect=await page.request.get(base+href,{maxRedirects:0});
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();await phase('open');
- assert.equal(await page.locator('#accountButton').innerText(),'Hi Atlas');assert.ok(await page.locator('#bagStorageEmpty').isVisible());
+ assert.equal(await page.locator('#accountButton').innerText(),'Hi Atlas');
+ // My Bag shows one list at a time (Bag, Storage or Lost).
+ const showList=name=>page.locator(`#bagListPicker [data-bag-list="${name}"]`).click();
+ await showList('storage');assert.ok(await page.locator('#bagStorageEmpty').isVisible());await showList('bag');
  await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#addDiscDialog').waitFor();
  assert.equal(await page.locator('#bagDiscColor').inputValue(),'#e6c668');await page.locator('#bagPlastic').selectOption('Champion');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#70b7cd');
  await page.locator('#bagDiscColor').fill('#ed7868');await page.locator('#bagPlastic').selectOption('DX');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#ed7868','custom color survives plastic change');
@@ -55,9 +58,9 @@ try{
  assert.equal(await page.locator('#bagScene .bag-hit-layer').getAttribute('role'),'group');
  assert.equal(await page.locator(':not(.bag-goto-slot) > .bag-slot-hollow').count(),17);assert.equal(await page.locator('.bag-goto-slot > .bag-slot-hollow').count(),1,'Empty go-to slot');assert.equal(await page.locator('[data-pocket="putter"] [data-physical-disc]').count(),2);
  const speeds=await page.locator('[data-pocket="main"] [data-physical-disc]').evaluateAll(nodes=>nodes.map(n=>{const row=n.getAttribute('aria-label');return row.split(',')[0];}));assert.equal(speeds.at(-1),'Buzzz');
- const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');
+ await showList('storage');const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');
  assert.ok(await page.locator('#bagStorageEmpty').isVisible());assert.ok(await page.locator('[data-bag-move]').filter({hasText:'Store'}).count());
- await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
+ await showList('bag');await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
  await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#436752');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  // The fabric material itself carries the saved color (read back from the live 3D scene).
  const bagColor=()=>page.locator('[data-bag-canvas]').evaluate(n=>({color:n.bagViewer.bagColor,custom:n.bagViewer.customBagColor}));
@@ -103,7 +106,7 @@ try{
   // Park the pointer off the bag (the 680px bag now reaches the toggle's former spot after scrolling), so hover cannot take over from focus.
   await page.mouse.move(0,0);await disc.focus();await page.waitForTimeout(420);await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'true');await shot(`named-${width}-${name}`);
   await page.locator('[data-bag-toggle]').focus();await page.waitForTimeout(400);assert.equal(await page.locator('#bagLiftInfo').getAttribute('data-visible'),'false');
-  await page.locator('#bagStorage').scrollIntoViewIfNeeded();await shot(`storage-${width}-${name}`);
+  await showList('storage');await page.locator('#bagStorage').scrollIntoViewIfNeeded();await shot(`storage-${width}-${name}`);await showList('bag');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  }
  // Measure actual frame cadence during repeated lifts (ordinary browser load).

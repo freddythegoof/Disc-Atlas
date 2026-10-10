@@ -14,7 +14,8 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {discProfile,overmoldProfile,shapeForDisc,shapeFrame,topHeight} from './shape.mjs';
+import {discProfile,overmoldProfile,shapeForDisc} from './shape.mjs';
+import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
 import {isOvermold,overmoldColors} from './overmold.mjs';
 
 const DEG=Math.PI/180;
@@ -48,23 +49,6 @@ const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const angleDelta=(a,b)=>{let d=(b-a)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d;};
 
-function stampTexture(name,color){
- const size=512,canvas=document.createElement('canvas');canvas.width=canvas.height=size;
- const g=canvas.getContext('2d'),c=new THREE.Color(color),hsl={};c.getHSL(hsl,THREE.SRGBColorSpace);
- const ink=hsl.l>.55?'rgba(18,22,28,.72)':'rgba(255,255,255,.78)';
- g.strokeStyle=ink;g.fillStyle=ink;g.lineWidth=5;
- g.beginPath();g.arc(size/2,size/2,size*.44,0,Math.PI*2);g.stroke();
- g.lineWidth=3;g.beginPath();g.arc(size/2,size/2,size*.405,0,Math.PI*2);g.stroke();
- const text=String(name||'').toUpperCase().slice(0,22);
- const family=getComputedStyle(document.body).fontFamily||'sans-serif';
- let px=104;g.font=`800 ${px}px ${family}`;
- while(px>34&&g.measureText(text).width>size*.7){px-=4;g.font=`800 ${px}px ${family}`;}
- g.textAlign='center';g.textBaseline='middle';g.fillText(text,size/2,size/2);
- g.fillRect(size*.34,size/2+px*.62,size*.32,4);
- const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;
- return texture;
-}
-
 export function createDiscViewer({segments}={}){
  const coarse=matchMedia('(pointer: coarse)').matches;
  const radial=segments||(coarse?56:80);
@@ -93,7 +77,7 @@ export function createDiscViewer({segments}={}){
  const tiltGroup=new THREE.Group(),flipGroup=new THREE.Group(),discGroup=new THREE.Group();
  tiltGroup.add(flipGroup);flipGroup.add(discGroup);scene.add(tiltGroup);
  const bodyMaterial=new THREE.MeshPhysicalMaterial({color:0x888888,side:THREE.FrontSide});
- const stampMaterial=new THREE.MeshStandardMaterial({transparent:true,roughness:.5,metalness:.15,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+ const stampMaterial=makeStampMaterial();
  // Overmold discs only: bodyMaterial becomes the flight plate and rimMaterial the rim.
  const rimMaterial=new THREE.MeshPhysicalMaterial({color:0x444444,side:THREE.FrontSide});
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
@@ -186,13 +170,8 @@ export function createDiscViewer({segments}={}){
   }
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;
-  // The stamp rides the top surface, inside the shoulder, on a ring mesh fine enough to follow the dome.
-  const {Rs}=shapeFrame(shape),stampR=Math.min(Rs*.78,6.2);
-  const ring=new THREE.RingGeometry(.001,stampR,48,8);ring.rotateX(-Math.PI/2);
-  const pos=ring.attributes.position;
-  for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,topHeight(shape,Math.hypot(x,z))+.012);}
-  ring.computeVertexNormals();
-  stamp.geometry.dispose();stamp.geometry=ring;
+  // The stamp rides the top surface, inside the shoulder (stamp.mjs).
+  stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
   stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color);stampMaterial.needsUpdate=true;
   // Centre the disc on the orbit target.
   discGroup.position.y=-(box.min.y+box.max.y)/2;
