@@ -1,7 +1,7 @@
 /* Shared by the atlas and standalone information pages; runs before paint. */
 (() => {
   const media = matchMedia('(prefers-color-scheme: dark)');
-  const valid = value => ['light', 'midnight', 'charcoal'].includes(value);
+  const valid = value => ['light', 'midnight', 'charcoal', 'black'].includes(value);
   let saved;
   try { saved = localStorage.getItem('disc-atlas-theme'); } catch { /* Storage may be disabled. */ }
   if (saved === 'dark') saved = 'midnight';
@@ -15,7 +15,7 @@
       button.setAttribute('aria-label', value === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
     });
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = value === 'light' ? '#f7f8fa' : value === 'charcoal' ? '#101113' : '#080b10';
+    if (meta) meta.content = value === 'light' ? '#f7f8fa' : value === 'charcoal' ? '#101113' : value === 'black' ? '#000000' : '#080b10';
     window.dispatchEvent(new CustomEvent('atlas-theme-change', {detail: value}));
   };
   const choose = value => {

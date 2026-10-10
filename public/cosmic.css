@@ -34,6 +34,16 @@
   --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
   --marker-edge:#c1c1bc;--unknown:#a4a9b3;
 }
+:root[data-theme="black"] {
+  color-scheme:dark;
+  --bg:#000;--panel:#0a0a0a;--surface:#151515;--selected:#252525;
+  --line:#262626;--muted:#aaa;--text:#f4f4f4;--lime:#b9c9ed;
+  --accent-soft:#1b2231;--on-accent:#151922;--map-bg:#000;--grid:#3a3a3a;
+  --center-line:#686868;--shadow:#000a;--ambient:#0000;
+  --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
+  --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
+  --marker-edge:#c1c1bc;--unknown:#a4a9b3;
+}
 [hidden]{display:none!important}
 /* Set before the catalog loads so mobile never paints the map on entry. */
 body[data-view="list"] #mapWrap{display:none}

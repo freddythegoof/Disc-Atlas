@@ -77,7 +77,7 @@ export async function checkHeaderMenu(browser,base){
     const links=menu.locator(':scope > a[role="menuitem"]'),items=menu.locator('[role="menuitem"]:visible,[role="menuitemradio"]:visible');
     assert.deepEqual(await links.allTextContents(),['About','Privacy','Terms']);
     assert.deepEqual(await links.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href'))),['/about','/privacy','/terms']);
-    assert.equal(await items.count(),7,'Sign in, legal links and all three theme choices participate in menu navigation');
+    assert.equal(await items.count(),8,'Sign in, legal links and all four theme choices participate in menu navigation');
     assert.equal(await button.getAttribute('aria-expanded'),'true');
     const bounds=await menu.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width,'Open menu stays within viewport');
     assert.ok(await items.nth(0).evaluate(n=>n===document.activeElement));
@@ -126,7 +126,7 @@ export async function checkThemePicker(browser,base){
   await page.emulateMedia({colorScheme:'light'});await page.waitForFunction(()=>document.documentElement.dataset.theme==='light');
   await settle();
   await page.evaluate(()=>{window.themeVisit=performance.timeOrigin;window.themeMapNodes=[...markerNodes.values()];});
-  for(const [name,value] of [['Light','light'],['Midnight','midnight'],['Charcoal','charcoal']]){
+  for(const [name,value] of [['Light','light'],['Midnight','midnight'],['Black','black'],['Charcoal','charcoal']]){
    await button.click();await page.keyboard.press('End');
    const choice=menu.getByRole('menuitemradio',{name,exact:true});await choice.focus();
    await page.keyboard.press(name==='Midnight'?'Space':'Enter');
@@ -138,7 +138,7 @@ export async function checkThemePicker(browser,base){
    assert.ok(await choice.evaluate(n=>getComputedStyle(n).outlineStyle!=='none'),'Theme choice has visible keyboard focus');
    assert.ok(await menu.isVisible(),'Theme preview leaves the menu open');
    assert.ok(await page.evaluate(()=>performance.timeOrigin===themeVisit&&themeMapNodes.every(n=>markerNodes.get(n.dataset.cluster)===n)),'Theme changes do not reload or rebuild markers');
-   assert.equal(await menu.evaluate(n=>getComputedStyle(n).backgroundColor),{light:'rgb(255, 255, 255)',midnight:'rgb(12, 17, 26)',charcoal:'rgb(24, 25, 28)'}[value],'Menu uses the selected theme surface');
+   assert.equal(await menu.evaluate(n=>getComputedStyle(n).backgroundColor),{light:'rgb(255, 255, 255)',midnight:'rgb(12, 17, 26)',charcoal:'rgb(24, 25, 28)',black:'rgb(10, 10, 10)'}[value],'Menu uses the selected theme surface');
    await settle();await page.waitForTimeout(250);await page.screenshot({path:`${dir}/menu-1440-${value}.png`,clip:{x:0,y:0,width:1440,height:420}});
    await page.keyboard.press('Escape');assert.ok(await button.evaluate(n=>n===document.activeElement));
   }

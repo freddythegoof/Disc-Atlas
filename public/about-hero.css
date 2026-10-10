@@ -4,7 +4,7 @@
   --hero-link: #f29d83;
   --hero-ink: #08090b;
 }
-:root[data-theme="charcoal"] .about-page { --hero-link: #e9a38e; }
+:root[data-theme="charcoal"] .about-page,:root[data-theme="black"] .about-page { --hero-link: #e9a38e; }
 :root[data-theme="light"] .about-page {
   --bg: #f7f3ec;
   --hero-link: #ca7253;

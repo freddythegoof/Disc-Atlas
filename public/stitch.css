@@ -45,9 +45,18 @@
   --hairline:rgba(255,255,255,.06);
   --stitch-grid:rgba(255,255,255,.05);
 }
+:root[data-theme="black"] {
+  --panel:#0a0a0a;--surface:#151515;--selected:#252525;--line:#262626;
+  --lime:#a3e635;--accent-soft:#1a2112;--on-accent:#132004;
+  --accent-fill:#a3e635;--accent-ink:#132004;
+  --accent-edge:rgba(163,230,53,.3);
+  --accent-glow:0 0 20px -4px rgba(163,230,53,.28);
+  --hairline:rgba(255,255,255,.07);
+  --stitch-grid:rgba(255,255,255,.04);
+}
 
 /* Page: a barely-there grid and a lime breath at the top, dark themes only. */
-:root:not([data-theme="light"]) body {
+:root:not([data-theme="light"]):not([data-theme="black"]) body {
   background:
     radial-gradient(ellipse 70% 40% at 50% 0%,rgba(163,230,53,.035),transparent 70%),
     linear-gradient(to right,rgba(255,255,255,.018) 1px,transparent 1px) 0 0/48px 48px,
@@ -55,8 +64,14 @@
     var(--bg);
 }
 
+/* Pitch black is flat: no page grid, no lime breath. */
+:root[data-theme="black"] body { background:#000; }
+
 /* Header and primary nav */
 header { background:var(--glass); border-bottom-color:var(--hairline); }
+/* On the Flight Atlas the header and the map are one surface: no rule between them, and the map's
+   grid fades in from the top instead of starting with a line under the header. */
+body[data-view="map"]:not(.my-bag-mode) header { background:var(--bg); border-bottom-color:transparent; }
 .logo svg { color:var(--lime); }
 header nav { background:var(--bg); border-color:var(--hairline); border-radius:999px; box-shadow:inset 0 1px 2px var(--shadow); }
 header nav button { border-radius:999px; transition:background .18s,color .18s,box-shadow .18s; }
@@ -104,6 +119,7 @@ header nav button::after { background:var(--accent-fill); }
    markers and their labels, which draw exactly as before. */
 #map::before { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:linear-gradient(to right,var(--stitch-grid) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(to bottom,var(--stitch-grid) 1px,transparent 1px) 0 0/48px 48px; }
+body[data-view="map"]:not(.my-bag-mode) #map::before { -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 120px); mask-image:linear-gradient(to bottom,transparent 0,#000 120px); }
 .map-controls { background:var(--glass); border-color:var(--hairline); }
 .map-controls button:hover { background:var(--accent-soft); color:var(--lime); }
 .stability-axis>strong { font-family:var(--mono); font-weight:500; letter-spacing:.06em; text-transform:uppercase; }
