@@ -78,8 +78,8 @@ layout work.
 ## Three tiers of depth
 
 Since October 9, 2026, the main Atlas draws its discs in three tiers. The curated discs above are
-tier 1, the only discs named at 1x. Tier 2, small discs, and tier 3, minis, fill the room between
-them with the rest of the rated catalog. Together they form a field the curated discs sit in front
+tier 1. Tier 2, small discs, and tier 3, minis, fill the room between them with the rest of the
+rated catalog. Curated and small discs are named at every zoom; minis earn their names deeper in. Together they form a field the curated discs sit in front
 of, and more of it shows the further you zoom. At 9x, the deepest zoom, the tiers converge: every
 disc is full size with its name, told apart from a curated disc only by curation. My Map has
 neither tier.
@@ -119,9 +119,9 @@ Tiers 2 and 3 are a final pass of `AtlasGroups.curate` (rule 7), run only in vie
   stretch-aware, like the curated discs' own, so they hold at every zoom the level is shown at. A
   disc that would crowd anything is not placed. Curated discs never move for these tiers: curating
   with and without them gives the same curated layout at every level.
-- **Names come with the disc deep in.** Where a tier's names show at half strength or more at the
-  level's floor (`GAP.named`), a disc rests only if its name fits too. So no full-size disc ever
-  shows without its name.
+- **Names come with the disc.** Where a tier's names show at half strength or more at the level's
+  floor (`GAP.named`: small discs always, minis deep in), a disc rests only if its name fits too. So
+  no small disc, and no full-size disc, ever shows without its name.
 - **Per level.** Both tiers are laid out with their level, in the worker or on the main thread, so
   they are stable while you zoom within a level. They change only where the map already regroups.
   A camera between levels (a tween still showing the old one) is laid out again on every frame.
@@ -131,9 +131,9 @@ Tiers 2 and 3 are a final pass of `AtlasGroups.curate` (rule 7), run only in vie
 - **Packed.** `build` hands curate its points as typed arrays (`index` into the items, then x, y and
   the atlas position), and the worker transfers them rather than copying them.
 
-On screen, the unfiltered 1440 × 900 map shows about 24 small discs and 35 minis at 1x and 8 and 20
+On screen, the unfiltered 1440 × 900 map shows about 13 small discs and 42 minis at 1x and 7 and 17
 at 3x. At 6.5x it shows about 4 small discs and no minis, because full-size discs with full names
-take most of the room. A phone shows 3 and 11 at 1x. A complete view (every match shows, such as a
+take most of the room. A phone shows no small discs and 14 minis at 1x. A complete view (every match shows, such as a
 narrow filter or desktop past about 6.9x) has neither tier. Its dots are its small discs: the
 curated art at tier 2's size, placed in a room of that size, and named the same way. At 9x desktop
 they are full size, each with its name. A dot with no room joins a stack, so deep complete views
@@ -171,19 +171,23 @@ size and its name is not drawn at all, as curated discs already were.
 
 ### Names
 
-- **One rule, by size.** Small discs and minis share one rule. A name's strength is
-  `nameAlpha(size)` of its disc's size on screen: 0 below 54 px (`GAP.labelFrom`), 1 from 84 px
-  (`GAP.labelFull`), and a smoothstep between, with no thresholds and no popping. So small discs earn
-  their names first, from about 1.25x to 4.4x. Minis, starting smaller, earn theirs deeper in, from
-  about 3.2x to 6.8x, before the desktop map turns complete. `gapLabelAlpha(zoom, tier)` is the same
-  value read from the zoom.
-- **None at 1x.** A tier's names are reserved only on levels where they will show at the level's top
-  (`organicOptions` → `gapLabels`, per tier): small names from level 1, mini names from level 5. On
-  the first such level, the strength is 0 at both its entry and its floor, so a tier's names never
-  show at the moment they are first reserved.
+- **Small discs: always.** Every small disc wears its name at every zoom, 1x included, in full
+  (`nameAlpha(size, 'small')` is 1). That is what makes a small disc the medium tier: clearly
+  smaller than a curated disc, but a named, readable one. A small disc rests only where its name
+  fits as well (`GAP.named`), so the 1x map holds fewer of them than it would nameless: about 13 on
+  desktop and none on a phone, where the room runs out. The nameless alternative was 22 and 4.
+- **Minis: by size.** A mini's name strength is `nameAlpha(size)` of its disc's size on screen: 0
+  below 54 px (`GAP.labelFrom`), 1 from 84 px (`GAP.labelFull`), and a smoothstep between, with no
+  thresholds and no popping. Minis start at 12 px, so they earn their names deep in, from about 3.2x
+  to 6.8x, before the desktop map turns complete. `gapLabelAlpha(zoom, tier)` reads the same
+  value from the zoom.
+- **Reserved where they show.** A tier's names are reserved only on levels where they will show at
+  the level's top (`organicOptions` → `gapLabels`, per tier): small names from level 0, mini names
+  from level 5. For minis, the strength is 0 at both the first such level's entry and its floor, so
+  their names never show at the moment they are first reserved.
 - **Only with room.** A disc gets its name only if the name keeps the same distances as the disc
-  itself. Later discs keep off it. Where names show at half strength or more, a disc without room
-  for its name is not placed (see above). A complete view's dots get names the same way, at the
+  itself. Later discs keep off it. Where a tier's names show at half strength or more (small discs
+  always, minis deep in), a disc without room for its name is not placed. A complete view's dots get names the same way, at the
   small disc's strength. Their name is the DOM marker's, styled to match a curated name
   (`.is-gap-label` in `public/cosmic.css`), and it fades with `--gap-label`.
 - **Style.** The curated name: 13 px text over the manufacturer, wrapped to the label's width, with
@@ -221,11 +225,11 @@ size and its name is not drawn at all, as curated discs already were.
   - Every distance must hold at the floor, middle and top of each level, with each tier's art at its
     size there and each name where it hangs at that zoom. The tiers' space must hold, and so must a
     mini's distance from small discs. Both tiers must stay inside the map and off the chrome at 1x.
-  - Names must be reserved per tier only where they show, and none may show at 1x or at either
-    tier's first reserving level's entry or floor. Where names show at half strength, every small
-    disc, mini and dot must wear its name.
-  - One rule: each tier's name strength must equal `nameAlpha` of its size, monotonic and smooth, with
-    small names starting well before mini names and mini names complete before level 9.
+  - Names must be reserved per tier only where they show. Small discs are named in full at every
+    zoom. A mini's name must not show at 1x or at its first reserving level's entry or floor. Where
+    names show at half strength, every small disc, mini and dot must wear its name.
+  - A mini's name strength must equal `nameAlpha` of its size, monotonic and smooth, starting past
+    3x and complete before level 9.
   - Sizes must be as stated: two thirds of a curated disc and 12 px at 1x, growing only, smaller
     than a curated disc below 9x, and a curated disc's full size, fully named, at 9x.
   - It also covers complete views (dots are full-size small discs at 9x, each named), determinism,
@@ -233,8 +237,8 @@ size and its name is not drawn at all, as curated discs already were.
 - `PLAYWRIGHT_MODULE=… node tests/atlas-depth-browser.mjs` covers desktop and phone in three themes
   at 1x, on the landing camera, at 3x, 6.5x, 9x and 9x at an edge.
   - Every curated disc must draw at 76 px × `artRoom` with its name and manufacturer, and every dot
-    at tier 2's size. At 1x small discs must be two thirds of a curated disc and minis 12 px, all
-    unnamed. At 3x, small discs must be named and minis not. From 6.5x every small disc, mini and
+    at tier 2's size. At 1x small discs must be two thirds of a curated disc, named in full, and
+    minis 12 px and unnamed. At 3x, small discs must still be named and minis not. From 6.5x every small disc, mini and
     dot must be named, and at 9x each must be full size with its name in full.
   - No name may touch anything. No small disc or mini may touch a curated disc, a curated name or
     another one.
@@ -242,11 +246,11 @@ size and its name is not drawn at all, as curated discs already were.
     redraw must be identical to the pixel.
   - Hover must lift a disc 6% and return it exactly.
   - It flies 1x→9x and 9x→1x over 120 frames each. No disc or name may change faster than one 180 ms
-    fade (plus its size's own change in name strength), and no name may show below 54 px. Small
-    discs must be named before minis, and nothing may touch on any frame.
+    fade (plus its size's own change in name strength), and no mini's name may show below 54 px. Mini
+    names must not begin before 3x, and nothing may touch on any frame.
   - It flies from 1x to 9x onto a small disc (one named at 3x) and onto a mini (one named at 5x). Each
-    name must start at nothing, fade in as the disc grows (the small disc's first), with no pop and
-    no overlap. At 9x it must be full size with its name, or be a curated disc or in a curated
+    name must be there throughout for the small disc and start at nothing and fade in as the mini
+    grows, with no pop and no overlap. At 9x it must be full size with its name, or be a curated disc or in a curated
     stack. A phone's incomplete 9x may hide a disc with no room.
   - Two fresh pages must render the same scene and canvas pixels.
   - Screenshots of far, mid, deep and max in every theme go to `outputs/atlas-depth/`

@@ -346,7 +346,7 @@ function drawGaps(area,w,h){
  }
  const toward=(v,t,s)=>v<t?Math.min(t,v+s):Math.max(t,v-s),dpr=Math.min(devicePixelRatio||1,2),snap=v=>Math.round(v*dpr)/dpr;
  const depth=AtlasGroups.gapAlpha(zoom);
- const look=Object.fromEntries(AtlasGroups.TIERS.map(t=>{const size=AtlasGroups.gapSize(zoom,t);return [t,{size,strength:AtlasGroups.nameAlpha(size),drop:AtlasGroups.gapDrop(size)}];}));
+ const look=Object.fromEntries(AtlasGroups.TIERS.map(t=>{const size=AtlasGroups.gapSize(zoom,t);return [t,{size,strength:AtlasGroups.nameAlpha(size,t),drop:AtlasGroups.gapDrop(size)}];}));
  let moving=false;
  // Each entry is also its record in mapGaps (for tests): id, tier, name, x, y, size, art (its
  // presence), label (its name's presence), strength (what shows of its name), named, on, rest (at

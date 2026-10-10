@@ -42,11 +42,12 @@ globalThis.AtlasGroups = {
  gapSize(zoom,tier='small'){const G=this.GAP,s=G[tier].start;return G.disc*this.artRoom(zoom)*(s+(1-s)*this.gapDepth(zoom));},
  gapAlpha(zoom){const G=this.GAP;return G.far+(1-G.far)*this.gapDepth(zoom);},
  // How visible a small disc's or mini's name is at its size on screen: the one rule for both tiers.
- nameAlpha(size){
+ nameAlpha(size,tier='mini'){
+  if(tier==='small')return 1;
   const {labelFrom:a,labelFull:b}=this.GAP,t=Math.max(0,Math.min(1,(size-a)/(b-a)));
   return t*t*(3-2*t);
  },
- gapLabelAlpha(zoom,tier='small'){return this.nameAlpha(this.gapSize(zoom,tier));},
+ gapLabelAlpha(zoom,tier='small'){return this.nameAlpha(this.gapSize(zoom,tier),tier);},
  // How far above a curated disc's name (footprint y) a `size` px disc's name sits: as far below its
  // own edge, until it reaches the curated art, whose name stays put as the art grows past it.
  gapDrop(size){return (Math.min(size,this.GAP.disc)-this.GAP.disc)/2;},

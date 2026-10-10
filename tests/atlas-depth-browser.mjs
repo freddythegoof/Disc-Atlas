@@ -2,8 +2,8 @@
 // as before the depth work: 76px art growing with artRoom, every name and manufacturer shown. Tiers 2
 // and 3 (AtlasGroups.GAP) fill the room between them with small discs (two thirds of a curated disc at
 // 1x) and minis (12px) from the rest of the rated catalog, drawn on the canvas under every curated
-// disc: unlabeled at 1x, each growing with the zoom and its name fading in with its size, small discs
-// first, never popping, until at 9x every disc is full size with its name. No name touches anything
+// disc: small discs named at every zoom, minis unnamed at 1x with their names fading in with their
+// size, never popping, until at 9x every disc is full size with its name. No name touches anything
 // and no small disc or mini crowds a curated disc or name, at any zoom tested or on any frame of a
 // flight. Desktop and phone, three themes.
 // Run: PLAYWRIGHT_MODULE=<playwright> node tests/atlas-depth-browser.mjs   (shots: outputs/atlas-depth/)
@@ -194,15 +194,16 @@ try{
    if(name==='far'){
     // Small discs clearly smaller than a curated disc but substantial (two thirds); minis 12px.
     assert.ok(Math.abs(view.gapSize.small-full*2/3)<.5&&Math.abs(view.gapSize.mini-12)<.5,`${label}: small discs ${view.gapSize.small}px, minis ${view.gapSize.mini}px`);
-    assert.ok(smalls.length>=(viewport==='desktop'?15:2)&&smalls.length<=(viewport==='desktop'?35:10),`${label}: ${smalls.length} small discs at 1x`);
+    // Every small disc wears its name, which takes room: a phone's 1x holds none.
+    assert.ok(smalls.length>=(viewport==='desktop'?8:0)&&smalls.length<=(viewport==='desktop'?25:10),`${label}: ${smalls.length} small discs at 1x`);
     assert.ok(minis.length>=(viewport==='desktop'?20:3)&&minis.length<=(viewport==='desktop'?50:14),`${label}: ${minis.length} minis at 1x`);
-    assert.ok(drawn.every(g=>g.label===0)&&!view.marks.some(m=>!m.large&&m.strength>0),`${label}: a small disc or mini is named at 1x`);
+    // Small discs are named at 1x, in full, and minis are not.
+    assert.ok(smalls.every(g=>g.named&&g.label===1),`${label}: a small disc is not named in full at 1x`);
+    assert.ok(minis.every(g=>g.label===0),`${label}: a mini is named at 1x`);
    }
-   // Mid zoom: small discs are named, minis are not yet.
-   if(name==='mid'){
-    assert.ok(smalls.some(g=>g.label>0),`${label}: no small disc is named`);
-    assert.ok(minis.every(g=>g.label===0),`${label}: a mini is named before it has grown`);
-   }
+   // Small discs are named at every zoom; minis are not yet at mid zoom.
+   if(!complete&&smalls.length)assert.ok(smalls.every(g=>g.named&&g.label===1),`${label}: a small disc shows without its name`);
+   if(name==='mid')assert.ok(minis.every(g=>g.label===0),`${label}: a mini is named before it has grown`);
    // Deep in, every small disc and mini wears its name; at 9x in full, at a curated disc's full size,
    // and so does every dot.
    if(view.zoom>=6.4){
@@ -229,7 +230,7 @@ try{
    }
   }
   console.log(`  ${viewport}: ${Object.entries(counts).map(([k,v])=>k+' '+v).join('; ')}`);
-  check(`${viewport}: at 1x, landing, mid, 6.5x and 9x in three themes, curated discs draw at full size with their names, small discs and minis fill the gaps unnamed at 1x, small discs are named by 3x and minis are not, nothing touches, and a redraw is identical`);
+  check(`${viewport}: at 1x, landing, mid, 6.5x and 9x in three themes, curated discs draw at full size with their names, small discs are named at every zoom and minis are not named at 1x or 3x, nothing touches, and a redraw is identical`);
 
   // Hover lifts the art 6% from its size and lets it back down to exactly that size.
   if(viewport==='desktop'){
@@ -273,7 +274,8 @@ try{
     const f=frames[i],label=`${viewport} ${from}x→${to}x frame ${i+1} (${f.zoom.toFixed(2)}x)`;
     named+=clean(f,label,{arts:false});shown=Math.max(shown,f.gaps.filter(g=>g.label>0).length);
     for(const g of f.gaps)if(g.drawn&&g.label>0&&first[g.tier]==null)first[g.tier]=f.zoom;
-    for(const g of f.gaps)if(g.label>0)assert.ok(g.size>=f.labelFrom,`${label}: ${g.name} is named at ${g.size}px`);
+    // A mini's name never shows below labelFrom px; a small disc's always does.
+    for(const g of f.gaps)if(g.label>0&&g.tier==='mini')assert.ok(g.size>=f.labelFrom,`${label}: ${g.name} is named at ${g.size}px`);
     if(!i)continue;
     const p=frames[i-1],before=new Map(p.marks.filter(m=>m.large&&!m.moving).map(m=>[m.key,m]));
     for(const m of f.marks.filter(m=>m.large&&!m.moving)){
@@ -299,7 +301,8 @@ try{
    }
    if(from===1){
     assert.ok(shown>0,`${viewport} 1x→9x: no small name ever shows`);
-    assert.ok(first.small!=null&&first.mini!=null&&first.small<first.mini,`${viewport} 1x→9x: small names from ${first.small?.toFixed(2)}x, mini names from ${first.mini?.toFixed(2)}x`);
+    // Small names are there from the start, mini names come in deeper, past 3x.
+    assert.ok(first.mini>3,`${viewport} 1x→9x: mini names from ${first.mini?.toFixed(2)}x`);
    }
    await settled(page);
    const end=await scene(page);sizes(end,`${viewport} after ${from}x→${to}x`);clean(end,`${viewport} after ${from}x→${to}x`);
@@ -307,11 +310,11 @@ try{
   }
   check(`${viewport}: flying 1x→9x and 9x→1x, curated discs grow and shrink smoothly, small discs, minis and names fade without popping, small discs are named before minis, and nothing touches on any frame`);
 
-  // Fly in on a small disc and on a mini, from 1x to 9x, each kept at the center of the map: its name
-  // fades in from nothing as it grows (from labelFrom px, the small disc's first), never pops, nothing
-  // touches, and at 9x it is a full-size disc with its name, on the canvas or as a curated disc. Each
-  // is the one nearest the center among its tier's named discs where that tier's names are showing
-  // (3x for small discs, 5x for minis), so the flight passes through its name fading in.
+  // Fly in on a small disc and on a mini, from 1x to 9x, each kept at the center of the map: the small
+  // disc's name is there throughout, the mini's fades in from nothing as it grows (from labelFrom
+  // px), never pops, nothing touches, and at 9x it is a full-size disc with its name, on the canvas or
+  // as a curated disc. Each is the one nearest the center among its tier's named discs at 3x for small
+  // discs, 5x for minis, so the mini's flight passes through its name fading in.
   const zoomed={};
   for(const [tier,at] of [['small',3],['mini',5]]){
    // A phone shows few of them deep in: look around the map until one shows.
@@ -340,7 +343,7 @@ try{
    for(let i=0;i<approach.length;i++){
     const f=approach[i],label=`${viewport} flying onto the ${tier} ${target.name} (${f.zoom.toFixed(2)}x)`;
     clean(f.frame,label,{arts:false});
-    if(f.disc?.label>0){assert.ok(f.disc.size>=f.frame.labelFrom,`${label}: its name shows at ${f.disc.size}px`);zoomed[tier]??=f.zoom;}
+    if(f.disc?.label>0){if(f.disc.tier==='mini')assert.ok(f.disc.size>=f.frame.labelFrom,`${label}: its name shows at ${f.disc.size}px`);zoomed[tier]??=f.zoom;}
     if(i){
      // A disc that changes tier cross-fades: its strongest name moves no faster than either tier's.
      const p=approach[i-1],allowed=t=>(f.frame.clock-p.frame.clock)/GAP_FADE+Math.abs(f.frame.labelAlpha[t]-p.frame.labelAlpha[t])+3e-4;
@@ -348,7 +351,8 @@ try{
      assert.ok(Math.abs((f.disc?.label??0)-(p.disc?.label??0))<=most,`${label}: its name pops (${(p.disc?.label??0).toFixed(2)} → ${(f.disc?.label??0).toFixed(2)})`);
     }
    }
-   assert.ok(!approach[0].disc?.label,`${viewport}: the ${tier}'s name shows at 1x`);
+   // At 1x a small disc is named in full, a mini not at all.
+   if(tier==='mini')assert.ok(!approach[0].disc?.label,`${viewport}: the mini's name shows at 1x`);
    await settled(page);
    const end=await scene(page),landed=end.gaps.find(g=>g.id===target.id&&g.on);
    const curated=await page.evaluate(id=>{const g=mapClusters.find(g=>g.members.some(m=>m.id===id));return g&&{large:g.large,lead:g.key===id};},target.id);
