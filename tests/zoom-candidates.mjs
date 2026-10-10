@@ -27,7 +27,7 @@ export const measureBand=page=>page.evaluate(()=>{
  const reach=g=>organicAtlas()&&!g.satellite?groupCache.footprints.get(g.key).radius*AtlasGroups.ORGANIC.reach+.01:.01;
  const putters=visible.filter(g=>typeOf(g.lead)==='putter');
  const putterGroups=groupCache.groups.filter(g=>g.members.some(d=>typeOf(d)==='putter'));
- return {zoom,level:groupCache.level,visible:visible.length,primaries:primaries.length,satellites:dots.length,labeledSatellites:dots.filter(labeled).length,
+ return {zoom,level:groupCache.level,complete:!!groupCache.groups[0]?.complete,visible:visible.length,primaries:primaries.length,satellites:dots.length,labeledSatellites:dots.filter(labeled).length,
   // Tiers 2 and 3 (AtlasGroups.GAP): a dot shows its name only where curate cleared it, once it has grown to show one.
   strayDotNames:dots.filter(g=>labeled(g)&&!g.gapLabel).length,dotNames:AtlasGroups.gapLabelAlpha?.(zoom)??0,
   readableSatellites:dots.filter(g=>g.members.length===1&&g.satellite&&labeled(g)).length,
@@ -96,7 +96,9 @@ export async function checkZoomCandidates(browser,base){
     assert.equal(state.strayDotNames,0);if(!state.dotNames)assert.equal(state.labeledSatellites,0);
     assert.equal(state.leaders,0);assert.deepEqual(state.overlaps,[]);assert.deepEqual(state.markerOverlaps,[]);assert.deepEqual(state.leaderCollisions,[]);
     assert.ok(state.honest);assert.ok(state.scale<=1.24&&state.artScale<=1.24);assert.ok(state.primaries>0);
-    assert.ok(state.largest<=(z===3?5:3));
+    // A complete view (8x and deeper here) rests crowded leads as full-size named dots (AtlasGroups.GAP)
+    // only where they fit, so the rest fold into stacks: up to 8 in this crowded putter band.
+    assert.ok(state.largest<=(state.complete?10:z===3?5:3),`${z}x: a stack of ${state.largest}`);
    }
   }
   fs.writeFileSync(`${dir}/candidates-${suffix}.json`,JSON.stringify(results,null,2));console.log(results);

@@ -15,7 +15,9 @@ const planetLabels=new Map();
 let satelliteLabelsSuppressed=false;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
-let gapFont='';
+// How a curated name is set, per breakpoint (measureFullLabels reads it off the probe): the canvas sets
+// tiers 2 and 3's names the same way.
+const gapTypes=new Map();
 function measureFullLabels(items){
  // The main Atlas draws 76px art, My Map 68px (cosmic.css): measure under the layer's class for this map.
  const organic=organicAtlas(),keyPrefix=(innerWidth<700?'mobile:':'desktop:')+(organic?'organic:':''),pending=[];
@@ -26,25 +28,24 @@ function measureFullLabels(items){
   const node=document.createElement('div');node.className='atlas-marker is-large overview';
   node.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'<small>'+esc(d.brand)+'</small></span>';
   const satellite=node.cloneNode(true);satellite.className='atlas-marker is-dot is-satellite overview';
-  // A small disc's name (tier 2), as a dot shows it and the canvas draws it.
-  const small=document.createElement('div');small.className='atlas-marker is-dot is-gap-label overview';
-  small.innerHTML='<span class="marker-name">'+esc(d.catalogName||d.name)+'</span>';
-  host.append(node,satellite,small);pending.push({key,node,satellite,small});
+  host.append(node,satellite);pending.push({key,node,satellite});
  }
  if(pending.length){
   $('#mapMarkers').append(host);
   // Batch writes before reads; this runs only for new labels/breakpoints/fonts.
-  for(const {key,node,satellite,small} of pending){
+  for(const {key,node,satellite} of pending){
    const marker=node.getBoundingClientRect(),label=node.firstChild.getBoundingClientRect();
    const gap=parseFloat(getComputedStyle(node.firstChild).lineHeight)/4;
    const dot=satellite.getBoundingClientRect(),dotLabel=satellite.firstChild.getBoundingClientRect();
-   const tier=small.getBoundingClientRect(),tierLabel=small.firstChild.getBoundingClientRect();
-   if(!gapFont){const style=getComputedStyle(small.firstChild);gapFont=style.fontWeight+' '+style.fontSize+' '+style.fontFamily;}
+   if(organic&&!gapTypes.has(keyPrefix)){
+    const name=getComputedStyle(node.firstChild),brand=getComputedStyle(node.firstChild.lastChild),font=s=>s.fontWeight+' '+s.fontSize+' '+s.fontFamily;
+    gapTypes.set(keyPrefix,{name:font(name),nameSpacing:name.letterSpacing,line:parseFloat(name.lineHeight),width:parseFloat(name.maxWidth),
+     brand:font(brand),brandSpacing:brand.letterSpacing,brandLine:parseFloat(brand.lineHeight),brandGap:parseFloat(brand.marginTop),upper:brand.textTransform==='uppercase'});
+   }
    fullLabelFootprints.set(key,{x:label.x-marker.x-marker.width/2-gap,y:label.y-marker.y-marker.height/2-gap,
     w:label.width+gap*2,h:label.height+gap*2,radius:marker.width/2,
     satellite:{x:dotLabel.x-dot.x-dot.width/2-gap,y:dotLabel.y-dot.y-dot.height/2-gap,
-     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:14},
-    gap:{x:tierLabel.x-tier.x-tier.width/2-2,y:tierLabel.y-tier.y-tier.height/2-2,w:tierLabel.width+4,h:tierLabel.height+4}});
+     w:dotLabel.width+gap*2,h:dotLabel.height+gap*2,radius:14}});
   }
   host.remove();
  }
@@ -52,7 +53,7 @@ function measureFullLabels(items){
 }
 // Label footprints must use the real fonts. A face first requested by these measurements loads
 // after fonts.ready, so measure again whenever any font finishes loading.
-const remeasureLabels=()=>{fullLabelFootprints.clear();gapFont='';groupContext=null;scheduleMapDraw();};
+const remeasureLabels=()=>{fullLabelFootprints.clear();gapTypes.clear();groupContext=null;scheduleMapDraw();};
 document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
 function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;}
 // The chrome over the map in map pixels. The organic overview keeps every disc and name clear of it at
@@ -261,36 +262,74 @@ function draw(){
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
 }
 // Tiers 2 and 3 (AtlasGroups.GAP): the rest of the rated catalog as small discs and minis on the
-// canvas, under every curated disc, in the room curate left them. Each grows with the zoom toward the
-// full size both share. Their set follows the level; a disc or name that joins or leaves fades over
+// canvas, under every curated disc, in the room curate left them. Each grows with the zoom to a
+// curated disc's full size at the deepest zoom, where it draws as one does: the same art, the same
+// name and manufacturer. Their set follows the level; a disc or name that joins or leaves fades over
 // GAP_FADE ms instead of popping, and a name's strength follows its disc's size on screen.
 const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let gapClock=0,mapGaps=[];
+// A curated disc's art (cosmic.css .clean-disc, light and dark) drawn once per color and look at
+// SPRITE_SCALE times its 76px, shadows and all: SPRITE_PAD of its size beyond each edge holds them.
+const SPRITE_SCALE=2,SPRITE_PAD=.5;
 function gapSprite(color){
- const key=color+themePalette.edge;let sprite=gapSprites.get(key);if(sprite)return sprite;
+ const light=document.documentElement.dataset.theme==='light',key=color+(light?'|light':'|dark');
+ let sprite=gapSprites.get(key);if(sprite)return sprite;
  if(gapSprites.size>48)gapSprites.clear();
- // A complete view's dot (cosmic.css .is-dot .map-dot) at 4x resolution: lit from the upper left, edged.
- const n=60,c=document.createElement('canvas');c.width=c.height=n;const g=c.getContext('2d'),r=n/2;
- const mix=(to,amount)=>{const a=parseInt(color.slice(1),16),b=parseInt(to.slice(1),16),ch=s=>Math.round(((a>>s)&255)*amount+((b>>s)&255)*(1-amount));return 'rgb('+ch(16)+','+ch(8)+','+ch(0)+')';};
- const body=g.createRadialGradient(n*.32,n*.25,0,n*.32,n*.25,n*Math.hypot(.68,.75));
- body.addColorStop(0,mix('#ffffff',.7));body.addColorStop(.55,color);body.addColorStop(1,mix('#000000',.7));
- g.fillStyle=body;g.beginPath();g.arc(r,r,r,0,Math.PI*2);g.fill();
- g.lineWidth=4;g.strokeStyle=themePalette.edge;g.beginPath();g.arc(r,r,r-2,0,Math.PI*2);g.stroke();
+ const k=SPRITE_SCALE,D=AtlasGroups.GAP.disc*k,n=Math.ceil(D*(1+SPRITE_PAD*2)),c=document.createElement('canvas');c.width=c.height=n;
+ const g=c.getContext('2d'),r=D/2,cx=n/2,cy=n/2,left=cx-r,top=cy-r,circle=(radius=r)=>{g.beginPath();g.arc(cx,cy,radius,0,Math.PI*2);};
+ const rgb=hex=>{const v=parseInt(hex.slice(1,7),16);return [(v>>16)&255,(v>>8)&255,v&255];};
+ const mix=(to,amount,alpha=1)=>{const a=rgb(color),b=rgb(to),ch=i=>Math.round(a[i]*amount+b[i]*(1-amount));return `rgba(${ch(0)},${ch(1)},${ch(2)},${alpha})`;};
+ const shadow=(y,blur,tint,x=0)=>{g.shadowOffsetX=x;g.shadowOffsetY=y*k;g.shadowBlur=blur*k;g.shadowColor=tint;};
+ // Outer shadows: a disc off the sprite casts them onto it.
+ for(const [y,blur,tint] of light?[[5,9,'#1523401c'],[13,23,'#15234016']]:[[7,15,'#0007'],[0,24,mix(color,1,.13)]]){
+  g.save();shadow(y,blur,tint,n*2);g.translate(-n*2,0);circle();g.fillStyle='#000';g.fill();g.restore();
+ }
+ // The body: a lit radial gradient (a circle at 42% 32%, out to the farthest corner) under a glare
+ // (an ellipse at 30% 18%, likewise), both placed in the art's own box.
+ const body=g.createRadialGradient(left+.42*D,top+.32*D,0,left+.42*D,top+.32*D,Math.hypot(.58,.68)*D);
+ body.addColorStop(.1,mix('#ffffff',.86));body.addColorStop(.48,color);body.addColorStop(.85,mix('#000000',.64));
+ circle();g.fillStyle=body;g.fill();
+ g.save();circle();g.clip();
+ const rx=Math.SQRT2*.7*D,ry=Math.SQRT2*.82*D;g.translate(left+.3*D,top+.18*D);g.scale(1,ry/rx);
+ const glare=g.createRadialGradient(0,0,0,0,0,rx);glare.addColorStop(0,'rgba(255,255,255,.44)');glare.addColorStop(.46,'rgba(255,255,255,0)');
+ g.fillStyle=glare;g.fillRect(-rx,-rx,rx*2,rx*2);g.restore();
+ // Inset shadows: the sprite outside the disc casts them inward, clipped to it.
+ for(const [y,blur,tint] of light?[[1,2,'#ffffff80'],[-3,6,'#0003']]:[[1,3,'#ffffff65'],[-4,8,'#0005']]){
+  g.save();circle();g.clip();shadow(y,blur,tint);g.beginPath();g.rect(0,0,n,n);g.arc(cx,cy,r,0,Math.PI*2,true);g.fillStyle='#000';g.fill('evenodd');g.restore();
+ }
+ g.lineWidth=k;g.strokeStyle=mix('#ffffff',.7);circle(r-k/2);g.stroke();
+ // The inner rim (::after, inset 8%).
+ g.save();shadow(1,2,'#0002');g.strokeStyle='#ffffff35';circle(r*.84);g.stroke();g.restore();
  gapSprites.set(key,c);return c;
 }
-// A small disc's name, drawn once per theme and font with the curated names' halo (text-shadow
-// 0 1px 4px map-bg) and blitted after: a blurred fillText on every frame is far too slow.
+// A small disc's or mini's name, set as a curated disc's (its name over its manufacturer, wrapped to
+// the label's width, with its halo, text-shadow 0 1px 4px map-bg), drawn once per theme and type and
+// blitted after: a blurred fillText on every frame is far too slow.
 // At most `budget` new ones a frame (null when spent): a name first shows at a sliver of strength, so
 // one drawn a frame or two late is never seen, and a level's names never cost one long frame.
 let gapNameBudget=6;
-function gapName(text){
- const dpr=Math.min(devicePixelRatio||1,2),font=gapFont||'500 11px sans-serif',key=text+'|'+font+'|'+themePalette.muted+themePalette.background+dpr;
+function gapName(d){
+ const type=gapTypes.get((innerWidth<700?'mobile:':'desktop:')+'organic:');if(!type)return null;
+ const text=d.catalogName||d.name,brand=type.upper?d.brand.toUpperCase():d.brand;
+ const dpr=Math.min(devicePixelRatio||1,2),key=text+'|'+brand+'|'+type.name+type.width+'|'+themePalette.text+themePalette.muted+themePalette.background+dpr;
  let name=gapNames.get(key);if(name)return name;
  if(gapNameBudget<=0)return null;gapNameBudget--;
  if(gapNames.size>600)gapNames.clear();
- const c=document.createElement('canvas'),g=c.getContext('2d');g.font=font;
- const w=Math.ceil(g.measureText(text).width)+12,h=24;c.width=w*dpr;c.height=h*dpr;
- g.scale(dpr,dpr);g.font=font;g.textAlign='center';g.textBaseline='middle';g.fillStyle=themePalette.muted;
- g.shadowColor=themePalette.background;g.shadowBlur=4;g.shadowOffsetY=1;g.fillText(text,w/2,h/2);
+ const c=document.createElement('canvas'),g=c.getContext('2d');
+ // Greedy wrap at spaces, as the label's normal white-space does; a long word stays whole.
+ const wrap=(words,font,spacing)=>{
+  g.font=font;g.letterSpacing=spacing;const lines=[];
+  for(const word of words.split(/\s+/).filter(Boolean)){const last=lines.at(-1);if(last&&g.measureText(last+' '+word).width<=type.width)lines[lines.length-1]=last+' '+word;else lines.push(word);}
+  return lines.map(line=>({line,font,spacing,w:g.measureText(line).width}));
+ };
+ const names=wrap(text,type.name,type.nameSpacing),brands=wrap(brand,type.brand,type.brandSpacing),pad=6;
+ const w=Math.ceil(Math.max(...names.map(l=>l.w),...brands.map(l=>l.w)))+pad*2;
+ const h=Math.ceil(names.length*type.line+type.brandGap+brands.length*type.brandLine)+pad*2;
+ c.width=w*dpr;c.height=h*dpr;g.scale(dpr,dpr);g.textAlign='center';g.textBaseline='middle';
+ g.shadowColor=themePalette.background;g.shadowBlur=4;g.shadowOffsetY=1;
+ let y=pad;
+ for(const l of names){g.font=l.font;g.letterSpacing=l.spacing;g.fillStyle=themePalette.text;g.fillText(l.line,w/2,y+type.line/2);y+=type.line;}
+ y+=type.brandGap;
+ for(const l of brands){g.font=l.font;g.letterSpacing=l.spacing;g.fillStyle=themePalette.muted;g.fillText(l.line,w/2,y+type.brandLine/2);y+=type.brandLine;}
  name={canvas:c,w,h};gapNames.set(key,name);return name;
 }
 function drawGaps(area,w,h){
@@ -306,11 +345,12 @@ function drawGaps(area,w,h){
   e.on=true;e.d=g.d;e.pos=g.pos;e.tx=g.x;e.ty=g.y;e.named=g.label;e.tier=g.tier;
  }
  const toward=(v,t,s)=>v<t?Math.min(t,v+s):Math.max(t,v-s),dpr=Math.min(devicePixelRatio||1,2),snap=v=>Math.round(v*dpr)/dpr;
- const look=Object.fromEntries(AtlasGroups.TIERS.map(t=>{const size=AtlasGroups.gapSize(zoom,t);return [t,{size,strength:AtlasGroups.nameAlpha(size),depth:AtlasGroups.gapAlpha(zoom,t)}];}));
+ const depth=AtlasGroups.gapAlpha(zoom);
+ const look=Object.fromEntries(AtlasGroups.TIERS.map(t=>{const size=AtlasGroups.gapSize(zoom,t);return [t,{size,strength:AtlasGroups.nameAlpha(size),drop:AtlasGroups.gapDrop(size)}];}));
  let moving=false;
  // Each entry is also its record in mapGaps (for tests): id, tier, name, x, y, size, art (its
  // presence), label (its name's presence), strength (what shows of its name), named, on, rest (at
- // its rest spot), box (its name's box) and drawn (on screen).
+ // its rest spot), box (its name's box), paint (its sprite's box, shadows and all) and drawn (on screen).
  for(const [key,e] of gapFade){
   e.art=toward(e.art,e.on?1:0,step);const shown=e.label=toward(e.label,e.on&&e.named?1:0,step);
   // A disc that stays across a level swap eases to its new rest spot (a few px at most).
@@ -319,19 +359,21 @@ function drawGaps(area,w,h){
   e.rest=e.ox===e.tx&&e.oy===e.ty;
   if(e.art!==(e.on?1:0)||shown!==(e.on&&e.named?1:0)||!e.rest)moving=true;
   const x=area.left+e.pos.x*area.width*zoom+pan.x+e.ox,y=area.bottom-e.pos.y*area.height*zoom+pan.y+e.oy;
-  const {size,strength,depth}=look[e.tier],r=size/2;
-  e.x=x;e.y=y;e.size=size;e.name=e.d.catalogName||e.d.name;e.box=null;e.drawn=false;
+  const {size,strength,drop}=look[e.tier],reach=size*(.5+SPRITE_PAD);
+  e.x=x;e.y=y;e.size=size;e.name=e.d.catalogName||e.d.name;e.box=null;e.drawn=false;e.paint={x:x-reach,y:y-reach,w:reach*2,h:reach*2};
   // Its name's strength: present (fading with level swaps) times its size's.
   const alpha=e.strength=shown*strength;
   mapGaps.push(e);
-  if(x<-60||x>w+60||y<-30||y>h+30)continue;
-  ctx.globalAlpha=e.art*depth;ctx.drawImage(gapSprite(discColor(e.d)),x-r,y-r,size,size);
-  const f=groupCache.footprints.get(e.id)?.gap;
+  // Its name hangs up to about 100px below it.
+  if(x<-reach-80||x>w+reach+80||y<-reach-100||y>h+reach)continue;
+  ctx.globalAlpha=e.art*depth;ctx.drawImage(gapSprite(discColor(e.d)),x-reach,y-reach,reach*2,reach*2);
+  const f=groupCache.footprints.get(e.id);
   if(f){
-   e.box={x:x+f.x,y:y+f.y,w:f.w,h:f.h};
+   // A curated name's box, raised to hang as far below this disc as a curated name hangs below its art.
+   e.box={x:x+f.x,y:y+f.y+drop,w:f.w,h:f.h};
    // Below 1% a name is invisible; skip the blit.
    if(alpha>=.01){
-    const name=gapName(e.name);
+    const name=gapName(e.d);
     if(name){ctx.globalAlpha=alpha;ctx.drawImage(name.canvas,snap(e.box.x+e.box.w/2-name.w/2),snap(e.box.y+e.box.h/2-name.h/2),name.w,name.h);}
     else waiting=true;
    }
@@ -343,7 +385,7 @@ function drawGaps(area,w,h){
 }
 // Draw a level's small names ahead, while the browser is idle, so zooming in finds them ready.
 function warmGapNames(gaps){
- const names=(gaps||[]).filter(g=>g.label).map(g=>g.d.catalogName||g.d.name);
+ const names=(gaps||[]).filter(g=>g.label).map(g=>g.d);
  if(!names.length||!window.requestIdleCallback)return;
  const next=deadline=>{
   while(names.length&&deadline.timeRemaining()>2){gapNameBudget=1;gapName(names.pop());}
@@ -378,10 +420,10 @@ function renderMarkers(){
  layer.classList.toggle('atlas-organic',organicAtlas());
  // select() repaints markers only; a new selection may need a curated spot (it always shows).
  if(organicAtlas()&&groupCache.organicFirst!==selectedGroup(groupCache.groups)?.key)scheduleMapDraw();
- const scale=mapMarkerScale();
- // A complete view's dots are its small discs (12px in cosmic.css): on the main Atlas they grow as
- // the canvas's small discs do, toward the full size, and so do their names.
- const dotScale=organicAtlas()?AtlasGroups.gapSize(zoom)/12:scale;
+ const scale=mapMarkerScale(),organic=organicAtlas(),dotSize=organic?AtlasGroups.gapSize(zoom,'small'):0;
+ // A complete view's dots on the main Atlas are its small discs: the curated art (76px, cosmic.css) at
+ // tier 2's size, growing with the canvas's small discs to the full size, their names fading in with it.
+ const dotScale=organic?dotSize/AtlasGroups.GAP.disc:scale;
  const scaleValue=scale.toFixed(3)+'/'+dotScale.toFixed(3),gapLabel=AtlasGroups.gapLabelAlpha(zoom).toFixed(3);
  const filterPending=groupCache.items!==filtered;
  // Artwork can retire in batches, but obsolete full labels must disappear
@@ -445,6 +487,8 @@ function renderMarkers(){
   const selectedScale=g.members.includes(selected)?1.12:1;
   if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
    if(g.large)node.art.style.scale=scale.toFixed(3);
+   // Its halo, count and name follow its radius (--gap-half); selected, it grows as curated art does.
+   else if(organic){node.art.style.scale=dotScale.toFixed(3);node.dot.style.removeProperty('scale');node.style.setProperty('--gap-half',(dotSize/2).toFixed(2)+'px');}
    else{node.art.style.removeProperty('scale');node.dot.style.scale=(dotScale*selectedScale).toFixed(3);}
    node.markerScale=scaleValue;node.dotSelection=selectedScale;node.scaleLarge=g.large;
   }

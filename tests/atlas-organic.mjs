@@ -17,7 +17,8 @@ const prints=list=>new Map(list.map(g=>[g.key,footprint]));
 const curate=(list,options)=>{AtlasGroups.curate(list,prints(list),1,1,options);return list;};
 const shown=list=>list.filter(g=>!g.hidden).map(g=>g.key);
 // A shown disc's boxes: its art and name, or a dot's own small box.
-const boxes=g=>{const x=g.px+g.markerOffset.x,y=-g.py+g.markerOffset.y,r=g.large?footprint.radius:O.dot;
+// A complete view's dot is a small disc (AtlasGroups.GAP), sized for the curate zoom (1x).
+const boxes=g=>{const x=g.px+g.markerOffset.x,y=-g.py+g.markerOffset.y,r=g.large?footprint.radius:AtlasGroups.gapSize(1,'small')/2;
  return g.large?[{x:x-r,y:y-r,w:2*r,h:2*r},{x:x+footprint.x,y:y+footprint.y,w:footprint.w,h:footprint.h}]:[{x:x-r,y:y-r,w:2*r,h:2*r}];};
 const apart=(a,b,pad)=>a.x+a.w+pad<=b.x||b.x+b.w+pad<=a.x||a.y+a.h+pad<=b.y||b.y+b.h+pad<=a.y;
 // A seeded field: 400 discs scattered over 3000 x 2000 px (a cap under 400 keeps it an overview).
@@ -92,7 +93,7 @@ test('obstacles and the frame are kept clear',()=>{
 test('a complete view hides nothing: crowded leads become dots, then join a stack',()=>{
  // Five discs, cap 8: every one must show. b sits too close to a for full size but has room for a
  // dot; c coincides with a, so it joins a's stack.
- const list=curate(groups([['a',100,-100],['b',160,-100],['c',100,-100],['d',600,-100],['e',900,-400]]),{cap:8});
+ const list=curate(groups([['a',100,-100],['b',165,-100],['c',100,-100],['d',600,-100],['e',900,-400]]),{cap:8});
  const members=list.filter(g=>!g.hidden).flatMap(g=>[...g.members,...g.joined||[]]);
  assert.deepEqual(members.sort(),['a','b','c','d','e']);
  assert.ok(list.every(g=>g.complete));

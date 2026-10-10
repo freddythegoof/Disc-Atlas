@@ -21,27 +21,35 @@ globalThis.AtlasGroups = {
  // at 4x. promote and curate clear every disc for this, and both maps draw their art at this size.
  artRoom(zoom){return 1+.08*(Math.min(4,zoom)-1);},
  // Tiers 2 and 3 of the organic overview: the rest of the rated catalog resting in the room the
- // curated discs leave, a distant field they sit in front of. Small discs (`small`) take the room
- // first; minis (`mini`) fill what is still left. Each tier starts at its own `size` px at 1x and
- // grows by `grow` px per doubling of zoom to the `full` size both share, so a mini, starting much
- // smaller, reaches it far deeper in. One rule names both: a name's strength follows its disc's
- // size on screen, none below `labelFrom` px, all at `full`, smooth between (nameAlpha), and it is
- // reserved only where it will show. Each rests within `reach` of the 16px `room` from its own
+ // curated discs leave, a field they sit in front of. Small discs (`small`) take the room first; minis
+ // (`mini`) fill what is still left. Each tier is a share of a curated disc (76px `disc` art times
+ // artRoom): its `start` at 1x, two thirds for a small disc and 12px for a mini, growing evenly in log
+ // zoom to all of it at the deepest zoom (`top`, the map's 9x), where every tier is a full-size disc.
+ // One rule names both: a name's strength follows its disc's size on screen, none below `labelFrom`
+ // px, all from `labelFull`, smooth between (nameAlpha), and it is reserved only where it will show;
+ // where it shows at least `named` strength, a disc rests only with its name, never as a nameless one.
+ // The name is a curated disc's (name and manufacturer), sitting as far below the disc's edge as a
+ // curated name sits below its 76px art (gapDrop). Each rests within `reach` of its own radius from its
  // point. It keeps `art` px from a curated disc, `label` px from a curated name and `apart` px from
- // another small disc, mini or name, with its tier's `spacing` (`phoneSpacing` under 700px) between
- // centers of the same tier, and a mini keeps `clear` px from a small disc's center. At 1x they draw
- // at `far` strength, quieter than the discs in front, and come up to full strength as they grow.
- GAP:{full:18,grow:4.8,labelFrom:15,room:8,reach:.6,art:20,label:8,apart:6,far:.72,
-  small:{size:12,spacing:60,phoneSpacing:54},mini:{size:5,spacing:60,phoneSpacing:54,clear:30}},
+ // another small disc, mini or name, with its tier's `space` (`phoneSpace` under 700px) between its
+ // room and another of the same tier, and a mini keeps `clear` px between its room and a small disc's.
+ // At 1x they draw at `far` strength, quieter than the discs in front, coming up to full as they grow.
+ GAP:{disc:76,top:9,labelFrom:54,labelFull:84,named:.5,reach:.6,art:20,label:8,apart:6,far:.72,
+  small:{start:2/3,space:48,phoneSpace:40},mini:{start:12/76,space:48,phoneSpace:40,clear:24}},
  TIERS:['small','mini'],
- gapSize(zoom,tier='small'){const G=this.GAP;return Math.min(G.full,G[tier].size+G.grow*Math.log2(Math.max(1,zoom)));},
- gapAlpha(zoom,tier='small'){const G=this.GAP,t=(this.gapSize(zoom,tier)-G.small.size)/(G.full-G.small.size);return G.far+(1-G.far)*Math.max(0,Math.min(1,t));},
+ // How far toward the deepest zoom `zoom` is: 0 at 1x, 1 at GAP.top, even in log zoom.
+ gapDepth(zoom){return Math.max(0,Math.min(1,Math.log(zoom)/Math.log(this.GAP.top)));},
+ gapSize(zoom,tier='small'){const G=this.GAP,s=G[tier].start;return G.disc*this.artRoom(zoom)*(s+(1-s)*this.gapDepth(zoom));},
+ gapAlpha(zoom){const G=this.GAP;return G.far+(1-G.far)*this.gapDepth(zoom);},
  // How visible a small disc's or mini's name is at its size on screen: the one rule for both tiers.
  nameAlpha(size){
-  const {labelFrom:a,full:b}=this.GAP,t=Math.max(0,Math.min(1,(size-a)/(b-a)));
+  const {labelFrom:a,labelFull:b}=this.GAP,t=Math.max(0,Math.min(1,(size-a)/(b-a)));
   return t*t*(3-2*t);
  },
  gapLabelAlpha(zoom,tier='small'){return this.nameAlpha(this.gapSize(zoom,tier));},
+ // How far above a curated disc's name (footprint y) a `size` px disc's name sits: as far below its
+ // own edge, until it reaches the curated art, whose name stays put as the art grows past it.
+ gapDrop(size){return (Math.min(size,this.GAP.disc)-this.GAP.disc)/2;},
  segmentsCross(a,b) {
   if(Math.max(a.x1,a.x2)<Math.min(b.x1,b.x2)||Math.max(b.x1,b.x2)<Math.min(a.x1,a.x2)||
    Math.max(a.y1,a.y2)<Math.min(b.y1,b.y2)||Math.max(b.y1,b.y2)<Math.min(a.y1,a.y2))return false;
@@ -150,14 +158,15 @@ globalThis.AtlasGroups = {
  // 5. `first` (the selected disc's group) is placed ahead of both walks when they would hide it.
  // 6. A complete view, one with no more discs than the cap (a narrow filter or search, or deep zoom),
  //    hides nothing. Its leads keep only the `gap`, not the overview's `spacing`, so more rest at full
- //    size; a lead with no room at full size rests as a small dot (its name on hover and focus),
- //    within the same reach and clear of everything; with no room even for that, its discs join
+ //    size; a lead with no room at full size rests as a dot, a small disc of tier 2's size (its name
+ //    on hover and focus), within the same reach and clear of everything; with no room even for
+ //    that, its discs join
  //    the stack of the nearest placed disc (`joined`). The overview never shows dots.
  // 7. Tiers 2 and 3 (GAP), in a view that hides discs: every other rated disc (`points`, from
  //    pointIds, in the same order) may rest as a small disc near its own atlas point, within
  //    GAP.reach of its room, where it is clear of every curated disc, name and chrome and of the
- //    small discs placed before it (8 spots: its seeded toss, its point and 6 around its few-px
- //    reach). A second walk, in the same order, rests the discs still left as minis in the room that
+ //    small discs placed before it (8 spots: its seeded toss, its point and 6 around its reach).
+ //    A second walk, in the same order, rests the discs still left as minis in the room that
  //    is still clear. A tier's discs are sized for the level's top zoom. Where a tier's names will
  //    show (`gapLabels`), a disc gets its name if that is clear too, and later discs keep off it. A
  //    disc that would crowd anything is not placed. Curated discs never move for them.
@@ -169,7 +178,7 @@ globalThis.AtlasGroups = {
  // `spacing` is the least distance between disc centers in an overview: 138px on desktop (24 discs
  // at 1x on a 1440 x 900 map, under the cap of 29), 112px on maps under 700px wide, where the same
  // 76px art fills far more of the screen.
- ORGANIC:{perView:32,view:1320*640,min:8,reach:.6,gap:12,spacing:138,phoneSpacing:112,region:300,dot:8},
+ ORGANIC:{perView:32,view:1320*640,min:8,reach:.6,gap:12,spacing:138,phoneSpacing:112,region:300},
  organicCap(view,zoom){
   const O=this.ORGANIC;
   return Math.max(O.min,Math.round(O.perView*(view.right-view.left)*(view.bottom-view.top)/O.view*zoom*zoom));
@@ -192,7 +201,7 @@ globalThis.AtlasGroups = {
   const pan=overview?globalThis.AtlasLayout.constrain({zoom:1,x:0,y:0},area,extent):{x:0,y:0},origin={x:area.left+pan.x,y:area.bottom+pan.y};
   const tiers=f=>Object.fromEntries(this.TIERS.map(t=>[t,f(t)]));
   return {zoom:at,artZoom:top,stretch:Math.max(1,top/at),cap:this.organicCap(area.view,at),spacing:width<700?this.ORGANIC.phoneSpacing:this.ORGANIC.spacing,
-   gapSpacing:tiers(t=>width<700?this.GAP[t].phoneSpacing:this.GAP[t].spacing),gapLabels:tiers(t=>this.gapLabelAlpha(Math.max(at,top),t)>0),
+   gapSpacing:tiers(t=>width<700?this.GAP[t].phoneSpace:this.GAP[t].space),gapLabels:tiers(t=>this.gapLabelAlpha(Math.max(at,top),t)>0),
    obstacles:overview?chrome.map(b=>({x:b.x-origin.x,y:b.y-origin.y,w:b.w,h:b.h})):[],
    frame:overview?{x:inset-origin.x,y:inset-origin.y,w:width-inset*2,h:height-inset*2}:null,
    key:[level,at,overview?chrome.key:''].join('|')};
@@ -213,7 +222,7 @@ globalThis.AtlasGroups = {
   // This can run on camera frames, so the grids use numeric keys and a lead fails fast.
   const cellSize=128,scale=this.artRoom(Math.max(zoom,artZoom)),ratio=zoom/groupZoom,K=1<<20;
   const tiers=f=>Object.fromEntries(this.TIERS.map(t=>[t,f(t)]));
-  gapSpacing=gapSpacing||tiers(t=>this.GAP[t].spacing);
+  gapSpacing=gapSpacing||tiers(t=>this.GAP[t].space);
   if(typeof gapLabels!=='object')gapLabels=tiers(()=>!!gapLabels);
   const near=(a,b,pad)=>a.x-pad<b.x+b.w&&a.x+a.w+pad>b.x&&a.y-pad<b.y+b.h&&a.y+a.h+pad>b.y;
   const outside=box=>frame&&(box.x<frame.x||box.y<frame.y||box.x+box.w>frame.x+frame.w||box.y+box.h>frame.y+frame.h);
@@ -221,6 +230,15 @@ globalThis.AtlasGroups = {
   const complete=groups.reduce((n,g)=>n+g.members.length,0)<=cap;
   if(complete)spacing=0;
   const G=this.GAP;let gaps=[];
+  // Each tier's room (half its art) at the level's top, its largest, and the box its name needs: a
+  // curated name's, from where it hangs at this zoom down to where it hangs at the top, as it follows
+  // the growing disc.
+  const rooms=tiers(t=>this.gapSize(Math.max(zoom,artZoom),t)/2);
+  const must=tiers(t=>gapLabels[t]&&this.gapLabelAlpha(zoom,t)>=G.named);
+  const nameBox=(f,tier,x,y,owner)=>{
+   const low=this.gapDrop(this.gapSize(zoom,tier)),high=this.gapDrop(2*rooms[tier]);
+   return {x:x+f.x,y:y+f.y+low,w:f.w,h:f.h+high-low,kind:'smallLabel',owner};
+  };
   const walk=order=>{
    const occupied=new Map(),centers=new Map(),arts=new Map(),covered=new Set(),tried=new Set();let placed=0;
    for(const g of groups){
@@ -313,19 +331,23 @@ globalThis.AtlasGroups = {
    if(!complete){if(points)gaps=gapWalk(roomy,occupy,arts);return;}
    for(const g of order){
     const f=footprints.get(g.key);if(!g.hidden||!f)continue;
-    const x=g.px*ratio,y=-g.py*ratio,r=this.ORGANIC.dot,reach=f.radius*this.ORGANIC.reach;
+    const x=g.px*ratio,y=-g.py*ratio,r=rooms.small,reach=f.radius*this.ORGANIC.reach;
     if(hemmed(x,y,r,reach))continue;
     for(const o of this.organicOffsets(g.key,reach)){
      const dot={x:x+o.x-r,y:y+o.y-r,w:2*r,h:2*r};
      if(blocked(dot,x,y))continue;
-     dot.kind='small';dot.owner=g.key;occupy(dot,x,y);g.hidden=false;g.markerOffset=o;break;
+     // Where its name shows strongly, it rests only with it.
+     const label=must.small&&nameBox(f,'small',x+o.x,y+o.y,g.key);
+     if(label&&!roomy(label,x,y))continue;
+     dot.kind='small';dot.owner=g.key;occupy(dot,x,y);g.hidden=false;g.markerOffset=o;
+     if(label){occupy(label,x,y);g.gapLabel=true;}
+     break;
     }
    }
    // Names for the dots, where they will show and are clear. Placement above is already final.
    if(gapLabels.small)for(const g of order){
-    const f=footprints.get(g.key)?.gap;if(g.hidden||g.large||!f)continue;
-    const x=g.px*ratio+g.markerOffset.x,y=-g.py*ratio+g.markerOffset.y;
-    const label={x:x+f.x,y:y+f.y,w:f.w,h:f.h,kind:'smallLabel',owner:g.key};
+    const f=footprints.get(g.key);if(g.hidden||g.large||g.gapLabel||!f)continue;
+    const label=nameBox(f,'small',g.px*ratio+g.markerOffset.x,-g.py*ratio+g.markerOffset.y,g.key);
     if(roomy(label,g.px*ratio,-g.py*ratio)){occupy(label,g.px*ratio,-g.py*ratio);g.gapLabel=true;}
    }
    for(const g of order){
@@ -341,23 +363,24 @@ globalThis.AtlasGroups = {
   };
   // Tiers 2 and 3 rest after the curated walk, in the room it left: small discs first, then minis.
   const gapWalk=(roomy,occupy,arts)=>{
-   const shown=new Set(),rested=new Set(),centers=tiers(()=>new Map()),reach=G.room*G.reach,out=[];
-   // Each tier's art is sized for the largest it draws at on this level.
-   const rooms=tiers(t=>this.gapSize(Math.max(zoom,artZoom),t)/2);
+   const shown=new Set(),rested=new Set(),centers=tiers(()=>new Map()),out=[];
+   // Each tier's art is sized for the largest it draws at on this level, and its least distance
+   // between centers follows: its room twice over and its space.
+   const reach=tiers(t=>rooms[t]*G.reach),step=tiers(t=>2*rooms[t]+gapSpacing[t]);
    for(const g of groups)if(!g.hidden)shown.add(g.key);
    const near=(tier,x,y,within)=>{
-    const step=gapSpacing[tier],cx=Math.floor(x/step),cy=Math.floor(y/step);
+    const cx=Math.floor(x/step[tier]),cy=Math.floor(y/step[tier]);
     for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(const c of centers[tier].get((cx+i)*K+cy+j)||[])if((c.x-x)**2+(c.y-y)**2<within*within)return true;
     return false;
    };
-   // Is (x, y) too near a placed center, less `slack`? Same-tier centers keep the tier's spacing;
-   // a mini also keeps `clear` from small disc centers.
-   const crowded=(tier,x,y,slack=0)=>near(tier,x,y,gapSpacing[tier]-slack)||tier==='mini'&&near('small',x,y,G.mini.clear-slack);
+   // Is (x, y) too near a placed center, less `slack`? Same-tier centers keep the tier's step; a
+   // mini also keeps `clear` between its room and a small disc's.
+   const crowded=(tier,x,y,slack=0)=>near(tier,x,y,step[tier]-slack)||tier==='mini'&&near('small',x,y,rooms.small+rooms.mini+G.mini.clear-slack);
    // A curated disc so close to the point that no spot within reach clears it.
-   const hemmed=(x,y,r)=>{
+   const hemmed=(tier,x,y,r)=>{
     const cx=Math.floor(x/cellSize),cy=Math.floor(y/cellSize);
     for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(const a of arts.get((cx+i)*K+cy+j)||[])
-     if(Math.max(Math.abs(a.x-x),Math.abs(a.y-y))<a.r+r+G.art-reach)return true;
+     if(Math.max(Math.abs(a.x-x),Math.abs(a.y-y))<a.r+r+G.art-reach[tier])return true;
     return false;
    };
    const {ids,xy}=points;
@@ -365,17 +388,17 @@ globalThis.AtlasGroups = {
    const rest=(n,tier,spots)=>{
     const id=ids[n];if(shown.has(id)||rested.has(id))return;
     const x=xy[4*n]*ratio,y=-xy[4*n+1]*ratio,r=rooms[tier];
-    if(crowded(tier,x,y,reach)||hemmed(x,y,r))return;
-    const f=gapLabels[tier]?footprints.get(id)?.gap:null;
-    for(const o of spots||this.organicOffsets(id,reach,6)){
+    if(crowded(tier,x,y,reach[tier])||hemmed(tier,x,y,r))return;
+    const f=gapLabels[tier]?footprints.get(id):null;
+    for(const o of spots||this.organicOffsets(id,reach[tier],6)){
      const mx=x+o.x,my=y+o.y;
      if(crowded(tier,mx,my))continue;
      const art={x:mx-r,y:my-r,w:2*r,h:2*r,kind:'small',owner:id};
      if(!roomy(art,x,y))continue;
-     const label=f&&{x:mx+f.x,y:my+f.y,w:f.w,h:f.h,kind:'smallLabel',owner:id};
-     const named=!!label&&roomy(label,x,y);
+     const label=f&&nameBox(f,tier,mx,my,id);
+     const named=!!label&&roomy(label,x,y);if(must[tier]&&!named)continue;
      occupy(art,x,y);if(named)occupy(label,x,y);rested.add(id);
-     const step=gapSpacing[tier],cell=Math.floor(mx/step)*K+Math.floor(my/step);
+     const cell=Math.floor(mx/step[tier])*K+Math.floor(my/step[tier]);
      if(!centers[tier].has(cell))centers[tier].set(cell,[]);centers[tier].get(cell).push({x:mx,y:my});
      out.push({id,n,tier,pos:{x:xy[4*n+2],y:xy[4*n+3]},x:o.x,y:o.y,label:named});return;
     }

@@ -293,13 +293,22 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers.atlas-organic .atlas-marker.is-large,#mapMarkers.atlas-organic .atlas-marker.is-large .disc-art{width:76px;height:76px}
 #mapMarkers.atlas-organic .atlas-marker.is-large .marker-name{top:90px;translate:var(--label-nudge-x,0px) var(--label-nudge-y,0px)}
 #mapMarkers.atlas-organic .atlas-marker:not(.is-counted) .cluster-count{display:none}
-/* Tiers 2 and 3 (AtlasGroups.GAP): a complete view's dots are its small discs, and the canvas draws the
-   overview's small discs and minis to match them. A name curate cleared for one sits 11px below its center
-   in muted text and fades in as the disc grows (--gap-label, set on the dot by renderMarkers); the probe
-   measureFullLabels uses shares this rule. Hover still shows it in full. */
-#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name{top:calc(50% + 11px);bottom:auto;max-width:none;white-space:nowrap;font-size:11px;font-weight:500;letter-spacing:0;line-height:1.25;color:var(--muted);background:none;border:0;border-radius:0;padding:0;box-shadow:none;opacity:var(--gap-label,0)}
-#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name small{display:none}
+/* Tiers 2 and 3 (AtlasGroups.GAP): a complete view's dots are its small discs, the curated art (76px,
+   centered, scaled by renderMarkers to tier 2's size) that the canvas draws its small discs and minis as.
+   --gap-half is the dot's radius on screen: its halo and count sit on its edge, its hover name above it.
+   A name curate cleared for it is a curated name, hanging as far below its edge as a curated name hangs
+   below its 76px art (14px), until it reaches that size; it fades in as the disc grows (--gap-label, set
+   on the dot by renderMarkers). Hover still shows it in full. */
+#mapMarkers.atlas-organic .atlas-marker.is-dot .map-dot,#mapMarkers.atlas-organic .is-updating .is-dot .map-dot{display:none}
+#mapMarkers.atlas-organic .atlas-marker.is-dot .marker-stack,#mapMarkers.atlas-organic .is-updating .is-dot .marker-stack{display:block;opacity:1;scale:none}
+#mapMarkers.atlas-organic .atlas-marker.is-dot .disc-art{inset:auto;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px}
+#mapMarkers.atlas-organic .atlas-marker.is-dot .marker-halo{inset:calc(7px - var(--gap-half,6px))}
+#mapMarkers.atlas-organic .atlas-marker.is-dot.is-selected .marker-halo{inset:calc(4px - var(--gap-half,6px))}
+#mapMarkers.atlas-organic .atlas-marker.is-dot .cluster-count{right:calc(19px - var(--gap-half,6px));bottom:calc(20px - var(--gap-half,6px))}
+#mapMarkers.atlas-organic .atlas-marker.is-dot .marker-name{bottom:calc(50% + var(--gap-half,6px) + 4px)}
+#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name{top:calc(50% + 14px + min(var(--gap-half,6px),38px));bottom:auto;max-width:145px;font-size:13px;background:none;border:0;border-radius:0;padding:0;box-shadow:none;opacity:var(--gap-label,0)}
 #mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label:hover .marker-name,#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label:focus-visible .marker-name{opacity:1}
+@media(max-width:700px){#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name{font-size:12px;max-width:125px}}
 
 /* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
 /* Discs run on under the toolbar and legend and off the map's edges; the chrome paints above them.

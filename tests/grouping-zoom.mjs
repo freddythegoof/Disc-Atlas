@@ -85,9 +85,10 @@ export async function checkGroupingZoom(browser,base){
    // leads into stacks, so visible stack counts no longer measure grouping; the whole band does.
    assert.ok(max.putters.wholeBandStackExtras<five.putters.wholeBandStackExtras,'Stacks also thin across the whole putter band, not only by leaving the viewport');
    assert.equal(five.putters.labeledSatellites,0,'Putter satellites have no canvas or DOM names at 5x');
-   // 5x is an overview (no dots); 9x is complete, so its crowded leads rest as dots.
+   // 5x is an overview (no dots); 9x is complete, so its crowded leads rest as full-size dots (small
+   // discs of tier 2, AtlasGroups.GAP), each with its name, or fold into stacks.
    assert.equal(five.satellites,0,'The 5x overview shows no dots');
-   assert.ok(max.satellites>0,'The complete 9x view shows crowded leads as dots');
+   assert.equal(max.labeledSatellites,max.satellites,'The complete 9x view names every dot it shows');
    // A deep view is an overview (full discs only) until the catalog fits its cap; then it is complete:
    // each disc shows at full size, as a dot, or in the stack of the nearest shown disc. The organic
    // Atlas has no satellites or vectors.
@@ -133,9 +134,19 @@ export async function checkGroupingZoom(browser,base){
    }
    assert.equal(selectedVectors,0,'Selecting a tossed disc paints no vector: its rest offset is not a displacement');
    await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});
+   // A complete 9x view's dots are full-size small discs with their names (AtlasGroups.GAP), so a
+   // crowded band may fold every crowded lead into a stack: look down the map for a band with a dot.
+   const dotBand=async(within,count)=>{
+    for(const py of [.1,.3,.5,.7,.9,.2,.4,.6,.8]){
+     await frameBand(page,9,py);
+     const dots=await page.evaluate(([x0,x1,y0,y1,count])=>mapClusters.filter(g=>!g.large&&g.members.length===1&&g.x>x0&&g.x<(x1<0?mapViewport.width+x1:x1)&&g.y>y0&&g.y<(y1<0?mapViewport.height+y1:y1)).slice(0,count)
+      .map(g=>({key:g.key,count:g.members.length,names:g.members.map(d=>d.catalogName||d.name),x:mapViewport.left+g.x,y:mapViewport.top+g.y})),[...within,count]);
+     if(dots.length)return dots;
+    }
+    return [];
+   };
    {
-    await frameBand(page,9);
-    const dots=await page.evaluate(()=>mapClusters.filter(g=>!g.large&&g.members.length===1&&g.x>100&&g.x<mapViewport.width-100&&g.y>150&&g.y<mapViewport.height-150).slice(0,2).map(g=>({key:g.key})));
+    const dots=await dotBand([100,-100,150,-150],2);
     assert.ok(dots.length,'The complete 9x view has a dot to reach');
     for(const fallback of dots){
      const node=page.locator(`[data-cluster="${fallback.key}"]`);
@@ -155,10 +166,11 @@ export async function checkGroupingZoom(browser,base){
    await frameBand(page,9);await page.mouse.move(10,80);
    assert.equal(max.scale,1.24);assert.equal(max.totalDiscs,five.totalDiscs);
    for(const stack of [false,true]){
-    const hit=await page.evaluate(stack=>{
-     const g=mapClusters.find(g=>(stack?g.members.length>1:!g.large&&g.members.length===1)&&g.x>100&&g.x<900&&g.y>150&&g.y<600);
+    if(stack)await frameBand(page,9);
+    const hit=stack?await page.evaluate(()=>{
+     const g=mapClusters.find(g=>g.members.length>1&&g.x>100&&g.x<900&&g.y>150&&g.y<600);
      return g?{key:g.key,count:g.members.length,names:g.members.map(d=>d.catalogName||d.name),x:mapViewport.left+g.x,y:mapViewport.top+g.y}:null;
-    },stack);
+    }):(await dotBand([100,900,150,600],1))[0];
     assert.ok(hit,'The maximum has a reachable dot or stack');
     await page.touchscreen.tap(hit.x,hit.y);await page.locator('#detail').waitFor({state:'visible'});
     if(stack){

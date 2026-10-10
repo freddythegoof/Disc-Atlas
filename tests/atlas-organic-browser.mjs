@@ -74,7 +74,9 @@ const layout=page=>page.evaluate(()=>{
  const order=(a,b)=>(rank.get(a.id)??Infinity)-(rank.get(b.id)??Infinity)||a.name.localeCompare(b.name)||(a.brand||'').localeCompare(b.brand||'')||a.id.localeCompare(b.id);
  const featured=new Set((window.DiscAtlasFeatured||[]).map(d=>d.id));
  const items=mapClusters.map(g=>{
-  const node=markerNodes.get(g.key),art=node.querySelector(g.large?'.disc-art':'.map-dot'),box=rect(art),name=node.querySelector('.marker-name');
+  const node=markerNodes.get(g.key),art=node.querySelector('.disc-art'),box=rect(art),name=node.querySelector('.marker-name');
+  // A complete view's dot is a small disc (AtlasGroups.GAP): the same art, and deep in, a name curate cleared for it.
+  const named=g.large?getComputedStyle(name).visibility!=='hidden'&&getComputedStyle(name).opacity!=='0':node.classList.contains('is-gap-label')&&+getComputedStyle(name).opacity>0;
   const shown=shownPosition(g.key),own=groupCache.groups.find(x=>x.key===g.key).members;
   return {key:g.key,name:g.lead.name,score:score(g.lead),large:g.large,featured:featured.has(g.key),
    center:{x:box.x+box.w/2,y:box.y+box.h/2},
@@ -83,7 +85,7 @@ const layout=page=>page.evaluate(()=>{
    reach:groupCache.footprints.get(g.key).radius*AtlasGroups.ORGANIC.reach,
    region:Math.floor(g.px*ratio/AtlasGroups.ORGANIC.region)+':'+Math.floor(-g.py*ratio/AtlasGroups.ORGANIC.region),
    leadsOwn:own.every(m=>order(g.lead,m)<=0),members:g.members.map(m=>m.id),rank:rank.get(g.key)??Infinity,
-   boxes:[box,...g.large&&getComputedStyle(name).visibility!=='hidden'&&getComputedStyle(name).opacity!=='0'?[rect(name)]:[]],
+   boxes:[box,...named?[rect(name)]:[]],
    transform:node.position.style.transform,artTransform:g.large?getComputedStyle(node.querySelector('.disc-art')).transform:'none',
    label:g.large?rect(name).y-rect(node).y-(g.nudge?.y||0):null,selected:g.members.includes(selected)};
  });

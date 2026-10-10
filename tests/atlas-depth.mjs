@@ -1,8 +1,9 @@
 // The main Atlas's three tiers of depth (AtlasGroups.curate; tiers 2 and 3, small discs and minis,
 // are AtlasGroups.GAP), on the real catalog with fixed footprints. Curated discs keep their size and
 // rest exactly where they rested without the other tiers; small discs, then minis, fill the room they
-// leave and keep their distance from everything. Each grows with the zoom, shows no name at 1x, and
-// has its name fade in with its size, small discs first, only where names are reserved. The browser
+// leave and keep their distance from everything. At 1x a small disc is two thirds of a curated disc and a
+// mini 12px; each grows with the zoom to a curated disc's full size at 9x, shows no name at 1x, and has
+// its name (a curated disc's) fade in with its size, small discs first, only where names are reserved. The browser
 // suite (tests/atlas-depth-browser.mjs) checks the real map, its frames, themes and screenshots.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,9 +17,9 @@ const {AtlasGroups,AtlasLayout}=runtime,G=AtlasGroups.GAP;
 const discs=JSON.parse(fs.readFileSync('public/data.json','utf8')).discs.filter(d=>d.speed!=null);
 const positions=AtlasLayout.positions(discs);
 // Fixed footprints in the shape measureFullLabels gives: a 76px disc with its name 52px below the
-// center, and a small disc's one-line name 11px below its center. Width follows the name's length.
+// center. Width follows the name's length. Small discs and minis wear the same name.
 const prints=new Map(discs.map(d=>{const n=(d.catalogName||d.name).length;
- return [d.id,{x:-(n*7+12)/2,y:46,w:n*7+12,h:40,radius:38,gap:{x:-(n*5.6+4)/2,y:9,w:n*5.6+4,h:17.75}}];}));
+ return [d.id,{x:-(n*7+12)/2,y:46,w:n*7+12,h:40,radius:38}];}));
 const VIEWS={desktop:[1440,900],phone:[390,844]};
 // The chrome over a 1x map (filters, search and chips; the caption; the zoom controls), in map pixels.
 const CHROME={desktop:[{x:28,y:12,w:780,h:46},{x:600,y:720,w:240,h:70},{x:1200,y:770,w:215,h:50}],
@@ -37,19 +38,23 @@ function layout(view,level,{points=true,first=null}={}){
 }
 const LEVELS=[0,2,4,5,6,7,8,9];
 const snapshot=groups=>JSON.stringify(groups.map(g=>[g.key,g.hidden,g.large,g.markerOffset,g.joined,g.labelVisible]));
+// Each tier's radius at the level's top, the largest it draws at on the level.
+const rooms=L=>Object.fromEntries(AtlasGroups.TIERS.map(t=>[t,AtlasGroups.gapSize(L.options.artZoom,t)/2]));
 // Boxes at camera zoom z (group space scaled from the curate zoom): curated art and names, small
-// discs, minis and their names. The art is what each draws at the level's top, its largest.
+// discs, minis and their names. The art is what each draws at the level's top, its largest; a small
+// disc's or mini's name hangs where it does at z, below its disc as it is at z.
 function boxes(L,z){
- const s=z/L.groupZoom,room=38*AtlasGroups.artRoom(L.options.artZoom),out=[];
+ const s=z/L.groupZoom,room=38*AtlasGroups.artRoom(L.options.artZoom),r=rooms(L),out=[];
+ const name=(f,tier,key,x,y)=>({kind:'smallLabel',key,x:x+f.x,y:y+f.y+AtlasGroups.gapDrop(AtlasGroups.gapSize(z,tier)),w:f.w,h:f.h});
  for(const g of L.groups){
   if(g.hidden)continue;const f=prints.get(g.key),x=g.px*s+g.markerOffset.x,y=-g.py*s+g.markerOffset.y;
   if(g.large){out.push({kind:'art',key:g.key,x:x-room,y:y-room,w:2*room,h:2*room});out.push({kind:'label',key:g.key,x:x+f.x,y:y+f.y,w:f.w,h:f.h});}
-  else{out.push({kind:'dot',key:g.key,x:x-8,y:y-8,w:16,h:16});if(g.gapLabel)out.push({kind:'smallLabel',key:g.key,x:x+f.gap.x,y:y+f.gap.y,w:f.gap.w,h:f.gap.h});}
+  else{out.push({kind:'dot',key:g.key,x:x-r.small,y:y-r.small,w:2*r.small,h:2*r.small});if(g.gapLabel)out.push(name(f,'small',g.key,x,y));}
  }
  for(const p of L.gaps){
-  const pt=L.at.get(p.id),x=pt.px*s+p.x,y=-pt.py*s+p.y,f=prints.get(p.id).gap,r=AtlasGroups.gapSize(L.options.artZoom,p.tier)/2;
-  out.push({kind:'small',tier:p.tier,key:p.id,x:x-r,y:y-r,w:2*r,h:2*r});
-  if(p.label)out.push({kind:'smallLabel',key:p.id,x:x+f.x,y:y+f.y,w:f.w,h:f.h});
+  const pt=L.at.get(p.id),x=pt.px*s+p.x,y=-pt.py*s+p.y,f=prints.get(p.id),q=r[p.tier];
+  out.push({kind:'small',tier:p.tier,key:p.id,x:x-q,y:y-q,w:2*q,h:2*q});
+  if(p.label)out.push(name(f,p.tier,p.id,x,y));
  }
  return out;
 }
@@ -82,15 +87,17 @@ test('small discs, then minis, fill the room the curated set leaves, from the re
   if(L.groups[0].complete){assert.equal(L.gaps.length,0,`${view} level ${level}: a complete view has no tiers 2 and 3`);continue;}
   const smalls=L.gaps.filter(p=>p.tier==='small'),minis=L.gaps.filter(p=>p.tier==='mini');
   assert.equal(smalls.length+minis.length,L.gaps.length);
-  assert.ok(smalls.length>(view==='desktop'?40:8),`${view} level ${level}: ${smalls.length} small discs`);
-  assert.ok(minis.length>(view==='desktop'?20:8),`${view} level ${level}: ${minis.length} minis`);
+  // Deep in, every disc is near full size with a full name, so the room for them thins out.
+  assert.ok(smalls.length+minis.length>=(view==='desktop'?40:5),`${view} level ${level}: ${smalls.length} small discs, ${minis.length} minis`);
+  if(level===0)assert.ok(smalls.length>=(view==='desktop'?15:3)&&minis.length>=(view==='desktop'?20:5),`${view} at 1x: ${smalls.length} small discs, ${minis.length} minis`);
   // Small discs take the room first: every mini comes after them.
-  assert.ok(L.gaps.findIndex(p=>p.tier==='mini')===smalls.length,`${view} level ${level}: a mini rests before a small disc`);
+  assert.ok(!minis.length||L.gaps.findIndex(p=>p.tier==='mini')===smalls.length,`${view} level ${level}: a mini rests before a small disc`);
   // One disc rests once, in one tier.
   assert.equal(new Set(ids).size,ids.length);
   for(const id of ids){assert.ok(!shown.has(id),`${id} is a curated disc`);assert.ok(positions.has(id));}
-  // Real discs at their real points: each rests within its small reach of its own atlas point.
-  for(const p of L.gaps)assert.ok(Math.hypot(p.x,p.y)<=G.room*G.reach+1e-9);
+  // Real discs at their real points: each rests within its reach (of its radius) of its own atlas point.
+  const r=rooms(L);
+  for(const p of L.gaps)assert.ok(Math.hypot(p.x,p.y)<=r[p.tier]*G.reach+1e-9);
   // Selection order within each tier: the walk skips, it never reorders.
   const order=new Map(L.ids.map((id,i)=>[id,i]));
   for(const tier of [smalls,minis]){const at=tier.map(p=>order.get(p.id));
@@ -108,12 +115,12 @@ test('small discs and minis keep clear of every curated disc and name, and of ea
     assert.ok(distance(a,b)>=room-1e-6,`${view} level ${level} at ${z.toFixed(2)}x: ${a.kind} ${a.key} and ${b.kind} ${b.key} are ${distance(a,b).toFixed(1)}px apart, need ${room}`);
    }
   }
-  // Centers keep their tier's spacing where the level is laid out, and a mini keeps `clear` from a small disc.
-  const s=L.options.zoom/L.groupZoom,phone=view!=='desktop';
+  // Rooms of a tier keep its space where the level is laid out, and a mini's keeps `clear` from a small disc's.
+  const s=L.options.zoom/L.groupZoom,phone=view!=='desktop',r=rooms(L);
   const centers=L.gaps.map(p=>{const q=L.at.get(p.id);return [q.px*s+p.x,-q.py*s+p.y,p.tier];});
   for(let i=0;i<centers.length;i++)for(let j=i+1;j<centers.length;j++){
    const [a,b]=[centers[i],centers[j]],T=G[a[2]];
-   const least=a[2]===b[2]?(phone?T.phoneSpacing:T.spacing):G.mini.clear;
+   const least=r[a[2]]+r[b[2]]+(a[2]===b[2]?(phone?T.phoneSpace:T.space):G.mini.clear);
    assert.ok(Math.hypot(a[0]-b[0],a[1]-b[1])>=least-1e-6,`${view} level ${level}: a ${a[2]} and a ${b[2]} closer than ${least}px`);
   }
  }
@@ -139,7 +146,12 @@ test('names are reserved only on levels where they will show',()=>{
    assert.equal(L.options.gapLabels[tier],shows);
    const named=L.gaps.filter(p=>p.tier===tier&&p.label).length+(tier==='small'?L.groups.filter(g=>g.gapLabel).length:0);
    if(!shows)assert.equal(named,0,`${view} level ${level} names ${tier} discs it never shows`);
-   else if(!L.groups[0].complete||tier==='small')assert.ok(named>0,`${view} level ${level} names no ${tier} disc`);
+   else if(!L.groups[0].complete||tier==='small')assert.ok(named>0||!L.gaps.some(p=>p.tier===tier),`${view} level ${level} names no ${tier} disc`);
+   // Where its names show at least half strength, every disc of the tier wears its name.
+   if(AtlasGroups.gapLabelAlpha(L.options.zoom,tier)>=G.named){
+    assert.ok(L.gaps.filter(p=>p.tier===tier).every(p=>p.label),`${view} level ${level}: a nameless ${tier} disc`);
+    if(tier==='small')assert.ok(L.groups.filter(g=>!g.hidden&&!g.large).every(g=>g.gapLabel),`${view} level ${level}: a nameless dot`);
+   }
   }
  }
  // None at 1x. For each tier, none on the level where its names are first reserved when it is
@@ -153,10 +165,12 @@ test('names are reserved only on levels where they will show',()=>{
 });
 
 test('one rule for both tiers: a name fades in smoothly as its disc grows, small discs first',()=>{
- // The rule is the size's: no name below labelFrom px, all of it at the full size, smooth between.
- assert.equal(AtlasGroups.nameAlpha(G.labelFrom),0);assert.equal(AtlasGroups.nameAlpha(G.full),1);
+ // The rule is the size's: no name below labelFrom px, all of it from labelFull px, smooth between.
+ assert.equal(AtlasGroups.nameAlpha(G.labelFrom),0);assert.equal(AtlasGroups.nameAlpha(G.labelFull),1);
+ // No small disc is named at 1x, even at the top of the 1x level.
+ assert.ok(AtlasGroups.gapSize(AtlasGroups.organicRange(0).top,'small')<G.labelFrom);
  let previous=0;
- for(let size=0;size<=G.full;size+=.001){const a=AtlasGroups.nameAlpha(size);assert.ok(a>=previous-1e-12);assert.ok(a-previous<.0006,`${size}px`);previous=a;}
+ for(let size=0;size<=G.labelFull+5;size+=.001){const a=AtlasGroups.nameAlpha(size);assert.ok(a>=previous-1e-12);assert.ok(a-previous<.0006,`${size}px`);previous=a;}
  const from={},full={};
  for(const tier of AtlasGroups.TIERS){
   let previous=0,largest=0;
@@ -169,38 +183,42 @@ test('one rule for both tiers: a name fades in smoothly as its disc grows, small
   // Smooth: no step per 0.001x comes near a pop.
   assert.ok(largest<.003,`${tier}: largest step per 0.001x: ${largest}`);
  }
- // Small discs earn their names first; minis, starting smaller, deeper in, but in full before the
- // desktop map shows every disc (level 9, from about 6.9x).
- assert.ok(from.small<from.mini&&full.small<from.mini,`small names ${from.small}-${full.small}x, mini names ${from.mini}-${full.mini}x`);
+ // Small discs earn their names first (from about 1.2x, in full by about 4.4x); minis, starting
+ // smaller, deeper in (from about 3.2x), but in full before the desktop map shows every disc (level 9,
+ // from about 6.9x).
+ assert.ok(from.small<from.mini&&full.small<full.mini&&from.mini-from.small>1.5,`small names ${from.small}-${full.small}x, mini names ${from.mini}-${full.mini}x`);
  assert.ok(full.mini<=AtlasGroups.organicRange(9).floor,`mini names complete at ${full.mini}x`);
 });
 
-test('small discs and minis grow toward the full size, far below a curated disc',()=>{
- assert.equal(AtlasGroups.gapSize(1,'small'),G.small.size);assert.equal(AtlasGroups.gapSize(1,'mini'),G.mini.size);
- // Minis start far smaller: at most half a small disc at 1x.
- assert.ok(G.mini.size*2<=G.small.size);
+test("small discs and minis grow from their own size at 1x to a curated disc's full size at 9x",()=>{
+ const curated=z=>76*AtlasGroups.artRoom(z);
+ // At 1x: a small disc is two thirds of a curated disc, a mini 12px, a quarter of a small disc at most.
+ assert.ok(Math.abs(AtlasGroups.gapSize(1,'small')-curated(1)*2/3)<1e-9);assert.ok(Math.abs(AtlasGroups.gapSize(1,'mini')-12)<1e-9);
+ assert.ok(AtlasGroups.gapSize(1,'mini')*4<=AtlasGroups.gapSize(1,'small'));
  const prior={small:0,mini:0};
  for(let z=1;z<=9.5;z+=.01){
   const small=AtlasGroups.gapSize(z,'small'),mini=AtlasGroups.gapSize(z,'mini');
-  assert.ok(mini<=small&&small<=G.full,`${z}x: ${small}px, ${mini}px`);
-  // A quarter of a curated disc at most, at every zoom.
-  assert.ok(small*4<=76*AtlasGroups.artRoom(z),`${z}x: ${small}px`);
+  assert.ok(mini<=small&&small<=curated(z)+1e-9,`${z}x: ${small}px, ${mini}px`);
+  // Below the deepest zoom both stay smaller than a curated disc, so they never compete with one.
+  if(z<8.999)assert.ok(small<curated(z),`${z}x: a small disc is full size already`);
   // They only grow as you zoom in.
   assert.ok(small>=prior.small&&mini>=prior.mini);prior.small=small;prior.mini=mini;
-  for(const tier of AtlasGroups.TIERS)assert.ok(AtlasGroups.gapAlpha(z,tier)>=G.far&&AtlasGroups.gapAlpha(z,tier)<=1);
+  assert.ok(AtlasGroups.gapAlpha(z)>=G.far&&AtlasGroups.gapAlpha(z)<=1);
  }
- // Both reach the full size, the mini later.
- assert.equal(AtlasGroups.gapSize(9,'small'),G.full);assert.equal(AtlasGroups.gapSize(9,'mini'),G.full);
- assert.ok(AtlasGroups.gapSize(4,'small')===G.full&&AtlasGroups.gapSize(4,'mini')<G.full);
- assert.equal(AtlasGroups.gapAlpha(1),G.far);assert.equal(AtlasGroups.gapAlpha(4),1);
+ // At 9x, the deepest zoom, every tier is a curated disc's full size, at full strength, named in full.
+ for(const tier of AtlasGroups.TIERS){assert.ok(Math.abs(AtlasGroups.gapSize(9,tier)-curated(9))<1e-9,tier);assert.equal(AtlasGroups.gapLabelAlpha(9,tier),1);}
+ assert.equal(AtlasGroups.gapAlpha(1),G.far);assert.equal(AtlasGroups.gapAlpha(9),1);
+ // A name hangs below its disc as a curated name hangs below its art, and where a curated one does once full size.
+ assert.equal(AtlasGroups.gapDrop(76),0);assert.equal(AtlasGroups.gapDrop(curated(9)),0);assert.equal(AtlasGroups.gapDrop(50),-13);
 });
 
-test('a complete view keeps its dots where they were and names only those with room',()=>{
- // Deep desktop levels hold no more matches than the cap: everything shows, dots included.
- const L=layout('desktop',10);
+test('a complete view rests its dots as small discs, each with its name deep in',()=>{
+ // Deep desktop levels hold no more matches than the cap: everything shows, as full discs, dots or stacks.
+ const L=layout('desktop',10),r=rooms(L);
  assert.ok(L.groups[0].complete);assert.equal(L.gaps.length,0);
  const dots=L.groups.filter(g=>!g.hidden&&!g.large);assert.ok(dots.length>0);
- assert.ok(dots.some(g=>g.gapLabel));
+ assert.ok(dots.every(g=>g.gapLabel),'a dot rests without its name');
+ assert.ok(Math.abs(2*r.small-76*AtlasGroups.artRoom(L.options.artZoom))<1,'dots are full size');
  const all=boxes(L,L.options.zoom);
  for(const a of all.filter(b=>b.kind==='smallLabel'))for(const b of all){
   if(a.key===b.key)continue;const room=need(a,b);if(room!=null)assert.ok(distance(a,b)>=room-1e-6,`${a.key}'s name and ${b.kind} ${b.key}`);
