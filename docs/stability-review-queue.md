@@ -5010,3 +5010,389 @@ Same tooling limits as earlier batches (Reddit blocked and not attempted, YouTub
 **Process notes:** nothing further to review in `featured.js` (all 170 ids covered since batch 19). **Reachable this batch:** `prodigydisc.com/products/prodigy-{x2-400,x2-500,x3-200-plastic-geometry-series-stamp,x4-400,f3-400,fx-3-400}-plastic` (the X2 200 geometry-stamp path 404s), `prodigydisc.com/blogs/news/prodigy-disc-releases-reenvisioned-stock-stamp`; Infinite slugs `/prodigy-{x2,pa-1,pa-2,pa-3,f3,fx-3}` and `/kastaplast-grym-x` (the `/prodigy-pa1` slug 302s); DGCR `threads/pa1-2-3.115095/`, `threads/kastaplast-grym-x-distance-driver.128721/`. **Not reachable:** kastaplast.com Grym/Grym X product pages (404).
 
 **Running open-candidate list after this batch (nothing applied by this lane):** open: **Predator turn +1 → 0 (gated), D2 turn 0 → -0.5 (PARKED), D1 fade 4 → 3.5 (PARKED), Defy turn -1 → -0.5, Havoc turn -1 → -1.5, Animus turn 0 → -0.5, and new: Grym X turn 0 → -0.5, X2 fade 2 → 3 (|Δ| 1.0)**; the Grym turn candidate is closed (applied: -2). Carried unchanged: MD3 (new) fade, Tesla turn -1 → -0.5, Fury fade 2 → 1.5, Quasar turn 0 → -0.5 (held at 0); stay as-is: Monarch -4, Toro +1; pending in the main tree: Synapse turn -1, Astra turn -1.5; applied and present in this tree: Roc 2.5, Destroyer -0.5/3.5, Luna 3/4/0/2, Trident 3.5, Gator 4, Trespass -1, **Grym -2**. Soft watches: as in batch 18's list, minus the Grym X turn (promoted), plus **PA3 fade (strengthened)**, Avenger fade, Tempo fade; F3 and FX-3 reviewer-versus-printed items are closed.
+
+
+---
+
+# Batch 21 (Plan 10, Phase 2) — vet of the 24 manufacturer-diff flags
+
+Researched October 5, 2026. **Every entry below is "needs Freddy's review." Nothing has been applied** — `source-data/verified-model-overrides.json`, `public/data.json` and all map code are untouched. Nothing committed or pushed; `prepare_data.py` / `validate_data.py` not run.
+
+Scope: the 24 rows in the "Flagged discs" table of `docs/manufacturer-diff.md` (generated 2026-10-04; |Δturn| or |Δfade| ≥ 0.5, manufacturer minus Atlas). None of the 24 has an existing override entry, so there was nothing to update in place.
+
+## Decided items and standing rules (recorded before the research)
+
+- **Plastic baseline policy:** a mold's reference numbers are its most-thrown plastic; DX is the price tier, not the flight reference. No sales data, so each entry names the reference plastic as "assumed."
+- **Review gate:** confidence < 0.7 **or** |Δ| ≥ 1.0 on turn or fade → this queue, never auto-applied. Weak evidence = no correction. A |Δ| = 1.0 change is recorded with a recommendation, not proposed.
+- **Never average across plastics.** Infinite reviewer pools are coarse sanity checks that echo whatever Infinite displayed when the reviewer rated.
+- **Approval-version rule:** a manufacturer's current page is not evidence for an older approval of the same name. Three flags fail on this (M5, Lynx, Time-Lapse).
+
+## Batch 21 result at a glance
+
+| Mold | Atlas now (S/G/T/F) | Manufacturer now | Disposition | Confidence |
+|---|---|---|---|---|
+| Archer (Discraft) | 5/4/-4/1 | 7/4/-3/1 | **Queued, recommend apply: turn -4 → -3** (\|Δ\| 1.0); speed 5 vs 7 open | 0.8 |
+| Lone Wolf (Lone Star) | 5/5/-3/1 | 5/5/-4/1 | **Queued, recommend apply: turn -3 → -4** (\|Δ\| 1.0) | 0.75 |
+| Basilisk (Divergent) | 12/6/-4/1 | 13/6/-5/2 | **Queued, recommend apply turn only: -4 → -5** (\|Δ\| 1.0); fade and speed not supported | 0.75 |
+| Pilot (Streamline) | 2/5/-1/1 | 2/5/0/1 | **Queued, recommend apply: turn -1 → 0** (\|Δ\| 1.0) | 0.75 |
+| Artemis (Lone Star) | 4/4/0/3 | 4/4/0/2 | Queued: fade 3 → 2 (\|Δ\| 1.0); thin (2 raters) | 0.6 |
+| Apex (Gateway) | 12/6/-1/2 | 11.5/6/-1/1.5 | Queued: fade 2 → 1.5 (ungated, manufacturer-only) | 0.6 |
+| Nomad (MVP) | 2/4/0/1 | 2/4/0/1.5 | Queued: fade 1 → 1.5 (ungated, manufacturer-only; raters sit at 1) | 0.6 |
+| Idol (Mint) | 13/5/-1/3 | 13/5/-1/2.5 | Queued: fade 3 → 2.5 (ungated, manufacturer-only, "approximate") | 0.6 |
+| DD4 (Discmania) | 13/5/0/3 | 13/5/-1/3 | Queued: turn 0 → -1 (\|Δ\| 1.0); prototype, 2 raters | 0.55 |
+| Supreme Trespass (Dynamic) | 12/5/-0.5/3 | 12/5/-0.5/2 | Queued: fade 3 → 2 (\|Δ\| 1.0); no independent data | 0.55 |
+| Aura (Gateway) | 12/6/-2/1 | 12/6/-1.5/2 | Queued: turn -2 → -1.5, fade 1 → 2 (\|Δ\| 1.0); manufacturer only, 0 ratings | 0.55 |
+| Bearkat (Lone Star) | 5/5/-2/1 | 5/5/-3/1 | Queued: turn -2 → -3 (\|Δ\| 1.0); plastic split | 0.5 |
+| Hybrid (Gateway) | 7/5/0/3 | 7/4/-0.5/2 | Queued: fade 3 → 2 (\|Δ\| 1.0), turn 0 → -0.5; 3 raters disagree on fade | 0.5 |
+| Cosmic (Alfa) | 8/6/0/2 | 8/6/0/3 | Queued: fade 2 → 3 (\|Δ\| 1.0) | 0.5 |
+| Minotaur (Divergent) | 8/3/0/4 | 8/3/0/3 | Queued: fade 4 → 3 (\|Δ\| 1.0); 6 raters | 0.5 |
+| Nuno (Divergent) | 3/4/-1/1 | 3/4/0/1 | Queued: turn -1 → 0 (\|Δ\| 1.0); raters lean less turn but not to 0 | 0.5 |
+| Kraken (Divergent) | 8/5/-2/2 | 8/5/-1/2 | Queued: turn -2 → -1 (\|Δ\| 1.0); raters neutral | 0.45 |
+| Wyrm (Divergent) | 8/1/1/4 | 9/2/0/5 | Queued: too thin (6 raters, 1 plastic) | 0.4 |
+| Tumbleweed (Lone Star) | 10/6/-4/1 | 10/6/-3/1 | **Rejected:** 16 of 21 raters moved away from the displayed -3 toward more turn | 0.7 (Atlas stands) |
+| Centurion (Infinite) | 7/5/-1/1.5 | 7/5/-1/2 | **Rejected:** 126 raters average 1.44, median 1.5 | 0.65 (Atlas stands) |
+| Kapre (Divergent) | 5/5/-1.5/1 | 5/5/-1/1 | **Rejected:** half-step against Infinite -1.5 and 9 raters at -1.44; Divergent prints integers only | 0.6 (Atlas stands) |
+| M5 (Prodigy) | 5/5/-3/1 | 5/5/-2/0.5 | **Rejected:** approval-version mismatch (page is the 2024 replacement, 24-84) | 0.9 |
+| Lynx (Innova) | 7/6/-2/1 | 7/6/-3/1 | **Rejected:** approval-version mismatch (page is the 2021 Lynx, renamed IT, 21-83) | 0.9 |
+| Time-Lapse (Axiom) | 12/5/-1/3 | 12/5/-1/2 | **Rejected:** page is the retooled disc; the original keeps fade 3 | 0.8 |
+
+**Proposed to overrides (0), queued (18), rejected (6).** Nothing qualified for a direct override write. Fifteen of the 18 queued items move turn or fade by a full point (the gate). The other three (Apex, Nomad, Idol) are half steps that rest on the manufacturer's page alone with no independent corroboration, which is under the 0.7 bar. Four of the gated ones (**Archer, Lone Wolf, Basilisk turn, Pilot**) have independent rater movement behind them and are the ones I would approve first.
+
+## Evidence limits — batch 21
+
+- **Method used for community evidence.** Infinite raw ratings come from the `POST /Disc/DiscComments` list (every reviewer's four ratings, skill, plastic, date), computed by script and split by year, as in batches 16-20. **Reviewer ratings echo the number Infinite displayed when they rated**, so I read only the movers (raters who left the displayed number) and the era split.
+- **DGCR** is reachable by curl with a browser user-agent, including forum search (fetch `/search/`, post the XenForo `_xfToken`). It was only useful for **Pilot, Nomad, Centurion and Apex**; the disc-database pages carry star ratings only, and the "X Discussion" threads (Archer and Basilisk read directly; the same bot-post pattern appears in the search results for Kraken, Minotaur, Kapre, Lone Wolf, Tumbleweed and others) are empty. **No community text was found for Aura, Cosmic, DD4, Idol, Supreme Trespass, Wyrm, Artemis or Bearkat.** Reddit and YouTube were not attempted; Bing web-search snippets returned unrelated pages and were not used.
+- **Rocket Discs** (`rocketdiscs.com/<brand>-<mold>`) was read for the eight molds it carries (Basilisk, Aura, DD4, Archer, Pilot, Apex, Nomad, Centurion) as a lag detector only (weight 0.1): it often prints the older number.
+- **Divergent's old pages print no numbers.** Archived Kraken (May 2022, Dec 2023) and Nuno (Dec 2022, Feb 2024) tag pages contain no flight-number block; the integer numbers on the current pages (Speed/Glide/Turn/Fade) appeared later. Whether Divergent re-rated or simply started publishing is unknown. Infinite's numbers (the Atlas source for these six) carry half-steps Divergent's pages never do.
+- **Gateway** appears to be re-rating its line: Aura, Hybrid, Apex and Spirit (11 vs Atlas 12) all differ from Marshall Street, Infinite and Rocket. No dates are printed, and Infinite's raters for these are 2015-2021, so none has rated against a new number.
+- **Not independent:** Marshall Street (the Atlas's own source), Infinite's displayed "manufacturer" numbers where they copy the manufacturer, Rocket. All page numbers and quotes below are from pages I fetched directly (no summarizer), but the DGCR quotes have not had a second reader.
+
+---
+
+## Archer — Discraft (id 46efed768b52)
+
+- **Atlas now:** 5/4/-4/1 (Marshall Street snapshot; PDGA Dec 7, 2016; no override). **Candidate:** turn **-4 → -3** (|Δ| = 1.0, so the owner's call). **Recommendation: apply.** Reference plastic (assumed most-thrown): Z Line or ESP (17 and 12 of 46 ratings).
+- **Manufacturer:** Discraft's Archer page (fetched, "In production") prints **7 speed / 4 glide / -3 turn / 1 fade**, stability -0.5. Copy: "a slow disc that performs best at slow arm speeds … anhyzers, hyzer flips, rollers." Copy and numbers agree on a low-speed understable disc.
+- **Retailer:** Infinite prints manufacturer 5/4/-4/1 (stale); reviewers 5.6/4.7/-3.4/1 (46 ratings, 2016-2026). **Rocket prints 6/5/-3/1.** Marshall Street (the Atlas) 5/4/-4/1.
+- **Community (Infinite raw, 46 rated, computed):** mean 5.76/4.83/-3.15/1.02, median -3/1. **Turn: -3 (26), -4 (13), -2.5 (3), -2 (2), -3.5 (1), 0 (1).** Infinite displayed -4 throughout, so the 13 at -4 are the echo and the 33 who left it all moved toward **less** turn (none toward more). By year: 2017-2020 means -2.7 to -3.3, 2021 -4.0 (n 5), later years n ≤ 2. Fade: 1 (42 of 46). **Speed: 6 (33), 5 (10)**; glide 5 (28), 4 (13). By plastic: Z -3.18, ESP -3.08, Big Z -2.94. By skill: beginner -3.4, intermediate -3.04, advanced -3.25.
+- sources:
+  - {name: Discraft Archer page (7/4/-3/1, stability -0.5), url: https://www.team.discraft.com/discs/archer, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Archer (mfr 5/4/-4/1; reviewers 5.6/4.7/-3.4/1; 46 ratings; raw list via DiscComments), url: https://infinitediscs.com/discraft-archer, type: retailer, weight: 0.5}
+  - {name: Infinite reviewer ratings, 46 raw rated reviews, 33 moved off the displayed -4, url: https://infinitediscs.com/Disc/DiscComments, type: community, weight: 0.4}
+  - {name: Rocket Discs Archer (6/5/-3/1; lag detector), url: https://rocketdiscs.com/discraft-archer, type: retailer, weight: 0.1}
+- **confidence:** 0.8
+- **consensusNote:** Discraft's current -3, the raters who left the displayed -4 (33 of 46, none toward more turn) and Rocket's -3 all agree. This is a stale-catalog correction like Luna, not a sentiment adjustment.
+- **plasticVariance:** Z -3.18, ESP -3.08, Big Z -2.94 (17/12/9); no real spread to record. Do not average.
+- **Open, outside the turn/fade proposal:** speed. Discraft prints 7, raters 6 (33 of 46), Rocket 6, Atlas 5. If the override carries all four numbers (as Luna's did), you decide between 6 and Discraft's 7; I have not proposed a speed.
+- **Proposed override if approved:** speed 7 (or 6) / glide 4 / **turn -3** / fade 1, history reason "Atlas lagged Discraft's current page; raters left -4 for less turn 33 to 0."
+
+## Lone Wolf — Lone Star Discs (id 78da2edc3101)
+
+- **Atlas now:** 5/5/-3/1 (no flight source recorded; no override). **Candidate:** turn **-3 → -4** (|Δ| = 1.0, owner's call). **Recommendation: apply.** Reference plastic (assumed most-thrown, not verified): Bravo (4 of 9 ratings; Alpha 3).
+- **Manufacturer:** Lone Star's Lone Wolf page (fetched; title "Lone Wolf 5/5/-4/1") prints **5/5/-4/1**.
+- **Retailer:** Infinite prints manufacturer **5/5/-3/1** (so Infinite lags Lone Star) and reviewers 4.9/4.8/-3.4/0.8 (9 ratings).
+- **Community (Infinite raw, 9 rated):** mean 4.89/4.67/-3.83/0.67. **Turn: -5 (3), -4.5 (1), -4 (3), -3 (1), 0 (1).** Against a displayed -3, **seven of nine moved toward more turn and landed at -4 or beyond**; only one sits at -3. By year: 2022 -4.5, 2023 -4.12, 2024 -2.0 (n 2), 2025 -5.0. Fade median 0.5 (displayed 1; manufacturer 1): see watch below.
+- sources:
+  - {name: Lone Star Lone Wolf page (5/5/-4/1), url: https://www.lonestardiscs.com/products/lone-wolf-midrange, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Lone Wolf (mfr 5/5/-3/1; reviewers 4.9/4.8/-3.4/0.8; 9 ratings; raw list), url: https://infinitediscs.com/lone-star-disc-lone-wolf, type: retailer, weight: 0.5}
+  - {name: Infinite reviewer ratings, 9 raw rated reviews (skill, plastic, date labelled), url: https://infinitediscs.com/Disc/DiscComments, type: community, weight: 0.3}
+- **confidence:** 0.75
+- **consensusNote:** The manufacturer's -4 and the raters agree, and the raters moved away from the number Infinite displayed, so this is not anchoring. The pool is only nine ratings.
+- **plasticVariance:** Bravo -4.0 (4), Alpha -3.17 (3), Bravo Glow -4.5 (2). Alpha runs less turn than Bravo; the manufacturer prints one set. Do not average.
+- **Linked:** Tumbleweed (rejected below; its raters also read about -3.7) and Bearkat (queued below). The Atlas Lone Wolf (-3) and Tumbleweed (-4) are the reverse of Lone Star's page (-4, -3), but both reviewer pools say about -3.7 to -3.8, so the two molds read alike; applying Lone Wolf -4 leaves both at -4.
+- **Soft watch (not proposed):** fade 1 → 0.5 (raters median 0.5, mean 0.67; manufacturer 1).
+
+## Basilisk — Divergent Discs (id abcec9d8352a)
+
+- **Atlas now:** 12/6/-4/1 (manufacturer numbers via Infinite). **Candidate:** turn **-4 → -5** (|Δ| = 1.0, owner's call). **Recommendation: apply the turn only.** Reference plastic: Max Grip (the page's plastic; 15 of 17 ratings).
+- **Manufacturer:** Divergent's Basilisk (Max Grip) page prints **13/6/-5/2**: "ultra understable distance driver designed to give new players, children, and senior citizens more distance" (integers only, as on every Divergent page).
+- **Retailer:** Infinite prints 12/6/-4/1, reviewers 11.8/5.8/-4.7/0.8 (17 ratings). **Rocket prints 12/6/-5/1.**
+- **Community (Infinite raw, 17 rated):** mean 11.21/5.53/-4.71/0.65. **Turn: -5 (6), -6 (3), -7 (2), -4 (3), -3 (2), 0 (1)**: eleven of 17 sit beyond the displayed -4, median -5. **Fade: 1 (10), 0 (5), 0.5 (2); none above 1.** **Speed: 12 (12 of 17).** Beginner -3.8, intermediate -4.67, advanced -6.33 (3).
+- **Per number:** **Turn -5:** manufacturer, Rocket and the raters agree: supported. **Fade 1 → 2: not supported**, no rater went above 1. **Speed 12 → 13: not supported** (12 of 17 at 12, mean 11.2).
+- sources:
+  - {name: Divergent Basilisk (Max Grip) page (13/6/-5/2), url: https://divergentdiscs.com/product/basilisk-max-grip/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Basilisk (mfr 12/6/-4/1; reviewers 11.8/5.8/-4.7/0.8; 17 ratings), url: https://infinitediscs.com/divergent-discs-basilisk, type: retailer, weight: 0.5}
+  - {name: Infinite reviewer ratings, 17 raw rated reviews, url: https://infinitediscs.com/Disc/DiscComments, type: community, weight: 0.3}
+  - {name: Rocket Discs Basilisk (12/6/-5/1; lag detector), url: https://rocketdiscs.com/divergent-discs-basilisk, type: retailer, weight: 0.1}
+- **confidence:** 0.75 (turn only); fade and speed 0.3
+- **consensusNote:** Turn -5 is backed by the manufacturer, Rocket and eleven of 17 raters; Divergent's fade 2 and speed 13 are contradicted by the same raters, so only turn moves.
+- **plasticVariance:** Max Grip -5.07 (15); one X-out -4; one MaxValue 0 (a different disc, speed 7). Do not average.
+- **Linked:** Divergent's other pages (Kraken, Nuno, Kapre, Minotaur, Wyrm below) share the unexplained Infinite-versus-Divergent gap; the Basilisk is the one where the raters sided with Divergent on direction.
+
+## Pilot — Streamline (id 71fcb40815bd)
+
+- **Atlas now:** 2/5/-1/1 (Marshall Street snapshot; PDGA Feb 22, 2017; no override). **Candidate:** turn **-1 → 0** (|Δ| = 1.0, owner's call). **Recommendation: apply.** Reference plastic (assumed most-thrown): Electron (Soft 22 and Medium 16 of 103 ratings; also Proton, Neutron, Cosmic Neutron).
+- **Manufacturer:** Streamline's Pilot page prints **2/5/0/1** (fetched). The 2017 launch numbers were **2/5/-1/1** (DGCR launch thread quoting Streamline), so Streamline revised the turn; Infinite's display followed.
+- **Retailer:** Infinite prints 2/5/0/1, reviewers 2.1/4.9/-0.5/1 (103 ratings). Rocket prints 2/5/-1/1 (lag).
+- **Community (Infinite raw, 103 rated; era split):** **2017-2021 (n 71, displayed -1): turn -1 (48), -0.5 (9), 0 (11), -1.5 (2), -2.5 (1): 20 moved toward less turn, 3 toward more.** **2022+ (n 32, displayed 0): 0 (29), -1 (2), -0.5 (1)**, which is the echo. Overall mean -0.59, median -1. DGCR (2017 launch thread, first page): "No fade to predict either. For throwing they are just a nice gentle turn over"; the launch copy quoted there says "flight most similar to a seasoned Anode."
+- sources:
+  - {name: Streamline Pilot page (2/5/0/1), url: https://streamlinediscs.com/discs/pilot/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Pilot (mfr 2/5/0/1; reviewers 2.1/4.9/-0.5/1; 103 ratings; raw list), url: https://infinitediscs.com/streamline-pilot, type: retailer, weight: 0.5}
+  - {name: Infinite reviewer ratings, 103 raw rated reviews split 2017-2021 / 2022+, url: https://infinitediscs.com/Disc/DiscComments, type: community, weight: 0.3}
+  - {name: DGCR "Streamline Discs - Pilot" launch thread (2017; launch numbers 2/5/-1/1, straight-flight posts), url: https://www.dgcoursereview.com/threads/streamline-discs-pilot.134866/, type: community, weight: 0.2}
+  - {name: Rocket Discs Pilot (2/5/-1/1; lag detector), url: https://rocketdiscs.com/streamline-pilot, type: retailer, weight: 0.1}
+- **confidence:** 0.75
+- **consensusNote:** Streamline moved the turn from -1 to 0, and the 2017-2021 raters, who were looking at a displayed -1, left it for less turn 20 to 3. The Atlas still carries the launch number.
+- **plasticVariance:** Soft and medium Electron beat in toward straight; Neutron and Proton are firmer. Streamline prints one set. Do not average.
+- **Linked:** Nomad (queued below); Streamline's launch copy places the Pilot between the Atom and Anode.
+
+## Artemis — Lone Star Discs (id 2cbdaa78c008)
+
+- **Atlas now:** 4/4/0/3 (no flight source recorded). **Candidate:** fade **3 → 2** (|Δ| = 1.0, owner's call). Reference plastic (assumed): Bravo (both ratings are Bravo).
+- **Manufacturer:** Lone Star's Artemis page prints **4/4/0/2** (title and Flight Numbers block); copy: "a straight flight with reliable fade."
+- **Retailer / community:** Infinite prints manufacturer 4/4/0/2 and reviewers 4/4/0/2 on **2 ratings** (fade 2 and 2.5; 2024 and 2025). Nothing on DGCR.
+- sources:
+  - {name: Lone Star Artemis page (4/4/0/2), url: https://www.lonestardiscs.com/products/artemis, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Artemis (mfr 4/4/0/2; 2 ratings), url: https://infinitediscs.com/lone-star-disc-artemis, type: retailer, weight: 0.3}
+- **confidence:** 0.6
+- **consensusNote:** The manufacturer and Infinite agree on fade 2, nothing contradicts it, and the Atlas's 3 has no recorded source; but two ratings cannot corroborate anything, and a full point is the owner's call.
+- **plasticVariance:** Alpha, Bravo, Delta and glow variants exist; the ratings are Bravo only. Not quantified.
+- **Recommendation:** lean apply, low stakes (a speed-4 disc), but it is the weakest of the manufacturer-led gated items.
+
+## Apex — Gateway (id 62e6d7efa845)
+
+- **Atlas now:** 12/6/-1/2 (Marshall Street snapshot; PDGA Jun 21, 2018). **Candidate:** fade **2 → 1.5** (|Δ| 0.5, ungated; **speed 12 → 11.5** informational). Reference plastic (assumed): Diamond (the page is Apex - Diamond).
+- **Manufacturer:** Gateway's Apex - Diamond product page prints **11.5/6/-1/1.5** (fetched; there is no Apex collection page, `collections/apex` is a 404). Copy: "a high-speed driver with a consistently stable flight path, a ton of glide, and a predictable finish."
+- **Retailer:** Infinite 12/6/-1/2 (reviewers 12/6/-1/1.9, 12 ratings), Rocket 12/6/-1/2, Marshall Street 12/6/-1/2.
+- **Community:** Infinite raw (12 rated, 2018-2021): fade 2 (10), 1.5 (1), 1 (1); turn -1 (11): all echo; nobody has rated against a new number. DGCR launch thread (2018): "turn a little fade + fade a little driver" and "They flip pretty easily for me … Kind of wraith-y off the shelf", which fits either number.
+- sources:
+  - {name: Gateway Apex - Diamond product page (11.5/6/-1/1.5), url: https://gatewaydiscsports.com/products/apex-diamond, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Apex (mfr 12/6/-1/2; reviewers 12/6/-1/1.9; 12 ratings), url: https://infinitediscs.com/gateway-apex, type: retailer, weight: 0.4}
+  - {name: DGCR "Gateway Apex - Distance Driver" thread (2018), url: https://www.dgcoursereview.com/threads/gateway-apex-distance-driver.137976/, type: community, weight: 0.2}
+  - {name: Rocket Discs Apex (12/6/-1/2; lag detector), url: https://rocketdiscs.com/gateway-apex, type: retailer, weight: 0.1}
+- **confidence:** 0.6
+- **consensusNote:** Only Gateway says 1.5, and it is one product page of one plastic; every other layer is older and agrees with the Atlas. Under 0.7 and no independent corroboration, so not written.
+- **plasticVariance:** Diamond is the page's plastic; the DGCR thread describes HD and Platinum Journeys (not Apexes) as more overstable. Not quantified for the Apex.
+
+## Nomad — MVP (id 3b2d2e555496)
+
+- **Atlas now:** 2/4/0/1 (Marshall Street snapshot; PDGA Mar 22, 2021). **Candidate:** fade **1 → 1.5** (|Δ| 0.5, ungated). Reference plastic (assumed): Electron (Firm).
+- **Manufacturer:** MVP's Nomad page prints **2/4/0/1.5**. The 2021 launch numbers were **2/4/0/1** (a DGCR launch-thread post shows "Nomad 2 4 0 1"), so MVP appears to have revised the fade; Infinite's display followed (mfr 2/4/0/1.5, reviewers 2.1/4/0/1.2, 30 ratings).
+- **Community (Infinite raw, 30 rated, 2021-2024):** fade **1.0 (25 of 30)**, 0.5 (2), 2 (2), 1.5 (1); by year 1.0, 0.91, 1.29, 1.1. Turn 0 (25 of 30). The ratings stop in 2024, so they cannot say whether anyone has rated against a displayed 1.5; the five 2024 raters mostly sit at 1. Rocket prints 2/4/0/1. DGCR (2021 launch thread): "Straight with minimal fade"; "in flight it's basically between the Envy and Proxy."
+- sources:
+  - {name: MVP Nomad page (2/4/0/1.5), url: https://mvpdiscsports.com/discs/nomad/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Nomad (mfr 2/4/0/1.5; reviewers 2.1/4/0/1.2; 30 ratings; raw list), url: https://infinitediscs.com/mvp-nomad, type: retailer, weight: 0.5}
+  - {name: DGCR "MVP Nomad" launch thread (2021), url: https://www.dgcoursereview.com/threads/mvp-nomad.146549/, type: community, weight: 0.2}
+  - {name: Rocket Discs Nomad (2/4/0/1; lag detector), url: https://rocketdiscs.com/mvp-nomad, type: retailer, weight: 0.1}
+- **confidence:** 0.6
+- **consensusNote:** MVP's own revision to 1.5 is the only evidence for it; the 30 raters (25 at exactly 1) and the launch-era posts read a straight putter with minimal fade. Half a step toward a manufacturer revision that no rater has tested.
+- **plasticVariance:** Electron Firm and Electron are the sold plastics; not quantified.
+- **Linked:** Pilot (queued above), Envy, Proxy, Judge, Aviar (earlier batches). A Nomad fade of 1.5 would sit half a step above the Pilot and Envy.
+
+## Idol — Mint Discs (id f79387f2ecff)
+
+- **Atlas now:** 13/5/-1/3 (flights.json, no link; PDGA 25-111, Jul 14, 2025). **Candidate:** fade **3 → 2.5** (|Δ| 0.5, ungated). Reference plastic (assumed): Apex or Eternal; every plastic prints the same numbers.
+- **Manufacturer:** all eight current Idol product pages that carry a rating (Apex, Apex Firm, Eternal, Eternal Mega Soft, Eternal Firm, Sublime, Elixir, Nocturnal Glow; read through Mint's product feed and the Apex Firm page) print **"Approximate Flight Ratings: Speed 13 / Glide 5 / Turn -1 / Fade 2.5"**. The diff's single source (Apex Firm) agrees with the rest.
+- **Retailer / community:** Infinite prints manufacturer 13/5/-1/2.5 (it follows Mint) and has **one** rating (13/5/-1/2.5). Nothing on DGCR; Rocket does not carry it.
+- sources:
+  - {name: Mint Discs Idol - Apex Firm page ("Approximate Flight Ratings" 13/5/-1/2.5; same on seven other Idol product pages), url: https://mintdiscs.com/products/idol-apex-firm-ap-id01-25, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Idol (mfr 13/5/-1/2.5; 1 rating), url: https://infinitediscs.com/mint-discs-idol, type: retailer, weight: 0.2}
+- **confidence:** 0.6
+- **consensusNote:** Mint prints 2.5 everywhere, and the Atlas's 3 has no recorded source, but Mint labels these "approximate," half a step is inside that, and there is no independent data (one rating).
+- **plasticVariance:** Mint sells Idol in at least seven plastics at identical printed numbers. Not quantified.
+
+## DD4 — Discmania (id a92195c30ec2)
+
+- **Atlas now:** 13/5/0/3 (no flight source recorded; PDGA Feb 23, 2026). **Candidate:** turn **0 → -1** (|Δ| = 1.0, owner's call). Reference plastic: Swirl S-Line prototype (the only released DD4).
+- **Manufacturer:** Discmania's DD4 collection page prints **13/5/-1/3** (repeated in the page's number blocks); "as of early 2026, the DD4 is still in prototype phase, with no stock release timeline yet determined"; "compared to the popular DD3, the DD4 packs even more speed and overstability." **Copy-versus-number tension:** the Atlas DD3 is 12/5/-1/3, so a DD4 at -1/3 is faster but not "more overstable" on the printed numbers; 13/5/0/3 would be. The copy fits the Atlas number and the page numbers fit -1.
+- **Retailer:** Rocket prints 13/5/-1/3 (agrees with Discmania). Infinite prints 13/5/0/3 with 2 ratings, both S-Line prototypes: turn -0.5 and 0, fade 3.
+- sources:
+  - {name: Discmania DD4 collection page (13/5/-1/3; prototype), url: https://www.discmania.net/collections/dd4, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs DD4 (mfr 13/5/0/3; 2 ratings), url: https://infinitediscs.com/discmania-dd4, type: retailer, weight: 0.3}
+  - {name: Rocket Discs DD4 (13/5/-1/3), url: https://rocketdiscs.com/discmania-dd4, type: retailer, weight: 0.2}
+- **confidence:** 0.55
+- **consensusNote:** Two retailers copy two different numbers, two raters sit between them (-0.25), and Discmania's own copy points the other way from its own number. The disc is not in stock release yet.
+- **plasticVariance:** Prototype swirl S-Line only. Not applicable.
+- **Recommendation:** hold until the DD4 ships and has real ratings. If you want the Atlas to follow Discmania's page now, turn -1 is the change.
+
+## Supreme Trespass — Dynamic Discs (id 81b9e181f205)
+
+- **Atlas now:** 12/5/-0.5/3 (flights.json; **identical to the classic Trespass entry** that Marshall Street's search matched; PDGA 22-229, Dec 19, 2022). **Candidate:** fade **3 → 2** (|Δ| = 1.0, owner's call). Reference plastic: Supreme.
+- **Manufacturer:** Dynamic's Supreme Trespass page prints **12/5/-0.5/2** (fetched; the Supreme line with Latitude 64's NexEdge and NexFeel). Dynamic's classic Trespass page prints 12/5/-0.5/3 (batch 8), so Dynamic itself separates the two by one point of fade.
+- **Retailer / community:** Infinite has no page at the expected Supreme Trespass slug. On the classic Trespass page (177 ratings) there is **one Supreme-plastic rating, 12/5/-1/2** (beginner, Feb 2024), which agrees with fade 2 but is n = 1. **Do not carry the classic Trespass raters over to this approval** (their mean fade 2.7, with 107 of 157 at 3, is the classic mold in Lucid and Fuzion; the classic override was approved Oct 3 at -1/3).
+- sources:
+  - {name: Dynamic Discs Supreme Trespass page (12/5/-0.5/2), url: https://www.dynamicdiscs.com/collections/supreme-trespass, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Trespass page, one Supreme-plastic rating 12/5/-1/2, url: https://infinitediscs.com/dynamic-discs-trespass, type: community, weight: 0.1}
+- **confidence:** 0.55
+- **consensusNote:** The Atlas value appears to be the classic Trespass's number carried to a different approval; the manufacturer's page for this mold says fade 2. Nothing independent confirms it.
+- **plasticVariance:** Supreme is the only listed plastic.
+- **Linked:** classic Trespass override (-1/3, owner-approved Oct 3). The two would differ on fade (3 vs 2) if this is applied; that is Dynamic's own gap.
+
+## Aura — Gateway (id 68af32f30a4a)
+
+- **Atlas now:** 12/6/-2/1 (Marshall Street search result; PDGA May 10, 2024). **Candidate:** turn -2 → -1.5 (|Δ| 0.5) and fade **1 → 2** (|Δ| = 1.0, owner's call). Reference plastic (assumed): Diamond (Gateway lists 15 Aura products).
+- **Manufacturer:** Gateway's Aura collection page prints **12/6/-1.5/2**; copy: "the less-stable sibling to the Realm and Spell … easy turnover ability and long, full flights for all arm speeds."
+- **Retailer / community:** Infinite prints 12/6/-2/1 with **0 ratings**; Rocket 12/6/-2/1. No community text found.
+- sources:
+  - {name: Gateway Aura collection page (12/6/-1.5/2), url: https://gatewaydiscsports.com/collections/aura, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Aura (mfr 12/6/-2/1; 0 ratings), url: https://infinitediscs.com/gateway-aura, type: retailer, weight: 0.1}
+- **confidence:** 0.55
+- **consensusNote:** One manufacturer page against two older retailer copies, no ratings anywhere. The Gateway re-rating pattern (Hybrid, Apex, Spirit) makes it plausible; nothing proves it.
+- **plasticVariance:** Not quantified.
+
+## Bearkat — Lone Star Discs (id b19135e88385)
+
+- **Atlas now:** 5/5/-2/1 (no flight source recorded). **Candidate:** turn **-2 → -3** (|Δ| = 1.0, owner's call). Reference plastic (assumed): Bravo or Alpha.
+- **Manufacturer:** Lone Star's Bearkat page prints **5/5/-3/1**; copy: "a controllably understable flight, ideal for hyzer-flips and long, panning anhyzers."
+- **Retailer:** Infinite prints manufacturer 5/5/-2/1 (lags) and reviewers 5/5/-2.1/1.1 (7 ratings).
+- **Community (Infinite raw, 7 rated):** turn -2 (3, the echo), -4, -3, -2.5, -1; mean -2.36. **By plastic: Alpha -3.0 (3), Bravo -1.83 (3), Delta -2.0 (1).** Fade 1 (6 of 7).
+- sources:
+  - {name: Lone Star Bearkat page (5/5/-3/1), url: https://www.lonestardiscs.com/products/bearkat-midrange, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Bearkat (mfr 5/5/-2/1; reviewers 5/5/-2.1/1.1; 7 ratings), url: https://infinitediscs.com/lone-star-disc-bearkat, type: retailer, weight: 0.3}
+- **confidence:** 0.5
+- **consensusNote:** Lone Star prints -3, but of seven raters only the Alpha ones (3) read about -3 and the Bravo ones read about -2; the sample is too small and plastic-split to call.
+- **plasticVariance:** Alpha -3.0 vs Bravo -1.83; one printed set. Do not average.
+
+## Hybrid — Gateway (id d94273fe89d2)
+
+- **Atlas now:** 7/5/0/3 (Marshall Street "hyper-diamond-hybrid"; PDGA Oct 2, 2005). **Candidate:** fade **3 → 2** (|Δ| = 1.0, owner's call); turn 0 → -0.5; glide 5 → 4 (informational). Reference plastic (assumed): Hyper Diamond (HD).
+- **Manufacturer:** Gateway's Hybrid collection page prints **7/4/-0.5/2**; copy: "a slightly overstable fairway driver … a consistent fade at the end of its flight."
+- **Retailer / community:** Infinite prints 7/4/0/3 and reviewers 7/4/-0.1/3 on **3 ratings** (2015, 2016, 2020): fade 3, 3, 3; turn 0, -0.5, -0.5. **The three raters do not support fade 2** (all at 3, which is also the displayed number) and **mildly support turn -0.5** (2 of 3 left the displayed 0). Nothing readable on DGCR.
+- sources:
+  - {name: Gateway Hybrid collection page (7/4/-0.5/2), url: https://gatewaydiscsports.com/collections/hybrid, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Hybrid (mfr 7/4/0/3; 3 ratings), url: https://infinitediscs.com/gateway-hybrid, type: retailer, weight: 0.2}
+- **confidence:** 0.5
+- **consensusNote:** Gateway's own copy still says "consistent fade," and the only three raters say 3, so the 2 and the turn change are untested. Gateway's re-rating pattern is the only reason to take them seriously.
+- **plasticVariance:** HD, Suregrip and others; not quantified.
+
+## Cosmic — Alfa Discs (id 827871a0aac6)
+
+- **Atlas now:** 8/6/0/2 (manufacturer numbers via Infinite). **Candidate:** fade **2 → 3** (|Δ| = 1.0, owner's call). Reference plastic: Chrome Line (9 of 12 ratings).
+- **Manufacturer:** Alfa's Cosmic page prints **8 • 6 • 0 • 3** (header and a labelled "Profile" block).
+- **Retailer / community:** Infinite prints manufacturer 8/6/0/2, reviewers 7.9/5.8/0/2.2 (12 ratings): **fade 2 (9), 3 (2), 3.5 (1)**, turn 0 (11); the three who left the displayed 2 all went up. Not on Rocket; no DGCR text.
+- sources:
+  - {name: Alfa Discs Cosmic page (8/6/0/3), url: https://alfadiscs.com/item/cosmic/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Cosmic (mfr 8/6/0/2; reviewers 7.9/5.8/0/2.2; 12 ratings), url: https://infinitediscs.com/alfa-discs-cosmic, type: retailer, weight: 0.4}
+- **confidence:** 0.5
+- **consensusNote:** Alfa says 3, Infinite displays 2, and the raters lean slightly above 2 (mean 2.29, three movers all upward). A real but small signal against a full point.
+- **plasticVariance:** Chrome, Crystal and a glow plastic; not quantified.
+
+## Minotaur — Divergent Discs (id daba930518da)
+
+- **Atlas now:** 8/3/0/4 (via Infinite). **Candidate:** fade **4 → 3** (|Δ| = 1.0, owner's call). Reference plastic: Max Grip (5 of 6).
+- **Manufacturer:** Divergent's Minotaur (Max Grip) page prints **8/3/0/3**; copy: the Divergent disc "to choose when throwing into a headwind."
+- **Retailer / community:** Infinite 8/3/0/4, reviewers 7.8/3.2/-0.1/3.8 (6 ratings): **fade 4 (4, the echo), 2.5, 2** (the two who left the displayed 4 both went down; the 2 is a MaxFlex rating). Nothing on DGCR.
+- sources:
+  - {name: Divergent Minotaur (Max Grip) page (8/3/0/3), url: https://divergentdiscs.com/product/minotaur-max-grip/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Minotaur (mfr 8/3/0/4; reviewers 7.8/3.2/-0.1/3.8; 6 ratings), url: https://infinitediscs.com/divergent-discs-minotaur, type: retailer, weight: 0.3}
+- **confidence:** 0.5
+- **consensusNote:** The manufacturer says 3, both movers went below 4, the other four echo the display. Six ratings.
+- **plasticVariance:** Max Grip fade 3.7 (5); MaxFlex 2.0 (1). Do not average.
+
+## Nuno — Divergent Discs (id 2a64bb62f765)
+
+- **Atlas now:** 3/4/-1/1 (via Infinite). **Candidate:** turn **-1 → 0** (|Δ| = 1.0, owner's call). Reference plastic: Max Grip (9 of 11).
+- **Manufacturer:** Divergent's Nuno page prints **3/4/0/1**.
+- **Retailer / community:** Infinite 3/4/-1/1, reviewers 3/3.9/-0.9/1 (11 ratings). **Turn: -1 (5, the echo), -0.5 (3), 0 (2), -3 (1): five moved toward less turn, one toward more**; mean -0.86; by year -0.38, -1.0, -1.5, -0.75 (no trend). Fade 1 (8 of 11).
+- sources:
+  - {name: Divergent Nuno tag page (3/4/0/1), url: https://divergentdiscs.com/product-tag/nuno/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Nuno (mfr 3/4/-1/1; reviewers 3/3.9/-0.9/1; 11 ratings), url: https://infinitediscs.com/divergent-discs-nuno, type: retailer, weight: 0.4}
+- **confidence:** 0.5
+- **consensusNote:** The movers lean toward Divergent's 0, but they stop at -0.5 more often than at 0 and the mean is -0.86; a full point is not supported, and I will not invent -0.5.
+- **plasticVariance:** Max Grip -0.89 (9). Do not average.
+
+## Kraken — Divergent Discs (id eba3aaaf0db3)
+
+- **Atlas now:** 8/5/-2/2 (via Infinite). **Candidate:** turn **-2 → -1** (|Δ| = 1.0, owner's call). Reference plastic: Max Grip (14 of 23).
+- **Manufacturer:** Divergent's Kraken page prints **8/5/-1/2**; copy: "straight-flying fairway driver … doesn't have too much fade, nor is it too 'flippy' for most players."
+- **Retailer / community:** Infinite 8/5/-2/2, reviewers 7.2/5/-2/1.5 (23 ratings). **Turn: -2 (17, the echo), -3.5, -3, -3 (three toward more), -1.5, -1, -1 (three toward less)**; mean -2.04, no era shift. **Fade: 1 (13), 2 (6), 0.5 (2), 1.5 (2)**: thirteen of 23 sit a full point under the displayed 2. **Speed 6.85 raw** against 8 printed.
+- sources:
+  - {name: Divergent Kraken tag page (8/5/-1/2), url: https://divergentdiscs.com/product-tag/kraken/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Kraken (mfr 8/5/-2/2; reviewers 7.2/5/-2/1.5; 23 ratings), url: https://infinitediscs.com/divergent-discs-kraken, type: retailer, weight: 0.4}
+- **confidence:** 0.45
+- **consensusNote:** The turn movers split 3:3, so the raters neither confirm nor refute Divergent's -1. The fade and speed raters lean well under the printed numbers (a separate, unproposed observation).
+- **plasticVariance:** Max Grip -2.18 (14), X-out -2.1 (5), Glow -1.67 (3). Do not average.
+- **Soft watch (not proposed):** fade 2 → 1.5 and speed 8 → 7 (13 of 23 at fade 1; speed 6.85); Divergent prints 2 and 8.
+
+## Wyrm — Divergent Discs (id 56899afe23af)
+
+- **Atlas now:** 8/1/1/4 (via Infinite). **Candidate:** turn +1 → 0 and fade 4 → 5 (both |Δ| = 1.0, owner's call); speed 8 → 9 and glide 1 → 2 informational. Reference plastic: StayPut (the only plastic).
+- **Manufacturer:** Divergent's Wyrm page prints **9/2/0/5**; "a very overstable utility fairway driver made out of a silicone rubber blend … a limited edition of 1,000 Wyrms in our experimental run."
+- **Retailer / community:** Infinite 8/1/1/4, reviewers 8.4/1.5/1/4.2 (6 ratings, 2022-2023, all StayPut): raw 9.0/2.33/0.92/4.42. **Speed 9 or higher (5 of 6) and glide 2-3 (5 of 6) support the manufacturer's speed and glide; turn +1 (5 of 6) contradicts turn 0; fade 4, 4, 4, 4.5, 5, 5 sits between 4 and 5.**
+- sources:
+  - {name: Divergent Wyrm tag page (9/2/0/5), url: https://divergentdiscs.com/product-tag/wyrm/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Wyrm (mfr 8/1/1/4; reviewers 8.4/1.5/1/4.2; 6 ratings), url: https://infinitediscs.com/divergent-discs-wyrm, type: retailer, weight: 0.3}
+- **confidence:** 0.4
+- **consensusNote:** Six ratings of one limited run; the raters support the manufacturer's speed and glide but not its turn, and sit between the two fades.
+- **plasticVariance:** One plastic and one 1,000-disc run. Not applicable.
+
+## Tumbleweed — Lone Star Discs (id fbf0979e6b99) — REJECTED
+
+- **Atlas now:** 10/6/-4/1. **Flag:** turn -4 → -3 (|Δ| 1.0); Lone Star's page title and Flight Numbers block read 10/6/-3/1. **Rejected:** the raters moved the other way.
+- **Why:** Infinite displays Lone Star's -3. Of 21 raters, **five sit at -3 and sixteen left it for more turn** (-4 ×12, -3.5 ×3, -5 ×1); mean -3.74, median -4, by year -3.83, -3.62, -3.0, -4.0, and by plastic -3.5 to -3.83 (Bravo 7, Bravo Glow 6, Alpha 4, Founders 3). A reading of -3 would be the manufacturer's alone against a sample that left the displayed number sixteen to five. The Atlas -4 stays.
+- **Note:** this and Lone Wolf (queued above) land in the same place: both reviewer pools read about -3.7 to -3.8, and Lone Star's page reads -3 for one and -4 for the other. Revisit if Lone Star confirms -3.
+- sources:
+  - {name: Lone Star Tumbleweed page (10/6/-3/1), url: https://www.lonestardiscs.com/products/tumbleweed, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Tumbleweed (mfr 10/6/-3/1; reviewers 10/6/-3.5/1; 21 ratings; raw list), url: https://infinitediscs.com/lone-star-disc-tumbleweed, type: retailer, weight: 0.5}
+  - {name: Infinite reviewer ratings, 21 raw rated reviews, 16 moved off the displayed -3, url: https://infinitediscs.com/Disc/DiscComments, type: community, weight: 0.4}
+- **confidence (that the Atlas -4 stands):** 0.7
+- **plasticVariance:** Bravo -3.64, Bravo Glow -3.83, Alpha -3.5, Founders -3.67. No spread worth recording.
+
+## Centurion — Infinite Discs (id 93498283f1d5) — REJECTED
+
+- **Atlas now:** 7/5/-1/1.5. **Flag:** fade +0.5; Infinite's page now prints 7/5/-1/2 (Infinite is the maker of its own Centurion). **Rejected:** Infinite's own reviewers do not support it.
+- **Why:** 126 ratings, mean fade **1.44, median 1.5** (the number was 7/5/-1/1.5 at launch per DGCR 2019, and Rocket still prints it). Through 2023, 61 of 99 raters sit at 1.5 and 22 at 1; since 2024, **12 of 27 sit at 2 (the new display) but 14 sit at or below 1.5**, and the 2025-2026 raters (6) average 1.25. A first-party label that its own 126 raters do not follow is not enough for a half step. DGCR (2019): "a reliable fade, more than the Leopard3 but not as much as the Teebird," about 1.5. The Atlas stays at 1.5.
+- sources:
+  - {name: Infinite Discs Centurion (mfr 7/5/-1/2; reviewers 7/5.1/-1.1/1.5; 126 ratings; raw list), url: https://infinitediscs.com/infinite-discs-centurion, type: manufacturer, weight: 0.8}
+  - {name: Infinite reviewer ratings, 126 raw rated reviews split through 2023 / since, url: https://infinitediscs.com/Disc/DiscComments, type: community, weight: 0.4}
+  - {name: DGCR "Infinite Discs Centurion" thread (2019), url: https://www.dgcoursereview.com/threads/infinite-discs-centurion.142096/, type: community, weight: 0.2}
+  - {name: Rocket Discs Centurion (7/5/-1/1.5), url: https://rocketdiscs.com/infinite-discs-centurion, type: retailer, weight: 0.1}
+- **confidence (that the Atlas 1.5 stands):** 0.65
+- **plasticVariance:** Sold in several blends (S, I, C, glow); the ratings were not plastic-split here. Do not average.
+
+## Kapre — Divergent Discs (id 9618b1c70a1e) — REJECTED
+
+- **Atlas now:** 5/5/-1.5/1. **Flag:** turn +0.5; Divergent's page prints 5/5/-1/1. **Rejected:** jitter.
+- **Why:** Divergent prints integers only on its current pages (-1 for Kapre, as for every mold there); Infinite prints -1.5 and its nine raters average **-1.44, median -1.5** (turn -1.5 ×4, -1 ×2, -2, -2.5, -0.5: three toward less turn, two toward more, so no direction). Half a step is inside the rounding of an integer-only page, against the Atlas's own source. The Atlas stays at -1.5.
+- sources:
+  - {name: Divergent Kapre tag page (5/5/-1/1), url: https://divergentdiscs.com/product-tag/kapre/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Kapre (mfr 5/5/-1.5/1; reviewers 5/5/-1.5/1; 9 ratings), url: https://infinitediscs.com/divergent-discs-kapre, type: retailer, weight: 0.4}
+- **confidence (that the Atlas -1.5 stands):** 0.6
+
+## M5 — Prodigy (id e905af456041) — REJECTED (approval-version mismatch)
+
+- **Atlas now:** 5/5/-3/1 (PDGA 14-02, Jan 6, 2014: the **original** M5). **Flag:** Prodigy's current M5 400 page prints 5/5/-2/0.5. **Rejected:** that page is a different approval.
+- **Why:** the page says "an understable midrange replacing the original version created in 2014 … flies like a seasoned M4." The Atlas already lists that replacement separately as **M5 (New), 24-84, Apr 22, 2024 (id b0c8f887f3fb), currently unrated.** The Infinite raters agree: 2014-2020 ratings sit at about -3/1, 2025-2026 ones at -1.5 to -2/0.5-0.75. The 2014 disc keeps -3/1.
+- **Follow-up outside this brief:** the unrated **M5 (New)** can take 5/5/-2/0.5 once you want it rated (Prodigy's current page, Infinite and the recent raters agree). Not written here.
+- sources:
+  - {name: Prodigy M5 400 Plastic page ("replaces the original version created in 2014"; 5/5/-2/0.5), url: https://prodigydisc.com/products/prodigy-m5-400-plastic, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs M5 (mfr 5/5/-2/0.5; 23 ratings; 2014-2020 raters about -3/1, 2025-2026 raters -1.5 to -2), url: https://infinitediscs.com/prodigy-m5, type: retailer, weight: 0.5}
+- **confidence (that the flag is a version mismatch):** 0.9
+
+## Lynx — Innova (id 7bac98262a87) — REJECTED (approval-version mismatch)
+
+- **Atlas now:** 7/6/-2/1 (PDGA 90-02, Jun 21, 1990: the **original** Lynx). **Flag:** Innova's Lynx page prints 7/6/-3/1. **Rejected:** that page is a different approval.
+- **Why:** the page says "the Lynx is the new name for the IT … the Lynx name was also used on a now out-of-production mold, and it's back on a disc designed for today's game," date of approval **08/02/2021**. The Atlas lists that disc separately as **Lynx (new) (renamed from IT), 21-83, Aug 2, 2021 (id fb0bfbe4e5ab), currently unrated.** I found no Infinite page at the expected slug. The 1990 Lynx keeps its number.
+- **Follow-up outside this brief:** the unrated **Lynx (new)** can take 7/6/-3/1 from Innova's page badges; check the DX and Champion stamps against the Star baseline first.
+- sources:
+  - {name: Innova Lynx page (7/6/-3/1; "new name for the IT", approved 08/02/2021), url: https://www.innovadiscs.com/disc/lynx/, type: manufacturer, weight: 1.0}
+- **confidence (that the flag is a version mismatch):** 0.9
+
+## Time-Lapse — Axiom (id fbec7a7d6cd0) — REJECTED (retooled disc)
+
+- **Atlas now:** 12/5/-1/3 (PDGA Aug 21, 2023: the **original** Time-Lapse). **Flag:** Axiom's page prints 12/5/-1/2. **Rejected:** the page is the retooled disc.
+- **Why:** Axiom's page leads with "Axiom Neutron Time-Lapse – Stock (Retooled)" and says "many players found our overstable original run to be a great wind fighter." The Atlas lists **Time-Lapse (retooled) separately (id 2495294f6b9f), already 12/5/-1/2.** Infinite's 23 raters (all 2023-2025, mostly Neutron) average fade **3.04** with 12 at exactly 3 and 4 at 4, consistent with the original's 3 but also an echo of Infinite's displayed 3, so it is weak support. The original keeps fade 3.
+- sources:
+  - {name: Axiom Time-Lapse page (12/5/-1/2, "Stock (Retooled)"; "overstable original run"), url: https://axiomdiscs.com/discs/time-lapse/, type: manufacturer, weight: 1.0}
+  - {name: Infinite Discs Time-Lapse (mfr 12/5/-1/3; reviewers 12/4.8/-0.9/3; 23 ratings), url: https://infinitediscs.com/axiom-time-lapse, type: retailer, weight: 0.4}
+- **confidence (that the flag is a version mismatch):** 0.8
+- **plasticVariance:** Neutron turn -0.5 / fade 3.23 (13), Fission -1.2 / 2.8 (10). Do not average.
+
+## Batch 21 report (for Freddy)
+
+**Proposed to overrides (0).** No entry cleared both halves of the gate. Fifteen of the eighteen queued items change turn or fade by a full point, and the other three rest on the manufacturer's page alone.
+
+**Queued, recommend you approve first (4):** **Archer** turn -4 → -3 (0.8; 33 of 46 raters left the displayed -4, none toward more turn), **Lone Wolf** turn -3 → -4 (0.75; seven of nine raters moved to -4 or beyond), **Basilisk** turn -4 → -5 only (0.75; 11 of 17 raters beyond -4; fade 2 and speed 13 are contradicted), **Pilot** turn -1 → 0 (0.75; Streamline revised its own launch number, raters left -1 for less turn 20 to 3). Each would be a Luna-style override: current manufacturer plus the movers.
+
+**Queued, your call (14):** Artemis (0.6), Apex, Nomad, Idol (0.6 each; ungated half steps resting on the manufacturer alone), DD4 (0.55, prototype), Supreme Trespass (0.55), Aura (0.55), Bearkat, Hybrid, Cosmic, Minotaur, Nuno (0.5 each), Kraken (0.45), Wyrm (0.4).
+
+**Rejected (6):** Tumbleweed (raters contradict the manufacturer's -3), Centurion (126 raters at 1.5, not 2), Kapre (half step inside an integer-only page), and **M5, Lynx, Time-Lapse** (the manufacturer page is a different approval; the Atlas already holds the new records separately).
+
+**One policy question the batch surfaced:** Apex (fade), Nomad (fade), Idol (fade) and the Aura turn half step are lags behind a manufacturer's current page with nothing contradicting them. Today they sit under the 0.7 bar only because no independent source corroborates the manufacturer. If you want the Atlas to follow a manufacturer's own current page by default when nothing contradicts it, those could be written as plain catalog corrections; I have not done that.
+
+**Spot-checks needed before any override source note:**
+- Every Infinite tally above (computed from the DiscComments JSON, kept only in scratch space; rerun to reproduce), especially the Archer 33-of-46, Lone Wolf 7-of-9, Tumbleweed 16-of-21, Pilot 20:3 and Centurion era splits.
+- The manufacturer page numbers, read as raw page text: Gateway (Aura, Hybrid, Apex - Diamond), Divergent (integers; see the archive note), Lone Star (page titles), Mint (eight product pages via the product feed and pages), Discraft Archer (the page prints speed 7, stability -0.5), Streamline, MVP, Alfa, Axiom, Discmania, Dynamic, Innova (badges 7/6/-3/1).
+- The DGCR quotes (Pilot, Nomad, Apex, Centurion) are from direct thread fetches, not summaries, but have not had a second reader.
+
+**Process notes:** DGCR forum search works with a session token (fetch `/search/`, post `_xfToken`); Bing was unusable for this. Mint's `products.json` lists every Idol product and its printed ratings. **Unrated Atlas records worth rating next:** M5 (New) 24-84 and Lynx (new) 21-83, found while vetting M5 and Lynx. **Not attempted or not found:** Reddit, YouTube, Disc Golf Center, Disc Golf Reviewer; Aura, Cosmic, DD4, Idol, Supreme Trespass, Wyrm, Artemis and Bearkat have no readable community text at all.

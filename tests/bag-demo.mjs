@@ -16,7 +16,7 @@ test('demo bag is a valid, curated bag the server itself would accept',()=>{
   assert.ok(d,`${disc.id}: mold ${disc.mold_id} is in the catalog`);
   assert.ok(d.speed!=null,`${disc.id}: ${d.name} has flight ratings`);
   const {mold_id,plastic,wear,weight_g,notes,color,in_bag,pocket,stability_bias}=disc;
-  assert.deepEqual(validateDiscDetails(disc,d,plastics),{mold_id,plastic,wear,weight_g,notes,color,in_bag,pocket,stability_bias});
+  assert.deepEqual(validateDiscDetails(disc,d,plastics),{mold_id,plastic,wear,weight_g,notes,color,in_bag,pocket,stability_bias,status:'active',lostDate:null,lostCourse:null,lostHole:null,lostStory:null});
  }
 });
 

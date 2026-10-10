@@ -24,7 +24,24 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  if(!['main','putter','goto'].includes(pocket))throw new Error('Choose Main compartment, Putter pocket or Go-to.');
  if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
  if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
- return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),in_bag,pocket,stability_bias};
+ const memorial=validateLostDetails(value);
+ return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
+}
+export function validateLostDetails(data) {
+ const status=data.status===undefined?'active':data.status;
+ if(!['active','lost'].includes(status))throw new Error('Choose an active or lost disc.');
+ if(status==='active'){
+  if(['lostDate','lostCourse','lostHole','lostStory'].some(key=>data[key]!=null && data[key]!==''))throw new Error('Mark the disc lost before adding its story.');
+  return {status,lostDate:null,lostCourse:null,lostHole:null,lostStory:null};
+ }
+ const lostDate=data.lostDate;
+ if(typeof lostDate!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(lostDate) || lostDate.startsWith('0000') || !Number.isFinite(Date.parse(lostDate+'T12:00:00Z')) || new Date(lostDate+'T12:00:00Z').toISOString().slice(0,10)!==lostDate)throw new Error('Choose a valid date lost.');
+ for(const [key,label,max] of [['lostCourse','Course name',160],['lostStory','The story',1200]]){
+  if(data[key]!=null && (typeof data[key]!=='string' || data[key].length>max))throw new Error(`${label} can be up to ${max} characters.`);
+ }
+ const lostHole=data.lostHole ?? null;
+ if(lostHole!==null && (!Number.isInteger(lostHole) || lostHole<1 || lostHole>999))throw new Error('Hole must be a whole number from 1 to 999.');
+ return {status,lostDate,lostCourse:data.lostCourse?.trim() || null,lostHole,lostStory:data.lostStory?.trim() || null};
 }
 export function validateBagSettings(data, catalog) {
  if (typeof data.bag_model !== 'string' || !data.bag_model.trim() || data.bag_model.trim().length > 80) throw new Error('Enter a bag name (up to 80 characters).');
