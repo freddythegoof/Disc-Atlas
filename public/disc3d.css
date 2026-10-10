@@ -1,0 +1,30 @@
+/* The detail panel's 3D disc (Plan 09): canvas, preset views, flip and the hyzer/anhyzer tilt.
+   The stage keeps the static illustration as a poster until the first frame is drawn. */
+.detail .disc-photo.disc3d{display:block!important;min-height:0;height:auto!important;margin:14px 0 18px;float:none;width:100%}
+.disc3d-stage{position:relative;width:100%}
+.disc3d-poster{display:flex;align-items:center;justify-content:center;height:230px}
+.disc3d-stage[data-state=ready] .disc3d-poster{display:none}
+.disc3d-stage:not([data-state=ready]) .disc3d-viewer{position:absolute;inset:0 0 auto;visibility:hidden}
+.disc3d-viewport{position:relative;height:230px;border-radius:16px;background:radial-gradient(ellipse 70% 60% at 50% 55%,var(--surface),transparent 72%)}
+.disc3d-canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none;border-radius:16px}
+.disc3d-canvas:active{cursor:grabbing}
+.disc3d-canvas:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.disc3d-hint{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap;pointer-events:none;transition:opacity .3s}
+.disc3d-viewer.has-interacted .disc3d-hint{opacity:0}
+.disc3d-toolbar{display:flex;gap:6px;margin-top:10px;align-items:stretch}
+.disc3d-views{display:flex;flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.disc3d-toolbar button{flex:1;min-width:0;min-height:32px;padding:4px 6px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+.disc3d-views button+button{border-left:1px solid var(--line)}
+.disc3d-toolbar [data-disc3d-flip]{flex:0 0 auto;padding:4px 12px;border:1px solid var(--line);border-radius:10px}
+.disc3d-toolbar button:hover{background:var(--surface)}
+.disc3d-toolbar button[aria-pressed=true]{background:var(--accent-soft);color:var(--lime)}
+.disc3d-tilt{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;margin-top:10px;font-size:11px;color:var(--muted)}
+.disc3d-tilt input[type=range]{margin:0;min-width:0}
+.disc3d-tilt output{grid-column:1/-1;text-align:center;font-size:12px;color:var(--text);font-variant-numeric:tabular-nums}
+.disc3d .illustration-caption{display:block;margin-top:8px}
+@media(max-width:700px){
+ .disc3d-poster,.disc3d-viewport{height:190px}
+ .disc3d-toolbar button{min-height:36px}
+}
+@media(max-width:980px) and (min-width:701px){.detail .disc-photo.disc3d{float:none;width:100%;height:auto!important;margin:0 0 20px}}
+@media(prefers-reduced-motion:reduce){.disc3d-hint{transition:none}}
