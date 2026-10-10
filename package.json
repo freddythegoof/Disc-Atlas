@@ -29,6 +29,7 @@
     "test:bag:spin": "node tests/bag-spin-pocket-browser.mjs",
     "test:bag:controls": "node tests/bag-map-controls-browser.mjs",
     "test:bag:popup": "node tests/bag-popup-browser.mjs",
+    "test:bag:switch-dump": "node tests/bag-switch-dump-browser.mjs",
     "test:atlas:organic": "node --test tests/atlas-organic.mjs && node tests/atlas-organic-browser.mjs",
     "test:lens:corner": "node tests/lens-corner-browser.mjs",
     "test:atlas:depth": "node --test tests/atlas-depth.mjs && node tests/atlas-depth-browser.mjs",

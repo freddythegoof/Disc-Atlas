@@ -191,17 +191,17 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-short {display:none}
 /* A phone keeps the cluster on one row: tighter buttons, and the pocket button reads "Putters". */
 @media(max-width:420px){.bag-controls {gap:8px}.bag-controls>.pill-button {padding:10px 14px}.bag-pocket-toggle {gap:6px}.bag-pocket-long {display:none}.bag-pocket-short {display:inline}.bag-zoom button {min-width:34px}.bag-zoom .bag-zoom-level {min-width:44px}}
-/* Return all has a reserved row under the controls. */
-.bag-scene-actions {display:flex;justify-content:center;min-height:44px;margin-top:10px}
-.bag-return-all {display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:3px 7px 3px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow);font:600 13px/1 'Space Grotesk',sans-serif;color:var(--text);cursor:pointer;animation:bag-return-in 220ms ease-out both}
-.bag-return-all[hidden] {display:none}
-.bag-return-all svg {width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.bag-return-all b {display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--selected);font:600 11px/1 'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
-.bag-return-all:hover {background:var(--selected)}
-.bag-return-all:hover b {background:var(--panel)}
-.bag-scene:not([data-engine="ready"]) .bag-return-all,.bag-scene[data-dragging] .bag-return-all {visibility:hidden}
+/* Dump bag and Return all share a reserved row under the controls. */
+.bag-scene-actions {display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:44px;margin-top:10px}
+:is(.bag-return-all,.bag-dump) {display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:3px 7px 3px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow);font:600 13px/1 'Space Grotesk',sans-serif;color:var(--text);cursor:pointer;animation:bag-return-in 220ms ease-out both}
+:is(.bag-return-all,.bag-dump)[hidden] {display:none}
+:is(.bag-return-all,.bag-dump) svg {width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+:is(.bag-return-all,.bag-dump) b {display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--selected);font:600 11px/1 'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+:is(.bag-return-all,.bag-dump):hover {background:var(--selected)}
+:is(.bag-return-all,.bag-dump):hover b {background:var(--panel)}
+.bag-scene:not([data-engine="ready"]) :is(.bag-return-all,.bag-dump),.bag-scene[data-dragging] :is(.bag-return-all,.bag-dump) {visibility:hidden}
 @keyframes bag-return-in {from {opacity:0;transform:translateY(-4px)}}
-@media(prefers-reduced-motion:reduce){.bag-return-all {animation:none}}
+@media(prefers-reduced-motion:reduce){:is(.bag-return-all,.bag-dump) {animation:none}}
 .bag-3d-status {position:absolute;left:0;right:0;top:46%;margin:0;text-align:center;font-size:12px;color:var(--muted);pointer-events:none}
 .bag-3d-status:empty {display:none}
 /* Positioned slot targets over the canvas: focus, hover/touch and labels for each disc. */
