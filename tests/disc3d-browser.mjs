@@ -246,6 +246,91 @@ try{
   }
   check('review boards written');
 
+  // Plan 12: overmold discs draw the rim and the flight plate in two materials, split at the measured rim
+  // width. Detection is per disc: Axiom's Envy, MVP's Volt and Innova's Atlas are overmolds; Streamline's
+  // Drift (same family) and Innova's Destroyer are one material, as before.
+  const material=page=>page.evaluate(()=>{
+   const v=Disc3D.viewer,{body,camera,renderer}=v.debug,g=body.geometry,pos=g.attributes.position,idx=g.index.array;
+   const d=discs.find(x=>x.id===document.querySelector('#detail .disc3d-stage').dataset.disc);
+   const mats=[].concat(body.material);
+   // Radii of the vertices each group draws, overall and on the top surface (normals facing up).
+   const nrm=g.attributes.normal;
+   const groups=g.groups.map(gr=>{let lo=1e9,hi=-1e9,topLo=1e9,topHi=-1e9;for(let i=gr.start;i<gr.start+gr.count;i++){const k=idx[i],r=Math.hypot(pos.getX(k),pos.getZ(k));lo=Math.min(lo,r);hi=Math.max(hi,r);if(nrm.getY(k)>.5){topLo=Math.min(topLo,r);topHi=Math.max(topHi,r);}}return {material:gr.materialIndex,lo,hi,topLo,topHi};});
+   // Top view: the colour drawn halfway across the rim and halfway between the stamp and the seam.
+   v.setView('top',{instant:true});v.debug.renderNow();
+   const sample=r=>{const p=new camera.position.constructor(r,0,0);body.updateMatrixWorld(true);p.y=g.boundingBox.max.y;p.applyMatrix4(body.matrixWorld).project(camera);
+    const gl=renderer.getContext(),x=Math.round((p.x+1)/2*gl.drawingBufferWidth),y=Math.round((p.y+1)/2*gl.drawingBufferHeight),px=new Uint8Array(4);gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);return [...px];};
+   const R=Number(d.specs.Diameter)/2,w=Number(d.specs['Rim width']),stampR=Math.min(R*.6,6.2);
+   const pixels=v.state.overmold?{rim:sample(R-w/2),plate:sample((R-w+stampR)/2+.3)}:null;
+   v.setView('angle',{instant:true});v.debug.renderNow();
+   return {name:d.catalogName||d.name,manufacturer:d.manufacturer,R,w,overmold:v.state.overmold,colors:v.state.colors,seam:v.state.seamRadius,
+    materials:mats.length,distinct:new Set(mats.map(m=>m.uuid)).size,colorHex:mats.map(m=>'#'+m.color.getHexString()),groups,pixels};
+  });
+  const overmolds=[];
+  for(const [name,maker] of [['Envy','Axiom Discs'],['Volt','MVP Disc Sports'],['Atlas','Innova Champion Discs']]){
+   await show(page,name);
+   const m=await material(page);
+   assert.equal(m.manufacturer,maker);
+   assert.equal(m.overmold,true,name+' is an overmold');
+   assert.equal(m.materials,2);assert.equal(m.distinct,2,name+' draws two distinct materials');
+   assert.notEqual(m.colorHex[0],m.colorHex[1],name+': rim and plate differ in colour');
+   assert.equal(m.colorHex[1],m.colors.rim);assert.equal(m.colorHex[0],m.colors.plate);
+   // The seam: the plate's top reaches exactly R − rim width, and the rim's top starts there.
+   const plate=m.groups.find(g=>g.material===0),rim=m.groups.find(g=>g.material===1);
+   assert.ok(Math.abs(m.seam-(m.R-m.w))<1e-6,`${name}: seam ${m.seam} at ${m.R} − ${m.w}`);
+   assert.ok(Math.abs(plate.topHi-(m.R-m.w))<1e-4,`${name}: plate top ends at ${plate.topHi.toFixed(4)}, rim width says ${(m.R-m.w).toFixed(4)}`);
+   assert.ok(Math.abs(rim.topLo-(m.R-m.w))<1e-4,`${name}: rim top starts at ${rim.topLo.toFixed(4)}`);
+   assert.ok(Math.abs(rim.hi-m.R)<1e-4,'the rim runs out to the nose');
+   assert.ok(plate.hi<=m.R-m.w+1e-4,'no plate vertex outside the seam');
+   assert.ok(rim.lo>m.R-m.w-.1,'the rim keeps to its own width (the inner wall leans in 0.06 cm)');
+   // And on screen: the rim and the plate draw in different colours.
+   const diff=m.pixels.rim.slice(0,3).reduce((s,c,i)=>s+Math.abs(c-m.pixels.plate[i]),0);
+   assert.ok(diff>60,`${name}: rim ${m.pixels.rim} vs plate ${m.pixels.plate} on screen`);
+   assert.match(await page.locator('#detail canvas').getAttribute('aria-label'),/overmold rim/);
+   const slug=name.toLowerCase();
+   await shot(page,`overmold-${slug}-34`,'#detail .disc3d-viewport');
+   await view(page,'top');await shot(page,`overmold-${slug}-top`,'#detail .disc3d-viewport');
+   await view(page,'bottom');await shot(page,`overmold-${slug}-bottom`,'#detail .disc3d-viewport');
+   overmolds.push(m);
+  }
+  check('Envy (Axiom), Volt (MVP) and Atlas (Innova) draw two materials split at the measured rim width: '+overmolds.map(m=>`${m.name} ${m.colors.rim}/${m.colors.plate}`).join(', '));
+  for(const [name,maker] of [['Drift','Streamline Discs'],['Destroyer','Innova Champion Discs'],['Buzzz','Discraft']]){
+   await show(page,name);
+   const m=await material(page);
+   assert.equal(m.manufacturer,maker);assert.equal(m.overmold,false,name+' is not an overmold');
+   assert.equal(m.materials,1,name+' is one material');assert.equal(m.groups.length,0,name+' has no material groups');
+   assert.ok(!/overmold/.test(await page.locator('#detail canvas').getAttribute('aria-label')));
+  }
+  await shot(page,'single-buzzz-34','#detail .disc3d-viewport');
+  check('Streamline Drift, Innova Destroyer and Discraft Buzzz stay one material');
+
+  // The colour API: optional rim/plate colours through Disc3D.sync, defaults when absent.
+  {
+   await show(page,'Envy');
+   const id=await byName(page,'Envy');
+   // sync() applies the props once the (already loaded) viewer promise settles.
+   const colors=c=>page.evaluate(async([id,c])=>{const d=discs.find(x=>x.id===id);Disc3D.sync(document.querySelector('#detail'),d,{color:'#d94f2b',colors:c,hand:'RHBH'});await new Promise(r=>setTimeout(r,0));
+    const {bodyMaterial,rimMaterial}=Disc3D.viewer.debug;return {state:Disc3D.viewer.state.colors,plate:'#'+bodyMaterial.color.getHexString(),rim:'#'+rimMaterial.color.getHexString()};},[id,c]);
+   const both=await colors({rim:'#111111',plate:'#f5f5f5'});
+   assert.deepEqual(both.state,{rim:'#111111',plate:'#f5f5f5'});
+   assert.equal(both.rim,'#111111');assert.equal(both.plate,'#f5f5f5');
+   await settle(page);await shot(page,'overmold-envy-custom-colors','#detail .disc3d-viewport');
+   const rimOnly=await colors({rim:'#2b6cd9'});
+   assert.deepEqual(rimOnly.state,{rim:'#2b6cd9',plate:'#d94f2b'});
+   const none=await colors(undefined);
+   assert.equal(none.state.plate,'#d94f2b');assert.notEqual(none.state.rim,'#d94f2b');
+   assert.equal(none.rim,none.state.rim);
+   check(`rim/plate colours override the defaults and fall back without them (default rim ${none.state.rim} for #d94f2b)`);
+  }
+  {
+   const img=f=>'data:image/png;base64,'+fs.readFileSync(`${dir}/${f}.png`).toString('base64');
+   const css='<style>body{margin:0;padding:24px;font:15px system-ui;background:#fff;color:#1d232b}main{display:grid;gap:20px;grid-template-columns:repeat(3,1fr)}h2{margin:0 0 4px;font-size:20px}p{margin:0 0 10px;color:#5b6470}img{width:100%;display:block;border:1px solid #e3e7ec;border-radius:8px;margin-bottom:10px}</style>';
+   const board=await context.newPage();await board.setViewportSize({width:1500,height:900});
+   await board.setContent(css+`<main>${overmolds.map(m=>{const n=m.name.toLowerCase();return `<section><h2>${m.name}</h2><p>${m.manufacturer} · rim ${m.w} cm · ${m.colors.rim} rim, ${m.colors.plate} plate</p><img src="${img('overmold-'+n+'-34')}"><img src="${img('overmold-'+n+'-top')}"><img src="${img('overmold-'+n+'-bottom')}"></section>`;}).join('')}</main>`);
+   await board.screenshot({path:`${dir}/overmolds.png`,fullPage:true});await board.close();
+  }
+  check('overmold review board written');
+
   // A rated disc without PDGA dimensions falls back to the Phase 1 generic shape and caption.
   {
    const id=await byName(page,'Leopard');
@@ -293,6 +378,16 @@ try{
   assert.equal(perf.measured.tris,perf.generic.tris,'same triangle count');
   assert.ok(perf.measured.ms<=Math.max(perf.generic.ms*1.5,perf.generic.ms+2),`frame ${perf.measured.ms.toFixed(2)} ms vs ${perf.generic.ms.toFixed(2)} ms`);
   check(`phone frames: ${perf.measured.tris} triangles, ${perf.measured.ms.toFixed(2)} ms per mold vs ${perf.generic.ms.toFixed(2)} ms generic`);
+  // An overmold on the phone: two materials, the same triangle budget (one extra profile point), controls fit.
+  await show(page,'Envy');
+  const om=await page.evaluate(()=>{const v=Disc3D.viewer;v.debug.renderNow();return {overmold:v.state.overmold,materials:[].concat(v.debug.body.material).length,tris:v.debug.renderer.info.render.triangles};});
+  assert.equal(om.overmold,true);assert.equal(om.materials,2);
+  assert.ok(om.tris<=perf.measured.tris+2*56+2,`overmold triangles ${om.tris} vs ${perf.measured.tris}`);
+  const bar=await page.locator('#detail .disc3d-toolbar').boundingBox(),sheet=await page.locator('#detail').boundingBox();
+  assert.ok(bar.x>=sheet.x&&bar.x+bar.width<=sheet.x+sheet.width+.5);
+  assert.ok(await coverage(page)>.06);
+  await page.screenshot({path:`${dir}/phone-envy.png`});
+  check(`phone draws the Envy overmold in two materials (${om.tris} triangles)`);
   await context.close();
  }
  const real=errors.filter(e=>!/Frontend test: backend excluded|status of 503|Failed to load resource/.test(e));

@@ -145,7 +145,21 @@ export function topHeight(params,r){
 
 // The closed cross-section as [{x: radius, y: height}], axis to axis. `detail` scales the sampling
 // (1 is about 70 points; the lathe's radial segments are set separately by the viewer).
-export function discProfile(params,{detail=1}={}){
+export function discProfile(params,opts){return traceProfile(params,opts).pts;}
+
+// Overmold (GYRO) discs: the same profile, marked where the rim piece meets the flight plate. On top the
+// seam is at the measured rim width, r = R − rimWidth, where a point is added. Underneath, it is the top of
+// the inner rim wall, where the plate's fillet ends. Profile edges rim[0] to rim[1] − 1 are the rim; the
+// rest of the profile is the plate.
+export function overmoldProfile(params,opts){
+ const {pts,wallTop,top}=traceProfile(params,opts),f=shapeFrame(params);
+ let j=top;while(j<pts.length-1&&pts[j].x>f.Ri)j++;
+ const seam={x:f.Ri,y:topHeight(params,f.Ri)};
+ const points=pts[j].x===f.Ri?pts:[...pts.slice(0,j),seam,...pts.slice(j)];
+ return {points,rim:[wallTop,j],seamRadius:f.Ri};
+}
+
+function traceProfile(params,{detail=1}={}){
  const f=shapeFrame(params),{p,R,Ri,Rs,Hs,Rf,plh}=f,s=p.sharpness;
  const n=k=>Math.max(2,Math.round(k*detail));
  const under=r=>p.rimDepth+p.domeHeight*.85*domeCurve(r/Rs,s);
@@ -158,6 +172,7 @@ export function discProfile(params,{detail=1}={}){
  // 2. Fillet into the inner rim wall, then down it.
  const filletStart=pts[pts.length-1],filletEnd={x:wallTop,y:p.rimDepth-fillet};
  pts.push(...cubic(filletStart,{x:filletStart.x+fillet*.55,y:filletStart.y},{x:wallTop,y:filletEnd.y+fillet*.55},filletEnd,n(4)));
+ const wallTopIndex=pts.length-1;
  const wallFoot={x:Ri,y:footR};
  pts.push(wallFoot);
  // 3. Round off the wall into the foot, then along the foot to where the lower wing begins.
@@ -178,9 +193,9 @@ export function discProfile(params,{detail=1}={}){
  const c4=mix({x:Rs+sh*.6,y:Hs},{x:Rs+sh*.5,y:Hs},s);
  pts.push(...cubic(N,c3,c4,S,n(14)));
  // 7. The top, shoulder back to the axis.
- const topSteps=n(16);
+ const topSteps=n(16),topIndex=pts.length-1;
  for(let i=1;i<=topSteps;i++){const r=Rs*(1-i/topSteps);pts.push({x:r,y:topHeight(p,r)});}
- return pts;
+ return {pts,wallTop:wallTopIndex,top:topIndex};
 }
 
 // Summary numbers the viewer and tests use: overall height, how deep the cavity is, nose angle.

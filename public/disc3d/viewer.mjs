@@ -3,14 +3,19 @@
 // hyzer/anhyzer tilt. One renderer is reused for every disc; it draws only when something moves.
 //
 // createDiscViewer() returns {element, attach(host), update(props), setView(name), flip(), setTilt(deg),
-// setHand(hand), dispose()}. Props: {model, specs, flight, mold, color, plastic, hand}. `model` is explicit
-// shape parameters (d.model3d); otherwise the mold's PDGA `specs` set its shape (phase 2), and without
-// them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
+// setHand(hand), dispose()}. Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
+// overmold, colors}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
+// its shape (phase 2), and without them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
+// Overmold discs (Plan 12) draw the rim and the flight plate in two materials, split at the measured rim
+// width. `overmold` (boolean) is the record's own flag; without it the PDGA `manufacturer` and `record` name
+// are looked up in overmold.mjs. `colors` {rim, plate} are optional overrides of the two colours; the
+// defaults come from `color`. Every other disc is one material, as before.
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {discProfile,shapeForDisc,shapeFrame,topHeight} from './shape.mjs';
+import {discProfile,overmoldProfile,shapeForDisc,shapeFrame,topHeight} from './shape.mjs';
+import {isOvermold,overmoldColors} from './overmold.mjs';
 
 const DEG=Math.PI/180;
 // Finishes only (a picker is phase 3): premium is glossy, base is matte.
@@ -26,6 +31,15 @@ export const MAX_TILT=40;
 // The camera frames a fixed 22 cm disc, so molds show at true scale: a 21.7 cm Buzzz stands wider than a
 // 21.1 cm Destroyer. Anything larger is framed by its own diameter.
 export const FRAME_DIAMETER=22;
+// LatheGeometry writes two triangles per (segment, profile edge), edges varying fastest. Reorder them into
+// two groups, the plate (material 0) then the rim (material 1, edges rim[0] to rim[1] − 1). The vertices and
+// their normals are untouched, so the seam shades smoothly.
+function groupRim(geometry,count,[from,to]){
+ const index=geometry.index.array,edges=count-1,plate=[],rim=[];
+ for(let k=0;k<index.length;k+=6){const e=(k/6)%edges,out=e>=from&&e<to?rim:plate;for(let i=k;i<k+6;i++)out.push(index[i]);}
+ geometry.setIndex([...plate,...rim]);
+ geometry.addGroup(0,plate.length,0);geometry.addGroup(plate.length,rim.length,1);
+}
 const SOURCE_TEXT={model:'its mold profile',pdga:'its PDGA dimensions, to scale',flight:'a generic shape from its flight numbers'};
 // The edge that drops on hyzer is the fade side: left for RHBH and LHFH, right for RHFH and LHBH.
 export const hyzerSign=hand=>hand==='RHFH'||hand==='LHBH'?-1:1;
@@ -80,10 +94,12 @@ export function createDiscViewer({segments}={}){
  tiltGroup.add(flipGroup);flipGroup.add(discGroup);scene.add(tiltGroup);
  const bodyMaterial=new THREE.MeshPhysicalMaterial({color:0x888888,side:THREE.FrontSide});
  const stampMaterial=new THREE.MeshStandardMaterial({transparent:true,roughness:.5,metalness:.15,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+ // Overmold discs only: bodyMaterial becomes the flight plate and rimMaterial the rim.
+ const rimMaterial=new THREE.MeshPhysicalMaterial({color:0x444444,side:THREE.FrontSide});
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',thickness:2,fit:40,props:null,frames:0};
+ const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,thickness:2,fit:40,props:null,frames:0};
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
 
  const spherical=()=>new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
@@ -156,9 +172,18 @@ export function createDiscViewer({segments}={}){
  }
  function setHand(hand){state.hand=hand||'RHBH';setTilt(state.tilt);}
 
- function build(shape,mold,color){
-  const profile=discProfile(shape).map(p=>new THREE.Vector2(p.x,p.y));
-  const geometry=new THREE.LatheGeometry(profile,radial);
+ function build(shape,mold,color,overmold){
+  let geometry;
+  if(overmold){
+   const split=overmoldProfile(shape);
+   geometry=new THREE.LatheGeometry(split.points.map(p=>new THREE.Vector2(p.x,p.y)),radial);
+   groupRim(geometry,split.points.length,split.rim);
+   body.material=[bodyMaterial,rimMaterial];state.seamRadius=split.seamRadius;
+  }else{
+   const profile=discProfile(shape).map(p=>new THREE.Vector2(p.x,p.y));
+   geometry=new THREE.LatheGeometry(profile,radial);
+   body.material=bodyMaterial;state.seamRadius=null;
+  }
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder, on a ring mesh fine enough to follow the dome.
@@ -178,16 +203,19 @@ export function createDiscViewer({segments}={}){
   const resolved=shapeForDisc(props);
   if(!resolved)return false;
   const {shape,source}=resolved;
-  const color=props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic]);
+  const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,props.colors):null;
+  // The stamp sits on the plate, so its ink follows the plate colour.
+  const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   if(key===state.key)return true;
   const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
-  state.key=key;state.props=props;state.source=source;
-  build(shape,props.mold,color);
+  state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
+  build(shape,props.mold,color,overmold);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
-  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[source]}. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
+  if(overmold){rimMaterial.color.set(colors.rim);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
+  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[source]}${overmold?', with its overmold rim in a second colour':''}. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){
    state.flipped=false;flipTween=null;flipGroup.rotation.x=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');
@@ -215,11 +243,11 @@ export function createDiscViewer({segments}={}){
  function attach(host){if(element.parentNode!==host)host.appendChild(element);resize();request();}
  function dispose(){
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
-  body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
+  body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
   envTexture.dispose();renderer.dispose();element.remove();
  }
  setTilt(0);
  return {element,attach,update,setView,flip,setTilt,setHand,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
-  debug:{renderer,scene,camera,controls,body,stamp,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
+  debug:{renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

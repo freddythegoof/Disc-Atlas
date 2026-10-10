@@ -27,16 +27,20 @@
  function load(){
   return loading||=import('./disc3d/viewer.mjs').then(m=>{viewer=m.createDiscViewer();return viewer;}).catch(err=>{failed=true;console.warn('3D disc viewer unavailable; keeping the illustration.',err);throw err;});
  }
- function sync(panel,d,{color,plastic,poster,hand:nextHand}={}){
+ // `colors` {rim, plate} are optional overmold colours (bag colour choices later); without them the viewer
+ // derives both from `color`. Whether a disc is an overmold is decided per record in disc3d/overmold.mjs.
+ function sync(panel,d,{color,colors,plastic,poster,hand:nextHand}={}){
   if(nextHand)hand=nextHand;
   const stage=panel?.querySelector('[data-disc3d] .disc3d-stage');
   if(!stage||!hasModel(d))return;
-  const props={model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand};
+  const props={model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
+   manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
+   colors:colors?{rim:colors.rim&&resolveColor(colors.rim),plate:colors.plate&&resolveColor(colors.plate)}:undefined};
   if(failed){stage.dataset.state='fallback';if(poster&&stage.dataset.disc!==d.id)stage.querySelector('.disc3d-poster').innerHTML=poster;stage.dataset.disc=d.id;return;}
   // A hidden panel (the landing page warms it) waits until it is shown before loading anything.
   waiting?.disconnect();waiting=null;
   if(panel.hidden||!panel.isConnected){
-   waiting=new MutationObserver(()=>{if(!panel.hidden){waiting.disconnect();waiting=null;sync(panel,d,{color,plastic,poster,hand});}});
+   waiting=new MutationObserver(()=>{if(!panel.hidden){waiting.disconnect();waiting=null;sync(panel,d,{color,colors,plastic,poster,hand});}});
    waiting.observe(panel,{attributes:true,attributeFilter:['hidden']});return;
   }
   stage.dataset.disc=d.id;if(!stage.dataset.state)stage.dataset.state='loading';
