@@ -1,13 +1,14 @@
-import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket} from './bag-values.js';
+import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custom bag',capacity:20}, items = [], active = false;
-let plastics, models, editing = null, removing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
+let plastics, models, editing = null, removing = null, losing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
 let colorCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
 const pendingPockets=new Map();
+const pendingFound=new Set();
 const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async path => {const r = await fetch(path);if (!r.ok) throw Error('Bag choices could not load. Please try again.');return r.json();})).then(([p,m])=>{plastics=p;models=m;});
 // Fetch failures are surfaced when opening a sheet, without an unhandled rejection.
 catalogs.catch(()=>{});
@@ -75,9 +76,9 @@ function sync(data) {
  const changed = account?.csrfToken !== data.csrfToken || !!account?.user !== !!data.user;
  account = data;
  if(changed) {
-  generation++;mapOpen=false;scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;ordering=false;dragging=null;pendingPockets.clear();
+  generation++;mapOpen=false;scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;losing=null;ordering=false;dragging=null;pendingPockets.clear();pendingFound.clear();
   window.AtlasDropdown.close(false);
-  for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog']) if($('#'+id).open)$('#'+id).close();
+  for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog','lostDiscDialog']) if($('#'+id).open)$('#'+id).close();
   status('');
  }
  showDemo();render();if(changed && data.user)void loadBag();
@@ -91,7 +92,7 @@ function render() {
  $('#myBagLoadState').hidden=!signedIn || (!loading && !loadError);
  $('#myBagLoadMessage').textContent=loading?'Loading your bag…':loadError;$('#retryMyBag').hidden=!loadError;
  $('#addBagDisc').hidden=!signedIn;
- const bagged=items.filter(i=>i.in_bag!==false).sort(bagComparator(settings.sort_mode,mold)),stored=items.filter(i=>i.in_bag===false),count=bagged.length;
+ const bagged=items.filter(i=>i.in_bag!==false).sort(bagComparator(settings.sort_mode,mold)),stored=items.filter(i=>i.in_bag===false && i.status!=='lost'),count=bagged.length;
  $('#bagSort').value=settings.sort_mode || 'speed';$('#bagSort').disabled=loading || !!loadError || ordering;
  $('#bagSortHint').textContent=settings.sort_mode==='custom'?'Drag the grip, or use Move earlier / later.':settings.sort_mode==='stability'?'Most stable first · shared atlas index':'Fastest first · stability within each speed';
  $('#bagScene').hidden=!shown || loading || !!loadError || mapOpen;
@@ -114,10 +115,18 @@ function render() {
   return `<section class="my-bag-group ${ordered?'bag-ordered-list':''}" style="--bag-class:var(--${key==='unknown'?'muted':key})" aria-label="${label}">${ordered?'':`<div class="bag-group-heading"><h2>${label}</h2><span>${rows.length}</span></div>`}${rows.map(i=>{
    const d=mold(i.mold_id), rated=d?.speed!=null, index=rated?Math.max(0,Math.min(100,50+10*(d.turn+d.fade))):null;
    const manual=ordered && settings.sort_mode==='custom',position=rows.indexOf(i);
-   return `<article class="my-bag-disc" data-disc-id="${i.id}"><span class="bag-disc-swatch" style="--disc-color:${esc(i.color||'#e6c668')}" aria-label="Disc color ${esc(i.color||'#e6c668')}"></span><div class="my-bag-disc-copy"><button class="my-bag-disc-name" data-bag-inspect="${esc(i.id)}" ${d?'':'disabled'}>${esc(name(d))}</button><span class="my-bag-brand">${esc(d?.brand || 'Saved disc')}</span><div class="my-bag-disc-details"><span>${esc(i.plastic)}</span><span>${i.weight_g} g</span><span class="wear-badge" data-beat="${i.wear<=2}">${i.wear}/10 · ${wearLabel(i.wear)}</span>${demo?`<span class="bag-pocket-text">${i.in_bag===false?'Storage':pocketLabel(i.pocket)}</span>`:`<label class="bag-pocket-inline"><span class="bag-sr">Pocket for ${esc(name(d))}</span><span class="dd-select dd-select-sm"><select data-bag-pocket="${i.id}" ${ordering||pendingPockets.has(i.id)?'disabled':''}>${POCKETS.map(([value,label])=>`<option value="${value}"${(pendingPockets.get(i.id) ?? i.pocket)===value?' selected':''}>${label}</option>`).join('')}</select>${window.DropdownIndicator.indicator('sm')}</span></label>`}${i.stability_bias?`<span class="bag-bias-label">${stabilityBiasLabel(i.stability_bias)}</span>`:''}</div>${i.notes?`<p class="my-bag-notes">${esc(i.notes)}</p>`:''}</div><div class="bag-consensus"><strong>${rated?[d.speed,d.glide,d.turn,d.fade].join(' / '):'Unrated'}</strong><small>${rated?'Consensus · stability '+index+'/100':'Consensus unavailable'}</small></div>${demo?'':`<div class="my-bag-disc-actions"><button type="button" data-bag-move="${i.id}" aria-label="${i.in_bag===false?'Bag':'Store'} ${esc(name(d))}">${i.in_bag===false?'Move to bag':'Store'}</button><button type="button" data-bag-edit="${i.id}" aria-label="Edit ${esc(name(d))}">Edit</button><button type="button" data-bag-remove="${i.id}" aria-label="Remove ${esc(name(d))}">Remove</button></div>`}${manual?`<div class="bag-reorder-controls"><button type="button" data-bag-drag="${i.id}" aria-label="Drag ${esc(name(d))} to reorder" aria-describedby="bagSortHint" ${ordering?'disabled':''}>⠿</button><button type="button" data-bag-earlier="${i.id}" aria-label="Move ${esc(name(d))} earlier" ${ordering||position===0?'disabled':''}>↑</button><button type="button" data-bag-later="${i.id}" aria-label="Move ${esc(name(d))} later" ${ordering||position===rows.length-1?'disabled':''}>↓</button></div>`:''}</article>`;
+   return `<article class="my-bag-disc" data-disc-id="${i.id}"><span class="bag-disc-swatch" style="--disc-color:${esc(i.color||'#e6c668')}" aria-label="Disc color ${esc(i.color||'#e6c668')}"></span><div class="my-bag-disc-copy"><button class="my-bag-disc-name" data-bag-inspect="${esc(i.id)}" ${d?'':'disabled'}>${esc(name(d))}</button><span class="my-bag-brand">${esc(d?.brand || 'Saved disc')}</span><div class="my-bag-disc-details"><span>${esc(i.plastic)}</span><span>${i.weight_g} g</span><span class="wear-badge" data-beat="${i.wear<=2}">${i.wear}/10 · ${wearLabel(i.wear)}</span>${demo?`<span class="bag-pocket-text">${i.in_bag===false?'Storage':pocketLabel(i.pocket)}</span>`:`<label class="bag-pocket-inline"><span class="bag-sr">Pocket for ${esc(name(d))}</span><span class="dd-select dd-select-sm"><select data-bag-pocket="${i.id}" ${ordering||pendingPockets.has(i.id)?'disabled':''}>${POCKETS.map(([value,label])=>`<option value="${value}"${(pendingPockets.get(i.id) ?? i.pocket)===value?' selected':''}>${label}</option>`).join('')}</select>${window.DropdownIndicator.indicator('sm')}</span></label>`}${i.stability_bias?`<span class="bag-bias-label">${stabilityBiasLabel(i.stability_bias)}</span>`:''}</div>${i.notes?`<p class="my-bag-notes">${esc(i.notes)}</p>`:''}</div><div class="bag-consensus"><strong>${rated?[d.speed,d.glide,d.turn,d.fade].join(' / '):'Unrated'}</strong><small>${rated?'Consensus · stability '+index+'/100':'Consensus unavailable'}</small></div>${demo?'':`<div class="my-bag-disc-actions"><button type="button" data-bag-move="${i.id}" aria-label="${i.in_bag===false?'Bag':'Store'} ${esc(name(d))}">${i.in_bag===false?'Move to bag':'Store'}</button><button type="button" data-bag-edit="${i.id}" aria-label="Edit ${esc(name(d))}">Edit</button>${i.in_bag!==false?`<button type="button" data-bag-lost="${i.id}" aria-label="Mark ${esc(name(d))} lost">Lost</button>`:''}<button type="button" data-bag-remove="${i.id}" aria-label="Remove ${esc(name(d))}">Remove</button></div>`}${manual?`<div class="bag-reorder-controls"><button type="button" data-bag-drag="${i.id}" aria-label="Drag ${esc(name(d))} to reorder" aria-describedby="bagSortHint" ${ordering?'disabled':''}>⠿</button><button type="button" data-bag-earlier="${i.id}" aria-label="Move ${esc(name(d))} earlier" ${ordering||position===0?'disabled':''}>↑</button><button type="button" data-bag-later="${i.id}" aria-label="Move ${esc(name(d))} later" ${ordering||position===rows.length-1?'disabled':''}>↓</button></div>`:''}</article>`;
   }).join('')}</section>`;
  }).join('');
- $('#myBagContents').innerHTML=`<section id="bagLineup" aria-labelledby="bagLineupTitle"><div class="bag-section-heading"><h2 id="bagLineupTitle">Bag</h2><span>${count} ${count===1?'disc':'discs'} for the round</span></div>${count?grouped(bagged,true):'<div id="myBagEmpty" class="my-bag-empty"><h3>Your bag is empty.</h3><p>Add a disc from the Directory, or bring one over from Storage.</p><button id="emptyBagDirectory" class="pill-button primary" type="button">Explore the Directory ↗</button></div>'}</section><section id="bagStorage" aria-labelledby="bagStorageTitle"><div class="bag-section-heading"><h2 id="bagStorageTitle">Storage</h2><span>${stored.length} ${stored.length===1?'disc':'discs'} off the course</span></div><p class="bag-storage-note">The backups, the experiments, the ones waiting for their next round.</p>${stored.length?grouped(stored):'<div id="bagStorageEmpty" class="bag-storage-empty"><p>No discs in Storage yet. Tap Store on a disc to give it a rest.</p></div>'}</section>`;
+ $('#myBagContents').innerHTML=`<section id="bagLineup" aria-labelledby="bagLineupTitle"><div class="bag-section-heading"><h2 id="bagLineupTitle">Bag</h2><span>${count} ${count===1?'disc':'discs'} for the round</span></div>${count?grouped(bagged,true):'<div id="myBagEmpty" class="my-bag-empty"><h3>Your bag is empty.</h3><p>Add a disc from the Directory, or bring one over from Storage.</p><button id="emptyBagDirectory" class="pill-button primary" type="button">Explore the Directory ↗</button></div>'}</section><section id="bagStorage" aria-labelledby="bagStorageTitle"><div class="bag-section-heading"><h2 id="bagStorageTitle">Storage</h2><span>${stored.length} ${stored.length===1?'disc':'discs'} off the course</span></div><p class="bag-storage-note">The backups, the experiments, the ones waiting for their next round.</p>${stored.length?grouped(stored):'<div id="bagStorageEmpty" class="bag-storage-empty"><p>No discs in Storage yet. Tap Store on a disc to give it a rest.</p></div>'}</section>${demo?'':memorialWall()}`;
+}
+function memorialWall(){
+ const lost=items.filter(i=>i.status==='lost').sort((a,b)=>b.lostDate.localeCompare(a.lostDate) || a.id.localeCompare(b.id));
+ const date=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'});
+ return `<section id="bagMemorial" aria-labelledby="bagMemorialTitle"><div class="bag-section-heading"><h2 id="bagMemorialTitle" tabindex="-1">Gone But Not Forgotten</h2>${lost.length?`<span>${lost.length} ${lost.length===1?'disc':'discs'} remembered</span>`:''}</div>${lost.length?`<p class="bag-memorial-note">Good flights. Better stories. Until we meet again.</p><div class="bag-memorial-wall">${lost.map(i=>{
+  const d=mold(i.mold_id);
+  return `<article class="bag-memorial-card" data-memorial-id="${esc(i.id)}"><div class="bag-memorial-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(i.color||'#e6c668')}" aria-hidden="true"></span><div><h3>${esc(name(d))}</h3><p>${esc(i.plastic)}${d?.brand?` · ${esc(d.brand)}`:''}</p></div></div><p class="bag-memorial-place"><time datetime="${esc(i.lostDate)}">${date.format(new Date(i.lostDate+'T12:00:00'))}</time>${i.lostCourse?`<span data-lost-course>${esc(i.lostCourse)}</span>`:''}${i.lostHole!=null?`<span data-lost-hole>Hole ${i.lostHole}</span>`:''}</p>${i.lostStory?`<p class="bag-memorial-story">${esc(i.lostStory)}</p>`:''}<div class="bag-memorial-actions"><button type="button" data-bag-found="${esc(i.id)}" aria-label="Found ${esc(name(d))}!" ${pendingFound.has(i.id)?'disabled':''}>${pendingFound.has(i.id)?'Restoring…':'Found it!'}</button><button type="button" data-bag-remove="${esc(i.id)}" aria-label="Remove memorial for ${esc(name(d))}" ${pendingFound.has(i.id)?'disabled':''}>Remove</button></div></article>`;
+ }).join('')}</div>`:'<div id="bagMemorialEmpty" class="bag-memorial-empty"><svg viewBox="0 0 80 48" aria-hidden="true"><path d="M4 34c16 0 14-22 30-22s15 22 30 22"/><ellipse cx="64" cy="34" rx="11" ry="4"/><path d="m61 6 2 4 4 1-4 2-2 4-1-4-4-2 4-1"/></svg><p>No discs to remember here.</p><span>May your throws stay findable.</span></div>'}</section>`;
 }
 function activateBag() {
  active=true;undockDetail();setView('bag');$('main').hidden=true;$('#myBagView').hidden=false;$('#bagTab').classList.add('active');
@@ -160,7 +169,7 @@ $('#myBagViews').addEventListener('keydown',event=>{
 $('#myMapDirectory').addEventListener('click',()=>directory());
 function directory() {leaveBag('list');$('#search').focus({preventScroll:true});window.scrollTo(0,0);}
 function show(dialog) {opener=document.activeElement;dialog.showModal();}
-for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog']) {
+for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog','lostDiscDialog']) {
  const dialog=$('#'+id);dialog.addEventListener('close',()=>{const target=opener,focus=document.activeElement;if(target?.isConnected && (focus===document.body || focus===dialog || dialog.contains(focus)))target.focus({preventScroll:true});});
  dialog.querySelectorAll('[data-bag-close]').forEach(button=>button.addEventListener('click',()=>dialog.close()));
  dialog.addEventListener('keydown',event=>{
@@ -288,9 +297,12 @@ $('#myBagContents').addEventListener('click',event=>{
  const earlier=event.target.closest('[data-bag-earlier]'),later=event.target.closest('[data-bag-later]');
  if(earlier || later){const id=(earlier || later).dataset[earlier?'bagEarlier':'bagLater'],ordered=items.filter(i=>i.in_bag).sort(bagComparator('custom',mold)),index=ordered.findIndex(i=>i.id===id),target=ordered[index+(earlier?-1:1)];if(target)void reorderDisc(id,target.id,`[data-bag-${earlier?'earlier':'later'}="${id}"]`);return;}
  const edit=event.target.closest('[data-bag-edit]'),remove=event.target.closest('[data-bag-remove]'),inspect=event.target.closest('[data-bag-inspect]'),move=event.target.closest('[data-bag-move]');
+ const lost=event.target.closest('[data-bag-lost]'),found=event.target.closest('[data-bag-found]');
+ if(lost)openLostDisc(lost);
+ if(found)void foundDisc(found);
  if(move)void moveDisc(move);
  if(edit){const item=items.find(i=>i.id===edit.dataset.bagEdit);void openDisc(mold(item.mold_id),item);}
- if(remove){removing=items.find(i=>i.id===remove.dataset.bagRemove);$('#removeDiscName').textContent=name(mold(removing.mold_id));$('#removeDiscStatus').textContent='';$('#confirmRemoveDisc').disabled=false;show($('#removeDiscDialog'));$('#cancelRemoveDisc').focus();}
+ if(remove && !remove.disabled){removing=items.find(i=>i.id===remove.dataset.bagRemove);const memorial=removing.status==='lost';$('#removeDiscName').textContent=name(mold(removing.mold_id));$('#removeDiscHeading').textContent=memorial?'Remove this memorial?':'Remove this disc?';$('#removeDiscConsequence').textContent=memorial?'and its memorial will be permanently removed from your collection.':'will be removed from your collection.';$('#cancelRemoveDisc').textContent=memorial?'Keep memorial':'Keep disc';$('#confirmRemoveDisc').textContent=memorial?'Remove memorial':'Remove disc';$('#removeDiscStatus').textContent='';$('#confirmRemoveDisc').disabled=false;show($('#removeDiscDialog'));$('#cancelRemoveDisc').focus();}
  if(inspect){const item=items.find(i=>i.id===inspect.dataset.bagInspect);if(item)openBagDetail(mold(item.mold_id),item);}
  if(event.target.closest('#emptyBagDirectory'))directory();
 });
@@ -308,9 +320,36 @@ async function moveDisc(button){
  try{const data=await api('/discs/'+item.id,'PATCH',{in_bag:!item.in_bag});items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();$(`[data-bag-move="${item.id}"]`)?.focus({preventScroll:true});status(data.disc.in_bag?'Disc moved to your bag.':'Disc moved to Storage.');}
  catch(error){if(error.name!=='AbortError'){status(error.message);button.disabled=false;}}
 }
+function openLostDisc(button){
+ const item=items.find(i=>i.id===button.dataset.bagLost);if(!item || item.status==='lost')return;
+ if(pendingPockets.has(item.id)){status('Your pocket change is still saving. Please try again in a moment.');return;}
+ losing=item;$('#lostDiscName').textContent=name(mold(item.mold_id));$('#lostDiscForm').reset();
+ const today=new Date();$('#lostDate').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+ $('#lostDiscStatus').textContent='';$('#confirmLostDisc').disabled=false;show($('#lostDiscDialog'));$('#lostDate').focus();
+}
+$('#lostDiscForm').addEventListener('submit',async event=>{
+ event.preventDefault();if(!losing || $('#confirmLostDisc').disabled)return;
+ const epoch=generation,item=losing,button=$('#confirmLostDisc');button.disabled=true;$('#lostDiscStatus').textContent='Saving its story…';
+ try {
+  const value=validateLostDetails({status:'lost',lostDate:$('#lostDate').value,lostCourse:$('#lostCourse').value,lostHole:$('#lostHole').value?Number($('#lostHole').value):null,lostStory:$('#lostStory').value});
+  const data=await api('/discs/'+item.id,'PATCH',value);items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();$('#lostDiscDialog').close();
+  $(`[data-bag-found="${item.id}"]`)?.focus({preventScroll:true});status(`${name(mold(item.mold_id))} moved to Gone But Not Forgotten.`);
+ }catch(error){if(error.name!=='AbortError')$('#lostDiscStatus').textContent=error.message;}
+ finally{if(epoch===generation)button.disabled=false;}
+});
+async function foundDisc(button){
+ const item=items.find(i=>i.id===button.dataset.bagFound);if(!item || pendingFound.has(item.id))return;
+ const epoch=generation;pendingFound.add(item.id);button.disabled=true;button.textContent='Restoring…';
+ button.closest('.bag-memorial-card').querySelector('[data-bag-remove]').disabled=true;
+ try{
+  const data=await api('/discs/'+item.id,'PATCH',{status:'active'});items=items.map(i=>i.id===item.id?data.disc:i);if(loading)void loadBag();render();
+  $(`[data-bag-lost="${item.id}"]`)?.focus({preventScroll:true});status(`${name(mold(item.mold_id))} is back in your bag. Welcome home.`);
+ }catch(error){if(error.name!=='AbortError')status(error.message);}
+ finally{if(epoch===generation){pendingFound.delete(item.id);if(items.some(i=>i.id===item.id && i.status==='lost')){render();$(`[data-bag-found="${item.id}"]`)?.focus({preventScroll:true});}}}
+}
 $('#confirmRemoveDisc').addEventListener('click',async()=>{
  if(!removing)return;const epoch=generation,removed=removing,button=$('#confirmRemoveDisc'),index=items.findIndex(i=>i.id===removed.id);button.disabled=true;
- try {await api('/discs/'+removed.id,'DELETE');items=items.filter(i=>i.id!==removed.id);render();$('#removeDiscDialog').close();status('Disc removed.');const next=items[Math.min(index,items.length-1)];(next?$(`[data-bag-remove="${next.id}"]`):$('#emptyBagDirectory'))?.focus({preventScroll:true});}
+ try {await api('/discs/'+removed.id,'DELETE');items=items.filter(i=>i.id!==removed.id);if(loading)void loadBag();render();$('#removeDiscDialog').close();status(removed.status==='lost'?'Memorial removed.':'Disc removed.');const next=items[Math.min(index,items.length-1)];(removed.status==='lost'?$('#bagMemorial [data-bag-remove]') || $('#bagMemorialTitle'):next?$(`[data-bag-remove="${next.id}"]`):$('#emptyBagDirectory'))?.focus({preventScroll:true});}
  catch(error){if(error.name!=='AbortError')$('#removeDiscStatus').textContent=error.message;}
  finally{if(epoch===generation)button.disabled=false;}
 });

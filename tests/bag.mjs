@@ -22,6 +22,85 @@ function setup() {
 const item = {mold_id: '7446eb39abe5', plastic: 'ESP', wear: 10, weight_g: 180, notes: ''};
 async function fixture() {const s = setup(); await s.user('u1', 'x'.repeat(43)); await s.user('u2', 'y'.repeat(43)); return s;}
 
+test('lost disc keeps its physical details and leaves bag slots and ordering', async () => {
+ const s=await fixture();try {
+  const original=(await (await s.call('/api/bag/discs','POST',{...item,notes:'First ace disc',color:'#123456',pocket:'goto',stability_bias:'less_stable'})).json()).disc;
+  const path='/api/bag/discs/'+original.id;
+  const memorial={status:'lost',lostDate:'2026-10-08',lostCourse:'  Maple Hill  ',lostHole:8,lostStory:'  One last skip.\nStraight into the pond.  '};
+  const response=await s.call(path,'PATCH',memorial);assert.equal(response.status,200);
+  const lost=(await response.json()).disc;
+  for(const key of ['id','mold_id','plastic','wear','weight_g','notes','color','pocket','stability_bias','sort_order','added_at'])assert.equal(lost[key],original[key],key);
+  assert.equal(lost.status,'lost');assert.equal(lost.in_bag,false);
+  assert.equal(lost.lostDate,'2026-10-08');assert.equal(lost.lostCourse,'Maple Hill');assert.equal(lost.lostHole,8);assert.equal(lost.lostStory,'One last skip.\nStraight into the pond.');
+  for(const route of ['/api/bag','/api/bag/discs',path]){
+   const data=await (await s.call(route)).json();assert.deepEqual(data.disc || data.discs[0],lost);
+  }
+  const slots=bagSlots([lost],{main_capacity:2,putter_capacity:2},id=>catalog.discs.find(d=>d.id===id));
+  assert.ok([...slots.main,...slots.putter].every(slot=>!slot.item));
+  assert.equal((await s.call('/api/bag/order','PUT',{ids:[]})).status,200);
+  assert.equal((await s.call('/api/bag/order','PUT',{ids:[lost.id]})).status,409);
+  // An old edit or move request must not accidentally resurrect a memorial.
+  assert.equal((await s.call(path,'PATCH',{in_bag:true})).status,400);
+  assert.equal((await s.call(path,'PUT',{...item,notes:'Still my ace disc'})).status,200);
+  const edited=(await (await s.call(path)).json()).disc;assert.equal(edited.status,'lost');assert.equal(edited.lostStory,lost.lostStory);assert.equal(edited.in_bag,false);
+ }finally{s.close();}
+});
+
+test('found restores the same copy with original data; remove deletes only the memorial row', async () => {
+ const s=await fixture();try {
+  const original=(await (await s.call('/api/bag/discs','POST',{...item,notes:'Keep this note',color:'#654321',pocket:'putter',stability_bias:'more_stable'})).json()).disc,path='/api/bag/discs/'+original.id;
+  assert.equal((await s.call(path,'PATCH',{status:'lost',lostDate:'2026-10-09'})).status,200);
+  const lost=(await (await s.call(path)).json()).disc;
+  for(const key of ['lostCourse','lostHole','lostStory'])assert.equal(lost[key],null);
+  assert.equal((await s.call(path,'PATCH',{status:'active'},{cookie:'y'.repeat(43)})).status,404);
+  assert.equal((await s.call(path,'DELETE',undefined,{cookie:'y'.repeat(43)})).status,404);
+  const found=await s.call(path,'PATCH',{status:'active'});assert.equal(found.status,200);assert.deepEqual((await found.json()).disc,original);
+  assert.equal((await s.call(path,'PATCH',{status:'lost',lostDate:'2026-10-09'})).status,200);
+  assert.equal((await s.call(path,'DELETE')).status,200);assert.equal((await s.call(path)).status,404);
+  assert.equal(s.db.prepare('SELECT count(*) AS n FROM bag_discs').get().n,0);
+ }finally{s.close();}
+});
+
+test('lost metadata validates calendar dates and bounded optional fields without partial writes', async () => {
+ const s=await fixture();try {
+  const disc=(await (await s.call('/api/bag/discs','POST',item)).json()).disc,path='/api/bag/discs/'+disc.id;
+  for(const patch of [{status:'missing'},{status:'lost'},{status:'lost',lostDate:''},{status:'lost',lostDate:'2026-02-29'},{status:'lost',lostDate:'2026-04-31'},{status:'lost',lostDate:'10/09/2026'},{status:'lost',lostDate:42},{status:'lost',lostDate:'2026-10-09',lostCourse:4},{status:'lost',lostDate:'2026-10-09',lostCourse:'a'.repeat(161)},{status:'lost',lostDate:'2026-10-09',lostHole:0},{status:'lost',lostDate:'2026-10-09',lostHole:1.5},{status:'lost',lostDate:'2026-10-09',lostHole:'8'},{status:'lost',lostDate:'2026-10-09',lostStory:[]},{status:'lost',lostDate:'2026-10-09',lostStory:'a'.repeat(1201)},{lostStory:'No status'}]){
+   assert.equal((await s.call(path,'PATCH',patch)).status,400,JSON.stringify(patch));
+   assert.deepEqual((await (await s.call(path)).json()).disc,disc);
+  }
+  assert.equal((await s.call(path,'PATCH',{status:'lost',lostDate:'2024-02-29',lostCourse:' ',lostHole:null,lostStory:' '})).status,200);
+  const lost=(await (await s.call(path)).json()).disc;assert.equal(lost.lostCourse,null);assert.equal(lost.lostStory,null);
+  assert.throws(()=>s.db.prepare('UPDATE bag_discs SET in_bag=1').run());
+ }finally{s.close();}
+});
+
+test('memorial migration preserves existing bag and storage copies and account cascade', () => {
+ const db=new DatabaseSync(':memory:');try {
+  const files=fs.readdirSync('migrations/accounts').sort();
+  for(const f of files.filter(f=>f<'0007'))db.exec(fs.readFileSync('migrations/accounts/'+f,'utf8'));
+  db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('u','g','a@example.com','A',1,1);
+  for(const inBag of [0,1])db.prepare('INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,notes,added_at,in_bag) VALUES (?,?,?,?,?,?,?,?,?)').run('d'+inBag,'u',item.mold_id,'ESP',8,175,'Keep me','before',inBag);
+  const before=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  for(const f of files.filter(f=>f>='0007'))db.exec(fs.readFileSync('migrations/accounts/'+f,'utf8'));
+  const after=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  for(let i=0;i<before.length;i++){
+   assert.equal(after[i].status,'active');for(const key of ['lostDate','lostCourse','lostHole','lostStory'])assert.equal(after[i][key],null);
+   for(const key of Object.keys(before[i]))assert.equal(after[i][key],before[i][key]);
+  }
+  db.prepare("DELETE FROM auth_users WHERE id='u'").run();assert.equal(db.prepare('SELECT COUNT(*) AS n FROM bag_discs').get().n,0);
+ }finally{db.close();}
+});
+
+test('lost stories support the full field limits in Unicode and reject null status', async () => {
+ const s=await fixture();try {
+  const disc=(await (await s.call('/api/bag/discs','POST',item)).json()).disc,path='/api/bag/discs/'+disc.id;
+  assert.equal((await s.call(path,'PATCH',{status:null})).status,400);
+  const lostCourse='松'.repeat(160),lostStory='語'.repeat(1200);
+  const saved=await s.call(path,'PATCH',{status:'lost',lostDate:'2026-10-09',lostCourse,lostStory});assert.equal(saved.status,200);
+  const row=(await saved.json()).disc;assert.equal(row.lostCourse,lostCourse);assert.equal(row.lostStory,lostStory);
+ }finally{s.close();}
+});
+
 test('new putter defaults once, then main persists through edits and every read route', async () => {
  const s=await fixture();try {
   const created=await s.call('/api/bag/discs','POST',{mold_id:'761c90d342f5'});
@@ -66,7 +145,7 @@ test('go-to migration preserves every existing column, indexes and account casca
   db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('u','g','a@example.com','A',1,1);
   for(const [id,pocket] of [['p','main'],['d','putter']])db.prepare('INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,notes,added_at,color,in_bag,pocket,stability_bias,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run(id,'u','761c90d342f5','Other',5,175,'Keep me','before','#123456',0,pocket,'less_stable',7);
   const before=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
-  for(const file of fs.readdirSync('migrations/accounts').sort().filter(f=>f>='0006'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  for(const file of fs.readdirSync('migrations/accounts').sort().filter(f=>f>='0006' && f<'0007'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
   assert.deepEqual(db.prepare('SELECT * FROM bag_discs ORDER BY id').all(),before);
   db.prepare("UPDATE bag_discs SET pocket='goto' WHERE id='p'").run();
   assert.equal(db.prepare("SELECT pocket FROM bag_discs WHERE id='p'").get().pocket,'goto');
