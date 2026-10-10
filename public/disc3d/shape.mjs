@@ -46,6 +46,58 @@ export function shapeFromFlight(disc){
  };
 }
 
+// Phase 2: a mold's own shape from its PDGA certification dimensions (data.json `specs`, centimetres,
+// rounded to 0.1, the generator's own units). Four positive numbers, or null.
+export const PDGA_SPEC_KEYS=Object.freeze({diameter:'Diameter',height:'Height',rimWidth:'Rim width',rimDepth:'Rim depth'});
+export function measurementsFromSpecs(specs){
+ if(!specs||typeof specs!=='object')return null;
+ const m={};
+ for(const [key,label] of Object.entries(PDGA_SPEC_KEYS)){
+  const raw=specs[label],v=typeof raw==='number'?raw:typeof raw==='string'&&raw.trim()?Number(raw):NaN;
+  if(!finite(v)||v<=0)return null;
+  m[key]=v;
+ }
+ return m;
+}
+
+// Diameter, rim width and rim depth are taken as measured. The rest of the height, height − rim depth,
+// is the flight plate plus the dome: half of it is plate (0.12 to 0.22 cm), the remainder dome, so the
+// model stands as tall as the mold. Below a 0.12 cm gap a plate can't fit, and the model runs that much
+// taller. Sharpness averages measured rim width with speed (rim width tracks speed closely across the
+// catalog: about 1 cm at speed 2, 2.3 cm at speed 12), and drives the bevel and parting line as in
+// shapeFromFlight. Without flight numbers it is rim width alone. Stability keeps its Phase 1 cues, but
+// the dome takes only 0.01 cm per point (at most 0.05), within PDGA's own rounding, so the measured
+// height still stands.
+export function shapeFromMeasurements(specs,flight){
+ const m=measurementsFromSpecs(specs);if(!m)return null;
+ const rated=!!flight&&[flight.speed,flight.turn,flight.fade].every(finite);
+ const stability=rated?clamp(flight.turn+flight.fade,-4,5):0;
+ const rimTerm=clamp((m.rimWidth-1.1)/1.1,0,1);
+ const speedTerm=rated?clamp((flight.speed-3)/9,0,1):rimTerm;
+ const sharpness=(rimTerm+speedTerm)/2;
+ const gap=Math.max(0,m.height-m.rimDepth),plate=clamp(gap/2,.12,.22);
+ return normalizeShape({
+  diameter:m.diameter,
+  rimWidth:m.rimWidth,
+  rimDepth:m.rimDepth,
+  plate,
+  domeHeight:+Math.max(0,gap-plate-.01*stability).toFixed(3),
+  sharpness:+sharpness.toFixed(3),
+  bevel:+clamp(lerp(-.9,.7,sharpness)+.05*stability,-1,1).toFixed(3),
+  partingLine:+clamp(lerp(.5,.42,sharpness)+.012*stability,.3,.65).toFixed(3),
+ });
+}
+
+// The shape the viewer draws, and where it came from: explicit params (`model`, d.model3d) first, then the
+// mold's PDGA dimensions, then the Phase 1 generic shape from flight numbers. Null when none applies.
+export function shapeForDisc({model,specs,flight}={}){
+ if(model)return {shape:normalizeShape(model),source:'model'};
+ const measured=shapeFromMeasurements(specs,flight);
+ if(measured)return {shape:measured,source:'pdga'};
+ const generic=shapeFromFlight(flight);
+ return generic?{shape:generic,source:'flight'}:null;
+}
+
 // Fill in defaults and keep every parameter inside a range that still makes a valid, hollow disc.
 export function normalizeShape(params={}){
  const p={...DEFAULTS,...params};
@@ -54,7 +106,7 @@ export function normalizeShape(params={}){
   diameter:R*2,
   rimWidth:clamp(+p.rimWidth,.6,R*.35),
   rimDepth:clamp(+p.rimDepth,.6,2.4),
-  domeHeight:clamp(+p.domeHeight,0,.8),
+  domeHeight:clamp(+p.domeHeight,0,1.5),  // tall putters (Nova, 2.7 cm) need about 1
   plate:clamp(+p.plate,.12,.4),
   sharpness:clamp(+p.sharpness,0,1),
   bevel:clamp(+p.bevel,-1,1),

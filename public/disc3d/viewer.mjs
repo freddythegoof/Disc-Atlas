@@ -3,13 +3,14 @@
 // hyzer/anhyzer tilt. One renderer is reused for every disc; it draws only when something moves.
 //
 // createDiscViewer() returns {element, attach(host), update(props), setView(name), flip(), setTilt(deg),
-// setHand(hand), dispose()}. Props: {model, flight, mold, color, plastic, hand}. `model` is explicit
-// shape parameters (phase 2 per-mold data); without it the shape comes from `flight` {speed, turn, fade}.
+// setHand(hand), dispose()}. Props: {model, specs, flight, mold, color, plastic, hand}. `model` is explicit
+// shape parameters (d.model3d); otherwise the mold's PDGA `specs` set its shape (phase 2), and without
+// them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {discProfile,normalizeShape,shapeFromFlight,shapeFrame,topHeight} from './shape.mjs';
+import {discProfile,shapeForDisc,shapeFrame,topHeight} from './shape.mjs';
 
 const DEG=Math.PI/180;
 // Finishes only (a picker is phase 3): premium is glossy, base is matte.
@@ -22,6 +23,10 @@ const PLASTICS={
 // the axis: straight up, the cavity reads as a flat plate; at an angle the inner rim wall shows.
 export const VIEWS={angle:{polar:60*DEG,label:'3/4'},top:{polar:.0001,label:'Top'},profile:{polar:90*DEG,label:'Profile'},bottom:{polar:145*DEG,label:'Bottom'}};
 export const MAX_TILT=40;
+// The camera frames a fixed 22 cm disc, so molds show at true scale: a 21.7 cm Buzzz stands wider than a
+// 21.1 cm Destroyer. Anything larger is framed by its own diameter.
+export const FRAME_DIAMETER=22;
+const SOURCE_TEXT={model:'its mold profile',pdga:'its PDGA dimensions, to scale',flight:'a generic shape from its flight numbers'};
 // The edge that drops on hyzer is the fade side: left for RHBH and LHFH, right for RHFH and LHBH.
 export const hyzerSign=hand=>hand==='RHFH'||hand==='LHBH'?-1:1;
 
@@ -78,7 +83,7 @@ export function createDiscViewer({segments}={}){
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,thickness:2,fit:40,props:null,frames:0};
+ const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',thickness:2,fit:40,props:null,frames:0};
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
 
  const spherical=()=>new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
@@ -89,10 +94,10 @@ export function createDiscViewer({segments}={}){
  function fitDistance(polar=VIEWS.angle.polar,margin=.86){
   probe.fov=camera.fov;probe.aspect=camera.aspect;probe.near=camera.near;probe.far=camera.far;probe.updateProjectionMatrix();
   rimPoints.length=0;const h=state.thickness/2;
-  for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [-h,h])rimPoints.push(new THREE.Vector3(Math.cos(a)*state.radius,y,Math.sin(a)*state.radius));}
+  for(let i=0;i<48;i++){const a=i/48*Math.PI*2;for(const y of [-h,h])rimPoints.push(new THREE.Vector3(Math.cos(a)*state.frameRadius,y,Math.sin(a)*state.frameRadius));}
   const fits=d=>{probe.position.setFromSpherical(new THREE.Spherical(d,polar,0).makeSafe());probe.lookAt(0,0,0);probe.updateMatrixWorld();
    return rimPoints.every(p=>{ndc.copy(p).project(probe);return Math.abs(ndc.x)<=margin&&Math.abs(ndc.y)<=margin&&ndc.z<1;});};
-  let lo=state.radius*.5,hi=state.radius*30;
+  let lo=state.frameRadius*.5,hi=state.frameRadius*30;
   for(let i=0;i<32;i++){const mid=(lo+hi)/2;if(fits(mid))hi=mid;else lo=mid;}
   return hi;
  }
@@ -166,21 +171,23 @@ export function createDiscViewer({segments}={}){
   stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color);stampMaterial.needsUpdate=true;
   // Centre the disc on the orbit target.
   discGroup.position.y=-(box.min.y+box.max.y)/2;
-  state.radius=shape.diameter/2;state.thickness=box.max.y-box.min.y;
+  state.radius=shape.diameter/2;state.frameRadius=Math.max(state.radius,FRAME_DIAMETER/2);state.thickness=box.max.y-box.min.y;
  }
 
  function update(props={}){
-  const shape=props.model?normalizeShape(props.model):shapeFromFlight(props.flight);
-  if(!shape)return false;
+  const resolved=shapeForDisc(props);
+  if(!resolved)return false;
+  const {shape,source}=resolved;
   const color=props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
   const key=JSON.stringify([shape,props.mold,color,props.plastic]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   if(key===state.key)return true;
-  const discChanged=state.props?.mold!==props.mold||JSON.stringify(state.props?.model||state.props?.flight)!==JSON.stringify(props.model||props.flight);
-  state.key=key;state.props=props;
+  const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
+  const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
+  state.key=key;state.props=props;state.source=source;
   build(shape,props.mold,color);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
-  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, a generic shape from its flight numbers. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
+  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[source]}. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){
    state.flipped=false;flipTween=null;flipGroup.rotation.x=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');

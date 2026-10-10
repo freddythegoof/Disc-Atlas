@@ -1,7 +1,9 @@
 // Plan 09's 3D disc in the detail panel, in a real browser: three.js loads only once a rated disc is
 // shown; the panel's DOM diff keeps the same canvas across re-renders; preset views, flip and the
 // hyzer/anhyzer tilt (mirrored by throwing hand) work; unrated discs keep the static illustration.
-// Writes review shots: a driver and a putter (rim difference) and the hollow underside.
+// Writes review shots: a driver and a putter (rim difference) and the hollow underside. Phase 2: each mold
+// is shaped and scaled from its PDGA dimensions (Destroyer vs Buzzz vs Aviar side by side, ten random
+// molds), a record without them falls back to the generic shape, and the phone draws no slower.
 // Run: PLAYWRIGHT_MODULE=<playwright> node tests/disc3d-browser.mjs   (shots: outputs/disc3d/)
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -165,7 +167,7 @@ try{
 
   // Rim close-ups for the review, the same two cameras for each disc: side-on at the nose, where the
   // silhouette is the cross-section, and from just below, looking into the cavity past the rim.
-  for(const name of ['Destroyer','Aviar']){
+  for(const name of ['Destroyer','Buzzz','Aviar']){
    await show(page,name);
    for(const [label,cam] of [['side',[-8.4,0,15]],['under',[-6.8,-3.6,14]]]){
     await page.evaluate(cam=>{const {camera,controls}=Disc3D.viewer.debug;controls.enabled=false;controls.target.set(-8.4,0,0);camera.position.set(...cam);camera.lookAt(controls.target);},cam);
@@ -175,6 +177,85 @@ try{
    await page.evaluate(()=>{const {controls}=Disc3D.viewer.debug;controls.target.set(0,0,0);controls.enabled=true;});
   }
   check('rim close-ups written');
+
+  // Phase 2: Destroyer, Buzzz and Aviar from their PDGA dimensions, at true scale. In the profile view
+  // (same fixed camera for all three) the projected width follows the measured diameter.
+  const molds=[];
+  for(const name of ['Destroyer','Buzzz','Aviar']){
+   await show(page,name);
+   const info=await page.evaluate(()=>{
+    const v=Disc3D.viewer,d=discs.find(x=>x.id===document.querySelector('#detail .disc3d-stage').dataset.disc);
+    return {source:v.state.source,specs:d.specs,caption:document.querySelector('#detail [data-disc3d] .illustration-caption').textContent,
+     label:v.debug.renderer.domElement.getAttribute('aria-label')};
+   });
+   assert.equal(info.source,'pdga',name+' is shaped from its PDGA dimensions');
+   assert.match(info.caption,/PDGA dimensions, to scale/);assert.match(info.label,/PDGA dimensions/);
+   await shot(page,`mold-${name.toLowerCase()}-34`,'#detail .disc3d-viewport');
+   await view(page,'profile');
+   const width=await page.evaluate(()=>{
+    const {camera,body}=Disc3D.viewer.debug,pos=body.geometry.attributes.position,v=new camera.position.constructor();
+    body.updateMatrixWorld(true);let lo=9,hi=-9;
+    for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i).applyMatrix4(body.matrixWorld).project(camera);lo=Math.min(lo,v.x);hi=Math.max(hi,v.x);}
+    return hi-lo;
+   });
+   await shot(page,`mold-${name.toLowerCase()}-profile`,'#detail .disc3d-viewport');
+   molds.push({name,width,specs:info.specs});
+  }
+  const [mDestroyer,mBuzzz,mAviar]=molds;
+  for(const m of [mBuzzz,mAviar]){
+   const want=Number(m.specs.Diameter)/Number(mDestroyer.specs.Diameter),got=m.width/mDestroyer.width;
+   assert.ok(Math.abs(got-want)<.01,`${m.name} draws ${got.toFixed(3)}x the Destroyer's width; PDGA says ${want.toFixed(3)}x`);
+  }
+  check(`molds draw at true scale (Buzzz ${(mBuzzz.width/mDestroyer.width).toFixed(3)}x, Aviar ${(mAviar.width/mDestroyer.width).toFixed(3)}x the Destroyer)`);
+
+  // Ten random rated molds: each mesh is as wide as its PDGA diameter and as tall as its height (to the
+  // 0.1 cm rounding), every vertex finite.
+  const picks=await page.evaluate(()=>{let seed=91009;const rand=()=>(seed=(seed*1664525+1013904223)>>>0)/2**32;
+   const pool=discs.filter(d=>d.speed!=null&&d.turn!=null&&d.fade!=null),out=new Set();while(out.size<10)out.add(pool[Math.floor(rand()*pool.length)].id);return [...out];});
+  const sampled=[];
+  for(const id of picks){
+   await page.evaluate(id=>select(discs.find(d=>d.id===id)),id);
+   await page.waitForFunction(id=>{const s=document.querySelector('#detail .disc3d-stage');return s?.dataset.state==='ready'&&s.dataset.disc===id;},id);
+   const g=await page.evaluate(()=>{
+    const {body}=Disc3D.viewer.debug,pos=body.geometry.attributes.position,d=discs.find(x=>x.id===document.querySelector('#detail .disc3d-stage').dataset.disc);
+    let finite=true,maxR=0,minY=1e9,maxY=-1e9;
+    for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);if(![x,y,z].every(Number.isFinite))finite=false;maxR=Math.max(maxR,Math.hypot(x,z));minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+    return {name:d.catalogName||d.name,speed:d.speed,specs:d.specs,source:Disc3D.viewer.state.source,finite,diameter:maxR*2,height:maxY-minY};
+   });
+   assert.equal(g.source,'pdga',g.name);assert.ok(g.finite,g.name+' has finite vertices');
+   assert.ok(Math.abs(g.diameter-Number(g.specs.Diameter))<.01,`${g.name}: ${g.diameter.toFixed(3)} cm across vs ${g.specs.Diameter}`);
+   assert.ok(Math.abs(g.height-Number(g.specs.Height))<=.121,`${g.name}: ${g.height.toFixed(3)} cm tall vs ${g.specs.Height}`);
+   await settle(page);await shot(page,`random-${sampled.length+1}`,'#detail .disc3d-viewport');
+   sampled.push(g);
+  }
+  check('ten random molds draw at their PDGA diameter and height: '+sampled.map(g=>g.name).join(', '));
+
+  // Boards for the review: the three molds side by side (3/4, profile, rim cross-section), and the ten.
+  {
+   const img=f=>'data:image/png;base64,'+fs.readFileSync(`${dir}/${f}.png`).toString('base64');
+   const css='<style>body{margin:0;padding:24px;font:15px system-ui;background:#fff;color:#1d232b}main{display:grid;gap:20px}h2{margin:0 0 4px;font-size:20px}p{margin:0 0 10px;color:#5b6470}img{width:100%;display:block;border:1px solid #e3e7ec;border-radius:8px;margin-bottom:10px}</style>';
+   const dims=s=>`${s.Diameter} cm across · ${s.Height} tall · rim ${s['Rim width']} wide, ${s['Rim depth']} deep`;
+   const board=await context.newPage();
+   await board.setViewportSize({width:1500,height:900});
+   await board.setContent(css+`<main style="grid-template-columns:repeat(3,1fr)">${molds.map(m=>{const n=m.name.toLowerCase();
+    return `<section><h2>${m.name}</h2><p>PDGA: ${dims(m.specs)}</p><img src="${img('mold-'+n+'-34')}"><img src="${img('mold-'+n+'-profile')}"><img src="${img('rim-side-'+n)}"></section>`;}).join('')}</main>`);
+   await board.screenshot({path:`${dir}/molds-side-by-side.png`,fullPage:true});
+   await board.setContent(css+`<main style="grid-template-columns:repeat(5,1fr)">${sampled.map((g,i)=>`<section><h2>${g.name}</h2><p>speed ${g.speed} · ${dims(g.specs)}</p><img src="${img('random-'+(i+1))}"></section>`).join('')}</main>`);
+   await board.screenshot({path:`${dir}/molds-random-ten.png`,fullPage:true});
+   await board.close();
+  }
+  check('review boards written');
+
+  // A rated disc without PDGA dimensions falls back to the Phase 1 generic shape and caption.
+  {
+   const id=await byName(page,'Leopard');
+   await page.evaluate(id=>{const d=discs.find(x=>x.id===id);d.__specs=d.specs;delete d.specs;select(d);},id);
+   await page.waitForFunction(id=>{const s=document.querySelector('#detail .disc3d-stage');return s?.dataset.state==='ready'&&s.dataset.disc===id&&Disc3D.viewer.state.source==='flight';},id);
+   assert.match(await page.locator('#detail [data-disc3d] .illustration-caption').textContent(),/generic shape from the flight numbers/);
+   await settle(page);await shot(page,'no-specs-generic-leopard');
+   await page.evaluate(id=>{const d=discs.find(x=>x.id===id);d.specs=d.__specs;delete d.__specs;},id);
+   check('a rated disc without PDGA dimensions keeps the Phase 1 generic shape');
+  }
 
   // An unrated disc keeps the static illustration and no canvas.
   await page.evaluate(()=>select(discs.find(d=>d.speed==null)));
@@ -199,6 +280,19 @@ try{
   assert.ok(toolbar.x>=panel.x&&toolbar.x+toolbar.width<=panel.x+panel.width+.5,'toolbar fits the sheet');
   await page.screenshot({path:`${dir}/phone-destroyer.png`});
   check('phone bottom sheet draws the disc and fits its controls');
+  // Per-mold shapes cost the phone nothing: the same triangles, and frames no slower than the Phase 1
+  // generic shape of the same disc (median of 40 synchronous draws each).
+  const perf=await page.evaluate(()=>{
+   const v=Disc3D.viewer,base=v.state.props,info=v.debug.renderer.info,gl=v.debug.renderer.getContext();
+   const time=()=>{const t=[];for(let i=0;i<40;i++){const s=performance.now();v.debug.renderNow();gl.finish();t.push(performance.now()-s);}t.sort((a,b)=>a-b);return {ms:t[20],tris:info.render.triangles};};
+   v.update({...base,specs:null});const generic={...time(),source:v.state.source};
+   v.update(base);const measured={...time(),source:v.state.source};
+   return {generic,measured};
+  });
+  assert.equal(perf.generic.source,'flight');assert.equal(perf.measured.source,'pdga');
+  assert.equal(perf.measured.tris,perf.generic.tris,'same triangle count');
+  assert.ok(perf.measured.ms<=Math.max(perf.generic.ms*1.5,perf.generic.ms+2),`frame ${perf.measured.ms.toFixed(2)} ms vs ${perf.generic.ms.toFixed(2)} ms`);
+  check(`phone frames: ${perf.measured.tris} triangles, ${perf.measured.ms.toFixed(2)} ms per mold vs ${perf.generic.ms.toFixed(2)} ms generic`);
   await context.close();
  }
  const real=errors.filter(e=>!/Frontend test: backend excluded|status of 503|Failed to load resource/.test(e));
