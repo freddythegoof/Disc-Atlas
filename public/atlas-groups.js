@@ -193,7 +193,8 @@ globalThis.AtlasGroups = {
  // the range (a tween that still shows the old level) is curated at its own zoom on every frame.
  organicRange(level){return {floor:Math.max(1,2**((level-.65)/3)),top:2**((level+.5)/3)};},
  organicZoom(level,zoom){const {floor,top}=this.organicRange(level);return zoom>=floor&&zoom<=top?floor:zoom;},
- // Curate options for a level and camera zoom: the zoom to rest discs at, the cap and spacing, and
+ // Curate options for a level and camera zoom: the zoom to rest discs at, the cap and spacing, `unitY`
+ // (px per atlas unit of speed axis at that zoom, for the speed band), and
  // for a 1x layout (level 0, or any level a tween shows at 1x) the map's edges and `chrome` (rects
  // in map pixels) as fixed spots in group space, placed for the camera 1x pins (centered on `extent`). `key` names everything that
  // shapes the result, so a worker's curation stands in for the main thread's.
@@ -201,7 +202,7 @@ globalThis.AtlasGroups = {
   const at=this.organicZoom(level,zoom),{top}=this.organicRange(level),overview=at===1,inset=4;
   const pan=overview?globalThis.AtlasLayout.constrain({zoom:1,x:0,y:0},area,extent):{x:0,y:0},origin={x:area.left+pan.x,y:area.bottom+pan.y};
   const tiers=f=>Object.fromEntries(this.TIERS.map(t=>[t,f(t)]));
-  return {zoom:at,artZoom:top,stretch:Math.max(1,top/at),cap:this.organicCap(area.view,at),spacing:width<700?this.ORGANIC.phoneSpacing:this.ORGANIC.spacing,
+  return {zoom:at,artZoom:top,stretch:Math.max(1,top/at),unitY:area.height*at,cap:this.organicCap(area.view,at),spacing:width<700?this.ORGANIC.phoneSpacing:this.ORGANIC.spacing,
    gapSpacing:tiers(t=>width<700?this.GAP[t].phoneSpace:this.GAP[t].space),gapLabels:tiers(t=>this.gapLabelAlpha(Math.max(at,top),t)>0),
    obstacles:overview?chrome.map(b=>({x:b.x-origin.x,y:b.y-origin.y,w:b.w,h:b.h})):[],
    frame:overview?{x:inset-origin.x,y:inset-origin.y,w:width-inset*2,h:height-inset*2}:null,
@@ -219,7 +220,7 @@ globalThis.AtlasGroups = {
   const result=spots.map((o,i)=>({o,i,d:Math.hypot(o.x-rest.x,o.y-rest.y)})).sort((a,b)=>a.d-b.d||a.i-b.i).map(s=>s.o);
   memo.set(id,result);return result;
  },
- curate(groups,footprints,zoom,groupZoom,{cap=Infinity,gap=this.ORGANIC.gap,spacing=this.ORGANIC.spacing,obstacles=[],frame=null,first=null,artZoom=zoom,stretch=1,points=null,gapSpacing=null,gapLabels=false,gapsFrom=null}={}){
+ curate(groups,footprints,zoom,groupZoom,{cap=Infinity,gap=this.ORGANIC.gap,spacing=this.ORGANIC.spacing,obstacles=[],frame=null,first=null,artZoom=zoom,stretch=1,points=null,gapSpacing=null,gapLabels=false,gapsFrom=null,unitY=null}={}){
   // This can run on camera frames, so the grids use numeric keys and a lead fails fast.
   const cellSize=128,scale=this.artRoom(Math.max(zoom,artZoom)),ratio=zoom/groupZoom,K=1<<20;
   const tiers=f=>Object.fromEntries(this.TIERS.map(t=>[t,f(t)]));
@@ -228,6 +229,16 @@ globalThis.AtlasGroups = {
   const near=(a,b,pad)=>a.x-pad<b.x+b.w&&a.x+a.w+pad>b.x&&a.y-pad<b.y+b.h&&a.y+a.h+pad>b.y;
   const outside=box=>frame&&(box.x<frame.x||box.y<frame.y||box.x+box.w>frame.x+frame.w||box.y+box.h>frame.y+frame.h);
   const region=g=>Math.floor(g.px*ratio/this.ORGANIC.region)*K+Math.floor(-g.py*ratio/this.ORGANIC.region);
+  // Every tier rests in its speed band (AtlasLayout.BAND): a rest spot `o` from a point at y px (down)
+  // is drawn up or down to within CEIL of its disc's true speed, ty in atlas units. The point is in the
+  // band, so the spot only comes nearer it. Zooming in within a level only shrinks a rest offset in
+  // atlas units, so a spot in band at the curate zoom stays in band.
+  const edge=globalThis.AtlasLayout.CEIL*unitY;
+  const banded=(o,y,ty)=>{
+   if(!unitY||ty==null)return o;
+   const line=-ty*unitY,my=Math.max(line-edge,Math.min(line+edge,y+o.y));
+   return my===y+o.y?o:{x:o.x,y:my-y};
+  };
   const complete=groups.reduce((n,g)=>n+g.members.length,0)<=cap;
   if(complete)spacing=0;
   const G=this.GAP;let gaps=[];
@@ -305,8 +316,8 @@ globalThis.AtlasGroups = {
     const x=g.px*ratio,y=-g.py*ratio,r=f.radius*scale,reach=f.radius*this.ORGANIC.reach;
     // Every spot lies within `reach` of the true point, so a center this close blocks them all.
     if(crowded(x,y,spacing-reach)||hemmed(x,y,r,reach))return false;
-    for(const o of this.organicOffsets(g.key,reach)){
-     const mx=x+o.x,my=y+o.y;
+    for(const spot of this.organicOffsets(g.key,reach)){
+     const o=banded(spot,y,g.ty),mx=x+o.x,my=y+o.y;
      if(crowded(mx,my,spacing))continue;
      const marker={x:mx-r,y:my-r,w:2*r,h:2*r},label={x:mx+f.x+(g.nudge?.x||0),y:my+f.y+(g.nudge?.y||0),w:f.w,h:f.h};
      if(blocked(marker,x,y)||blocked(label,x,y))continue;
@@ -334,8 +345,8 @@ globalThis.AtlasGroups = {
     const f=footprints.get(g.key);if(!g.hidden||!f)continue;
     const x=g.px*ratio,y=-g.py*ratio,r=rooms.small,reach=f.radius*this.ORGANIC.reach;
     if(hemmed(x,y,r,reach))continue;
-    for(const o of this.organicOffsets(g.key,reach)){
-     const dot={x:x+o.x-r,y:y+o.y-r,w:2*r,h:2*r};
+    for(const spot of this.organicOffsets(g.key,reach)){
+     const o=banded(spot,y,g.ty),dot={x:x+o.x-r,y:y+o.y-r,w:2*r,h:2*r};
      if(blocked(dot,x,y))continue;
      // Where its name shows strongly, it rests only with it.
      const label=must.small&&nameBox(f,'small',x+o.x,y+o.y,g.key);
@@ -384,15 +395,15 @@ globalThis.AtlasGroups = {
      if(Math.max(Math.abs(a.x-x),Math.abs(a.y-y))<a.r+r+G.art-reach[tier])return true;
     return false;
    };
-   const {ids,xy}=points;
+   const {ids,xy,ty}=points;
    // Rest point n as a `tier` disc at the first clear spot of `spots`; `n` names it in `points` for gapsFrom.
    const rest=(n,tier,spots)=>{
     const id=ids[n];if(shown.has(id)||rested.has(id))return;
     const x=xy[4*n]*ratio,y=-xy[4*n+1]*ratio,r=rooms[tier];
     if(crowded(tier,x,y,reach[tier])||hemmed(tier,x,y,r))return;
     const f=gapLabels[tier]?footprints.get(id):null;
-    for(const o of spots||this.organicOffsets(id,reach[tier],6)){
-     const mx=x+o.x,my=y+o.y;
+    for(const spot of spots||this.organicOffsets(id,reach[tier],6)){
+     const o=banded(spot,y,ty?.[n]),mx=x+o.x,my=y+o.y;
      if(crowded(tier,mx,my))continue;
      const art={x:mx-r,y:my-r,w:2*r,h:2*r,kind:'small',owner:id};
      if(!roomy(art,x,y))continue;
@@ -414,7 +425,7 @@ globalThis.AtlasGroups = {
  },
  build(items, positions, width, height, level, immersive, footprints=new Map(), featured=[]) {
   const area=globalThis.AtlasLayout.bounds(width,height,immersive);
-  const groupZoom=2**(level/3),groups=[],cells=new Map(),index=[],xy=[];
+  const groupZoom=2**(level/3),groups=[],cells=new Map(),index=[],xy=[],ty=[];
   // Keep overview grouping; deep views merge neighbors within about 25px.
   // Leads stay anchored and the capacity below still caps deep stacks at three.
   const size=Math.max(25,65/Math.max(1,groupZoom));
@@ -428,15 +439,17 @@ globalThis.AtlasGroups = {
    const pos=positions.get(d.id);if(!pos)continue;
    const x=pos.x*area.width*groupZoom,y=pos.y*area.height*groupZoom,cx=Math.floor(x/size),cy=Math.floor(y/size);
    // Every rated disc, in selection order, for curate's small discs: its index in `items`, then its
-   // group-space point and atlas position, packed so the worker can hand them over without copying.
-   index.push(i);xy.push(x,y,pos.x,pos.y);
+   // group-space point and atlas position, and its true speed-axis position (`ty`, for curate's
+   // speed band), packed so the worker can hand them over without copying.
+   const speed=(d.speed-1)/14;
+   index.push(i);xy.push(x,y,pos.x,pos.y);ty.push(speed);
    let nearby=null,best=size*size;
    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const g of cells.get((cx+dx)+':'+(cy+dy))||[]){
     if(g.members.length>=capacity)continue;
     const distance=(g.px-x)**2+(g.py-y)**2;if(distance<best){best=distance;nearby=g;}
    }
    if(nearby){nearby.members.push(d.id);continue;}
-   const g={key:d.id,pos,px:x,py:y,members:[d.id],large:false,nudge:nudges.get(d.id)||null};groups.push(g);
+   const g={key:d.id,pos,px:x,py:y,ty:speed,members:[d.id],large:false,nudge:nudges.get(d.id)||null};groups.push(g);
    const key=cx+':'+cy;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(g);
   }
   globalThis.AtlasGroups.promote(groups,footprints,groupZoom,groupZoom);
@@ -459,8 +472,8 @@ globalThis.AtlasGroups = {
    }
    for(let i=groups.length-1;i>=0;i--)if(absorbed.has(groups[i]))groups.splice(i,1);
   }
-  return {groups,points:{index:Int32Array.from(index),xy:Float64Array.from(xy)},extent:globalThis.AtlasLayout.extent(new Map(groups.map(g=>[g.key,g.pos])))};
+  return {groups,points:{index:Int32Array.from(index),xy:Float64Array.from(xy),ty:Float64Array.from(ty)},extent:globalThis.AtlasLayout.extent(new Map(groups.map(g=>[g.key,g.pos])))};
  },
  // build's packed points with their disc ids, as curate takes them (`items` is build's own list).
- pointIds(points,items){return {ids:Array.from(points.index,i=>items[i].id),xy:points.xy};}
+ pointIds(points,items){return {ids:Array.from(points.index,i=>items[i].id),xy:points.xy,ty:points.ty};}
 };

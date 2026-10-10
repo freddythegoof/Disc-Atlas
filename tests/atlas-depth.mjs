@@ -88,8 +88,9 @@ test('small discs, then minis, fill the room the curated set leaves, from the re
   if(L.groups[0].complete){assert.equal(L.gaps.length,0,`${view} level ${level}: a complete view has no tiers 2 and 3`);continue;}
   const smalls=L.gaps.filter(p=>p.tier==='small'),minis=L.gaps.filter(p=>p.tier==='mini');
   assert.equal(smalls.length+minis.length,L.gaps.length);
-  // Deep in, every disc is near full size with a full name, so the room for them thins out.
-  assert.ok(smalls.length+minis.length>=(view==='desktop'?40:5),`${view} level ${level}: ${smalls.length} small discs, ${minis.length} minis`);
+  // Deep in, every disc is near full size with a full name, so the room for them thins out. The speed
+  // band keeps each speed's discs in a tight row, so a phone's deepest level holds only a couple.
+  assert.ok(smalls.length+minis.length>=(view==='desktop'?40:level>=9?1:5),`${view} level ${level}: ${smalls.length} small discs, ${minis.length} minis`);
   // Every small disc wears its name, which takes room: a phone's 1x holds none.
   if(level===0)assert.ok(smalls.length>=(view==='desktop'?8:0)&&minis.length>=(view==='desktop'?20:5),`${view} at 1x: ${smalls.length} small discs, ${minis.length} minis`);
   // Small discs take the room first: every mini comes after them.

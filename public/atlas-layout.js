@@ -5,11 +5,29 @@ window.AtlasLayout = (() => {
     for (const c of String(value)) n = Math.imul(n ^ c.charCodeAt(0), 16777619);
     return (n >>> 0) / 4294967296;
   }
-  // The seeded breathing-room offset (up to .062) every position carries.
+  // Speed is the Y axis, (speed - 1) / 14. A disc's shown Y never leaves its speed band: it stays
+  // within BAND of that, just under half the 1/14 between whole speeds, so a slower disc always sits
+  // below a faster one. The scatter, adapt's growth and repulsion, spread's search and curate's rest
+  // toss (atlas-groups.js) all keep to it; tests/atlas-layout.mjs and tests/atlas-speed-band-browser.mjs check it.
+  const BAND = .035;
+  // The seeded breathing-room offset every position carries: up to .062 across, half that (.031) up or down.
   function scatter(id) {
     const angle = seed(id) * Math.PI * 2;
     const radius = .012 + Math.sqrt(seed(id + ':radius')) * .05;
-    return {x: Math.cos(angle) * radius, y: Math.sin(angle) * radius};
+    return {x: Math.cos(angle) * radius, y: Math.sin(angle) * radius * .5};
+  }
+  // A grown vertical offset eased into the band: unchanged up to `knee` (the scatter's own .031,
+  // KNEE, at the unfiltered layout), then easing toward CEIL, just inside BAND. CEIL is also the
+  // furthest curate rests a disc from its speed.
+  const KNEE = .031, CEIL = .034;
+  function inBand(offset, knee = KNEE) {
+    const size = Math.abs(offset);
+    return size <= knee ? offset : Math.sign(offset) * (knee + (CEIL - knee) * Math.tanh((size - knee) / (CEIL - knee)));
+  }
+  // inBand's slope at `offset`: how much of a move there still shows.
+  function bandSlope(offset, knee = KNEE) {
+    const size = Math.abs(offset);
+    return size <= knee ? 1 : 1 - Math.tanh((size - knee) / (CEIL - knee)) ** 2;
   }
   // `shift` moves a disc's stability index (My Map's personal lens); the shared atlas passes none.
   function positions(items, shift = () => 0) {
@@ -25,7 +43,7 @@ window.AtlasLayout = (() => {
     return result;
   }
   // Every rated disc sits in this envelope: stability index 0–100 and speed 1–15 map to 0–1,
-  // and the display scatter adds up to .062 (tests/atlas-layout.mjs checks the catalog fits).
+  // and the display scatter adds up to .062 across and .031 up or down (tests/atlas-layout.mjs checks the catalog fits).
   const FRAME = {minX: .045, maxX: 1.055, minY: -.06, maxY: 1.025};
   // The 1x view fits that envelope to the visible map: disc centers run from just under the
   // search bar (and the type chips, which wrap under it below 1100px) to a name's height above the axis legend, and close to both sides.
@@ -60,18 +78,18 @@ window.AtlasLayout = (() => {
       y:axis(camera.y,view.bottom-area.bottom+extent.minY*area.height*camera.zoom-padding,view.top-area.bottom+extent.maxY*area.height*camera.zoom+padding)};
   }
   // Only separate a population that can fit comfortably at this zoom level.
-  // The stable search starts at each rating coordinate and uses nearby free space.
+  // The stable search starts at each rating coordinate and uses nearby free space in its speed band.
   function spread(items, base, width, height) {
     const rated=items.filter(d=>base.has(d.id));
     if (!rated.length || rated.length*76*76 > width*height*.72) return null;
     const spacing=Math.min(112,Math.max(76,Math.sqrt(width*height/rated.length)*.65));
     const cells=new Map(),result=new Map();
     for(const d of [...rated].sort((a,b)=>a.id.localeCompare(b.id))){
-      const origin=base.get(d.id);let chosen=origin;
+      const origin=base.get(d.id),speed=(d.speed-1)/14;let chosen=origin;
       for(let i=0;i<2400;i++){
         const angle=i*2.399963229728653+seed(d.id)*Math.PI*2,radius=12*Math.sqrt(i);
         const x=origin.x*width+Math.cos(angle)*radius,y=origin.y*height+Math.sin(angle)*radius;
-        if(x<0||x>width||y<0||y>height)continue;
+        if(x<0||x>width||y<0||y>height||Math.abs(y/height-speed)>=BAND)continue;
         const cx=Math.floor(x/spacing),cy=Math.floor(y/spacing);let clear=true;
         for(let dx=-1;dx<=1&&clear;dx++)for(let dy=-1;dy<=1&&clear;dy++)
           for(const p of cells.get((cx+dx)+':'+(cy+dy))||[])if(Math.hypot(x-p.x,y-p.y)<spacing){clear=false;break;}
@@ -86,12 +104,14 @@ window.AtlasLayout = (() => {
   // Filters free space, and the visible discs spread into it. At `reference` visible discs or more
   // (the unfiltered catalog) the positions come back untouched. Below that, strength grows with
   // log(reference / count) and is full at `floor`:
-  // - each disc's seeded scatter grows up to `scale` times, so speed moves at most ~1.7 units;
-  // - neighbors repel to a spacing that grows with the room per disc, up to `spacing` px at 1x;
+  // - each disc's seeded scatter grows up to `scale` times; up and down it eases into the speed band
+  //   (inBand), from a knee that drops to `knee` at full strength so grown offsets fill the band evenly;
+  // - neighbors repel to a spacing that grows with the room per disc, up to `spacing` px at 1x; only
+  //   `rise` of each push moves a disc up or down, as its band leaves it little room that way;
   // - past `bands` strength, discs are drawn into their score cohort's own column.
   // Every cohort stays centered on its stability index, so a higher-score cohort never sits left of
   // a lower-score one; at full strength the columns do not overlap at all.
-  const ADAPT = {reference: 1000, floor: 40, scale: 2, spacing: 96, bands: .6, iterations: 48};
+  const ADAPT = {reference: 1000, floor: 40, scale: 2, spacing: 96, bands: .6, iterations: 48, knee: .012, rise: .5};
   function adaptStrength(count) {
     if (count >= ADAPT.reference) return 0;
     return Math.min(1, Math.log(ADAPT.reference / Math.max(1, count)) / Math.log(ADAPT.reference / ADAPT.floor));
@@ -102,12 +122,14 @@ window.AtlasLayout = (() => {
     if (!u || !rated.length) return base;
     if (memo && memo.items === items && memo.base === base && memo.width === width && memo.height === height && memo.immersive === immersive) return memo.result;
     const area = bounds(width, height, immersive), view = area.view, W = area.width, H = area.height;
-    const k = 1 + (ADAPT.scale - 1) * u, reach = .062 * k, t = Math.max(0, (u - ADAPT.bands) / (1 - ADAPT.bands));
+    const k = 1 + (ADAPT.scale - 1) * u, reach = .062 * k, t = Math.max(0, (u - ADAPT.bands) / (1 - ADAPT.bands)), knee = KNEE - (KNEE - ADAPT.knee) * u;
     const spacing = Math.min(ADAPT.spacing, .62 * Math.sqrt((view.right - view.left) * (view.bottom - view.top) / rated.length)) * Math.min(1, u * 2);
-    // Anchors are rating coordinates without the scatter. A cohort shares one stability index.
+    // Anchors are rating coordinates without the scatter. A cohort shares one stability index. `ry` is a
+    // disc's vertical offset before inBand eases it into the band. Repulsion moves it by `rise` of its
+    // push, and only as much as shows (bandSlope), so crowded discs near their band's edge without lining it.
     const discs = rated.map(d => {
       const p = base.get(d.id), s = scatter(d.id), ax = Math.round((p.x - s.x) * 1e6) / 1e6, ay = p.y - s.y;
-      return {id: d.id, ax, ay, x: ax + s.x * k, y: Math.max(FRAME.minY, Math.min(FRAME.maxY, ay + s.y * k))};
+      return {id: d.id, ax, ay, x: ax + s.x * k, ry: s.y * k, y: Math.max(FRAME.minY, Math.min(FRAME.maxY, ay + inBand(s.y * k, knee)))};
     }).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
     const anchors = [...new Set(discs.map(d => d.ax))].sort((a, b) => a - b);
     // A column reaches 40% of the way to each visible neighbor cohort; the outermost ones reach out to the frame.
@@ -149,7 +171,8 @@ window.AtlasLayout = (() => {
       }
       for (const d of discs) {
         d.x = Math.max(d.ax - reach, Math.min(d.ax + reach, d.x + d.px));
-        d.y = Math.max(FRAME.minY, Math.min(FRAME.maxY, Math.max(d.ay - reach, Math.min(d.ay + reach, d.y + d.py))));
+        d.ry = Math.max(-reach, Math.min(reach, d.ry + d.py * ADAPT.rise * bandSlope(d.ry, knee)));
+        d.y = Math.max(FRAME.minY, Math.min(FRAME.maxY, d.ay + inBand(d.ry, knee)));
       }
       project(t);
     }
@@ -159,5 +182,5 @@ window.AtlasLayout = (() => {
     memo = {items, base, width, height, immersive, result};
     return result;
   }
-  return {positions, camera, bounds, extent, constrain, spread, adapt, adaptStrength, seed, FRAME, ADAPT};
+  return {positions, camera, bounds, extent, constrain, spread, adapt, adaptStrength, seed, FRAME, ADAPT, BAND, CEIL};
 })();

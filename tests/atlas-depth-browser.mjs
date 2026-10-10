@@ -182,7 +182,9 @@ try{
    for(const m of view.marks.filter(m=>m.large))assert.ok(m.strength===1&&m.brand,`${label}: ${m.name} hides its name or manufacturer`);
    const complete=await page.evaluate(()=>!!groupCache.groups[0]?.complete);
    const drawn=view.gaps.filter(g=>g.drawn),smalls=drawn.filter(g=>g.tier==='small'),minis=drawn.filter(g=>g.tier==='mini');
-   if(!complete&&(name==='far'||name==='mid'))assert.ok(smalls.length>=(viewport==='desktop'?5:1)&&minis.length>=1,`${label}: only ${smalls.length} small discs and ${minis.length} minis`);
+   // A phone's speed bands keep each speed in a tight row, so where the curated discs fill them its small
+   // discs may all give way to minis.
+   if(!complete&&(name==='far'||name==='mid'))assert.ok(viewport==='desktop'?smalls.length>=5&&minis.length>=1:smalls.length+minis.length>=1,`${label}: only ${smalls.length} small discs and ${minis.length} minis`);
    const full=76*view.room;
    for(const g of drawn){
     // Each tier at its own size for the zoom: a mini never larger than a small disc, and neither

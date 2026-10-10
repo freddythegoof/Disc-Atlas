@@ -15,5 +15,5 @@ self.onmessage=event=>{
   result.prominence=options.key+'|'+first?.key;
  }
  // The packed points move to the main thread rather than being copied.
- self.postMessage({revision,level,...result},[result.points.index.buffer,result.points.xy.buffer]);
+ self.postMessage({revision,level,...result},[result.points.index.buffer,result.points.xy.buffer,result.points.ty.buffer]);
 };

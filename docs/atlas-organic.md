@@ -51,6 +51,16 @@ between the controls (the cap there is 8).
 - **Reach.** A disc rests within 0.6 marker radii of its true point: about 23 px for the 76 px art.
   Its first choice is a seeded "toss" at 45–100% of that reach in a seeded direction. If that spot
   is taken, it uses the free spot nearest to it, from 38 candidates. Dots use the same reach.
+- **Speed band (Oct 9).** The Y axis is pure speed. Every drawn disc (curated, dot, small disc or
+  mini) sits within `AtlasLayout.BAND` (.035, just under half the 1/14 between whole speeds) of
+  `(speed - 1) / 14`, so a slower disc never draws above a faster one at any zoom or filter. The
+  seeded scatter reaches .031 up or down (and .062 across, unchanged). `adapt` grows it and repels
+  neighbors only within the band (`inBand`, at most .034). Curate draws any rest spot that would leave
+  the band up or down into it (`CEIL`, .034). Before this, a filtered map could move a disc about
+  1.9 speeds, enough for Discmania's 11-speed DD1 to draw above its 12-speed DD2, DD3 and Enigma.
+  Half speeds (37 discs, such as 6.5 or 14.5) sit 1/28 from their whole-speed neighbors, so their
+  bands overlap those neighbors'. `tests/atlas-speed-band.mjs` checks every rated disc's layout and
+  rest by brute force. `tests/atlas-speed-band-browser.mjs` measures what the browser draws.
 - **Front facing.** Every disc is drawn round and face on, with no per-disc tilt. Full-size art is
   76 px and its name starts 90 px below the marker's top (`#mapMarkers.atlas-organic` in
   `public/cosmic.css`). That is 52 px below the center, scaled from the 68 px art's 46 px, so the
