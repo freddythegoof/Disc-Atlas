@@ -22,6 +22,41 @@ function setup() {
 const item = {mold_id: '7446eb39abe5', plastic: 'ESP', wear: 10, weight_g: 180, notes: ''};
 async function fixture() {const s = setup(); await s.user('u1', 'x'.repeat(43)); await s.user('u2', 'y'.repeat(43)); return s;}
 
+test('overmold plate and rim colors persist through edits, storage and fresh reads', async () => {
+ const s=await fixture();try {
+  const response=await s.call('/api/bag/discs','POST',{...item,mold_id:'761c90d342f5',plastic:'Neutron',color:'#0000FF',rim_color:'#000000'});
+  assert.equal(response.status,201);
+  const disc=(await response.json()).disc,path='/api/bag/discs/'+disc.id;
+  assert.equal(disc.color,'#0000ff');assert.equal(disc.rim_color,'#000000');
+  assert.equal(s.db.prepare('SELECT rim_color FROM bag_discs WHERE id=?').get(disc.id).rim_color,'#000000');
+  assert.equal((await s.call(path,'PATCH',{in_bag:false})).status,200);
+  assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,plastic:'Neutron',color:'#0000ff',notes:'Stored backup'})).status,200);
+  for(const route of ['/api/bag','/api/bag/discs',path]){
+   const data=await (await s.call(route)).json(),saved=data.disc || data.discs[0];
+   assert.equal(saved.color,'#0000ff');assert.equal(saved.rim_color,'#000000');assert.equal(saved.in_bag,false);
+  }
+  assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,rim_color:'black'})).status,400);
+  assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,rim_color:null})).status,200);
+  assert.equal((await (await s.call(path)).json()).disc.rim_color,null);
+ }finally{s.close();}
+});
+
+test('rim color migration preserves existing bag and storage copies with automatic rims', () => {
+ const db=new DatabaseSync(':memory:');try {
+  const files=fs.readdirSync('migrations/accounts').sort();
+  for(const file of files.filter(f=>f<'0008'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('u','g','a@example.com','A',1,1);
+  for(const inBag of [0,1])db.prepare('INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,color,added_at,in_bag) VALUES (?,?,?,?,?,?,?,?,?)').run('d'+inBag,'u','761c90d342f5','Neutron',8,175,'#0000ff','before',inBag);
+  const before=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  db.exec(fs.readFileSync('migrations/accounts/0008_bag_rim_color.sql','utf8'));
+  const after=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  after.forEach(({rim_color,...disc},index)=>{assert.equal(rim_color,null);assert.deepEqual(disc,{...before[index]});});
+  assert.throws(()=>db.prepare("UPDATE bag_discs SET rim_color='black'").run());
+  db.prepare("UPDATE bag_discs SET rim_color='#000000'").run();
+  db.prepare("DELETE FROM auth_users WHERE id='u'").run();assert.equal(db.prepare('SELECT COUNT(*) AS n FROM bag_discs').get().n,0);
+ }finally{db.close();}
+});
+
 test('lost disc keeps its physical details and leaves bag slots and ordering', async () => {
  const s=await fixture();try {
   const original=(await (await s.call('/api/bag/discs','POST',{...item,notes:'First ace disc',color:'#123456',pocket:'goto',stability_bias:'less_stable'})).json()).disc;

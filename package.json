@@ -21,6 +21,7 @@
     "test:bag": "node --test tests/bag.mjs tests/bag-values.mjs tests/bag-3d-layout.mjs tests/bag-demo.mjs",
     "test:bag:demo": "node tests/bag-demo-browser.mjs",
     "test:bag:browser": "node tests/bag-browser.mjs",
+    "test:bag:overmold": "node tests/bag-overmold-browser.mjs",
     "test:bag:memorial": "node tests/bag-memorial-browser.mjs",
     "test:bag:scene": "node tests/bag-scene-browser.mjs",
     "test:bag:v13": "node tests/bag-v13-browser.mjs",

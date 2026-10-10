@@ -1,3 +1,5 @@
+import {isOvermold} from './disc3d/overmold.mjs';
+
 // Storage/display helpers only. V1 never transforms consensus flight numbers.
 export function plasticOptions(disc, catalog) {
  const brand = catalog.brands[disc.brand];
@@ -19,13 +21,15 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  if (value.notes != null && (typeof value.notes !== 'string' || value.notes.length > 240)) throw new Error('Notes can be up to 240 characters.');
  const color=data.color===undefined?plasticColor(disc.brand,value.plastic.trim(),catalog):data.color,in_bag=value.in_bag===undefined?true:value.in_bag;
  if(!validColor(color))throw new Error('Choose a six-digit hex disc color.');
+ const rim_color=isOvermold({...disc,record:disc.name})?value.rim_color ?? null:null;
+ if(rim_color!==null && !validColor(rim_color))throw new Error('Choose a six-digit hex rim color.');
  if(typeof in_bag!=='boolean')throw new Error('Choose Bag or Storage.');
  const pocket=value.pocket,stability_bias=value.stability_bias===undefined?null:value.stability_bias;
  if(!['main','putter','goto'].includes(pocket))throw new Error('Choose Main compartment, Putter pocket or Go-to.');
  if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
  if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
  const memorial=validateLostDetails(value);
- return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
+ return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
 }
 export function validateLostDetails(data) {
  const status=data.status===undefined?'active':data.status;

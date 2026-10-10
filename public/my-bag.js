@@ -2,11 +2,12 @@ import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails
 import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
+import {isOvermold,overmoldColors} from './disc3d/overmold.mjs';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custom bag',capacity:20}, items = [], active = false;
 let plastics, models, editing = null, removing = null, losing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
-let colorCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
+let colorCustomized=false,rimCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
 const pendingPockets=new Map();
 const pendingFound=new Set();
 const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async path => {const r = await fetch(path);if (!r.ok) throw Error('Bag choices could not load. Please try again.');return r.json();})).then(([p,m])=>{plastics=p;models=m;});
@@ -49,6 +50,10 @@ function bagDetailMarkup(d){
  const rated=d.speed!=null,index=rated?Math.max(0,Math.min(100,50+10*(d.turn+d.fade))):null;
  const shift=mapOpen && rated?moldShifts(bagged().filter(i=>i.mold_id===d.id)).get(d.id):0,personal=Math.round(Math.max(0,Math.min(100,index+shift)));
  return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading"><span class="bag-disc-swatch" style="--disc-color:${esc(item.color||'#e6c668')}" aria-hidden="true"></span><div><h3 id="bagDetailTitle">${isDemo()?'Sample disc':'Your disc'}</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}${shift && personal!==index?`<div><dt>On your map</dt><dd>Stability ${personal} · consensus ${index}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide bag-detail-atlas" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button>${isDemo()?'':`<button type="button" class="wide bag-detail-edit" data-bag-detail-edit="${esc(item.id)}">Edit disc</button>`}</div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
+}
+function detailAppearance(d){
+ const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;
+ return active && item?{color:item.color,colors:{plate:item.color,rim:item.rim_color || undefined}}:{};
 }
 detailPanel.addEventListener('click',event=>{
  const show=event.target.closest('[data-show-on-atlas]'),edit=event.target.closest('[data-bag-detail-edit]');
@@ -199,13 +204,18 @@ async function openDisc(d,item=null,destination='bag') {
  updatePocketField();
  setStabilityBias(values.stability_bias);
  $('#bagDiscColor').value=values.color || plasticColor(d.brand,values.plastic,plastics);colorCustomized=!!item;
+ const overmold=isOvermold({...d,record:d.name});
+ $('#bagDiscColorLabel').textContent=overmold?'Flight plate':'Disc color';
+ $('#bagRimColorField').hidden=!overmold;
+ rimCustomized=!!values.rim_color;
+ $('#bagRimColor').value=overmoldColors($('#bagDiscColor').value,{rim:values.rim_color}).rim;
  $('#addDiscStatus').textContent='';updateSaveLabel();$('#saveDisc').disabled=false;
  opener=trigger;$('#addDiscDialog').showModal();$('#saveDisc').focus();
 }
 $('#addDiscForm').addEventListener('submit',async event=>{
  event.preventDefault();const epoch=generation,edited=editing,button=$('#saveDisc');button.disabled=true;$('#addDiscStatus').textContent='Saving…';
  try {
-  const value=validateDiscDetails({mold_id:$('#addDiscId').value,plastic:$('#bagPlastic').value==='__other'?$('#bagPlasticOther').value:$('#bagPlastic').value,wear:Number($('#bagWear').value),weight_g:Number($('#bagWeight').value),notes:$('#bagNotes').value,color:$('#bagDiscColor').value,in_bag:$('#bagDestination').value==='bag',pocket:$('#bagPocket').value,stability_bias:$('#bagStabilityBias').value || null},mold($('#addDiscId').value),plastics);
+  const value=validateDiscDetails({mold_id:$('#addDiscId').value,plastic:$('#bagPlastic').value==='__other'?$('#bagPlasticOther').value:$('#bagPlastic').value,wear:Number($('#bagWear').value),weight_g:Number($('#bagWeight').value),notes:$('#bagNotes').value,color:$('#bagDiscColor').value,rim_color:rimCustomized && !$('#bagRimColorField').hidden?$('#bagRimColor').value:null,in_bag:$('#bagDestination').value==='bag',pocket:$('#bagPocket').value,stability_bias:$('#bagStabilityBias').value || null},mold($('#addDiscId').value),plastics);
   const result=await api('/discs'+(edited?'/'+edited.id:''),edited?'PUT':'POST',value);
   items=edited?items.map(i=>i.id===edited.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();
   // An edited row is re-rendered, so explicitly restore keyboard focus to its new button.
@@ -214,7 +224,10 @@ $('#addDiscForm').addEventListener('submit',async event=>{
  } catch(error) {if(error.name!=='AbortError')$('#addDiscStatus').textContent=error.message;}
  finally {if(epoch===generation)button.disabled=false;}
 });
-$('#bagWear').addEventListener('input',updateWear);$('#bagDiscColor').addEventListener('input',()=>{colorCustomized=true;});$('#bagPlastic').addEventListener('change',()=>{updatePlastic();if(!colorCustomized)$('#bagDiscColor').value=plasticColor(mold($('#addDiscId').value).brand,$('#bagPlastic').value,plastics);if(!$('#bagPlasticOther').hidden)$('#bagPlasticOther').focus();});
+function updateRimColor(){if(!rimCustomized)$('#bagRimColor').value=overmoldColors($('#bagDiscColor').value).rim;}
+$('#bagWear').addEventListener('input',updateWear);$('#bagDiscColor').addEventListener('input',()=>{colorCustomized=true;updateRimColor();});
+$('#bagRimColor').addEventListener('input',()=>{rimCustomized=true;});
+$('#bagPlastic').addEventListener('change',()=>{updatePlastic();if(!colorCustomized)$('#bagDiscColor').value=plasticColor(mold($('#addDiscId').value).brand,$('#bagPlastic').value,plastics);updateRimColor();if(!$('#bagPlasticOther').hidden)$('#bagPlasticOther').focus();});
 function setStabilityBias(value){
  $('#bagStabilityBias').value=value || '';
  document.querySelectorAll('[data-stability-bias]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.stabilityBias===value)));
@@ -387,5 +400,5 @@ addMenu.addEventListener('keydown',event=>{
  if(event.key==='Tab')closeAddMenu(true);
 });
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
-window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,mapColors:()=>bagColorMap};
+window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

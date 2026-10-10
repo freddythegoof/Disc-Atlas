@@ -3,6 +3,17 @@ import {test} from 'node:test';
 import plastics from '../source-data/bag-plastics.json' with {type:'json'};
 import {defaultDiscDetails,plasticOptions,wearLabel,bagClass,plasticColor,bagPalette,bagSlots,validateDiscDetails,POCKETS} from '../public/bag-values.js';
 
+test('optional rim color is validated for verified overmolds and ignored for single molds', () => {
+ const envy={id:'envy',brand:'Axiom',manufacturer:'Axiom Discs',name:'Envy'};
+ const details=defaultDiscDetails(envy,plastics);
+ assert.equal(validateDiscDetails({...details,rim_color:'#AABBCC'},envy,plastics).rim_color,'#aabbcc');
+ assert.equal(validateDiscDetails(details,envy,plastics).rim_color,null);
+ for(const rim_color of ['black','#abc',42,{},''])assert.throws(()=>validateDiscDetails({...details,rim_color},envy,plastics),/rim color/i);
+ for(const disc of [{...envy,manufacturer:'Innova Champion Discs',name:'Destroyer'},{...envy,manufacturer:'Streamline Discs',name:'Pilot'}]){
+  assert.equal(validateDiscDetails({...details,rim_color:'#000000'},disc,plastics).rim_color,null);
+ }
+});
+
 test('mold plastic reference wins over brand fallback and remains selectable', () => {
  const details = defaultDiscDetails({id:'ff4bf9e7743c',brand:'Discraft',specs:{'Max weight':'174.3'}},plastics);
  assert.equal(details.plastic,'Putter Line Hard'); assert.equal(details.weight_g,174);
