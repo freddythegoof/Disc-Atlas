@@ -1566,6 +1566,580 @@
           "reason": "Owner-approved correction, October 5, 2026: Grym X turn 0 to -0.5; speed 12.5, glide 5 and fade 3 are unchanged. Evidence: docs/stability-review-queue.md, Grym X section (batch 20), records K1 Line 2015-2020 turn mean -0.50 and all three K1 Line advanced/professional raters at -0.5 turn / 3 fade. Later K1 Line ratings lean toward more turn. The queue identifies 0 to -0.5 as the conservative candidate, now explicitly approved by the owner. Confidence 0.5 is retained from the review: the pool is small (17 ratings), retailers and launch numbers still print turn 0, and the current manufacturer page was unreadable. This is an Atlas observed-flight adjustment, not a manufacturer-number correction. No cross-plastic averages were combined."
         }
       ]
+    },
+    {
+      "id": "46efed768b52",
+      "brand": "Discraft",
+      "approvalName": "Archer",
+      "catalogName": "Archer",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 4,
+        "turn": -3,
+        "fade": 1
+      },
+      "manufacturerNumbers": {
+        "speed": 7,
+        "glide": 4,
+        "turn": -3,
+        "fade": 1
+      },
+      "category": "Midrange",
+      "source": "https://www.team.discraft.com/discs/archer",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=archer&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Discraft Archer page (7/4/-3/1, stability -0.5)",
+          "url": "https://www.team.discraft.com/discs/archer",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Archer (mfr 5/4/-4/1; reviewers 5.6/4.7/-3.4/1; 46 ratings; raw list via DiscComments)",
+          "url": "https://infinitediscs.com/discraft-archer",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite reviewer ratings, 46 raw rated reviews, 33 moved off the displayed -4",
+          "url": "https://infinitediscs.com/Disc/DiscComments",
+          "type": "community",
+          "weight": 0.4
+        },
+        {
+          "name": "Rocket Discs Archer (6/5/-3/1; lag detector)",
+          "url": "https://rocketdiscs.com/discraft-archer",
+          "type": "retailer",
+          "weight": 0.1
+        }
+      ],
+      "confidence": 0.8,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Archer (id 46efed768b52), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Discraft prints turn -3; 33 of 46 Infinite raters left the displayed -4 toward less turn, none toward more, with median -3. Rocket also prints -3. Owner explicitly retains speed 5 despite Discraft speed 7; glide 4 and fade 1 remain unchanged.",
+      "plasticVariance": "Z -3.18, ESP -3.08, Big Z -2.94 (17/12/9); no real spread to record. Do not average.",
+      "lastUpdated": "2026-10-05",
+      "sourceLabel": "Discraft catalog, Atlas-adjusted (current manufacturer + reviewer movement; partial correction)",
+      "adjustmentNote": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Archer (id 46efed768b52), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Discraft prints turn -3; 33 of 46 Infinite raters left the displayed -4 toward less turn, none toward more, with median -3. Rocket also prints -3. Owner explicitly retains speed 5 despite Discraft speed 7; glide 4 and fade 1 remain unchanged. Confidence 0.8. No plastic-specific numbers were averaged.",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 5.0,
+          "glide": 4.0,
+          "turn": -4.0,
+          "fade": 1.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Archer; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 5,
+          "glide": 4,
+          "turn": -3,
+          "fade": 1,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Archer (id 46efed768b52), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Discraft prints turn -3; 33 of 46 Infinite raters left the displayed -4 toward less turn, none toward more, with median -3. Rocket also prints -3. Owner explicitly retains speed 5 despite Discraft speed 7; glide 4 and fade 1 remain unchanged. Confidence 0.8. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "78da2edc3101",
+      "brand": "Lone Star Discs",
+      "approvalName": "Lone Wolf",
+      "catalogName": "Lone Wolf",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 5,
+        "turn": -4,
+        "fade": 1
+      },
+      "manufacturerNumbers": {
+        "speed": 5,
+        "glide": 5,
+        "turn": -4,
+        "fade": 1
+      },
+      "category": "Midrange",
+      "source": "https://www.lonestardiscs.com/products/lone-wolf-midrange",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=Lone+Wolf&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Lone Star Lone Wolf page (5/5/-4/1)",
+          "url": "https://www.lonestardiscs.com/products/lone-wolf-midrange",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Lone Wolf (mfr 5/5/-3/1; reviewers 4.9/4.8/-3.4/0.8; 9 ratings; raw list)",
+          "url": "https://infinitediscs.com/lone-star-disc-lone-wolf",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite reviewer ratings, 9 raw rated reviews (skill, plastic, date labelled)",
+          "url": "https://infinitediscs.com/Disc/DiscComments",
+          "type": "community",
+          "weight": 0.3
+        }
+      ],
+      "confidence": 0.75,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Lone Wolf (id 78da2edc3101), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Lone Star prints -4; seven of nine Infinite raters moved away from displayed -3 to -4 or beyond, with raw mean -3.83. The small sample and Alpha/Bravo variation limit confidence; fade 1 remains unchanged.",
+      "plasticVariance": "Bravo -4.0 (4), Alpha -3.17 (3), Bravo Glow -4.5 (2). Alpha runs less turn than Bravo; the manufacturer prints one set. Do not average.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 5.0,
+          "glide": 5.0,
+          "turn": -3.0,
+          "fade": 1.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Lone Wolf; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 5,
+          "glide": 5,
+          "turn": -4,
+          "fade": 1,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Lone Wolf (id 78da2edc3101), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Lone Star prints -4; seven of nine Infinite raters moved away from displayed -3 to -4 or beyond, with raw mean -3.83. The small sample and Alpha/Bravo variation limit confidence; fade 1 remains unchanged. Confidence 0.75. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "abcec9d8352a",
+      "brand": "Divergent Discs",
+      "approvalName": "Basilisk",
+      "catalogName": "Basilisk",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -5,
+        "fade": 1
+      },
+      "manufacturerNumbers": {
+        "speed": 13,
+        "glide": 6,
+        "turn": -5,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://divergentdiscs.com/product/basilisk-max-grip/",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "unknown",
+        "source": null,
+        "note": "Production status is not verified; approval date is not a production date."
+      },
+      "sources": [
+        {
+          "name": "Divergent Basilisk (Max Grip) page (13/6/-5/2)",
+          "url": "https://divergentdiscs.com/product/basilisk-max-grip/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Basilisk (mfr 12/6/-4/1; reviewers 11.8/5.8/-4.7/0.8; 17 ratings)",
+          "url": "https://infinitediscs.com/divergent-discs-basilisk",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite reviewer ratings, 17 raw rated reviews",
+          "url": "https://infinitediscs.com/Disc/DiscComments",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "Rocket Discs Basilisk (12/6/-5/1; lag detector)",
+          "url": "https://rocketdiscs.com/divergent-discs-basilisk",
+          "type": "retailer",
+          "weight": 0.1
+        }
+      ],
+      "confidence": 0.75,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Basilisk (id abcec9d8352a), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Divergent and Rocket print -5; eleven of 17 Infinite raters sit beyond displayed -4, median -5. Only turn is approved: speed stays 12 (12 of 17 raters), fade stays 1 (no rater above 1), contradicting manufacturer speed 13 and fade 2.",
+      "plasticVariance": "Max Grip -5.07 (15); one X-out -4; one MaxValue 0 (a different disc, speed 7). Do not average.",
+      "lastUpdated": "2026-10-05",
+      "sourceLabel": "Divergent Discs catalog, Atlas-adjusted (current manufacturer + reviewer movement; partial correction)",
+      "adjustmentNote": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Basilisk (id abcec9d8352a), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Divergent and Rocket print -5; eleven of 17 Infinite raters sit beyond displayed -4, median -5. Only turn is approved: speed stays 12 (12 of 17 raters), fade stays 1 (no rater above 1), contradicting manufacturer speed 13 and fade 2. Confidence 0.75. No plastic-specific numbers were averaged.",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 12.0,
+          "glide": 6.0,
+          "turn": -4.0,
+          "fade": 1.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Basilisk; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 12,
+          "glide": 6,
+          "turn": -5,
+          "fade": 1,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Basilisk (id abcec9d8352a), researched October 5, 2026. Current manufacturer turn correction corroborated by reviewer movement. Divergent and Rocket print -5; eleven of 17 Infinite raters sit beyond displayed -4, median -5. Only turn is approved: speed stays 12 (12 of 17 raters), fade stays 1 (no rater above 1), contradicting manufacturer speed 13 and fade 2. Confidence 0.75. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "71fcb40815bd",
+      "brand": "Streamline",
+      "approvalName": "Pilot",
+      "catalogName": "Pilot",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 5,
+        "turn": 0,
+        "fade": 1
+      },
+      "manufacturerNumbers": {
+        "speed": 2,
+        "glide": 5,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://streamlinediscs.com/discs/pilot/",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=pilot&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Streamline Pilot page (2/5/0/1)",
+          "url": "https://streamlinediscs.com/discs/pilot/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Pilot (mfr 2/5/0/1; reviewers 2.1/4.9/-0.5/1; 103 ratings; raw list)",
+          "url": "https://infinitediscs.com/streamline-pilot",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "Infinite reviewer ratings, 103 raw rated reviews split 2017-2021 / 2022+",
+          "url": "https://infinitediscs.com/Disc/DiscComments",
+          "type": "community",
+          "weight": 0.3
+        },
+        {
+          "name": "DGCR \"Streamline Discs - Pilot\" launch thread (2017; launch numbers 2/5/-1/1, straight-flight posts)",
+          "url": "https://www.dgcoursereview.com/threads/streamline-discs-pilot.134866/",
+          "type": "community",
+          "weight": 0.2
+        },
+        {
+          "name": "Rocket Discs Pilot (2/5/-1/1; lag detector)",
+          "url": "https://rocketdiscs.com/streamline-pilot",
+          "type": "retailer",
+          "weight": 0.1
+        }
+      ],
+      "confidence": 0.75,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Pilot (id 71fcb40815bd), researched October 5, 2026. Current manufacturer turn correction corroborated by pre-revision reviewer movement. Streamline revised launch turn -1 to current 0. Among 71 Infinite ratings from 2017-2021, when -1 was displayed, 20 moved toward less turn and three toward more. The 29 of 32 later ratings at displayed 0 are treated as echoes, not independent confirmation.",
+      "plasticVariance": "Soft and medium Electron beat in toward straight; Neutron and Proton are firmer. Streamline prints one set. Do not average.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 2.0,
+          "glide": 5.0,
+          "turn": -1.0,
+          "fade": 1.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Pilot; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 2,
+          "glide": 5,
+          "turn": 0,
+          "fade": 1,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Pilot (id 71fcb40815bd), researched October 5, 2026. Current manufacturer turn correction corroborated by pre-revision reviewer movement. Streamline revised launch turn -1 to current 0. Among 71 Infinite ratings from 2017-2021, when -1 was displayed, 20 moved toward less turn and three toward more. The 29 of 32 later ratings at displayed 0 are treated as echoes, not independent confirmation. Confidence 0.75. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "62e6d7efa845",
+      "brand": "Gateway",
+      "approvalName": "Apex",
+      "catalogName": "Apex",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -1,
+        "fade": 1.5
+      },
+      "manufacturerNumbers": {
+        "speed": 11.5,
+        "glide": 6,
+        "turn": -1,
+        "fade": 1.5
+      },
+      "category": "Distance Driver",
+      "source": "https://gatewaydiscsports.com/products/apex-diamond",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=apex&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Gateway Apex - Diamond product page (11.5/6/-1/1.5)",
+          "url": "https://gatewaydiscsports.com/products/apex-diamond",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Apex (mfr 12/6/-1/2; reviewers 12/6/-1/1.9; 12 ratings)",
+          "url": "https://infinitediscs.com/gateway-apex",
+          "type": "retailer",
+          "weight": 0.4
+        },
+        {
+          "name": "DGCR \"Gateway Apex - Distance Driver\" thread (2018)",
+          "url": "https://www.dgcoursereview.com/threads/gateway-apex-distance-driver.137976/",
+          "type": "community",
+          "weight": 0.2
+        },
+        {
+          "name": "Rocket Discs Apex (12/6/-1/2; lag detector)",
+          "url": "https://rocketdiscs.com/gateway-apex",
+          "type": "retailer",
+          "weight": 0.1
+        }
+      ],
+      "confidence": 0.6,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Apex (id 62e6d7efa845), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. Gateway Apex - Diamond prints fade 1.5. Infinite and Rocket retain older fade 2; ten of 12 raw ratings echo 2 and all date to 2018-2021, with nobody rating against the new number. This is a manufacturer-led catalog correction, not independently corroborated consensus. Owner approves fade only; speed remains 12 despite Gateway 11.5.",
+      "plasticVariance": "Diamond is the page's plastic; the DGCR thread describes HD and Platinum Journeys (not Apexes) as more overstable. Not quantified for the Apex.",
+      "lastUpdated": "2026-10-05",
+      "sourceLabel": "Gateway catalog, Atlas-adjusted (manufacturer-follow fade correction; speed retained)",
+      "adjustmentNote": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Apex (id 62e6d7efa845), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. Gateway Apex - Diamond prints fade 1.5. Infinite and Rocket retain older fade 2; ten of 12 raw ratings echo 2 and all date to 2018-2021, with nobody rating against the new number. This is a manufacturer-led catalog correction, not independently corroborated consensus. Owner approves fade only; speed remains 12 despite Gateway 11.5. Confidence 0.6. No plastic-specific numbers were averaged.",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 12.0,
+          "glide": 6.0,
+          "turn": -1.0,
+          "fade": 2.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Apex; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 12,
+          "glide": 6,
+          "turn": -1,
+          "fade": 1.5,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Apex (id 62e6d7efa845), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. Gateway Apex - Diamond prints fade 1.5. Infinite and Rocket retain older fade 2; ten of 12 raw ratings echo 2 and all date to 2018-2021, with nobody rating against the new number. This is a manufacturer-led catalog correction, not independently corroborated consensus. Owner approves fade only; speed remains 12 despite Gateway 11.5. Confidence 0.6. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "3b2d2e555496",
+      "brand": "MVP",
+      "approvalName": "Nomad",
+      "catalogName": "Nomad",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 4,
+        "turn": 0,
+        "fade": 1.5
+      },
+      "manufacturerNumbers": {
+        "speed": 2,
+        "glide": 4,
+        "turn": 0,
+        "fade": 1.5
+      },
+      "category": "Putter",
+      "source": "https://mvpdiscsports.com/discs/nomad/",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=nomad&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "MVP Nomad page (2/4/0/1.5)",
+          "url": "https://mvpdiscsports.com/discs/nomad/",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Nomad (mfr 2/4/0/1.5; reviewers 2.1/4/0/1.2; 30 ratings; raw list)",
+          "url": "https://infinitediscs.com/mvp-nomad",
+          "type": "retailer",
+          "weight": 0.5
+        },
+        {
+          "name": "DGCR \"MVP Nomad\" launch thread (2021)",
+          "url": "https://www.dgcoursereview.com/threads/mvp-nomad.146549/",
+          "type": "community",
+          "weight": 0.2
+        },
+        {
+          "name": "Rocket Discs Nomad (2/4/0/1; lag detector)",
+          "url": "https://rocketdiscs.com/mvp-nomad",
+          "type": "retailer",
+          "weight": 0.1
+        }
+      ],
+      "confidence": 0.6,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Nomad (id 3b2d2e555496), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. MVP now prints fade 1.5, versus launch fade 1 in the 2021 DGCR thread; Infinite manufacturer numbers also follow 1.5. Twenty-five of 30 raw raters give fade 1, but the pool ends in 2024 and cannot establish ratings against the revised 1.5. Those older ratings are recorded as a limitation, not corroboration of 1.5. Owner approves the manufacturer-led half-step.",
+      "plasticVariance": "Electron Firm and Electron are the sold plastics; not quantified.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 2.0,
+          "glide": 4.0,
+          "turn": 0.0,
+          "fade": 1.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Nomad; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 2,
+          "glide": 4,
+          "turn": 0,
+          "fade": 1.5,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Nomad (id 3b2d2e555496), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. MVP now prints fade 1.5, versus launch fade 1 in the 2021 DGCR thread; Infinite manufacturer numbers also follow 1.5. Twenty-five of 30 raw raters give fade 1, but the pool ends in 2024 and cannot establish ratings against the revised 1.5. Those older ratings are recorded as a limitation, not corroboration of 1.5. Owner approves the manufacturer-led half-step. Confidence 0.6. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "f79387f2ecff",
+      "brand": "Mint Discs",
+      "approvalName": "Idol",
+      "catalogName": "Idol",
+      "flightNumbers": {
+        "speed": 13,
+        "glide": 5,
+        "turn": -1,
+        "fade": 2.5
+      },
+      "manufacturerNumbers": {
+        "speed": 13,
+        "glide": 5,
+        "turn": -1,
+        "fade": 2.5
+      },
+      "category": "Distance Driver",
+      "source": "https://mintdiscs.com/products/idol-apex-firm-ap-id01-25",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Mint Discs Idol - Apex Firm page (\"Approximate Flight Ratings\" 13/5/-1/2.5; same on seven other Idol product pages)",
+          "url": "https://mintdiscs.com/products/idol-apex-firm-ap-id01-25",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Idol (mfr 13/5/-1/2.5; 1 rating)",
+          "url": "https://infinitediscs.com/mint-discs-idol",
+          "type": "retailer",
+          "weight": 0.2
+        }
+      ],
+      "confidence": 0.6,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Idol (id f79387f2ecff), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. All eight rated Mint Idol product pages print approximate 13/5/-1/2.5, including Apex Firm. Infinite follows 2.5 but has only one rating, so there is no independent corroboration. The Atlas fade 3 has no recorded source. Owner approves the manufacturer-led half-step; Mint labels the numbers approximate.",
+      "plasticVariance": "Mint sells Idol in at least seven plastics at identical printed numbers. Not quantified.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 13.0,
+          "glide": 5.0,
+          "turn": -1.0,
+          "fade": 3.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Idol; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 13,
+          "glide": 5,
+          "turn": -1,
+          "fade": 2.5,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Idol (id f79387f2ecff), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. All eight rated Mint Idol product pages print approximate 13/5/-1/2.5, including Apex Firm. Infinite follows 2.5 but has only one rating, so there is no independent corroboration. The Atlas fade 3 has no recorded source. Owner approves the manufacturer-led half-step; Mint labels the numbers approximate. Confidence 0.6. No plastic-specific numbers were averaged."
+        }
+      ]
+    },
+    {
+      "id": "68af32f30a4a",
+      "brand": "Gateway",
+      "approvalName": "Aura",
+      "catalogName": "Aura",
+      "flightNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -1.5,
+        "fade": 2
+      },
+      "manufacturerNumbers": {
+        "speed": 12,
+        "glide": 6,
+        "turn": -1.5,
+        "fade": 2
+      },
+      "category": "Distance Driver",
+      "source": "https://gatewaydiscsports.com/collections/aura",
+      "checkedAt": "2026-10-05",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.marshallstreetdiscgolf.com/?s=aura&post_type=product",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      },
+      "sources": [
+        {
+          "name": "Gateway Aura collection page (12/6/-1.5/2)",
+          "url": "https://gatewaydiscsports.com/collections/aura",
+          "type": "manufacturer",
+          "weight": 1.0
+        },
+        {
+          "name": "Infinite Discs Aura (mfr 12/6/-2/1; 0 ratings)",
+          "url": "https://infinitediscs.com/gateway-aura",
+          "type": "retailer",
+          "weight": 0.1
+        }
+      ],
+      "confidence": 0.55,
+      "consensusNote": "Evidence: docs/stability-review-queue.md, Batch 21, Aura (id 68af32f30a4a), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. Gateway Aura collection prints 12/6/-1.5/2. Infinite and Rocket retain older 12/6/-2/1; Infinite has zero ratings and no community text was found. There is no independent corroboration. Owner explicitly approves turn -2 to -1.5 and the review-gated fade 1 to 2; speed and glide remain unchanged.",
+      "plasticVariance": "Not quantified.",
+      "lastUpdated": "2026-10-05",
+      "history": [
+        {
+          "date": "2026-10-05",
+          "speed": 12.0,
+          "glide": 6.0,
+          "turn": -2.0,
+          "fade": 1.0,
+          "reason": "Pre-override Atlas baseline recorded in Batch 21 for Aura; retained here for correction history."
+        },
+        {
+          "date": "2026-10-05",
+          "speed": 12,
+          "glide": 6,
+          "turn": -1.5,
+          "fade": 2,
+          "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Aura (id 68af32f30a4a), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. Gateway Aura collection prints 12/6/-1.5/2. Infinite and Rocket retain older 12/6/-2/1; Infinite has zero ratings and no community text was found. There is no independent corroboration. Owner explicitly approves turn -2 to -1.5 and the review-gated fade 1 to 2; speed and glide remain unchanged. Confidence 0.55. No plastic-specific numbers were averaged."
+        }
+      ]
     }
   ]
 }
