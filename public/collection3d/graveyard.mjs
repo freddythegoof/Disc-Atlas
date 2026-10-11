@@ -1,13 +1,17 @@
 // The Lost tab's graveyard: a small lawn with one headstone per lost disc, newest at the front. Each stone
 // is engraved (here lies, the disc's name, its dates, where it went, an epitaph) and the disc itself rests
-// on the little mound in front, in its own colour and mold shape. The selected plot gets an accent ring.
-// A new loss rises out of the lawn; a disc that's found floats up and away while its stone sinks.
+// on the little mound in front, in its own colour and mold shape. The selected plot gets a pale ring (it
+// reads on the green by lightness, not hue), and the selected and hovered stones carry billboard name tags
+// that stay readable while the yard turns. A new loss rises out of the lawn; a disc that's found floats up
+// and away while its stone sinks.
 import {THREE,SceneView,discModel,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
 import {plots,graveColumns,PLOT_WIDTH,PLOT_DEPTH} from './graveyard-layout.mjs';
 
-const STONE_W=.42,STONE_H=.56,STONE_D=.085,ENTER_MS=760,LEAVE_MS=1100,MOVE_MS=520;
-const STONES=['#d3cfc6','#c8c6bf','#d8d1c4'];
-const LAWN='#a9b79a',MOUND='#93a585';
+const STONE_W=.46,STONE_H=.6,STONE_D=.09,FACE_W=STONE_W*.86,ENTER_MS=760,LEAVE_MS=1100,MOVE_MS=520;
+const STONES=['#e2ded5','#d9d7d0','#e6dfd2'];
+// A real lawn green, darker than the stones so they stand out by lightness for every kind of colour vision.
+const LAWN='#3c7a33',MOUND='#336c2d',RING='#f7f2e8';
+const INK='rgba(26,24,21,1)',LIP='rgba(255,255,255,.62)';
 const ABOVE_GROUND=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 
 function stoneShape(variant){
@@ -22,36 +26,40 @@ const stoneGeometries=[0,1,2].map(v=>{
  g.translate(0,0,-STONE_D/2);g.computeVertexNormals();return g;
 });
 
-// The engraving: carved lettering (a dark cut with a light lower lip), on a transparent plane.
+// The engraving, on a transparent plane over the stone's face. Sized to be read at the yard's normal
+// distance: the name large, the dates and the hole and course in bold beneath it, the epitaph in up to three
+// lines. The name and HERE LIES are carved (a dark cut with a light lower lip); the smaller lines are plain
+// dark ink, which stays crisp where a lip would blur.
 function engraving(lines,variant,size){
  const w=size,h=Math.round(size*1.25),c=document.createElement('canvas');c.width=w;c.height=h;
  const g=c.getContext('2d'),k=w/256,serif="Georgia,'Times New Roman',serif";
  g.textAlign='center';g.textBaseline='alphabetic';
- const carve=(text,y,font,max)=>{
-  let px=font.size;g.font=`${font.style||''} ${font.weight||400} ${px*k}px ${serif}`;
-  while(px>font.min&&g.measureText(text).width>max*k){px-=1;g.font=`${font.style||''} ${font.weight||400} ${px*k}px ${serif}`;}
+ const fontOf=(font,px)=>`${font.style||''} ${font.weight||400} ${px*k}px ${serif}`;
+ const write=(text,y,font,max,carved=false)=>{
+  let px=font.size;g.font=fontOf(font,px);
+  while(px>font.min&&g.measureText(text).width>max*k){px-=1;g.font=fontOf(font,px);}
   let shown=text;while(g.measureText(shown).width>max*k&&shown.length>3)shown=shown.slice(0,-2).trimEnd()+'…';
-  g.fillStyle='rgba(255,255,255,.5)';g.fillText(shown,w/2+.8*k,y*k+1.1*k);
-  g.fillStyle='rgba(40,38,34,.95)';g.fillText(shown,w/2,y*k);
+  if(carved){g.fillStyle=LIP;g.fillText(shown,w/2+.8*k,y*k+1.2*k);}
+  g.fillStyle=INK;g.fillText(shown,w/2,y*k);
  };
- const top=variant===1?84:variant===2?60:70;
- g.save();g.font=`600 ${15*k}px ${serif}`;if('letterSpacing' in g)g.letterSpacing=`${3*k}px`;
- g.fillStyle='rgba(255,255,255,.5)';g.fillText('HERE LIES',w/2+.8*k,top*k+1.1*k);g.fillStyle='rgba(40,38,34,.9)';g.fillText('HERE LIES',w/2,top*k);g.restore();
- carve(lines.name,top+42,{size:40,min:20,weight:700},variant===1?176:204);
- g.fillStyle='rgba(58,55,49,.55)';g.fillRect(w/2-28*k,(top+54)*k,56*k,1.6*k);
- carve(lines.dates,top+82,{size:18,min:11},210);
- if(lines.place)carve(lines.place,top+106,{size:16,min:10,style:'italic'},210);
+ const top=variant===1?84:variant===2?54:64,width=variant===1?196:222;
+ g.save();g.font=`700 ${15*k}px ${serif}`;if('letterSpacing' in g)g.letterSpacing=`${3.5*k}px`;
+ g.fillStyle=LIP;g.fillText('HERE LIES',w/2+.8*k,top*k+1.2*k);g.fillStyle=INK;g.fillText('HERE LIES',w/2,top*k);g.restore();
+ write(lines.name,top+52,{size:56,min:26,weight:700},width-6,true);
+ g.fillStyle=INK;g.fillRect(w/2-34*k,(top+66)*k,68*k,2.6*k);
+ write(lines.dates,top+98,{size:27,min:16,weight:700},width);
+ if(lines.place)write(lines.place,top+128,{size:25,min:15,weight:700},width);
  // The epitaph wraps to at most three lines.
  const words=String(lines.epitaph||'').split(/\s+/).filter(Boolean),rows=[];let row='';
- g.font=`italic 400 ${14*k}px ${serif}`;
- for(const word of words){const next=row?row+' '+word:word;if(g.measureText(next).width>196*k&&row){rows.push(row);row=word;}else row=next;}
+ g.font=fontOf({style:'italic',weight:600},22);
+ for(const word of words){const next=row?row+' '+word:word;if(g.measureText(next).width>width*k&&row){rows.push(row);row=word;}else row=next;}
  if(row)rows.push(row);
- rows.slice(0,3).forEach((text,i)=>carve(i===2&&rows.length>3?text+'…':text,top+(lines.place?136:118)+i*19,{size:14,min:10,style:'italic'},200));
- const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;return texture;
+ rows.slice(0,3).forEach((text,i)=>write(i===2&&rows.length>3?text+'…':text,top+(lines.place?162:134)+i*26,{size:22,min:15,style:'italic',weight:600},width));
+ const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;return texture;
 }
 
 /** Mount into a sized host. update(entries): {id, d, color, rimColor, name, lines:{name,dates,place,epitaph}}, newest first. */
-export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{},accent='#c8f169'}={}){
+export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{}}={}){
  const plotsById=new Map();let selected=null,hovered=null,columns=0,first=true,order=[];
  const view=new SceneView(host,{label:'Lost disc graveyard',yaw:-.12,pitch:.42,yawLimit:.7,maxZoom:3.5,onTap:p=>tap(p),onHover:p=>hover(p),onCamera});
  view.onZoom=onZoom;view.stage.renderer.localClippingEnabled=true;
@@ -60,15 +68,24 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
  const moundMaterial=new THREE.MeshStandardMaterial({color:MOUND,roughness:1});moundMaterial.userData.shared=true;
  const moundGeometry=new THREE.SphereGeometry(1,20,8,0,Math.PI*2,0,Math.PI/2);
  let lawn=null;const shadow=contactShadow(1,1,.9);view.scene.add(shadow);
- const ring=new THREE.Mesh(new THREE.RingGeometry(.215,.24,56),new THREE.MeshBasicMaterial({color:accent,transparent:true,opacity:.95,depthWrite:false}));
+ const ring=new THREE.Mesh(new THREE.RingGeometry(.212,.242,56),new THREE.MeshBasicMaterial({color:RING,transparent:true,opacity:.95,depthWrite:false}));
  ring.rotation.x=-Math.PI/2;ring.scale.set(1,1.22,1);ring.visible=false;view.scene.add(ring);
  const yard=new THREE.Group();view.scene.add(yard);
+ const anisotropy=Math.min(8,view.stage.renderer.capabilities.getMaxAnisotropy());
+ // Billboard names over the selected stone and the hovered one (which stays put through a drag).
+ const selectedTag=view.tag(),hoverTag=view.tag(),top=new THREE.Vector3();
+ function tagStone(tag,id){
+  const plot=id&&plotsById.get(id);if(!plot||plot.state==='leaving'||!plot.name){tag.hide();return;}
+  tag.set(plot.name);top.set(0,STONE_H+.012,0);plot.headstone.localToWorld(top);
+  tag.at(top,plot.state==='entering'?Math.max(0,(performance.now()-plot.t0)/ENTER_MS*2-1):1);
+ }
+ function placeTags(){tagStone(selectedTag,selected);if(hovered!==selected)tagStone(hoverTag,hovered);else hoverTag.hide();}
 
  function makePlot(e,spot){
   const group=new THREE.Group(),stoneMaterial=new THREE.MeshStandardMaterial({color:STONES[spot.variant],roughness:.92,clippingPlanes:[ABOVE_GROUND]});
   const stone=new THREE.Mesh(stoneGeometries[spot.variant],stoneMaterial);stone.castShadow=true;stone.receiveShadow=true;stone.userData.sharedGeometry=true;
-  const face=new THREE.Mesh(new THREE.PlaneGeometry(.36,.45),new THREE.MeshStandardMaterial({transparent:true,roughness:.9,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,clippingPlanes:[ABOVE_GROUND]}));
-  face.position.set(0,STONE_H*.505,STONE_D/2+.0125);
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(FACE_W,FACE_W*1.25),new THREE.MeshStandardMaterial({transparent:true,roughness:.9,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,clippingPlanes:[ABOVE_GROUND]}));
+  face.position.set(0,STONE_H*.5,STONE_D/2+.0125);
   const headstone=new THREE.Group();headstone.add(stone,face);headstone.rotation.set(THREE.MathUtils.degToRad(-spot.lean*.5),THREE.MathUtils.degToRad(spot.turn),THREE.MathUtils.degToRad(spot.lean));
   const mound=new THREE.Mesh(moundGeometry,moundMaterial);mound.scale.set(.19,.045,.27);mound.position.set(0,0,.3);mound.receiveShadow=true;mound.userData.sharedGeometry=true;
   group.add(headstone,mound);yard.add(group);
@@ -77,7 +94,9 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
  }
  function dress(plot,e){
   const key=JSON.stringify([e.lines,e.color,e.rimColor,e.d?.id,plotsById.size>12]);if(plot.key===key)return;plot.key=key;
-  plot.face.material.map?.dispose();plot.face.material.map=engraving(e.lines,stoneVariant(plot),plotsById.size>12?256:384);plot.face.material.needsUpdate=true;
+  plot.name=e.lines.name;
+  const texture=engraving(e.lines,stoneVariant(plot),plotsById.size>12?320:512);texture.anisotropy=anisotropy;
+  plot.face.material.map?.dispose();plot.face.material.map=texture;plot.face.material.needsUpdate=true;
   if(plot.disc){plot.group.remove(plot.disc);disposeObject(plot.disc);}
   const disc=discModel(e.d,{color:e.color,rimColor:e.rimColor,name:e.name});
   const t=disc.userData.parts.thickness;disc.position.set(.01,.045+t/2-.004,.3);disc.rotation.set(-.12,THREE.MathUtils.degToRad((plot.x*97)%40-20),.06);
@@ -153,7 +172,7 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
     if(t<1)more=true;else{plot.from=null;plot.t0=0;}
    }
   }
-  placeRing();return more;
+  placeRing();placeTags();return more;
  });
  function idAt(p){
   const hit=view.pick(p,[yard])[0];if(!hit)return null;
@@ -161,14 +180,15 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
   return null;
  }
  function tap(p){const id=idAt(p);if(id){select(id);onPick(id);}}
- function hover(p){const id=p?idAt(p):null;if(id!==hovered){hovered=id;host.style.cursor=id?'pointer':'';}onHover(id,p);}
+ function hover(p){const id=p?idAt(p):null;if(id!==hovered){hovered=id;host.style.cursor=id?'pointer':'';view.request();}onHover(id,p);}
  function select(id){selected=plotsById.has(id)?id:null;placeRing();view.request();}
  return {
   update,select,
   show(){view.show();},hide(){view.hide();},
   zoomBy(f){view.setZoom(view.zoom*f);},zoomTo(z){view.setZoom(z);},get zoom(){return view.zoom;},
   turnBy(rad){view.turnBy(rad);},
-  setAccent(color){if(color){ring.material.color.set(color);view.request();}},
+  // The billboard names on show, with their canvas positions (tests).
+  get tags(){return [selectedTag,hoverTag].filter(t=>t.shown).map(t=>({text:t.text,...view.project(t.sprite.position)}));},
   // Each headstone's top centre in canvas CSS px, for the keyboard targets over the canvas.
   anchors(){return [...plotsById.values()].filter(p=>p.state!=='leaving').map(p=>{const at=new THREE.Vector3(0,STONE_H*.5,0);p.headstone.localToWorld(at);const s=view.project(at);const top=new THREE.Vector3(0,STONE_H,0);p.headstone.localToWorld(top);const t=view.project(top);const base=new THREE.Vector3(0,0,.42);p.group.localToWorld(base);const b=view.project(base);return {id:p.id,x:s.x,y:s.y,top:t.y,bottom:b.y,width:Math.abs(b.y-t.y)*.75,visible:s.visible};});},
   get state(){return {graves:[...plotsById.values()].filter(p=>p.state!=='leaving').length,leaving:[...plotsById.values()].filter(p=>p.state==='leaving').length,selected,columns,zoom:view.zoom,quality:view.stage.quality,frames:view.frames||0,moving:[...plotsById.values()].some(p=>p.t0)};},

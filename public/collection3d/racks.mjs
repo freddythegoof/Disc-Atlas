@@ -1,17 +1,21 @@
-// Storage racks: Freddy's wooden rack (wooden-disc-rack.glb, built in Astra, real-world metres) holding
-// the player's stored discs upright. One rack per 72 discs, side by side, as many as the collection needs.
+// Storage racks: Freddy's rack (wooden-disc-rack.glb, built in Astra, real-world metres) holding the
+// player's stored discs upright. One rack per 72 discs, side by side, as many as the collection needs.
+//
+// The GLB is wooden; the site is not. At load its wood, grain and normal map are swapped for powder-coated
+// steel with terracotta front rails, and the finish follows the site theme (setTheme). One model, four looks.
 //
 // The GLB's own 72 placeholder discs are dropped; its DiscSlot nodes give each slot's rest position. Each
 // stored disc is its mold's lathe from disc3d (PDGA dimensions; overmold molds in two colours), drawn as
 // instances: one draw call per mold shape, so a few hundred discs stay cheap on a phone. The rack's
-// boards merge into one mesh per material (wood, screws, feet): three draw calls a rack.
+// parts merge into one mesh per finish (frame, trim, screws, feet): four draw calls a rack.
 //
 // A tapped disc lifts, clears the front rail and turns face out in front of its bay (rack-motion.mjs, the
-// bag's timing), wearing its generic name stamp; tapping it again, or empty space, puts it back.
+// bag's timing), wearing its generic name stamp; tapping it again, or empty space, puts it back. The pulled
+// disc and the hovered one carry a billboard name tag that stays readable while the racks turn.
 import {THREE,SceneView,discParts,discColors,discMaterial,discModel,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {discPose,TOTAL_MS,DEFAULT_RACK_COLOR} from './rack-motion.mjs';
+import {discPose,TOTAL_MS} from './rack-motion.mjs';
 import {RACK_CAPACITY,RACK_WIDTH,RACK_HEIGHT,RACK_DEPTH,rackCount,rackSlot,rackX,rowWidth,restHeight,pulledSpot} from './rack-layout.mjs';
 
 const MOVE_MS=480,HOVER_LIFT=.014;
@@ -23,34 +27,62 @@ const SPIN=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math
 const Y_AXIS=new THREE.Vector3(0,1,0),ONE=new THREE.Vector3(1,1,1),HIDDEN=new THREE.Matrix4().makeScale(0,0,0);
 const lerp3=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 
+// The rack's finish per site theme: matte powder-coated steel a step off the page, so the frame reads on
+// every background, and terracotta front rails (the site's warm accent, distinct from the discs by
+// lightness as well as hue). Discs keep their own colours.
+export const RACK_FINISHES={
+ light:{frame:'#3d4148',trim:'#a2523a',screws:'#9aa0a8',feet:'#16171a'},
+ midnight:{frame:'#2e3746',trim:'#b25e3f',screws:'#7d8798',feet:'#07090d'},
+ charcoal:{frame:'#383b41',trim:'#b25e3f',screws:'#868a92',feet:'#0b0c0e'},
+ black:{frame:'#2c2c2e',trim:'#ad5a3c',screws:'#7c7c80',feet:'#040404'},
+};
+const finishOf=theme=>RACK_FINISHES[theme]||RACK_FINISHES.light;
+// Each part of the GLB by name: the front retaining rails are the trim; sides, ledge, slats, dividers and
+// rear rails are the frame. (GLTFLoader writes node names with underscores for spaces.)
+function roleOf(o){
+ const name=String(o.material?.name||''),node=`${o.name} ${o.parent?.name||''}`.replace(/_/g,' ');
+ if(/screw/i.test(name))return 'screws';
+ if(/feet|foot/i.test(name)||/foot/i.test(node))return 'feet';
+ return /front retaining rail/i.test(node)?'trim':'frame';
+}
+const finishes={
+ frame:new THREE.MeshStandardMaterial({metalness:.55,roughness:.52}),
+ trim:new THREE.MeshStandardMaterial({metalness:.2,roughness:.48}),
+ screws:new THREE.MeshStandardMaterial({metalness:.9,roughness:.32}),
+ feet:new THREE.MeshStandardMaterial({metalness:0,roughness:.9}),
+};
+for(const m of Object.values(finishes))m.userData.shared=true;
+function paint(theme){const f=finishOf(theme);for(const [role,m] of Object.entries(finishes))m.color.set(f[role]);}
+
 let template=null;
 function loadTemplate(url){
  return template||=new GLTFLoader().loadAsync(url).then(gltf=>{
   const root=gltf.scene;root.updateMatrixWorld(true);
-  const byMaterial=new Map(),slots=[];
+  const byRole=new Map(),slots=[];
   root.traverse(o=>{
    if(!o.isMesh)return;
    if(o.userData.role==='disc'){slots[o.userData.discSlot]={slot:o.userData.discSlot,tier:o.userData.tier,bay:o.userData.bay,rest:o.getWorldPosition(new THREE.Vector3()).toArray()};return;}
+   // Steel has no grain: keep only positions and normals (the wood's UVs fed its texture).
    const g=o.geometry.clone().applyMatrix4(o.matrixWorld);
-   for(const name of Object.keys(g.attributes))if(!['position','normal','uv'].includes(name))g.deleteAttribute(name);
-   if(!byMaterial.has(o.material))byMaterial.set(o.material,[]);byMaterial.get(o.material).push(g);
+   for(const name of Object.keys(g.attributes))if(!['position','normal'].includes(name))g.deleteAttribute(name);
+   const role=roleOf(o);if(!byRole.has(role))byRole.set(role,[]);byRole.get(role).push(g);
   });
   if(slots.filter(Boolean).length!==RACK_CAPACITY)throw new Error('The rack model is missing disc slots.');
-  const pieces=[...byMaterial].map(([material,list])=>{
+  const pieces=[...byRole].map(([role,list])=>{
    const indexed=list.every(g=>g.index),geometry=mergeGeometries(indexed?list:list.map(g=>g.index?g.toNonIndexed():g),false);
-   geometry.computeBoundingSphere();material.userData.shared=true;material.userData.sharedMaps=true;
-   if(material.userData.role==='rack-color')material.color.set(DEFAULT_RACK_COLOR);
-   return {geometry,material};
+   geometry.computeBoundingSphere();list.forEach(g=>g.dispose());
+   return {role,geometry,material:finishes[role]};
   });
-  // Placeholder disc geometry and materials are not used; free them.
-  root.traverse(o=>{if(o.isMesh&&o.userData.role==='disc'){o.geometry.dispose();o.material.dispose();}});
+  // The GLB's own materials (wood and its textures) and placeholder discs are not used; free them.
+  root.traverse(o=>{if(!o.isMesh)return;if(o.userData.role==='disc')o.geometry.dispose();for(const m of [o.material].flat()){for(const k of ['map','normalMap','roughnessMap','metalnessMap'])m[k]?.dispose();m.dispose();}});
   return {pieces,slots};
  }).catch(error=>{template=null;throw error;});
 }
 
 /** Mount into a sized host. update(entries) places discs; entries are {id, d, color, rimColor, name} in rack order. */
-export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{}}={}){
+export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{},theme=document.documentElement.dataset.theme}={}){
  const {pieces,slots}=await loadTemplate(new URL('./wooden-disc-rack.glb',import.meta.url).href);
+ paint(theme);let finish=theme;
  let view;
  const records=new Map(),batches=new Map(),rackGroups=[];
  // Out discs: the pulled one (goal 1) and any still gliding home (goal 0). One is out at a time.
@@ -64,11 +96,21 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  view.light({keyShadow:view.stage.quality==='fine'?2048:1024});
  const shadow=contactShadow(1,1,1);view.scene.add(shadow);
  const racksRoot=new THREE.Group(),discRoot=new THREE.Group();view.scene.add(racksRoot,discRoot);
+ // Billboard names: the pulled disc's, and the hovered disc's (which stays put through a drag).
+ const pulledTag=view.tag(),hoverTag=view.tag(),anchor=new THREE.Vector3();
+ function placeTags(){
+  let shown=null,out=null;
+  for(const o of outs.values())if(o.goal===1||(!out&&o.progress>0))out=o;
+  if(out){const r=records.get(out.id);if(r){pulledTag.set(r.name);anchor.copy(out.proxy.position);anchor.y+=r.entry.radius+.006;pulledTag.at(anchor,Math.min(1,out.progress*1.6));shown=out.id;}}
+  if(!shown)pulledTag.hide();
+  const r=hovered&&hovered!==shown&&!outs.has(hovered)&&records.get(hovered);
+  if(r){hoverTag.set(r.name);anchor.set(r.current[0],r.current[1]+r.lift+r.entry.radius+.004,r.current[2]);hoverTag.at(anchor);}else hoverTag.hide();
+ }
 
  function ensureRacks(n){
   while(rackGroups.length<n){
    const group=new THREE.Group();
-   for(const piece of pieces){const mesh=new THREE.Mesh(piece.geometry,piece.material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.sharedGeometry=true;group.add(mesh);}
+   for(const piece of pieces){const mesh=new THREE.Mesh(piece.geometry,piece.material);mesh.castShadow=piece.role!=='screws';mesh.receiveShadow=true;mesh.userData.sharedGeometry=true;mesh.userData.part=piece.role;group.add(mesh);}
    group.userData.rack=rackGroups.length;racksRoot.add(group);rackGroups.push(group);
   }
   while(rackGroups.length>n){const group=rackGroups.pop();racksRoot.remove(group);}
@@ -204,6 +246,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
    o.proxy.quaternion.setFromAxisAngle(Y_AXIS,pose.turn).multiply(UPRIGHT).multiply(SPIN);
    if(o.goal===0&&o.progress===0)drop(id);else if(o.progress===o.goal)o.last=undefined;
   }
+  placeTags();
   return more;
  });
 
@@ -214,8 +257,13 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   focusRack(rack){focus=rack==null||rack>=count?null:rack;view.frame(box());onCamera();},
   zoomBy(f){view.setZoom(view.zoom*f);},zoomTo(z){view.setZoom(z);},get zoom(){return view.zoom;},
   turnBy(rad){view.turnBy(rad);},
+  // Repaint the rack for a site theme (light, midnight, charcoal or black); the discs keep their colours.
+  setTheme(theme){if(theme===finish)return;finish=theme;paint(theme);view.request();},
   // A disc's centre in canvas CSS px (tests and the name pill).
   project(id){const r=records.get(id);if(!r)return null;const o=outs.get(id);return view.project(o?o.proxy.position.clone():new THREE.Vector3(...r.current));},
+  // The billboard names on show, with their canvas positions (tests).
+  get tags(){return [pulledTag,hoverTag].filter(t=>t.shown).map(t=>({text:t.text,...view.project(t.sprite.position)}));},
+  get finish(){return {theme:finish,...Object.fromEntries(Object.entries(finishes).map(([k,m])=>[k,'#'+m.color.getHexString()]))};},
   get state(){return {racks:count,discs:records.size,pulled:pulledId(),moving:[...outs.values()].some(o=>o.progress!==o.goal)||[...records.values()].some(r=>r.t0),batches:batches.size,focus,zoom:view.zoom,quality:view.stage.quality,frames:view.frames||0};},
   get info(){const i=view.stage.renderer.info.render;return {calls:i.calls,triangles:i.triangles};},
   get size(){return {...view.size};},

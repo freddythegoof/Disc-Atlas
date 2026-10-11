@@ -152,7 +152,7 @@ body[data-view="map"]:not(.my-bag-mode) #map::before { -webkit-mask-image:linear
 .my-bag-views { background:var(--bg); border-color:var(--hairline); border-radius:999px; }
 .my-bag-views button { border-radius:999px; }
 .my-bag-views button[aria-checked="true"] { background:var(--surface); color:var(--text); box-shadow:inset 0 0 0 1px var(--accent-edge); }
-.my-bag-meter { border-color:var(--hairline); }
+.my-bag-meter,.collection-scene-head { border-color:var(--hairline); }
 #bagSort { background:var(--panel); border-color:var(--hairline); }
 #bagSortHint { font-family:var(--mono); letter-spacing:-.01em; }
 .bag-zoom,.collection-zoom,.bag-return-all,.bag-dump { background:var(--glass); border-color:var(--hairline); }

@@ -98,7 +98,7 @@ try{
   });
   for(const b of info){
    assert.ok(b.icon&&b.indicator,`${width}: Add shows its plus icon and the dropdown indicator`);
-   assert.match(b.name,/^Add .+ to Bag or Storage$/,`${width}: Add keeps its accessible name`);
+   assert.match(b.name,/^Add .+ to Bag, Storage or Lost$/,`${width}: Add keeps its accessible name`);
    assert.ok(b.centred<=1,`${width}: Add sits centred in its row`);
    assert.ok(b.inset>=(width>700?16:8)-.5,`${width}: Add keeps clear of the list edge (${b.inset}px)`);
    assert.ok(b.scoreGap>=(width>700?12:4)-.5,`${width}: Add keeps clear of the index (${b.scoreGap}px)`);

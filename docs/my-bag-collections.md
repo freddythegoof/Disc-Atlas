@@ -2,14 +2,16 @@
 
 My Bag has four views: **Bag**, **My Map**, **Storage** and **Lost**. Storage and Lost are new, and they show the discs the account already keeps. Storage discs are `in_bag=false` and `status='active'`. Lost discs are `status='lost'`, with the memorial fields from `0007_lost_discs.sql`. There is no migration and no new API: every action uses the existing `PATCH`/`DELETE /api/bag/discs/:id`.
 
+Each view has **its own page header**. Bag (and My Map) keeps YOUR EVERYDAY LINEUP / My Bag and the bag's slot meter. Storage is OFF THE COURSE / Storage and Lost is IN MEMORIAM / Lost. Neither shows the bag meter: each scene has its own count row in the meter's place (Storage: discs, racks, open slots and a fill bar; Lost: discs remembered and the latest loss). The scenes' old headings ("Your racks", "The graveyard") stay as the figures' screen-reader names.
+
 Below each view there is **one list at a time**. The picker (`#bagListPicker`: Bag / Storage / Lost, each with its count) swaps which list shows, and the other two sections stay in the DOM, hidden. Switching the view sets the picker to match. Switching the picker leaves the scene alone, so you can look at the racks while working through the Bag list. My Map has no list. The demo (signed out) keeps only the Bag view and offers Bag and Storage in the picker.
 
 ## Storage: racks
 
 - **Model.** `public/collection3d/wooden-disc-rack.glb` is Freddy's rack from Astra (copied unchanged from `Documents/Codex/2026-10-10/so-x20/outputs/disc-rack/`). Units are real-world metres: 96 × 108 × 33 cm, with 72 slots.
   - Its 72 placeholder discs are dropped at load. Their `DiscSlot` nodes supply the slot positions.
-  - The boards merge into one mesh per material (wood, screws, feet), so each rack is 3 draw calls. The wood keeps its grain and the default `#d4bb86` tint.
-  - The rack-colour API from the source viewer was not carried over.
+  - The GLB stays wooden on disk. At load its parts are regrouped by role and given site finishes: powder-coated steel for the sides, ledge, slats, dividers and rear rails, terracotta for the three front retaining rails, steel screws, black feet. Wood textures and UVs are dropped. Each rack is 4 draw calls.
+  - The finish follows the site theme (`RACK_FINISHES` in `racks.mjs`, one each for light, midnight, charcoal and black). `collection-scenes.js` calls `setTheme` on `atlas-theme-change`, which only recolours the four shared materials. Discs keep their own colours.
 - **Discs.** Each disc is its own mold's lathe from `disc3d/shape.mjs` (PDGA dimensions, centimetres, scaled to metres), with overmold rims in two colours (`disc3d/overmold.mjs` plus the copy's `rim_color`).
   - Every disc stands on its shelf by its own radius.
   - Discs are drawn as instances: one draw call per mold shape, plus one for each overmold rim.
@@ -20,18 +22,25 @@ Below each view there is **one list at a time**. The picker (`#bagListPicker`: B
 - **Interaction.** Gestures match the bag: drag sideways to turn, a vertical swipe scrolls the page, pinch or Ctrl/⌘ + scroll zooms, and a zoomed view drags to pan. The keyboard turns the scene with the arrow keys and zooms with + and −.
   - Tapping a disc runs the source rack's motion (`rack-motion.mjs`, the bag's 945 ms timing): the disc lifts, clears the front rail and turns face out with its generic name stamp.
   - Its card offers Move to bag, Details, Remove and Put back.
+  - **Name tags.** The pulled disc and the hovered disc carry billboard name tags (`NameTag` in `stage.mjs`): sprites that face the camera at a fixed pixel size and draw over everything, in the bag's dark name-pill style. They stay on their discs while the racks turn, zoom or pan, a drag included. The old DOM hover pill, which hid during drags, is gone.
   - A Storage list name pulls its disc out too.
 
 ## Lost: the graveyard
 
 - **Scene.** A small lawn holds one headstone per lost disc, newest at the front. Each stone is engraved with HERE LIES, the name, the dates (added to the collection to the day it was lost), the hole and course, and an epitaph. The disc rests on the mound in front, in its colour and mold shape.
-  - The selected plot gets an accent ring.
+  - The lawn is a real green (`#3c7a33`), darker than the stones so they stand apart by lightness. The selected plot gets a pale ivory ring, which also reads by lightness rather than hue.
+  - The selected stone and the hovered one carry billboard name tags, like the racks.
+  - The engraving uses most of the stone's face: a large carved name, bold dates and hole/course lines, and the epitaph in up to three italic lines, in dark ink at 512 px per stone (320 px above 12 stones).
   - A new loss rises out of the lawn.
   - On Found it!, the disc floats away and the stone sinks.
 - **Epitaphs.** These are in `graveyard-layout.mjs` and are funny but kind. They are seeded by the disc id, so each disc keeps its own. The story text alone picks water or tree lines, so a course called "Maple Hill" doesn't count. Otherwise the disc class picks the pool.
 - **Card.** The card under the canvas carries the full memorial (story included) and **Found it!**, which is the existing restore: `status:'active'` puts the disc back in the bag. The Lost list's memorial cards keep Found it! and Remove.
 - **Keyboard.** The headstones are one tab stop over the canvas, and the arrow keys move between them. Pointers go to the canvas, so a drag always turns the scene.
 - **Empty.** With no lost discs, nothing 3D loads. The page shows a friendly ghost and "No ghosts here yet."
+
+## Adding straight to Storage or Lost
+
+The Add to menu (Directory rows, the details panel, the compare bar) offers **Bag**, **Storage** and **Lost**. Lost opens the same add sheet with its memorial fields (date lost, hole, course, story) and saves the disc with one `POST` with `status:'lost'`. The server already accepted that, so nothing changed there. Editing a saved disc does not offer Lost; its own Lost button does that.
 
 ## Loading and code
 
@@ -52,4 +61,8 @@ Below each view there is **one list at a time**. The picker (`#bagListPicker`: B
   - bag ↔ storage with every count checked
   - a loss producing a headstone with its story, then Found it! from the card and from the list
   - the empty graveyard
+  - per-tab headers (Bag keeps the meter; Storage and Lost don't)
+  - the rack finish for all four themes (terracotta trim, a different frame per theme), with screenshots
+  - name tags staying on screen through scripted turns and a mouse drag, on racks and graveyard
+  - Add to → Lost from the Directory, checked against the server
   - a phone pass: lazy loading, the touch budget, draw calls, triangles, frame times, overflow, and a 360 px layout

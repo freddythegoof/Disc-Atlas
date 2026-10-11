@@ -109,12 +109,24 @@ function sync(data) {
  }
  showDemo();render();if(changed && data.user)void loadBag();
 }
+// Each view has its own page header. Bag (and My Map, which plots the bag) carries the bag's count under
+// it; Storage and Lost bring their own counts in their scenes.
+const HEADERS={
+ bag:['YOUR EVERYDAY LINEUP','My Bag','Your discs. Ready for the round.'],
+ storage:['OFF THE COURSE','Storage','Every disc you own but don’t carry, racked and ready.'],
+ lost:['IN MEMORIAM','Lost','The discs that didn’t come home, and how they went.'],
+};
+function renderHeader(demo){
+ const [eyebrow,title,tagline]=HEADERS[bagView]||HEADERS.bag;
+ $('#myBagEyebrow').textContent=demo?'SAMPLE LINEUP':eyebrow;$('#myBagTitle').textContent=title;$('#myBagTagline').textContent=tagline;
+ $('#myBagView').dataset.view=bagView;
+}
 function render() {
  const signedIn = !!account?.user,demo=isDemo(),shown=signedIn || demo;publishBagColors();
  // Until the account check answers, the teaser holds the place; signed out, the demo bag shows.
- $('#myBagTeaser').hidden=shown;$('#myBagDemo').hidden=!demo;$('#myBagEyebrow').textContent=demo?'SAMPLE LINEUP':'YOUR EVERYDAY LINEUP';
+ $('#myBagTeaser').hidden=shown;$('#myBagDemo').hidden=!demo;renderHeader(demo);
  $('#myBagTeaserStatus').textContent='Checking your account…';
- $('#myBagTools').hidden=!shown;$('#editBagModel').hidden=demo;$('#myBagContents').hidden=!shown || loading || !!loadError;
+ $('#myBagTools').hidden=!shown || bagView==='storage' || bagView==='lost';$('#editBagModel').hidden=demo;$('#myBagContents').hidden=!shown || loading || !!loadError;
  $('#myBagLoadState').hidden=!signedIn || (!loading && !loadError);
  $('#myBagLoadMessage').textContent=loading?'Loading your bag…':loadError;$('#retryMyBag').hidden=!loadError;
  $('#addBagDisc').hidden=!signedIn;
@@ -239,7 +251,10 @@ async function openDisc(d,item=null,destination='bag') {
  $('#bagPlasticOther').value=values.plastic || '';updatePlastic();
  $('#plasticHint').textContent='Plastic families vary by mold and run.';
  $('#bagWear').value=values.wear;updateWear();$('#bagWeight').value=values.weight_g;$('#bagNotes').value=values.notes || '';
+ // Lost is a starting place for a new disc; a saved disc goes there through its own Lost button.
+ const lostChoice=$('#bagDestination option[value="lost"]');lostChoice.disabled=lostChoice.hidden=!!item;
  $('#bagDestination').value=item?(item.in_bag?'bag':'storage'):destination;$('#bagPocket').value=values.pocket;
+ $('#addLostDate').value=today();for(const id of ['addLostHole','addLostCourse','addLostStory'])$('#'+id).value='';
  updatePocketField();
  setStabilityBias(values.stability_bias);
  $('#bagDiscColor').value=values.color || plasticColor(d.brand,values.plastic,plastics);colorCustomized=!!item;
@@ -254,12 +269,14 @@ async function openDisc(d,item=null,destination='bag') {
 $('#addDiscForm').addEventListener('submit',async event=>{
  event.preventDefault();const epoch=generation,edited=editing,button=$('#saveDisc');button.disabled=true;$('#addDiscStatus').textContent='Saving…';
  try {
-  const value=validateDiscDetails({mold_id:$('#addDiscId').value,plastic:$('#bagPlastic').value==='__other'?$('#bagPlasticOther').value:$('#bagPlastic').value,wear:Number($('#bagWear').value),weight_g:Number($('#bagWeight').value),notes:$('#bagNotes').value,color:$('#bagDiscColor').value,rim_color:rimCustomized && !$('#bagRimColorField').hidden?$('#bagRimColor').value:null,in_bag:$('#bagDestination').value==='bag',pocket:$('#bagPocket').value,stability_bias:$('#bagStabilityBias').value || null},mold($('#addDiscId').value),plastics);
+  const lost=!edited && $('#bagDestination').value==='lost';
+  const memorial=lost?{status:'lost',lostDate:$('#addLostDate').value,lostCourse:$('#addLostCourse').value,lostHole:$('#addLostHole').value?Number($('#addLostHole').value):null,lostStory:$('#addLostStory').value}:{};
+  const value=validateDiscDetails({mold_id:$('#addDiscId').value,plastic:$('#bagPlastic').value==='__other'?$('#bagPlasticOther').value:$('#bagPlastic').value,wear:Number($('#bagWear').value),weight_g:Number($('#bagWeight').value),notes:$('#bagNotes').value,color:$('#bagDiscColor').value,rim_color:rimCustomized && !$('#bagRimColorField').hidden?$('#bagRimColor').value:null,in_bag:$('#bagDestination').value==='bag',pocket:$('#bagPocket').value,stability_bias:$('#bagStabilityBias').value || null,...memorial},mold($('#addDiscId').value),plastics);
   const result=await api('/discs'+(edited?'/'+edited.id:''),edited?'PUT':'POST',value);
   items=edited?items.map(i=>i.id===edited.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();
   // An edited row is re-rendered, so explicitly restore keyboard focus to its new button.
   if(active && edited)$(`[data-bag-edit="${edited.id}"]`)?.focus({preventScroll:true});
-  status(edited?'Disc updated.':result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.');
+  status(edited?'Disc updated.':result.disc.status==='lost'?`${name(mold(result.disc.mold_id))} has a headstone in Lost.`:result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.');
  } catch(error) {if(error.name!=='AbortError')$('#addDiscStatus').textContent=error.message;}
  finally {if(epoch===generation)button.disabled=false;}
 });
@@ -272,17 +289,20 @@ function setStabilityBias(value){
  document.querySelectorAll('[data-stability-bias]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.stabilityBias===value)));
 }
 document.querySelectorAll('[data-stability-bias]').forEach(button=>button.addEventListener('click',()=>setStabilityBias($('#bagStabilityBias').value===button.dataset.stabilityBias?null:button.dataset.stabilityBias)));
-function updateSaveLabel(){$('#saveDisc').textContent=editing?'Save changes':$('#bagDestination').value==='storage'?'Save to Storage':'Save to bag';}
+function updateSaveLabel(){$('#saveDisc').textContent=editing?'Save changes':{storage:'Save to Storage',lost:'Save to Lost'}[$('#bagDestination').value]||'Save to bag';}
+const today=()=>{const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;};
 function updatePocketField(){
- const isStorage=$('#bagDestination').value==='storage';
+ const destination=$('#bagDestination').value,isStorage=destination!=='bag';
  const pocketWrapper=document.querySelector('.bag-pocket-field');
  if(pocketWrapper)pocketWrapper.hidden=isStorage;
+ // Lost: the memorial's date, hole, course and story join the sheet.
+ $('#bagLostFields').hidden=destination!=='lost';$('#addLostDate').required=destination==='lost';
  if(isStorage){
   const d=mold($('#addDiscId').value);
   if(d)$('#bagPocket').value=defaultPocket(d);
  }
 }
-$('#bagDestination').addEventListener('change',()=>{updateSaveLabel();updatePocketField();});
+$('#bagDestination').addEventListener('change',()=>{updateSaveLabel();updatePocketField();if(!$('#bagLostFields').hidden)$('#addLostDate').focus();});
 $('#bagSort').addEventListener('change',async()=>{
  if(ordering)return;const epoch=generation;ordering=true;$('#bagSort').disabled=true;
  try{const data=await api('','PATCH',{sort_mode:$('#bagSort').value});settings=data.bag;readSequence++;loading=false;status('Disc order updated.');}
@@ -385,7 +405,7 @@ function openLostDisc(button){
  const item=items.find(i=>i.id===button.dataset.bagLost);if(!item || item.status==='lost')return;
  if(pendingPockets.has(item.id)){status('Your pocket change is still saving. Please try again in a moment.');return;}
  losing=item;$('#lostDiscName').textContent=name(mold(item.mold_id));$('#lostDiscForm').reset();
- const today=new Date();$('#lostDate').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+ $('#lostDate').value=today();
  $('#lostDiscStatus').textContent='';$('#confirmLostDisc').disabled=false;show($('#lostDiscDialog'));$('#lostDate').focus();
 }
 $('#lostDiscForm').addEventListener('submit',async event=>{

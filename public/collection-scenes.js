@@ -1,13 +1,16 @@
 // My Bag's Storage and Lost tabs: the DOM around their 3D scenes (collection3d/). Each scene loads its
-// three.js module only when its tab first shows, and keeps the canvas, a hover name, zoom controls and
-// a card under the canvas in sync with the player's discs. The card is where actions live (Move to bag,
-// Found it!), so nothing floats over the drawing but names. The lists below remain the full keyboard path.
+// three.js module only when its tab first shows, and keeps the canvas, zoom controls and a card under the
+// canvas in sync with the player's discs. Names are billboards inside the scenes, so they stay readable
+// while the view turns. The card is where actions live (Move to bag, Found it!), so nothing floats over the
+// drawing. The lists below remain the full keyboard path.
 import {rackCount,rackSlot,RACK_CAPACITY} from './collection3d/rack-layout.mjs';
 import {epitaph,lifespan,restingPlace} from './collection3d/graveyard-layout.mjs';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const accent=()=>getComputedStyle(document.documentElement).getPropertyValue('--lime').trim()||null;
+const theme=()=>document.documentElement.dataset.theme;
 const plural=(n,one,many=one+'s')=>`${n} ${n===1?one:many}`;
+// The same, with the number set large in the scene's meter (innerText still reads "80 discs").
+const count=(n,one,many=one+'s')=>`<b>${n}</b> ${n===1?one:many}`;
 const ZOOM_STEP=1.4,TURN_STEP=.15;
 const TIERS=['Top','Middle','Bottom'],BAYS=['left','middle','right'];
 
@@ -15,7 +18,7 @@ class CollectionScene{
  constructor(root,{lookup,name,load}){
   this.root=root;this.lookup=lookup;this.name=name;this.loader=load;this.items=[];this.visible=false;
   this.canvas=root.querySelector('[data-collection-canvas]');this.status=root.querySelector('[data-collection-status]');
-  this.pill=root.querySelector('[data-collection-hover]');this.card=root.querySelector('[data-collection-card]');
+  this.card=root.querySelector('[data-collection-card]');
   this.summary=root.querySelector('[data-collection-summary]');
   const zoom=root.querySelector('[data-collection-zoom]');
   zoom.querySelector('[data-zoom="out"]').addEventListener('click',()=>this.viewer?.zoomBy(1/ZOOM_STEP));
@@ -30,7 +33,7 @@ class CollectionScene{
    else if(event.key==='+'||event.key==='='){event.preventDefault();this.viewer.zoomBy(ZOOM_STEP);}
    else if(event.key==='-'||event.key==='_'){event.preventDefault();this.viewer.zoomBy(1/ZOOM_STEP);}
   });
-  addEventListener('atlas-theme-change',()=>this.viewer?.setAccent?.(accent()));
+  addEventListener('atlas-theme-change',()=>this.viewer?.setTheme?.(theme()));
  }
  load(){
   this.loading??=this.loader().then(viewer=>{this.viewer=viewer;this.root.dataset.engine='ready';this.status.textContent='';return viewer;},error=>{
@@ -39,16 +42,10 @@ class CollectionScene{
   return this.loading;
  }
  showZoom(zoom){this.zoomLevel.textContent=Math.round(zoom*100)+'%';this.zoomLevel.disabled=zoom<=1.001;}
- hover(text,p){
-  if(!text||!p){this.pill.hidden=true;return;}
-  this.pill.textContent=text;this.pill.hidden=false;
-  const w=this.canvas.clientWidth,pw=this.pill.offsetWidth;
-  this.pill.style.left=Math.max(6,Math.min(w-pw-6,p.x-pw/2))+'px';this.pill.style.top=Math.max(6,p.y-44)+'px';
- }
  // Show or hide the scene; while shown it draws `items`.
  sync(visible,items){
   this.items=items;this.visible=visible;this.root.hidden=!visible;
-  if(!visible){this.viewer?.hide();this.hover(null);return;}
+  if(!visible){this.viewer?.hide();return;}
   this.render();
   if(!this.wants()){this.viewer?.hide();return;}
   if(!this.viewer){this.root.dataset.engine||='loading';if(this.root.dataset.engine==='loading')this.status.textContent=this.loadText;}
@@ -62,13 +59,13 @@ class CollectionScene{
 export class StorageScene extends CollectionScene{
  constructor(root,{lookup,name,moveToBag,details,remove}){
   super(root,{lookup,name,load:()=>import('./collection3d/racks.mjs').then(m=>m.mountRacks(this.canvas,{
+   theme:theme(),
    onPick:id=>{this.picked=id;this.renderCard();},
-   onHover:(id,p)=>{const item=id&&this.items.find(i=>i.id===id);this.hover(item&&this.name(this.lookup(item.mold_id)),p);},
    onZoom:z=>this.showZoom(z),
   }))});
   this.loadText='Setting up your racks…';this.failText='The 3D racks couldn’t load here. Every stored disc is in the Storage list below.';
   this.handlers={moveToBag,details,remove};this.picked=null;this.focusRack=null;
-  this.picker=root.querySelector('[data-rack-picker]');
+  this.picker=root.querySelector('[data-rack-picker]');this.fill=root.querySelector('[data-collection-fill]');
   this.picker.addEventListener('click',event=>{
    const button=event.target.closest('[data-rack]');if(!button)return;
    this.focusRack=button.dataset.rack==='all'?null:Number(button.dataset.rack);this.viewer?.focusRack(this.focusRack);this.renderPicker();
@@ -90,7 +87,8 @@ export class StorageScene extends CollectionScene{
  }
  render(){
   const n=this.items.length,racks=rackCount(n),free=racks*RACK_CAPACITY-n;
-  this.summary.textContent=`${plural(n,'disc')} in Storage · ${plural(racks,'rack')} · ${plural(free,'open slot')}`;
+  this.summary.innerHTML=`${count(n,'disc')} in Storage · ${count(racks,'rack')} · ${count(free,'open slot')}`;
+  this.fill.max=racks*RACK_CAPACITY;this.fill.value=n;
   this.root.dataset.racks=String(racks);
   if(this.focusRack!=null&&this.focusRack>=racks)this.focusRack=null;
   if(this.picked&&!this.items.some(i=>i.id===this.picked))this.picked=null;
@@ -126,9 +124,7 @@ export class StorageScene extends CollectionScene{
 export class LostScene extends CollectionScene{
  constructor(root,{lookup,name,classOf,found,pending}){
   super(root,{lookup,name,load:()=>import('./collection3d/graveyard.mjs').then(m=>m.mountGraveyard(this.canvas,{
-   accent:accent(),
    onPick:id=>this.choose(id),
-   onHover:(id,p)=>{const item=id&&this.items.find(i=>i.id===id);this.hover(item&&`Here lies ${this.name(this.lookup(item.mold_id))}`,p);},
    onCamera:()=>this.placeTargets(),
    onZoom:z=>this.showZoom(z),
   }))});
@@ -155,7 +151,8 @@ export class LostScene extends CollectionScene{
  choose(id){this.selected=id;this.viewer?.select(id);this.renderCard();this.renderTargets();}
  render(){
   const n=this.items.length;
-  this.summary.textContent=n?`${plural(n,'disc')} remembered · Good flights. Better stories.`:'';
+  const latest=this.items[0]&&new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(this.items[0].lostDate+'T12:00:00'));
+  this.summary.innerHTML=n?`${count(n,'disc')} remembered · the latest on ${esc(latest)}`:'';
   this.empty.hidden=n>0;this.root.toggleAttribute('data-empty',!n);
   if(!this.items.some(i=>i.id===this.selected))this.selected=this.items[0]?.id||null;
   this.renderTargets();this.renderCard();

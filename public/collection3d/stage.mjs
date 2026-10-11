@@ -124,6 +124,51 @@ export function discModel(d,{color,rimColor,name,stamp=true}={}){
  return group;
 }
 
+// --- Name tags -----------------------------------------------------------------------------------------
+// A disc's name as a billboard: a sprite that always faces the camera and keeps one on-screen size, so it
+// stays readable while the view turns, zooms or pans. It draws over everything (no depth test), like the
+// bag's name pill, whose look it copies: dark glass, white Space Grotesk, a hairline edge.
+const TAG_PX=13,TAG_PAD_X=13,TAG_PAD_Y=6,TAG_MAX=260,TAG_INK=3;
+export class NameTag{
+ constructor(view){
+  this.view=view;this.text='';this.aspect=1;this.h=TAG_PX*1.25+TAG_PAD_Y*2+2;
+  this.material=new THREE.SpriteMaterial({transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:false});
+  this.sprite=new THREE.Sprite(this.material);this.sprite.renderOrder=20;this.sprite.visible=false;
+  // Anchored at its bottom centre, lifted a few pixels off the point it names.
+  this.sprite.center.set(.5,-.35);
+  this.sprite.raycast=()=>{};this.sprite.userData.sharedGeometry=true;
+  view.scene.add(this.sprite);
+ }
+ set(text){
+  text=String(text||'');if(text===this.text)return;this.text=text;
+  if(!text){this.hide();return;}
+  const font=`600 ${TAG_PX*TAG_INK}px 'Space Grotesk',sans-serif`,probe=document.createElement('canvas').getContext('2d');probe.font=font;
+  let shown=text;const room=(TAG_MAX-TAG_PAD_X*2)*TAG_INK;
+  while(probe.measureText(shown).width>room&&shown.length>2)shown=shown.slice(0,-2).trimEnd()+'…';
+  const w=Math.ceil(Math.min(TAG_MAX*TAG_INK,probe.measureText(shown).width+TAG_PAD_X*2*TAG_INK)),h=Math.ceil(this.h*TAG_INK);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d'),r=h/2-TAG_INK;
+  g.beginPath();g.roundRect(TAG_INK/2,TAG_INK/2,w-TAG_INK,h-TAG_INK,r);
+  g.fillStyle='rgba(21,26,33,.94)';g.fill();g.lineWidth=TAG_INK;g.strokeStyle='rgba(255,255,255,.14)';g.stroke();
+  g.font=font;g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(shown,w/2,h/2+TAG_INK*.5);
+  this.material.map?.dispose();
+  const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;texture.minFilter=THREE.LinearFilter;texture.generateMipmaps=false;
+  this.material.map=texture;this.material.needsUpdate=true;this.aspect=w/h;this.fit();
+ }
+ // Keep the pill at its CSS pixel height on this canvas (sizeAttenuation off: scale is in view units).
+ fit(){
+  const h=this.view.size.h||1,k=this.h*2*Math.tan(THREE.MathUtils.degToRad(this.view.camera.fov/2))/h;
+  this.sprite.scale.set(k*this.aspect,k,1);
+ }
+ // Show the tag above a world point, at an opacity.
+ at(point,opacity=1){
+  if(!this.text||opacity<=0){this.hide();return;}
+  this.sprite.position.copy(point);this.material.opacity=Math.min(1,opacity);this.sprite.visible=true;
+ }
+ hide(){this.sprite.visible=false;}
+ get shown(){return this.sprite.visible;}
+ dispose(){this.view.scene.remove(this.sprite);this.material.map?.dispose();this.material.dispose();}
+}
+
 // Free GPU memory a scene owns. Shared disc geometries (the parts cache) and the shadow texture stay.
 export function disposeObject(root){
  const shareable=new Set();for(const e of parts.values()){shareable.add(e.plate);if(e.rim)shareable.add(e.rim);}
@@ -142,7 +187,7 @@ export class SceneView{
   this.label=label;this.onTap=onTap;this.onHover=onHover;this.onCamera=onCamera;
   // Camera rig: yaw/pitch about the target; distance is the fitted distance divided by the zoom.
   this.rig={yaw,pitch,yawLimit,zoom:1,maxZoom,target:new THREE.Vector3(),pan:new THREE.Vector3(),fit:4,box:new THREE.Box3(new THREE.Vector3(-.5,0,-.5),new THREE.Vector3(.5,1,.5)),tween:null};
-  this.size={w:0,h:0};this.ticks=new Set();this.disposed=false;this.shadowsDirty=true;
+  this.size={w:0,h:0};this.ticks=new Set();this.tags=new Set();this.disposed=false;this.shadowsDirty=true;
   this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(host);
   this.bindInput();
  }
@@ -155,6 +200,8 @@ export class SceneView{
  }
  hide(){if(this.stage.view===this)this.stage.view=null;}
  get shown(){return this.stage.view===this;}
+ // A name tag owned by this scene, kept at its pixel size through resizes.
+ tag(){const tag=new NameTag(this);this.tags.add(tag);return tag;}
  resize(){
   if(!this.shown)return;
   const r=this.host.getBoundingClientRect(),w=Math.round(r.width),h=Math.round(r.height);
@@ -164,6 +211,7 @@ export class SceneView{
   const ratio=Math.min(devicePixelRatio||1,this.low?1:coarse()?1.75:2,Math.sqrt(MAX_PIXELS/(w*h)));
   renderer.setPixelRatio(ratio);renderer.setSize(w,h,false);
   this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
+  for(const tag of this.tags)tag.fit();
   this.refit();this.resized?.();this.request();
  }
  // Frame a box (world space): the camera backs off until all eight corners fit the canvas.
@@ -253,7 +301,8 @@ export class SceneView{
    if(!press||press.id!==e.pointerId){if(e.pointerType==='mouse'&&e.target===canvasOf())this.onHover?.(p);return;}
    const dx=p.x-press.start.x,dy=p.y-press.start.y;
    if(!press.moved&&Math.hypot(dx,dy)<8)return;
-   if(!press.moved){press.moved=true;canvasOf().setPointerCapture?.(e.pointerId);this.host.dataset.dragging='';this.onHover?.(null);}
+   // The hovered disc keeps its name tag through the turn; hover is read again once the drag ends.
+   if(!press.moved){press.moved=true;canvasOf().setPointerCapture?.(e.pointerId);this.host.dataset.dragging='';}
    if(this.rig.zoom>1.001){
     // Zoomed in: the view follows the finger.
     const before=this.planePoint(press.last),after=this.planePoint(p);if(before&&after)this.rig.pan.add(before.sub(after));this.clampPan();

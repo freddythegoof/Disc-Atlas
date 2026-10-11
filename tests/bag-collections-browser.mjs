@@ -55,6 +55,10 @@ try {
   graves:document.querySelector('#lostScene [data-collection-canvas]').dataset.graves,
  }));
  const settled=which=>page.waitForFunction(w=>{const v=window.BagApp.scenes[w];return v&&!v.state.moving;},which,{timeout:15000});
+ // Each tab has its own header: Bag keeps My Bag and the slot meter; Storage and Lost bring their own.
+ const header=()=>page.evaluate(()=>({eyebrow:document.querySelector('#myBagEyebrow').textContent,title:document.querySelector('#myBagTitle').textContent,meter:document.querySelector('#bagSlotMeter').checkVisibility()}));
+ // Billboard name tags, in canvas px: on screen while the view turns.
+ const tagsOf=which=>page.evaluate(w=>window.BagApp.scenes[w].tags,which);
 
  // --- Sign in -------------------------------------------------------------------------------------
  await page.goto(base+'/?bag=1');await page.locator('#myBagSignIn').waitFor();await page.locator('#myBagSignIn').click();
@@ -71,8 +75,10 @@ try {
  await list('lost').press('ArrowRight');assert.deepEqual((await counts()).shown,['bagLineup'],'Arrow keys wrap');
 
  // An empty Storage tab still shows one rack, ready for discs.
+ assert.deepEqual(await header(),{eyebrow:'YOUR EVERYDAY LINEUP',title:'My Bag',meter:true});
  await tab('Storage').click();await page.locator('#storageScene[data-engine="ready"]').waitFor({timeout:30000});
  assert.ok(await page.locator('#bagScene').isHidden(),'The bag steps aside for the racks');
+ assert.deepEqual(await header(),{eyebrow:'OFF THE COURSE',title:'Storage',meter:false},'Storage has its own header and no bag count');
  assert.deepEqual((await counts()).shown,['bagStorage'],'The list follows the Storage tab');
  await page.waitForFunction(()=>window.BagApp.scenes.storage?.state.racks===1);
  assert.ok(await page.locator('#storageScene [data-collection-empty]').isVisible());
@@ -95,6 +101,15 @@ try {
  // Instancing: one draw call per mold shape (plus overmold rims), three per rack, a few for the scene.
  assert.ok(desktop.info.calls<=40,`80 discs draw in few calls (${desktop.info.calls})`);
  await shot('storage-80-1440');
+ // The rack is steel with terracotta rails, repainted for each site theme; the discs keep their colours.
+ const finishes={};
+ for(const theme of ['midnight','charcoal','black','light']){
+  await setTheme(theme);await page.waitForFunction(t=>window.BagApp.scenes.storage.finish.theme===t,theme);await settled('storage');
+  finishes[theme]=await page.evaluate(()=>window.BagApp.scenes.storage.finish);if(theme!=='light')await shot(`storage-80-1440-${theme}`);
+ }
+ report.finishes=finishes;
+ assert.equal(new Set(Object.values(finishes).map(f=>f.frame)).size,4,'Each theme has its own frame finish');
+ for(const f of Object.values(finishes)){const [r,g,b]=[1,3,5].map(i=>parseInt(f.trim.slice(i,i+2),16));assert.ok(r>g&&g>b&&r-b>80,`The trim is terracotta (${f.trim})`);}
  await page.locator('#storageScene [data-rack="1"]').click();await settled('storage');await shot('storage-rack-2-1440');
  await page.locator('#storageScene [data-rack="all"]').click();await settled('storage');
 
@@ -123,6 +138,15 @@ try {
  assert.equal(await card.locator('h3').innerText(),await page.locator(`#bagStorage [data-disc-id="${picked}"] .my-bag-disc-name`).innerText());
  assert.match(await card.innerText(),/(Top|Middle|Bottom) shelf, (left|middle|right) bay/);
  await shot('storage-pulled-1440');
+ // The pulled disc's name is a billboard: still on screen and inside the canvas after a turn.
+ const pulledName=await card.locator('h3').innerText(),inCanvas=async t=>{const s=await page.evaluate(()=>window.BagApp.scenes.storage.size);return t.visible&&t.x>0&&t.x<s.w&&t.y>0&&t.y<s.h;};
+ let tags=await tagsOf('storage');assert.equal(tags.length,1);assert.equal(tags[0].text,pulledName);
+ for(const turn of [.8,-1.6]){await page.evaluate(r=>window.BagApp.scenes.storage.turnBy(r),turn);await page.waitForTimeout(80);tags=await tagsOf('storage');assert.equal(tags[0]?.text,pulledName,'The name stays while the racks turn');assert.ok(await inCanvas(tags[0]),`The name stays on the canvas (${JSON.stringify(tags[0])})`);}
+ await shot('storage-pulled-turned-1440');
+ // A mouse drag turns the racks with the name still showing.
+ {const box=await canvas.boundingBox();await page.mouse.move(box.x+box.width*.8,box.y+box.height*.85);await page.mouse.down();await page.mouse.move(box.x+box.width*.45,box.y+box.height*.85,{steps:6});
+  tags=await tagsOf('storage');assert.equal(tags[0]?.text,pulledName,'The name stays during a drag');await page.mouse.up();}
+ await page.evaluate(()=>window.BagApp.scenes.storage.turnBy(.2));
  // Escape slides it home too; then pull it again and use Put back.
  await page.keyboard.press('Escape');await page.waitForFunction(()=>!window.BagApp.scenes.storage.state.pulled);await settled('storage');
  await page.locator(`#bagStorage [data-bag-inspect="${picked}"]`).click();await page.locator('#bagDetailTitle').waitFor();await page.keyboard.press('Escape');await page.locator('#detail').waitFor({state:'hidden'});
@@ -193,6 +217,7 @@ try {
  c=await counts();assert.deepEqual([c.lost,c.bag,c.rows.lost],[2,5,2]);assert.match(c.meter,/^5 \//);
  await tab('Lost').click();
  await page.locator('#lostScene[data-engine="ready"]').waitFor({timeout:30000});
+ assert.deepEqual(await header(),{eyebrow:'IN MEMORIAM',title:'Lost',meter:false},'Lost has its own memorial header');
  await page.waitForFunction(()=>window.BagApp.scenes.lost?.state.graves===2);await settled('lost');
  assert.deepEqual((await counts()).shown,['bagMemorial'],'The list follows the Lost tab');
  const epitaphCard=page.locator('#lostScene .epitaph-card');
@@ -202,6 +227,10 @@ try {
  assert.match(await epitaphCard.locator('.epitaph-line').innerText(),/swim|pond|Skipped/,'A creek gets a water epitaph');
  assert.match(await page.locator('#lostScene [data-collection-summary]').innerText(),/^2 discs remembered/);
  await shot('lost-2-1440');
+ // The selected stone's name is a billboard over it, and it stays readable as the yard turns.
+ {const name=await epitaphCard.locator('h3').innerText();let t=await tagsOf('lost');assert.deepEqual(t.map(x=>x.text),[name]);
+  await page.evaluate(()=>window.BagApp.scenes.lost.turnBy(.6));await page.waitForTimeout(80);t=await tagsOf('lost');assert.equal(t[0]?.text,name);assert.ok(t[0].visible);
+  await page.evaluate(()=>window.BagApp.scenes.lost.turnBy(-.6));}
  for(const theme of ['midnight','black']){await setTheme(theme);await settled('lost');await shot(`lost-2-1440-${theme}`);}
  await setTheme('light');
  // Keyboard: the headstones are one tab stop; arrows move between them.
@@ -224,8 +253,23 @@ try {
  assert.ok(await page.locator('#lostScene [data-collection-canvas]').isHidden());
  c=await counts();assert.deepEqual([c.lost,c.bag],[0,7]);
  await shot('lost-empty-1440');
+ // Add to -> Lost from the Directory: a new disc goes straight to a headstone, story and all.
+ await page.locator('#listTab').click();await page.locator('#rows .directory-add').first().click();
+ await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Lost',exact:true}).click();await page.locator('#addDiscDialog').waitFor();
+ assert.equal(await page.locator('#bagDestination').inputValue(),'lost');assert.ok(await page.locator('#bagLostFields').isVisible());assert.ok(await page.locator('.bag-pocket-field').isHidden());
+ assert.equal(await page.locator('#saveDisc').innerText(),'Save to Lost');
+ await page.locator('#addLostDate').fill('2026-10-09');await page.locator('#addLostCourse').fill('Riverside Park');await page.locator('#addLostHole').fill('3');await page.locator('#addLostStory').fill('Never even made it to the basket.');
+ await page.locator('#addDiscDialog').screenshot({path:`${dir}/add-lost-sheet-1440.png`});shots.push('add-lost-sheet-1440');
+ await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+ await page.locator('#bagTab').click();await page.waitForFunction(()=>window.BagApp.scenes.lost?.state.graves===1&&!window.BagApp.scenes.lost.state.moving,null,{timeout:15000});
+ c=await counts();assert.deepEqual([c.lost,c.bag],[1,7]);
+ const added=(await api()).discs.find(d=>d.status==='lost');assert.deepEqual([added.in_bag,added.lostCourse,added.lostHole,added.lostStory],[false,'Riverside Park',3,'Never even made it to the basket.']);
+ assert.match(await epitaphCard.innerText(),/Riverside Park/);
+ await shot('lost-added-1440');
+ await api('/discs/'+added.id,'DELETE');await page.reload();await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#bagLineup .my-bag-disc').first().waitFor();
  // Back to the Bag tab: the bag is whole again, and My Map still opens.
  await tab('Bag').click();await page.locator('#bagScene').waitFor();assert.ok(await page.locator('#storageScene').isHidden()&&await page.locator('#lostScene').isHidden());
+ assert.deepEqual(await header(),{eyebrow:'YOUR EVERYDAY LINEUP',title:'My Bag',meter:true},'Back on Bag, the bag header and count return');
  await tab('My Map').click();await page.locator('#myMapPanel').waitFor();assert.ok(await page.locator('#bagListPicker').isHidden(),'My Map has no list');
  await tab('Bag').click();
 
