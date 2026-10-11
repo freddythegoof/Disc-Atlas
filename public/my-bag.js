@@ -1,4 +1,4 @@
-import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket} from './bag-values.js';
+import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket,BAG_COLORS,DEFAULT_BAG_COLOR,rackStyle} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
@@ -36,7 +36,8 @@ const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail,desel
 const storageScene=new StorageScene($('#storageScene'),{lookup:mold,name,
  moveToBag:(item,button)=>void moveDisc(item.id,button),
  details:item=>openBagDetail(mold(item.mold_id),item),
- remove:item=>openRemove(item,'card')});
+ remove:item=>openRemove(item,'card'),
+ chooseStyle:key=>void chooseRackStyle(key)});
 const lostScene=new LostScene($('#lostScene'),{lookup:mold,name,classOf:bagClass,
  found:(item,button)=>void foundDisc(item.id,button),pending:id=>pendingFound.has(id)});
 const storedItems=()=>rackOrder(items.filter(i=>i.in_bag===false && i.status!=='lost'),{classOf:i=>bagClass(mold(i.mold_id)),compare:bagComparator(settings.sort_mode,mold)});
@@ -143,7 +144,7 @@ function render() {
  $('#bagListPicker').hidden=$('#myBagContents').hidden;$('#bagListPicker [data-bag-list="lost"]').hidden=!!demo;
  for(const button of $('#bagListPicker').querySelectorAll('[data-bag-list]')){const on=button.dataset.bagList===listView;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
  $('#bagListPicker [data-list-count="bag"]').textContent=count;$('#bagListPicker [data-list-count="storage"]').textContent=stored.length;$('#bagListPicker [data-list-count="lost"]').textContent=lost.length;
- const ready=signedIn && !loading && !loadError && active;
+ const ready=signedIn && !loading && !loadError && active;storageScene.setStyle(settings.rack_style);
  storageScene.sync(ready && bagView==='storage',ready && bagView==='storage'?storedItems():[]);
  lostScene.sync(ready && bagView==='lost',ready && bagView==='lost'?lostItems():[]);
  $('#bagSlotMeter').textContent=`${count} / ${settings.capacity}`;
@@ -353,14 +354,39 @@ $('#editBagModel').addEventListener('click',async()=>{
  try{await catalogs;if(epoch!==generation || !account?.user)return;
   $('#bagModel').innerHTML=models.models.map(m=>`<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('')+'<option value="__custom">Custom bag…</option>';
   $('#bagModel').value=models.models.some(m=>m.name===settings.bag_model)?settings.bag_model:'__custom';$('#customBagName').value=settings.bag_model;
-  $('#bagMainCapacity').value=settings.main_capacity ?? settings.capacity;$('#bagPutterCapacity').value=settings.putter_capacity ?? 0;$('#bagFabricColor').value=settings.bag_color || '#343c49';$('#bagModelStatus').textContent='';$('#saveBagModel').disabled=false;modelFields();show($('#bagModelDialog'));
+  $('#bagMainCapacity').value=settings.main_capacity ?? settings.capacity;$('#bagPutterCapacity').value=settings.putter_capacity ?? 0;renderBagPalette(settings.bag_color || DEFAULT_BAG_COLOR);$('#bagModelStatus').textContent='';$('#saveBagModel').disabled=false;modelFields();show($('#bagModelDialog'));
  }catch(error){status(error.message);}
 });
 $('#bagModel').addEventListener('change',modelFields);
+// Bag color: a palette of fabrics that always look right on the 3D bag. A color saved before the
+// palette shows first, as Your current color, until another is picked.
+function renderBagPalette(current){
+ const saved=String(current).toLowerCase(),known=BAG_COLORS.some(([hex])=>hex===saved);
+ const choices=[...(known?[]:[[saved,'Your current color']]),...BAG_COLORS];
+ $('[data-bag-palette]').innerHTML=choices.map(([hex,label])=>`<button type="button" role="radio" aria-checked="false" tabindex="-1" data-bag-color="${esc(hex)}" aria-label="${esc(label)}" title="${esc(label)}" style="--swatch:${esc(hex)}"></button>`).join('');
+ pickBagColor(saved);
+}
+function pickBagColor(hex){
+ $('#bagFabricColor').value=hex;
+ for(const b of $('[data-bag-palette]').children){const on=b.dataset.bagColor===hex;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;if(on)$('#bagFabricName').textContent=b.getAttribute('aria-label');}
+}
+$('[data-bag-palette]').addEventListener('click',event=>{const b=event.target.closest('[data-bag-color]');if(b)pickBagColor(b.dataset.bagColor);});
+$('[data-bag-palette]').addEventListener('keydown',event=>{
+ const step={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[event.key];if(!step)return;event.preventDefault();
+ const options=[...$('[data-bag-palette]').children],next=options[(options.indexOf(document.activeElement)+step+options.length)%options.length];
+ pickBagColor(next.dataset.bagColor);next.focus();
+});
+// Edit rack: the finish saves straight away; the racks repaint first and roll back if the save fails.
+async function chooseRackStyle(key){
+ const next=key==='auto'?null:key,before=settings.rack_style ?? null;if(next===before || !account?.user)return;
+ const epoch=generation;settings={...settings,rack_style:next};render();
+ try{const data=await api('','PATCH',{rack_style:next});if(epoch!==generation)return;settings=data.bag;render();status(`Racks now ${rackStyle(next).label.toLowerCase()}.`);}
+ catch(error){if(error.name==='AbortError' || epoch!==generation)return;settings={...settings,rack_style:before};render();status(error.message);}
+}
 $('#bagMainCapacity').addEventListener('input',pocketTotal);$('#bagPutterCapacity').addEventListener('input',pocketTotal);
 $('#bagModelForm').addEventListener('submit',async event=>{
  event.preventDefault();const epoch=generation,button=$('#saveBagModel');button.disabled=true;$('#bagModelStatus').textContent='Saving…';
- try{const value=validateBagSettings({bag_model:$('#bagModel').value==='__custom'?$('#customBagName').value:$('#bagModel').value,capacity:Number($('#bagCapacity').value),main_capacity:Number($('#bagMainCapacity').value),putter_capacity:Number($('#bagPutterCapacity').value),bag_color:$('#bagFabricColor').value,sort_mode:settings.sort_mode || 'speed'},models);const data=await api('','PUT',value);settings=data.bag;render();$('#bagModelDialog').close();status('Bag updated.');}
+ try{const value=validateBagSettings({bag_model:$('#bagModel').value==='__custom'?$('#customBagName').value:$('#bagModel').value,capacity:Number($('#bagCapacity').value),main_capacity:Number($('#bagMainCapacity').value),putter_capacity:Number($('#bagPutterCapacity').value),bag_color:$('#bagFabricColor').value,sort_mode:settings.sort_mode || 'speed',rack_style:settings.rack_style},models,settings);const data=await api('','PUT',value);settings=data.bag;render();$('#bagModelDialog').close();status('Bag updated.');}
  catch(error){if(error.name!=='AbortError')$('#bagModelStatus').textContent=error.message;}
  finally{if(epoch===generation)button.disabled=false;}
 });

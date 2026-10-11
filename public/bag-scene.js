@@ -150,9 +150,15 @@ export class BagScene {
     // A click that only closed the details leaves the flap alone.
     // A click on the bag's top section works the putter pocket; anywhere else on the bag works the flap.
     this.stage.addEventListener('bagclick',event=>{if(this.swallowClick){this.swallowClick=false;return;}if(this.onPocketZone(event.detail))void this.setPocket(!this.pocketOpen);else void this.setOpen(!this.open);});
-    // The bag stays turned where the user leaves it; targets and labels follow once the drag ends.
-    this.stage.addEventListener('bagdragstart',()=>{this.clearLift();this.hidePopup();this.root.dataset.dragging='';});
-    this.stage.addEventListener('bagdragend',()=>{delete this.root.dataset.dragging;this.interactive(!this.running);});
+    // The bag stays turned where the user leaves it. Names stay up through a drag and its coast: out
+    // discs rest still in the room, so their names hold; the hover name rides along on its disc.
+    this.stage.addEventListener('bagdragstart',()=>{this.hidePopup();this.info.dataset.visible='false';this.info.setAttribute('aria-hidden','true');this.root.dataset.dragging='';this.follow();});
+    this.stage.addEventListener('bagdragend',()=>{
+     delete this.root.dataset.dragging;
+     // The pointer may have left the disc mid-turn: its name goes after the usual moment.
+     if(this.lifted && !this.lifted.matches(':hover') && document.activeElement!==this.lifted)this.releaseHover();
+     this.interactive(!this.running);
+    });
     this.stage.addEventListener('bagviewererror',event=>{this.status.textContent=event.detail;});
     this.stage.addEventListener('bagzoom',event=>this.showZoom(event.detail.zoom));
     this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';this.showZoom(viewer.zoom);
@@ -300,13 +306,24 @@ export class BagScene {
   }
  }
  place(){
-  if(!this.viewer || !this.slotsByKey)return;
+  if(!this.placeSlots())return;
+  this.placeNames();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);this.placePopup();
+ }
+ placeSlots(){
+  if(!this.viewer || !this.slotsByKey)return false;
   for(const rect of this.viewer.discRects()){
    const slot=this.slotsByKey.get(rect.key);if(!slot)continue;
    Object.assign(slot.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
    slot.dataset.shape=rect.shape;if(rect.out)slot.dataset.out='';else delete slot.dataset.out;
   }
-  this.placeNames();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);this.placePopup();
+  return true;
+ }
+ // While the bag turns (a drag, then its coast), the hover name follows its disc every frame. Out
+ // names stay where they are: their discs hold still in the room.
+ follow(){
+  if(this.root.dataset.dragging===undefined || !this.placeSlots())return;
+  if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);
+  requestAnimationFrame(()=>this.follow());
  }
  // A click toggles one disc: in its pocket, it slides out; out, it goes back (closing its details
  // if they show). Every disc is independent and stays out until clicked again. However many are
@@ -452,7 +469,8 @@ export class BagScene {
  releaseHover(){
   clearTimeout(this.hoverTimer);
   this.hoverTimer=setTimeout(()=>{
-   if(this.popupState?.pinned || this.popup.contains(document.activeElement))return;
+   // A turn keeps the name; the drag's end looks again.
+   if(this.popupState?.pinned || this.popup.contains(document.activeElement) || this.root.dataset.dragging!==undefined)return;
    this.hidePopup();if(this.lifted && document.activeElement!==this.lifted)this.settle(this.lifted);
   },HOVER_GRACE);
  }

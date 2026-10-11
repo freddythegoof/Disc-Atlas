@@ -5,6 +5,7 @@
 // drawing. The lists below remain the full keyboard path.
 import {rackCount,rackSlot,RACK_CAPACITY} from './collection3d/rack-layout.mjs';
 import {epitaph,lifespan,restingPlace} from './collection3d/graveyard-layout.mjs';
+import {RACK_STYLES,rackStyle} from './bag-values.js';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const theme=()=>document.documentElement.dataset.theme;
@@ -57,14 +58,30 @@ class CollectionScene{
 // Storage: racks of upright discs. A tapped disc comes out of its slot; its card offers Move to bag,
 // Details and Remove. More than one rack adds a rack picker that frames one rack or the whole row.
 export class StorageScene extends CollectionScene{
- constructor(root,{lookup,name,moveToBag,details,remove}){
+ constructor(root,{lookup,name,moveToBag,details,remove,chooseStyle}){
   super(root,{lookup,name,load:()=>import('./collection3d/racks.mjs').then(m=>m.mountRacks(this.canvas,{
-   theme:theme(),
+   theme:theme(),style:this.style,
    onPick:id=>{this.picked=id;this.renderCard();},
    onZoom:z=>this.showZoom(z),
   }))});
   this.loadText='Setting up your racks…';this.failText='The 3D racks couldn’t load here. Every stored disc is in the Storage list below.';
-  this.handlers={moveToBag,details,remove};this.picked=null;this.focusRack=null;
+  this.handlers={moveToBag,details,remove};this.picked=null;this.focusRack=null;this.style=null;
+  // Edit rack: the finish comes from a palette (one of the site's dropdowns), never a free colour.
+  this.styleButton=root.querySelector('[data-rack-edit]');this.styleMenu=document.querySelector('#rackStyleMenu');
+  this.styleMenu.innerHTML=RACK_STYLES.map(s=>`<button type="button" role="radio" aria-checked="false" tabindex="-1" data-rack-style="${s.key}"><span class="rack-swatch${s.frame?'':' is-auto'}" style="${s.frame?`--frame:${s.frame};--trim:${s.trim}`:''}" aria-hidden="true"></span><span>${esc(s.label)}</span></button>`).join('');
+  const dropdown=()=>window.AtlasDropdown;
+  this.styleButton.addEventListener('click',()=>{
+   if(dropdown().current()?.panel===this.styleMenu){dropdown().close(true);return;}
+   dropdown().show(this.styleMenu,this.styleButton);this.styleMenu.querySelector('[aria-checked="true"]')?.focus({preventScroll:true});
+  });
+  this.styleMenu.addEventListener('click',event=>{const b=event.target.closest('[data-rack-style]');if(b){chooseStyle(b.dataset.rackStyle);dropdown().close(true);}});
+  this.styleMenu.addEventListener('keydown',event=>{
+   const options=[...this.styleMenu.querySelectorAll('[data-rack-style]')],i=options.indexOf(document.activeElement);
+   const step={ArrowDown:1,ArrowRight:1,ArrowUp:-1,ArrowLeft:-1}[event.key];
+   if(step){event.preventDefault();options[(i+step+options.length)%options.length].focus();}
+   else if(event.key==='Home'||event.key==='End'){event.preventDefault();options[event.key==='Home'?0:options.length-1].focus();}
+   else if(event.key==='Tab')dropdown().close(true);
+  });
   this.picker=root.querySelector('[data-rack-picker]');this.fill=root.querySelector('[data-collection-fill]');
   this.picker.addEventListener('click',event=>{
    const button=event.target.closest('[data-rack]');if(!button)return;
@@ -114,6 +131,13 @@ export class StorageScene extends CollectionScene{
   viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:i.rim_color,name:this.name(d)};}));
   if(this.picked&&viewer.state.pulled!==this.picked)viewer.pull(this.picked);
   if(!this.picked&&viewer.state.pulled)viewer.putBack();
+ }
+ // The saved finish (a RACK_STYLES key, or null to match the theme).
+ setStyle(key){
+  this.style=key||null;const current=rackStyle(this.style).key;
+  for(const b of this.styleMenu.querySelectorAll('[data-rack-style]')){const on=b.dataset.rackStyle===current;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;}
+  this.styleButton.title=`Rack finish: ${rackStyle(this.style).label}`;
+  this.viewer?.setStyle(this.style);
  }
  // From the Storage list: bring this disc out of its rack.
  reveal(id){if(!this.items.some(i=>i.id===id))return;this.picked=id;this.renderCard();this.load().then(v=>{if(this.visible)v.pull(id);},()=>{});}

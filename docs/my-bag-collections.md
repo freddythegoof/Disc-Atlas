@@ -38,6 +38,14 @@ Below each view there is **one list at a time**. The picker (`#bagListPicker`: B
 - **Keyboard.** The headstones are one tab stop over the canvas, and the arrow keys move between them. Pointers go to the canvas, so a drag always turns the scene.
 - **Empty.** With no lost discs, nothing 3D loads. The page shows a friendly ghost and "No ghosts here yet."
 
+## Palettes: Edit rack and the bag color
+
+Colours for the racks and the bag come from curated palettes in `bag-values.js`, so the 3D scenes can't end up looking wrong. The worker validates against the same lists.
+
+- **Edit rack** (Storage, beside the rack chips) opens one of the site's dropdowns with seven finishes: Match theme (the default, which follows the site theme), Graphite & terracotta, Blackout, Gunmetal & brass, Slate & sand, Forest & copper, and Ivory & walnut. A choice applies at once and saves with `PATCH /api/bag {rack_style}`. If the save fails, the racks roll back. A chosen finish keeps its frame and trim on every theme.
+  - The new `bags.rack_style` column (`migrations/accounts/0009_rack_style.sql`) is NULL for Match theme. **Apply this migration before deploying the worker**, because the bag API selects the column.
+- **Bag color** (Bag settings) is a row of ten fabric swatches (`BAG_COLORS`) instead of a free colour picker. The server refuses any colour off the palette, except the one a player already has saved: an older free pick shows first as "Your current color" until they choose another.
+
 ## Adding straight to Storage or Lost
 
 The Add to menu (Directory rows, the details panel, the compare bar) offers **Bag**, **Storage** and **Lost**. Lost opens the same add sheet with its memorial fields (date lost, hole, course, story) and saves the disc with one `POST` with `status:'lost'`. The server already accepted that, so nothing changed there. Editing a saved disc does not offer Lost; its own Lost button does that.

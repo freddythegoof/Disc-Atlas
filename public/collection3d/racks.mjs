@@ -16,6 +16,7 @@ import {THREE,SceneView,discParts,discColors,discMaterial,discModel,contactShado
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {discPose,TOTAL_MS} from './rack-motion.mjs';
+import {rackStyle} from '../bag-values.js';
 import {RACK_CAPACITY,RACK_WIDTH,RACK_HEIGHT,RACK_DEPTH,rackCount,rackSlot,rackX,rowWidth,restHeight,pulledSpot} from './rack-layout.mjs';
 
 const MOVE_MS=480,HOVER_LIFT=.014;
@@ -36,7 +37,9 @@ export const RACK_FINISHES={
  charcoal:{frame:'#383b41',trim:'#b25e3f',screws:'#868a92',feet:'#0b0c0e'},
  black:{frame:'#2c2c2e',trim:'#ad5a3c',screws:'#7c7c80',feet:'#040404'},
 };
-const finishOf=theme=>RACK_FINISHES[theme]||RACK_FINISHES.light;
+// A finish from the palette (bag-values.js RACK_STYLES) keeps its frame and trim on every theme; Match
+// theme (auto) uses the theme's own. Screws and feet stay steel and black.
+const finishOf=(theme,style)=>{const preset=rackStyle(style),base=RACK_FINISHES[theme]||RACK_FINISHES.light;return preset.frame?{...base,frame:preset.frame,trim:preset.trim}:base;};
 // Each part of the GLB by name: the front retaining rails are the trim; sides, ledge, slats, dividers and
 // rear rails are the frame. (GLTFLoader writes node names with underscores for spaces.)
 function roleOf(o){
@@ -52,7 +55,7 @@ const finishes={
  feet:new THREE.MeshStandardMaterial({metalness:0,roughness:.9}),
 };
 for(const m of Object.values(finishes))m.userData.shared=true;
-function paint(theme){const f=finishOf(theme);for(const [role,m] of Object.entries(finishes))m.color.set(f[role]);}
+function paint(theme,style){const f=finishOf(theme,style);for(const [role,m] of Object.entries(finishes))m.color.set(f[role]);}
 
 let template=null;
 function loadTemplate(url){
@@ -80,9 +83,9 @@ function loadTemplate(url){
 }
 
 /** Mount into a sized host. update(entries) places discs; entries are {id, d, color, rimColor, name} in rack order. */
-export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{},theme=document.documentElement.dataset.theme}={}){
+export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{},theme=document.documentElement.dataset.theme,style=null}={}){
  const {pieces,slots}=await loadTemplate(new URL('./wooden-disc-rack.glb',import.meta.url).href);
- paint(theme);let finish=theme;
+ paint(theme,style);let finish=theme,chosen=rackStyle(style).key;
  let view;
  const records=new Map(),batches=new Map(),rackGroups=[];
  // Out discs: the pulled one (goal 1) and any still gliding home (goal 0). One is out at a time.
@@ -258,12 +261,14 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   zoomBy(f){view.setZoom(view.zoom*f);},zoomTo(z){view.setZoom(z);},get zoom(){return view.zoom;},
   turnBy(rad){view.turnBy(rad);},
   // Repaint the rack for a site theme (light, midnight, charcoal or black); the discs keep their colours.
-  setTheme(theme){if(theme===finish)return;finish=theme;paint(theme);view.request();},
+  setTheme(theme){if(theme===finish)return;finish=theme;paint(finish,chosen);view.request();},
+  // The player's finish from the palette (a RACK_STYLES key; null or auto follows the theme).
+  setStyle(style){const key=rackStyle(style).key;if(key===chosen)return;chosen=key;paint(finish,chosen);view.request();},
   // A disc's centre in canvas CSS px (tests and the name pill).
   project(id){const r=records.get(id);if(!r)return null;const o=outs.get(id);return view.project(o?o.proxy.position.clone():new THREE.Vector3(...r.current));},
   // The billboard names on show, with their canvas positions (tests).
   get tags(){return [pulledTag,hoverTag].filter(t=>t.shown).map(t=>({text:t.text,...view.project(t.sprite.position)}));},
-  get finish(){return {theme:finish,...Object.fromEntries(Object.entries(finishes).map(([k,m])=>[k,'#'+m.color.getHexString()]))};},
+  get finish(){return {theme:finish,style:chosen,...Object.fromEntries(Object.entries(finishes).map(([k,m])=>[k,'#'+m.color.getHexString()]))};},
   get state(){return {racks:count,discs:records.size,pulled:pulledId(),moving:[...outs.values()].some(o=>o.progress!==o.goal)||[...records.values()].some(r=>r.t0),batches:batches.size,focus,zoom:view.zoom,quality:view.stage.quality,frames:view.frames||0};},
   get info(){const i=view.stage.renderer.info.render;return {calls:i.calls,triangles:i.triangles};},
   get size(){return {...view.size};},

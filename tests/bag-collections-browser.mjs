@@ -110,6 +110,31 @@ try {
  report.finishes=finishes;
  assert.equal(new Set(Object.values(finishes).map(f=>f.frame)).size,4,'Each theme has its own frame finish');
  for(const f of Object.values(finishes)){const [r,g,b]=[1,3,5].map(i=>parseInt(f.trim.slice(i,i+2),16));assert.ok(r>g&&g>b&&r-b>80,`The trim is terracotta (${f.trim})`);}
+ // Edit rack: finishes come from a palette, save to the account and hold across visits and themes.
+ await page.locator('#storageScene [data-rack-edit]').click();
+ assert.deepEqual(await page.locator('#rackStyleMenu [data-rack-style]').evaluateAll(n=>n.map(b=>b.dataset.rackStyle)),['auto','graphite','blackout','brass','slate','forest','ivory']);
+ assert.equal(await page.evaluate(()=>document.activeElement.dataset.rackStyle),'auto','The menu opens on the current finish');
+ await page.locator('#rackStyleMenu').screenshot({path:`${dir}/rack-style-menu-1440.png`});shots.push('rack-style-menu-1440');
+ await page.locator('#rackStyleMenu [data-rack-style="brass"]').click();
+ assert.ok(!(await page.evaluate(()=>document.querySelector('#rackStyleMenu').matches(':popover-open'))),'Choosing closes the menu');
+ await page.waitForFunction(()=>window.BagApp.scenes.storage.finish.style==='brass');
+ assert.equal((await page.evaluate(()=>window.BagApp.scenes.storage.finish)).trim,'#a8864f');
+ await page.locator('#myBagStatus').filter({hasText:/gunmetal & brass/i}).waitFor();
+ assert.equal((await api()).bag.rack_style,'brass','The finish is saved');
+ await settled('storage');await shot('storage-80-1440-brass');
+ await setTheme('black');await page.waitForFunction(()=>window.BagApp.scenes.storage.finish.theme==='black');
+ assert.equal((await page.evaluate(()=>window.BagApp.scenes.storage.finish)).trim,'#a8864f','A chosen finish holds through theme changes');
+ await settled('storage');await shot('storage-80-1440-brass-black');await setTheme('light');
+ await page.reload();await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#bagLineup .my-bag-disc').first().waitFor();
+ await tab('Storage').click();await page.waitForFunction(()=>window.BagApp.scenes.storage?.finish.style==='brass'&&window.BagApp.scenes.storage.state.racks===2,null,{timeout:30000});
+ // Back to Match theme from the keyboard.
+ await page.locator('#storageScene [data-rack-edit]').focus();await page.keyboard.press('Enter');
+ assert.equal(await page.evaluate(()=>document.activeElement.dataset.rackStyle),'brass');
+ await page.keyboard.press('Home');await page.keyboard.press('Enter');
+ await page.waitForFunction(()=>window.BagApp.scenes.storage.finish.style==='auto');
+ await page.waitForFunction(()=>document.activeElement?.matches('[data-rack-edit]'));
+ assert.equal((await api()).bag.rack_style,null);
+ await settled('storage');
  await page.locator('#storageScene [data-rack="1"]').click();await settled('storage');await shot('storage-rack-2-1440');
  await page.locator('#storageScene [data-rack="all"]').click();await settled('storage');
 
@@ -270,6 +295,31 @@ try {
  // Back to the Bag tab: the bag is whole again, and My Map still opens.
  await tab('Bag').click();await page.locator('#bagScene').waitFor();assert.ok(await page.locator('#storageScene').isHidden()&&await page.locator('#lostScene').isHidden());
  assert.deepEqual(await header(),{eyebrow:'YOUR EVERYDAY LINEUP',title:'My Bag',meter:true},'Back on Bag, the bag header and count return');
+ // --- The bag's names stay up while it turns ------------------------------------------------------------
+ {
+  await page.locator('#bagScene[data-phase="open"]').waitFor({timeout:20000});
+  const reachable=page.locator('#bagScene [data-physical-disc][aria-hidden="false"]');
+  await reachable.first().click();await page.locator('#bagScene [data-out-name][data-shown]').first().waitFor();
+  await page.locator('#bagScene[data-staging="still"]').waitFor();
+  const outName=page.locator('#bagScene [data-out-name][data-shown]').first(),seen=n=>n.evaluate(x=>x.checkVisibility({visibilityProperty:true}));
+  // Hover a disc still in the bag: its name shows; then drag the bag around from that disc.
+  const inBag=page.locator('#bagScene [data-physical-disc][aria-hidden="false"][aria-pressed="false"]').first(),box=await inBag.boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+  const tag=page.locator('#bagScene .bag-hover-name');await tag.waitFor();
+  const before=await tag.boundingBox(),outBefore=await outName.boundingBox();
+  await page.mouse.down();
+  for(let i=1;i<=10;i++){await page.mouse.move(box.x+box.width/2+i*18,box.y+box.height/2);await page.waitForTimeout(16);}
+  assert.ok(await page.locator('#bagScene[data-dragging]').count(),'The bag is turning');
+  assert.ok(await seen(tag),'The hovered disc keeps its name while the bag turns');
+  assert.ok(await seen(outName),'Out discs keep their names while the bag turns');
+  const during=await tag.boundingBox(),outDuring=await outName.boundingBox();
+  assert.ok(Math.abs(during.x-before.x)>4,`The name rides along with its disc (${before.x} -> ${during.x})`);
+  assert.ok(Math.abs(outDuring.x-outBefore.x)<1&&Math.abs(outDuring.y-outBefore.y)<1,'Out names hold still: their discs rest in the room');
+  await page.screenshot({path:`${dir}/bag-names-turning-1440.png`,clip:await page.locator('#bagScene').boundingBox()});shots.push('bag-names-turning-1440');
+  await page.mouse.up();await page.waitForFunction(()=>!document.querySelector('#bagScene[data-dragging]'),null,{timeout:10000});
+  assert.ok(await seen(outName),'and after it stops');
+  await page.locator('#bagScene [data-return-all],#bagScene .bag-return-all').first().click();
+ }
  await tab('My Map').click();await page.locator('#myMapPanel').waitFor();assert.ok(await page.locator('#bagListPicker').isHidden(),'My Map has no list');
  await tab('Bag').click();
 

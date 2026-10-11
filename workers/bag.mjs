@@ -29,7 +29,7 @@ export function createBag(auth) {
    const fields='id,mold_id,plastic,wear,weight_g,notes,color,rim_color,in_bag,pocket,stability_bias,sort_order,added_at,status,lostDate,lostCourse,lostHole,lostStory';
    const physical=row=>row?{...row,in_bag:!!row.in_bag}:row;
    const list = async () => (await env.DB.prepare(`SELECT ${fields} FROM bag_discs WHERE user_id=? ORDER BY added_at,id`).bind(user.id).all()).results.map(physical);
-   const settings = async () => await env.DB.prepare('SELECT bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,updated_at FROM bags WHERE user_id=?').bind(user.id).first() || {bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed',updated_at:null};
+   const settings = async () => await env.DB.prepare('SELECT bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,rack_style,updated_at FROM bags WHERE user_id=?').bind(user.id).first() || {bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed',rack_style:null,updated_at:null};
    if (method === 'GET') {
     if (root) return json({bag:await settings(),discs:await list()});
     if (collection) return json({discs:await list()});
@@ -47,9 +47,10 @@ export function createBag(auth) {
    }
    if (root) {
     const saved=await settings();
-    if(method==='PATCH' && (Object.keys(data).length!==1||!['speed','stability','custom'].includes(data.sort_mode)))return json({error:'Choose Speed, Stability or Custom order.'},400);
-    let bag; try {bag = validateBagSettings(method==='PATCH'?{...saved,...data}:{...data,bag_color:data.bag_color===undefined?saved.bag_color:data.bag_color,sort_mode:data.sort_mode===undefined?saved.sort_mode:data.sort_mode},models);} catch (error) {return json({error:error.message},400);}
-    await env.DB.prepare('INSERT INTO bags(user_id,bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,updated_at) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET bag_model=excluded.bag_model,capacity=excluded.capacity,main_capacity=excluded.main_capacity,putter_capacity=excluded.putter_capacity,extra_capacity=excluded.extra_capacity,bag_color=excluded.bag_color,sort_mode=excluded.sort_mode,updated_at=excluded.updated_at').bind(user.id,bag.bag_model,bag.capacity,bag.main_capacity,bag.putter_capacity,bag.extra_capacity,bag.bag_color,bag.sort_mode,new Date().toISOString()).run();
+    // PATCH changes one thing at a time: the sort order, or the racks' finish.
+    if(method==='PATCH' && (Object.keys(data).length!==1||!(['speed','stability','custom'].includes(data.sort_mode)||'rack_style' in data)))return json({error:'Choose Speed, Stability or Custom order, or a rack finish.'},400);
+    let bag; try {bag = validateBagSettings(method==='PATCH'?{...saved,...data}:{...data,bag_color:data.bag_color===undefined?saved.bag_color:data.bag_color,sort_mode:data.sort_mode===undefined?saved.sort_mode:data.sort_mode,rack_style:data.rack_style===undefined?saved.rack_style:data.rack_style},models,saved);} catch (error) {return json({error:error.message},400);}
+    await env.DB.prepare('INSERT INTO bags(user_id,bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,rack_style,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET bag_model=excluded.bag_model,capacity=excluded.capacity,main_capacity=excluded.main_capacity,putter_capacity=excluded.putter_capacity,extra_capacity=excluded.extra_capacity,bag_color=excluded.bag_color,sort_mode=excluded.sort_mode,rack_style=excluded.rack_style,updated_at=excluded.updated_at').bind(user.id,bag.bag_model,bag.capacity,bag.main_capacity,bag.putter_capacity,bag.extra_capacity,bag.bag_color,bag.sort_mode,bag.rack_style,new Date().toISOString()).run();
     return json({bag:await settings()});
    }
    if (method === 'DELETE') {

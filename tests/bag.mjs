@@ -270,8 +270,19 @@ test('v1.1 colors, pocket totals and storage persist without changing another ac
   assert.equal(updated.color,'#ab34ef');assert.equal(updated.in_bag,false,'legacy edits preserve storage');
   const settings=await s.call('/api/bag','PUT',{bag_model:'Grip BX3',capacity:999,bag_color:'#436752'});
   const bag=(await settings.json()).bag;assert.equal(bag.capacity,23);assert.equal(bag.main_capacity,18);assert.equal(bag.putter_capacity,4);assert.equal(bag.extra_capacity,1);assert.equal(bag.bag_color,'#436752');
-  const custom=await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#223344'});
+  const custom=await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#3d5a80'});
   assert.equal(custom.status,200);assert.equal((await custom.json()).bag.capacity,20);
+  // Bag colors come from the palette; a free pick saved before it stays until another is chosen.
+  assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#223344'})).status,400);
+  s.db.prepare("UPDATE bags SET bag_color='#223344'").run();
+  assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#223344'})).status,200,'a saved off-palette color is kept');
+  assert.equal((await s.call('/api/bag','PATCH',{sort_mode:'stability'})).status,200,'and other edits still save');
+  // Rack finishes: one of the palette's keys, or auto (null); PATCH sets it alone and PUT keeps it.
+  let rack=await s.call('/api/bag','PATCH',{rack_style:'brass'});assert.equal(rack.status,200);assert.equal((await rack.json()).bag.rack_style,'brass');
+  for(const bad of ['gold','#ff0000',3,{rack_style:'brass',sort_mode:'speed'}])assert.equal((await s.call('/api/bag','PATCH',typeof bad==='object'?bad:{rack_style:bad})).status,400);
+  rack=await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,main_capacity:16,putter_capacity:4,bag_color:'#343c49'});assert.equal((await rack.json()).bag.rack_style,'brass','PUT keeps the finish');
+  rack=await s.call('/api/bag','PATCH',{rack_style:'auto'});assert.equal((await rack.json()).bag.rack_style,null);
+  assert.throws(()=>s.db.prepare("UPDATE bags SET rack_style='Brass!'").run());
   assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',main_capacity:16,putter_capacity:4,capacity:21})).status,400);
   assert.equal((await s.call('/api/bag','PUT',{bag_model:'My bag',capacity:20,bag_color:'red'})).status,400);
   assert.equal((await (await s.call('/api/bag','GET',undefined,{cookie:'y'.repeat(43)})).json()).bag.bag_color,'#343c49');

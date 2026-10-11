@@ -47,7 +47,26 @@ export function validateLostDetails(data) {
  if(lostHole!==null && (!Number.isInteger(lostHole) || lostHole<1 || lostHole>999))throw new Error('Hole must be a whole number from 1 to 999.');
  return {status,lostDate,lostCourse:data.lostCourse?.trim() || null,lostHole,lostStory:data.lostStory?.trim() || null};
 }
-export function validateBagSettings(data, catalog) {
+// Curated palettes for the bag's fabric and the Storage racks' finish, so neither can ever look wrong in
+// the 3D scenes. The server holds the same lists: a colour or finish off them is refused. A bag colour
+// saved before the palette (a free pick) is kept until the player chooses another.
+export const DEFAULT_BAG_COLOR='#343c49';
+export const BAG_COLORS=[
+ ['#343c49','Charcoal'],['#1f2228','Black'],['#23324a','Navy'],['#3d5a80','Slate blue'],['#436752','Forest'],
+ ['#5a5f3c','Olive'],['#7a4a33','Rust'],['#6b3341','Burgundy'],['#7d8288','Stone'],['#a8987a','Sand'],
+];
+// Rack finishes: a frame and a trim colour. `auto` (saved as null) follows the site theme.
+export const RACK_STYLES=[
+ {key:'auto',label:'Match theme'},
+ {key:'graphite',label:'Graphite & terracotta',frame:'#3d4148',trim:'#a2523a'},
+ {key:'blackout',label:'Blackout',frame:'#252629',trim:'#4a4d53'},
+ {key:'brass',label:'Gunmetal & brass',frame:'#34373c',trim:'#a8864f'},
+ {key:'slate',label:'Slate & sand',frame:'#3b4858',trim:'#bba67f'},
+ {key:'forest',label:'Forest & copper',frame:'#34463a',trim:'#a9663f'},
+ {key:'ivory',label:'Ivory & walnut',frame:'#cfc8ba',trim:'#7a5236'},
+];
+export const rackStyle=key=>RACK_STYLES.find(style=>style.key===(key||'auto'))||RACK_STYLES[0];
+export function validateBagSettings(data, catalog, saved = {}) {
  if (typeof data.bag_model !== 'string' || !data.bag_model.trim() || data.bag_model.trim().length > 80) throw new Error('Enter a bag name (up to 80 characters).');
  const bag_model = data.bag_model.trim(), model = catalog.models.find(m => m.name === bag_model);
  const fixed=model?.presetSplit;
@@ -58,10 +77,13 @@ export function validateBagSettings(data, catalog) {
  const capacity=main_capacity+putter_capacity+extra_capacity;
  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) throw new Error('Capacity must be a whole number from 1 to 500.');
  if(!fixed && data.capacity!==undefined && data.capacity!==capacity)throw new Error('Total capacity must match your pocket capacities.');
- const bag_color=data.bag_color===undefined?'#343c49':data.bag_color;if(!validColor(bag_color))throw new Error('Choose a six-digit hex bag color.');
+ const bag_color=data.bag_color===undefined?DEFAULT_BAG_COLOR:data.bag_color;if(!validColor(bag_color))throw new Error('Choose a six-digit hex bag color.');
+ if(!BAG_COLORS.some(([hex])=>hex===bag_color.toLowerCase()) && bag_color.toLowerCase()!==String(saved.bag_color||'').toLowerCase())throw new Error('Choose a bag color from the palette.');
+ const rack_style=data.rack_style==null || data.rack_style==='auto'?null:data.rack_style;
+ if(rack_style!==null && !RACK_STYLES.some(style=>style.key===rack_style))throw new Error('Choose a rack finish from the palette.');
  const sort_mode=data.sort_mode===undefined?'speed':data.sort_mode;
  if(!['speed','stability','custom'].includes(sort_mode))throw new Error('Choose Speed, Stability or Custom order.');
- return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase(),sort_mode};
+ return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase(),sort_mode,rack_style};
 }
 export const validColor=color=>typeof color==='string'&&/^#[0-9a-f]{6}$/i.test(color);
 export function plasticColor(brand,plastic,catalog){return catalog.brands[brand]?.colors?.[plastic] || catalog.defaultColor || '#e6c668';}

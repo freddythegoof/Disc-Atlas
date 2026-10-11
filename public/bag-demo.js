@@ -1,7 +1,7 @@
 // The demo bag signed-out visitors see on My Bag: a static, read-only sample of well-known
 // catalog molds. It never touches the bag API and holds no user's data; signing in replaces it
 // with the player's own saved bag.
-export const DEMO_BAG=Object.freeze({bag_model:'Dynamic Discs Commander',capacity:24,main_capacity:20,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed'});
+export const DEMO_BAG=Object.freeze({bag_model:'Dynamic Discs Commander',capacity:24,main_capacity:20,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed',rack_style:null});
 
 const discs=[
  // Distance drivers

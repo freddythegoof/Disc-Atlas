@@ -61,12 +61,12 @@ try{
  await showList('storage');const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');
  assert.ok(await page.locator('#bagStorageEmpty').isVisible());assert.ok(await page.locator('[data-bag-move]').filter({hasText:'Store'}).count());
  await showList('bag');await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
- await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#436752');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ await page.locator('#editBagModel').click();await page.locator('[data-bag-color="#436752"]').click();await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  // The fabric material itself carries the saved color (read back from the live 3D scene).
  const bagColor=()=>page.locator('[data-bag-canvas]').evaluate(n=>({color:n.bagViewer.bagColor,custom:n.bagViewer.customBagColor}));
  assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
  await page.reload();await phase('open');assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
- await page.locator('#editBagModel').click();await page.locator('#bagFabricColor').fill('#343c49');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ await page.locator('#editBagModel').click();await page.locator('[data-bag-color="#343c49"]').click();await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  assert.equal((await bagColor()).custom,null,'Default charcoal restores the model fabric');assert.notEqual((await bagColor()).color,'#436752');
  await page.waitForFunction(()=>document.activeElement===document.querySelector('#editBagModel'));
  const discId=await page.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc');
