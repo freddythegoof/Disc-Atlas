@@ -14,16 +14,12 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {discProfile,overmoldProfile,shapeForDisc} from './shape.mjs';
+import {shapeForDisc} from './shape.mjs';
+import {PLASTICS,discGeometry} from './mesh.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
 import {isOvermold,overmoldColors} from './overmold.mjs';
 
 const DEG=Math.PI/180;
-// Finishes only (a picker is phase 3): premium is glossy, base is matte.
-const PLASTICS={
- premium:{roughness:.3,clearcoat:.6,clearcoatRoughness:.22},
- base:{roughness:.62,clearcoat:.06,clearcoatRoughness:.6},
-};
 // Camera elevations measured from straight above. The 3/4 view is the default: from behind and above,
 // as the thrower sees the disc, so the hyzer/anhyzer tilt reads left/right. Bottom looks up from 35° off
 // the axis: straight up, the cavity reads as a flat plate; at an angle the inner rim wall shows.
@@ -32,15 +28,6 @@ export const MAX_TILT=40;
 // The camera frames a fixed 22 cm disc, so molds show at true scale: a 21.7 cm Buzzz stands wider than a
 // 21.1 cm Destroyer. Anything larger is framed by its own diameter.
 export const FRAME_DIAMETER=22;
-// LatheGeometry writes two triangles per (segment, profile edge), edges varying fastest. Reorder them into
-// two groups, the plate (material 0) then the rim (material 1, edges rim[0] to rim[1] − 1). The vertices and
-// their normals are untouched, so the seam shades smoothly.
-function groupRim(geometry,count,[from,to]){
- const index=geometry.index.array,edges=count-1,plate=[],rim=[];
- for(let k=0;k<index.length;k+=6){const e=(k/6)%edges,out=e>=from&&e<to?rim:plate;for(let i=k;i<k+6;i++)out.push(index[i]);}
- geometry.setIndex([...plate,...rim]);
- geometry.addGroup(0,plate.length,0);geometry.addGroup(plate.length,rim.length,1);
-}
 const SOURCE_TEXT={model:'its mold profile',pdga:'its PDGA dimensions, to scale',flight:'a generic shape from its flight numbers'};
 // The edge that drops on hyzer is the fade side: left for RHBH and LHFH, right for RHFH and LHBH.
 export const hyzerSign=hand=>hand==='RHFH'||hand==='LHBH'?-1:1;
@@ -157,17 +144,9 @@ export function createDiscViewer({segments}={}){
  function setHand(hand){state.hand=hand||'RHBH';setTilt(state.tilt);}
 
  function build(shape,mold,color,overmold){
-  let geometry;
-  if(overmold){
-   const split=overmoldProfile(shape);
-   geometry=new THREE.LatheGeometry(split.points.map(p=>new THREE.Vector2(p.x,p.y)),radial);
-   groupRim(geometry,split.points.length,split.rim);
-   body.material=[bodyMaterial,rimMaterial];state.seamRadius=split.seamRadius;
-  }else{
-   const profile=discProfile(shape).map(p=>new THREE.Vector2(p.x,p.y));
-   geometry=new THREE.LatheGeometry(profile,radial);
-   body.material=bodyMaterial;state.seamRadius=null;
-  }
+  // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs).
+  const {geometry,seamRadius}=discGeometry(shape,{segments:radial,overmold});
+  body.material=overmold?[bodyMaterial,rimMaterial]:bodyMaterial;state.seamRadius=seamRadius;
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).

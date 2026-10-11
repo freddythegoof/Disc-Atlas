@@ -165,7 +165,8 @@ size and its name is not drawn at all, as curated discs already were.
   shadows and drop shadows, in its light or dark look, painted once per color into a sprite at
   twice 76 px with room for the shadows (`gapSprite`). A complete view's dot shows the same
   `.disc-art`, 76 px and scaled to tier 2's size (`--gap-half` places its halo, count and hover
-  name on its edge).
+  name on its edge). Since Plan 16, with a GPU, the art is each disc's 3D model seen from above, and the
+  orbs remain the fallback (`docs/atlas-3d-discs.md`).
 - **Distance.** Both draw at 72% strength (`GAP.far`) at 1x, rising evenly in log zoom to full
   strength at 9x, as if they come closer as you fly in.
 - **Canvas.** They are drawn on the map canvas under every DOM marker (`drawGaps` in

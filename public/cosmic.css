@@ -319,6 +319,17 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name{top:calc(50% + 14px + min(var(--gap-half,6px),38px));bottom:auto;max-width:145px;font-size:13px;background:none;border:0;border-radius:0;padding:0;box-shadow:none;opacity:var(--gap-label,0)}
 #mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label:hover .marker-name,#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label:focus-visible .marker-name{opacity:1}
 @media(max-width:700px){#mapMarkers.atlas-organic .atlas-marker.is-dot.is-gap-label .marker-name{font-size:12px;max-width:125px}}
+/* Plan 16: a curated disc's or dot's art carries its 3D model seen from above (atlas-map.js syncMarkerArt,
+   disc3d/atlas-art.mjs). The orb's paint, inner ring and inset shadows give way to the render; its drop
+   shadows stay, on the same round box. The render overhangs the box by its antialiasing margin, so the disc
+   itself spans the box exactly. A render that arrives after the orb has shown fades in over it. */
+#mapMarkers .clean-disc.has-3d{background:none;border-color:transparent;box-shadow:0 5px 9px #1523401c,0 13px 23px #15234016}
+:root:not([data-theme="light"]) #mapMarkers .clean-disc.has-3d{box-shadow:0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
+#mapMarkers .clean-disc.has-3d::after{display:none}
+#mapMarkers .disc-art-3d{position:absolute;display:block;pointer-events:none}
+#mapMarkers .disc-art-3d.is-arriving{animation:disc-3d-arrive .18s ease-out}
+@keyframes disc-3d-arrive{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#mapMarkers .disc-art-3d.is-arriving{animation:none}}
 
 /* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
 /* Discs run on under the toolbar and legend and off the map's edges; the chrome paints above them.

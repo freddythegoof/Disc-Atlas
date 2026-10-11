@@ -70,8 +70,10 @@ try{
  {
   const {page,requests,context}=await open({width:1440,height:900});
   await page.waitForTimeout(600);
-  assert.ok(!requests.some(u=>/three\.module|disc3d\/viewer/.test(u)),'three.js is not loaded with the atlas');
-  check('three.js and the viewer stay unloaded until a disc is shown');
+  // Since Plan 16 the atlas draws its own discs with three.js (disc3d/atlas-art.mjs), so three.js loads with
+  // it; the viewer, its controls and its panel still wait until a disc is shown.
+  assert.ok(!requests.some(u=>/disc3d\/viewer|OrbitControls/.test(u)),'the viewer is not loaded with the atlas');
+  check('the viewer stays unloaded until a disc is shown');
 
   await show(page,'Destroyer');
   assert.ok(requests.some(u=>/three\.module/.test(u))&&requests.some(u=>/disc3d\/viewer\.mjs/.test(u)));

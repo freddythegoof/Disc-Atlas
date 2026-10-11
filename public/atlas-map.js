@@ -114,7 +114,7 @@ function ensureGroupWorker(){
    if(revision!==groupRevision||!groupContext)return;
    pendingGroups.delete(level);
    const {items,w,h,immersive}=groupContext;
-   const prepared=hydrateGroups(raw,items,w,h,level,immersive);preparedGroups.set(level,prepared);warmGapNames(prepared.gaps);
+   const prepared=hydrateGroups(raw,items,w,h,level,immersive);preparedGroups.set(level,prepared);warmGapNames(prepared.gaps);warmArt(prepared);
    if(!cameraTween&&AtlasGroups.level(zoom,groupCache?.level)===level)scheduleMapDraw();
   };
   groupWorker.onerror=()=>{groupWorker.terminate();groupWorker=null;pendingGroups.clear();scheduleMapDraw();};
@@ -229,6 +229,7 @@ function draw(){
  // Fonts/worker callbacks can schedule a frame before app.js has initialized.
  if(typeof view==='undefined'||view!=='map')return;
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
+ artFrame();
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.font='12px DM Sans, sans-serif';}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const immersive=!document.body.classList.contains('my-bag-mode');
  const area=window.AtlasLayout.bounds(w,h,immersive),plotBottom=h-(immersive?(w<700?155:110):16);
@@ -260,6 +261,9 @@ function draw(){
  drawPlanetLabels();
  renderMarkers();drawSatelliteLeaders();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
+ // Discs still waiting for their 3D render get another frame's budget.
+ if(atlasArt&&mapClusters.length)artFirst=false;
+ if(artPending)scheduleMapDraw();
 }
 // Tiers 2 and 3 (AtlasGroups.GAP): the rest of the rated catalog as small discs and minis on the
 // canvas, under every curated disc, in the room curate left them. Each grows with the zoom to a
@@ -267,11 +271,91 @@ function draw(){
 // name and manufacturer. Their set follows the level; a disc or name that joins or leaves fades over
 // GAP_FADE ms instead of popping, and a name's strength follows its disc's size on screen.
 const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let gapClock=0,mapGaps=[];
+// Plan 16: on the main Atlas every disc is its 3D model seen from straight above, lying on the ground
+// (disc3d/atlas-art.mjs): each mold's own shape, overmolds in two colours, rendered once per disc and size
+// and drawn where the 2D orb was. Curated discs and dots carry the render in their DOM art; small discs and
+// minis are blits on the canvas. Renders happen within a per-frame budget (ART_BUDGET ms, a long first one
+// while the map first fills), idle time draws a prepared level's discs ahead, and a disc still waiting for
+// its render shows the orb, then crossfades over ART_FADE ms. Without WebGL the orbs stay. My Map keeps
+// its orbs. window.ATLAS_3D_OFF (set before load) keeps the orbs too, for comparison.
+const ART_BUDGET=6,ART_FIRST_BUDGET=250,ART_FADE=180;
+let atlasArt=null,artState='off',artDeadline=0,artFirst=true,artPending=0;
+// For tests: the art's state ('off', 'loading', 'ready' or 'failed'), the last frame's waiting discs and
+// the renderer's own counts.
+const mapArt={get state(){return artState;},get pending(){return artPending;},get stats(){return atlasArt?.stats||null;},get lods(){return atlasArt?.lodFor;}};
+function loadAtlasArt(){
+ if(window.ATLAS_3D_OFF||artState!=='off')return;
+ artState='loading';
+ import('./disc3d/atlas-art.mjs').then(m=>m.createAtlasArt({maxBytes:matchMedia('(pointer: coarse)').matches?24e6:64e6})).then(art=>{
+  atlasArt=art;artState='ready';scheduleMapDraw();
+  for(const prepared of preparedGroups.values())warmArt(prepared);
+ },err=>{
+  artState='failed';
+  // Software WebGL is an expected fallback, not a fault.
+  if(!/^Software WebGL/.test(err?.message))console.warn('3D atlas discs unavailable; keeping the 2D discs.',err);
+ });
+}
+function artFrame(){artDeadline=performance.now()+(artFirst&&atlasArt?ART_FIRST_BUDGET:ART_BUDGET);artPending=0;}
+// A disc's render for `size` px on screen: cached, or drawn now while the frame's budget lasts. Null while
+// it must wait (it counts as pending, and the frame asks for another). A cached render of another size
+// stands in until its own is drawn.
+function discArt(d,color,size){
+ if(!atlasArt||!organicAtlas())return null;
+ if(!atlasArt.has(d,color,size)){
+  if(performance.now()<artDeadline)atlasArt.render(d,color,size);
+  else artPending++;
+ }
+ return atlasArt.get(d,color,size);
+}
+// Idle time draws a neighbouring level's discs before the camera gets there: its curated discs and dots at
+// full size, its small discs and minis at the size they reach at the level's top.
+function warmArt(prepared){
+ if(!atlasArt||!organicAtlas()||!prepared||!window.requestIdleCallback)return;
+ // Only the levels next to the camera's: a zoom passes through them next.
+ if(groupCache&&Math.abs(prepared.level-groupCache.level)>1)return;
+ const {top}=AtlasGroups.organicRange(prepared.level);
+ const list=[...prepared.groups.filter(g=>!g.hidden&&g.lead).map(g=>[g.lead,AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)]),
+  ...(prepared.gaps||[]).filter(g=>g.d).map(g=>[g.d,AtlasGroups.gapSize(top,g.tier)])];
+ const next=deadline=>{
+  while(list.length&&deadline.timeRemaining()>3){const [d,size]=list.shift();if(atlasArt&&organicAtlas())atlasArt.render(d,discColor(d),size);}
+  if(list.length)requestIdleCallback(next);
+ };
+ requestIdleCallback(next);
+}
+// A curated disc's or dot's DOM art carries its render: the orb's paint gives way (cosmic.css .has-3d),
+// keeping its drop shadows. A render that arrives after the orb has shown fades in over it first.
+function syncMarkerArt(node,d,color){
+ const host=node.discArt||(node.discArt=node.querySelector('.disc-art'));if(!host)return;
+ const entry=artState==='ready'?discArt(d,color,AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)):null;
+ if(!entry){
+  // No render of this colour at any size yet (a theme or view just recoloured it): the orb shows meanwhile.
+  dropMarkerArt(node);
+  if(artState==='ready'||artState==='loading')node.artWaited=true;
+  return;
+ }
+ if(node.art3d===entry.canvas)return;
+ node.art3d?.remove();node.art3d=entry.canvas;
+ const c=entry.canvas,pad=((1/entry.fill-1)/2*100).toFixed(3)+'%',size=(100/entry.fill).toFixed(3)+'%';
+ c.className='disc-art-3d';c.setAttribute('aria-hidden','true');
+ Object.assign(c.style,{left:'-'+pad,top:'-'+pad,width:size,height:size});
+ const fade=node.artWaited&&!host.classList.contains('has-3d')&&window.AtlasMotion?.enabled();
+ host.append(c);
+ if(fade){
+  c.classList.add('is-arriving');clearTimeout(node.artTimer);
+  node.artTimer=setTimeout(()=>{c.classList.remove('is-arriving');if(node.art3d===c)host.classList.add('has-3d');},ART_FADE);
+ }else host.classList.add('has-3d');
+ node.artWaited=false;
+}
+function dropMarkerArt(node){
+ if(!node.art3d)return;
+ node.art3d.remove();node.art3d=null;clearTimeout(node.artTimer);node.discArt?.classList.remove('has-3d');
+}
 // A curated disc's art (cosmic.css .clean-disc, light and dark) drawn once per color and look at
 // SPRITE_SCALE times its 76px, shadows and all: SPRITE_PAD of its size beyond each edge holds them.
 const SPRITE_SCALE=2,SPRITE_PAD=.5;
-function gapSprite(color){
- const light=document.documentElement.dataset.theme==='light',key=color+(light?'|light':'|dark');
+// `shadowOnly`: just the drop shadows, for under a 3D render.
+function gapSprite(color,shadowOnly=false){
+ const light=document.documentElement.dataset.theme==='light',key=color+(light?'|light':'|dark')+(shadowOnly?'|shadow':'');
  let sprite=gapSprites.get(key);if(sprite)return sprite;
  if(gapSprites.size>48)gapSprites.clear();
  const k=SPRITE_SCALE,D=AtlasGroups.GAP.disc*k,n=Math.ceil(D*(1+SPRITE_PAD*2)),c=document.createElement('canvas');c.width=c.height=n;
@@ -283,6 +367,7 @@ function gapSprite(color){
  for(const [y,blur,tint] of light?[[5,9,'#1523401c'],[13,23,'#15234016']]:[[7,15,'#0007'],[0,24,mix(color,1,.13)]]){
   g.save();shadow(y,blur,tint,n*2);g.translate(-n*2,0);circle();g.fillStyle='#000';g.fill();g.restore();
  }
+ if(shadowOnly){gapSprites.set(key,c);return c;}
  // The body: a lit radial gradient (a circle at 42% 32%, out to the farthest corner) under a glare
  // (an ellipse at 30% 18%, likewise), both placed in the art's own box.
  const body=g.createRadialGradient(left+.42*D,top+.32*D,0,left+.42*D,top+.32*D,Math.hypot(.58,.68)*D);
@@ -350,7 +435,8 @@ function drawGaps(area,w,h){
  let moving=false;
  // Each entry is also its record in mapGaps (for tests): id, tier, name, x, y, size, art (its
  // presence), label (its name's presence), strength (what shows of its name), named, on, rest (at
- // its rest spot), box (its name's box), paint (its sprite's box, shadows and all) and drawn (on screen).
+ // its rest spot), box (its name's box), paint (its sprite's box, shadows and all), drawn (on screen), lod (its
+ // 3D render's level of detail, null while it shows the orb) and three (how far its render has faded in).
  for(const [key,e] of gapFade){
   e.art=toward(e.art,e.on?1:0,step);const shown=e.label=toward(e.label,e.on&&e.named?1:0,step);
   // A disc that stays across a level swap eases to its new rest spot (a few px at most).
@@ -366,7 +452,17 @@ function drawGaps(area,w,h){
   mapGaps.push(e);
   // Its name hangs up to about 100px below it.
   if(x<-reach-80||x>w+reach+80||y<-reach-100||y>h+reach)continue;
-  ctx.globalAlpha=e.art*depth;ctx.drawImage(gapSprite(discColor(e.d)),x-reach,y-reach,reach*2,reach*2);
+  // Its 3D render over its drop shadows; the orb while the render waits, crossfading when it arrives.
+  const color=discColor(e.d),art=discArt(e.d,color,size);
+  if(!art)e.three=0;
+  else if(e.three==null)e.three=1;
+  else if(e.three<1){e.three=animate?Math.min(1,e.three+step*GAP_FADE/ART_FADE):1;moving=true;}
+  e.lod=art?.lod||null;
+  if(e.three<1){ctx.globalAlpha=e.art*depth*(1-e.three);ctx.drawImage(gapSprite(color),x-reach,y-reach,reach*2,reach*2);}
+  if(art&&e.three>0){
+   ctx.globalAlpha=e.art*depth*e.three;ctx.drawImage(gapSprite(color,true),x-reach,y-reach,reach*2,reach*2);
+   const s=size/art.fill;ctx.drawImage(art.canvas,x-s/2,y-s/2,s,s);
+  }
   const f=groupCache.footprints.get(e.id);
   if(f){
    // A curated name's box, raised to hang as far below this disc as a curated name hangs below its art.
@@ -462,6 +558,7 @@ function renderMarkers(){
   if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',(lead.catalogName||lead.name)+', '+lead.brand+', '+({putter:'Putter',mid:'Midrange',fairway:'Fairway driver',distance:'Distance driver',unknown:'Unrated'}[typeOf(lead)])+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
+  if(organicAtlas())syncMarkerArt(node,lead,color);else dropMarkerArt(node);
   if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected||node.scaleLarge!==g.large)){
    if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
    const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected),'is-mine':!!myColor(lead)};
@@ -565,6 +662,7 @@ function renderCluster(){
 }
 function initAtlasMap(){
  const map=$('#map'),layer=$('#mapMarkers'),pop=$('#clusterPopover');
+ loadAtlasArt();
  const glow=document.createElement('div');glow.className='map-edge-feedback';glow.setAttribute('aria-hidden','true');
  for(const side of ['left','right','top','bottom']){const edge=document.createElement('i');edge.className=side;glow.append(edge);}map.append(glow);
  map.addEventListener('pointerenter',measureMap);

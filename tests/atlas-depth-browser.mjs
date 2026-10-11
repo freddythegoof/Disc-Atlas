@@ -23,7 +23,7 @@ const server=http.createServer((req,res)=>{
  if(url.pathname.startsWith('/api/')){res.writeHead(503,{'Content-Type':'application/json'});res.end('{"error":"Frontend test: backend excluded"}');return;}
  try{
   const data=fs.readFileSync(file);
-  res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.woff2':'font/woff2'})[path.extname(file)]||'application/octet-stream'});res.end(data);
+  res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.mjs':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.woff2':'font/woff2'})[path.extname(file)]||'application/octet-stream'});res.end(data);
  }catch{res.writeHead(404);res.end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -47,13 +47,14 @@ async function open(viewport){
  return page;
 }
 // Settled: the level is current, no marker is arriving or retiring, and every small disc and name has
-// finished fading.
+// finished fading. With a GPU, every disc on screen also has its 3D render (Plan 16), faded fully in.
 const settled=async page=>{
  await page.waitForFunction(()=>!cameraTween&&groupCache&&groupCache.items===filtered&&groupCache.level===AtlasGroups.level(zoom,groupCache.level)&&
   !document.querySelector('#mapMarkers').classList.contains('is-regrouping')&&!document.querySelector('.marker-position.is-retiring,.marker-position.is-new'));
  await page.waitForTimeout(450);
  await page.evaluate(()=>draw());
  await page.waitForFunction(()=>mapGaps.every(g=>g.on&&g.art===1&&g.rest&&g.strength===(g.named?AtlasGroups.gapLabelAlpha(zoom,g.tier):0)));
+ await page.waitForFunction(()=>mapArt.state!=='loading'&&mapArt.pending===0&&mapGaps.every(g=>!g.drawn||mapArt.state!=='ready'||g.three===1)&&!document.querySelector('.disc-art-3d.is-arriving'));
  await page.waitForTimeout(250);
 };
 // Cameras: 1x, the landing camera (Destroyer selected, as the page opens), mid zoom, deep (names in
