@@ -268,11 +268,31 @@ function draw(){
  // An organic rest offset is the disc's own small toss, not a displacement worth a line.
  for(const g of mapClusters){if(!organicAtlas()&&!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  drawPlanetLabels();
- renderMarkers();drawSatelliteLeaders();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
+ renderMarkers();drawSatelliteLeaders();drawCompareHighlights();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
  // Discs still waiting for their 3D render get another frame's budget.
  if(atlasArt&&mapClusters.length)artFirst=false;
  if(artPending)scheduleMapDraw();
+}
+// A steady dashed outline identifies tray membership independently of hover/selection glow.
+// Paint in screen pixels outside the art, including small canvas discs and a stack's hidden members.
+function drawCompareHighlights(){
+ if(!comparison.length)return;
+ const ids=new Set(comparison.map(d=>d.id)),organic=organicAtlas(),scale=mapMarkerScale();
+ ctx.save();ctx.globalAlpha=1;
+ const ring=(x,y,r)=>{
+  r=Math.max(7,r+5);
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.setLineDash([]);ctx.lineWidth=5;ctx.strokeStyle=themePalette.background;ctx.stroke();
+  ctx.setLineDash([4,3]);ctx.lineWidth=2.5;ctx.strokeStyle=themePalette.compare;ctx.stroke();
+ };
+ for(const g of mapClusters)if(g.members.some(d=>ids.has(d.id))){
+  // Reserve the selected art's extra scale too, so selecting a compared disc cannot cover its ring.
+  const radius=g.large?(organic?38:34)*scale*1.09:organic?AtlasGroups.gapSize(zoom,'small')/2:16*scale*1.12;
+  ring(g.x,g.y,radius);
+ }
+ for(const g of mapGaps)if(g.on&&g.drawn&&ids.has(g.id))ring(g.x,g.y,g.size/2);
+ ctx.restore();
 }
 // Tiers 2 and 3 (AtlasGroups.GAP): the rest of the rated catalog as small discs and minis on the
 // canvas, under every curated disc, in the room curate left them. Each grows with the zoom to a

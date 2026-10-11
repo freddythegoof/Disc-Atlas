@@ -10,7 +10,8 @@
 // Overmold discs (Plan 12) draw the rim and the flight plate in two materials, split at the measured rim
 // width. `overmold` (boolean) is the record's own flag; without it the PDGA `manufacturer` and `record` name
 // are looked up in overmold.mjs. `colors` {rim, plate} are optional overrides of the two colours; the
-// defaults come from `color`. Every other disc is one material, as before.
+// plate defaults to `color`; the rim defaults to black in light theme, white in dark themes.
+// Every other disc is one material, as before.
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
@@ -161,12 +162,13 @@ export function createDiscViewer({segments}={}){
   const resolved=shapeForDisc(props);
   if(!resolved)return false;
   const {shape,source}=resolved;
-  const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,props.colors):null;
+  const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim:props.colors?.rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
   const key=JSON.stringify([shape,props.mold,color,props.plastic,colors]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
-  if(key===state.key)return true;
+  // Keep override intent even when a newly chosen color equals the current theme default.
+  if(key===state.key){state.props=props;return true;}
   const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
   state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
@@ -199,7 +201,10 @@ export function createDiscViewer({segments}={}){
  });
 
  function attach(host){if(element.parentNode!==host)host.appendChild(element);resize();request();}
+ const themeChanged=()=>{if(state.props)update({...state.props,hand:state.hand});request();};
+ window.addEventListener('atlas-theme-change',themeChanged);
  function dispose(){
+  window.removeEventListener('atlas-theme-change',themeChanged);
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
   body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
   envTexture.dispose();renderer.dispose();element.remove();
