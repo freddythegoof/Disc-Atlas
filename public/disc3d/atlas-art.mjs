@@ -100,7 +100,8 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   while(geometries.size>maxGeometries){const [k,old]=geometries.entries().next().value;geometries.delete(k);if(old!==mesh.geometry)old.dispose();}
   stats.geometries=geometries.size;return g;
  }
- const colorsOf=(s,color,rim)=>s.overmold?overmoldColors(color,{rim}):{plate:color,rim:''};
+ // Resolve the theme default before every cache lookup so a theme switch cannot reuse the old rim.
+ const colorsOf=(s,color,rim)=>s.overmold?overmoldColors(color,{rim:rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):{plate:color,rim:''};
  const keyOf=(d,lod,c)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim;
  function touch(key){const e=images.get(key);if(e){images.delete(key);images.set(key,e);}return e||null;}
 

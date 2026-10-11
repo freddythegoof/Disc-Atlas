@@ -22,13 +22,14 @@ const by=name=>records.find(d=>d.name===name);
 const examples=[['Pyro','#008080','#800080'],['Tempo','#ffffff','#0000ff']];
 const items=examples.map(([name,color,rim_color],i)=>({id:'copy-'+i,mold_id:by(name).id,plastic:'Neutron',weight_g:175,wear:10,color,rim_color,in_bag:true,status:'active',pocket:'main',sort_order:i,added_at:'2026-01-01T00:00:00Z',notes:null,stability_bias:null}));
 const settings={bag_model:'Custom bag',capacity:4,main_capacity:4,putter_capacity:0,sort_mode:'speed',bag_color:'#343c49'};
-async function open(){
+async function open({signedOut=false,defaultRims=false}={}){
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  let saved=structuredClone(items);
+ if(defaultRims)saved[0].rim_color=null;
  await page.route('**/api/**',async route=>{
   const u=new URL(route.request().url()),method=route.request().method();
-  if(u.pathname==='/api/account')return route.fulfill({json:{user:{name:'Fixture',email:'fixture@example.test'},csrfToken:'fixture',authReady:true}});
+  if(u.pathname==='/api/account')return route.fulfill({json:{user:signedOut?null:{name:'Fixture',email:'fixture@example.test'},csrfToken:'fixture',authReady:true}});
   if(u.pathname.startsWith('/api/bag')){
    if(method==='PUT'||method==='PATCH'){
     const id=u.pathname.split('/').at(-1),value=route.request().postDataJSON();
@@ -41,10 +42,66 @@ async function open(){
   }
   return route.fulfill({json:{}});
  });
- await page.goto('http://127.0.0.1:'+server.address().port+'/?bag=1');
- await page.waitForFunction(()=>window.BagApp?.mapColors().size===2);
+ await page.goto('http://127.0.0.1:'+server.address().port+(signedOut?'/':'/?bag=1'));
+ await page.waitForFunction(signedOut=>signedOut?discs.length>0:window.BagApp?.mapColors().size===2,signedOut);
  return {page,errors};
 }
+
+test('atlas default rims follow the theme without reusing stale LODs or overriding custom colors',async()=>{
+ const {page,errors}=await open();
+ try{
+  const result=await page.evaluate(async()=>{
+   const {createAtlasArt}=await import('/disc3d/atlas-art.mjs'),art=await createAtlasArt({dpr:2});
+   try{
+    const d=discs.find(d=>d.name==='Pyro'),plain=discs.find(d=>d.name==='Pilot'),plate='#008080',rows=[];
+    document.documentElement.dataset.theme='light';
+    const black=art.render(d,plate,94),custom=art.render(d,plate,94,'#800080'),single=art.render(plain,plate,94);
+    for(const theme of ['light','midnight','charcoal','black','light']){
+     document.documentElement.dataset.theme=theme;
+     const before=art.get(d,plate,12),hasBefore=art.has(d,plate,12),e=art.render(d,plate,12);
+     const shape=art.debug.shapeOf(d).shape,f=1-shape.rimWidth/shape.diameter;
+     const full=art.render(d,plate,94),px=full.px,pixels=full.canvas.getContext('2d').getImageData(Math.round(px/2-.5+f*full.fill*px/2),Math.round(px/2),1,1).data;
+     rows.push({theme,resolvedHit:art.get(d,plate,94,theme==='light'?'#0a0a0a':'#ffffff')===full,pixels:[...pixels],cacheMiss:before===null,hasBefore,
+      hit:art.get(d,plate,12)===e,fullHit:art.get(d,plate,94)===full,lightHit:theme==='light'?full===black:null,
+      customHit:art.render(d,plate,94,'#800080')===custom,singleHit:art.render(plain,plate,94)===single});
+    }
+    return rows;
+   }finally{art.dispose();}
+  });
+  for(const r of result){
+   assert.equal(r.resolvedHit,true,r.theme+' default rim selects the correctly colored image');
+   assert.equal(r.hit,true);assert.equal(r.fullHit,true);assert.equal(r.customHit,true,r.theme+' custom rim wins');
+   assert.equal(r.singleHit,true,'single-mold cache is unaffected');
+   if(r.theme==='light'){assert.equal(r.lightHit,true,'returning to light reuses its cached image');assert.ok(r.pixels.slice(0,3).every(c=>c<35),'light rim pixels stay black');}
+   else assert.ok(r.pixels.slice(0,3).every(c=>c>100),r.theme+' rim pixels are white');
+  }
+  assert.equal(result[1].cacheMiss,true,'dark get must not reuse a light image at any LOD');
+  assert.equal(result[1].hasBefore,false,'dark has must bypass the cached light low LOD');
+  assert.deepEqual(errors,[]);
+ }finally{await page.close();}
+});
+
+for(const personal of [false,true])test((personal?'My Map':'signed-out Atlas')+' redraws default rims on theme-change while custom rims stay fixed',async()=>{
+ const {page,errors}=await open({signedOut:!personal,defaultRims:true});
+ try{
+  if(personal)await page.locator('[data-bag-view="map"]').click();
+  else await page.evaluate(()=>{document.querySelector('#search').value='Pyro';filter();});
+  await page.waitForFunction(()=>mapArt.state==='ready'&&document.querySelectorAll('#mapMarkers .has-3d').length>0);
+  for(const [theme,rim] of [['light','#0a0a0a'],['midnight','#ffffff'],['charcoal','#ffffff'],['black','#ffffff'],['light','#0a0a0a']]){
+   await page.locator(`[data-theme-choice="${theme}"]`).evaluate(n=>n.click());
+   await page.waitForFunction(([rim,personal])=>{
+    const expected=new Map([['Pyro',rim],...(personal?[['Tempo','#0000ff']]:[])]);
+    return [...expected].every(([name,rim])=>{
+     const d=discs.find(d=>d.name===name),g=mapClusters.find(g=>g.lead?.id===d.id),node=g&&document.querySelector(`[data-cluster="${g.key}"]`);
+     const e=atlasArt.get(d,discColor(d),94,rim);
+     return e&&node?.art3d===e.canvas;
+    });
+   },[rim,personal]);
+   if(theme==='light'||theme==='black')await page.locator('#map').screenshot({path:output+`/${personal?'my-map':'signed-out'}-${theme}-rims.png`});
+  }
+  assert.deepEqual(errors,[]);
+ }finally{await page.close();}
+});
 
 test('atlas cache and pixels honor custom rims independently of the plate',async()=>{
  const {page}=await open();

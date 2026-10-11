@@ -98,6 +98,7 @@ try{
   const page=await open('desktop');
   assert.equal(await page.evaluate(()=>mapArt.state),'ready','the atlas has its 3D renderer on a GPU');
   const result=await page.evaluate(async()=>{
+   document.documentElement.dataset.theme='light'; // This render check measures the light theme's black default rim.
    const {createAtlasArt,LODS,lodFor}=await import('/disc3d/atlas-art.mjs');
    const {isOvermold}=await import('/disc3d/overmold.mjs');
    const art=await createAtlasArt({dpr:2});
@@ -134,6 +135,7 @@ try{
    const list=[...archetypes,...overmolds.slice(0,24)],cell=104,cols=list.length>19?19:list.length,rowsN=Math.ceil(list.length/cols);
    const board=document.createElement('canvas');board.width=cols*cell*2;board.height=rowsN*cell*2*2;const g=board.getContext('2d');g.scale(2,2);
    [['#0b1016',0],['#f4f1ea',rowsN*cell]].forEach(([bg,y0])=>{g.fillStyle=bg;g.fillRect(0,y0,cols*cell,rowsN*cell);
+    document.documentElement.dataset.theme=y0===0?'midnight':'light';
     list.forEach((d,i)=>{const cx=(i%cols)*cell+cell/2,cy=y0+Math.floor(i/cols)*cell+cell/2,color=colors[typeOf(d)];
      for(const [size,dx,dy] of [[76,-8,-6],[40,30,30],[12,-38,38]]){const e=art.render(d,color,size),s=size/e.fill;g.drawImage(e.canvas,cx+dx-s/2,cy+dy-s/2,s,s);}});});
    art.dispose();
