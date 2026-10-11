@@ -67,8 +67,8 @@ async function show(page,{zoom:z=1,at=[.55,.5],theme='midnight',filter}={}){
  await page.mouse.move(1,1);
  await page.evaluate(([z,at,theme,only])=>{
   document.querySelector(`[data-theme-choice="${theme}"]`).click();
-  selected=null;closeDetail(false);document.querySelector('#search').value='';selectedBrands.clear();type='all';
-  if(only?.type)type=only.type;
+  selected=null;closeDetail(false);document.querySelector('#search').value='';selectedBrands.clear();selectedTypes.clear();
+  if(only?.type)selectedTypes.add(only.type);
   if(only?.brands)for(const b of only.brands)selectedBrands.add(b);
   zoom=1;pan={x:0,y:0};filter();
   if(z!==1){const {width:w,height:h}=mapViewport,target=boundedCamera(zoomDestination(z,{x:w*at[0],y:h*at[1]}));zoom=target.zoom;pan={x:target.x,y:target.y};}

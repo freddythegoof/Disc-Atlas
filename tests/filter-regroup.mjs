@@ -56,7 +56,7 @@ export async function checkFilterRegroup(browser,base){
    assert.equal(r.arrivals,0,'Filtering does not replay entrance animations');
   }
   await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});
-  await page.evaluate(()=>{type='all';selectedBrands.clear();filter();selectedBrands.add('Axiom');filter();});
+  await page.evaluate(()=>{selectedTypes.clear();selectedBrands.clear();filter();selectedBrands.add('Axiom');filter();});
   await page.waitForFunction(settled);
   assert.ok(await page.evaluate(()=>groupCache.groups.every(g=>g.members.every(d=>d.brand==='Axiom'))),'Obsolete worker results cannot restore a previous filter');
   assert.equal(await page.locator('.is-new,.is-retiring').count(),0);
@@ -64,7 +64,7 @@ export async function checkFilterRegroup(browser,base){
   assert.equal(await page.locator('.atlas-marker').count(),0,'An empty filter retires every marker');
   await page.locator('#empty').waitFor({state:'visible'});
   await page.evaluate(()=>{
-   selectedBrands.clear();type='all';document.querySelector('#search').value='';filter();
+   selectedBrands.clear();selectedTypes.clear();document.querySelector('#search').value='';filter();
   });
   await page.waitForFunction(settled);
   await page.evaluate(()=>{

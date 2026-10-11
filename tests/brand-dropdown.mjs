@@ -101,7 +101,7 @@ export async function checkBrandDropdown(browser,base){
 
    // Type chips still work beside it.
    await page.locator('#typeChips button[data-type="putter"]').click();
-   assert.equal(await page.evaluate(()=>type),'putter',name+': type chips unaffected');
+   assert.deepEqual(await page.evaluate(()=>[...selectedTypes]),['putter'],name+': type chips unaffected');
    assert.equal(await chip.getAttribute('data-active'),'false',name+': a type chip does not press Manufacturer');
    if(name==='mobile'){
     // The Directory scrolls under the toolbar: an open panel stays under its chip.

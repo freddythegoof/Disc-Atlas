@@ -61,7 +61,7 @@ async function show(page,scenario,theme){
  await page.evaluate(([scenario,theme])=>{
   document.querySelector(`[data-theme-choice="${theme}"]`).click();
   selected=null;closeDetail(false);
-  document.querySelector('#search').value='';selectedBrands.clear();type='all';
+  document.querySelector('#search').value='';selectedBrands.clear();selectedTypes.clear();
   new Function(scenario)();zoom=1;pan={x:0,y:0};filter();
  },[SCENARIOS[scenario],theme]);
  await settled(page);

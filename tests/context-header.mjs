@@ -25,19 +25,19 @@ export async function checkContextHeader(browser,base){
   const title=page.getByRole('button',{name:/Clear manufacturer and type filters/});
   await title.hover();assert.equal(await title.evaluate(el=>getComputedStyle(el).cursor),'pointer');await capture('hover');
   await title.focus();await page.keyboard.press('Enter');await settle();
-  assert.deepEqual(await page.evaluate(()=>({brands:[...selectedBrands],type})),{brands:[],type:'all'});
+  assert.deepEqual(await page.evaluate(()=>({brands:[...selectedBrands],types:[...selectedTypes]})),{brands:[],types:[]});
   assert.match(await page.locator('header .logo').innerText(),/Disc Atlas/);
   assert.ok(await page.locator('header .logo').evaluate(el=>el===document.activeElement),'Clearing retains keyboard focus on the restored title');
-  await page.evaluate(()=>{type='mid';filter();});
+  await page.evaluate(()=>{selectedTypes.clear();selectedTypes.add('mid');filter();});
   assert.match(await page.locator('header .logo').innerText(),/Disc Atlas/,'Type-only keeps the default title');
   await page.evaluate(()=>{selectedBrands.add('Innova');$('#search').value='Destroyer';$('#speed').value=12;filter();});
   await title.click();
-  assert.deepEqual(await page.evaluate(()=>({search:$('#search').value,speed:$('#speed').value,type,brands:[...selectedBrands]})),{search:'Destroyer',speed:'12',type:'all',brands:[]});
+  assert.deepEqual(await page.evaluate(()=>({search:$('#search').value,speed:$('#speed').value,types:[...selectedTypes],brands:[...selectedBrands]})),{search:'Destroyer',speed:'12',types:[],brands:[]});
   await page.evaluate(()=>{reset();selectedBrands.add('Innova');selectedBrands.add('Axiom');filter();});
   assert.match(await page.locator('header').innerText(),/Innova.*Axiom/,'Multiple brand names remain represented');
   await title.click();
   await page.setViewportSize({width:360,height:800});
-  await page.evaluate(()=>{document.activeElement.blur();selectedBrands.add('Innova');type='distance';filter();});
+  await page.evaluate(()=>{document.activeElement.blur();selectedBrands.add('Innova');selectedTypes.clear();selectedTypes.add('distance');filter();});
   await page.mouse.move(300,150);await capture('mobile-360');
   await page.evaluate(()=>{selectedBrands.clear();selectedBrands.add('Thought Space Athletics');filter();});
   assert.ok(await page.evaluate(()=>{
@@ -48,7 +48,7 @@ export async function checkContextHeader(browser,base){
   await page.emulateMedia({reducedMotion:'reduce'});await title.click();
   assert.equal(await page.locator('.header-identity').evaluate(el=>el.getAnimations({subtree:true}).length),0);
   await page.getByRole('button',{name:'Switch to light mode'}).click();
-  await page.evaluate(()=>{selectedBrands.add('Innova');type='distance';filter();});await capture('mobile-light');
+  await page.evaluate(()=>{selectedBrands.add('Innova');selectedTypes.clear();selectedTypes.add('distance');filter();});await capture('mobile-light');
   assert.deepEqual(errors,[]);
   await checkHeaderMenu(browser,base);
   console.log('PASS: contextual header, no duplicate pills, keyboard clear, independent filters, multiple brands, 360px long names, reduced motion, and screenshots.');

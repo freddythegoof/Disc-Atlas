@@ -52,7 +52,7 @@ async function show(page,{brands=[],type:kind='all',camera='far',zoom:z=1,on=nul
  await page.mouse.move(1,1);
  await page.evaluate(([brands,kind,camera,z,on])=>{
   selected=null;closeDetail(false);document.querySelector('#search').value='';selectedBrands.clear();for(const b of brands)selectedBrands.add(b);
-  type=kind;zoom=1;pan={x:0,y:0};filter();
+  selectedTypes.clear();if(kind!=='all')selectedTypes.add(kind);zoom=1;pan={x:0,y:0};filter();
   if(camera==='landing')focusFeatured();
   if(on){const d=filtered.find(d=>d.name===on),{width:w,height:h}=mapViewport,target=boundedCamera(AtlasLayout.camera(shownPosition(d.id),w,h,z));zoom=target.zoom;pan={x:target.x,y:target.y};}
   else if(z!==1){const {width:w,height:h}=mapViewport,target=boundedCamera(zoomDestination(z,{x:w/2,y:h/2}));zoom=target.zoom;pan={x:target.x,y:target.y};}

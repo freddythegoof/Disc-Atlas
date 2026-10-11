@@ -11,7 +11,7 @@ export async function checkTypeChips(browser,base){
    const chips=page.locator('#typeChips button[data-type]');
    assert.deepEqual(await chips.allTextContents(),['Driver','Fairway','Midrange','Putter'],name+': chips in the required order');
    const pressed=()=>chips.evaluateAll(list=>list.filter(b=>b.getAttribute('aria-pressed')==='true').map(b=>b.textContent));
-   const state=()=>page.evaluate(()=>({type,types:[...new Set(filtered.map(typeOf))],count:filtered.length,sidebar:document.querySelector('#types .active').dataset.type}));
+   const state=()=>page.evaluate(()=>({types:[...new Set(filtered.map(typeOf))],count:filtered.length,sidebar:[...document.querySelectorAll('#types .active')].map(b=>b.dataset.type)}));
    const all=(await state()).count;
    assert.deepEqual(await pressed(),[],name+': default is All, nothing pressed');
    const geometry=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect(),s=r('.explore-tools .search'),c=r('#typeChips');return {searchBottom:s.bottom,searchRight:s.right,chipsTop:c.top,chipsLeft:c.left,searchTop:s.top};});
@@ -22,13 +22,25 @@ export async function checkTypeChips(browser,base){
     const s=await state();
     assert.deepEqual(await pressed(),[label],name+': only '+label+' pressed');
     assert.deepEqual(s.types,[type],name+': '+label+' filters the map to '+type);
-    assert.equal(s.sidebar,type,name+': sidebar type list stays in sync');
+    assert.deepEqual(s.sidebar,[type],name+': sidebar type list stays in sync');
+    await chips.filter({hasText:new RegExp('^'+label+'$')}).click();
+    const off=await state();
+    assert.deepEqual(await pressed(),[],name+': clicking the active '+label+' chip toggles it off');
+    assert.equal(off.count,all,name+': toggling '+label+' off restores every disc');
+    assert.deepEqual(off.sidebar,['all'],name+': sidebar returns to All');
    }
-   await chips.filter({hasText:/^Putter$/}).click();
-   const cleared=await state();
-   assert.deepEqual(await pressed(),[],name+': clicking the active chip clears the filter');
-   assert.equal(cleared.count,all,name+': clearing restores every disc');
-   assert.equal(cleared.sidebar,'all',name+': sidebar returns to All');
+   const chip=label=>chips.filter({hasText:new RegExp('^'+label+'$')});
+   await chip('Fairway').click();await chip('Driver').click();
+   const pair=await state();
+   assert.deepEqual(await pressed(),['Driver','Fairway'],name+': two chips pressed together');
+   assert.deepEqual(pair.types.sort(),['distance','fairway'],name+': Fairway + Driver show either type (ANY)');
+   assert.ok(pair.count>0&&pair.count<all,name+': two types narrow the map but keep both');
+   assert.deepEqual(pair.sidebar.sort(),['distance','fairway'],name+': sidebar mirrors both types');
+   await chip('Driver').click();
+   assert.deepEqual(await pressed(),['Fairway'],name+': toggling one chip off leaves the other');
+   assert.deepEqual((await state()).types,['fairway'],name+': remaining type still filters');
+   await chip('Fairway').click();
+   assert.equal((await state()).count,all,name+': no types selected means every type shows');
    await chips.filter({hasText:/^Fairway$/}).click();
    await page.fill('#search','d');
    const combined=await page.evaluate(()=>({n:filtered.length,ok:filtered.every(d=>typeOf(d)==='fairway'&&searchText(d).includes('d'))}));
@@ -41,8 +53,10 @@ export async function checkTypeChips(browser,base){
    assert.deepEqual(await pressed(),[],name+': sidebar All also clears the chips');
    await page.locator('#types [data-type="mid"]').click();
    assert.deepEqual(await pressed(),['Midrange'],name+': sidebar choice lights the matching chip');
+   await page.locator('#types [data-type="fairway"]').click();
+   assert.deepEqual(await pressed(),['Fairway','Midrange'],name+': sidebar types multi-select too');
   }finally{await context.close();}
  }
  assert.deepEqual(errors,[],'no page errors');
- console.log('PASS: type chips order, wrap, single-select toggle, search combination and sidebar sync on desktop and mobile.');
+ console.log('PASS: type chips order, wrap, multi-select toggle, search combination and sidebar sync on desktop and mobile.');
 }

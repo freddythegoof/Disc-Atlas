@@ -72,7 +72,7 @@ async function show(page,camera,theme){
  await page.mouse.move(1,1);
  await page.evaluate(([camera,theme])=>{
   document.querySelector(`[data-theme-choice="${theme}"]`).click();
-  selected=null;closeDetail(false);document.querySelector('#search').value='';selectedBrands.clear();type='all';
+  selected=null;closeDetail(false);document.querySelector('#search').value='';selectedBrands.clear();selectedTypes.clear();
   zoom=1;pan={x:0,y:0};filter();
   if(camera.landing)focusFeatured();
   if(camera.zoom&&camera.zoom!==1){

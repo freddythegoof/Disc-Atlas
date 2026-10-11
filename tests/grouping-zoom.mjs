@@ -244,7 +244,7 @@ export async function checkLowZoomLabels(browser,base){
  page.on('pageerror',e=>errors.push(e.message));
  try{
   await page.goto(base);await page.locator('.atlas-marker.is-selected').waitFor();await page.evaluate(()=>document.fonts.ready);await page.mouse.move(10,80);
-  await page.evaluate(()=>{type='distance';filter();});await settleMap(page);
+  await page.evaluate(()=>{selectedTypes.clear();selectedTypes.add('distance');filter();});await settleMap(page);
   const results=[];
   // Count painted non-grid paths too: state-only counts miss selected-stack leaders.
   const paintedLeaders=()=>page.evaluate(()=>{
@@ -281,7 +281,7 @@ export async function checkLowZoomLabels(browser,base){
    await frameBand(page,z,.8);const state=await measureBand(page);
    assert.equal(state.leaders,0,`${z}x has no vectors`);assert.deepEqual(state.overlaps,[]);assert.ok(state.honest);
   }
-  await page.evaluate(()=>{type='all';filter();});await settleMap(page);
+  await page.evaluate(()=>{selectedTypes.clear();filter();});await settleMap(page);
   for(const z of [1,3,6.99]){
    await frameBand(page,z,.8);
    const selectedMember=await page.evaluate(()=>{
