@@ -328,8 +328,14 @@ body[data-view="list"] .graph-dock{background:none}
 #mapMarkers .clean-disc.has-3d::after{display:none}
 #mapMarkers .disc-art-3d{position:absolute;display:block;pointer-events:none}
 #mapMarkers .disc-art-3d.is-arriving{animation:disc-3d-arrive .18s ease-out}
+#mapMarkers .map-dot.has-3d{background:none;border-color:transparent;box-shadow:none}
 @keyframes disc-3d-arrive{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#mapMarkers .disc-art-3d.is-arriving{animation:none}}
+
+/* Lists use the same cached model images, with their existing thumbnail footprint. */
+.disc-thumbnail.has-3d{background:none!important;border-color:transparent!important;box-shadow:none!important}
+.disc-thumbnail.has-3d::after,.disc-thumbnail.has-3d::before{display:none!important}
+.disc-thumbnail canvas{position:absolute;display:block;pointer-events:none}
 
 /* Modest camera-linked growth; labels stay in screen space and never intercept hits. */
 /* Discs run on under the toolbar and legend and off the map's edges; the chrome paints above them.

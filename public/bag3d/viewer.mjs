@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
-import { attachDiscFeatures } from './disc-features.mjs';
+import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
+import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
@@ -371,6 +372,7 @@ export async function mountBag(container, {
   let mixer, flapAction, flapDuration = 1, compartmentOpen = false, flapMotion = null, flapWaiters = [];
   const discGroup = new THREE.Group();
   const records = new Map();
+  const moldGeometries=new Map();
   let discGeometry, discTemplate, ghostMaterial, fabric = [], accentMaterials = [], placeholders = [], accents = [], glbDiscs = [];
   let layoutMode = false, appliedBagColor = null, accent = new THREE.Color(accentColor ?? '#80bcb0'), liftedKey = null, clipped = { main: 0, putter: 0, goTo: 0 };
   const dispose = () => {
@@ -385,7 +387,8 @@ export async function mountBag(container, {
     controls?.dispose();
     if (mixer && gltf) { mixer.stopAllAction(); mixer.uncacheRoot(gltf.scene); }
     const geometries = new Set(), materials = new Set([...(discFeatures?.originalMaterials ?? []), ...(ghostMaterial ? [ghostMaterial] : [])]), textures = new Set();
-    for (const record of records.values()) materials.add(record.mesh.material);
+    for (const record of records.values()) for(const material of [record.mesh.material].flat())materials.add(material);
+    for(const entry of moldGeometries.values())geometries.add(entry.geometry);
     scene.traverse(object => {
       if (object.geometry) geometries.add(object.geometry);
       if (object.material) for (const material of [object.material].flat()) materials.add(material);
@@ -470,11 +473,11 @@ export async function mountBag(container, {
   };
   const paintDisc = record => {
     if (record.placement.empty) return;
-    const material = record.mesh.material;
+    const materials = [record.mesh.material].flat();
     // Every disc renders clean (no accent rim or glow, the go-to included), except the hovered
     // one, which lights up in its own color.
-    material.emissive.copy(material.color).lerp(WHITE, .3);
-    material.emissiveIntensity = (record.glow ?? 0) * GLOW;
+    for(const material of materials){material.emissive.copy(material.color).lerp(WHITE, .3);
+    material.emissiveIntensity = (record.glow ?? 0) * GLOW;}
   };
 
   // Layout mode replaces the GLB's twelve fixed discs with slots built from the same disc mesh.
@@ -485,7 +488,7 @@ export async function mountBag(container, {
   });
   const setBagLayout = slots => {
     const previous = new Map([...records.values()].filter(record => !record.placement.empty).map(record => [record.key, record]));
-    for (const record of records.values()) { discGroup.remove(record.mesh); if (record.mesh.material !== ghostMaterial) record.mesh.material.dispose(); }
+    for (const record of records.values()) { discGroup.remove(record.mesh); for(const material of [record.mesh.material].flat())if(material!==ghostMaterial)material.dispose(); }
     records.clear();
     const result = bagLayout(slots);
     clipped = result.clipped;
@@ -494,9 +497,16 @@ export async function mountBag(container, {
     for (const placement of result.placements) {
       // An empty go-to pocket shows the GLB's dashed outline instead of a ghost disc.
       if (placement.empty && placement.pocket === 'goTo') continue;
-      const material = placement.empty ? ghostMaterial : discTemplate.clone();
+      let geometry=discGeometry,overmold=false;
+      if(!placement.empty&&placement.mold){
+        const key=JSON.stringify(placement.mold);
+        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low));
+        ({geometry,overmold}=moldGeometries.get(key));
+      }
+      let material = placement.empty ? ghostMaterial : discTemplate.clone();
       if (!placement.empty && placement.color) material.color.set(placement.color);
-      const mesh = new THREE.Mesh(discGeometry, material);
+      if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
+      const mesh = new THREE.Mesh(geometry, material);
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
@@ -1246,10 +1256,11 @@ export async function mountBag(container, {
     getBagLayoutState() {
       return [...records.values()].map(record => ({ record, ...record })).map(({ record, key, placement, mesh }) => ({
         key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty,
-        color: placement.empty ? null : '#' + mesh.material.color.getHexString(),
+        color: placement.empty ? null : '#' + [mesh.material].flat()[0].color.getHexString(),
+        overmold:Array.isArray(mesh.material),rimColor:Array.isArray(mesh.material)?'#'+mesh.material[1].color.getHexString():null,
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
-        pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : mesh.material.emissiveIntensity,
+        pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : [mesh.material].flat()[0].emissiveIntensity,
         // Staged out (or heading out), and the spot it rests at in the room's frame.
         out: record.slideTo === 1, spot: record.slideTo === 1 && record.spot ? record.spot.to.position.toArray() : null, spotScale: record.slideTo === 1 && record.spot ? record.spot.scale : null,
       }));

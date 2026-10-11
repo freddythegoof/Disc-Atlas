@@ -46,7 +46,7 @@ export function bagLayout({main = [], putter = [], goTo = []} = {}) {
   };
   const entry = (slot, pocket, order) => {
     const id = slotId(slot);
-    return {key: id === null ? `${pocket}-empty-${order}` : id, id, color: slotColor(slot), pocket, order, empty: id === null};
+    return {key: id === null ? `${pocket}-empty-${order}` : id, id, color: slotColor(slot), rimColor:slot?.rimColor ?? slot?.item?.rim_color ?? null, mold:slot?.mold ?? null, pocket, order, empty: id === null};
   };
 
   const mains = take(main, MAIN.maxSlots, 'main');

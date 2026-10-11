@@ -22,6 +22,7 @@
     "test:bag:demo": "node tests/bag-demo-browser.mjs",
     "test:bag:browser": "node tests/bag-browser.mjs",
     "test:bag:overmold": "node tests/bag-overmold-browser.mjs",
+    "test:appearance": "node --test tests/disc-appearance-browser.mjs",
     "test:bag:memorial": "node tests/bag-memorial-browser.mjs",
     "test:bag:collections": "node tests/bag-collections-browser.mjs",
     "test:bag:scene": "node tests/bag-scene-browser.mjs",

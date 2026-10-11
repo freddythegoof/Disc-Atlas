@@ -5,6 +5,15 @@ function photoMarkup(d,extra=''){
  const label=d.catalogName||d.name;
  return `<span class="disc-art clean-disc ${extra}" style="--disc-color:${discColor(d)}" role="img" aria-label="${esc(d.brand+' '+label)} — representative disc illustration"></span>`;
 }
+function thumbnailMarkup(d,color,rim){
+ const label=d?d.brand+' '+(d.catalogName||d.name):'Saved disc';
+ return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-rim-color="${esc(rim||'')}" style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
+}
+function observeDiscThumbnails(root,lookup){
+ if(window.ATLAS_3D_OFF)return;
+ import('./disc3d/thumbnails.mjs').then(m=>m.observeThumbnails(root,lookup)).catch(()=>{});
+}
+window.DiscThumbnails={markup:thumbnailMarkup,observe:observeDiscThumbnails};
 let atlasPositions = new Map();
 let groupCache=null;
 let groupRevision=0,groupWorker=null,groupContext=null,regrouping=false,retirementTimer=null,retirementFrame=0,regroupToken=0,hasPaintedMarkers=false;
@@ -276,8 +285,8 @@ const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let
 // and drawn where the 2D orb was. Curated discs and dots carry the render in their DOM art; small discs and
 // minis are blits on the canvas. Renders happen within a per-frame budget (ART_BUDGET ms, a long first one
 // while the map first fills), idle time draws a prepared level's discs ahead, and a disc still waiting for
-// its render shows the orb, then crossfades over ART_FADE ms. Without WebGL the orbs stay. My Map keeps
-// its orbs. window.ATLAS_3D_OFF (set before load) keeps the orbs too, for comparison.
+// its render shows the orb, then crossfades over ART_FADE ms. Without WebGL the orbs stay.
+// window.ATLAS_3D_OFF (set before load) keeps the orbs too, for comparison.
 const ART_BUDGET=6,ART_FIRST_BUDGET=250,ART_FADE=180;
 let atlasArt=null,artState='off',artDeadline=0,artFirst=true,artPending=0;
 // For tests: the art's state ('off', 'loading', 'ready' or 'failed'), the last frame's waiting discs and
@@ -286,7 +295,7 @@ const mapArt={get state(){return artState;},get pending(){return artPending;},ge
 function loadAtlasArt(){
  if(window.ATLAS_3D_OFF||artState!=='off')return;
  artState='loading';
- import('./disc3d/atlas-art.mjs').then(m=>m.createAtlasArt({maxBytes:matchMedia('(pointer: coarse)').matches?24e6:64e6})).then(art=>{
+ import('./disc3d/atlas-art.mjs').then(m=>m.getAtlasArt()).then(art=>{
   atlasArt=art;artState='ready';scheduleMapDraw();
   for(const prepared of preparedGroups.values())warmArt(prepared);
  },err=>{
@@ -300,13 +309,15 @@ function artFrame(){artDeadline=performance.now()+(artFirst&&atlasArt?ART_FIRST_
 // it must wait (it counts as pending, and the frame asks for another). A cached render of another size
 // stands in until its own is drawn.
 function discArt(d,color,size){
- if(!atlasArt||!organicAtlas())return null;
- if(!atlasArt.has(d,color,size)){
-  if(performance.now()<artDeadline)atlasArt.render(d,color,size);
+ if(!atlasArt)return null;
+ const rim=mapRimColor(d);
+ if(!atlasArt.has(d,color,size,rim)){
+  if(performance.now()<artDeadline)atlasArt.render(d,color,size,rim);
   else artPending++;
  }
- return atlasArt.get(d,color,size);
+ return atlasArt.get(d,color,size,rim);
 }
+function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}
 // Idle time draws a neighbouring level's discs before the camera gets there: its curated discs and dots at
 // full size, its small discs and minis at the size they reach at the level's top.
 function warmArt(prepared){
@@ -317,16 +328,17 @@ function warmArt(prepared){
  const list=[...prepared.groups.filter(g=>!g.hidden&&g.lead).map(g=>[g.lead,AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)]),
   ...(prepared.gaps||[]).filter(g=>g.d).map(g=>[g.d,AtlasGroups.gapSize(top,g.tier)])];
  const next=deadline=>{
-  while(list.length&&deadline.timeRemaining()>3){const [d,size]=list.shift();if(atlasArt&&organicAtlas())atlasArt.render(d,discColor(d),size);}
+  while(list.length&&deadline.timeRemaining()>3){const [d,size]=list.shift();if(atlasArt&&organicAtlas())atlasArt.render(d,discColor(d),size,mapRimColor(d));}
   if(list.length)requestIdleCallback(next);
  };
  requestIdleCallback(next);
 }
 // A curated disc's or dot's DOM art carries its render: the orb's paint gives way (cosmic.css .has-3d),
 // keeping its drop shadows. A render that arrives after the orb has shown fades in over it first.
-function syncMarkerArt(node,d,color){
- const host=node.discArt||(node.discArt=node.querySelector('.disc-art'));if(!host)return;
- const entry=artState==='ready'?discArt(d,color,AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)):null;
+function syncMarkerArt(node,d,color,dot=false){
+ const host=dot?node.dot:node.querySelector('.disc-art');if(!host)return;
+ if(node.discArt!==host){dropMarkerArt(node);node.discArt=host;}
+ const entry=artState==='ready'?discArt(d,color,dot?12:AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)):null;
  if(!entry){
   // No render of this colour at any size yet (a theme or view just recoloured it): the orb shows meanwhile.
   dropMarkerArt(node);
@@ -558,7 +570,7 @@ function renderMarkers(){
   if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',(lead.catalogName||lead.name)+', '+lead.brand+', '+({putter:'Putter',mid:'Midrange',fairway:'Fairway driver',distance:'Distance driver',unknown:'Unrated'}[typeOf(lead)])+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
-  if(organicAtlas())syncMarkerArt(node,lead,color);else dropMarkerArt(node);
+  syncMarkerArt(node,lead,color,!!myMap&&!g.large&&!g.satellite);
   if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected||node.scaleLarge!==g.large)){
    if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
    const flags={'is-large':g.large,'is-dot':!g.large,'brand-view':brandView,overview:!brandView,'is-stack':n>1,'is-selected':g.members.includes(selected),'is-mine':!!myColor(lead)};

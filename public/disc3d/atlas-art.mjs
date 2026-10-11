@@ -15,7 +15,7 @@
 //   time budget, and idle time draws the next zoom level's discs ahead.
 // - Images live in a byte-capped LRU, geometries in a count-capped one.
 //
-// createAtlasArt({dpr, maxBytes}) returns {get(d, color, size), render(d, color, size), has(d, color, size),
+// createAtlasArt({dpr, maxBytes}) returns {get(d, color, size, rim), render(d, color, size, rim), has(d, color, size, rim),
 // lodFor(size), stats, dispose()}. `size` is the disc's diameter on screen in CSS px; an entry is
 // {canvas, fill, lod}, where `fill` is the share of the image the disc's diameter spans (a pixel of room
 // is kept at each edge for antialiasing).
@@ -100,26 +100,26 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   while(geometries.size>maxGeometries){const [k,old]=geometries.entries().next().value;geometries.delete(k);if(old!==mesh.geometry)old.dispose();}
   stats.geometries=geometries.size;return g;
  }
- const colorsOf=(s,color)=>s.overmold?overmoldColors(color):{plate:color,rim:''};
+ const colorsOf=(s,color,rim)=>s.overmold?overmoldColors(color,{rim}):{plate:color,rim:''};
  const keyOf=(d,lod,c)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim;
  function touch(key){const e=images.get(key);if(e){images.delete(key);images.set(key,e);}return e||null;}
 
  // The cached image at the level `size` needs, else the best other level already drawn (a disc growing
  // past its level shows the smaller image, scaled, until the next is drawn). Null when nothing is cached.
- function get(d,color,size){
+ function get(d,color,size,rim){
   const s=shapeOf(d);if(!s)return null;
-  const c=colorsOf(s,color),want=lodFor(size),order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
+  const c=colorsOf(s,color,rim),want=lodFor(size),order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
   for(const lod of order){const e=touch(keyOf(d,lod,c));if(e)return e;}
   return null;
  }
- function has(d,color,size){
+ function has(d,color,size,rim){
   const s=shapeOf(d);if(!s)return true;
-  return images.has(keyOf(d,lodFor(size),colorsOf(s,color)));
+  return images.has(keyOf(d,lodFor(size),colorsOf(s,color,rim)));
  }
  // Draws the disc at the level `size` needs (or returns it from the cache). Null for a disc without a model.
- function render(d,color,size){
+ function render(d,color,size,rim){
   const s=shapeOf(d);if(!s)return null;
-  const lod=lodFor(size),c=colorsOf(s,color),key=keyOf(d,lod,c);
+  const lod=lodFor(size),c=colorsOf(s,color,rim),key=keyOf(d,lod,c);
   const cached=touch(key);if(cached)return cached;
   const start=performance.now(),px=Math.max(8,Math.ceil(LODS[lod].css*dpr));
   mesh.geometry=geometryOf(s,lod);mesh.material=s.overmold?[plateMaterial,rimMaterial]:plateMaterial;
@@ -152,4 +152,10 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  return {get,has,render,lodFor,stats,dispose,dpr,
   // For tests and tuning.
   debug:{renderer,scene,camera,key,fill,slope,slopePower,plateMaterial,rimMaterial,shapeOf,images,geometries}};
+}
+
+// Atlas and lists share one offscreen context, geometry pool and color-aware image cache.
+let sharedArt;
+export function getAtlasArt(){
+ return sharedArt??=createAtlasArt({maxBytes:matchMedia('(pointer: coarse)').matches?24e6:64e6});
 }

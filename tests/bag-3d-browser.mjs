@@ -34,7 +34,8 @@ try {
   await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});
  });
  const requests=[];page.on('request',r=>requests.push(new URL(r.url()).pathname));
- const bagRequests=()=>requests.filter(p=>p.startsWith('/bag3d/'));
+ // Atlas/list art shares three.js; only the bag viewer and model must wait for the Bag tab.
+ const bagRequests=()=>requests.filter(p=>p.startsWith('/bag3d/')&&!p.startsWith('/bag3d/vendor/'));
  const phase=want=>page.waitForFunction(w=>document.querySelector('#bagScene').dataset.phase===w,want);
  const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
  const data=async()=>await (await page.request.get(base+'/api/bag')).json();
@@ -54,9 +55,9 @@ try {
   const name=`${state}-${width}-${theme}.png`;await (options.locator||page).screenshot({path:`${dir}/${name}`});shots.push({state,width,theme,name});
  };
 
- // 1. Lazy loading: on the atlas, nothing 3D loads until My Bag is shown (signed out, the demo bag).
+ // 1. Lazy loading: bag-specific assets wait until My Bag is shown (signed out, the demo bag).
  await page.goto(base+'/');await page.waitForFunction(()=>window.AtlasAccount?.current);await page.waitForTimeout(800);
- assert.deepEqual(bagRequests(),[],'Atlas: no 3D assets');
+ assert.deepEqual(bagRequests(),[],'Atlas: no Bag viewer or model assets');
  await page.locator('#bagTab').click();await page.locator('#myBagDemo').waitFor();
  await page.locator('#myBagSignIn').click();await page.getByRole('link',{name:'Continue with Google',exact:true}).waitFor();
  const href=await page.getByRole('link',{name:'Continue with Google',exact:true}).getAttribute('href');
@@ -81,14 +82,14 @@ try {
  const [goto,driver,fairway,mid,putter,luna,stored]=seeded;
  requests.length=0;
  await page.goto(base+'/');await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.waitForFunction(()=>filtered.length>0);await page.waitForTimeout(1200);
- assert.deepEqual(bagRequests(),[],'Signed in on the map: three.js and the model are not loaded');
+ assert.deepEqual(bagRequests(),[],'Signed in on the map: the Bag viewer and model are not loaded');
  const importMap=await page.evaluate(()=>!!document.querySelector('script[type="importmap"]'));assert.ok(importMap);
  const opened=Date.now();await page.locator('#bagTab').click();await phase('open');perf.firstOpenMs=Date.now()-opened;
  const loaded=bagRequests();
- for(const asset of ['/bag3d/viewer.mjs','/bag3d/vendor/three/three.module.min.js','/bag3d/vendor/three/three.core.min.js','/bag3d/charcoal-bag.glb'])assert.ok(loaded.includes(asset),`Bag tab loads ${asset}`);
- assert.ok(!loaded.includes('/bag3d/vendor/three/addons/controls/OrbitControls.js'),'Turntable mode never loads OrbitControls');
+ for(const asset of ['/bag3d/viewer.mjs','/bag3d/charcoal-bag.glb'])assert.ok(loaded.includes(asset),`Bag tab loads ${asset}`);
+ assert.ok(!requests.includes('/bag3d/vendor/three/addons/controls/OrbitControls.js'),'Turntable mode never loads OrbitControls');
  perf.bytes=await page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>new URL(e.name).pathname.startsWith('/bag3d/')).reduce((sum,e)=>sum+(e.encodedBodySize||0),0));
- check(`Lazy load: no 3D requests on the atlas (signed out or in); Bag tab loads three.js + model (${(perf.bytes/1e6).toFixed(2)} MB) and opens in ${perf.firstOpenMs} ms`);
+ check(`Lazy load: no Bag assets on the atlas (signed out or in); Bag tab loads its viewer + model (${(perf.bytes/1e6).toFixed(2)} MB including shared three.js) and opens in ${perf.firstOpenMs} ms`);
  perf.renderer=await page.evaluate(()=>{const gl=document.createElement('canvas').getContext('webgl2');const d=gl.getExtension('WEBGL_debug_renderer_info');return gl.getParameter(d?d.UNMASKED_RENDERER_WEBGL:gl.RENDERER);});
  perf.quality=await viewer(v=>v.renderer.quality);
 

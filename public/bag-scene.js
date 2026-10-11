@@ -177,6 +177,7 @@ export class BagScene {
  }
  slots({items,settings}){
   const slots=bagSlots(items,settings,this.lookup);
+  for(const pocket of ['main','putter','goto'])for(const slot of slots[pocket])if(slot.item)slot.mold=this.lookup(slot.item.mold_id);
   return {slots,layout:{main:slots.main,putter:slots.putter,goTo:slots.goto}};
  }
  bagColor(settings){const color=settings.bag_color || DEFAULT_BAG;return color===DEFAULT_BAG?null:color;}
