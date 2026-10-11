@@ -27,19 +27,16 @@ export function isOvermold({overmold,manufacturer,record}={}){
 }
 
 // Colours: CSS hex or rgb()/rgba() in, '#rrggbb' out. Defaults keep the disc's own colour on the flight
-// plate, where it covers most of the top, and give the rim a darker shade of it (a lighter one when the
-// disc is already very dark, so the seam still shows). Either part can be set on its own: `rim` and
-// `plate` override the defaults (bag colour choices later), and anything unreadable falls back.
+// plate, where it covers most of the top, and give every overmold disc a black rim (DEFAULT_RIM_COLOR, a
+// hair off pure black so the viewer's lighting still shades it). The rim no longer follows the plate colour.
+// Either part can be set on its own: `rim` and `plate` override the defaults (bag colour choices, D1
+// rim_color) and a chosen rim always wins. Anything unreadable falls back to the default.
 export const DEFAULT_DISC_COLOR='#8a8f98';
+export const DEFAULT_RIM_COLOR='#0a0a0a';
 export function overmoldColors(base,{rim,plate}={}){
  const plateRgb=parseColor(plate)||parseColor(base)||parseColor(DEFAULT_DISC_COLOR);
- const rimRgb=parseColor(rim)||rimShade(plateRgb);
+ const rimRgb=parseColor(rim)||parseColor(DEFAULT_RIM_COLOR);
  return {plate:toHex(plateRgb),rim:toHex(rimRgb)};
-}
-
-function rimShade(rgb){
- const [h,s,l]=rgbToHsl(rgb);
- return hslToRgb(h,Math.min(1,s*1.1),l>=.2?l*.5:Math.min(.85,l+.28));
 }
 
 export function parseColor(value){
@@ -52,15 +49,3 @@ export function parseColor(value){
  return null;
 }
 const toHex=rgb=>'#'+rgb.map(c=>Math.round(Math.min(255,Math.max(0,c))).toString(16).padStart(2,'0')).join('');
-function rgbToHsl([r,g,b]){
- r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2,d=max-min;
- if(!d)return [0,0,l];
- const s=d/(1-Math.abs(2*l-1));
- const h=max===r?((g-b)/d+6)%6:max===g?(b-r)/d+2:(r-g)/d+4;
- return [h*60,s,l];
-}
-function hslToRgb(h,s,l){
- const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
- const [r,g,b]=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
- return [r,g,b].map(v=>(v+m)*255);
-}

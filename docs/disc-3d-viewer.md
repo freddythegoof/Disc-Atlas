@@ -103,8 +103,7 @@ non-overmold molds were compared byte for byte, in three views and five colours.
   (material 1). The vertices and normals are unchanged, so the seam shades smoothly. The triangle count is
   the same as before, give or take one ring.
 - **Colours.** `overmoldColors(base, {rim, plate})`. By default the plate keeps the disc's colour and
-  the rim takes a darker shade of it. Near-black discs (lightness under 0.2) get a lighter rim instead,
-  so the seam still shows. Either colour can be overridden: `Disc3D.sync(panel, d, {color, colors: {rim,
+  the rim is black (`DEFAULT_RIM_COLOR`, `#0a0a0a`) on every overmold disc, whatever the plate colour. Either colour can be overridden: `Disc3D.sync(panel, d, {color, colors: {rim,
   plate}})`, with the viewer prop `colors`. Overrides are ready for the planned per-disc bag colour
   choices, and unreadable values fall back to the defaults. The stamp's ink follows the plate colour.
 - **Tests.** `tests/disc3d-overmold.mjs` (Node) covers the list, the seam and the colours.

@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {discProfile,overmoldProfile,shapeForDisc,shapeFrame,topHeight} from '../public/disc3d/shape.mjs';
-import {OVERMOLD_DISCS,isOvermold,overmoldColors,parseColor} from '../public/disc3d/overmold.mjs';
+import {OVERMOLD_DISCS,DEFAULT_RIM_COLOR,isOvermold,overmoldColors} from '../public/disc3d/overmold.mjs';
 
 const {discs}=JSON.parse(fs.readFileSync(new URL('../public/data.json',import.meta.url)));
 const find=(manufacturer,name)=>discs.find(d=>d.manufacturer===manufacturer&&d.name===name);
@@ -61,21 +61,22 @@ test('the rim/plate seam sits at the measured rim width',()=>{
  }
 });
 
-test('color API: defaults from the disc colour, optional rim/plate overrides',()=>{
+test('color API: plate follows the disc colour, rim defaults to black, overrides win',()=>{
  const base='#d94f2b',d=overmoldColors(base);
  assert.equal(d.plate,'#d94f2b','the plate keeps the disc colour');
- assert.notEqual(d.rim,d.plate);
- const lum=hex=>{const [r,g,b]=parseColor(hex);return .2126*r+.7152*g+.0722*b;};
- assert.ok(lum(d.rim)<lum(d.plate)*.7,'the default rim is darker');
- // A very dark disc gets a lighter rim, so the seam still shows.
- const dark=overmoldColors('#141414');assert.ok(lum(dark.rim)>lum(dark.plate)+30);
+ assert.equal(d.rim,DEFAULT_RIM_COLOR,'the default rim is black');
+ assert.equal(d.rim,'#0a0a0a');
+ // The default rim is the same for every plate colour, light, dark or unset.
+ for(const c of ['#ffffff','#141414','#3366cc',undefined])assert.equal(overmoldColors(c).rim,'#0a0a0a');
+ assert.equal(overmoldColors('#3366cc').plate,'#3366cc');
  // rgb() input, as the panel's resolved theme colours arrive.
  assert.deepEqual(overmoldColors('rgb(217, 79, 43)'),d);
  // Overrides: both, either one, or unreadable values that fall back.
- assert.deepEqual(overmoldColors(base,{rim:'#000000',plate:'#ffffff'}),{rim:'#000000',plate:'#ffffff'});
+ assert.deepEqual(overmoldColors(base,{rim:'#ffffff',plate:'#00ff00'}),{rim:'#ffffff',plate:'#00ff00'});
  assert.deepEqual(overmoldColors(base,{rim:'#123456'}),{rim:'#123456',plate:'#d94f2b'});
+ assert.deepEqual(overmoldColors(base,{rim:'#d94f2b'}),{rim:'#d94f2b',plate:'#d94f2b'},'a rim matching the plate is still honoured');
  assert.equal(overmoldColors(base,{plate:'#3366cc'}).plate,'#3366cc');
- assert.notEqual(overmoldColors(base,{plate:'#3366cc'}).rim,d.rim,'a new plate colour moves the default rim with it');
+ assert.equal(overmoldColors(base,{plate:'#3366cc'}).rim,'#0a0a0a','a new plate colour leaves the default rim alone');
  assert.deepEqual(overmoldColors(base,{rim:'not a colour',plate:null}),d);
  assert.deepEqual(overmoldColors(undefined),overmoldColors('#8a8f98'));
 });

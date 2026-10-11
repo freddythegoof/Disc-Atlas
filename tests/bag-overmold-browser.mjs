@@ -42,9 +42,9 @@ try {
  assert.equal(await page.locator('#bagDiscColorLabel').innerText(),'Flight plate');
  const initialPlate=await page.locator('#bagDiscColor').inputValue();
  assert.equal(await page.locator('#bagRimColor').inputValue(),await page.evaluate(async color=>(await import('/disc3d/overmold.mjs')).overmoldColors(color).rim,initialPlate));
- // An automatic rim follows a changed plate until the player picks their own rim.
+// The automatic rim is black and stays black when the plate changes; a rim the player picks is kept.
  await page.locator('#bagDiscColor').fill('#0000ff');
- assert.equal(await page.locator('#bagRimColor').inputValue(),'#000080');
+ assert.equal(await page.locator('#bagRimColor').inputValue(),'#0a0a0a');
  await page.locator('#bagRimColor').fill('#000000');await save();
  let data=await (await page.request.get(base+'/api/bag')).json();const envy=data.discs.find(d=>d.mold_id==='761c90d342f5');
  assert.ok(envy);assert.equal(envy.color,'#0000ff');assert.equal(envy.rim_color,'#000000');
