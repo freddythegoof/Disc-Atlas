@@ -52,6 +52,22 @@ body{font:14px/1.5 'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 button,input,select,textarea{font:inherit}button,a,input,select,summary{touch-action:manipulation}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,#map:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
 button{transition:background .18s,color .18s;min-height:36px}button:hover{color:var(--lime)}
+/* Theme motion is temporary and compositor-only; component hover timings return after it. */
+:root.theme-switching *{transition-property:transform,opacity!important}
+:root.theme-switching:not(.theme-snapshots){background:var(--theme-transition-bg)}
+:root.theme-switching:not(.theme-snapshots) body{transition:opacity .12s ease-out!important}
+:root.theme-fading body{opacity:0}
+:root.theme-snapshots::view-transition{pointer-events:none}
+:root.theme-snapshots::view-transition-group(root){animation:none}
+:root.theme-snapshots::view-transition-old(root){animation:theme-out .24s ease-out both;mix-blend-mode:plus-lighter}
+:root.theme-snapshots::view-transition-new(root){animation:theme-in .24s ease-out both;mix-blend-mode:plus-lighter}
+@keyframes theme-out{to{opacity:0}}
+@keyframes theme-in{from{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+ :root.theme-switching body{transition:none!important;opacity:1!important}
+ :root::view-transition-old(root),:root::view-transition-new(root){animation:none!important}
+ button{transition-property:transform,opacity!important}
+}
 header{height:var(--header-height);min-height:var(--header-height);position:relative;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 28px;gap:20px;background:var(--bg);border-bottom:1px solid var(--line)}
 .logo{font:500 20px 'Space Grotesk',sans-serif;letter-spacing:2px;white-space:nowrap;gap:8px}.logo>span:last-child{color:var(--text);font-weight:500}.orbit{font-size:29px;color:var(--lime);margin-right:6px}
 header nav{display:flex;gap:20px;padding:0;background:none;border:0;box-shadow:none;border-radius:0;align-self:stretch}

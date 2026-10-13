@@ -232,7 +232,12 @@ export function createDiscViewer({segments,onExpand,hint}={}){
  });
 
  function attach(host){if(element.parentNode!==host)host.appendChild(element);resize();request();}
- const themeChanged=()=>{if(state.props)update({...state.props,hand:state.hand});request();};
+ const themeChanged=()=>{
+  if(state.props)update({...state.props,hand:state.hand});
+  // Paint before a theme View Transition captures its new snapshot (rAF is paused there).
+  if(!disposed&&size.w)renderer.render(scene,camera);
+  request();
+ };
  window.addEventListener('atlas-theme-change',themeChanged);
  function dispose(){
   window.removeEventListener('atlas-theme-change',themeChanged);

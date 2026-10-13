@@ -39,6 +39,7 @@
     "test:atlas:3d": "node --test tests/atlas-lod.mjs && node tests/atlas-3d-browser.mjs",
     "test:atlas:persist": "node --test tests/atlas-targets.mjs && node tests/atlas-persist-browser.mjs",
     "test:atlas:3d:perf": "node tests/atlas-3d-perf.mjs",
+    "test:apple-design": "node --test tests/apple-camera.mjs && node tests/apple-design-browser.mjs",
     "test:directory:layout": "node tests/directory-layout-browser.mjs",
     "test:add-menu": "node tests/add-menu-dismiss-browser.mjs",
     "test:disc3d": "node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs && node tests/disc3d-browser.mjs && node tests/disc3d-popout-browser.mjs",

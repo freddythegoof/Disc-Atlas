@@ -1,6 +1,7 @@
 /* Shared by the atlas and standalone information pages; runs before paint. */
 (() => {
   const media = matchMedia('(prefers-color-scheme: dark)');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const valid = value => ['light', 'midnight', 'charcoal', 'black'].includes(value);
   let saved;
   try { saved = localStorage.getItem('disc-atlas-theme'); } catch { /* Storage may be disabled. */ }
@@ -22,18 +23,60 @@
     });
     window.dispatchEvent(new CustomEvent('atlas-theme-change', {detail: value}));
   };
+  let requested, transition, timer, version=0;
+  const root=document.documentElement;
+  const clearSwitch = () => {
+    root.classList.remove('theme-switching','theme-snapshots','theme-fading');
+    root.style.removeProperty('--theme-transition-bg');
+  };
+  const switchTheme = value => {
+    if(value===requested)return;
+    requested=value;
+    const current=++version;
+    const backdrop=root.style.getPropertyValue('--theme-transition-bg');
+    clearTimeout(timer);transition?.skipTransition();transition=null;
+    clearSwitch();
+    if(reduced.matches){apply(value);return;}
+    root.classList.add('theme-switching');
+    if(document.startViewTransition){
+      root.classList.add('theme-snapshots');
+      transition=document.startViewTransition(() => {
+        if(current!==version)return;
+        apply(value);
+        // Theme listeners paint synchronously; rAF is paused during snapshot capture.
+      });
+      transition.ready.catch(()=>{}); // A superseded snapshot can be skipped.
+      transition.finished.catch(()=>{}).then(()=>{if(current===version){transition=null;clearSwitch();}});
+    }else{
+      // Scoped fallback: fade surfaces AND canvases using opacity only. Hold the old
+      // backdrop while changing tokens; no permanent colour transitions or white flash.
+      root.style.setProperty('--theme-transition-bg',backdrop||getComputedStyle(root).getPropertyValue('--bg'));
+      void document.body.offsetWidth;
+      root.classList.add('theme-fading');
+      timer=setTimeout(()=>{
+        if(current!==version)return;
+        apply(value);root.classList.remove('theme-fading');
+        timer=setTimeout(clearSwitch,140);
+      },120);
+    }
+  };
   const choose = value => {
     if (!valid(value)) return;
     saved = value;
     try { localStorage.setItem('disc-atlas-theme', saved); } catch { /* Session only. */ }
-    apply(saved);
+    switchTheme(saved);
   };
   apply(valid(saved) ? saved : media.matches ? 'midnight' : 'light');
-  media.addEventListener('change', () => { if (!valid(saved)) apply(media.matches ? 'midnight' : 'light'); });
+  requested=root.dataset.theme;
+  media.addEventListener('change', () => { if (!valid(saved)) switchTheme(media.matches ? 'midnight' : 'light'); });
+  reduced.addEventListener('change',()=>{
+    if(!reduced.matches)return;
+    ++version;clearTimeout(timer);transition?.skipTransition();transition=null;clearSwitch();apply(requested);
+  });
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-theme-toggle]').forEach(button => {
       button.addEventListener('click', () => {
-        choose(document.documentElement.dataset.theme === 'light' ? 'midnight' : 'light');
+        choose(requested === 'light' ? 'midnight' : 'light');
       });
     });
     document.querySelectorAll('[data-theme-choice]').forEach(button => {

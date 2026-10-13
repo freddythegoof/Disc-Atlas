@@ -820,7 +820,8 @@ function initAtlasMap(){
  map.addEventListener('pointerenter',measureMap);
  layer.addEventListener('pointerout',e=>{const button=e.target.closest('[data-cluster]');if(button&&!button.contains(e.relatedTarget))scheduleClusterClose();});
  map.addEventListener('click',e=>{
-  if(e.target.closest('.map-controls,#clusterPopover,a')||mapMoved&&e.detail!==0)return;
+  if(e.target.closest('.map-controls,#clusterPopover,a'))return;
+  if(e.detail!==0&&(mapMoved||mapCaught)){mapCaught=false;return;}
   const button=e.target.closest('[data-cluster]');
   if(!button&&e.target.closest('button'))return;
   let group=button?mapClusters.find(g=>g.key===button.dataset.cluster):null,gap=null;
@@ -860,39 +861,43 @@ function initAtlasMap(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&activeCluster){e.preventDefault();closeCluster(true);}});
  document.addEventListener('pointerdown',e=>{if(activeCluster&&!pop.contains(e.target)&&!e.target.closest('[data-cluster]'))closeCluster();});
  document.addEventListener('error',e=>{if(e.target.tagName==='IMG'&&e.target.closest('.disc-art')){e.target.hidden=true;const fallback=e.target.closest('.disc-art').querySelector('.disc-symbol');if(fallback)fallback.hidden=false;}},true);
- const pointers=new Map();let pinchDistance=0,velocity={x:0,y:0},lastMove=0;
+ const pointers=new Map();let pinchDistance=0,pinchMidpoint=null,velocity={zoom:0,x:0,y:0},lastMove=0,gestureCancelled=false;
  map.addEventListener('pointerdown',e=>{
-  if(e.button!==0||e.target.closest('.map-controls'))return;
-  measureMap();stopCamera();resetEdge();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(e.button!==0||e.target.closest('.map-controls')||pointers.size>=2)return;
+  if(!pointers.size){mapCaught=cameraMoving();mapMoved=false;gestureCancelled=false;}
+  measureMap();stopCamera();resetEdge();closeCluster();velocity={zoom:0,x:0,y:0};lastMove=performance.now();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   track(e);pointerAt.pressed=true;
   mapDrag={x:e.clientX,y:e.clientY};
   if(!e.target.closest('button'))map.setPointerCapture(e.pointerId);
   map.classList.add('is-dragging');
-  if(pointers.size===2){const [a,b]=[...pointers.values()];pinchDistance=Math.hypot(a.x-b.x,a.y-b.y);}
+  if(pointers.size===2){const [a,b]=[...pointers.values()];pinchDistance=Math.hypot(a.x-b.x,a.y-b.y);pinchMidpoint={x:(a.x+b.x)/2-mapViewport.left,y:(a.y+b.y)/2-mapViewport.top};}
  });
  map.addEventListener('pointermove',e=>{
   if(!pointers.has(e.pointerId))return;
   const previous=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a.x-b.x,a.y-b.y),r=mapViewport;
-   if(pinchDistance)changeZoom(distance/pinchDistance,{x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top});
-   pinchDistance=distance;velocity={x:0,y:0};mapMoved=true;
+   const midpoint={x:(a.x+b.x)/2-r.left,y:(a.y+b.y)/2-r.top},before={zoom,x:pan.x,y:pan.y};
+   if(pinchDistance)changeZoom(distance/pinchDistance,pinchMidpoint);
+   panMap(midpoint.x-pinchMidpoint.x,midpoint.y-pinchMidpoint.y);
+   const now=performance.now(),dt=Math.max(8,now-lastMove);lastMove=now;
+   for(const axis of CAMERA_AXES)velocity[axis]=velocity[axis]*.55+((axis==='zoom'?zoom:pan[axis])-before[axis])/dt*.45;
+   pinchDistance=distance;pinchMidpoint=midpoint;mapMoved=true;
   }else{const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
    if(!mapMoved&&Math.hypot(e.clientX-mapDrag.x,e.clientY-mapDrag.y)<5)return;
    const now=performance.now(),dt=Math.max(8,now-lastMove);lastMove=now;
-   velocity={x:velocity.x*.55+dx/dt*.45,y:velocity.y*.55+dy/dt*.45};
+   velocity={zoom:0,x:velocity.x*.55+dx/dt*.45,y:velocity.y*.55+dy/dt*.45};
    mapMoved=true;map.setPointerCapture(e.pointerId);panMap(dx,dy);
   }
  });
- const stop=e=>{if(!pointers.has(e.pointerId))return;pointers.delete(e.pointerId);pinchDistance=0;mapDrag=pointers.size?[...pointers.values()][0]:null;
+ const stop=e=>{if(!pointers.has(e.pointerId))return;if(e.type!=='pointerup')gestureCancelled=true;pointers.delete(e.pointerId);pinchDistance=0;pinchMidpoint=null;mapDrag=pointers.size?[...pointers.values()][0]:null;
   if(!pointers.size){map.classList.remove('is-dragging');pointerAt.pressed=false;pointerAt.at=performance.now();
    // A finger that lifts leaves nothing to hover.
    if(e.pointerType==='touch')pointerAt.inside=false;
-   const hitEdge=!!(edgeFeedback.x||edgeFeedback.y);releaseEdge();
-   if(!hitEdge&&e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
-    const vx=Math.max(-1.5,Math.min(1.5,velocity.x)),vy=Math.max(-1.5,Math.min(1.5,velocity.y));
-    if(Math.hypot(vx,vy)>.025)tweenCamera({zoom,x:pan.x+vx*70,y:pan.y+vy*70},.24);
+   releaseEdge();
+   if(!gestureCancelled&&e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
+    releaseCamera(velocity);
    }
-  }else{velocity={x:0,y:0};lastMove=performance.now();}
+  }
   if(map.hasPointerCapture(e.pointerId))map.releasePointerCapture(e.pointerId);
   if(!pointers.size&&!cameraTween)scheduleMapDraw();
  };
@@ -906,18 +911,21 @@ function initAtlasMap(){
   const delta=Math.max(-600,Math.min(600,(e.deltaY || e.deltaX)*unit));
   animateZoom(Math.exp(-delta*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});
  },{passive:false});
- map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]},.22);}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
+ map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom:cameraDestination?.zoom??zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]});}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
  window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(e.target===document)measureMap();if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
 }
-let mapMoved=false,mapFrame=0,cameraTween=null,cameraDestination=null;
+let mapMoved=false,mapCaught=false,mapFrame=0,cameraTween=null,cameraDestination=null;
+// One camera spring; cameraTween remains the shared moving/LOD-hold flag for existing callers.
+const CAMERA_AXES=['zoom','x','y'];
+const cameraSpring={velocity:{zoom:0,x:0,y:0},step:{zoom:1,x:0,y:0},at:0,area:null,zooming:false};
 const edgeFeedback={x:0,y:0};let edgeTween=null,edgeReleaseTimer=null;
-function boundedCamera(target){
+function boundedCamera(target,result,area){
  const {width:w,height:h}=mapViewport;
- return window.AtlasLayout.constrain(target,window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode')),groupCache?.extent);
+ return window.AtlasLayout.constrain(target,area||window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode')),groupCache?.extent,36,result);
 }
 function paintEdge(){
  const map=$('#map'),x=edgeFeedback.x,y=edgeFeedback.y;
- for(const [side,value] of [['left',x],['right',-x],['top',y],['bottom',-y]])map.style.setProperty('--edge-'+side,Math.max(0,value/12));
+ for(const [side,value] of [['left',x],['right',-x],['top',y],['bottom',-y]])map.style.setProperty('--edge-'+side,Math.min(1,Math.max(0,value/12)));
  const offset=window.AtlasMotion?.enabled()?`${x}px ${y}px`:'0px 0px';
  canvas.style.translate=offset;$('#mapMarkers').style.translate=offset;
 }
@@ -929,35 +937,85 @@ function releaseEdge(){
 }
 function panMap(dx,dy){
  edgeTween?.kill();edgeTween=null;
- const target={zoom,x:pan.x+dx,y:pan.y+dy},bounded=boundedCamera(target);
+ const dimensionX=Math.min(64,mapViewport.width*.15),dimensionY=Math.min(64,mapViewport.height*.15);
+ const unband=(value,dimension)=>value*dimension/(.55*Math.max(.0001,dimension-Math.abs(value)));
+ // Include resisted travel in the next drag delta, including reversals away from an edge.
+ const target={zoom,x:pan.x+dx+unband(edgeFeedback.x,dimensionX),y:pan.y+dy+unband(edgeFeedback.y,dimensionY)},bounded=boundedCamera(target);
  pan={x:bounded.x,y:bounded.y};
  for(const axis of ['x','y']){
-  const excess=target[axis]-bounded[axis];
-  edgeFeedback[axis]=excess?Math.sign(excess)*Math.min(12,Math.abs(edgeFeedback[axis])*.65+Math.abs(excess)*.18):0;
+  const over=target[axis]-bounded[axis],dimension=axis==='x'?dimensionX:dimensionY;
+  edgeFeedback[axis]=over*dimension*.55/(dimension+.55*Math.abs(over));
  }
  paintEdge();scheduleMapDraw();
 }
-function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(()=>{mapFrame=0;draw();});}
-function stopCamera(){cameraTween?.kill();cameraTween=null;cameraDestination=null;}
-function tweenCamera(target,duration=.16){
- stopCamera();closeCluster();
- target=boundedCamera(target);
- if(!window.AtlasMotion?.enabled()){zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
- cameraDestination=target;const camera={zoom,x:pan.x,y:pan.y};
- cameraTween=gsap.to(camera,{...target,duration,ease:'power3.out',onUpdate:()=>{zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();},onComplete:()=>{cameraTween=null;cameraDestination=null;draw();}});
+function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(now=>{mapFrame=0;stepCamera(now);draw();if(cameraTween)scheduleMapDraw();});}
+function stopCamera(){cameraTween=null;cameraDestination=null;for(const axis of CAMERA_AXES)cameraSpring.velocity[axis]=0;}
+function cameraMoving(){
+ if(!cameraTween)return false;
+ const v=cameraSpring.velocity,r=mapViewport;
+ // Same 0.025 px/ms threshold as release. Include zoom's motion in screen pixels.
+ return Math.max(Math.hypot(v.x,v.y),Math.abs(v.zoom)*Math.max(r.width,r.height)/zoom)>25;
 }
-function zoomDestination(next,anchor){
- const {width:w,height:h}=mapViewport,at=anchor||{x:w/2,y:h/2},ratio=next/zoom;
+function stepCamera(now){
+ if(!cameraTween)return;
+ const s=cameraSpring,dt=Math.max(0,(now-s.at)/1000);s.at=now;
+ // A filter can replace the extent during a glide. Keep its landing point reachable.
+ boundedCamera(cameraDestination,cameraDestination,s.area);
+ let moving=false;
+ for(const axis of CAMERA_AXES){
+  const target=cameraDestination[axis],position=axis==='zoom'?zoom:pan[axis],v=s.velocity[axis];
+  const omega=2*Math.PI/(axis==='zoom'||s.zooming ? .35 : .4),d=position-target,c=v+omega*d,e=Math.exp(-omega*dt);
+  let next=target+(d+c*dt)*e,velocity=(v-omega*c*dt)*e;
+  const epsilon=axis==='zoom' ? .0001 : .05;
+  if(!window.AtlasMotion?.enabled()||Math.abs(next-target)<epsilon&&Math.abs(velocity)<epsilon*10){next=target;velocity=0;}
+  else moving=true;
+  s.step[axis]=next;s.velocity[axis]=velocity;
+ }
+ const x=s.step.x,y=s.step.y;
+ const z=Math.max(1,Math.min(MAX_MAP_ZOOM,s.step.zoom));
+ if(z!==s.step.zoom)s.velocity.zoom=0;s.step.zoom=z;
+ boundedCamera(s.step,s.step,s.area);
+ if(x!==s.step.x)s.velocity.x=0;if(y!==s.step.y)s.velocity.y=0;
+ zoom=s.step.zoom;pan.x=s.step.x;pan.y=s.step.y;
+ if(!moving)stopCamera();
+}
+// Existing callers keep this entry point; it now retargets the shared spring.
+function tweenCamera(target){
+ closeCluster();
+ target=boundedCamera(target);
+ if(!window.AtlasMotion?.enabled()){stopCamera();zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
+ if(!cameraTween)cameraSpring.at=performance.now();
+ cameraSpring.area=AtlasLayout.bounds(mapViewport.width,mapViewport.height,!document.body.classList.contains('my-bag-mode'));
+ cameraSpring.zooming=target.zoom!==zoom;
+ cameraDestination=target;cameraTween=cameraSpring;scheduleMapDraw();
+}
+function releaseCamera(velocity){
+ const vx=velocity.x,vy=velocity.y,vz=velocity.zoom;
+ if(Math.max(Math.hypot(vx,vy),Math.abs(vz)*Math.max(mapViewport.width,mapViewport.height)/zoom)<=.025)return;
+ const project=v=>v*.99/(1-.99),cap=.5*Math.max(mapViewport.width,mapViewport.height);
+ const dx=project(vx),dy=project(vy),scale=Math.min(1,cap/Math.max(1,Math.hypot(dx,dy)));
+ const z=Math.max(1,Math.min(MAX_MAP_ZOOM,zoom+Math.max(-zoom*.4,Math.min(zoom*.4,project(vz)))));
+ tweenCamera({zoom:z,x:pan.x+dx*scale,y:pan.y+dy*scale});
+ if(!cameraTween)return;
+ for(const axis of CAMERA_AXES){
+  const position=axis==='zoom'?zoom:pan[axis],v=axis==='zoom'?vz:axis==='x'?vx:vy;
+  // At a clamped edge, remove outward momentum; elsewhere hand off release velocity.
+  const distance=cameraDestination[axis]-position,omega=2*Math.PI/(axis==='zoom'||cameraSpring.zooming ? .35 : .4);
+  cameraSpring.velocity[axis]=distance*v>0?Math.sign(v)*Math.min(Math.abs(v*1000),omega*Math.abs(distance)):0;
+ }
+}
+function zoomDestination(next,anchor,source){
+ const {width:w,height:h}=mapViewport,at=anchor||{x:w/2,y:h/2},ratio=next/(source?.zoom??zoom);
  const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
- return {zoom:next,x:next===1?0:at.x-area.left-(at.x-area.left-pan.x)*ratio,
-  y:next===1?0:at.y-area.bottom-(at.y-area.bottom-pan.y)*ratio};
+ return {zoom:next,x:next===1?0:at.x-area.left-(at.x-area.left-(source?.x??pan.x))*ratio,
+  y:next===1?0:at.y-area.bottom-(at.y-area.bottom-(source?.y??pan.y))*ratio};
 }
 function changeZoom(factor,anchor){
  stopCamera();closeCluster();const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,zoom*factor)),anchor);
  zoom=target.zoom;pan={x:target.x,y:target.y};scheduleMapDraw();
 }
 function animateZoom(factor,anchor){
- const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor);
+ const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor,cameraDestination);
  prepareZoomLevel(target.zoom);
- tweenCamera(target,.16);
+ tweenCamera(target);
 }

@@ -69,13 +69,15 @@ window.AtlasLayout = (() => {
   }
   // The camera may not pan the data more than `padding` inside the visible box (bounds'
   // `view`; by default the area's own 0–1 box). Data smaller than the box is centered.
-  function constrain(camera, area, extent, padding = 36) {
-    if (!extent) return {...camera, x:0, y:0};
+  const boundAxis = (value, low, high) => low > high ? (low + high) / 2 : Math.max(low, Math.min(high, value));
+  // The spring can reuse an output object; the camera limits and geometry stay identical.
+  function constrain(camera, area, extent, padding = 36, result = {...camera}) {
+    result.zoom=camera.zoom;
+    if (!extent) {result.x=0;result.y=0;return result;}
     const view = area.view || {left:area.left, right:area.left + area.width, top:area.bottom - area.height, bottom:area.bottom};
-    const axis = (value, low, high) => low > high ? (low + high) / 2 : Math.max(low, Math.min(high, value));
-    return {...camera,
-      x:axis(camera.x,view.right-area.left-extent.maxX*area.width*camera.zoom-padding,view.left-area.left-extent.minX*area.width*camera.zoom+padding),
-      y:axis(camera.y,view.bottom-area.bottom+extent.minY*area.height*camera.zoom-padding,view.top-area.bottom+extent.maxY*area.height*camera.zoom+padding)};
+    result.x=boundAxis(camera.x,view.right-area.left-extent.maxX*area.width*camera.zoom-padding,view.left-area.left-extent.minX*area.width*camera.zoom+padding);
+    result.y=boundAxis(camera.y,view.bottom-area.bottom+extent.minY*area.height*camera.zoom-padding,view.top-area.bottom+extent.maxY*area.height*camera.zoom+padding);
+    return result;
   }
   // Only separate a population that can fit comfortably at this zoom level.
   // The stable search starts at each rating coordinate and uses nearby free space in its speed band.

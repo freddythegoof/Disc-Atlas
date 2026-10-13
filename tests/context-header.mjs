@@ -130,6 +130,8 @@ export async function checkThemePicker(browser,base){
    await button.click();await page.keyboard.press('End');
    const choice=menu.getByRole('menuitemradio',{name,exact:true});await choice.focus();
    await page.keyboard.press(name==='Midnight'?'Space':'Enter');
+   // View Transitions apply inside the asynchronous snapshot update callback.
+   await page.waitForFunction(value=>document.documentElement.dataset.theme===value&&!document.documentElement.classList.contains('theme-switching'),value);
    assert.equal(await page.locator('html').getAttribute('data-theme'),value);
    assert.equal(await choice.getAttribute('aria-checked'),'true');
    assert.equal(await menu.locator('[data-theme-choice][aria-checked="true"]').count(),1,'One theme is checked');
