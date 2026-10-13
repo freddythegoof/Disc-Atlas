@@ -54,7 +54,10 @@ try {
   const tap=async locator=>{const c=await center(locator);await page.touchscreen.tap(c.x,c.y);};
   const popupFor=(id,pinned)=>page.waitForFunction(([id,pinned])=>{const p=document.querySelector('.bag-disc-popup');return !p.hidden && p.dataset.disc===id && (pinned===null || p.dataset.pinned===String(pinned));},[id,pinned??null],{timeout:5000});
   const popupGone=()=>page.waitForFunction(()=>document.querySelector('.bag-disc-popup').hidden,null,{timeout:5000});
-  const setTheme=theme=>page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);
+  // A theme change is a cross-fade (batch 1): the page takes no clicks until it ends, so wait it out. Clicking
+  // through it made Playwright re-scroll to reach a covered button, scrolling the bag off screen (its viewer then
+  // pauses, by design, and never settles).
+  const setTheme=async theme=>{await page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);await page.waitForFunction(t=>document.documentElement.dataset.theme===t&&!document.documentElement.classList.contains('theme-switching'),theme);};
   // Everything the cluster and the popup must clear, in page pixels.
   const geometry=()=>page.evaluate(()=>{
    const scene=document.querySelector('#bagScene'),canvas=scene.querySelector('[data-bag-canvas]'),v=canvas.bagViewer,c=canvas.getBoundingClientRect();
@@ -209,7 +212,7 @@ try {
   // Out disc popup screenshots in each theme.
   await slot(mains[5]).click();await slot(mains[11]).click();await slot(bagged).click();await settled();await page.mouse.move(2,2);
   for(const theme of ['midnight','light','charcoal']){
-   await t.setTheme(theme);await page.waitForTimeout(200);
+   await t.setTheme(theme);
    await nameOf(mains[11]).click();await popupFor(mains[11],true);await page.mouse.move(2,2);
    popupChecks(await geometry(),mains[11],`out popup ${theme}`);clusterChecks(await geometry(),`out popup ${theme}`);
    await shot(page,`popup-out-1440-${theme}`);await page.keyboard.press('Escape');await popupGone();
