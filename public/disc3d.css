@@ -22,9 +22,51 @@
 .disc3d-tilt input[type=range]{margin:0;min-width:0}
 .disc3d-tilt output{grid-column:1/-1;text-align:center;font-size:12px;color:var(--text);font-variant-numeric:tabular-nums}
 .disc3d .illustration-caption{display:block;margin-top:8px}
+/* Enlarge: opens the pop-out below. A tap or click on the canvas does the same. */
+.disc3d-expand{position:absolute;top:8px;right:8px;z-index:1;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
+.disc3d-expand:hover{background:var(--surface)}
+.disc3d-expand:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+@media(pointer:coarse){.disc3d-expand{width:40px;height:40px}}
+
+/* The pop-out: a modal dialog in the site's dialog style, with the same viewer at the size of the window. */
+.disc3d-dialog{width:min(1040px,calc(100vw - 48px));height:min(780px,calc(100dvh - 48px));max-width:none;max-height:none;padding:0;overflow:hidden;overscroll-behavior:contain}
+.disc3d-dialog:not([open]){display:none}
+.disc3d-dialog[open]{animation:disc3d-dialog-in .16s ease-out}
+.disc3d-dialog-panel{display:flex;flex-direction:column;height:100%;padding:18px 22px 20px}
+.disc3d-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.disc3d-dialog-eyebrow{font-size:10px;letter-spacing:1.5px;color:var(--muted)}
+.disc3d-dialog h2{margin:4px 0 0;font:500 26px 'Space Grotesk',sans-serif;letter-spacing:-.5px;overflow-wrap:anywhere}
+.disc3d-dialog .close{float:none;flex:0 0 auto;display:grid;place-items:center;width:44px;height:44px;margin:-6px -8px 0 0;padding:0;border-radius:12px;font-size:28px;line-height:1;color:var(--text)}
+.disc3d-dialog .close:hover{background:var(--surface)}
+.disc3d-dialog-body{display:flex;flex-direction:column;flex:1;min-height:0;margin-top:10px}
+.disc3d-dialog .disc3d-viewer{display:flex;flex-direction:column;flex:1;min-height:0}
+.disc3d-dialog .disc3d-viewport{flex:1;min-height:0;height:auto}
+.disc3d-dialog .disc3d-canvas{position:absolute;inset:0;height:100%}
+.disc3d-dialog .disc3d-toolbar,.disc3d-dialog .disc3d-tilt{width:100%;max-width:620px;margin-inline:auto}
+.disc3d-dialog .disc3d-toolbar button{min-height:40px;font-size:13px}
+.disc3d-dialog .disc3d-hint{font-size:12px;bottom:10px}
+.disc3d-dialog-caption{margin:10px 0 0;font-size:12px;text-align:center}
+@keyframes disc3d-dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:700px){
  .disc3d-poster,.disc3d-viewport{height:190px}
  .disc3d-toolbar button{min-height:36px}
+ /* Phones: nearly the whole screen, controls under the disc inside the thumb's reach. */
+ .disc3d-dialog{inset:8px;margin:0;width:calc(100vw - 16px);height:calc(100dvh - 16px)}
+ .disc3d-dialog-panel{padding:14px 14px 16px}
+ .disc3d-dialog h2{font-size:22px}
+ .disc3d-dialog .disc3d-viewport{height:auto}
+ .disc3d-dialog .disc3d-toolbar button{min-height:44px}
+ .disc3d-dialog-caption{font-size:11px}
+}
+@media(max-height:520px){
+ /* Landscape phones: the disc keeps as much height as the controls allow. */
+ .disc3d-dialog{inset:8px;margin:0;width:calc(100vw - 16px);height:calc(100dvh - 16px)}
+ .disc3d-dialog-panel{padding:8px 14px 10px}
+ .disc3d-dialog-eyebrow,.disc3d-dialog-caption,.disc3d-dialog .disc3d-hint{display:none}
+ .disc3d-dialog h2{margin:0;font-size:18px}
+ .disc3d-dialog .close{margin-top:-4px}
+ .disc3d-dialog-body{margin-top:2px}
+ .disc3d-dialog .disc3d-toolbar,.disc3d-dialog .disc3d-tilt{margin-top:6px}
 }
 @media(max-width:980px) and (min-width:701px){.detail .disc-photo.disc3d{float:none;width:100%;height:auto!important;margin:0 0 20px}}
-@media(prefers-reduced-motion:reduce){.disc3d-hint{transition:none}}
+@media(prefers-reduced-motion:reduce){.disc3d-hint{transition:none}.disc3d-dialog[open]{animation:none}}

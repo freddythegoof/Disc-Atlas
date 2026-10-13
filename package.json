@@ -40,7 +40,8 @@
     "test:atlas:3d:perf": "node tests/atlas-3d-perf.mjs",
     "test:directory:layout": "node tests/directory-layout-browser.mjs",
     "test:add-menu": "node tests/add-menu-dismiss-browser.mjs",
-    "test:disc3d": "node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs && node tests/disc3d-browser.mjs",
+    "test:disc3d": "node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs && node tests/disc3d-browser.mjs && node tests/disc3d-popout-browser.mjs",
+    "test:disc3d:popout": "node tests/disc3d-popout-browser.mjs",
     "test:3d:polish": "node --test tests/compare-viewer-polish-browser.mjs",
     "test:my-map": "node --test tests/personal-lens.mjs tests/personal-map-worker.mjs && node tests/my-map-browser.mjs"
   },

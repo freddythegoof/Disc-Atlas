@@ -3,7 +3,11 @@
 // hyzer/anhyzer tilt. One renderer is reused for every disc; it draws only when something moves.
 //
 // createDiscViewer() returns {element, attach(host), update(props), setView(name), flip(), setTilt(deg),
-// setHand(hand), dispose()}. Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
+// setHand(hand), getPose(), applyPose(pose), dispose()}. Options: {segments, onExpand, hint}. With `onExpand`
+// the viewer offers a pop-out: an Enlarge button and a tap or click on the canvas call onExpand(trigger),
+// where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
+// tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
+// Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
 // overmold, colors}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
 // its shape (phase 2), and without them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
@@ -29,6 +33,9 @@ export const MAX_TILT=40;
 // The camera frames a fixed 22 cm disc, so molds show at true scale: a 21.7 cm Buzzz stands wider than a
 // 21.1 cm Destroyer. Anything larger is framed by its own diameter.
 export const FRAME_DIAMETER=22;
+// A press that stays within TAP_SLOP px and under TAP_MS is a tap, not the start of a drag.
+const TAP_SLOP=6,TAP_MS=600;
+const EXPAND_ICON='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5 9 7M2.5 13.5 7 9"/></svg>';
 const SOURCE_TEXT={model:'its mold profile',pdga:'its PDGA dimensions, to scale',flight:'a generic shape from its flight numbers'};
 // The edge that drops on hyzer is the fade side: left for RHBH and LHFH, right for RHFH and LHBH.
 export const hyzerSign=hand=>hand==='RHFH'||hand==='LHBH'?-1:1;
@@ -37,11 +44,11 @@ const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const angleDelta=(a,b)=>{let d=(b-a)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d;};
 
-export function createDiscViewer({segments}={}){
+export function createDiscViewer({segments,onExpand,hint}={}){
  const coarse=matchMedia('(pointer: coarse)').matches;
  const radial=segments||(coarse?56:80);
  const element=document.createElement('div');element.className='disc3d-viewer';
- element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">Drag to turn · scroll to zoom</span></div>
+ element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · scroll to zoom'}</span>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
 <div class="disc3d-toolbar"><div class="disc3d-views" role="group" aria-label="Preset views">${Object.entries(VIEWS).map(([k,v])=>`<button type="button" data-disc3d-view="${k}" aria-pressed="${k==='angle'}">${v.label}</button>`).join('')}</div><button type="button" data-disc3d-flip aria-pressed="false">Flip</button></div>
 <label class="disc3d-tilt"><span class="disc3d-tilt-end">Anhyzer</span><input type="range" min="${-MAX_TILT}" max="${MAX_TILT}" step="1" value="0" data-disc3d-tilt aria-label="Release angle, anhyzer to hyzer"><span class="disc3d-tilt-end">Hyzer</span><output data-disc3d-tilt-value>Flat</output></label>`;
  const canvas=element.querySelector('canvas'),viewport=element.querySelector('.disc3d-viewport');
@@ -143,6 +150,16 @@ export function createDiscViewer({segments}={}){
   request();
  }
  function setHand(hand){state.hand=hand||'RHBH';setTilt(state.tilt);}
+ // The reader's framing, independent of the canvas size (zoom is relative to the fitted distance).
+ function getPose(){const s=spherical();return {view:state.view,theta:s.theta,phi:s.phi,zoom:s.radius/state.fit,tilt:state.tilt,flipped:state.flipped};}
+ function applyPose(pose){
+  if(!pose)return;
+  tween=null;flipTween=null;setTilt(pose.tilt);
+  state.flipped=!!pose.flipped;flipGroup.rotation.x=state.flipped?Math.PI:0;
+  element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed',String(state.flipped));
+  if(pose.view&&VIEWS[pose.view])setView(pose.view,{instant:true});
+  else{const radius=Math.min(controls.maxDistance,Math.max(controls.minDistance,pose.zoom*state.fit));placeCamera(new THREE.Spherical(radius,pose.phi,pose.theta));setPressedView(null);request();}
+ }
 
  function build(shape,mold,color,overmold){
   // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs).
@@ -185,7 +202,21 @@ export function createDiscViewer({segments}={}){
   request();return true;
  }
 
+ // A tap is decided on pointerup but acted on at the click that follows it, so the pop-out never opens
+ // under a finger that is still down (its controls would receive the tap's synthesized click).
+ let press=null,tapped=0;
+ if(onExpand){
+  canvas.addEventListener('pointerdown',e=>{
+   if(press&&press.id!==e.pointerId&&performance.now()-press.at<5000){press.moved=true;return;}   // a second finger is a pinch
+   press={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now(),moved:e.button!==0};
+  });
+  canvas.addEventListener('pointermove',e=>{if(press&&e.pointerId===press.id&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>TAP_SLOP)press.moved=true;});
+  canvas.addEventListener('pointerup',e=>{if(!press||e.pointerId!==press.id)return;const p=press;press=null;if(!p.moved&&performance.now()-p.at<TAP_MS)tapped=performance.now();});
+  canvas.addEventListener('pointercancel',()=>{press=null;});
+  canvas.addEventListener('click',()=>{if(tapped&&performance.now()-tapped<400){tapped=0;onExpand(canvas);}});
+ }
  element.addEventListener('click',e=>{
+  const x=e.target.closest('[data-disc3d-expand]');if(x){onExpand?.(x);return;}
   const v=e.target.closest('[data-disc3d-view]');if(v){noteInteraction();setView(v.dataset.disc3dView);}
   if(e.target.closest('[data-disc3d-flip]')){noteInteraction();flip();}
  });
@@ -207,10 +238,10 @@ export function createDiscViewer({segments}={}){
   window.removeEventListener('atlas-theme-change',themeChanged);
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
   body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
-  envTexture.dispose();renderer.dispose();element.remove();
+  envTexture.dispose();renderer.dispose();renderer.forceContextLoss();element.remove();
  }
  setTilt(0);
- return {element,attach,update,setView,flip,setTilt,setHand,dispose,state,
+ return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
   debug:{renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

@@ -134,6 +134,35 @@ The following are still open:
 - ODDGRIP's G1 uses an "undermold" (material added under the plate). It is not a separate rim, so it is
   excluded.
 
+## Pop-out (Oct 2026)
+
+Clicking the panel's viewer, or its Enlarge button (top right of the canvas), opens the disc in a larger modal.
+A drag that moves more than 6 px, a press held over 600 ms or a pinch is never a click, so turning and zooming
+the panel viewer work as before.
+
+- **Same component.** The modal is a second `createDiscViewer()` from `viewer.mjs`, given the panel viewer's
+  props (`viewer.state.props`, so overmold rim/plate colours and custom colours match) and its pose. It has
+  128 lathe segments on fine pointers (72 on coarse), since it is drawn large. Everything else is shared:
+  Top/Profile/Bottom/Flip, the tilt slider mirrored by throwing hand, drag, wheel, pinch and the arrow keys.
+- **Pose hand-off.** `getPose()` and `applyPose()` carry camera angle, zoom (relative to the fitted distance, so
+  it survives the size change), preset, tilt and flip. The modal starts from the panel's pose and, on close,
+  hands its pose back. The panel viewer itself is not touched while the modal is open.
+- **Dialog.** A native `<dialog>` (`disc3d.js`), like the site's others: `showModal()` makes the page inert and
+  keeps Tab inside, Escape closes it, and the backdrop uses the site's dialog style, with the site's tokens
+  for both themes. A click on the backdrop closes it, but not a drag that began inside and ended over it.
+  The page behind does not scroll while it is open (the scrollbar's width is kept).
+- **Focus.** On open it moves to the modal's canvas (arrow keys turn it at once). On close it returns to the
+  element that opened it: the Enlarge button, or the canvas when it was a tap on the canvas.
+- **Lifetime.** The modal's viewer is built per opening and disposed on close, including
+  `renderer.forceContextLoss()`, so repeated openings do not accumulate WebGL contexts. One `<dialog>` element is reused.
+- **Phones.** Within 8 px of the screen edge, 44 px controls, a flexible canvas (`dvh`), and a compact landscape
+  layout (caption and hint hidden below 520 px of height). The panel's hint says "tap to enlarge" there.
+- **API.** `Disc3D.open()`, `Disc3D.close()` and `Disc3D.popout` (the modal's viewer, or null) are for tests.
+- **Tests.** `npm run test:disc3d:popout` (also part of `test:disc3d`): open, close (Escape, ×, backdrop, drag
+  that ends outside), focus in and back, Tab containment, same model and colours (Destroyer, Envy with custom
+  colours), all controls, theme, repeated open and close, and a 390 px phone with touch rotate, pinch and
+  landscape. Shots go to `outputs/disc3d-popout/`.
+
 ## Lazy loading and performance
 
 `three` resolves through the import map in `web/index.html`, which points to the vendored three.js
