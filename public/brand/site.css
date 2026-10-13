@@ -1,6 +1,6 @@
-/* Approved Scatter Atlas branding. Palette follows the site's explicit theme. */
-:root{--da-ink:var(--text);--da-accent:#4d7c0f}
-:root:is([data-theme="midnight"],[data-theme="charcoal"],[data-theme="black"],[data-theme="dark"]){--da-accent:#b8ff00}
+/* Tilted four-dot disc. Brand geometry follows the site's explicit theme. */
+:root{--da-ink:var(--text);--da-accent:#4d7c0f;--da-plate:#eef0f3;--da-axis:#687384}
+:root:is([data-theme="midnight"],[data-theme="charcoal"],[data-theme="black"],[data-theme="dark"]){--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8}
 .atlas-logo{fill:var(--da-ink);stroke:none}
 .logo .brand-wordmark{display:block;flex:none;width:120px;height:19px;line-height:0}
 .brand-wordmark svg{display:block;width:100%;height:100%;fill:var(--da-ink)}

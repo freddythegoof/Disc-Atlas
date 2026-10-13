@@ -1,101 +1,96 @@
-﻿# Disc Atlas logo system — Scatter Atlas
+﻿# Disc Atlas logo system — Tilted Four-Dot Disc
 
-Freddy selected concept 03 and kinetic lime, approved the four variations, and
-authorized site integration. The compact header branding and browser icons are
-now integrated into the site.
+This revision replaces the circular scatter-chart identity with Freddy's supplied
+oblong disc. The four variations and the site headers/icons are updated locally.
+This revision is uncommitted; there has been no push or deployment.
 
-## Review
+## Master and review
 
-- [System review](system-review.svg): all four variations, plus native-size samples.
-- [Theme check](system-theme-check.svg): every variation in all current themes and legacy dark.
-- [Size and single-ink check](system-size-check.svg): 16–32px badge, 24–48px simplified mark, and neutral versions.
+- [master.svg](master.svg) preserves the supplied 1024px badge geometry and colors.
+- [system-review.svg](system-review.svg) shows the four variations together.
+- [system-theme-check.svg](system-theme-check.svg) shows every variation across the current themes and legacy dark.
+- [system-size-check.svg](system-size-check.svg) shows actual small sizes and single-ink geometry.
+
+The master keeps the rounded obsidian tile (`#0C0E11`, radius 224), flight plate
+(`#13161C`), white rim (`#F1F5F9`, width 44), faint coordinate axes, and the
+minus 22 degree tilt. The disc radii are 340 and 196. Three white elliptical
+waypoints and one larger `#B8FF00` target keep their supplied coordinates.
 
 ## The four variations
 
-| Role | Master SVG | Construction | Recommended minimum |
+| Role | SVG | Construction | Recommended minimum |
 | --- | --- | --- | --- |
-| Primary | [primary.svg](primary.svg) | Detailed scatter-atlas mark plus horizontal Disc Atlas wordmark | 280px wide |
-| Secondary | [secondary.svg](secondary.svg) | Detailed mark above centered wordmark; fits a square using contain | 160px wide |
-| Simplified | [mark.svg](mark.svg) | Stronger rim, six ordinary nodes, one hollow selected node; no axes or contours | 24px |
-| Sub-mark | [submark.svg](submark.svg) | Native 16px grid, three small nodes and one larger solid selected node | 16px |
+| Primary | [primary.svg](primary.svg) | Master disc and outlined Disc Atlas wordmark, horizontal | 280px wide |
+| Secondary | [secondary.svg](secondary.svg) | Master disc above the centered wordmark | 160px wide |
+| Simplified | [mark.svg](mark.svg) | Same tilt, rim, plate and four dots; no coordinate axes | 24px |
+| Sub-mark | [submark.svg](submark.svg) | Obsidian rounded tile, optically redrawn rim and four dots on a native 16px grid | 16px |
 
-The primary and secondary preserve the chosen concept's circular disc,
-speed/stability axes, contour traces, and clustered nodes. The stray origin dot
-was removed and the selected node's hole made transparent. Every smaller mark
-is drawn separately. The sub-mark makes the selected node solid so it retains
-weight at 16px; its greater size also distinguishes it without color.
+The primary and secondary omit the outer square tile so the lockups sit cleanly
+on their surrounding page. The mark omits the axes. The sub-mark retains the
+supplied obsidian tile and pure electric lime in every theme. Its rim is 1px and
+its dots are slightly enlarged vertically so the four-dot arrangement survives
+at native size. None of the variants uses gradients, glow, blur, or shadows.
 
-The wordmark uses Space Grotesk Medium from the site's existing
-[font-5.ttf](../fonts/font-5.ttf). Each glyph is a native vector outline, not an
-image trace. The SVGs contain no text objects and require no installed fonts.
-Source font: The Space Grotesk Project Authors; see its existing
-[SIL Open Font License](../fonts/Space-Grotesk-LICENSE.txt).
+The existing Space Grotesk Medium wordmark is unchanged and outlined, one
+editable path per glyph. It has no font dependency when displayed. Source:
+[font-5.ttf](../fonts/font-5.ttf), licensed by The Space Grotesk Project Authors
+under the existing [SIL Open Font License](../fonts/Space-Grotesk-LICENSE.txt).
 
-## Theme-specific exports
+## Theme exports
 
-Each folder contains the same four filenames: `primary.svg`, `secondary.svg`,
-`mark.svg`, and `submark.svg`. Use these files for an HTML image when the site's
-selected theme may differ from the operating system's preference.
+Each folder contains `primary.svg`, `secondary.svg`, `mark.svg`, and `submark.svg`.
 
-| Theme folder | Background checked | Ink | Accent | Accent contrast |
+| Theme | Page background | Rim/type ink | Target | Plate |
 | --- | --- | --- | --- | --- |
-| [light](light/primary.svg) | `#F7F8FA` | `#202731` | `#4D7C0F` | 4.70:1 |
-| [midnight](midnight/primary.svg) | `#080B10` | `#EDF2FC` | `#B8FF00` | 16.27:1 |
-| [charcoal](charcoal/primary.svg) | `#101113` | `#F1F2F5` | `#B8FF00` | 15.60:1 |
-| [black](black/primary.svg) | `#000000` | `#F4F4F4` | `#B8FF00` | 17.34:1 |
-| [dark](dark/primary.svg), legacy | `#0C1014` | `#F4F7FA` | `#B8FF00` | 15.77:1 |
+| [light](light/primary.svg) | `#F7F8FA` | `#202731` | `#4D7C0F` | `#EEF0F3` |
+| [midnight](midnight/primary.svg) | `#080B10` | `#EDF2FC` | `#B8FF00` | `#13161C` |
+| [charcoal](charcoal/primary.svg) | `#101113` | `#F1F2F5` | `#B8FF00` | `#13161C` |
+| [black](black/primary.svg) | `#000000` | `#F4F4F4` | `#B8FF00` | `#13161C` |
+| [dark](dark/primary.svg), legacy | `#0C1014` | `#F4F7FA` | `#B8FF00` | `#13161C` |
 
-The four master files follow `prefers-color-scheme`: light by default and
-midnight under a dark system preference. When inlined, their palette can be
-set with `--da-ink` and `--da-accent`. Fixed-theme files set both variables on
-the root SVG. For a neutral single-ink version, set both to the same color.
+This table applies to the primary, secondary, and simplified mark. The sub-mark
+stays obsidian/white/electric lime so it matches the supplied app badge in every
+theme. A larger target distinguishes it by size as well as color; no red/green
+comparison carries meaning.
+
+The master files follow the embedding color scheme: light by default and
+midnight under a dark preference. Fixed-theme files are available when the site
+choice differs from the system. Inline palettes use `--da-ink`, `--da-accent`,
+`--da-plate`, and `--da-axis`. The badge has separate `--da-badge-ink` and
+`--da-badge-accent` overrides for single-ink use without changing its tile.
 
 ```html
-<img src="/brand/midnight/primary.svg" alt="Disc Atlas" width="342" height="96">
-<img src="/brand/midnight/mark.svg" alt="Disc Atlas" width="32" height="32">
+<img src="/brand/midnight/primary.svg?v=tilted-disc" alt="Disc Atlas" width="342" height="96">
+<img src="/brand/midnight/mark.svg?v=tilted-disc" alt="Disc Atlas" width="32" height="32">
 ```
 
-The first example shows intrinsic sizing; use the simplified mark when the
-available size cannot retain the detailed chart. Keep each SVG's aspect ratio.
-The stacked lockup's viewBox is 320 × 300; center it with contain for square
-spaces. Avoid placing the full chart in a 16px favicon slot.
-
-## Construction and verification
-
-- Every identity export uses editable SVG paths; the wordmarks are outlined.
-- Assets contain no raster images, external resources, scripts, filters, or fonts.
-- Backgrounds are transparent, including the highlighted node's opening.
-- Masks in the detailed lockups remove axis/contour lines beneath that opening.
-  Their IDs are scoped by variation. Namespace IDs when repeating inline copies;
-  external images keep their SVG documents isolated.
-- Every fixed-theme export was loaded as an actual image in Chromium, rather
-  than relying only on the vector presentation board.
-- All variations were visually checked on light, midnight, charcoal, black,
-  and legacy dark. The badge was checked at actual 16px, 20px, 24px, and 32px.
-- Single-ink checks preserve recognition through silhouette, node size, and
-  the hollow focal node. No red/green distinction carries meaning.
-- Fine calibration lines are secondary details; they are deliberately removed
-  from the simplified mark and sub-mark.
+Preserve aspect ratios. The stacked lockup remains 320 × 300 and can be centered
+with contain in a square. Use the supplied 1024px master for large app/avatar
+placements, and the dedicated sub-mark for 16px browser icons.
 
 ## Site integration
 
 - The atlas, filter context, account page, About, Privacy, and Terms headers use
-  the simplified mark. Their compact wordmarks use the exact outlined glyphs
-  from the approved primary lockup, exposed through [symbols.svg](symbols.svg).
-- [site.css](site.css) maps the shared vectors to the selected site theme. The
-  palette is scoped to brand variables; other site color tokens are unchanged.
-- `public/icon.svg` and `public/favicon.svg` now contain the approved 16px
-  sub-mark with a system-preference fallback. Page icon links switch to the
-  selected theme's fixed sub-mark through the existing `theme.js` handler.
-- The Next metadata also references the new SVG favicon, with a cache key.
-- Browser regression: `tests/brand-browser.mjs` checks five page templates at
-  desktop and mobile widths in all four site themes, actual SVG icon resources,
-  theme persistence and legacy migration, and filter-context keyboard focus.
+  the new simplified mark and existing outlined wordmark from [symbols.svg](symbols.svg).
+- [site.css](site.css) binds the vectors to the site's selected theme. Page/UI
+  color tokens outside the brand are unchanged.
+- `public/icon.svg` and `public/favicon.svg` now contain the tilted 16px badge.
+  The shared theme handler selects the current theme folder's sub-mark.
+- Header symbols, brand CSS, and favicon links use the `tilted-disc` revision
+  key so previously cached circular logos do not linger.
 
-No push or deployment has been made. The review sheets show the four
-approved variations; the primary and stacked files remain available for larger
-placements without squeezing the detailed chart into compact headers.
+## Verification
 
-The earlier `concept-*.svg` studies remain available as Phase 1 history. Their
-background-matched focal-node inset is superseded by the transparent opening
-in this system's detailed lockups.
+- `node tests/brand-assets.mjs`: supplied master dimensions/colors, minus 22
+  degree rotation, four nodes in all 24 exports, correct axis detail levels,
+  updated sprite, native favicon geometry, and no font/raster dependencies.
+- `tests/brand-browser.mjs`: five page templates at desktop and mobile widths
+  in all four themes, selected-theme plate/accent colors, favicon revision
+  links/resources, persisted choices, legacy migration, and keyboard focus
+  after clearing manufacturer filters.
+- Actual theme exports, the master, and native 16/20/24/32px samples were rendered
+  and visually inspected in Chromium. All SVG documents were parsed as XML.
+- Fine axes remain secondary details and are removed from the two small variants.
+
+The earlier `concept-*.svg` files are historical studies from the prior direction;
+they are not used by the site. The previous circular system is preserved in git.

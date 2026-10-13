@@ -1,33 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 456 128" width="456" height="128" role="img" aria-labelledby="da-primary-title da-primary-desc" style="--da-ink:#f1f2f5;--da-accent:#b8ff00">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 456 128" width="456" height="128" role="img" aria-labelledby="da-primary-title da-primary-desc" style="--da-ink:#f1f2f5;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8">
   <title id="da-primary-title">Disc Atlas — Primary / Charcoal</title>
-  <desc id="da-primary-desc">Horizontal scatter-atlas mark and Disc Atlas wordmark.</desc>
+  <desc id="da-primary-desc">Horizontal tilted four-dot disc and outlined Disc Atlas wordmark.</desc>
 
-  <g transform="translate(64 64) scale(.9)"><defs>
-    <!-- Transparent opening under the focal node: no theme-colored patch. -->
-    <mask id="da-primary-focus" maskUnits="userSpaceOnUse" x="-64" y="-64" width="128" height="128" style="mask-type:luminance">
-      <path d="M-64-64H64V64H-64Z" fill="#fff"/>
-      <path d="M18 -4A12 12 0 1 1 -6 -4A12 12 0 1 1 18 -4Z" fill="#000"/>
-    </mask>
-  </defs>
-  <!-- Selected scatter-atlas geometry, with optical cleanup at the origin. -->
-  <path d="M58 0A58 58 0 1 1 -58 0A58 58 0 1 1 58 0Z" fill="none" stroke="var(--da-ink, #202731)" stroke-width="5.5"/>
-  <g fill="none" stroke="var(--da-ink, #202731)" mask="url(#da-primary-focus)">
-    <path d="M-56 0H56M0-56V56" stroke-width="1.8" stroke-dasharray="3 4" opacity=".45"/>
-    <path d="M-44 22C-20-16 20-24 46-12" stroke-width="2.5" opacity=".35"/>
-    <path d="M-36 36C-12 4 28-2 42 20" stroke-width="2" opacity=".25"/>
-  </g>
-  <g fill="var(--da-ink, #202731)"><path d="M-20 -32A8 8 0 1 1 -36 -32A8 8 0 1 1 -20 -32Z"/>
-    <path d="M-4 -38A6 6 0 1 1 -16 -38A6 6 0 1 1 -4 -38Z"/>
-    <path d="M23.5 -34A7.5 7.5 0 1 1 8.5 -34A7.5 7.5 0 1 1 23.5 -34Z"/>
-    <path d="M40 -26A6 6 0 1 1 28 -26A6 6 0 1 1 40 -26Z"/>
-    <path d="M-32.5 -6A5.5 5.5 0 1 1 -43.5 -6A5.5 5.5 0 1 1 -32.5 -6Z"/>
-    <path d="M-9 -12A7 7 0 1 1 -23 -12A7 7 0 1 1 -9 -12Z"/>
-    <path d="M34 2A6 6 0 1 1 22 2A6 6 0 1 1 34 2Z"/>
-    <path d="M-17.5 22A6.5 6.5 0 1 1 -30.5 22A6.5 6.5 0 1 1 -17.5 22Z"/>
-    <path d="M4 30A8 8 0 1 1 -12 30A8 8 0 1 1 4 30Z"/>
-    <path d="M24 26A6 6 0 1 1 12 26A6 6 0 1 1 24 26Z"/>
-    <path d="M41 18A5 5 0 1 1 31 18A5 5 0 1 1 41 18Z"/></g>
-  <path d="M16.5 -4A10.5 10.5 0 1 1 -4.5 -4A10.5 10.5 0 1 1 16.5 -4Z M9.5 -4A3.5 3.5 0 1 1 2.5 -4A3.5 3.5 0 1 1 9.5 -4Z" fill="var(--da-accent, #4d7c0f)" fill-rule="evenodd"/></g>
+  <g transform="translate(64 64) scale(.16)"><g transform="rotate(-22)" data-brand-disc="tilted">
+    <!-- Master disc proportions and 44-unit flat rim; no glow or shadow. -->
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="340" ry="196" fill="var(--da-plate, #eef0f3)" stroke="var(--da-ink, #202731)" stroke-width="44"/>
+    <g stroke="var(--da-axis, #687384)" stroke-width="2.5" stroke-dasharray="14 24" stroke-linecap="round" opacity=".22">
+      <path data-brand-axis="trajectory" d="M-290 0H290"/>
+      <path data-brand-axis="stability" d="M0-155V155"/>
+    </g>
+    <g fill="var(--da-ink, #202731)">
+      <ellipse data-brand-node="waypoint" cx="-135" cy="-56" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="125" cy="-52" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="-120" cy="56" rx="38" ry="24"/>
+    </g>
+    <ellipse data-brand-node="target" cx="130" cy="50" rx="58" ry="38" fill="var(--da-accent, #4d7c0f)"/>
+  </g></g>
 <!-- Space Grotesk Medium, native vector outlines; one editable path per glyph. -->
   <g fill="var(--da-ink, #202731)" transform="translate(146.992 85.952)">
     <path d="M20.928 0L3.008 0L3.008-6.144L9.024-6.144L9.024-38.656L3.008-38.656L3.008-44.800L20.928-44.800Q29.888-44.800 34.656-40.256Q39.424-35.712 39.424-26.560L39.424-26.560L39.424-18.176Q39.424-9.024 34.656-4.512Q29.888 0 20.928 0L20.928 0ZM16-38.464L16-6.272L20.992-6.272Q26.816-6.272 29.632-9.216Q32.448-12.160 32.448-17.984L32.448-17.984L32.448-26.816Q32.448-32.704 29.632-35.584Q26.816-38.464 20.992-38.464L20.992-38.464L16-38.464Z"/>

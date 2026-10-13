@@ -32,8 +32,8 @@ try{
  for(const route of Object.keys(pages)){
   await page.goto(base+route);await page.evaluate(()=>document.fonts.ready);
   const home=page.locator('header .logo');
-  assert.equal(await home.locator('use[href="/brand/symbols.svg#mark"]').count(),1,route+' uses the approved compact mark');
-  assert.equal(await home.locator('use[href="/brand/symbols.svg#wordmark"]').count(),1,route+' uses the outlined wordmark');
+  assert.equal(await home.locator('use[href="/brand/symbols.svg?v=tilted-disc#mark"]').count(),1,route+' uses the revised compact mark');
+  assert.equal(await home.locator('use[href="/brand/symbols.svg?v=tilted-disc#wordmark"]').count(),1,route+' uses the outlined wordmark');
   assert.equal(await home.locator('ellipse').count(),0,route+' removes the generic ellipse');
   assert.match(await home.innerText(),/Disc Atlas/);
   assert.equal(await home.getAttribute('aria-label'),'Disc Atlas home');
@@ -47,11 +47,12 @@ try{
     const result=await page.evaluate(()=>{
      const logo=document.querySelector('header .logo'),r=logo.getBoundingClientRect();
      const controls=document.querySelector('.header-actions,.theme-picker')?.getBoundingClientRect();
-     return {theme:document.documentElement.dataset.theme,accent:getComputedStyle(logo).getPropertyValue('--da-accent').trim(),favicon:document.querySelector('link[rel="icon"]').getAttribute('href'),fits:document.documentElement.scrollWidth<=innerWidth&&r.left>=0&&r.right<=innerWidth&&(!controls||r.right<=controls.left)};
+     return {theme:document.documentElement.dataset.theme,accent:getComputedStyle(logo).getPropertyValue('--da-accent').trim(),plate:getComputedStyle(logo).getPropertyValue('--da-plate').trim(),favicon:document.querySelector('link[rel="icon"]').getAttribute('href'),fits:document.documentElement.scrollWidth<=innerWidth&&r.left>=0&&r.right<=innerWidth&&(!controls||r.right<=controls.left)};
     });
     assert.equal(result.theme,theme);
     assert.equal(result.accent,theme==='light'?'#4d7c0f':'#b8ff00');
-    assert.equal(result.favicon,`/brand/${theme}/submark.svg`);
+    assert.equal(result.plate,theme==='light'?'#eef0f3':'#13161c');
+    assert.equal(result.favicon,`/brand/${theme}/submark.svg?v=tilted-disc`);
     assert.ok(result.fits,`${route}, ${width}px, ${theme}: logo clears controls and stays in viewport`);
     const response=await page.request.get(base+result.favicon);assert.equal(response.status(),200);assert.match(await response.text(),/viewBox="0 0 16 16"/);
     await page.screenshot({path:`${dir}/${route==='/'?'atlas':route.slice(1)}-${width}-${theme}.png`,clip:{x:0,y:0,width,height:180}});
@@ -63,7 +64,7 @@ try{
  await page.goto(base);await page.waitForFunction(()=>typeof discs!=='undefined'&&discs.length>0);
  await page.evaluate(()=>{selectedBrands.add('Innova');filter();});
  assert.ok(await page.locator('#contextTitle').isVisible());
- assert.equal(await page.locator('#contextTitle use[href="/brand/symbols.svg#mark"]').count(),1);
+ assert.equal(await page.locator('#contextTitle use[href="/brand/symbols.svg?v=tilted-disc#mark"]').count(),1);
  await page.locator('#contextTitle').focus();await page.keyboard.press('Enter');
  assert.equal(await page.locator('header .logo').evaluate(el=>el===document.activeElement),true,'Clearing filters returns focus to the branded home link');
  await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.locator('[data-theme-choice="charcoal"]').click();await page.keyboard.press('Escape');
@@ -72,10 +73,10 @@ try{
  const saved=await browser.newContext({colorScheme:'light'}),savedPage=await saved.newPage();
  await savedPage.goto(base+'/privacy');await savedPage.evaluate(()=>localStorage.setItem('disc-atlas-theme','dark'));await savedPage.reload();
  assert.equal(await savedPage.locator('html').getAttribute('data-theme'),'midnight');
- assert.equal(await savedPage.locator('link[rel="icon"]').getAttribute('href'),'/brand/midnight/submark.svg');
+ assert.equal(await savedPage.locator('link[rel="icon"]').getAttribute('href'),'/brand/midnight/submark.svg?v=tilted-disc');
  await savedPage.locator('[data-theme-select]').selectOption('black');await savedPage.reload();
  assert.equal(await savedPage.locator('html').getAttribute('data-theme'),'black');
- assert.equal(await savedPage.locator('link[rel="icon"]').getAttribute('href'),'/brand/black/submark.svg');
+ assert.equal(await savedPage.locator('link[rel="icon"]').getAttribute('href'),'/brand/black/submark.svg?v=tilted-disc');
  await saved.close();
  for(const file of ['/icon.svg','/favicon.svg']){
   const response=await page.request.get(base+file);assert.equal(response.status(),200);assert.match(await response.text(),/viewBox="0 0 16 16"/);

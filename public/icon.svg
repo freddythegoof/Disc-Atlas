@@ -1,14 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-labelledby="da-submark-title da-submark-desc" class="da-submark">
   <title id="da-submark-title">Disc Atlas — Sub-mark</title>
-  <desc id="da-submark-desc">Minimal scatter badge drawn on a 16 pixel grid, with three small nodes and one larger highlighted node.</desc>
+  <desc id="da-submark-desc">Native 16px obsidian badge with the tilted four-dot disc, white rim and kinetic lime target.</desc>
   <style>
-    .da-submark { --da-ink:#202731; --da-accent:#4d7c0f; }
-    @media (prefers-color-scheme:dark) { .da-submark { --da-ink:#edf2fc; --da-accent:#b8ff00; } }
+    .da-submark{--da-ink:#202731;--da-accent:#4d7c0f;--da-plate:#eef0f3;--da-axis:#687384}
+    @media(prefers-color-scheme:dark){.da-submark{--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8}}
   </style>
-  <!-- Native 16px geometry. The selected node is solid to retain its weight. -->
-  <path d="M15 8A7 7 0 1 1 1 8A7 7 0 1 1 15 8Z M13.5 8A5.5 5.5 0 1 1 2.5 8A5.5 5.5 0 1 1 13.5 8Z" fill="var(--da-ink, #202731)" fill-rule="evenodd"/>
-  <g fill="var(--da-ink, #202731)"><path d="M6.5 5.5A1 1 0 1 1 4.5 5.5A1 1 0 1 1 6.5 5.5Z"/>
-    <path d="M11.5 5.5A1 1 0 1 1 9.5 5.5A1 1 0 1 1 11.5 5.5Z"/>
-    <path d="M6.5 10.5A1 1 0 1 1 4.5 10.5A1 1 0 1 1 6.5 10.5Z"/></g>
-  <path d="M11.75 10A1.75 1.75 0 1 1 8.25 10A1.75 1.75 0 1 1 11.75 10Z" fill="var(--da-accent, #4d7c0f)"/>
+  <!-- Native 16px redraw. The supplied obsidian tile stays constant in every site theme. -->
+  <rect width="16" height="16" rx="3.5" fill="#0c0e11"/>
+  <g transform="translate(8 8) rotate(-22)" data-brand-disc="tilted">
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="5.3" ry="3.15" fill="#13161c" stroke="var(--da-badge-ink, #f1f5f9)" stroke-width="1"/>
+    <g fill="var(--da-badge-ink, #f8fafc)">
+      <ellipse data-brand-node="waypoint" cx="-2.15" cy="-.9" rx=".75" ry=".55"/>
+      <ellipse data-brand-node="waypoint" cx="2" cy="-.85" rx=".75" ry=".55"/>
+      <ellipse data-brand-node="waypoint" cx="-1.9" cy=".9" rx=".75" ry=".55"/>
+    </g>
+    <ellipse data-brand-node="target" cx="2.05" cy=".8" rx="1.12" ry=".8" fill="var(--da-badge-accent, #b8ff00)"/>
+  </g>
 </svg>

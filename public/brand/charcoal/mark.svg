@@ -1,14 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="da-mark-title da-mark-desc" style="--da-ink:#f1f2f5;--da-accent:#b8ff00">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="da-mark-title da-mark-desc" style="--da-ink:#f1f2f5;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8">
   <title id="da-mark-title">Disc Atlas — Simplified / Charcoal</title>
-  <desc id="da-mark-desc">Simplified circular disc with six scatter nodes and a highlighted central node.</desc>
+  <desc id="da-mark-desc">Flat oblong disc tilted minus 22 degrees with three waypoints and a larger highlighted target; no axes.</desc>
 
-  <!-- Enlarged rim and fewer nodes; axes and contour lines are removed. -->
-  <path d="M60 32A28 28 0 1 1 4 32A28 28 0 1 1 60 32Z M56.5 32A24.5 24.5 0 1 1 7.5 32A24.5 24.5 0 1 1 56.5 32Z" fill="var(--da-ink, #202731)" fill-rule="evenodd"/>
-  <g fill="var(--da-ink, #202731)"><path d="M25.2 18A3.2 3.2 0 1 1 18.8 18A3.2 3.2 0 1 1 25.2 18Z"/>
-    <path d="M40.2 18A3.2 3.2 0 1 1 33.8 18A3.2 3.2 0 1 1 40.2 18Z"/>
-    <path d="M18.8 32A2.8 2.8 0 1 1 13.2 32A2.8 2.8 0 1 1 18.8 32Z"/>
-    <path d="M49.8 32A2.8 2.8 0 1 1 44.2 32A2.8 2.8 0 1 1 49.8 32Z"/>
-    <path d="M26.2 45A3.2 3.2 0 1 1 19.8 45A3.2 3.2 0 1 1 26.2 45Z"/>
-    <path d="M42.2 45A3.2 3.2 0 1 1 35.8 45A3.2 3.2 0 1 1 42.2 45Z"/></g>
-  <path d="M38.3 31A5.3 5.3 0 1 1 27.7 31A5.3 5.3 0 1 1 38.3 31Z M35.2 31A2.2 2.2 0 1 1 30.8 31A2.2 2.2 0 1 1 35.2 31Z" fill="var(--da-accent, #4d7c0f)" fill-rule="evenodd"/>
+  <g transform="translate(32 32) scale(.0794117647)"><g transform="rotate(-22)" data-brand-disc="tilted">
+    <!-- Master disc proportions and 44-unit flat rim; no glow or shadow. -->
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="340" ry="196" fill="var(--da-plate, #eef0f3)" stroke="var(--da-ink, #202731)" stroke-width="44"/>
+    <!-- Calibration axes removed for small sizes. -->
+    <g fill="var(--da-ink, #202731)">
+      <ellipse data-brand-node="waypoint" cx="-135" cy="-56" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="125" cy="-52" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="-120" cy="56" rx="38" ry="24"/>
+    </g>
+    <ellipse data-brand-node="target" cx="130" cy="50" rx="58" ry="38" fill="var(--da-accent, #4d7c0f)"/>
+  </g></g>
 </svg>

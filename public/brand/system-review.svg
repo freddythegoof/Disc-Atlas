@@ -1,29 +1,17 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="908" viewBox="0 0 1200 908" role="img" aria-labelledby="title desc"><title id="title">Disc Atlas — scatter-atlas logo system</title><desc id="desc">Four variations of the selected scatter-atlas direction in kinetic lime.</desc><defs><symbol id="system-primary" viewBox="0 0 456 128"><g transform="translate(64 64) scale(.9)"><defs>
-    <!-- Transparent opening under the focal node: no theme-colored patch. -->
-    <mask id="board-primary-focus" maskUnits="userSpaceOnUse" x="-64" y="-64" width="128" height="128" style="mask-type:luminance">
-      <path d="M-64-64H64V64H-64Z" fill="#fff"/>
-      <path d="M18 -4A12 12 0 1 1 -6 -4A12 12 0 1 1 18 -4Z" fill="#000"/>
-    </mask>
-  </defs>
-  <!-- Selected scatter-atlas geometry, with optical cleanup at the origin. -->
-  <path d="M58 0A58 58 0 1 1 -58 0A58 58 0 1 1 58 0Z" fill="none" stroke="var(--da-ink, #202731)" stroke-width="5.5"/>
-  <g fill="none" stroke="var(--da-ink, #202731)" mask="url(#board-primary-focus)">
-    <path d="M-56 0H56M0-56V56" stroke-width="1.8" stroke-dasharray="3 4" opacity=".45"/>
-    <path d="M-44 22C-20-16 20-24 46-12" stroke-width="2.5" opacity=".35"/>
-    <path d="M-36 36C-12 4 28-2 42 20" stroke-width="2" opacity=".25"/>
-  </g>
-  <g fill="var(--da-ink, #202731)"><path d="M-20 -32A8 8 0 1 1 -36 -32A8 8 0 1 1 -20 -32Z"/>
-    <path d="M-4 -38A6 6 0 1 1 -16 -38A6 6 0 1 1 -4 -38Z"/>
-    <path d="M23.5 -34A7.5 7.5 0 1 1 8.5 -34A7.5 7.5 0 1 1 23.5 -34Z"/>
-    <path d="M40 -26A6 6 0 1 1 28 -26A6 6 0 1 1 40 -26Z"/>
-    <path d="M-32.5 -6A5.5 5.5 0 1 1 -43.5 -6A5.5 5.5 0 1 1 -32.5 -6Z"/>
-    <path d="M-9 -12A7 7 0 1 1 -23 -12A7 7 0 1 1 -9 -12Z"/>
-    <path d="M34 2A6 6 0 1 1 22 2A6 6 0 1 1 34 2Z"/>
-    <path d="M-17.5 22A6.5 6.5 0 1 1 -30.5 22A6.5 6.5 0 1 1 -17.5 22Z"/>
-    <path d="M4 30A8 8 0 1 1 -12 30A8 8 0 1 1 4 30Z"/>
-    <path d="M24 26A6 6 0 1 1 12 26A6 6 0 1 1 24 26Z"/>
-    <path d="M41 18A5 5 0 1 1 31 18A5 5 0 1 1 41 18Z"/></g>
-  <path d="M16.5 -4A10.5 10.5 0 1 1 -4.5 -4A10.5 10.5 0 1 1 16.5 -4Z M9.5 -4A3.5 3.5 0 1 1 2.5 -4A3.5 3.5 0 1 1 9.5 -4Z" fill="var(--da-accent, #4d7c0f)" fill-rule="evenodd"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="908" viewBox="0 0 1200 908" role="img" aria-labelledby="title"><title id="title">Disc Atlas — tilted four-dot logo system</title><defs><symbol id="system-primary" viewBox="0 0 456 128"><g transform="translate(64 64) scale(.16)"><g transform="rotate(-22)" data-brand-disc="tilted">
+    <!-- Master disc proportions and 44-unit flat rim; no glow or shadow. -->
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="340" ry="196" fill="var(--da-plate, #eef0f3)" stroke="var(--da-ink, #202731)" stroke-width="44"/>
+    <g stroke="var(--da-axis, #687384)" stroke-width="2.5" stroke-dasharray="14 24" stroke-linecap="round" opacity=".22">
+      <path data-brand-axis="trajectory" d="M-290 0H290"/>
+      <path data-brand-axis="stability" d="M0-155V155"/>
+    </g>
+    <g fill="var(--da-ink, #202731)">
+      <ellipse data-brand-node="waypoint" cx="-135" cy="-56" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="125" cy="-52" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="-120" cy="56" rx="38" ry="24"/>
+    </g>
+    <ellipse data-brand-node="target" cx="130" cy="50" rx="58" ry="38" fill="var(--da-accent, #4d7c0f)"/>
+  </g></g>
 <!-- Space Grotesk Medium, native vector outlines; one editable path per glyph. -->
   <g fill="var(--da-ink, #202731)" transform="translate(146.992 85.952)">
     <path d="M20.928 0L3.008 0L3.008-6.144L9.024-6.144L9.024-38.656L3.008-38.656L3.008-44.800L20.928-44.800Q29.888-44.800 34.656-40.256Q39.424-35.712 39.424-26.560L39.424-26.560L39.424-18.176Q39.424-9.024 34.656-4.512Q29.888 0 20.928 0L20.928 0ZM16-38.464L16-6.272L20.992-6.272Q26.816-6.272 29.632-9.216Q32.448-12.160 32.448-17.984L32.448-17.984L32.448-26.816Q32.448-32.704 29.632-35.584Q26.816-38.464 20.992-38.464L20.992-38.464L16-38.464Z"/>
@@ -36,32 +24,20 @@
     <path d="M240.128 0.896L240.128 0.896Q236.736 0.896 234.080-0.256Q231.424-1.408 229.856-3.648Q228.288-5.888 228.288-9.088L228.288-9.088Q228.288-12.352 229.856-14.496Q231.424-16.640 234.144-17.728Q236.864-18.816 240.320-18.816L240.320-18.816L249.920-18.816L249.920-20.864Q249.920-23.616 248.256-25.280Q246.592-26.944 243.136-26.944L243.136-26.944Q239.744-26.944 237.952-25.344Q236.160-23.744 235.584-21.184L235.584-21.184L229.440-23.168Q230.208-25.728 231.904-27.808Q233.600-29.888 236.416-31.168Q239.232-32.448 243.200-32.448L243.200-32.448Q249.344-32.448 252.864-29.312Q256.384-26.176 256.384-20.416L256.384-20.416L256.384-7.424Q256.384-5.504 258.176-5.504L258.176-5.504L260.864-5.504L260.864 0L255.936 0Q253.696 0 252.288-1.152Q250.880-2.304 250.880-4.288L250.880-4.288L250.880-4.480L249.920-4.480Q249.408-3.520 248.384-2.240Q247.360-0.960 245.376-0.032Q243.392 0.896 240.128 0.896ZM241.088-4.544L241.088-4.544Q245.056-4.544 247.488-6.816Q249.920-9.088 249.920-13.056L249.920-13.056L249.920-13.696L240.704-13.696Q238.080-13.696 236.480-12.576Q234.880-11.456 234.880-9.280L234.880-9.280Q234.880-7.104 236.544-5.824Q238.208-4.544 241.088-4.544Z"/>
     <path d="M279.296 0.896L279.296 0.896Q273.280 0.896 269.312-1.792Q265.344-4.480 264.448-9.920L264.448-9.920L270.592-11.392Q271.104-8.768 272.320-7.232Q273.536-5.696 275.360-5.056Q277.184-4.416 279.296-4.416L279.296-4.416Q282.432-4.416 284.128-5.632Q285.824-6.848 285.824-8.768L285.824-8.768Q285.824-10.688 284.224-11.584Q282.624-12.480 279.488-13.056L279.488-13.056L277.312-13.440Q274.112-14.016 271.488-15.104Q268.864-16.192 267.328-18.112Q265.792-20.032 265.792-23.040L265.792-23.040Q265.792-27.520 269.120-29.984Q272.448-32.448 277.952-32.448L277.952-32.448Q283.264-32.448 286.688-30.048Q290.112-27.648 291.136-23.552L291.136-23.552L284.992-21.824Q284.416-24.704 282.560-25.888Q280.704-27.072 277.952-27.072L277.952-27.072Q275.264-27.072 273.728-26.080Q272.192-25.088 272.192-23.296L272.192-23.296Q272.192-21.376 273.696-20.480Q275.200-19.584 277.760-19.136L277.760-19.136L280.000-18.752Q283.392-18.176 286.208-17.152Q289.024-16.128 290.656-14.208Q292.288-12.288 292.288-9.088L292.288-9.088Q292.288-4.352 288.768-1.728Q285.248 0.896 279.296 0.896Z"/>
   </g></symbol>
-<symbol id="system-secondary" viewBox="0 0 320 300"><g transform="translate(160 112) scale(1.15)"><defs>
-    <!-- Transparent opening under the focal node: no theme-colored patch. -->
-    <mask id="board-secondary-focus" maskUnits="userSpaceOnUse" x="-64" y="-64" width="128" height="128" style="mask-type:luminance">
-      <path d="M-64-64H64V64H-64Z" fill="#fff"/>
-      <path d="M18 -4A12 12 0 1 1 -6 -4A12 12 0 1 1 18 -4Z" fill="#000"/>
-    </mask>
-  </defs>
-  <!-- Selected scatter-atlas geometry, with optical cleanup at the origin. -->
-  <path d="M58 0A58 58 0 1 1 -58 0A58 58 0 1 1 58 0Z" fill="none" stroke="var(--da-ink, #202731)" stroke-width="5.5"/>
-  <g fill="none" stroke="var(--da-ink, #202731)" mask="url(#board-secondary-focus)">
-    <path d="M-56 0H56M0-56V56" stroke-width="1.8" stroke-dasharray="3 4" opacity=".45"/>
-    <path d="M-44 22C-20-16 20-24 46-12" stroke-width="2.5" opacity=".35"/>
-    <path d="M-36 36C-12 4 28-2 42 20" stroke-width="2" opacity=".25"/>
-  </g>
-  <g fill="var(--da-ink, #202731)"><path d="M-20 -32A8 8 0 1 1 -36 -32A8 8 0 1 1 -20 -32Z"/>
-    <path d="M-4 -38A6 6 0 1 1 -16 -38A6 6 0 1 1 -4 -38Z"/>
-    <path d="M23.5 -34A7.5 7.5 0 1 1 8.5 -34A7.5 7.5 0 1 1 23.5 -34Z"/>
-    <path d="M40 -26A6 6 0 1 1 28 -26A6 6 0 1 1 40 -26Z"/>
-    <path d="M-32.5 -6A5.5 5.5 0 1 1 -43.5 -6A5.5 5.5 0 1 1 -32.5 -6Z"/>
-    <path d="M-9 -12A7 7 0 1 1 -23 -12A7 7 0 1 1 -9 -12Z"/>
-    <path d="M34 2A6 6 0 1 1 22 2A6 6 0 1 1 34 2Z"/>
-    <path d="M-17.5 22A6.5 6.5 0 1 1 -30.5 22A6.5 6.5 0 1 1 -17.5 22Z"/>
-    <path d="M4 30A8 8 0 1 1 -12 30A8 8 0 1 1 4 30Z"/>
-    <path d="M24 26A6 6 0 1 1 12 26A6 6 0 1 1 24 26Z"/>
-    <path d="M41 18A5 5 0 1 1 31 18A5 5 0 1 1 41 18Z"/></g>
-  <path d="M16.5 -4A10.5 10.5 0 1 1 -4.5 -4A10.5 10.5 0 1 1 16.5 -4Z M9.5 -4A3.5 3.5 0 1 1 2.5 -4A3.5 3.5 0 1 1 9.5 -4Z" fill="var(--da-accent, #4d7c0f)" fill-rule="evenodd"/></g>
+<symbol id="system-secondary" viewBox="0 0 320 300"><g transform="translate(160 112) scale(.28)"><g transform="rotate(-22)" data-brand-disc="tilted">
+    <!-- Master disc proportions and 44-unit flat rim; no glow or shadow. -->
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="340" ry="196" fill="var(--da-plate, #eef0f3)" stroke="var(--da-ink, #202731)" stroke-width="44"/>
+    <g stroke="var(--da-axis, #687384)" stroke-width="2.5" stroke-dasharray="14 24" stroke-linecap="round" opacity=".22">
+      <path data-brand-axis="trajectory" d="M-290 0H290"/>
+      <path data-brand-axis="stability" d="M0-155V155"/>
+    </g>
+    <g fill="var(--da-ink, #202731)">
+      <ellipse data-brand-node="waypoint" cx="-135" cy="-56" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="125" cy="-52" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="-120" cy="56" rx="38" ry="24"/>
+    </g>
+    <ellipse data-brand-node="target" cx="130" cy="50" rx="58" ry="38" fill="var(--da-accent, #4d7c0f)"/>
+  </g></g>
 <!-- Space Grotesk Medium, native vector outlines; one editable path per glyph. -->
   <g fill="var(--da-ink, #202731)" transform="translate(49.264 262.464)">
     <path d="M15.696 0L2.256 0L2.256-4.608L6.768-4.608L6.768-28.992L2.256-28.992L2.256-33.600L15.696-33.600Q22.416-33.600 25.992-30.192Q29.568-26.784 29.568-19.920L29.568-19.920L29.568-13.632Q29.568-6.768 25.992-3.384Q22.416 0 15.696 0L15.696 0ZM12-28.848L12-4.704L15.744-4.704Q20.112-4.704 22.224-6.912Q24.336-9.120 24.336-13.488L24.336-13.488L24.336-20.112Q24.336-24.528 22.224-26.688Q20.112-28.848 15.744-28.848L15.744-28.848L12-28.848Z"/>
@@ -74,33 +50,36 @@
     <path d="M180.096 0.672L180.096 0.672Q177.552 0.672 175.560-0.192Q173.568-1.056 172.392-2.736Q171.216-4.416 171.216-6.816L171.216-6.816Q171.216-9.264 172.392-10.872Q173.568-12.480 175.608-13.296Q177.648-14.112 180.240-14.112L180.240-14.112L187.440-14.112L187.440-15.648Q187.440-17.712 186.192-18.960Q184.944-20.208 182.352-20.208L182.352-20.208Q179.808-20.208 178.464-19.008Q177.120-17.808 176.688-15.888L176.688-15.888L172.080-17.376Q172.656-19.296 173.928-20.856Q175.200-22.416 177.312-23.376Q179.424-24.336 182.400-24.336L182.400-24.336Q187.008-24.336 189.648-21.984Q192.288-19.632 192.288-15.312L192.288-15.312L192.288-5.568Q192.288-4.128 193.632-4.128L193.632-4.128L195.648-4.128L195.648 0L191.952 0Q190.272 0 189.216-0.864Q188.160-1.728 188.160-3.216L188.160-3.216L188.160-3.360L187.440-3.360Q187.056-2.640 186.288-1.680Q185.520-0.720 184.032-0.024Q182.544 0.672 180.096 0.672ZM180.816-3.408L180.816-3.408Q183.792-3.408 185.616-5.112Q187.440-6.816 187.440-9.792L187.440-9.792L187.440-10.272L180.528-10.272Q178.560-10.272 177.360-9.432Q176.160-8.592 176.160-6.960L176.160-6.960Q176.160-5.328 177.408-4.368Q178.656-3.408 180.816-3.408Z"/>
     <path d="M209.472 0.672L209.472 0.672Q204.960 0.672 201.984-1.344Q199.008-3.360 198.336-7.440L198.336-7.440L202.944-8.544Q203.328-6.576 204.240-5.424Q205.152-4.272 206.520-3.792Q207.888-3.312 209.472-3.312L209.472-3.312Q211.824-3.312 213.096-4.224Q214.368-5.136 214.368-6.576L214.368-6.576Q214.368-8.016 213.168-8.688Q211.968-9.360 209.616-9.792L209.616-9.792L207.984-10.080Q205.584-10.512 203.616-11.328Q201.648-12.144 200.496-13.584Q199.344-15.024 199.344-17.280L199.344-17.280Q199.344-20.640 201.840-22.488Q204.336-24.336 208.464-24.336L208.464-24.336Q212.448-24.336 215.016-22.536Q217.584-20.736 218.352-17.664L218.352-17.664L213.744-16.368Q213.312-18.528 211.920-19.416Q210.528-20.304 208.464-20.304L208.464-20.304Q206.448-20.304 205.296-19.560Q204.144-18.816 204.144-17.472L204.144-17.472Q204.144-16.032 205.272-15.360Q206.400-14.688 208.320-14.352L208.320-14.352L210.000-14.064Q212.544-13.632 214.656-12.864Q216.768-12.096 217.992-10.656Q219.216-9.216 219.216-6.816L219.216-6.816Q219.216-3.264 216.576-1.296Q213.936 0.672 209.472 0.672Z"/>
   </g></symbol>
-<symbol id="system-mark" viewBox="0 0 64 64"><!-- Enlarged rim and fewer nodes; axes and contour lines are removed. -->
-  <path d="M60 32A28 28 0 1 1 4 32A28 28 0 1 1 60 32Z M56.5 32A24.5 24.5 0 1 1 7.5 32A24.5 24.5 0 1 1 56.5 32Z" fill="var(--da-ink, #202731)" fill-rule="evenodd"/>
-  <g fill="var(--da-ink, #202731)"><path d="M25.2 18A3.2 3.2 0 1 1 18.8 18A3.2 3.2 0 1 1 25.2 18Z"/>
-    <path d="M40.2 18A3.2 3.2 0 1 1 33.8 18A3.2 3.2 0 1 1 40.2 18Z"/>
-    <path d="M18.8 32A2.8 2.8 0 1 1 13.2 32A2.8 2.8 0 1 1 18.8 32Z"/>
-    <path d="M49.8 32A2.8 2.8 0 1 1 44.2 32A2.8 2.8 0 1 1 49.8 32Z"/>
-    <path d="M26.2 45A3.2 3.2 0 1 1 19.8 45A3.2 3.2 0 1 1 26.2 45Z"/>
-    <path d="M42.2 45A3.2 3.2 0 1 1 35.8 45A3.2 3.2 0 1 1 42.2 45Z"/></g>
-  <path d="M38.3 31A5.3 5.3 0 1 1 27.7 31A5.3 5.3 0 1 1 38.3 31Z M35.2 31A2.2 2.2 0 1 1 30.8 31A2.2 2.2 0 1 1 35.2 31Z" fill="var(--da-accent, #4d7c0f)" fill-rule="evenodd"/></symbol>
-<symbol id="system-submark" viewBox="0 0 16 16"><!-- Native 16px geometry. The selected node is solid to retain its weight. -->
-  <path d="M15 8A7 7 0 1 1 1 8A7 7 0 1 1 15 8Z M13.5 8A5.5 5.5 0 1 1 2.5 8A5.5 5.5 0 1 1 13.5 8Z" fill="var(--da-ink, #202731)" fill-rule="evenodd"/>
-  <g fill="var(--da-ink, #202731)"><path d="M6.5 5.5A1 1 0 1 1 4.5 5.5A1 1 0 1 1 6.5 5.5Z"/>
-    <path d="M11.5 5.5A1 1 0 1 1 9.5 5.5A1 1 0 1 1 11.5 5.5Z"/>
-    <path d="M6.5 10.5A1 1 0 1 1 4.5 10.5A1 1 0 1 1 6.5 10.5Z"/></g>
-  <path d="M11.75 10A1.75 1.75 0 1 1 8.25 10A1.75 1.75 0 1 1 11.75 10Z" fill="var(--da-accent, #4d7c0f)"/></symbol></defs><style>text{font-family:Arial,Helvetica,sans-serif}.heading{font-size:27px;font-weight:600;fill:#edf2fc}.intro{font-size:14px;fill:#a6b3c4}.label{font-size:11px;letter-spacing:1.4px;fill:#b8ff00}.note{font-size:12px;fill:#a6b3c4}.name{font-size:18px;fill:#edf2fc}</style><rect width="1200" height="908" fill="#090b10"/>
-  <text x="48" y="49" class="heading">DISC ATLAS / LOGO SYSTEM</text><text x="1152" y="47" text-anchor="end" class="label">DIRECTION 03 · APPROVED SYSTEM</text>
-  <text x="48" y="80" class="intro">One identity, four levels of detail. Outlined wordmark. Kinetic lime.</text>
-  <rect x="48" y="116" width="1104" height="240" rx="12" fill="#080b10" stroke="#282f3a"/><text x="72" y="149" class="label">01 / PRIMARY · HORIZONTAL LOCKUP</text>
-  <g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-primary" x="286" y="164" width="628" height="172"/></g>
-  <rect x="48" y="380" width="504" height="440" rx="12" fill="#080b10" stroke="#282f3a"/><text x="72" y="413" class="label">02 / SECONDARY · STACKED LOCKUP</text>
-  <g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-secondary" x="140" y="468" width="320" height="300"/></g>
-  <rect x="576" y="380" width="576" height="208" rx="12" fill="#080b10" stroke="#282f3a"/><text x="600" y="413" class="label">03 / SIMPLIFIED · STANDALONE MARK</text>
-  <g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-mark" x="698" y="442" width="112" height="112"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-mark" x="918" y="477" width="32" height="32"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-mark" x="984" y="481" width="24" height="24"/></g>
+<symbol id="system-mark" viewBox="0 0 64 64"><g transform="translate(32 32) scale(.0794117647)"><g transform="rotate(-22)" data-brand-disc="tilted">
+    <!-- Master disc proportions and 44-unit flat rim; no glow or shadow. -->
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="340" ry="196" fill="var(--da-plate, #eef0f3)" stroke="var(--da-ink, #202731)" stroke-width="44"/>
+    <!-- Calibration axes removed for small sizes. -->
+    <g fill="var(--da-ink, #202731)">
+      <ellipse data-brand-node="waypoint" cx="-135" cy="-56" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="125" cy="-52" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="-120" cy="56" rx="38" ry="24"/>
+    </g>
+    <ellipse data-brand-node="target" cx="130" cy="50" rx="58" ry="38" fill="var(--da-accent, #4d7c0f)"/>
+  </g></g></symbol>
+<symbol id="system-submark" viewBox="0 0 16 16"><!-- Native 16px redraw. The supplied obsidian tile stays constant in every site theme. -->
+  <rect width="16" height="16" rx="3.5" fill="#0c0e11"/>
+  <g transform="translate(8 8) rotate(-22)" data-brand-disc="tilted">
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="5.3" ry="3.15" fill="#13161c" stroke="var(--da-badge-ink, #f1f5f9)" stroke-width="1"/>
+    <g fill="var(--da-badge-ink, #f8fafc)">
+      <ellipse data-brand-node="waypoint" cx="-2.15" cy="-.9" rx=".75" ry=".55"/>
+      <ellipse data-brand-node="waypoint" cx="2" cy="-.85" rx=".75" ry=".55"/>
+      <ellipse data-brand-node="waypoint" cx="-1.9" cy=".9" rx=".75" ry=".55"/>
+    </g>
+    <ellipse data-brand-node="target" cx="2.05" cy=".8" rx="1.12" ry=".8" fill="var(--da-badge-accent, #b8ff00)"/>
+  </g></symbol></defs><style>text{font-family:Arial,Helvetica,sans-serif}.heading{font-size:27px;font-weight:600;fill:#edf2fc}.intro{font-size:14px;fill:#a6b3c4}.label{font-size:11px;letter-spacing:1.4px;fill:#b8ff00}.note{font-size:12px;fill:#a6b3c4}</style><rect width="1200" height="908" fill="#090b10"/>
+  <text x="48" y="49" class="heading">DISC ATLAS / LOGO SYSTEM</text><text x="1152" y="47" text-anchor="end" class="label">TILTED FOUR-DOT DISC</text>
+  <text x="48" y="80" class="intro">Your new master mark. Four variations. Flat geometry, obsidian, and kinetic lime.</text>
+  <rect x="48" y="116" width="1104" height="240" rx="12" fill="#080b10" stroke="#282f3a"/><text x="72" y="149" class="label">01 / PRIMARY · HORIZONTAL LOCKUP</text><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-primary" x="286" y="164" width="628" height="172"/></g>
+  <rect x="48" y="380" width="504" height="440" rx="12" fill="#080b10" stroke="#282f3a"/><text x="72" y="413" class="label">02 / SECONDARY · STACKED LOCKUP</text><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-secondary" x="140" y="468" width="320" height="300"/></g>
+  <rect x="576" y="380" width="576" height="208" rx="12" fill="#080b10" stroke="#282f3a"/><text x="600" y="413" class="label">03 / SIMPLIFIED · HEADER MARK</text><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-mark" x="698" y="442" width="112" height="112"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-mark" x="918" y="477" width="32" height="32"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-mark" x="984" y="481" width="24" height="24"/></g>
   <text x="934" y="547" text-anchor="middle" class="note">32px</text><text x="996" y="547" text-anchor="middle" class="note">24px</text>
-  <rect x="576" y="612" width="576" height="208" rx="12" fill="#080b10" stroke="#282f3a"/><text x="600" y="645" class="label">04 / SUB-MARK · NATIVE 16px BADGE</text>
-  <g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-submark" x="698" y="674" width="112" height="112"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-submark" x="915" y="713" width="16" height="16"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-submark" x="976" y="709" width="24" height="24"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00"><use href="#system-submark" x="1041" y="705" width="32" height="32"/></g>
+  <rect x="576" y="612" width="576" height="208" rx="12" fill="#080b10" stroke="#282f3a"/><text x="600" y="645" class="label">04 / SUB-MARK · NATIVE 16px BADGE</text><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-submark" x="698" y="674" width="112" height="112"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-submark" x="915" y="713" width="16" height="16"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-submark" x="976" y="709" width="24" height="24"/></g><g style="--da-ink:#edf2fc;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#94a3b8;"><use href="#system-submark" x="1041" y="705" width="32" height="32"/></g>
   <text x="923" y="779" text-anchor="middle" class="note">16px</text><text x="988" y="779" text-anchor="middle" class="note">24px</text><text x="1057" y="779" text-anchor="middle" class="note">32px</text>
-  <text x="48" y="865" class="note">Four SVG variations · Light, midnight, charcoal, black, and legacy dark exports · Headers and icons integrated</text>
-  <text x="1152" y="865" text-anchor="end" class="note">Approved / no push</text>
+  <text x="48" y="865" class="note">Supplied 1024px badge preserved in master.svg · Headers and browser icons updated · No gradients, glow, or shadows</text>
+  <text x="1152" y="865" text-anchor="end" class="note">Uncommitted / no push</text>
 </svg>

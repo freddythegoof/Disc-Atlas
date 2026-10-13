@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-labelledby="title desc">
+  <title id="title">Disc Atlas — tilted four-dot master badge</title>
+  <desc id="desc">A flat oblong disc tilted minus 22 degrees, with three white waypoints and one larger kinetic lime target on an obsidian rounded tile.</desc>
+  <!-- Freddy's supplied master geometry and colors, preserved at 1024px. -->
+  <rect width="1024" height="1024" rx="224" fill="#0c0e11"/>
+  <g transform="translate(512 512) rotate(-22)">
+    <ellipse cx="0" cy="0" rx="340" ry="196" fill="#13161c" stroke="#f1f5f9" stroke-width="44"/>
+    <line x1="-290" y1="0" x2="290" y2="0" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="14 24" stroke-linecap="round" opacity="0.22"/>
+    <line x1="0" y1="-155" x2="0" y2="155" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="14 24" stroke-linecap="round" opacity="0.22"/>
+    <ellipse cx="-135" cy="-56" rx="38" ry="24" fill="#f8fafc"/>
+    <ellipse cx="125" cy="-52" rx="38" ry="24" fill="#f8fafc"/>
+    <ellipse cx="-120" cy="56" rx="38" ry="24" fill="#f8fafc"/>
+    <ellipse cx="130" cy="50" rx="58" ry="38" fill="#b8ff00"/>
+  </g>
+</svg>
