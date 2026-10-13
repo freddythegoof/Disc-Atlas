@@ -41,6 +41,7 @@
     "test:atlas:3d:perf": "node tests/atlas-3d-perf.mjs",
     "test:apple-design": "node --test tests/apple-camera.mjs && node tests/apple-design-browser.mjs",
     "test:apple-design:2": "node tests/apple-design-2-browser.mjs",
+    "test:apple-design:3": "node tests/apple-design-3-browser.mjs",
     "test:directory:layout": "node tests/directory-layout-browser.mjs",
     "test:add-menu": "node tests/add-menu-dismiss-browser.mjs",
     "test:disc3d": "node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs && node tests/disc3d-browser.mjs && node tests/disc3d-popout-browser.mjs",

@@ -174,21 +174,26 @@ try{
    check('Phone: the cluster sheet rises from its bottom edge and leaves quickly');
    await phone.context().close();
   }
-  // Reduced motion: every enter and exit is instant (no travel, no scale).
+  // Reduced motion (batch 3, finding 10 supersedes batch 2's "instant"): every enter and exit is a plain opacity fade,
+  // with no travel and no scale; the box is held for the fade and gone when it ends.
   {
    const calm=await open({reduced:true});
-   const exitOpen=await record(calm,'#brandPanel',"document.querySelector('#brandChip').click()");
-   assert.equal(exitOpen[0].opacity,1,'reduced motion: opens at full opacity');assert.ok(exitOpen[0].scale==='none'||exitOpen[0].scale==='1');
+   const fadeOnly=(rows,label)=>{assert.ok(rows.every(r=>r.scale==='none'||r.scale==='1'||r.scale==='1.0'),`${label}: never scaled (${[...new Set(rows.map(r=>r.scale))]})`);assert.ok(rows.every(r=>r.translate==='none'||r.translate==='0px'||r.translate==='0px 0px'),`${label}: never moved (${[...new Set(rows.map(r=>r.translate))]})`);};
+   const enter=await record(calm,'#brandPanel',"document.querySelector('#brandChip').click()");
+   assert.ok(enter[0].opacity<.5,'reduced motion: a menu fades in from transparent');fadeOnly(enter,'reduced menu enter');
+   await settled(calm,'#brandPanel');
    const exit=await record(calm,'#brandPanel',"closeDropdown(false)");
-   assert.equal(exit[0].display,'none','reduced motion: closes in the same frame');
+   assertExit(exit,'Reduced-motion menu');fadeOnly(exit,'reduced menu exit');
    await calm.locator('#listTab').click();await calm.waitForTimeout(250);
-   await record(calm,'#addDestinationMenu',"document.querySelector('#rows .directory-add').click()");
+   const addEnter=await record(calm,'#addDestinationMenu',"document.querySelector('#rows .directory-add').click()");
+   assert.ok(addEnter[0].opacity<.5);fadeOnly(addEnter,'reduced Add enter');await settled(calm,'#addDestinationMenu');
    const addExit=await record(calm,'#addDestinationMenu',"closeDropdown(false)");
-   assert.equal(addExit[0].display,'none','reduced motion: the Add menu closes in the same frame');
+   assertExit(addExit,'Reduced-motion Add menu');fadeOnly(addExit,'reduced Add exit');
    const dlg=await record(calm,'#method',"document.querySelector('#method').showModal()");
-   assert.equal(dlg[0].opacity,1,'reduced motion: a dialog opens opaque');
-   await calm.evaluate(()=>document.querySelector('#method').close());
-   check('Reduced motion: menus, the Add popover and dialogs open and close instantly');
+   assert.ok(dlg[0].opacity<.5,'reduced motion: a dialog fades in');fadeOnly(dlg,'reduced dialog enter');await settled(calm,'#method');
+   const dlgExit=await record(calm,'#method',"document.querySelector('#method').close()");
+   assertExit(dlgExit,'Reduced-motion dialog');fadeOnly(dlgExit,'reduced dialog exit');
+   check('Reduced motion: menus, the Add popover and dialogs fade in and out with no scale or travel');
    await calm.context().close();
   }
  }
@@ -403,14 +408,23 @@ try{
   assert.equal(await page.evaluate(()=>[document.querySelector('#compareBar').hidden,+getComputedStyle(document.querySelector('#compareBar')).opacity,document.querySelectorAll('.compare-item').length].join()),'false,1,1','a tray re-opened mid-exit reverses and ends open with one card');
   check('A tray reopened mid-exit reverses cleanly');
   await page.context().close();
-  // Reduced motion: no animation at all.
+  // Reduced motion (batch 3, finding 10): cards fade in and out; nothing scales or glides.
   {
    const calm=await open({reduced:true});
-   await calm.evaluate(()=>{comparison=filtered.filter(d=>d.speed!=null).slice(0,3);renderCompare();});
-   const animations=await calm.evaluate(()=>{comparison=comparison.slice(0,2);renderCompare();comparison.push(filtered.filter(d=>d.speed!=null)[5]);renderCompare();return [...document.querySelectorAll('.compare-item')].reduce((n,c)=>n+c.getAnimations().length,0);});
-   assert.equal(animations,0,'reduced motion: cards neither enter nor glide');
-   assert.equal(await calm.evaluate(()=>document.querySelectorAll('.compare-item.is-leaving').length),0,'and nothing lingers');
-   check('Reduced motion: compare cards insert and remove instantly');
+   await calm.evaluate(()=>{comparison=filtered.filter(d=>d.speed!=null).slice(0,3);renderCompare();});await calm.waitForTimeout(400);
+   const frames=await calm.evaluate(()=>{
+    const kinds=new Set(),note=a=>a.effect.getKeyframes().forEach(k=>Object.keys(k).forEach(p=>{if(!['offset','easing','composite','computedOffset'].includes(p))kinds.add(p);}));
+    comparison=comparison.slice(0,2);renderCompare();                                    // one leaves
+    document.querySelectorAll('.compare-item').forEach(c=>c.getAnimations().forEach(note));
+    const leaving=document.querySelectorAll('.compare-item.is-leaving').length;
+    comparison.push(filtered.filter(d=>d.speed!=null)[5]);renderCompare();               // one arrives
+    document.querySelectorAll('.compare-item').forEach(c=>c.getAnimations().forEach(note));
+    return {kinds:[...kinds],leaving,animated:[...document.querySelectorAll('.compare-item')].reduce((n,c)=>n+c.getAnimations().length,0)};
+   });
+   assert.deepEqual(frames.kinds,['opacity'],`reduced motion: cards animate opacity only (${frames.kinds})`);
+   assert.ok(frames.animated>0&&frames.leaving===1,'a leaving card fades out in place and a new one fades in');
+   await calm.waitForTimeout(400);assert.equal(await calm.evaluate(()=>document.querySelectorAll('.compare-item.is-leaving').length),0,'and nothing lingers');
+   check('Reduced motion: compare cards fade in and out, with no scale or glide');
    await calm.context().close();
   }
   // Phone: three cards wrap; a removal still reflows without a lingering ghost.
@@ -503,15 +517,19 @@ try{
    check('Pop-out: interrupting an open from the API, Escape, the backdrop or the close button reverses it; a flurry of opens and closes leaves no state');
    await page.context().close();
   }
-  // Reduced motion: instant.
+  // Reduced motion (batch 3, finding 10): a plain fade in and out, no morph.
   {
    const calm=await open({reduced:true});await showDestroyer(calm);
-   await calm.evaluate(()=>Disc3D.open());
-   await calm.waitForFunction(sel=>document.querySelector(sel)?.open,dlg);
-   assert.equal(await calm.evaluate(sel=>document.querySelector(sel).getAnimations().length+document.querySelector(sel).style.opacity.length,dlg),0,'reduced motion: no morph');
+   const trace=await calm.evaluate(async()=>{
+    Disc3D.open();const d=document.querySelector('dialog.disc3d-dialog'),widths=new Set(),opacity=[],t0=performance.now();let kinds=new Set();
+    await new Promise(done=>{const tick=()=>{widths.add(Math.round(d.getBoundingClientRect().width));opacity.push(+getComputedStyle(d).opacity);d.getAnimations().forEach(a=>a.effect.getKeyframes().forEach(k=>Object.keys(k).forEach(p=>{if(!['offset','easing','composite','computedOffset'].includes(p))kinds.add(p);})));if(performance.now()-t0>900)done();else requestAnimationFrame(tick);};tick();});
+    return {widths:[...widths],opacity,kinds:[...kinds]};
+   });
+   assert.equal(trace.widths.length,1,`reduced motion: the dialog never scales (${trace.widths})`);
+   assert.deepEqual(trace.kinds,['opacity'],'and animates opacity only');assert.ok(trace.opacity[0]<.5&&trace.opacity.at(-1)===1,'fading in');
    await calm.evaluate(()=>Disc3D.close());
-   assert.equal(await calm.evaluate(sel=>document.querySelector(sel).open,dlg),false,'and it closes in the same task');
-   check('Reduced motion: the pop-out opens and closes instantly');
+   await calm.waitForFunction(sel=>!document.querySelector(sel).open&&!Disc3D.popout,dlg,{timeout:3000});
+   check('Reduced motion: the pop-out fades in and out without morphing');
    await calm.context().close();
   }
   // Phone.
@@ -546,9 +564,9 @@ try{
    assert.ok(Math.abs(endPose.panel.phi-turned.phi)<.02&&Math.abs(endPose.panel.phi-panelPhi)>.02,'the panel disc took the dialog\'s pose');
    check('Phone: a header swipe dismisses (a short one springs back), the canvas never does, and the panel disc follows');
    // Open/close with the close button and an interrupted open on a phone.
-   await phone.evaluate(()=>Disc3D.open());await phone.waitForFunction(()=>{const d=document.querySelector('dialog.disc3d-dialog');return d?.open&&d.style.opacity==='';});   // the morph has started (it may have landed under load)
+   await phone.evaluate(()=>Disc3D.open());await landed(phone);   // (the interrupt-mid-open cases run on desktop above; a touch tap is Playwright-timed, so it waits for the morph to land)
    await phone.locator(`${dlg} [data-disc3d-close]`).tap();await gone(phone);
-   check('Phone: interrupting an open with the close button reverses it');
+   check('Phone: a tap on the close button reverses the open morph and closes');
    await phone.context().close();
   }
  }

@@ -181,7 +181,7 @@ export async function checkThemePicker(browser,base){
   await page.getByRole('button',{name:'Switch to light mode'}).click();await button.click();
   assert.equal(await menu.getByRole('menuitemradio',{name:'Light',exact:true}).getAttribute('aria-checked'),'true');
   await page.keyboard.press('Escape');
-  await page.goto(`${base}/about.html`);await page.locator('[data-theme-select]').selectOption('charcoal');
+  await page.goto(`${base}/about.html`);await page.locator('#siteMenuButton').click();await page.locator('[data-theme-choice="charcoal"]').click();
   await page.goto(base);await button.click();assert.equal(await menu.getByRole('menuitemradio',{name:'Charcoal',exact:true}).getAttribute('aria-checked'),'true');
   assert.deepEqual(errors,[]);console.log('PASS: three themes, keyboard/pointer selection, OS defaults, persistence, shared controls, Charcoal map/directory/detail, desktop/mobile screenshots.');
  }finally{await context.close();}

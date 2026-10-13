@@ -101,8 +101,18 @@ try{
   const rest=await page.evaluate(()=>pan.x);await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>pan.x),rest,'Spring sleeps at rest');
   check('Flick projects a capped throw; catching on a marker stops without selecting');
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.evaluate(()=>animateZoom(1.2));assert.equal(await page.evaluate(()=>!!cameraTween),false,'Reduced motion camera updates instantly');
-  check('Reduced motion skips camera spring travel');
+  // Batch 3 (finding 10) supersedes batch 1 here: reduced motion no longer teleports the camera. It eases to its
+  // target over 150 ms with no spring travel and no overshoot.
+  const calm=await page.evaluate(()=>new Promise(done=>{
+   const start=zoom,target=Math.min(MAX_MAP_ZOOM,start*1.2),rows=[];animateZoom(1.2);const t0=performance.now();
+   const tick=()=>{rows.push({t:performance.now()-t0,zoom,velocity:cameraSpring.velocity.zoom,moving:!!cameraTween});if(cameraTween&&performance.now()-t0<1200)requestAnimationFrame(tick);else done({start,target,rows,end:zoom});};tick();
+  }));
+  assert.ok(calm.rows.length>1&&calm.rows[0].moving,'Reduced motion camera eases instead of jumping');
+  assert.ok(calm.rows.every((r,i)=>i===0||r.zoom>=calm.rows[i-1].zoom-1e-9)&&calm.rows.every(r=>r.zoom<=calm.target+1e-9),'with no overshoot');
+  assert.ok(calm.rows.every(r=>r.velocity===0),'and no spring velocity');
+  assert.ok(Math.abs(calm.end-calm.target)<1e-6,'landing exactly on the target');
+  assert.ok(calm.rows.at(-1).t<=400,`in a short time (${Math.round(calm.rows.at(-1).t)} ms)`);
+  check('Reduced motion eases the camera over 150 ms: no spring travel, no overshoot');
   await page.context().close();
  }
  if(!process.argv.includes('--themes')&&!process.argv.includes('--camera')){
@@ -133,11 +143,9 @@ try{
     else{const start=document.startViewTransition.bind(document);document.startViewTransition=(...args)=>{const t=start(...args);themeTransitions.push(t);return t;};}
    },fallback);
    const choose=async value=>{
-    if(route==='/about.html')await page.locator('[data-theme-select]').selectOption(value);
-    else{
-     if(!await page.locator('#siteMenu').isVisible())await page.locator('#siteMenuButton').click();
-     await page.locator(`[data-theme-choice="${value}"]`).click();
-    }
+    // About now shares Account's icon toggle and menu (batch 3), so every route chooses through the site menu.
+    if(!await page.locator('#siteMenu').isVisible())await page.locator('#siteMenuButton').click();
+    await page.locator(`[data-theme-choice="${value}"]`).click();
    };
    for(const from of ['light','midnight','charcoal','black']){
     await choose(from);
@@ -173,10 +181,12 @@ try{
    });
    await page.waitForFunction(()=>document.documentElement.dataset.theme==='black'&&!document.documentElement.classList.contains('theme-switching'));
    await page.emulateMedia({reducedMotion:'reduce'});
+   // Batch 3 (finding 10) supersedes batch 1: reduced motion keeps the theme change as a short opacity cross-fade
+   // (the same View Transition or opacity fallback, 150 ms) instead of swapping instantly.
    const count=await page.evaluate(()=>themeTransitions.length);await choose('light');
-   assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'light','Reduced motion applies instantly');
-   assert.equal(await page.evaluate(()=>themeTransitions.length),count,'Reduced motion skips View Transitions');
-   assert.equal(await page.evaluate(()=>document.documentElement.classList.contains('theme-switching')),false);
+   assert.equal(await page.evaluate(()=>document.documentElement.classList.contains('theme-calm')),true,'Reduced motion marks its theme change calm');
+   if(!fallback)assert.equal(await page.evaluate(()=>themeTransitions.length),count+1,'and still runs the cross-fade');
+   await page.waitForFunction(()=>document.documentElement.dataset.theme==='light'&&!document.documentElement.classList.contains('theme-switching'));
    check(`${route}: all 12 theme pairs, rapid changes and reduced motion (${fallback?'opacity fallback':'native snapshots'})`);
    await page.context().close();
   }
@@ -185,7 +195,7 @@ try{
   await page.emulateMedia({colorScheme:'dark'});
   await page.waitForFunction(()=>document.documentElement.dataset.theme==='midnight'&&!document.documentElement.classList.contains('theme-switching'));
   assert.equal(await page.evaluate(()=>localStorage.getItem('disc-atlas-theme')),null,'System follow stays unsaved');
-  await page.locator('[data-theme-select]').selectOption('charcoal');
+  await page.locator('#siteMenuButton').click();await page.locator('[data-theme-choice="charcoal"]').click();
   await page.waitForFunction(()=>document.documentElement.dataset.theme==='charcoal'&&!document.documentElement.classList.contains('theme-switching'));
   await page.emulateMedia({colorScheme:'light'});
   assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'charcoal','Explicit choice stops following system');

@@ -12,7 +12,7 @@
 :root {
   --dd-rest:#687384;--dd-accent:#3f6212;
   --dd-glow:rgba(101,163,13,.35);--dd-tint:rgba(101,163,13,.16);
-  --dd-ease:cubic-bezier(.16,1,.3,1);
+  --dd-ease:var(--ease-out);
 }
 :root[data-theme="midnight"],:root[data-theme="charcoal"],:root[data-theme="black"] {
   --dd-rest:#8b949e;--dd-accent:#9ddf2e;

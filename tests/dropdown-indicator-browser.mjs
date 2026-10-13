@@ -116,7 +116,7 @@ try {
 
  // 6. The info pages' theme picker.
  await page.goto(base+'/about.html');
- await everyTheme(async(width,theme)=>{await shoot(`info-theme-${width}-${theme}`,['.theme-picker']);});
+ await everyTheme(async(width,theme)=>{await shoot(`info-theme-${width}-${theme}`,['.header-actions']);});
  check('Info pages: theme picker, every theme and width');
 
  if(phase==='after'){

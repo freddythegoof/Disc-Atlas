@@ -44,6 +44,7 @@ try{
    for(const theme of ['light','midnight','charcoal','black']){
     if(await page.locator('[data-theme-select]').count())await page.locator('[data-theme-select]').selectOption(theme);
     else {await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.locator(`[data-theme-choice="${theme}"]`).click();await page.keyboard.press('Escape');}
+    await page.waitForFunction(t=>document.documentElement.dataset.theme===t&&!document.documentElement.classList.contains('theme-switching'),theme);   // the theme change is a cross-fade (batch 1)
     const result=await page.evaluate(()=>{
      const logo=document.querySelector('header .logo'),r=logo.getBoundingClientRect();
      const controls=document.querySelector('.header-actions,.theme-picker')?.getBoundingClientRect();

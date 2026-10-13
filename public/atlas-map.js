@@ -928,6 +928,8 @@ let mapMoved=false,mapCaught=false,mapFrame=0,cameraTween=null,cameraDestination
 // One camera spring; cameraTween remains the shared moving/LOD-hold flag for existing callers.
 const CAMERA_AXES=['zoom','x','y'];
 const cameraSpring={velocity:{zoom:0,x:0,y:0},step:{zoom:1,x:0,y:0},at:0,area:null,zooming:false};
+// Reduced motion: no spring, no overshoot; the camera eases to its target over 150 ms (expo-out family) instead of jumping.
+const CALM_CAMERA_MS=150;let cameraEase=null;
 const edgeFeedback={x:0,y:0};let edgeTween=null,edgeReleaseTimer=null;
 function boundedCamera(target,result,area){
  const {width:w,height:h}=mapViewport;
@@ -959,7 +961,7 @@ function panMap(dx,dy){
  paintEdge();scheduleMapDraw();
 }
 function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(now=>{mapFrame=0;stepCamera(now);draw();if(cameraTween)scheduleMapDraw();});}
-function stopCamera(){cameraTween=null;cameraDestination=null;for(const axis of CAMERA_AXES)cameraSpring.velocity[axis]=0;}
+function stopCamera(){cameraTween=null;cameraDestination=null;cameraEase=null;for(const axis of CAMERA_AXES)cameraSpring.velocity[axis]=0;}
 function cameraMoving(){
  if(!cameraTween)return false;
  const v=cameraSpring.velocity,r=mapViewport;
@@ -972,7 +974,11 @@ function stepCamera(now){
  // A filter can replace the extent during a glide. Keep its landing point reachable.
  boundedCamera(cameraDestination,cameraDestination,s.area);
  let moving=false;
- for(const axis of CAMERA_AXES){
+ if(cameraEase){
+  const t=Math.min(1,Math.max(0,(now-cameraEase.at)/CALM_CAMERA_MS)),e=1-(1-t)**3;
+  for(const axis of CAMERA_AXES){s.step[axis]=cameraEase.from[axis]+(cameraDestination[axis]-cameraEase.from[axis])*e;s.velocity[axis]=0;}
+  moving=t<1;
+ }else for(const axis of CAMERA_AXES){
   const target=cameraDestination[axis],position=axis==='zoom'?zoom:pan[axis],v=s.velocity[axis];
   const omega=2*Math.PI/(axis==='zoom'||s.zooming ? .35 : .4),d=position-target,c=v+omega*d,e=Math.exp(-omega*dt);
   let next=target+(d+c*dt)*e,velocity=(v-omega*c*dt)*e;
@@ -993,8 +999,9 @@ function stepCamera(now){
 function tweenCamera(target){
  closeCluster();
  target=boundedCamera(target);
- if(!window.AtlasMotion?.enabled()){stopCamera();zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
+ if(!window.AtlasMotion?.enabled()&&!window.AtlasMotion?.reduced()){stopCamera();zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
  if(!cameraTween)cameraSpring.at=performance.now();
+ cameraEase=window.AtlasMotion.enabled()?null:{from:{zoom,x:pan.x,y:pan.y},at:performance.now()};
  cameraSpring.area=AtlasLayout.bounds(mapViewport.width,mapViewport.height,!document.body.classList.contains('my-bag-mode'));
  cameraSpring.zooming=target.zoom!==zoom;
  cameraDestination=target;cameraTween=cameraSpring;scheduleMapDraw();

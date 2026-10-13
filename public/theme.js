@@ -26,7 +26,7 @@
   let requested, transition, timer, version=0;
   const root=document.documentElement;
   const clearSwitch = () => {
-    root.classList.remove('theme-switching','theme-snapshots','theme-fading');
+    root.classList.remove('theme-switching','theme-snapshots','theme-fading','theme-calm');
     root.style.removeProperty('--theme-transition-bg');
   };
   const switchTheme = value => {
@@ -36,8 +36,8 @@
     const backdrop=root.style.getPropertyValue('--theme-transition-bg');
     clearTimeout(timer);transition?.skipTransition();transition=null;
     clearSwitch();
-    if(reduced.matches){apply(value);return;}
-    root.classList.add('theme-switching');
+    // Reduced motion keeps the cross-fade, shorter (cosmic.css .theme-calm): opacity moves, nothing else.
+    root.classList.add('theme-switching');if(reduced.matches)root.classList.add('theme-calm');
     if(document.startViewTransition){
       root.classList.add('theme-snapshots');
       transition=document.startViewTransition(() => {

@@ -83,7 +83,7 @@ function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;r
 // Warm the initial panel after the map paints, outside the user's selection path.
 function prepareFeaturedDetails(){if(selected&&$('#detail').hidden&&$('#detail .detail-placeholder')){detail();$('#flight svg')?.pauseAnimations();}}
 let detailTrigger=null;
-function closeDetail(restore=true){stackDiscs=[];window.AtlasMotion.dismiss($('#detail'),!restore);document.body.classList.remove('detail-open');if(restore)(detailTrigger?.isConnected?detailTrigger:$('#map')).focus({preventScroll:true});}
+function closeDetail(restore=true){stackDiscs=[];detailShown=null;window.AtlasMotion.dismiss($('#detail'),!restore);document.body.classList.remove('detail-open');if(restore)(detailTrigger?.isConnected?detailTrigger:$('#map')).focus({preventScroll:true});}
 function select(d){
  if(!d)return;stopCamera();closeCluster();
  if(!$('#detail').contains(document.activeElement))detailTrigger=document.activeElement;
@@ -98,7 +98,7 @@ function openStackDetail(group,trigger){
  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!$('#detail').hidden&&!$('#detail').inert&&!$('#detail').contains(document.activeElement))$('#closeDetail')?.focus({preventScroll:true});}));
 }
 function renderStackDetail(){
- const panel=$('#detail'),expanded=panel.classList.contains('is-expanded');
+ const panel=$('#detail'),expanded=panel.classList.contains('is-expanded');detailShown=null;
  panel.innerHTML=`<div class="detail-actions"><span>CHOOSE YOUR DISC</span><button id="expandDetail" aria-expanded="${expanded}">${expanded?'Collapse':'Full screen'}</button><button id="closeDetail" aria-label="Close disc details">&times;</button></div><div class="stack-matchup"><h2>${stackDiscs.length} discs.<br>Find your line.</h2><p class="micro">Compare their flights, then choose a disc to explore.</p>${comparisonMarkup(stackDiscs)}<div class="stack-choices">${stackDiscs.map((d,i)=>`<button class="stack-choice" style="--flight-color:${comparisonPalette()[i]}" data-choose-disc="${esc(d.id)}">${photoMarkup(d)}<span><strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)} ? ${['Solid','Dashed','Dotted'][i]} line</small><span class="stack-ratings">${[d.speed,d.glide,d.turn,d.fade].join(' / ')}<small>Speed / Glide / Turn / Fade</small></span></span><span aria-hidden="true">↗</span></button>`).join('')}</div></div>`;
  panel.scrollTop=0;
  $('#closeDetail').onclick=()=>closeDetail();
@@ -106,7 +106,29 @@ function renderStackDetail(){
  panel.querySelectorAll('[data-choose-disc]').forEach(button=>button.onclick=()=>select(stackDiscs.find(d=>d.id===button.dataset.chooseDisc)));
 }
 // Keep the panel's controls and unchanged sections mounted across selections.
-function updateDetail(html){
+// Selecting another disc while the panel is open cross-fades the text blocks over 120 ms, opacity only: the old blocks
+// stay as inert ghosts (clipped to the panel's new height) and fade out while the new ones fade in. The 3D stage and
+// the sticky header row are not blocks of text; the stage is data-sync-keep and handles itself.
+const DETAIL_FADE_MS=120;
+function detailBlocks(panel){return [...panel.children].filter(node=>!node.classList.contains('detail-actions')&&!node.hasAttribute('data-disc3d')&&!node.querySelector('[data-sync-keep]')&&!node.hasAttribute('data-sync-keep')&&!node.classList.contains('detail-ghosts'));}
+function detailGhosts(panel){
+ panel.querySelector('.detail-ghosts')?.remove();
+ return detailBlocks(panel).map(node=>{
+  const ghost=node.cloneNode(true);ghost.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));ghost.removeAttribute('id');
+  Object.assign(ghost.style,{position:'absolute',left:node.offsetLeft+'px',top:node.offsetTop+'px',width:node.offsetWidth+'px',height:node.offsetHeight+'px',margin:'0',pointerEvents:'none'});
+  return ghost;
+ });
+}
+function fadeDetail(panel,ghosts){
+ for(const node of detailBlocks(panel))node.animate([{opacity:0},{opacity:1}],{duration:DETAIL_FADE_MS,easing:'ease-out'});
+ if(!ghosts.length)return;
+ const layer=document.createElement('div');layer.className='detail-ghosts';layer.inert=true;layer.setAttribute('aria-hidden','true');
+ Object.assign(layer.style,{position:'absolute',left:'0',top:'0',width:'100%',height:panel.scrollHeight+'px',overflow:'hidden',pointerEvents:'none'});
+ layer.append(...ghosts);panel.append(layer);
+ layer.animate([{opacity:1},{opacity:0}],{duration:DETAIL_FADE_MS,easing:'ease-out'}).finished.then(()=>layer.remove(),()=>layer.remove());
+}
+function updateDetail(html,fade=false){
+ const panel=$('#detail'),ghosts=fade?detailGhosts(panel):[];
  const template=document.createElement('template');template.innerHTML=html;
  function sync(parent,source){
   const old=[...parent.childNodes],used=new Set();let cursor=parent.firstChild;
@@ -128,19 +150,21 @@ function updateDetail(html){
   for(const node of old)if(!used.has(node))node.remove();
  }
  sync($('#detail'),template.content);
+ if(fade)fadeDetail(panel,ghosts);
  reanchorDropdown();
 }
 function addDestinationControl(d,classes,id='') {return `<button ${id?'id="'+id+'"':''} class="${classes}" type="button" data-add-menu="${esc(d.id)}" aria-label="Add ${esc(d.catalogName||d.name)} to Bag, Storage or Lost" aria-haspopup="menu" aria-controls="addDestinationMenu" aria-expanded="false">${classes==='directory-add'?'<svg class="directory-add-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 3v10M3 8h10"/></svg><span class="directory-add-label">Add</span>':'＋ Add to'} ${DropdownIndicator.indicator(classes==='directory-add'?'sm':'md')}</button>`;}
 // Flight numbers as four cells: wide screens set them in columns, phones read the same " / " text inline.
 function flightCells(d){return d.speed==null?'Not yet rated':[d.speed,d.glide,d.turn,d.fade].map(v=>`<span>${v}</span>`).join('<span class="nums-sep"> / </span>');}
 function renderList(){const rows=filtered.slice(0,limit);$('#rows').innerHTML=rows.length?rows.map(d=>`<div class="directory-row"><button class="disc-row ${d===selected?'selected':''}" data-id="${esc(d.id)}"><span class="row-identity">${window.DiscThumbnails.markup(d,colors[typeOf(d)])}<span><strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)}</small></span></span><span class="nums${d.speed==null?' is-unrated':''}">${flightCells(d)}</span><span class="score">${score(d)??'—'}</span></button>${addDestinationControl(d,'directory-add')}</div>`).join(''):'<p class="muted">No discs match these filters.</p>';$('#more').hidden=limit>=filtered.length;$('#more').textContent=`Show more · ${filtered.length-limit} remaining`;window.DiscThumbnails.observe($('#rows'),id=>discs.find(d=>d.id===id));reanchorDropdown();}
-function detail(){const d=selected;if(!d)return;const rated=d.speed!=null,nearby=view!=='bag'&&mapClusters.find(g=>g.members.includes(d)&&g.members.length>1);updateDetail(`<div class="detail-actions"><span>DISC DETAILS</span><button id="expandDetail" aria-expanded="${$('#detail').classList.contains('is-expanded')}">${$('#detail').classList.contains('is-expanded')?'Collapse':'Full screen'}</button><button id="closeDetail" aria-label="Close disc details">&times;</button></div><div class="detail-top"><span class="badge">${d.approved===false?'CATALOG ENTRY':'PDGA APPROVED'}</span><span class="micro">${esc(d.date||'')}</span></div>${nearby?`<button id="nearbyDiscs" class="wide nearby-discs">Explore ${nearby.members.length-1} nearby discs</button>`:''}${window.Disc3D?.markup(d,photoMarkup(d,'detail-art'))||`<div class="disc-photo illustration-detail">${photoMarkup(d,'detail-art')}<span class="illustration-caption">Illustration · color and shape are representative</span></div>`}<button type="button" class="brand-name brand-link" id="detailBrand" title="Filter by ${esc(d.brand)}" aria-pressed="${selectedBrands.has(d.brand)}">${esc(d.brand)} <span aria-hidden="true">↗</span></button><h2>${esc(d.catalogName||d.name)}</h2>${window.BagApp?.detailExtras?.(d)||''}${addDestinationControl(d,'wide bag-add primary','addToBag')}${d.catalogName&&d.catalogName!==d.name?`<p class="approval-name">PDGA record: ${esc(d.name)}</p>`:''}${d.catalogNote?`<p class="catalog-note">${esc(d.catalogNote)}</p>`:''}<p class="production-note">${productionLabel(d)}${d.production?.source?` · <a href="${esc(d.production.source)}" target="_blank" rel="noopener">Source ↗</a>`:''}</p><div class="numbers">${['speed','glide','turn','fade'].map(k=>`<div><strong>${d[k]??'—'}</strong><small>${k.toUpperCase()}</small></div>`).join('')}</div>${d.ratingBasis==='retailer_catalog'?'<p class="micro rating-note">Infinite Discs catalog ratings; may reflect player reviews rather than manufacturer flight numbers.</p>':''}${d.ratingBasis==='atlas_adjusted'?`<p class="micro rating-note">Atlas-adjusted from ${['speed','glide','turn','fade'].map(k=>d.manufacturerNumbers[k]).join(' / ')}. ${esc(d.flightNote)}</p>`:''}${rated?`<div class="index-row"><span>${stability(d)}</span><b>${score(d)} <span class="muted">/ 100</span></b></div><div class="index-track"><i style="left:calc(${score(d)}% - 5px)"></i></div><div class="micro">Shared stability index · provisional</div><div class="flight-head"><span>FLIGHT SKETCH</span><span class="dd-select dd-select-sm"><select id="hand" aria-label="Throwing hand and style"><option ${hand==='RHBH'?'selected':''}>RHBH</option><option ${hand==='RHFH'?'selected':''}>RHFH</option><option ${hand==='LHBH'?'selected':''}>LHBH</option><option ${hand==='LHFH'?'selected':''}>LHFH</option></select>${DropdownIndicator.indicator('sm')}</span></div><div class="flight" id="flight"></div><div class="power"><label for="power">Relative throwing power</label><span id="powerValue">${power}%</span></div><input id="power" type="range" min="60" max="120" step="5" value="${power}"><p class="micro">Flat release · calm air · illustrative, not measured</p>`:'<p class="micro">Flight ratings have not been confidently matched for this approval record. Its stability and flight path are left unknown.</p>'}<button id="compare" class="wide primary">${comparison.includes(d)?'Remove from comparison':comparison.length>=3?'Comparison full · remove a disc':'＋ Compare this disc'}</button>${d.specs?`<details class="specs"><summary>${DropdownIndicator.indicator('lg')}PDGA dimensions</summary>${Object.entries(d.specs).map(([k,v])=>`<div><span>${k}</span><b>${esc(v)} ${k==='Max weight'?'g':'cm'}</b></div>`).join('')}<p class="micro">Certification ${esc(d.certification)}</p></details>`:''}${window.AtlasShopping.render(d)}<details class="disc-sources"><summary>${DropdownIndicator.indicator('lg')}Sources & provenance</summary>${d.url?`<a class="source" href="${esc(d.url)}" target="_blank" rel="noopener">View PDGA approval ↗</a>`:''}<p class="micro">Original representative disc illustration. Not a manufacturer image, stamp or exact mold rendering.</p>${rated?`<a class="source" href="${esc(d.flightSource||'https://discit-api.fly.dev/disc')}" target="_blank" rel="noopener">Flight data: ${esc(d.flightSourceLabel||'DiscIt / Marshall Street')} ↗</a>`:''}</details>`);window.Disc3D?.sync($('#detail'),d,{color:discColor(d),...window.BagApp?.detailAppearance?.(d),poster:photoMarkup(d,'detail-art'),hand});if($('#nearbyDiscs'))$('#nearbyDiscs').onclick=()=>openCluster(nearby,$('#nearbyDiscs'),true);$('#closeDetail').onclick=()=>closeDetail();$('#expandDetail').onclick=()=>{window.AtlasMotion.expand($('#detail'),()=>{const expanded=$('#detail').classList.toggle('is-expanded');$('#expandDetail').setAttribute('aria-expanded',String(expanded));$('#expandDetail').textContent=expanded?'Collapse':'Full screen';});};$('#detailBrand').onclick=()=>toggleBrand(d.brand);const photo=$('#detail img');if(photo)photo.onerror=()=>{photo.parentElement.innerHTML='<div class="photo-missing">Photo unavailable</div>';};if(rated){flight();$('#hand').onchange=e=>{hand=e.target.value;window.Disc3D?.setHand(hand);flight();renderCompare()};$('#power').oninput=e=>{power=+e.target.value;$('#powerValue').textContent=power+'%';flight();renderCompare()};}$('#compare').onclick=()=>{if(comparison.includes(d))comparison=comparison.filter(x=>x!==d);else if(comparison.length<3)comparison.push(d);detail();renderCompare();};}
+let detailShown=null;   // the disc whose details the panel last showed; null once it closes
+function detail(){const d=selected;if(!d)return;const panel=$('#detail'),swap=!!detailShown&&detailShown!==d.id&&!panel.hidden&&!panel.inert&&!window.AtlasMotion.busy(panel);detailShown=d.id;const rated=d.speed!=null,nearby=view!=='bag'&&mapClusters.find(g=>g.members.includes(d)&&g.members.length>1);updateDetail(`<div class="detail-actions"><span>DISC DETAILS</span><button id="expandDetail" aria-expanded="${$('#detail').classList.contains('is-expanded')}">${$('#detail').classList.contains('is-expanded')?'Collapse':'Full screen'}</button><button id="closeDetail" aria-label="Close disc details">&times;</button></div><div class="detail-top"><span class="badge">${d.approved===false?'CATALOG ENTRY':'PDGA APPROVED'}</span><span class="micro">${esc(d.date||'')}</span></div>${nearby?`<button id="nearbyDiscs" class="wide nearby-discs">Explore ${nearby.members.length-1} nearby discs</button>`:''}${window.Disc3D?.markup(d,photoMarkup(d,'detail-art'))||`<div class="disc-photo illustration-detail">${photoMarkup(d,'detail-art')}<span class="illustration-caption">Illustration · color and shape are representative</span></div>`}<button type="button" class="brand-name brand-link" id="detailBrand" title="Filter by ${esc(d.brand)}" aria-pressed="${selectedBrands.has(d.brand)}">${esc(d.brand)} <span aria-hidden="true">↗</span></button><h2>${esc(d.catalogName||d.name)}</h2>${window.BagApp?.detailExtras?.(d)||''}${addDestinationControl(d,'wide bag-add primary','addToBag')}${d.catalogName&&d.catalogName!==d.name?`<p class="approval-name">PDGA record: ${esc(d.name)}</p>`:''}${d.catalogNote?`<p class="catalog-note">${esc(d.catalogNote)}</p>`:''}<p class="production-note">${productionLabel(d)}${d.production?.source?` · <a href="${esc(d.production.source)}" target="_blank" rel="noopener">Source ↗</a>`:''}</p><div class="numbers">${['speed','glide','turn','fade'].map(k=>`<div><strong>${d[k]??'—'}</strong><small>${k.toUpperCase()}</small></div>`).join('')}</div>${d.ratingBasis==='retailer_catalog'?'<p class="micro rating-note">Infinite Discs catalog ratings; may reflect player reviews rather than manufacturer flight numbers.</p>':''}${d.ratingBasis==='atlas_adjusted'?`<p class="micro rating-note">Atlas-adjusted from ${['speed','glide','turn','fade'].map(k=>d.manufacturerNumbers[k]).join(' / ')}. ${esc(d.flightNote)}</p>`:''}${rated?`<div class="index-row"><span>${stability(d)}</span><b>${score(d)} <span class="muted">/ 100</span></b></div><div class="index-track"><i style="left:calc(${score(d)}% - 5px)"></i></div><div class="micro">Shared stability index · provisional</div><div class="flight-head"><span>FLIGHT SKETCH</span><span class="dd-select dd-select-sm"><select id="hand" aria-label="Throwing hand and style"><option ${hand==='RHBH'?'selected':''}>RHBH</option><option ${hand==='RHFH'?'selected':''}>RHFH</option><option ${hand==='LHBH'?'selected':''}>LHBH</option><option ${hand==='LHFH'?'selected':''}>LHFH</option></select>${DropdownIndicator.indicator('sm')}</span></div><div class="flight" id="flight"></div><div class="power"><label for="power">Relative throwing power</label><span id="powerValue">${power}%</span></div><input id="power" type="range" min="60" max="120" step="5" value="${power}"><p class="micro">Flat release · calm air · illustrative, not measured</p>`:'<p class="micro">Flight ratings have not been confidently matched for this approval record. Its stability and flight path are left unknown.</p>'}<button id="compare" class="wide primary">${comparison.includes(d)?'Remove from comparison':comparison.length>=3?'Comparison full · remove a disc':'＋ Compare this disc'}</button>${d.specs?`<details class="specs"><summary>${DropdownIndicator.indicator('lg')}PDGA dimensions</summary>${Object.entries(d.specs).map(([k,v])=>`<div><span>${k}</span><b>${esc(v)} ${k==='Max weight'?'g':'cm'}</b></div>`).join('')}<p class="micro">Certification ${esc(d.certification)}</p></details>`:''}${window.AtlasShopping.render(d)}<details class="disc-sources"><summary>${DropdownIndicator.indicator('lg')}Sources & provenance</summary>${d.url?`<a class="source" href="${esc(d.url)}" target="_blank" rel="noopener">View PDGA approval ↗</a>`:''}<p class="micro">Original representative disc illustration. Not a manufacturer image, stamp or exact mold rendering.</p>${rated?`<a class="source" href="${esc(d.flightSource||'https://discit-api.fly.dev/disc')}" target="_blank" rel="noopener">Flight data: ${esc(d.flightSourceLabel||'DiscIt / Marshall Street')} ↗</a>`:''}</details>`,swap);window.Disc3D?.sync($('#detail'),d,{color:discColor(d),...window.BagApp?.detailAppearance?.(d),poster:photoMarkup(d,'detail-art'),hand});if($('#nearbyDiscs'))$('#nearbyDiscs').onclick=()=>openCluster(nearby,$('#nearbyDiscs'),true);$('#closeDetail').onclick=()=>closeDetail();$('#expandDetail').onclick=()=>{window.AtlasMotion.expand($('#detail'),()=>{const expanded=$('#detail').classList.toggle('is-expanded');$('#expandDetail').setAttribute('aria-expanded',String(expanded));$('#expandDetail').textContent=expanded?'Collapse':'Full screen';});};$('#detailBrand').onclick=()=>toggleBrand(d.brand);const photo=$('#detail img');if(photo)photo.onerror=()=>{photo.parentElement.innerHTML='<div class="photo-missing">Photo unavailable</div>';};if(rated){flight();$('#hand').onchange=e=>{hand=e.target.value;window.Disc3D?.setHand(hand);flight();renderCompare()};$('#power').oninput=e=>{power=+e.target.value;$('#powerValue').textContent=power+'%';flight();renderCompare()};}$('#compare').onclick=()=>{if(comparison.includes(d))comparison=comparison.filter(x=>x!==d);else if(comparison.length<3)comparison.push(d);detail();renderCompare();};}
 function path(d){const sign=hand==='RHFH'||hand==='LHBH'?-1:1,t=-d.turn*(power/100)*12,f=(d.fade+(100-power)/25)*12,end=125+sign*(t*.55-f);return`M125 155 C125 125 ${125+sign*t} 65 ${125+sign*t*.65} 49 S${end+sign*15} 27 ${end} 19`;}
 function flight(){if(!$('#flight'))return;const d=selected,p=path(d);$('#flight').innerHTML=`<svg viewBox="0 0 250 175" role="img" aria-label="Illustrative ${hand} flight path for ${esc(d.catalogName||d.name)}"><path d="M125 155V12 M25 50H225 M25 100H225 M25 150H225" stroke="${themePalette.grid}" fill="none" stroke-dasharray="3 5"/><path class="route" id="flightRoute" d="${p}" fill="none" stroke="${discColor(d)}" stroke-width="3" stroke-linecap="round"/><circle cx="125" cy="155" r="4" fill="${themePalette.text}"/><text x="15" y="166" fill="${themePalette.muted}" font-size="12">RELEASE</text><text x="180" y="166" fill="${themePalette.muted}" font-size="12">${hand}</text>${matchMedia('(prefers-reduced-motion: reduce)').matches?'':`<circle r="4" fill="${themePalette.text}" class="moving"><animateMotion dur="3s" repeatCount="indefinite" path="${p}"/></circle>`}</svg>`;}
 // The compare tray keys its cards by disc id: an add inserts one card, a remove lets one go and the rest
 // glide into the gap (FLIP, transform only), and a card whose content did not change is never rebuilt. The
 // tray itself enters and leaves with the shared menu motion (cosmic.css); an emptied tray exits holding the
-// cards it had.
+// cards it had. Under reduced motion cards fade instead of scaling and gliding.
 const compareCards=new Map();
 function compareCardMarkup(d){return `<button data-remove="${esc(d.id)}" aria-label="Remove ${esc(d.catalogName||d.name)}">×</button>${photoMarkup(d)}<strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)}</small><p>${d.speed==null?'Not yet rated':[d.speed,d.glide,d.turn,d.fade].join(' / ')}</p><b>${score(d)??'—'}</b> <small>stability index</small>`;}
 function compareSketchMarkup(d){return d.speed==null?'':`<svg viewBox="0 0 250 175" height="100" style="width:100%" aria-label="Flight sketch"><path d="${path(d)}" stroke="${discColor(d)}" stroke-width="3" fill="none"/></svg>`;}
@@ -158,11 +182,11 @@ function renderCompare(){
  const ids=new Set(comparison.map(d=>d.id));
  for(const card of live())if(!ids.has(card.dataset.compareId)){
   compareCards.delete(card.dataset.compareId);
-  if(calm||bar.hidden){card.remove();continue;}
+  if(bar.hidden){card.remove();continue;}
   const box=items.getBoundingClientRect(),r=card.getBoundingClientRect();
   card.classList.add('is-leaving');card.inert=true;card.setAttribute('aria-hidden','true');
   Object.assign(card.style,{position:'absolute',left:r.left-box.left-items.clientLeft+'px',top:r.top-box.top-items.clientTop+'px',width:r.width+'px',height:r.height+'px',margin:'0'});
-  card.animate([{opacity:1,transform:'none'},{opacity:0,transform:'scale(.96)'}],{duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}).finished.then(()=>card.remove(),()=>{});
+  card.animate(calm?[{opacity:1},{opacity:0}]:[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.96)'}],{duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}).finished.then(()=>card.remove(),()=>{});
  }
  const fresh=[];
  for(const d of comparison){
@@ -189,8 +213,10 @@ function renderCompare(){
   else items.insertBefore(card,cursor||null);
  }
  bar.hidden=false;reanchorDropdown();
- if(calm||entering)return;
- for(const card of fresh)card.animate([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'none'}],{duration:220,easing:'cubic-bezier(.16,1,.3,1)'});
+ if(entering)return;
+ // Reduced motion: cards fade in and out, nothing travels or scales (no FLIP).
+ for(const card of fresh)card.animate(calm?[{opacity:0},{opacity:1}]:[{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'none'}],{duration:calm?150:220,easing:'cubic-bezier(.16,1,.3,1)'});
+ if(calm)return;
  for(const card of live()){
   const first=before.get(card.dataset.compareId);if(!first)continue;
   const last=card.getBoundingClientRect(),dx=first.left-last.left,dy=first.top-last.top;
@@ -220,15 +246,25 @@ function renderContextTitle(){
  if(identity.dataset.context===key)return;
  const previous=identity.dataset.context;identity.dataset.context=key;
  const home=identity.querySelector('.logo'),button=$('#contextTitle'),hadFocus=identity.contains(document.activeElement);
+ const outgoing=active?home:button,outgoingBox=!outgoing.hidden&&outgoing.getBoundingClientRect(),identityBox=identity.getBoundingClientRect();
+ const ghost=previous&&outgoingBox?outgoing.cloneNode(true):null;   // the element leaving is kept as an inert copy to fade out under the new one
  home.hidden=active;button.hidden=!active;
  $('#contextBrand').textContent=brand;$('#contextType').textContent=subtitle;$('#contextType').hidden=!subtitle;
  button.setAttribute('aria-label',`${brand}${subtitle?', '+subtitle:''}. Clear manufacturer and type filters`);
  button.title=`${brand}${subtitle?' / '+subtitle:''}. Clear manufacturer and type filters`;
  if(hadFocus)(active?button:home).focus({preventScroll:true});
  const target=active?button:home;
+ identity.querySelectorAll('.identity-ghost').forEach(node=>node.remove());
  identity.getAnimations({subtree:true}).forEach(animation=>animation.cancel());
- if(previous&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
-  target.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:180,easing:'cubic-bezier(.2,.8,.2,1)'});
+ // The swap used to hide the old title in one frame while the new one rose in over 180 ms: a pop. Now a 120 ms,
+ // opacity-only cross-fade (it stays under reduced motion: a fade is not movement).
+ if(previous){
+  target.animate([{opacity:0},{opacity:1}],{duration:120,easing:'ease-out'});
+  if(ghost){
+   ghost.classList.add('identity-ghost');ghost.hidden=false;ghost.inert=true;ghost.setAttribute('aria-hidden','true');ghost.removeAttribute('id');ghost.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+   Object.assign(ghost.style,{position:'absolute',left:outgoingBox.left-identityBox.left+'px',top:outgoingBox.top-identityBox.top+'px',width:outgoingBox.width+'px',height:outgoingBox.height+'px',margin:'0',pointerEvents:'none'});
+   identity.append(ghost);ghost.animate([{opacity:1},{opacity:0}],{duration:120,easing:'ease-out'}).finished.then(()=>ghost.remove(),()=>ghost.remove());
+  }
  }
 }
 $('#contextTitle').onclick=()=>{

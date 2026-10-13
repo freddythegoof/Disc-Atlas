@@ -6,10 +6,10 @@ window.AtlasMotion = (() => {
   const cancel = node => {window.gsap?.killTweensOf(node);panels.get(node)?.tween?.kill();};
   function slide(node, from, to, direction, duration, complete) {
     const state={value:from};panels.set(node,state);
-    const mobile=innerWidth<700&&node.id==='detail';
+    const mobile=innerWidth<700&&node.id==='detail',travel=reduced.matches?0:1;   // reduced motion: a fade, no slide
     const paint=()=>{
       node.style.opacity=state.value;
-      const offset=(1-state.value)*(mobile?18:direction==='left'?-14:14);
+      const offset=travel*(1-state.value)*(mobile?18:direction==='left'?-14:14);
       node.style.transform=mobile?`translate3d(0,${offset}px,0)`:`translate3d(${offset}px,0,0)`;
     };
     paint();
@@ -20,7 +20,7 @@ window.AtlasMotion = (() => {
   function reveal(node, direction = 'right') {
     const wasHidden = node.hidden || node.inert,from=panels.get(node)?.value??0;
     cancel(node); node.hidden = false; node.inert = false;
-    if (!enabled()) { node.style.transform='';node.style.opacity='';node.style.height='';return; }
+    if (!window.gsap) { node.style.transform='';node.style.opacity='';node.style.height='';return; }
     if (!wasHidden) {
       node.style.transform='';node.style.opacity='';panels.delete(node);
       return;
@@ -30,17 +30,22 @@ window.AtlasMotion = (() => {
   function dismiss(node, immediate = false) {
     const from=panels.get(node)?.value??1;cancel(node); node.inert = true;
     const finish = () => { node.hidden = true; node.inert = false; if(node.id==='detail'){node.classList.remove('is-expanded');node.querySelectorAll('svg').forEach(svg=>svg.pauseAnimations());}node.style.transform='';node.style.opacity='';node.style.height='';panels.delete(node); };
-    if (node.hidden || immediate || !enabled()) { finish(); return; }
+    if (node.hidden || immediate || !window.gsap) { finish(); return; }
     slide(node,from,0,node.id==='filters'?'left':'right',.12,finish);
   }
+  // A user-triggered toggle reads as responsive when it eases out: the height, and the corners that go from
+  // the sheet's rounded top to square at full screen, travel together (expo-out, the surface duration).
   function expand(node, change) {
     cancel(node); panels.delete(node);
     // Expanding during the reveal must finish the reveal's opacity and offset.
     node.style.transform = ''; node.style.opacity = '';
-    const before = node.getBoundingClientRect().height;
+    const style = getComputedStyle(node), before = node.getBoundingClientRect().height, radius = parseFloat(style.borderTopLeftRadius) || 0;
     node.style.height = ''; change();
-    if (enabled()) gsap.fromTo(node,{height:before},{height:node.getBoundingClientRect().height,
-      duration:.35,ease:'power3.inOut',clearProps:'height',overwrite:true});
+    if (enabled()) {
+      const after = node.getBoundingClientRect().height, to = parseFloat(getComputedStyle(node).borderTopLeftRadius) || 0;
+      gsap.fromTo(node,{height:before,borderTopLeftRadius:radius,borderTopRightRadius:radius},{height:after,borderTopLeftRadius:to,borderTopRightRadius:to,
+        duration:.28,ease:'expo.out',clearProps:'height,borderTopLeftRadius,borderTopRightRadius',overwrite:true});
+    }
   }
   function selected(node) {
     if (!enabled() || !node) return;
@@ -101,5 +106,6 @@ window.AtlasMotion = (() => {
     if(reduced.matches)document.querySelectorAll('.marker-halo').forEach(node=>node.getAnimations().forEach(animation=>animation.cancel()));
     for(const tween of window.gsap?.globalTimeline.getChildren()||[])tween.progress(1);
   });
-  return {enabled,reveal,dismiss,expand,selected,enter};
+  // `reduced`: the player asked for less motion (travel gives way to fades); `busy`: a reveal or dismiss is running.
+  return {enabled,reduced:()=>reduced.matches,busy:node=>panels.has(node),reveal,dismiss,expand,selected,enter};
 })();

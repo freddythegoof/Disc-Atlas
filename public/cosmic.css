@@ -13,6 +13,9 @@
   --putter:var(--palette-purple);--mid:var(--palette-green);--fairway:var(--palette-blue);--distance:var(--palette-orange);--unknown:#637088;
   --marker-edge:#625b50;
   --header-height:68px;--ambient:#809bea12;
+  /* Motion scale (batch 3, finding 9): three durations and one ease that new work uses and old rules migrate to
+     when they already sit within ~20 ms of one. */
+  --dur-press:100ms;--dur-ui:180ms;--dur-surface:280ms;--ease-out:cubic-bezier(.16,1,.3,1);
 }
 :root[data-theme="midnight"] {
   color-scheme:dark;
@@ -51,7 +54,7 @@ body[data-view="list"] #directory{display:block!important}
 body{font:14px/1.5 'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 button,input,select,textarea{font:inherit}button,a,input,select,summary{touch-action:manipulation}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,#map:focus-visible{outline:2px solid var(--lime);outline-offset:4px}
-button{transition:background .18s,color .18s;min-height:36px}button:hover{color:var(--lime)}
+button{transition:background var(--dur-ui),color var(--dur-ui);min-height:36px}button:hover{color:var(--lime)}
 /* Theme motion is temporary and compositor-only; component hover timings return after it. */
 :root.theme-switching *{transition-property:transform,opacity!important}
 :root.theme-switching:not(.theme-snapshots){background:var(--theme-transition-bg)}
@@ -61,13 +64,10 @@ button{transition:background .18s,color .18s;min-height:36px}button:hover{color:
 :root.theme-snapshots::view-transition-group(root){animation:none}
 :root.theme-snapshots::view-transition-old(root){animation:theme-out .24s ease-out both;mix-blend-mode:plus-lighter}
 :root.theme-snapshots::view-transition-new(root){animation:theme-in .24s ease-out both;mix-blend-mode:plus-lighter}
+/* Reduced motion keeps the theme change as a short opacity cross-fade (finding 10): the snapshots fade, nothing moves. */
+:root.theme-calm.theme-snapshots::view-transition-old(root),:root.theme-calm.theme-snapshots::view-transition-new(root){animation-duration:.15s}
 @keyframes theme-out{to{opacity:0}}
 @keyframes theme-in{from{opacity:0}}
-@media(prefers-reduced-motion:reduce){
- :root.theme-switching body{transition:none!important;opacity:1!important}
- :root::view-transition-old(root),:root::view-transition-new(root){animation:none!important}
- button{transition-property:transform,opacity!important}
-}
 header{height:var(--header-height);min-height:var(--header-height);position:relative;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 28px;gap:20px;background:var(--bg);border-bottom:1px solid var(--line)}
 .logo{font:500 20px 'Space Grotesk',sans-serif;letter-spacing:2px;white-space:nowrap;gap:8px}.logo>span:last-child{color:var(--text);font-weight:500}.orbit{font-size:29px;color:var(--lime);margin-right:6px}
 header nav{display:flex;gap:20px;padding:0;background:none;border:0;box-shadow:none;border-radius:0;align-self:stretch}
@@ -179,9 +179,16 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
  .filters{top:calc(var(--header-height) + 8px);bottom:12px;padding:18px}.filters .types{flex-direction:column}.filters .types button{border:0}.filters .types button.active{border:0}.filters .field{margin:20px 0}
  .detail{top:auto;bottom:0;left:0;right:0;max-width:none;width:100%;height:58dvh;border-radius:22px 22px 0 0;padding:18px 24px max(24px,env(safe-area-inset-bottom));z-index:50;border-bottom:0}.detail.is-expanded{height:100dvh;border-radius:0}.detail-actions{top:-18px}.detail-actions #expandDetail{display:block}.detail .disc-photo{min-height:165px;margin:12px 0 20px}.detail .detail-art{width:130px!important;height:130px!important}.detail .numbers strong{font-size:27px}.detail .numbers small{font-size:10px}
  .player-hub,.bag-workspace{padding:28px 18px}.hub-heading h2{font-size:32px}.bag-workbench{display:block}.bag-workbench>section+section{margin-top:36px}.profile-grid{grid-template-columns:1fr}.my-bag-mode .workspace{padding:20px 16px}.my-bag-mode #map{height:420px}.my-bag-mode .map-toolbar{display:flex}.workspace-head h2{font-size:28px}.list-head,.disc-row{grid-template-columns:minmax(0,1fr) 88px 32px}.row-identity strong{overflow-wrap:normal;word-break:normal}
- .info-page header{height:68px;display:flex;padding:0 18px}.info-page main{padding:32px 22px 60px}.info-page h1{font-size:36px}.cluster-popover{max-height:80dvh}.inspect-disc .disc-art{width:68px;height:68px}.cluster-gallery{gap:20px 12px}.cluster-specs{grid-template-columns:1fr}.cluster-flight{display:block}.coach-dialog{inset:10px;margin:0;width:calc(100vw - 20px);height:calc(100dvh - 20px);padding:20px}
+  .info-page main{padding:32px 22px 60px}.info-page h1{font-size:36px}.cluster-popover{max-height:80dvh}.inspect-disc .disc-art{width:68px;height:68px}.cluster-gallery{gap:20px 12px}.cluster-specs{grid-template-columns:1fr}.cluster-flight{display:block}.coach-dialog{inset:10px;margin:0;width:calc(100vw - 20px);height:calc(100dvh - 20px);padding:20px}
 }
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* Reduced motion (finding 10). Movement goes (keyframes, transform, scale, translate); what helps comprehension stays:
+   opacity and colour transitions keep their own durations. Elements with no transition still have none, and a
+   component's `transition:none` still wins for that component. The menus, popovers, dialogs and the compare tray also
+   keep `display`/`overlay` so their exits can fade; they hold their box for their (opacity) duration, nothing more. */
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition-property:opacity,color,background-color,border-color,outline-color,text-decoration-color,fill,stroke!important}
+ .chip-popover,.site-menu,.cluster-popover,.add-destination-menu,.rack-style-menu,dialog,#compareBar{transition-property:opacity,color,background-color,border-color,display,overlay!important;transition-behavior:allow-discrete!important;scale:none!important;translate:none!important}
+}
 
 /* Interaction feedback lives on the artwork, separate from camera transforms. */
 @keyframes atlas-arrive{from{opacity:0}to{opacity:1}}
@@ -189,7 +196,7 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 .atlas-marker .marker-stack{position:absolute;inset:0;transform-origin:50% 50%}
 .atlas-marker .marker-halo{transition:opacity .22s ease,transform .45s cubic-bezier(.2,.8,.2,1)}
 .atlas-marker:hover .marker-halo{opacity:.5;transform:scale(1.07)}
-.atlas-marker .marker-name{transition:opacity .2s ease;color:var(--text)}
+.atlas-marker .marker-name{transition:opacity var(--dur-ui) ease;color:var(--text)}
 .atlas-marker.is-dot{width:44px;height:44px}
 .atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{inset:16px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 .atlas-marker.is-dot .marker-name{top:44px}
@@ -214,8 +221,8 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
    in 90 ms and returns on the normal 220 ms curve. It uses the individual `scale` property, so the hover lift
    (a transform) stays in place under a pressed finger. Directory rows tint instead; markers press their art
    child only, below. Under reduced motion the global transition kill makes the dip instant. */
-:root{--press-rest:scale .22s cubic-bezier(.16,1,.3,1),transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s,box-shadow .15s;
- --press-down:scale .09s cubic-bezier(.16,1,.3,1),transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s,box-shadow .15s}
+:root{--press-rest:scale .22s var(--ease-out),transform .25s cubic-bezier(.2,.8,.2,1),background var(--dur-ui),color var(--dur-ui),border-color var(--dur-ui),box-shadow .15s;
+ --press-down:scale var(--dur-press) var(--ease-out),transform .25s cubic-bezier(.2,.8,.2,1),background var(--dur-ui),color var(--dur-ui),border-color var(--dur-ui),box-shadow .15s}
 :root :is(.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide,.stack-choice,.directory-add,
  .inspect-disc,.compare-item [data-remove],.compare-bag-add,.cluster-action,#clusterClose,.pick-compare,
  .disc3d-toolbar button,.disc3d-expand,dialog .close,header nav button,
@@ -227,20 +234,19 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 /* Markers: .atlas-marker is positioned by transform and GSAP owns .marker-stack (hover), so a disc's press is a
    GSAP tween on .marker-stack in atlas-motion.js; a CSS `scale` there would be merged into GSAP's transform.
    Only a bare dot (My Map) has its own art, .map-dot, which CSS can press. Panning lets go of the press. */
-#mapMarkers .atlas-marker.is-dot:active .map-dot{scale:.88!important;transition:scale .09s cubic-bezier(.16,1,.3,1)}
+#mapMarkers .atlas-marker.is-dot:active .map-dot{scale:.88!important;transition:scale var(--dur-press) var(--ease-out)}
 #map.is-panning .atlas-marker.is-dot:active .map-dot{scale:none!important}
 /* Directory rows tint on press; the tint lands at once and fades on the row's own curve. */
 .directory-row:has(.disc-row:active){background:color-mix(in srgb,var(--lime) 16%,var(--panel));transition-duration:.08s}
 header nav button{position:relative;border-bottom-color:transparent!important}
 header nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:center;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 header nav button.active::after{transform:scaleX(1)}
-.disc-row,.inspect-disc{transition:background .2s ease}
+.disc-row,.inspect-disc{transition:background var(--dur-ui) ease}
 .disc-row:hover{background:var(--accent-soft)}
 .clean-disc{transition:filter .3s ease}
 .inspect-disc:hover .clean-disc,.atlas-marker:hover .clean-disc{filter:brightness(1.08)}
 #map{background:radial-gradient(ellipse at 62% 28%,var(--ambient),transparent 65%),radial-gradient(ellipse at 18% 76%,color-mix(in srgb,var(--fairway) 4%,transparent),transparent 55%),var(--map-bg)}
 @media(prefers-reduced-motion:reduce){
- .atlas-marker .marker-halo,.atlas-marker .marker-name,header nav button::after{transition:none}
  .explore-tools button:hover,.map-controls button:hover,.coach-launch:hover,.pill-button:hover{transform:none}
 }
 
@@ -285,9 +291,9 @@ body[data-view="list"] .graph-dock{background:none}
 .clean-disc{background:radial-gradient(ellipse at 30% 18%,#ffffff70,transparent 46%),radial-gradient(circle at 42% 32%,color-mix(in srgb,var(--disc-color) 86%,white) 10%,var(--disc-color) 48%,color-mix(in srgb,var(--disc-color) 64%,black) 85%);border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:inset 0 1px 2px #ffffff80,inset 0 -3px 6px #0003,0 5px 9px #1523401c,0 13px 23px #15234016}
 .clean-disc::after{inset:8%;border:1px solid #ffffff35;box-shadow:0 1px 2px #0002,inset 0 1px 3px #ffffff15}
 :root:not([data-theme="light"]) .clean-disc{box-shadow:inset 0 1px 3px #ffffff65,inset 0 -4px 8px #0005,0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
-.atlas-marker .stack-0{scale:1;transition:scale .2s ease}
+.atlas-marker .stack-0{scale:1;transition:scale var(--dur-ui) ease}
 .atlas-marker.is-selected .stack-0{scale:1.09}
-.atlas-marker .marker-halo{inset:-15px;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--disc-color) 24%,transparent),transparent 70%);box-shadow:none;transition:opacity .2s ease}
+.atlas-marker .marker-halo{inset:-15px;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--disc-color) 24%,transparent),transparent 70%);box-shadow:none;transition:opacity var(--dur-ui) ease}
 .atlas-marker.is-selected .marker-halo{opacity:1;inset:-18px;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--disc-color) 38%,transparent),transparent 72%)}
 .atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{background:radial-gradient(circle at 32% 25%,color-mix(in srgb,var(--disc-color) 70%,white),var(--disc-color) 55%,color-mix(in srgb,var(--disc-color) 70%,black));opacity:.9;border:0;box-shadow:inset 0 1px 2px #ffffff40,0 3px 8px var(--shadow)}
 .atlas-marker.is-dot.is-selected .map-dot{scale:1.12;box-shadow:0 0 20px color-mix(in srgb,var(--disc-color) 40%,transparent)}
@@ -317,17 +323,15 @@ body[data-view="list"] .graph-dock{background:none}
  .atlas-marker .marker-name{font-size:12px;max-width:125px}.atlas-marker .marker-name small{font-size:8px;letter-spacing:1px}
 }
 @media(max-width:360px){#zoomLabel{display:none}.logo{font-size:16px}.header-actions #accountButton{padding:4px}.coach-launch{padding:7px 9px}}
-@media(prefers-reduced-motion:reduce){.atlas-marker .stack-0,.atlas-marker .marker-halo{transition:none}}
 
 /* Regrouped discs settle into their new density while the camera stays responsive. */
-#mapMarkers .marker-position{transition:opacity .18s ease-out}
-#mapMarkers .marker-position.is-updating{transition:transform .18s ease-out,opacity .18s ease-out}
+#mapMarkers .marker-position{transition:opacity var(--dur-ui) ease-out}
+#mapMarkers .marker-position.is-updating{transition:transform var(--dur-ui) ease-out,opacity var(--dur-ui) ease-out}
 #mapMarkers .marker-position.is-new,#mapMarkers .marker-position.is-retiring{opacity:0;pointer-events:none}
-#mapMarkers .is-updating .marker-stack{display:block;opacity:1;transition:opacity .18s ease-out,scale .18s ease-out}
+#mapMarkers .is-updating .marker-stack{display:block;opacity:1;transition:opacity var(--dur-ui) ease-out,scale var(--dur-ui) ease-out}
 #mapMarkers .is-updating .is-dot .marker-stack{opacity:0;scale:.25}
-#mapMarkers .is-updating .map-dot{display:block;opacity:0;transition:opacity .18s ease-out}
+#mapMarkers .is-updating .map-dot{display:block;opacity:0;transition:opacity var(--dur-ui) ease-out}
 #mapMarkers .is-updating .is-dot .map-dot{opacity:1}
-@media(prefers-reduced-motion:reduce){#mapMarkers .marker-position,#mapMarkers .marker-position.is-updating,#mapMarkers .is-updating .marker-stack,#mapMarkers .is-updating .map-dot{transition:none}}
 /* Organic overview (main Atlas): discs face front at 76px (My Map keeps 68px). The name sits 52px below the
    center, scaled with the art from 68px's 46px, so it stays clear when the art grows past 4x and is selected
    (1.24 x 1.09); it takes its featured nudge in brand views too, where curate reserves it as well.
@@ -384,7 +388,7 @@ header>.header-identity{flex:1 1 0;min-width:0}
 header>nav{flex-shrink:0}
 header>.header-actions{flex:1 1 0;justify-content:flex-end;min-width:max-content}
 .header-identity .logo,.context-title{min-height:44px;max-width:100%;width:fit-content}
-.context-title{display:flex;align-items:center;gap:10px;padding:5px 8px;margin-left:-8px;border:0;border-radius:10px;background:transparent;color:var(--text);text-align:left;cursor:pointer;transition:background .16s ease,color .16s ease}
+.context-title{display:flex;align-items:center;gap:10px;padding:5px 8px;margin-left:-8px;border:0;border-radius:10px;background:transparent;color:var(--text);text-align:left;cursor:pointer;transition:background var(--dur-ui) ease,color var(--dur-ui) ease}
 .context-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
 .context-title .wordmark{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 19px/1.15 -apple-system,BlinkMacSystemFont,'DM Sans',sans-serif;letter-spacing:-.55px}
 .context-subtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:1.2;font-weight:400;letter-spacing:.15px;color:var(--muted)}
@@ -510,16 +514,16 @@ body[data-view="map"]:not(.my-bag-mode) .atlas-lens{position:absolute;top:22px;r
    so `hidden` and :popover-open keep their meaning at once, and @starting-style supplies the enter. A pressed
    Escape or a reopen mid-exit reverses from the live value. Reduced motion: the global transition kill makes
    all of it instant. */
-:root{--ease-enter:cubic-bezier(.16,1,.3,1);--ease-exit:cubic-bezier(.4,0,1,1)}
+:root{--ease-enter:var(--ease-out);--ease-exit:cubic-bezier(.4,0,1,1)}
 .chip-popover,.site-menu{transform-origin:var(--menu-origin,top right);transition:opacity .15s var(--ease-enter),scale .15s var(--ease-enter),display .15s allow-discrete}
-.chip-popover[hidden],.site-menu[hidden]{opacity:0;scale:.96;pointer-events:none;transition-duration:.1s;transition-timing-function:var(--ease-exit)}
-.cluster-popover{transform-origin:var(--menu-origin,50% 50%);transition:opacity .18s var(--ease-enter),scale .18s var(--ease-enter),translate .18s var(--ease-enter),display .18s allow-discrete}
-.cluster-popover[hidden]{opacity:0;scale:.96;translate:0 6px;pointer-events:none;transition-duration:.12s;transition-timing-function:var(--ease-exit)}
-.add-destination-menu,.rack-style-menu{opacity:0;scale:.96;transform-origin:var(--menu-origin,top right);transition:opacity .1s var(--ease-exit),scale .1s var(--ease-exit),overlay .1s allow-discrete,display .1s allow-discrete}
+.chip-popover[hidden],.site-menu[hidden]{opacity:0;scale:.96;pointer-events:none;transition-duration:var(--dur-press);transition-timing-function:var(--ease-exit)}
+.cluster-popover{transform-origin:var(--menu-origin,50% 50%);transition:opacity var(--dur-ui) var(--ease-enter),scale var(--dur-ui) var(--ease-enter),translate var(--dur-ui) var(--ease-enter),display var(--dur-ui) allow-discrete}
+.cluster-popover[hidden]{opacity:0;scale:.96;translate:0 6px;pointer-events:none;transition-duration:var(--dur-press);transition-timing-function:var(--ease-exit)}
+.add-destination-menu,.rack-style-menu{opacity:0;scale:.96;transform-origin:var(--menu-origin,top right);transition:opacity var(--dur-press) var(--ease-exit),scale var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
 .add-destination-menu:popover-open,.rack-style-menu:popover-open{opacity:1;scale:1;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
-dialog:not(.disc3d-dialog){opacity:0;translate:0 8px;pointer-events:none;transition:opacity .1s var(--ease-exit),translate .1s var(--ease-exit),overlay .1s allow-discrete,display .1s allow-discrete}
+dialog:not(.disc3d-dialog){opacity:0;translate:0 8px;pointer-events:none;transition:opacity var(--dur-press) var(--ease-exit),translate var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
 dialog:not(.disc3d-dialog)[open]{opacity:1;translate:0 0;pointer-events:auto;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
-dialog:not(.disc3d-dialog)::backdrop{opacity:0;transition:opacity .1s var(--ease-exit),overlay .1s allow-discrete,display .1s allow-discrete}
+dialog:not(.disc3d-dialog)::backdrop{opacity:0;transition:opacity var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
 dialog:not(.disc3d-dialog)[open]::backdrop{opacity:1;transition-duration:.15s}
 #compareBar{transition:opacity .22s var(--ease-enter),translate .22s var(--ease-enter),display .22s allow-discrete}
 #compareBar[hidden]{opacity:0;translate:0 12px;pointer-events:none;transition-duration:.15s;transition-timing-function:var(--ease-exit)}
@@ -532,3 +536,12 @@ dialog:not(.disc3d-dialog)[open]::backdrop{opacity:1;transition-duration:.15s}
  #compareBar:not([hidden]){opacity:0;translate:0 12px}
 }
 .compare-items{position:relative}
+
+/* Header parity (batch 3, finding 11): About, Account and the other information pages take the app's header
+   height token and lockup position, so the logo does not shift when moving between pages. They have no tab row, so
+   on a phone the token stays 68px and the lockup row sits where the app's first row does (10px top, 8px bottom,
+   16px sides). */
+.info-page,.account-page{--header-height:68px}
+.info-page header,.account-page header{height:var(--header-height);min-height:var(--header-height)}
+@media(max-width:700px){.info-page header,.account-page header{display:flex;padding:10px 16px 8px}}
+.header-identity{position:relative}

@@ -20,7 +20,6 @@
 .directory-add[aria-expanded="true"] {background:var(--accent-fill);border-color:transparent;color:var(--accent-ink);box-shadow:var(--accent-glow)}
 .directory-add[aria-expanded="true"] .directory-add-icon {stroke:currentColor}
 .directory-add[aria-expanded="true"]>.dd-indicator {color:currentColor;background-color:transparent}
-@media(prefers-reduced-motion:reduce){.directory-row,.directory-add {transition:none}}
 
 .nums-head-cells {display:none}
 /* The rows scroll inside #rows; the head reserves the same scrollbar gutter so its columns stay over the cells. */

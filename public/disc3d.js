@@ -88,6 +88,8 @@
   dlg.style.transformOrigin=`${ox-left}px ${oy-top}px`;
   return [{transform:`scale(${scale})`,opacity:0},{opacity:1,offset:.45},{transform:'none',opacity:1}];
  }
+// Reduced motion keeps the pop-out as a plain opacity fade: no travel, no scale.
+ const CALM_MS=150,frames=(dlg,stage)=>calm()?[{opacity:0},{opacity:1}]:morphFrames(dlg,stage);
  // `trigger` is the element that was used (the Enlarge button or the canvas); focus returns to it on close.
  function openPopout(trigger){
   if(popout||!viewer?.state.props||!viewerModule)return;
@@ -102,16 +104,15 @@
   const p=popout={viewer:big,trigger:trigger||document.activeElement,lock,stage,anim:null,closing:false,done:false};
   dlg.classList.remove('is-closing');
   // Held invisible until the morph starts, so the full-size dialog is never painted ahead of it.
-  if(!calm())dlg.style.opacity='0';
+  dlg.style.opacity='0';
   dlg.showModal();
   // Attach once the dialog is laid out so the first fit measures the real canvas, then start from the same pose.
   big.attach(dlg.querySelector('.disc3d-dialog-body'));big.applyPose(pose);
   big.element.querySelector('canvas').focus({preventScroll:true});
-  if(calm())return;
   // One frame first: the renderer's context, shaders and first draw (queued by attach) land before the morph.
   requestAnimationFrame(()=>{
    if(popout!==p||p.closing||!dlg.open)return;
-   p.anim=dlg.animate(morphFrames(dlg,stage),{duration:MORPH_MS,easing:EASE,fill:'backwards'});
+   p.anim=dlg.animate(frames(dlg,stage),{duration:calm()?CALM_MS:MORPH_MS,easing:EASE,fill:'backwards'});
    dlg.style.opacity='';
   });
  }
@@ -121,7 +122,7 @@
   const p=popout,dlg=dialog;if(!p||!dlg?.open||p.closing)return;
   if(!p.anim){dlg.close();return;}
   p.closing=true;dlg.classList.add('is-closing');
-  if(p.anim.playState==='finished')p.anim.effect.setKeyframes(morphFrames(dlg,p.stage));
+  if(p.anim.playState==='finished')p.anim.effect.setKeyframes(frames(dlg,p.stage));
   viewer?.glidePose(p.viewer.getPose(),MORPH_MS);
   p.anim.reverse();
   p.anim.onfinish=()=>{if(popout===p){p.done=true;dlg.close();}};
