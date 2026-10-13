@@ -5,9 +5,9 @@ import fs from 'node:fs';
 import * as publicWorker from '../workers/public.mjs';
 
 // Execute real SQLite, including foreign keys and prepared bindings, like D1.
-function database(){
+function database({allMigrations=false}={}){
  const db=new DatabaseSync(':memory:');
- db.exec(fs.readFileSync('migrations/accounts/0001_google_accounts.sql','utf8'));
+ for(const file of allMigrations?fs.readdirSync('migrations/accounts').sort():['0001_google_accounts.sql'])db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
  const prepare=sql=>{
   let values=[];
   const statement={bind(...args){values=args;return statement;},async first(){return db.prepare(sql).get(...values)||null;},async all(){return {results:db.prepare(sql).all(...values)};},async run(){return {meta:{changes:db.prepare(sql).run(...values).changes}};}};
@@ -110,4 +110,30 @@ test('expired and forged sessions cannot read identity or mutate an account',asy
   }
   assert.equal((await DB.prepare('SELECT display_name FROM auth_users WHERE id=?').bind('u1').first()).display_name,'Private User');
  }finally{DB.close();}
+});
+
+test('account deletion cleans only its photos and cron retries a failed R2 delete',async()=>{
+ for(const outage of [false,true]){
+  const DB=database({allMigrations:true}),objects=new Set();let failing=outage;
+  const env={DB,TEXTURES:{async delete(key){if(failing)throw Error('R2 unavailable');objects.delete(key);}}};
+  try{
+   const token='x'.repeat(43),digest=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))).toString('base64url');
+   for(const id of ['a','b']){
+    const key=id.repeat(8)+'-0000-0000-0000-000000000000.webp';objects.add(key);
+    await DB.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').bind(id,'google-'+id,id+'@example.com',id,1,1).run();
+    await DB.prepare('INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,added_at,texture_key) VALUES (?,?,?,?,?,?,?,?)').bind('disc-'+id,id,'7446eb39abe5','ESP',10,180,'now',key).run();
+   }
+   await DB.prepare('INSERT INTO auth_sessions VALUES (?,?,?,?)').bind(digest,'a','csrf',Math.floor(Date.now()/1000)+3600).run();
+   const response=await publicWorker.default.fetch(new Request('https://atlas.example/api/account',{method:'DELETE',headers:{Cookie:'__Host-atlas-session='+token,Origin:'https://atlas.example','Content-Type':'application/json','X-Atlas-CSRF':'csrf'},body:JSON.stringify({confirmation:'DELETE'})}),env);
+   assert.equal(response.status,200);assert.deepEqual(await response.json(),{deleted:true});
+   assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM bag_discs').first()).n,1);
+   assert.equal((await DB.prepare('SELECT user_id FROM bag_discs').first()).user_id,'b');
+   assert.equal(objects.size,outage?2:1);
+   assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').first()).n,outage?1:0);
+   failing=false;const pending=[];await publicWorker.default.scheduled({},env,{waitUntil:p=>pending.push(p)});await Promise.all(pending);
+   assert.deepEqual([...objects],['bbbbbbbb-0000-0000-0000-000000000000.webp']);
+   assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').first()).n,0);
+   assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first()).n,0);
+  }finally{DB.close();}
+ }
 });

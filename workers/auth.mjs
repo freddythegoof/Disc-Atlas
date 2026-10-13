@@ -1,4 +1,5 @@
 import {createRemoteJWKSet, customFetch, jwtVerify} from 'jose';
+import {cleanupTextures} from './textures.mjs';
 
 const SESSION = '__Host-atlas-session', OAUTH = '__Host-atlas-oauth';
 const SESSION_SECONDS = 30 * 24 * 60 * 60, STATE_SECONDS = 600;
@@ -127,6 +128,7 @@ export function createAuth({googleFetch = (...args) => fetch(...args)} = {}) {
   if (data.confirmation !== 'DELETE') return json({error: 'Type DELETE to confirm account deletion.'}, 400);
   // Foreign-key cascade revokes every session for this account in the same statement.
   await env.DB.prepare('DELETE FROM auth_users WHERE id=?').bind(user.id).run();
+  await cleanupTextures(env);
   const response = json({deleted: true});response.headers.append('Set-Cookie', cookie(SESSION, '', 0));return response;
  }
  return {

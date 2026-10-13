@@ -1,6 +1,7 @@
 import {createAuth} from './auth.mjs';
 import {createCoach} from './coach.mjs';
 import {createBag} from './bag.mjs';
+import {cleanupTextures} from './textures.mjs';
 
 // Public accounts use Google-backed cookies; Sites identity headers remain untrusted.
 export function createPublicWorker(options) {
@@ -8,6 +9,7 @@ export function createPublicWorker(options) {
  const coach = createCoach(auth, options);
  const bag = createBag(auth);
  return {
+  async scheduled(_event,env,ctx){ctx.waitUntil(cleanupTextures(env));},
   async fetch(request, env = {}) {
     const path = new URL(request.url).pathname;
     if (path === '/api/bag' || path.startsWith('/api/bag/')) return bag.fetch(request, env);

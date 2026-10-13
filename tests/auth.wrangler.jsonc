@@ -4,6 +4,7 @@
   "main": "fixtures/auth-worker.mjs",
   "compatibility_date": "2026-05-15",
   "workers_dev": false,
+  "r2_buckets": [{"binding":"TEXTURES","bucket_name":"disc-atlas-textures"}],
   "vars": {"GOOGLE_CLIENT_ID":"fixture-client","GOOGLE_CLIENT_SECRET":"fixture-secret"},
   "assets": {
     "binding":"ASSETS",
