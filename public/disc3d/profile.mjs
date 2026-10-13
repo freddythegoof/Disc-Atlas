@@ -50,11 +50,11 @@ export function profileSVG({points,rim},{shape,source,specs,width=320,mold='disc
   marks=[
    // Height: a vertical dimension left of the nose, foot line to the top of the dome.
    line(xH,Y(bottom),xH,yTop),line(xH-3,Y(bottom),xH+3,Y(bottom)),line(xH-3,yTop,xH+3,yTop),line(xH,yTop,cx,yTop,true),
-   text(xH-3,yDim-4,`Height ${dims.height}`,'start'),
+   text(xH-3,yDim-6,`Height ${dims.height}`,'start'),
    // Rim width: nose to the inner rim wall, above the right rim.
    line(cx+wall*s,yDim,cx+R*s,yDim),line(cx+wall*s,yDim-3,cx+wall*s,yDim+3),line(cx+R*s,yDim-3,cx+R*s,yDim+3),
    line(cx+wall*s,yDim+3,cx+wall*s,Y(bottom+topHeight(shape,wall))-2,true),line(cx+R*s,yDim+3,cx+R*s,Y(bottom+f.plh)-2,true),
-   text(cx+R*s+3,yDim-4,`Rim width ${dims.rimWidth}`,'end'),
+   text(cx+R*s+3,yDim-6,`Rim width ${dims.rimWidth}`,'end'),
    // Rim depth: the foot up the inner wall to the underside of the flight plate, inside the cavity.
    line(cx+wall*s-5,Y(bottom),cx+wall*s-5,Y(depthTop)),line(cx+wall*s-8,Y(depthTop),cx+wall*s-2,Y(depthTop)),
    text(cx+wall*s-10,(Y(bottom)+Y(depthTop))/2+3.5,`Rim depth ${dims.rimDepth}`,'end'),
