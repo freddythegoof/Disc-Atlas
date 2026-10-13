@@ -415,6 +415,37 @@ try{
   await context.close();
  }
 
+ // Sharpness: the pop-out's drawing buffer is its laid-out (untransformed) size x pixel ratio once the open
+ // sequence completes, on first open and on reopen, in full motion and in reduced motion. A resize that lands
+ // mid-morph must not measure the dialog's shrunken, transformed rect and lock the buffer there (it then
+ // displays stretched, soft, until some unrelated layout change such as the clay toggle re-measures).
+ {
+  const bufferOf=(page,which='popout')=>page.evaluate(w=>{
+   const v=Disc3D[w],c=v.element.querySelector('canvas'),vp=c.parentElement,dpr=Math.min(devicePixelRatio,2);
+   return {buffer:[c.width,c.height],layout:[Math.round(vp.offsetWidth*dpr),Math.round(vp.offsetHeight*dpr)]};
+  },which);
+  const sharp=async(page,label)=>{
+   const b=await bufferOf(page);
+   assert.ok(b.layout[0]>0&&b.layout[1]>0,label+': the pop-out is laid out');
+   assert.deepEqual(b.buffer,b.layout,`${label}: drawing buffer ${b.buffer} matches laid-out size x pixel ratio ${b.layout}`);
+  };
+  for(const [name,opts] of [['desktop',{viewport:{width:1440,height:900}}],['phone',{viewport:{width:390,height:844},isMobile:true,hasTouch:true}],
+   ['desktop reduced motion',{viewport:{width:1440,height:900},reducedMotion:'reduce'}],['phone reduced motion',{viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'}]]){
+   const {page,context}=await open(opts);
+   await show(page,'Wraith');
+   for(const pass of ['first open','reopen']){
+    // Open and, like a reader, wait for the morph to land with nothing else touched: no clay toggle, no resize.
+    await page.evaluate(()=>Disc3D.open());await waitOpen(page);await page.waitForTimeout(150);
+    await sharp(page,`${name} ${pass}`);
+    await page.evaluate(()=>Disc3D.close());await waitClosed(page);
+   }
+   // The panel's own buffer stays matched too.
+   const panel=await bufferOf(page,'viewer');assert.deepEqual(panel.buffer,panel.layout,`${name}: panel buffer matches its layout`);
+   await context.close();
+  }
+  check('the pop-out buffer matches its laid-out size x pixel ratio on first open and reopen, in motion and reduced motion, desktop and phone');
+ }
+
  const real=errors.filter(e=>!/Frontend test: backend excluded|status of 503|Failed to load resource/.test(e));
  assert.deepEqual(real,[],'no page errors');
  check('no page errors');

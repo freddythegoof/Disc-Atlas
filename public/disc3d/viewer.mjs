@@ -146,7 +146,9 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  controls.addEventListener('start',()=>{tween=null;setPressedView(null);noteInteraction();});
 
  function resize(){
-  const r=viewport.getBoundingClientRect(),w=Math.round(r.width),h=Math.round(r.height);
+  // Layout size, not the bounding rect: the pop-out's dialog is mid-morph (scaled by a WAAPI transform) when a
+  // ResizeObserver can fire, and a transformed rect would lock the buffer at the shrunken size.
+  const w=viewport.offsetWidth,h=viewport.offsetHeight;
   drawProfile();
   if(!w||!h||(w===size.w&&h===size.h))return;
   const first=!size.w;size={w,h};
