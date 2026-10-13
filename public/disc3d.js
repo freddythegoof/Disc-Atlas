@@ -31,7 +31,7 @@
   return `<div class="disc-photo illustration-detail disc3d" data-disc3d><div class="disc3d-stage" data-sync-keep><div class="disc3d-poster">${poster}</div></div><span class="illustration-caption">${d.model3d?'3D illustration · a modelled mold profile, not a scan; generic stamp':measured(d)?'3D illustration · built from the PDGA dimensions, to scale; not a scan of the mold, generic stamp':'3D illustration · a generic shape from the flight numbers, not a measured mold or stamp'}</span></div>`;
  }
  function load(){
-  return loading||=import('./disc3d/viewer.mjs').then(m=>{viewerModule=m;viewer=m.createDiscViewer({onExpand:openPopout,onClay:setClay,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom · ${coarse()?'tap':'click'} to enlarge`});return viewer;}).catch(err=>{failed=true;console.warn('3D disc viewer unavailable; keeping the illustration.',err);throw err;});
+  return loading||=import('./disc3d/viewer.mjs').then(m=>{viewerModule=m;viewer=m.createDiscViewer({onExpand:openPopout,onClay:setClay,hint:`Drag to turn · Drag the rim to tilt · ${coarse()?'pinch':'scroll'} to zoom · ${coarse()?'tap':'click'} to enlarge`});return viewer;}).catch(err=>{failed=true;console.warn('3D disc viewer unavailable; keeping the illustration.',err);throw err;});
  }
  // `colors` {rim, plate} are optional overmold colours (bag colour choices later); without them the viewer
  // derives both from `color`. Whether a disc is an overmold is decided per record in disc3d/overmold.mjs.
@@ -97,7 +97,7 @@
   if(popout||!viewer?.state.props||!viewerModule)return;
   const props={...viewer.state.props,hand:viewer.state.hand},pose=viewer.getPose();
   let big;
-  try{big=viewerModule.createDiscViewer({segments:coarse()?72:128,onClay:setClay,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom`});}
+  try{big=viewerModule.createDiscViewer({segments:coarse()?72:128,onClay:setClay,hint:`Drag to turn · Drag the rim to tilt · ${coarse()?'pinch':'scroll'} to zoom`});}
   catch(err){console.warn('3D pop-out unavailable; keeping the panel viewer.',err);return;}
   const dlg=popoutDialog(),lock=lockScroll(),stage=viewer.element.closest('.disc3d-stage')||viewer.element;
   dlg.querySelector('#disc3dDialogTitle').textContent=props.mold||'Disc';

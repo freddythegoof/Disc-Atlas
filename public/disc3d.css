@@ -9,7 +9,7 @@
 .disc3d-canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none;border-radius:16px}
 .disc3d-canvas:active{cursor:grabbing}
 .disc3d-canvas:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
-.disc3d-hint{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap;pointer-events:none;transition:opacity .3s}
+.disc3d-hint{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 12px);text-align:center;line-height:1.4;font-size:11px;color:var(--muted);pointer-events:none;transition:opacity .3s}
 .disc3d-viewer.has-interacted .disc3d-hint{opacity:0}
 .disc3d-toolbar{display:flex;gap:6px;margin-top:10px;align-items:stretch}
 .disc3d-views{display:flex;flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}

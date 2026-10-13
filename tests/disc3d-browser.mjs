@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import {createRequire} from 'node:module';
+import {rimDragChecks,rimTouchChecks} from './disc3d-rim-drag.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 
 const dir='outputs/disc3d';
@@ -107,6 +108,8 @@ try{
   check('the viewer stays unloaded until a disc is shown');
 
   await show(page,'Destroyer');
+  await rimDragChecks(page,'viewer');
+  await rimTouchChecks(page,'viewer');
   assert.ok(requests.some(u=>/three\.module/.test(u))&&requests.some(u=>/disc3d\/viewer\.mjs/.test(u)));
   check('selecting a rated disc lazy-loads three.js and the viewer');
   for(const width of [1440,1100,800]){

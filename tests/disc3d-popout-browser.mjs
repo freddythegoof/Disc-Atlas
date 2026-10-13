@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import {createRequire} from 'node:module';
+import {rimDragChecks,rimTouchChecks,rimTapPoint} from './disc3d-rim-drag.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 
 const dir='outputs/disc3d-popout';
@@ -89,6 +90,10 @@ try{
   assert.equal(await page.locator(`${dlg}[aria-labelledby]`).count(),1);
   assert.equal(await page.locator(`${dlg} h2`).textContent(),'Destroyer');
   check('Enlarge opens a modal dialog titled with the disc');
+  await rimDragChecks(page,'popout');
+  await rimTouchChecks(page,'popout');
+  const popTap=await rimTapPoint(page,'popout');await page.mouse.click(popTap.x,popTap.y);
+  assert.equal(await isOpen(page),true,'a stationary rim tap leaves the pop-out open');
 
   // Focus moves into the modal; the page behind is inert, so Tab cannot leave.
   assert.ok(await focusInside(page),'focus is inside the dialog');
@@ -211,9 +216,12 @@ try{
   await page.mouse.move(pbox.x+pbox.width/2+60,pbox.y+pbox.height/2+20,{steps:6});await page.mouse.up();
   await page.waitForTimeout(300);
   assert.equal(await isOpen(page),false,'dragging the panel viewer does not open the pop-out');
-  await page.mouse.click(pbox.x+pbox.width/2,pbox.y+pbox.height/2);await waitOpen(page);
+  const panelTap=await rimTapPoint(page,'viewer');
+  await page.mouse.click(panelTap.x,panelTap.y);await waitOpen(page);
   await page.keyboard.press('Escape');await waitClosed(page);
   assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('#detail canvas')),true,'focus returns to the canvas that was clicked');
+  await page.mouse.click(pbox.x+pbox.width/2,pbox.y+pbox.height/2);await waitOpen(page);
+  await page.keyboard.press('Escape');await waitClosed(page);
   check('a click on the canvas pops it out; a drag only turns it');
 
   // Wheel over the panel viewer still zooms it and never opens the pop-out.
@@ -307,6 +315,10 @@ try{
   // A tap on the panel viewer opens it; a pinch or a drag on it does not.
   await page.locator('#detail canvas').scrollIntoViewIfNeeded();
   const [px,py]=await center('#detail canvas');
+  const phoneRim=await rimTapPoint(page,'viewer');
+  await page.touchscreen.tap(phoneRim.x,phoneRim.y);await waitOpen(page);
+  await page.locator(`${dlg} [data-disc3d-close]`).tap();await waitClosed(page);
+  await page.locator('#detail canvas').scrollIntoViewIfNeeded();
   await page.touchscreen.tap(px,py);await waitOpen(page);
   await page.locator(`${dlg} [data-disc3d-close]`).tap();await waitClosed(page);
   await page.locator('#detail canvas').scrollIntoViewIfNeeded();

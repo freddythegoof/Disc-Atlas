@@ -74,7 +74,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const coarse=matchMedia('(pointer: coarse)').matches;
  const radial=segments||(coarse?56:80);
  const element=document.createElement('div');element.className='disc3d-viewer';
- element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · scroll to zoom'}</span>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
+ element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · Drag the rim to tilt · scroll to zoom'}</span>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
 <figure class="disc3d-profile" hidden><div class="disc3d-profile-art"></div><figcaption class="disc3d-profile-caption"></figcaption></figure>
 <div class="disc3d-toolbar"><div class="disc3d-views" role="group" aria-label="Preset views">${Object.entries(VIEWS).map(([k,v])=>`<button type="button" data-disc3d-view="${k}" aria-pressed="${k==='angle'}">${v.label}</button>`).join('')}</div><button type="button" data-disc3d-flip aria-pressed="false">Flip</button><button type="button" data-disc3d-clay aria-pressed="false" title="Clay: plain shape and cross-section">Clay</button></div>
 <label class="disc3d-tilt"><span class="disc3d-tilt-end">Anhyzer</span><input type="range" min="${-MAX_TILT}" max="${MAX_TILT}" step="1" value="0" data-disc3d-tilt aria-label="Release angle, anhyzer to hyzer"><span class="disc3d-tilt-end">Hyzer</span><output data-disc3d-tilt-value>Flat</output></label>`;
@@ -260,7 +260,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  }
  function label(){
   const props=state.props||{};
-  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
+  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag the rim to tilt. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
  }
  // The cross-section under the stage, while clay is on: static SVG, redrawn only for a new disc or width.
  function drawProfile(){
@@ -284,19 +284,87 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   if(notify)onClay?.(on);
  }
 
- // A tap is decided on pointerup but acted on at the click that follows it, so the pop-out never opens
- // under a finger that is still down (its controls would receive the tap's synthesized click).
- let press=null,tapped=0;
- if(onExpand){
-  canvas.addEventListener('pointerdown',e=>{
-   if(press&&press.id!==e.pointerId&&performance.now()-press.at<5000){press.moved=true;return;}   // a second finger is a pinch
-   press={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now(),moved:e.button!==0};
-  });
-  canvas.addEventListener('pointermove',e=>{if(press&&e.pointerId===press.id&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>TAP_SLOP)press.moved=true;});
-  canvas.addEventListener('pointerup',e=>{if(!press||e.pointerId!==press.id)return;const p=press;press=null;if(!p.moved&&performance.now()-p.at<TAP_MS)tapped=performance.now();});
-  canvas.addEventListener('pointercancel',()=>{press=null;});
-  canvas.addEventListener('click',()=>{if(tapped&&performance.now()-tapped<400){tapped=0;onExpand(canvas);}});
+ // Raycast the actual body (also in clay), then measure whether rotating that hit
+ // about the existing world Z tilt axis visibly raises it. Top / points near the
+ // axis retain orbit: a vertical pull cannot read as lifting an edge there.
+ const rimRay=new THREE.Raycaster(),rimPointer=new THREE.Vector2(),rimLocal=new THREE.Vector3(),rimLift=new THREE.Vector3();
+ const cameraInverse=new THREE.Quaternion();
+ function rimAt(e){
+  if(!state.key)return null;
+  const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;
+  camera.updateMatrixWorld();body.updateWorldMatrix(true,false);
+  rimPointer.set((e.clientX-rect.left)/rect.width*2-1,1-(e.clientY-rect.top)/rect.height*2);
+  rimRay.setFromCamera(rimPointer,camera);
+  const hit=rimRay.intersectObject(body,false)[0];if(!hit)return null;
+  body.worldToLocal(rimLocal.copy(hit.point));
+  if(Math.hypot(rimLocal.x,rimLocal.z)<state.radius*.7)return null;
+  cameraInverse.copy(camera.quaternion).invert();
+  rimLift.set(-hit.point.y,hit.point.x,0).applyQuaternion(cameraInverse);
+  if(Math.abs(rimLift.y)/state.radius<.15)return null;
+  return {sign:Math.sign(rimLift.y)*hyzerSign(state.hand),pxPerDegree:Math.max(2,rect.height/(2*MAX_TILT))};
  }
+ // Capture-phase handlers own only rim gestures, before OrbitControls sees down.
+ // A tap is still acted on at click, after the finger has been released.
+ let press=null,tapped=0,rimGrab=null,replaying=false,lastHover=-Infinity;
+ const pointers=new Map();
+ function endRim(){
+  if(!rimGrab)return;
+  const grab=rimGrab;rimGrab=null;controls.enabled=grab.enabled;canvas.style.cursor='';
+  if(canvas.hasPointerCapture(grab.id))canvas.releasePointerCapture(grab.id);
+ }
+ function pointerDown(e){
+  if(replaying)return;
+  const first=pointers.values().next().value;pointers.set(e.pointerId,e);tapped=0;
+  if(pointers.size>1){
+   if(press)press.moved=true;
+   if(rimGrab){
+    endRim();
+    // OrbitControls never saw the captured first down. Seed its public event
+    // path at the first finger's current position before this second down.
+    replaying=true;
+    try{canvas.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:first.pointerId,pointerType:first.pointerType,
+     clientX:first.clientX,clientY:first.clientY,button:0,buttons:1}));}finally{replaying=false;}
+   }
+   return;
+  }
+  if(onExpand)press={id:e.pointerId,x:e.clientX,y:e.clientY,at:performance.now(),moved:e.button!==0};
+  if(e.button!==0||!controls.enabled)return;
+  const rim=rimAt(e);if(!rim)return;
+  rimGrab={...rim,id:e.pointerId,x:e.clientX,y:e.clientY,tilt:state.tilt,enabled:controls.enabled};
+  controls.enabled=false;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='ns-resize';
+  tween=null;e.stopImmediatePropagation();
+ }
+ function pointerMove(e){
+  if(pointers.has(e.pointerId))pointers.set(e.pointerId,e);
+  if(press&&e.pointerId===press.id&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>TAP_SLOP)press.moved=true;
+  if(rimGrab&&e.pointerId===rimGrab.id){
+   e.stopImmediatePropagation();
+   if(Math.hypot(e.clientX-rimGrab.x,e.clientY-rimGrab.y)<=TAP_SLOP&&!rimGrab.moved)return;
+   rimGrab.moved=true;noteInteraction();
+   setTilt(rimGrab.tilt+(rimGrab.y-e.clientY)/rimGrab.pxPerDegree*rimGrab.sign);
+  }else if(!pointers.size&&e.pointerType!=='touch'&&performance.now()-lastHover>40){
+   lastHover=performance.now();canvas.style.cursor=rimAt(e)?'ns-resize':'';
+  }
+ }
+ function pointerEnd(e){
+  pointers.delete(e.pointerId);
+  if(press&&e.pointerId===press.id){
+   const p=press;press=null;
+   if(e.type==='pointerup'&&!p.moved&&performance.now()-p.at<TAP_MS)tapped=performance.now();
+  }
+  if(rimGrab&&e.pointerId===rimGrab.id){e.stopImmediatePropagation();endRim();}
+ }
+ function lostCapture(e){if(rimGrab?.id===e.pointerId){press=null;pointers.delete(e.pointerId);endRim();}}
+ function leaveRim(){if(!rimGrab)canvas.style.cursor='';}
+ function cancelRim(){press=null;tapped=0;pointers.clear();endRim();}
+ canvas.addEventListener('pointerdown',pointerDown,true);
+ canvas.addEventListener('pointermove',pointerMove,true);
+ canvas.addEventListener('pointerup',pointerEnd,true);
+ canvas.addEventListener('pointercancel',pointerEnd,true);
+ canvas.addEventListener('lostpointercapture',lostCapture);
+ canvas.addEventListener('pointerleave',leaveRim);
+ window.addEventListener('blur',cancelRim);
+ if(onExpand)canvas.addEventListener('click',()=>{if(tapped&&performance.now()-tapped<400){tapped=0;onExpand(canvas);}});
  element.addEventListener('click',e=>{
   const x=e.target.closest('[data-disc3d-expand]');if(x){onExpand?.(x);return;}
   const v=e.target.closest('[data-disc3d-view]');if(v){noteInteraction();setView(v.dataset.disc3dView);}
@@ -323,6 +391,10 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  };
  window.addEventListener('atlas-theme-change',themeChanged);
  function dispose(){
+  cancelRim();window.removeEventListener('blur',cancelRim);
+  canvas.removeEventListener('pointerdown',pointerDown,true);canvas.removeEventListener('pointermove',pointerMove,true);
+  canvas.removeEventListener('pointerup',pointerEnd,true);canvas.removeEventListener('pointercancel',pointerEnd,true);
+  canvas.removeEventListener('lostpointercapture',lostCapture);canvas.removeEventListener('pointerleave',leaveRim);
   window.removeEventListener('atlas-theme-change',themeChanged);
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
   body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();clayMaterial.dispose();clayRimMaterial.dispose();matcap.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
