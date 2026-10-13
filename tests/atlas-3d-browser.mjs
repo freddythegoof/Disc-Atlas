@@ -251,13 +251,18 @@ try{
   // The zoom at which minis are exactly as big as the low level's largest size.
   const z0=await page.evaluate(()=>{let lo=1,hi=9;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(AtlasGroups.gapSize(m,'mini')<24)lo=m;else hi=m;}return (lo+hi)/2;});
   await show(page,{zoom:z0});
+  // What the hysteresis governs is each disc's decided level (`want`), followed per entry: a disc that leaves the
+  // set and rejoins is a new entry and decides afresh from its size, which is not a flip. The image on screen
+  // (`lod`) can briefly be a cached render of another level standing in while the frame's render budget defers
+  // the wanted one (atlas-art.mjs get); whether that happens depends on the machine's load, so it is checked
+  // separately: once settled, every disc must show its decided level.
   await page.evaluate(()=>{
-   window.__lods=new Map();window.__changes=[];window.__stand=0;
+   window.__wants=new WeakMap();window.__changes=[];window.__stand=0;
    const tick=()=>{
-    for(const g of mapGaps){if(!g.drawn||!g.lod)continue;const key=g.id+'|'+g.tier,was=__lods.get(key);
-     if(was&&was!==g.lod)__changes.push({key,from:was,to:g.lod,size:g.size,zoom});
+    for(const g of mapGaps){if(!g.drawn||!g.want)continue;const was=__wants.get(g);
+     if(was&&was!==g.want)__changes.push({key:g.id+'|'+g.tier,from:was,to:g.want,size:g.size,zoom});
      if(g.lod!==g.want)__stand++;
-     __lods.set(key,g.lod);}
+     __wants.set(g,g.want);}
     requestAnimationFrame(tick);
    };
    tick();
@@ -282,8 +287,10 @@ try{
   assert.ok(during.size>24*1.18&&during.size<24*1.5,`zoom: the gesture took minis past the margin (${during.size.toFixed(1)}px)`);
   assert.equal(during.changes,before.changes,'zoom: renders hold while the zoom is moving '+JSON.stringify(await page.evaluate(()=>({size:AtlasGroups.gapSize(zoom,'mini'),c:__changes.slice(0,3)}))));
   await settled(page);
+  // Any stand-in has given way to the disc's own render at its decided level.
+  await page.waitForFunction(()=>mapGaps.every(g=>!g.drawn||!g.want||g.lod===g.want));
   const after=await page.evaluate(()=>({changes:__changes.slice(),minis:mapGaps.filter(g=>g.drawn&&g.tier==='mini'&&g.lod).map(g=>g.lod)}));
-  assert.ok(after.changes.length>0&&after.changes.every(c=>c.from==='low'&&c.to==='mid')&&after.minis.every(l=>l==='mid'),'zoom: once settled, the minis that outgrew the margin move up a level, once');
+  assert.ok(after.changes.length>0&&after.changes.every(c=>c.from==='low'&&c.to==='mid'&&c.key.endsWith('|mini'))&&after.minis.length>20&&after.minis.every(l=>l==='mid'),'zoom: once settled, the minis that outgrew the margin move up a level, once '+JSON.stringify({changes:after.changes.slice(0,4),minis:[...new Set(after.minis)]}));
   assert.equal(new Set(after.changes.map(c=>c.key)).size,after.changes.length,'zoom: no disc changes level twice');
   check(`zoom: minis at their 24px threshold keep their render through ${28} nudges, hold it through a zoom in progress and change level once when it settles`);
   await page.context().close();
