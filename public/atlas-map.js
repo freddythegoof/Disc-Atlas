@@ -792,16 +792,26 @@ function openCluster(g,anchor,pinned=false){
 }
 function positionCluster(){
  if(!activeCluster)return;const pop=$('#clusterPopover'),a=clusterAnchor?.getBoundingClientRect()||$('#map').getBoundingClientRect();
+ // The popover grows from the marker that opened it (its centre, kept inside the popover); a phone sheet
+ // rises from its bottom edge, and a marker far from the popover leaves it scaling from the centre.
+ const origin=()=>{
+  if(innerWidth<700){pop.style.setProperty('--menu-origin','50% 100%');return;}
+  // Layout sizes, not getBoundingClientRect: the popover is mid-scale while it enters.
+  const left=parseFloat(pop.style.left)||0,top=parseFloat(pop.style.top)||0,w=pop.offsetWidth,h=pop.offsetHeight,cx=a.left+a.width/2,cy=a.top+a.height/2;
+  const dx=Math.max(left-cx,0,cx-left-w),dy=Math.max(top-cy,0,cy-top-h);
+  pop.style.setProperty('--menu-origin',clusterAnchor&&Math.hypot(dx,dy)<=220?`${Math.round(Math.min(w,Math.max(0,cx-left)))}px ${Math.round(Math.min(h,Math.max(0,cy-top)))}px`:'50% 50%');
+ };
  const width=Math.min(680,innerWidth-24);pop.style.width=width+'px';
  // Reserve the entire control band, including when the popover is a mobile sheet.
  const controlTop=$('.map-controls').getBoundingClientRect().top,coach=$('#coachButton');
  const ceiling=Math.min(controlTop,getComputedStyle(coach).visibility==='hidden'?controlTop:coach.getBoundingClientRect().top)-16;
  pop.style.maxHeight=Math.max(120,ceiling-16)+'px';
- if(innerWidth<700){pop.style.left='12px';pop.style.top='';pop.style.bottom=(innerHeight-ceiling)+'px';return;}
- pop.style.bottom='';const height=Math.min(pop.getBoundingClientRect().height,ceiling-16);
+ if(innerWidth<700){pop.style.left='12px';pop.style.top='';pop.style.bottom=(innerHeight-ceiling)+'px';origin();return;}
+ pop.style.bottom='';const height=Math.min(pop.offsetHeight,ceiling-16);
  let left=a.right+16,top=a.top-24;
  if(left+width>innerWidth-12){left=a.left-width-16;if(left<12){left=Math.max(12,Math.min(innerWidth-width-12,a.left-width/2));top=a.bottom+16;if(top+height>innerHeight-12)top=a.top-height-16;}}
  pop.style.left=Math.max(12,Math.min(innerWidth-width-12,left))+'px';pop.style.top=Math.max(12,Math.min(ceiling-height,top))+'px';
+ origin();
 }
 function comparisonPalette(){return brandPalette.slice(0,3);}
 function comparisonMarkup(items){
@@ -881,16 +891,16 @@ function initAtlasMap(){
    panMap(midpoint.x-pinchMidpoint.x,midpoint.y-pinchMidpoint.y);
    const now=performance.now(),dt=Math.max(8,now-lastMove);lastMove=now;
    for(const axis of CAMERA_AXES)velocity[axis]=velocity[axis]*.55+((axis==='zoom'?zoom:pan[axis])-before[axis])/dt*.45;
-   pinchDistance=distance;pinchMidpoint=midpoint;mapMoved=true;
+   pinchDistance=distance;pinchMidpoint=midpoint;mapMoved=true;map.classList.add('is-panning');
   }else{const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
    if(!mapMoved&&Math.hypot(e.clientX-mapDrag.x,e.clientY-mapDrag.y)<5)return;
    const now=performance.now(),dt=Math.max(8,now-lastMove);lastMove=now;
    velocity={zoom:0,x:velocity.x*.55+dx/dt*.45,y:velocity.y*.55+dy/dt*.45};
-   mapMoved=true;map.setPointerCapture(e.pointerId);panMap(dx,dy);
+   mapMoved=true;map.classList.add('is-panning');map.setPointerCapture(e.pointerId);panMap(dx,dy);
   }
  });
  const stop=e=>{if(!pointers.has(e.pointerId))return;if(e.type!=='pointerup')gestureCancelled=true;pointers.delete(e.pointerId);pinchDistance=0;pinchMidpoint=null;mapDrag=pointers.size?[...pointers.values()][0]:null;
-  if(!pointers.size){map.classList.remove('is-dragging');pointerAt.pressed=false;pointerAt.at=performance.now();
+  if(!pointers.size){map.classList.remove('is-dragging','is-panning');pointerAt.pressed=false;pointerAt.at=performance.now();
    // A finger that lifts leaves nothing to hover.
    if(e.pointerType==='touch')pointerAt.inside=false;
    releaseEdge();

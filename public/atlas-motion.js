@@ -69,13 +69,33 @@ window.AtlasMotion = (() => {
     gsap.to(art,{scale:1.06,y:-3,duration:.18,ease:'power3.out',overwrite:true});
   });
   document.addEventListener('pointermove',e=>{
+    if (pressed&&document.querySelector('#map.is-panning')) releasePress();
     if (!art || !box || !enabled() || e.buttons || !hovered.contains(e.target)) return;
     const x=Math.max(-1,Math.min(1,(e.clientX-box.left)/box.width*2-1));
     const y=Math.max(-1,Math.min(1,(e.clientY-box.top)/box.height*2-1));
     gsap.to(art,{x:x*3,y:-3+y*2,rotation:x*3,scale:1.06,duration:.12,ease:'power3.out',overwrite:true});
   });
   document.addEventListener('pointerout',e=>{if(hovered && !hovered.contains(e.relatedTarget))releaseHover();});
-  document.addEventListener('pointerdown',releaseHover);
+  // Press: a marker's art dips to .97 on pointerdown (touch included, where there is no hover) and returns on
+  // release, back to the hover pose when the pointer is still over it. GSAP owns .marker-stack, so the press is
+  // a tween here, not CSS. Panning lets go of it.
+  let pressed=null;
+  function releasePress() {
+    const stack=pressed;pressed=null;if (!stack) return;
+    const over=hovered&&hovered.contains(stack);
+    if (enabled()) gsap.to(stack,{x:0,y:over?-3:0,rotation:0,scale:over?1.06:1,duration:.32,ease:'elastic.out(1,0.65)',overwrite:true,clearProps:over?'':'transform'});
+    else {cancel(stack);window.gsap?.set(stack,{clearProps:'transform'});}
+  }
+  document.addEventListener('pointerdown',e=>{
+    const stack=e.button===0&&window.gsap?e.target.closest?.('.atlas-marker')?.querySelector('.marker-stack'):null;
+    if (!stack) {releaseHover();return;}
+    if (hovered&&!hovered.contains(stack)) releaseHover();
+    pressed=stack;gsap.to(stack,{x:0,y:0,rotation:0,scale:.97,duration:enabled()?.09:0,ease:'power2.out',overwrite:true});
+  });
+  document.addEventListener('pointerup',releasePress);
+  document.addEventListener('pointercancel',releasePress);
+  // iOS Safari applies :active (the press feedback in cosmic.css) only while a touch listener exists.
+  document.addEventListener('touchstart',()=>{},{passive:true});
   reduced.addEventListener('change',()=>{
     releaseHover();
     if(reduced.matches)document.querySelectorAll('.marker-halo').forEach(node=>node.getAnimations().forEach(animation=>animation.cancel()));

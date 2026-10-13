@@ -47,7 +47,8 @@ async function show(page,name){
 }
 const dlg='dialog.disc3d-dialog';
 const isOpen=page=>page.evaluate(sel=>!!document.querySelector(sel)?.open,dlg);
-const waitOpen=async page=>{await page.waitForFunction(sel=>document.querySelector(sel)?.open&&document.querySelector(sel+' canvas'),dlg);await page.evaluate(()=>Disc3D.popout.debug.renderNow());};
+// Open means the morph out of the panel has landed (its opacity hold is lifted and no animation runs).
+const waitOpen=async page=>{await page.waitForFunction(sel=>{const d=document.querySelector(sel);return d?.open&&d.querySelector('canvas')&&d.style.opacity===''&&!d.getAnimations().length;},dlg);await page.evaluate(()=>Disc3D.popout.debug.renderNow());};
 const waitClosed=page=>page.waitForFunction(sel=>!document.querySelector(sel)?.open&&!Disc3D.popout,dlg);
 const camera=(page,which='popout')=>page.evaluate(w=>Disc3D[w].debug.camera.position.toArray(),which);
 const dist=v=>Math.hypot(...v);

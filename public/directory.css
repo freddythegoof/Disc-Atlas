@@ -17,11 +17,10 @@
 .directory-add-icon {width:14px;height:14px;flex:none;fill:none;stroke:var(--lime);stroke-width:1.9px;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .directory-row:hover .directory-add {border-color:var(--accent-edge)}
 .directory-add:hover {background:var(--panel);border-color:var(--accent-edge);box-shadow:0 2px 8px -2px var(--shadow)}
-.directory-add:active {transform:scale(.97)}
 .directory-add[aria-expanded="true"] {background:var(--accent-fill);border-color:transparent;color:var(--accent-ink);box-shadow:var(--accent-glow)}
 .directory-add[aria-expanded="true"] .directory-add-icon {stroke:currentColor}
 .directory-add[aria-expanded="true"]>.dd-indicator {color:currentColor;background-color:transparent}
-@media(prefers-reduced-motion:reduce){.directory-row,.directory-add {transition:none}.directory-add:active {transform:none}}
+@media(prefers-reduced-motion:reduce){.directory-row,.directory-add {transition:none}}
 
 .nums-head-cells {display:none}
 /* The rows scroll inside #rows; the head reserves the same scrollbar gutter so its columns stay over the cells. */

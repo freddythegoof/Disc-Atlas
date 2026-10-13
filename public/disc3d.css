@@ -31,7 +31,9 @@
 /* The pop-out: a modal dialog in the site's dialog style, with the same viewer at the size of the window. */
 .disc3d-dialog{width:min(1040px,calc(100vw - 48px));height:min(780px,calc(100dvh - 48px));max-width:none;max-height:none;padding:0;overflow:hidden;overscroll-behavior:contain}
 .disc3d-dialog:not([open]){display:none}
-.disc3d-dialog[open]{animation:disc3d-dialog-in .16s ease-out}
+.disc3d-dialog::backdrop{transition:opacity .3s cubic-bezier(.16,1,.3,1)}
+.disc3d-dialog.is-closing::backdrop{opacity:0}
+@starting-style{.disc3d-dialog[open]::backdrop{opacity:0}}
 .disc3d-dialog-panel{display:flex;flex-direction:column;height:100%;padding:18px 22px 20px}
 .disc3d-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .disc3d-dialog-eyebrow{font-size:10px;letter-spacing:1.5px;color:var(--muted)}
@@ -46,13 +48,13 @@
 .disc3d-dialog .disc3d-toolbar button{min-height:40px;font-size:13px}
 .disc3d-dialog .disc3d-hint{font-size:12px;bottom:10px}
 .disc3d-dialog-caption{margin:10px 0 0;font-size:12px;text-align:center}
-@keyframes disc3d-dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:700px){
  .disc3d-poster,.disc3d-viewport{height:190px}
  .disc3d-toolbar button{min-height:36px}
  /* Phones: nearly the whole screen, controls under the disc inside the thumb's reach. */
  .disc3d-dialog{inset:8px;margin:0;width:calc(100vw - 16px);height:calc(100dvh - 16px)}
  .disc3d-dialog-panel{padding:14px 14px 16px}
+ .disc3d-dialog-head{touch-action:none}   /* the swipe-down dismiss starts here, never on the canvas */
  .disc3d-dialog h2{font-size:22px}
  .disc3d-dialog .disc3d-viewport{height:auto}
  .disc3d-dialog .disc3d-toolbar button{min-height:44px}
@@ -69,4 +71,4 @@
  .disc3d-dialog .disc3d-toolbar,.disc3d-dialog .disc3d-tilt{margin-top:6px}
 }
 @media(max-width:980px) and (min-width:701px){.detail .disc-photo.disc3d{float:none;width:100%;height:auto!important;margin:0 0 20px}}
-@media(prefers-reduced-motion:reduce){.disc3d-hint{transition:none}.disc3d-dialog[open]{animation:none}}
+@media(prefers-reduced-motion:reduce){.disc3d-hint{transition:none}.disc3d-dialog::backdrop{transition:none}}

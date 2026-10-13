@@ -55,6 +55,11 @@
  }
  // The pop-out is a native modal <dialog>, like the site's others: the browser keeps focus inside it, closes
  // it on Escape and inerts the page behind. The viewer inside is built per opening and released on close.
+ // It opens as a FLIP out of the panel's stage and closes by reversing that same animation (WAAPI, transform and
+ // opacity), so it can be turned around at any moment from where it is; the panel's disc turns to the pose
+ // the reader left across the exit. On a phone, a swipe down from the header dismisses it.
+ const EASE='cubic-bezier(.16,1,.3,1)',MORPH_MS=320;
+ const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function popoutDialog(){
   if(dialog)return dialog;
   dialog=document.createElement('dialog');dialog.className='disc3d-dialog';dialog.setAttribute('aria-labelledby','disc3dDialogTitle');
@@ -64,12 +69,24 @@
   let pressedOutside=false;
   dialog.addEventListener('pointerdown',e=>{pressedOutside=e.target===dialog;});
   dialog.addEventListener('click',e=>{
-   if(e.target.closest('[data-disc3d-close]')||e.target===dialog&&pressedOutside)dialog.close();
+   if(e.target.closest('[data-disc3d-close]')||e.target===dialog&&pressedOutside)requestClose();
    pressedOutside=false;
   });
+  // Escape runs the same exit as the close button.
+  dialog.addEventListener('cancel',e=>{e.preventDefault();requestClose();});
   dialog.addEventListener('close',closePopout);
+  swipeToDismiss(dialog);
   document.body.appendChild(dialog);
   return dialog;
+ }
+ // Where the dialog starts: shrunk about a point chosen so its centre lands on the stage's centre (transform-origin
+ // at the stage), at the scale that fits it inside the stage. Layout sizes, so a running animation cannot skew them.
+ function morphFrames(dlg,stage){
+  const w=dlg.offsetWidth,h=dlg.offsetHeight,left=dlg.offsetLeft,top=dlg.offsetTop,s=stage.getBoundingClientRect();
+  const scale=Math.max(.05,Math.min(s.width/w,s.height/h,1)),cx=left+w/2,cy=top+h/2,sx=s.left+s.width/2,sy=s.top+s.height/2;
+  const k=1-scale,ox=k>.02?(sx-scale*cx)/k:cx,oy=k>.02?(sy-scale*cy)/k:cy;
+  dlg.style.transformOrigin=`${ox-left}px ${oy-top}px`;
+  return [{transform:`scale(${scale})`,opacity:0},{opacity:1,offset:.45},{transform:'none',opacity:1}];
  }
  // `trigger` is the element that was used (the Enlarge button or the canvas); focus returns to it on close.
  function openPopout(trigger){
@@ -78,22 +95,77 @@
   let big;
   try{big=viewerModule.createDiscViewer({segments:coarse()?72:128,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom`});}
   catch(err){console.warn('3D pop-out unavailable; keeping the panel viewer.',err);return;}
-  const dlg=popoutDialog(),lock=lockScroll();
+  const dlg=popoutDialog(),lock=lockScroll(),stage=viewer.element.closest('.disc3d-stage')||viewer.element;
   dlg.querySelector('#disc3dDialogTitle').textContent=props.mold||'Disc';
   dlg.querySelector('.disc3d-dialog-caption').textContent=viewer.element.closest('[data-disc3d]')?.querySelector('.illustration-caption')?.textContent||'';
   big.update(props);
-  popout={viewer:big,trigger:trigger||document.activeElement,lock};
+  const p=popout={viewer:big,trigger:trigger||document.activeElement,lock,stage,anim:null,closing:false,done:false};
+  dlg.classList.remove('is-closing');
+  // Held invisible until the morph starts, so the full-size dialog is never painted ahead of it.
+  if(!calm())dlg.style.opacity='0';
   dlg.showModal();
   // Attach once the dialog is laid out so the first fit measures the real canvas, then start from the same pose.
   big.attach(dlg.querySelector('.disc3d-dialog-body'));big.applyPose(pose);
   big.element.querySelector('canvas').focus({preventScroll:true});
+  if(calm())return;
+  // One frame first: the renderer's context, shaders and first draw (queued by attach) land before the morph.
+  requestAnimationFrame(()=>{
+   if(popout!==p||p.closing||!dlg.open)return;
+   p.anim=dlg.animate(morphFrames(dlg,stage),{duration:MORPH_MS,easing:EASE,fill:'backwards'});
+   dlg.style.opacity='';
+  });
+ }
+ // The exit: the open animation reversed from wherever it is, the backdrop fading with it, the panel's disc
+ // turning to the dialog's pose; the dialog closes when it ends.
+ function requestClose(){
+  const p=popout,dlg=dialog;if(!p||!dlg?.open||p.closing)return;
+  if(!p.anim){dlg.close();return;}
+  p.closing=true;dlg.classList.add('is-closing');
+  if(p.anim.playState==='finished')p.anim.effect.setKeyframes(morphFrames(dlg,p.stage));
+  viewer?.glidePose(p.viewer.getPose(),MORPH_MS);
+  p.anim.reverse();
+  p.anim.onfinish=()=>{if(popout===p){p.done=true;dlg.close();}};
  }
  function closePopout(){
   const p=popout;if(!p)return;popout=null;
-  viewer?.applyPose(p.viewer.getPose());
+  p.anim?.cancel();p.swipeAnim?.cancel();
+  if(dialog){dialog.classList.remove('is-closing');dialog.style.cssText='';}
+  if(!p.done)viewer?.applyPose(p.viewer.getPose());
   p.viewer.dispose();p.lock();
   const back=p.trigger?.isConnected?p.trigger:viewer?.element.querySelector('canvas');
   back?.focus({preventScroll:true});
+ }
+ // Phones: drag the header down to dismiss. The gesture lives on the header only, so it never competes with
+ // the canvas's own rotate; a release past ~22% of the screen, or a fling, finishes the exit from there,
+ // anything less springs back.
+ function swipeToDismiss(dlg){
+  const head=dlg.querySelector('.disc3d-dialog-head');let swipe=null;
+  head.addEventListener('pointerdown',e=>{
+   const p=popout;
+   if(!p||p.closing||p.anim?.playState==='running'||e.pointerType==='mouse'||!e.isPrimary||e.target.closest('button')||!matchMedia('(max-width:700px)').matches)return;
+   swipe={id:e.pointerId,y0:e.clientY,t:e.timeStamp,y:e.clientY,v:0,dy:0};head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove',e=>{
+   if(!swipe||e.pointerId!==swipe.id)return;
+   const dy=e.clientY-swipe.y0,dt=Math.max(1,e.timeStamp-swipe.t);
+   swipe.v=swipe.v*.6+(e.clientY-swipe.y)/dt*.4;swipe.t=e.timeStamp;swipe.y=e.clientY;
+   swipe.dy=dy>0?dy:dy*.15;   // pulling up meets resistance
+   dlg.style.transform=`translateY(${swipe.dy}px)`;dlg.style.opacity=String(1-Math.min(.45,Math.max(0,swipe.dy)/innerHeight));
+  });
+  const release=e=>{
+   if(!swipe||e.pointerId!==swipe.id)return;
+   const {dy,v}=swipe,p=popout;swipe=null;
+   if(!p)return;
+   const from={transform:`translateY(${dy}px)`,opacity:dlg.style.opacity||'1'},dismiss=e.type==='pointerup'&&dy+v*180>Math.min(160,innerHeight*.22);
+   dlg.style.transform='';dlg.style.opacity='';
+   if(!dismiss){if(dy&&!calm())dlg.animate([from,{transform:'none',opacity:1}],{duration:300,easing:EASE});return;}
+   p.closing=true;dlg.classList.add('is-closing');
+   if(calm()){p.done=true;viewer?.applyPose(p.viewer.getPose());dlg.close();return;}
+   viewer?.glidePose(p.viewer.getPose(),220);
+   p.swipeAnim=dlg.animate([from,{transform:`translateY(${dy+(innerHeight-dy)*.5}px)`,opacity:0}],{duration:220,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+   p.swipeAnim.onfinish=()=>{if(popout===p){p.done=true;dlg.close();}};
+  };
+  head.addEventListener('pointerup',release);head.addEventListener('pointercancel',release);
  }
  // The page behind must not scroll under a touch or wheel on the backdrop; the scrollbar's width is kept.
  function lockScroll(){
@@ -103,6 +175,6 @@
   return ()=>{root.style.overflow=before.overflow;root.style.paddingRight=before.paddingRight;};
  }
  function setHand(next){hand=next||'RHBH';viewer?.setHand(hand);popout?.viewer.setHand(hand);}
- window.Disc3D={hasModel,markup,sync,setHand,get viewer(){return viewer;},get popout(){return popout?.viewer||null;},
-  open:()=>openPopout(viewer?.element.querySelector('[data-disc3d-expand]')),close:()=>dialog?.open&&dialog.close()};
+ window.Disc3D={hasModel,markup,sync,setHand,get viewer(){return viewer;},get popout(){return popout?.viewer||null;},get popoutAnimation(){return popout?.anim||null;},
+  open:()=>openPopout(viewer?.element.querySelector('[data-disc3d-expand]')),close:()=>requestClose()};
 })();

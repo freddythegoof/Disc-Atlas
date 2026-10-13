@@ -486,6 +486,8 @@ function positionAddMenu(panel,trigger){
  const width=addMenu.offsetWidth,height=addMenu.offsetHeight,below=rect.bottom+height+8<=viewH;
  addMenu.style.left=Math.max(8,Math.min(viewW-width-8,wide?rect.left:rect.right-width))+'px';
  addMenu.style.top=(below?rect.bottom+6:Math.max(8,rect.top-height-6))+'px';addMenu.dataset.placement=below?'below':'above';
+ // The menu grows from the corner that meets its trigger: its left edge under a full-width trigger, its right edge under a small one.
+ addMenu.style.setProperty('--menu-origin',(wide?'left ':'right ')+(below?'top':'bottom'));
 }
 document.addEventListener('click',event=>{
  const action=event.target.closest('[data-add-menu]');

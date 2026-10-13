@@ -36,14 +36,16 @@ try{
  };
  const shoot=async name=>{await page.waitForTimeout(220);await page.screenshot({path:`${dir}/${name}.png`});shots.push(name);};
  // The open menu: inside the visible viewport with 8 px to spare, nothing inside it cut off, and on top.
- const menuInView=()=>page.evaluate(()=>{
+ // The menu scales in over 150 ms from the corner at its trigger (batch 2), so geometry is read once that is over.
+ const menuSettled=()=>page.waitForFunction(()=>!document.querySelector('#addDestinationMenu').getAnimations().length);
+ const menuInView=async()=>{await menuSettled();return page.evaluate(()=>{
   const menu=document.querySelector('#addDestinationMenu'),m=menu.getBoundingClientRect(),vw=document.documentElement.clientWidth,vh=document.documentElement.clientHeight;
   const parts=[...menu.querySelectorAll('*')].map(n=>n.getBoundingClientRect()).filter(r=>r.width);
   const inside=parts.every(r=>r.left>=m.left-.5&&r.right<=m.right+.5&&r.top>=m.top-.5&&r.bottom<=m.bottom+.5);
   const unclipped=[menu,...menu.querySelectorAll('button,span,small')].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).display==='inline');
   const corners=[[m.left+4,m.top+4],[m.right-4,m.top+4],[m.left+4,m.bottom-4],[m.right-4,m.bottom-4]].every(([x,y])=>menu.contains(document.elementFromPoint(x,y)));
   return {open:menu.matches(':popover-open'),fits:m.left>=7.5&&m.right<=vw-7.5&&m.top>=7.5&&m.bottom<=vh-7.5,inside,unclipped,corners,placement:menu.dataset.placement,rect:[m.left,m.top,m.right,m.bottom].map(Math.round),vw,vh};
- });
+ });};
  const assertMenu=async(label,trigger)=>{
   const state=await menuInView();
   assert.ok(state.open,`${label}: menu opens`);
@@ -75,11 +77,11 @@ try{
    await page.keyboard.press('Escape');
   }
   await page.evaluate(()=>{document.querySelector('#rows').scrollTop=600;scrollTo(0,250);});await page.waitForTimeout(120);
-  const visible=await page.evaluate(()=>{const vh=document.documentElement.clientHeight;return [...document.querySelectorAll('#rows .directory-add')].findIndex(b=>{const r=b.getBoundingClientRect();return r.top>140&&r.bottom<vh-240&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)?.closest('.directory-add')===b;});});
+  const visible=await page.evaluate(()=>{const vh=document.documentElement.clientHeight,listTop=document.querySelector('#rows').getBoundingClientRect().top;return [...document.querySelectorAll('#rows .directory-add')].findIndex(b=>{const r=b.getBoundingClientRect();return r.top>Math.max(140,listTop+60)&&r.bottom<vh-240&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)?.closest('.directory-add')===b;});});
   assert.ok(visible>=0,`${width}: a row is reachable after scrolling`);
   const scrolled=page.locator('#rows .directory-add').nth(visible);
   await scrolled.click();await assertMenu(`${width} scrolled`,scrolled);
-  // The menu follows its row while the list scrolls under it.
+  // The menu follows its row while the list scrolls under it (and closes once the row is clipped out of the list: add-menu suite).
   await page.evaluate(()=>{document.querySelector('#rows').scrollTop+=30;});await page.waitForTimeout(120);
   await assertMenu(`${width} scrolled further`,scrolled);
   await page.keyboard.press('Escape');
@@ -171,6 +173,7 @@ try{
  // The details' wide Add to keeps a menu as wide as itself.
  await open(1440);await page.locator('#rows .disc-row').first().click();await page.locator('#addToBag').waitFor();
  await page.locator('#addToBag').click();
+ await menuSettled();
  const wide=await page.evaluate(()=>{const t=document.querySelector('#addToBag').getBoundingClientRect(),m=document.querySelector('#addDestinationMenu').getBoundingClientRect();return Math.abs(t.width-m.width)<1&&Math.abs(t.left-m.left)<1;});
  assert.ok(wide,'Add to in the details opens a menu as wide as itself');await assertMenu('details Add to');
  await page.locator('#addToBag').click();await page.waitForTimeout(120);

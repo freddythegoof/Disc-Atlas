@@ -128,16 +128,76 @@ function updateDetail(html){
   for(const node of old)if(!used.has(node))node.remove();
  }
  sync($('#detail'),template.content);
-
+ reanchorDropdown();
 }
 function addDestinationControl(d,classes,id='') {return `<button ${id?'id="'+id+'"':''} class="${classes}" type="button" data-add-menu="${esc(d.id)}" aria-label="Add ${esc(d.catalogName||d.name)} to Bag, Storage or Lost" aria-haspopup="menu" aria-controls="addDestinationMenu" aria-expanded="false">${classes==='directory-add'?'<svg class="directory-add-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 3v10M3 8h10"/></svg><span class="directory-add-label">Add</span>':'＋ Add to'} ${DropdownIndicator.indicator(classes==='directory-add'?'sm':'md')}</button>`;}
 // Flight numbers as four cells: wide screens set them in columns, phones read the same " / " text inline.
 function flightCells(d){return d.speed==null?'Not yet rated':[d.speed,d.glide,d.turn,d.fade].map(v=>`<span>${v}</span>`).join('<span class="nums-sep"> / </span>');}
-function renderList(){const rows=filtered.slice(0,limit);$('#rows').innerHTML=rows.length?rows.map(d=>`<div class="directory-row"><button class="disc-row ${d===selected?'selected':''}" data-id="${esc(d.id)}"><span class="row-identity">${window.DiscThumbnails.markup(d,colors[typeOf(d)])}<span><strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)}</small></span></span><span class="nums${d.speed==null?' is-unrated':''}">${flightCells(d)}</span><span class="score">${score(d)??'—'}</span></button>${addDestinationControl(d,'directory-add')}</div>`).join(''):'<p class="muted">No discs match these filters.</p>';$('#more').hidden=limit>=filtered.length;$('#more').textContent=`Show more · ${filtered.length-limit} remaining`;window.DiscThumbnails.observe($('#rows'),id=>discs.find(d=>d.id===id));}
+function renderList(){const rows=filtered.slice(0,limit);$('#rows').innerHTML=rows.length?rows.map(d=>`<div class="directory-row"><button class="disc-row ${d===selected?'selected':''}" data-id="${esc(d.id)}"><span class="row-identity">${window.DiscThumbnails.markup(d,colors[typeOf(d)])}<span><strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)}</small></span></span><span class="nums${d.speed==null?' is-unrated':''}">${flightCells(d)}</span><span class="score">${score(d)??'—'}</span></button>${addDestinationControl(d,'directory-add')}</div>`).join(''):'<p class="muted">No discs match these filters.</p>';$('#more').hidden=limit>=filtered.length;$('#more').textContent=`Show more · ${filtered.length-limit} remaining`;window.DiscThumbnails.observe($('#rows'),id=>discs.find(d=>d.id===id));reanchorDropdown();}
 function detail(){const d=selected;if(!d)return;const rated=d.speed!=null,nearby=view!=='bag'&&mapClusters.find(g=>g.members.includes(d)&&g.members.length>1);updateDetail(`<div class="detail-actions"><span>DISC DETAILS</span><button id="expandDetail" aria-expanded="${$('#detail').classList.contains('is-expanded')}">${$('#detail').classList.contains('is-expanded')?'Collapse':'Full screen'}</button><button id="closeDetail" aria-label="Close disc details">&times;</button></div><div class="detail-top"><span class="badge">${d.approved===false?'CATALOG ENTRY':'PDGA APPROVED'}</span><span class="micro">${esc(d.date||'')}</span></div>${nearby?`<button id="nearbyDiscs" class="wide nearby-discs">Explore ${nearby.members.length-1} nearby discs</button>`:''}${window.Disc3D?.markup(d,photoMarkup(d,'detail-art'))||`<div class="disc-photo illustration-detail">${photoMarkup(d,'detail-art')}<span class="illustration-caption">Illustration · color and shape are representative</span></div>`}<button type="button" class="brand-name brand-link" id="detailBrand" title="Filter by ${esc(d.brand)}" aria-pressed="${selectedBrands.has(d.brand)}">${esc(d.brand)} <span aria-hidden="true">↗</span></button><h2>${esc(d.catalogName||d.name)}</h2>${window.BagApp?.detailExtras?.(d)||''}${addDestinationControl(d,'wide bag-add primary','addToBag')}${d.catalogName&&d.catalogName!==d.name?`<p class="approval-name">PDGA record: ${esc(d.name)}</p>`:''}${d.catalogNote?`<p class="catalog-note">${esc(d.catalogNote)}</p>`:''}<p class="production-note">${productionLabel(d)}${d.production?.source?` · <a href="${esc(d.production.source)}" target="_blank" rel="noopener">Source ↗</a>`:''}</p><div class="numbers">${['speed','glide','turn','fade'].map(k=>`<div><strong>${d[k]??'—'}</strong><small>${k.toUpperCase()}</small></div>`).join('')}</div>${d.ratingBasis==='retailer_catalog'?'<p class="micro rating-note">Infinite Discs catalog ratings; may reflect player reviews rather than manufacturer flight numbers.</p>':''}${d.ratingBasis==='atlas_adjusted'?`<p class="micro rating-note">Atlas-adjusted from ${['speed','glide','turn','fade'].map(k=>d.manufacturerNumbers[k]).join(' / ')}. ${esc(d.flightNote)}</p>`:''}${rated?`<div class="index-row"><span>${stability(d)}</span><b>${score(d)} <span class="muted">/ 100</span></b></div><div class="index-track"><i style="left:calc(${score(d)}% - 5px)"></i></div><div class="micro">Shared stability index · provisional</div><div class="flight-head"><span>FLIGHT SKETCH</span><span class="dd-select dd-select-sm"><select id="hand" aria-label="Throwing hand and style"><option ${hand==='RHBH'?'selected':''}>RHBH</option><option ${hand==='RHFH'?'selected':''}>RHFH</option><option ${hand==='LHBH'?'selected':''}>LHBH</option><option ${hand==='LHFH'?'selected':''}>LHFH</option></select>${DropdownIndicator.indicator('sm')}</span></div><div class="flight" id="flight"></div><div class="power"><label for="power">Relative throwing power</label><span id="powerValue">${power}%</span></div><input id="power" type="range" min="60" max="120" step="5" value="${power}"><p class="micro">Flat release · calm air · illustrative, not measured</p>`:'<p class="micro">Flight ratings have not been confidently matched for this approval record. Its stability and flight path are left unknown.</p>'}<button id="compare" class="wide primary">${comparison.includes(d)?'Remove from comparison':comparison.length>=3?'Comparison full · remove a disc':'＋ Compare this disc'}</button>${d.specs?`<details class="specs"><summary>${DropdownIndicator.indicator('lg')}PDGA dimensions</summary>${Object.entries(d.specs).map(([k,v])=>`<div><span>${k}</span><b>${esc(v)} ${k==='Max weight'?'g':'cm'}</b></div>`).join('')}<p class="micro">Certification ${esc(d.certification)}</p></details>`:''}${window.AtlasShopping.render(d)}<details class="disc-sources"><summary>${DropdownIndicator.indicator('lg')}Sources & provenance</summary>${d.url?`<a class="source" href="${esc(d.url)}" target="_blank" rel="noopener">View PDGA approval ↗</a>`:''}<p class="micro">Original representative disc illustration. Not a manufacturer image, stamp or exact mold rendering.</p>${rated?`<a class="source" href="${esc(d.flightSource||'https://discit-api.fly.dev/disc')}" target="_blank" rel="noopener">Flight data: ${esc(d.flightSourceLabel||'DiscIt / Marshall Street')} ↗</a>`:''}</details>`);window.Disc3D?.sync($('#detail'),d,{color:discColor(d),...window.BagApp?.detailAppearance?.(d),poster:photoMarkup(d,'detail-art'),hand});if($('#nearbyDiscs'))$('#nearbyDiscs').onclick=()=>openCluster(nearby,$('#nearbyDiscs'),true);$('#closeDetail').onclick=()=>closeDetail();$('#expandDetail').onclick=()=>{window.AtlasMotion.expand($('#detail'),()=>{const expanded=$('#detail').classList.toggle('is-expanded');$('#expandDetail').setAttribute('aria-expanded',String(expanded));$('#expandDetail').textContent=expanded?'Collapse':'Full screen';});};$('#detailBrand').onclick=()=>toggleBrand(d.brand);const photo=$('#detail img');if(photo)photo.onerror=()=>{photo.parentElement.innerHTML='<div class="photo-missing">Photo unavailable</div>';};if(rated){flight();$('#hand').onchange=e=>{hand=e.target.value;window.Disc3D?.setHand(hand);flight();renderCompare()};$('#power').oninput=e=>{power=+e.target.value;$('#powerValue').textContent=power+'%';flight();renderCompare()};}$('#compare').onclick=()=>{if(comparison.includes(d))comparison=comparison.filter(x=>x!==d);else if(comparison.length<3)comparison.push(d);detail();renderCompare();};}
 function path(d){const sign=hand==='RHFH'||hand==='LHBH'?-1:1,t=-d.turn*(power/100)*12,f=(d.fade+(100-power)/25)*12,end=125+sign*(t*.55-f);return`M125 155 C125 125 ${125+sign*t} 65 ${125+sign*t*.65} 49 S${end+sign*15} 27 ${end} 19`;}
 function flight(){if(!$('#flight'))return;const d=selected,p=path(d);$('#flight').innerHTML=`<svg viewBox="0 0 250 175" role="img" aria-label="Illustrative ${hand} flight path for ${esc(d.catalogName||d.name)}"><path d="M125 155V12 M25 50H225 M25 100H225 M25 150H225" stroke="${themePalette.grid}" fill="none" stroke-dasharray="3 5"/><path class="route" id="flightRoute" d="${p}" fill="none" stroke="${discColor(d)}" stroke-width="3" stroke-linecap="round"/><circle cx="125" cy="155" r="4" fill="${themePalette.text}"/><text x="15" y="166" fill="${themePalette.muted}" font-size="12">RELEASE</text><text x="180" y="166" fill="${themePalette.muted}" font-size="12">${hand}</text>${matchMedia('(prefers-reduced-motion: reduce)').matches?'':`<circle r="4" fill="${themePalette.text}" class="moving"><animateMotion dur="3s" repeatCount="indefinite" path="${p}"/></circle>`}</svg>`;}
-function renderCompare(){scheduleMapDraw();const bar=$('#compareBar');bar.hidden=!comparison.length;bar.innerHTML=`<div class="eyebrow">COMPARE · ${comparison.length} / 3</div><div class="compare-items">${comparison.map(d=>`<div class="compare-item"><button data-remove="${esc(d.id)}" aria-label="Remove ${esc(d.catalogName||d.name)}">×</button>${photoMarkup(d)}<strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)}</small><p>${d.speed==null?'Not yet rated':[d.speed,d.glide,d.turn,d.fade].join(' / ')}</p><b>${score(d)??'—'}</b> <small>stability index</small>${d.speed==null?'':`<svg viewBox="0 0 250 175" height="100" style="width:100%" aria-label="Flight sketch"><path d="${path(d)}" stroke="${discColor(d)}" stroke-width="3" fill="none"/></svg>`}${addDestinationControl(d,'compare-bag-add')}</div>`).join('')}</div>`;}
+// The compare tray keys its cards by disc id: an add inserts one card, a remove lets one go and the rest
+// glide into the gap (FLIP, transform only), and a card whose content did not change is never rebuilt. The
+// tray itself enters and leaves with the shared menu motion (cosmic.css); an emptied tray exits holding the
+// cards it had.
+const compareCards=new Map();
+function compareCardMarkup(d){return `<button data-remove="${esc(d.id)}" aria-label="Remove ${esc(d.catalogName||d.name)}">×</button>${photoMarkup(d)}<strong>${esc(d.catalogName||d.name)}</strong><small>${esc(d.brand)}</small><p>${d.speed==null?'Not yet rated':[d.speed,d.glide,d.turn,d.fade].join(' / ')}</p><b>${score(d)??'—'}</b> <small>stability index</small>`;}
+function compareSketchMarkup(d){return d.speed==null?'':`<svg viewBox="0 0 250 175" height="100" style="width:100%" aria-label="Flight sketch"><path d="${path(d)}" stroke="${discColor(d)}" stroke-width="3" fill="none"/></svg>`;}
+function renderCompare(){
+ scheduleMapDraw();
+ const bar=$('#compareBar'),calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(!comparison.length){if(!bar.hidden)bar.hidden=true;return;}
+ let items=bar.querySelector('.compare-items');
+ const entering=bar.hidden&&!bar.getAnimations().length;
+ if(!items||entering){bar.innerHTML='<div class="eyebrow"></div><div class="compare-items"></div>';items=bar.querySelector('.compare-items');compareCards.clear();}
+ bar.querySelector('.eyebrow').textContent=`COMPARE · ${comparison.length} / 3`;
+ const live=()=>[...items.children].filter(card=>!card.classList.contains('is-leaving'));
+ const before=new Map(live().map(card=>[card.dataset.compareId,card.getBoundingClientRect()]));
+ // Cards no longer compared leave in place (out of the flow) while the rest reflow.
+ const ids=new Set(comparison.map(d=>d.id));
+ for(const card of live())if(!ids.has(card.dataset.compareId)){
+  compareCards.delete(card.dataset.compareId);
+  if(calm||bar.hidden){card.remove();continue;}
+  const box=items.getBoundingClientRect(),r=card.getBoundingClientRect();
+  card.classList.add('is-leaving');card.inert=true;card.setAttribute('aria-hidden','true');
+  Object.assign(card.style,{position:'absolute',left:r.left-box.left-items.clientLeft+'px',top:r.top-box.top-items.clientTop+'px',width:r.width+'px',height:r.height+'px',margin:'0'});
+  card.animate([{opacity:1,transform:'none'},{opacity:0,transform:'scale(.96)'}],{duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}).finished.then(()=>card.remove(),()=>{});
+ }
+ const fresh=[];
+ for(const d of comparison){
+  const base=compareCardMarkup(d),sketch=compareSketchMarkup(d);let entry=compareCards.get(d.id);
+  if(!entry){
+   const card=document.createElement('div');card.className='compare-item';card.dataset.compareId=d.id;
+   card.innerHTML=base+sketch+addDestinationControl(d,'compare-bag-add');
+   entry={card,base,sketch};compareCards.set(d.id,entry);fresh.push(card);
+  }else{
+   const {card}=entry;
+   if(entry.base!==base){card.innerHTML=base+sketch+addDestinationControl(d,'compare-bag-add');entry.base=base;entry.sketch=sketch;}
+   else if(entry.sketch!==sketch){
+    const old=card.querySelector(':scope>svg'),next=document.createElement('template');next.innerHTML=sketch;
+    if(old&&next.content.firstChild)old.replaceWith(next.content.firstChild);else if(old)old.remove();else if(next.content.firstChild)card.querySelector('.compare-bag-add').before(next.content.firstChild);
+    entry.sketch=sketch;
+   }
+  }
+ }
+ // DOM order follows the comparison; ghosts stay wherever they are.
+ let cursor=live()[0];
+ for(const d of comparison){
+  const {card}=compareCards.get(d.id);
+  if(card===cursor){const next=live();cursor=next[next.indexOf(card)+1];}
+  else items.insertBefore(card,cursor||null);
+ }
+ bar.hidden=false;reanchorDropdown();
+ if(calm||entering)return;
+ for(const card of fresh)card.animate([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'none'}],{duration:220,easing:'cubic-bezier(.16,1,.3,1)'});
+ for(const card of live()){
+  const first=before.get(card.dataset.compareId);if(!first)continue;
+  const last=card.getBoundingClientRect(),dx=first.left-last.left,dy=first.top-last.top;
+  if(Math.abs(dx)<.5&&Math.abs(dy)<.5)continue;
+  card.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.16,1,.3,1)'});
+ }
+}
 $('#search').oninput=filter;$('#speed').oninput=filter;$('#stability').onchange=filter;$('#sort').onchange=()=>{filter();setView('list')};$('#types').onclick=e=>{const b=e.target.closest('button');if(b)toggleType(b.dataset.type)};$('#typeChips').onclick=e=>{const b=e.target.closest('button[data-type]');if(b)toggleType(b.dataset.type)};$('#reset').onclick=reset;$('#emptyReset').onclick=()=>{if(filtered.some(d=>d.speed!=null)){$('#zoomReset').click();}else reset();};$('#mapTab').onclick=()=>setView('map');$('#listTab').onclick=()=>setView('list');$('#unratedBtn').onclick=()=>{$('#method').close();$('#stability').value='unknown';filter();setView('list')};$('#rows').onclick=e=>{const b=e.target.closest('[data-id]');if(b)select(discs.find(d=>d.id===b.dataset.id));};$('#more').onclick=()=>{limit+=80;renderList()};$('#zoomIn').onclick=()=>animateZoom(1.3);$('#zoomOut').onclick=()=>animateZoom(1/1.3);$('#zoomReset').onclick=()=>tweenCamera({zoom:1,x:0,y:0},.28);$('#compareBar').onclick=e=>{const b=e.target.closest('[data-remove]');if(b){comparison=comparison.filter(d=>d.id!==b.dataset.remove);renderCompare();detail();}};['#sourcesBtn','#coverageBtn'].forEach(s=>$(s).onclick=()=>$('#method').showModal());$('#closeMethod').onclick=()=>$('#method').close();$('#method').onclick=e=>{if(e.target===$('#method')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};initAtlasMap();new ResizeObserver(()=>{measureMap();draw();}).observe($('#map'));setView(view);load();
 
 function recentCutoff(){const date=new Date((meta.statusAsOf||'2026-09-23')+'T00:00:00Z');date.setUTCMonth(date.getUTCMonth()-24);return date;}
@@ -218,14 +278,40 @@ $('#clearBrands').onclick=()=>{selectedBrands.clear();filter();renderCompare();i
 function showDropdown(panel,button,place){
  closeDropdown(false);if(panel.popover)panel.showPopover();else panel.hidden=false;button.setAttribute('aria-expanded','true');openDropdown={panel,button,place};placeDropdown();
 }
+// Is the trigger still on screen: inside the viewport and inside every scroller or clip that holds it? A row scrolled
+// out of the directory's list is clipped, not off screen, so the viewport alone would leave its menu floating over
+// whatever is there. A sliver of 12 px counts as gone.
+function triggerVisible(button){
+ const r=button.getBoundingClientRect(),view=document.documentElement;
+ let left=0,top=0,right=view.clientWidth,bottom=view.clientHeight;
+ for(let node=button.parentElement;node&&node!==document.body&&node!==view;node=node.parentElement){
+  const style=getComputedStyle(node);
+  if(/auto|scroll|hidden|clip/.test(style.overflowX+style.overflowY)){const b=node.getBoundingClientRect();left=Math.max(left,b.left);top=Math.max(top,b.top);right=Math.min(right,b.right);bottom=Math.min(bottom,b.bottom);}
+ }
+ return Math.min(r.right,right)-Math.max(r.left,left)>=Math.min(12,r.width)&&Math.min(r.bottom,bottom)-Math.max(r.top,top)>=Math.min(12,r.height);
+}
 function placeDropdown(){
  if(!openDropdown)return;const {panel,button,place}=openDropdown;
- if(!button.isConnected){closeDropdown(false);return;}
+ if(!button.isConnected||!triggerVisible(button)){closeDropdown(false);return;}
  if(place){place(panel,button);return;}
  const r=button.getBoundingClientRect();
  const x=panel.dataset.align==='end'?r.right-panel.offsetWidth:r.left;
  panel.style.left=Math.max(8,Math.min(x,innerWidth-panel.offsetWidth-8))+'px';panel.style.top=(r.bottom+6)+'px';
  panel.style.maxHeight=Math.min(420,Math.max(160,innerHeight-r.bottom-18))+'px';
+ panel.style.setProperty('--menu-origin',panel.dataset.align==='end'?'top right':'top left');
+}
+// A re-render can replace the trigger of an open Add menu (the directory rows, a compare card, the detail's
+// Add to). The menu follows its disc to the new button instead of closing under the player's hands; if that
+// disc is gone from the list the menu closes.
+function reanchorDropdown(){
+ if(!openDropdown)return;const {button}=openDropdown,id=button.dataset.addMenu;if(!id)return;
+ if(!button.isConnected){
+  const kind=['directory-add','compare-bag-add','bag-add'].find(name=>button.classList.contains(name));
+  const next=kind&&[...document.querySelectorAll('.'+kind+'[data-add-menu]')].find(node=>node.dataset.addMenu===id);
+  if(!next){closeDropdown(false);return;}
+  openDropdown.button=next;
+ }
+ openDropdown.button.setAttribute('aria-expanded','true');placeDropdown();
 }
 function closeDropdown(focus=true){
  if(!openDropdown)return;const {panel,button}=openDropdown;openDropdown=null;

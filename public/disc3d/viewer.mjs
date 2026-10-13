@@ -3,7 +3,7 @@
 // hyzer/anhyzer tilt. One renderer is reused for every disc; it draws only when something moves.
 //
 // createDiscViewer() returns {element, attach(host), update(props), setView(name), flip(), setTilt(deg),
-// setHand(hand), getPose(), applyPose(pose), dispose()}. Options: {segments, onExpand, hint}. With `onExpand`
+// setHand(hand), getPose(), applyPose(pose), glidePose(pose, ms), dispose()}. Options: {segments, onExpand, hint}. With `onExpand`
 // the viewer offers a pop-out: an Enlarge button and a tap or click on the canvas call onExpand(trigger),
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
@@ -152,6 +152,22 @@ export function createDiscViewer({segments,onExpand,hint}={}){
  function setHand(hand){state.hand=hand||'RHBH';setTilt(state.tilt);}
  // The reader's framing, independent of the canvas size (zoom is relative to the fitted distance).
  function getPose(){const s=spherical();return {view:state.view,theta:s.theta,phi:s.phi,zoom:s.radius/state.fit,tilt:state.tilt,flipped:state.flipped};}
+ // applyPose, but over `ms` on the viewer's own tween (the pop-out's close hands its pose back this way, so the
+ // panel's disc turns to where the reader left it instead of snapping). Tilt follows at once; a flip animates.
+ function glidePose(pose,ms=300){
+  if(!pose)return;
+  if(reducedMotion()||!size.w){applyPose(pose);return;}
+  setTilt(pose.tilt);
+  const flipped=!!pose.flipped,now=performance.now();
+  if(flipped!==state.flipped){
+   state.flipped=flipped;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed',String(flipped));
+   flipTween={from:flipGroup.rotation.x,to:flipped?Math.PI:0,start:now,ms};
+  }
+  const from=spherical(),view=pose.view&&VIEWS[pose.view];
+  setPressedView(view?pose.view:null);
+  const to=view?new THREE.Spherical(fitDistance(view.polar),view.polar,0):new THREE.Spherical(Math.min(controls.maxDistance,Math.max(controls.minDistance,pose.zoom*state.fit)),pose.phi,pose.theta);
+  tween={from,to,dTheta:angleDelta(from.theta,to.theta),start:now,ms};request();
+ }
  function applyPose(pose){
   if(!pose)return;
   tween=null;flipTween=null;setTilt(pose.tilt);
@@ -246,7 +262,7 @@ export function createDiscViewer({segments,onExpand,hint}={}){
   envTexture.dispose();renderer.dispose();renderer.forceContextLoss();element.remove();
  }
  setTilt(0);
- return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,dispose,state,
+ return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
   debug:{renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

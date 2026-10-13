@@ -147,7 +147,6 @@ body[data-view="map"]:not(.my-bag-mode) .map-note>span:not(.map-summary){display
 .stack-choice{display:flex;align-items:center;gap:14px;width:100%;padding:14px 10px;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:background .15s,border-color .15s}
 .stack-choice:hover{background:var(--accent-soft);border-color:var(--lime)}
 .stack-choice{border-left:3px solid var(--flight-color)}
-.stack-choice:active{transform:scale(.98)}
 .stack-choice .disc-art{width:42px;height:42px}
 .stack-choice>span:nth-child(2){flex:1;min-width:0}
 .stack-choice strong,.stack-choice small{display:block}
@@ -207,14 +206,31 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 .map-edge-feedback .right{right:0;background:linear-gradient(-90deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-right,0)}
 .map-edge-feedback .top{top:0;background:linear-gradient(180deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-top,0)}
 .map-edge-feedback .bottom{bottom:0;background:linear-gradient(0deg,color-mix(in srgb,var(--lime) 32%,transparent),transparent);opacity:var(--edge-bottom,0)}
-.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide{
- transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s;
-}
 @media(hover:hover) and (pointer:fine){
  .explore-tools button:hover,.map-controls button:hover,.coach-launch:hover,.pill-button:hover{transform:translateY(-2px)}
  .detail-actions button:hover,.wide:hover{background:var(--accent-soft);color:var(--text)}
 }
-.explore-tools button:active,.atlas-lens button:active,.map-controls button:active,.detail-actions button:active,.coach-launch:active,.pill-button:active,.wide:active{transform:scale(.96)}
+/* Press feedback (batch 2, finding 6). One rule for every tap target: it dips to .97 on pointerdown (:active)
+   in 90 ms and returns on the normal 220 ms curve. It uses the individual `scale` property, so the hover lift
+   (a transform) stays in place under a pressed finger. Directory rows tint instead; markers press their art
+   child only, below. Under reduced motion the global transition kill makes the dip instant. */
+:root{--press-rest:scale .22s cubic-bezier(.16,1,.3,1),transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s,box-shadow .15s;
+ --press-down:scale .09s cubic-bezier(.16,1,.3,1),transform .25s cubic-bezier(.2,.8,.2,1),background .2s,color .2s,border-color .2s,box-shadow .15s}
+:root :is(.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide,.stack-choice,.directory-add,
+ .inspect-disc,.compare-item [data-remove],.compare-bag-add,.cluster-action,#clusterClose,.pick-compare,
+ .disc3d-toolbar button,.disc3d-expand,dialog .close,header nav button,
+ .site-menu [role^="menuitem"],.add-destination-menu button,.lens-menu [role="menuitemradio"]){transition:var(--press-rest)}
+:root :is(.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide,.stack-choice,.directory-add,
+ .inspect-disc,.compare-item [data-remove],.compare-bag-add,.cluster-action,#clusterClose,.pick-compare,
+ .disc3d-toolbar button,.disc3d-expand,dialog .close,header nav button,
+ .site-menu [role^="menuitem"],.add-destination-menu button,.lens-menu [role="menuitemradio"]):active:not(:disabled){scale:.97;transition:var(--press-down)}
+/* Markers: .atlas-marker is positioned by transform and GSAP owns .marker-stack (hover), so a disc's press is a
+   GSAP tween on .marker-stack in atlas-motion.js; a CSS `scale` there would be merged into GSAP's transform.
+   Only a bare dot (My Map) has its own art, .map-dot, which CSS can press. Panning lets go of the press. */
+#mapMarkers .atlas-marker.is-dot:active .map-dot{scale:.88!important;transition:scale .09s cubic-bezier(.16,1,.3,1)}
+#map.is-panning .atlas-marker.is-dot:active .map-dot{scale:none!important}
+/* Directory rows tint on press; the tint lands at once and fades on the row's own curve. */
+.directory-row:has(.disc-row:active){background:color-mix(in srgb,var(--lime) 16%,var(--panel));transition-duration:.08s}
 header nav button{position:relative;border-bottom-color:transparent!important}
 header nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:center;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 header nav button.active::after{transform:scaleX(1)}
@@ -486,3 +502,33 @@ body[data-view="map"]:not(.my-bag-mode) .atlas-lens{position:absolute;top:22px;r
 @media(max-width:700px){
  body[data-view="map"]:not(.my-bag-mode) .atlas-lens{top:124px;right:16px;height:40px}
 }
+
+/* Menus, popovers, dialogs and the compare tray leave on the path they arrived on (batch 2, findings 4 and 7).
+   Enter: expo-out, 150 ms, from .96, scaling from the corner that touches the trigger (that corner, not a nudge, is
+   what points the direction: the Add menu's placement is only known after its first style pass). Exit: two
+   thirds of that, a mirrored (accelerating) curve. `display allow-discrete` holds the box until the exit ends,
+   so `hidden` and :popover-open keep their meaning at once, and @starting-style supplies the enter. A pressed
+   Escape or a reopen mid-exit reverses from the live value. Reduced motion: the global transition kill makes
+   all of it instant. */
+:root{--ease-enter:cubic-bezier(.16,1,.3,1);--ease-exit:cubic-bezier(.4,0,1,1)}
+.chip-popover,.site-menu{transform-origin:var(--menu-origin,top right);transition:opacity .15s var(--ease-enter),scale .15s var(--ease-enter),display .15s allow-discrete}
+.chip-popover[hidden],.site-menu[hidden]{opacity:0;scale:.96;pointer-events:none;transition-duration:.1s;transition-timing-function:var(--ease-exit)}
+.cluster-popover{transform-origin:var(--menu-origin,50% 50%);transition:opacity .18s var(--ease-enter),scale .18s var(--ease-enter),translate .18s var(--ease-enter),display .18s allow-discrete}
+.cluster-popover[hidden]{opacity:0;scale:.96;translate:0 6px;pointer-events:none;transition-duration:.12s;transition-timing-function:var(--ease-exit)}
+.add-destination-menu,.rack-style-menu{opacity:0;scale:.96;transform-origin:var(--menu-origin,top right);transition:opacity .1s var(--ease-exit),scale .1s var(--ease-exit),overlay .1s allow-discrete,display .1s allow-discrete}
+.add-destination-menu:popover-open,.rack-style-menu:popover-open{opacity:1;scale:1;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
+dialog:not(.disc3d-dialog){opacity:0;translate:0 8px;pointer-events:none;transition:opacity .1s var(--ease-exit),translate .1s var(--ease-exit),overlay .1s allow-discrete,display .1s allow-discrete}
+dialog:not(.disc3d-dialog)[open]{opacity:1;translate:0 0;pointer-events:auto;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
+dialog:not(.disc3d-dialog)::backdrop{opacity:0;transition:opacity .1s var(--ease-exit),overlay .1s allow-discrete,display .1s allow-discrete}
+dialog:not(.disc3d-dialog)[open]::backdrop{opacity:1;transition-duration:.15s}
+#compareBar{transition:opacity .22s var(--ease-enter),translate .22s var(--ease-enter),display .22s allow-discrete}
+#compareBar[hidden]{opacity:0;translate:0 12px;pointer-events:none;transition-duration:.15s;transition-timing-function:var(--ease-exit)}
+@starting-style{
+ .chip-popover:not([hidden]),.site-menu:not([hidden]){opacity:0;scale:.96}
+ .cluster-popover:not([hidden]){opacity:0;scale:.96;translate:0 6px}
+ .add-destination-menu:popover-open,.rack-style-menu:popover-open{opacity:0;scale:.96}
+ dialog:not(.disc3d-dialog)[open]{opacity:0;translate:0 8px}
+ dialog:not(.disc3d-dialog)[open]::backdrop{opacity:0}
+ #compareBar:not([hidden]){opacity:0;translate:0 12px}
+}
+.compare-items{position:relative}
