@@ -41,35 +41,38 @@ try{
  await button.click();assert.equal(await menu.getByRole('menuitem',{name:'Sign in',exact:true}).count(),1,'Signed-out menu contains Sign in');await page.keyboard.press('Escape');
  // Repeat after async account response so hidden items never enter arrow navigation.
  await page.waitForFunction(()=>window.AtlasAccount?.current);
- for(const theme of ['light','midnight','charcoal'])for(const width of [1440,360]){
+ for(const theme of ['light','midnight','charcoal','black'])for(const width of [1440,360]){
   await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);await button.click();
   assert.ok(await menu.getByRole('menuitem',{name:'Sign in',exact:true}).isVisible());assert.equal(await menu.getByRole('menuitem',{name:'Profile',exact:true}).count(),0);
   const r=await menu.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=width&&r.y+r.height<=800);
-  await capture(`menu-signed-out-${width}-${theme}`);await page.keyboard.press('End');assert.ok(await menu.getByRole('menuitemradio',{name:'Charcoal',exact:true}).evaluate(n=>n===document.activeElement));await page.keyboard.press('Escape');
+  await capture(`menu-signed-out-${width}-${theme}`);assert.deepEqual(await menu.getByRole('menuitemradio').allTextContents(),['Light✓','Midnight✓','Charcoal✓','Black✓'],'Signed out, the menu ends with the four themes in order');
+  await page.keyboard.press('End');assert.ok(await menu.getByRole('menuitemradio',{name:'Black',exact:true}).evaluate(n=>n===document.activeElement),'End reaches the last theme, Black');await page.keyboard.press('Escape');
  }
  await button.click();await menu.getByRole('menuitem',{name:'Sign in',exact:true}).click();await page.getByRole('heading',{name:'Sign in',exact:true}).waitFor({timeout:5000});assert.equal(new URL(page.url()).pathname,'/signin');
  await signIn();await page.waitForURL(base+'/');
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);
  const cookies=await context.cookies(),session=cookies.find(c=>c.name==='__Host-atlas-session');assert.ok(session?.secure&&session.httpOnly);assert.equal(session.sameSite,'Lax');assert.ok(!await page.evaluate(()=>document.cookie.includes('atlas-session')));
- for(const theme of ['light','midnight','charcoal'])for(const width of [1440,360]){
+ for(const theme of ['light','midnight','charcoal','black'])for(const width of [1440,360]){
   await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);await button.click();
   for(const name of ['Profile','Account settings','Sign out'])assert.ok(await menu.getByRole('menuitem',{name,exact:true}).isVisible());assert.equal(await menu.getByRole('menuitem',{name:'Sign in',exact:true}).count(),0);
   const r=await menu.boundingBox();assert.ok(r.x>=0&&r.x+r.width<=width&&r.y+r.height<=800);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await capture(`menu-signed-in-${width}-${theme}`);await page.keyboard.press('Home');await page.keyboard.press('ArrowUp');assert.ok(await menu.getByRole('menuitemradio',{name:'My Bag',exact:true}).evaluate(n=>n===document.activeElement),'ArrowUp from the top wraps to the last item, Default map: My Bag');await page.keyboard.press('Escape');assert.ok(await button.evaluate(n=>n===document.activeElement));
  }
- for(const route of ['profile','account-settings'])for(const theme of ['light','midnight','charcoal'])for(const width of [1440,360]){
+ for(const route of ['profile','account-settings'])for(const theme of ['light','midnight','charcoal','black'])for(const width of [1440,360]){
   await page.goto(base+'/'+route);await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);
   await page.getByRole('heading',{name:route==='profile'?'Profile':'Account settings',exact:true}).waitFor();assert.match(await page.locator('main').innerText(),/player@example.com/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await capture(`${route}-${width}-${theme}`);
  }
  await page.getByLabel('Display name',{exact:true}).fill('Updated Player');await page.getByRole('button',{name:'Save name',exact:true}).click();await page.getByRole('status').filter({hasText:'Display name saved.'}).waitFor();await page.reload();await page.getByLabel('Display name',{exact:true}).waitFor();assert.equal(await page.getByLabel('Display name',{exact:true}).inputValue(),'Updated Player');
- await page.getByRole('button',{name:'Delete account',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Delete your account?'});await dialog.waitFor();await page.keyboard.press('Escape');assert.ok(!await dialog.isVisible());assert.ok(await page.getByRole('button',{name:'Delete account',exact:true}).evaluate(n=>n===document.activeElement));
+ await page.getByRole('button',{name:'Delete account',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Delete your account?'});await dialog.waitFor();await page.keyboard.press('Escape');
+ // Escape closes it at once; since batch 2 the dialog stays painted for its ~100 ms exit fade, then is gone.
+ assert.equal(await page.locator('#deleteAccountDialog').evaluate(d=>d.open),false,'Escape closes the dialog');await dialog.waitFor({state:'hidden',timeout:1000});assert.ok(await page.getByRole('button',{name:'Delete account',exact:true}).evaluate(n=>n===document.activeElement));
  await page.goto(base+'/profile');await page.getByRole('button',{name:'Sign out',exact:true}).click();await page.waitForURL(base+'/');await page.waitForFunction(()=>window.AtlasAccount?.current&&!window.AtlasAccount.current.user);await button.click();assert.ok(await menu.getByRole('menuitem',{name:'Sign in',exact:true}).isVisible());await page.keyboard.press('Escape');
  await page.goto(base+'/signin?return_to=/account-settings');await signIn();await page.waitForURL(base+'/account-settings');await page.getByLabel('Display name',{exact:true}).waitFor();assert.equal(await page.getByLabel('Display name',{exact:true}).inputValue(),'Updated Player');
  await page.getByRole('button',{name:'Delete account',exact:true}).click();await page.getByLabel('Type DELETE',{exact:true}).fill('DELETE');await page.getByRole('button',{name:'Permanently delete account',exact:true}).click();await page.waitForURL(base+'/');await page.waitForFunction(()=>window.AtlasAccount?.current&&!window.AtlasAccount.current.user);
  await page.goto(base+'/profile');await page.waitForURL('**/signin?return_to=%2Fprofile');
  assert.deepEqual(errors,[]);await context.close();
- console.log('PASS: dev Worker + D1 + signed OAuth fixture; all menu states, 3 themes, desktop/360px, profile, settings, persistence, sign-out and confirmed deletion. Screenshots: outputs/plan-08a.');
+ console.log('PASS: dev Worker + D1 + signed OAuth fixture; all menu states, 4 themes, desktop/360px, profile, settings, persistence, sign-out and confirmed deletion. Screenshots: outputs/plan-08a.');
 }catch(error){
  if(page){console.error('Failed route:',new URL(page.url()).pathname);console.error('Browser errors:',await page.evaluate(()=>({ready:document.readyState,status:document.querySelector('#accountStatus')?.textContent,views:[...document.querySelectorAll('[data-account-view]')].map(n=>({view:n.dataset.accountView,hidden:n.hidden})),account:!!window.AtlasAccount?.current})));await page.screenshot({path:`${dir}/failure.png`});}
  throw error;
