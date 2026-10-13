@@ -40,7 +40,9 @@ try {
  const settle=async()=>{await page.evaluate(()=>{document.activeElement?.blur?.();return document.fonts.ready;});await page.mouse.move(1,1);await page.waitForTimeout(300);};
  // One picture of a surface: the union of the given elements' boxes, padded, clipped to the page.
  const shoot=async(name,selectors,pad=12)=>{
-  await page.evaluate(list=>{for(const s of list){const n=[...document.querySelectorAll(s)].find(n=>n.getBoundingClientRect().height);if(n){if(!n.closest('dialog,[popover],.chip-popover'))n.scrollIntoView({block:'center'});return;}}},selectors);
+  // Page surfaces are centred; inside a sheet the control is only brought into view if the sheet has scrolled it
+  // out (a phone's add-disc sheet is taller than the screen), so the sheet itself does not move otherwise.
+  await page.evaluate(list=>{for(const s of list){const n=[...document.querySelectorAll(s)].find(n=>n.getBoundingClientRect().height);if(n){if(n.closest('dialog'))n.scrollIntoView({block:'nearest'});else if(!n.closest('[popover],.chip-popover'))n.scrollIntoView({block:'center'});return;}}},selectors);
   await settle();
   const box=await page.evaluate(([list,pad])=>{let l=Infinity,t=Infinity,r=-Infinity,b=-Infinity;for(const s of list)for(const n of document.querySelectorAll(s)){const x=n.getBoundingClientRect();if(!x.width||!x.height)continue;l=Math.min(l,x.left);t=Math.min(t,x.top);r=Math.max(r,x.right);b=Math.max(b,x.bottom);}if(l===Infinity)return null;return {x:Math.max(0,l-pad),y:Math.max(0,t-pad),width:Math.min(innerWidth,r+pad)-Math.max(0,l-pad),height:Math.min(innerHeight,b+pad)-Math.max(0,t-pad)};},[selectors,pad]);
   if(!box)throw Error(`${name}: nothing visible for ${selectors}`);
@@ -87,6 +89,9 @@ try {
  await everyTheme(async(width,theme)=>{
   await view('list');await page.locator('#rows .disc-row').first().click();await page.locator('#detail').waitFor();
   await page.evaluate(()=>document.querySelector('#detail details.specs')?.setAttribute('open',''));
+  // The 3D viewer above Add to loads lazily and is taller than its poster: wait for it, or the picture's
+  // height depends on whether it landed before the shot.
+  await page.waitForFunction(()=>{const s=document.querySelector('#detail .disc3d-stage');return !s||s.dataset.state==='ready'||s.dataset.state==='fallback';});
   await shoot(`detail-${width}-${theme}`,['#addToBag','#detail details']);
   await page.evaluate(()=>document.querySelector('#closeDetail')?.click());await page.waitForTimeout(200);
  });
@@ -174,7 +179,9 @@ try {
    await page.evaluate(()=>document.querySelector('#closeDetail')?.click());
    // Disabled: a pocket select mid-save.
    await view('bag');await page.waitForFunction(()=>document.querySelectorAll('select[data-bag-pocket]').length===3);
-   await page.locator('#bagSort').evaluate(n=>{n.disabled=true;});await page.waitForTimeout(200);
+   // The indicator fades to 35% over 150 ms; wait for it to land rather than for a fixed time.
+   await page.locator('#bagSort').evaluate(n=>{n.disabled=true;});
+   await page.waitForFunction(()=>+getComputedStyle(document.querySelector('.dd-select:has(#bagSort) .dd-indicator')).opacity===.35,null,{timeout:2000}).catch(()=>{});
    const off=await measure('.dd-select:has(#bagSort)');assert.equal(off.opacity,.35,`${theme}: disabled at 35%`);
    await page.locator('#bagSort').evaluate(n=>{n.disabled=false;});
    // Ascending sort shows the turned chevron.
