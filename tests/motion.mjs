@@ -188,8 +188,15 @@ try{
   assert.ok(await page.evaluate(x=>pan.x>x+1,releaseX),'Release continues with a short glide');
   await page.waitForTimeout(650);const resting=await page.evaluate(()=>pan.x);await page.waitForTimeout(200);
   assert.equal(await page.evaluate(()=>pan.x),resting,'Release glide settles instead of drifting indefinitely');
-  await page.locator('#zoomReset').click();await page.waitForFunction(()=>Math.abs(zoom-1)<.001);
-  assert.ok(await page.evaluate(()=>mapClusters.reduce((n,g)=>n+g.members.length,0)===filtered.filter(d=>d.speed!=null).length),'Show all still includes every rated disc');
+  await page.locator('#zoomReset').click();await page.waitForFunction(()=>zoom===1&&pan.x===0&&pan.y===0);await page.waitForTimeout(100);
+  // Since the organic atlas (9944812), 1x draws a curated composition, and the rest of the rated catalog waits
+  // for room deeper in (docs/atlas-organic.md). Show all must still map every rated disc, and nothing else:
+  // the groups behind the map hold exactly the rated filtered discs, and the 1x composition and its small
+  // discs and minis are drawn.
+  const shown=await page.evaluate(()=>{const rated=new Set(filtered.filter(d=>d.speed!=null).map(d=>d.id)),mapped=groupCache.groups.flatMap(g=>[...g.members,...(g.joined||[])]).map(d=>d.id);
+   return {rated:rated.size,mapped:mapped.length,unique:new Set(mapped).size,stray:mapped.filter(id=>!rated.has(id)).length,groups:mapClusters.length,gaps:mapGaps.filter(g=>g.on).length};});
+  assert.deepEqual([shown.mapped,shown.unique,shown.stray],[shown.rated,shown.rated,0],'Show all still maps every rated disc, once: '+JSON.stringify(shown));
+  assert.ok(shown.groups>0&&shown.gaps>0,'Show all draws the 1x composition with its small discs and minis: '+JSON.stringify(shown));
   await page.locator('#search').fill('Buzzz');assert.ok(await page.locator('.atlas-marker').count()>0);
   await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#search').fill('');
   const area=await page.locator('#map').boundingBox();await page.mouse.move(area.x+500,area.y+110);await page.mouse.down();await page.mouse.move(area.x+610,area.y+110,{steps:8});await page.mouse.up();
