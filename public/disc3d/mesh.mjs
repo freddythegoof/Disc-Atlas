@@ -20,15 +20,18 @@ export function groupRim(geometry,count,[from,to]){
  geometry.addGroup(0,plate.length,0);geometry.addGroup(plate.length,rim.length,1);
 }
 
+// The profile the lathe spins: {points, rim, seamRadius}, where `rim` (overmold only) is the [from, to) range of
+// profile edges that are the rim piece. The viewer's 2D cross-section (clay mode) draws these same points.
+export function lathePoints(shape,{detail=1,overmold=false}={}){
+ if(overmold)return overmoldProfile(shape,{detail});
+ return {points:discProfile(shape,{detail}),rim:null,seamRadius:null};
+}
+
 // `segments` around the axis; `detail` scales the profile's sampling (shape.mjs, 1 is about 70 points).
-// Returns the geometry and, for an overmold, the seam radius.
+// Returns the geometry, the profile it was spun from and, for an overmold, the seam radius.
 export function discGeometry(shape,{segments=80,detail=1,overmold=false}={}){
- if(overmold){
-  const split=overmoldProfile(shape,{detail});
-  const geometry=new THREE.LatheGeometry(split.points.map(p=>new THREE.Vector2(p.x,p.y)),segments);
-  groupRim(geometry,split.points.length,split.rim);
-  return {geometry,seamRadius:split.seamRadius};
- }
- const geometry=new THREE.LatheGeometry(discProfile(shape,{detail}).map(p=>new THREE.Vector2(p.x,p.y)),segments);
- return {geometry,seamRadius:null};
+ const profile=lathePoints(shape,{detail,overmold});
+ const geometry=new THREE.LatheGeometry(profile.points.map(p=>new THREE.Vector2(p.x,p.y)),segments);
+ if(overmold)groupRim(geometry,profile.points.length,profile.rim);
+ return {geometry,seamRadius:profile.seamRadius,profile};
 }

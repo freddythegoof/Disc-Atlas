@@ -7,12 +7,14 @@
 // Tapping the panel's viewer (or its Enlarge button) pops it out into a larger dialog: a second viewer from
 // the same module, given the same props and pose, so model, materials and overmold colours match exactly.
 // The panel's own viewer is left alone while the dialog is open and takes the dialog's pose back on close.
+// Clay mode (Prompt 4) is one setting for both: the Clay button in either viewer turns it on or off in both, a
+// pop-out opens in the current mode, and it stays on from disc to disc until it is turned off.
 (()=>{
  const finite=v=>typeof v==='number'&&Number.isFinite(v);
  const hasModel=d=>!!d&&(!!d.model3d||[d.speed,d.turn,d.fade].every(finite));
  // Mirrors measurementsFromSpecs in disc3d/shape.mjs (this script loads before the module does).
  const measured=d=>['Diameter','Height','Rim width','Rim depth'].every(k=>{const v=d?.specs?.[k];return (typeof v==='number'||typeof v==='string'&&v.trim()!=='')&&Number.isFinite(Number(v))&&Number(v)>0;});
- let loading=null,viewer=null,failed=false,waiting=null,hand='RHBH',viewerModule=null,dialog=null,popout=null;
+ let loading=null,viewer=null,failed=false,waiting=null,hand='RHBH',viewerModule=null,dialog=null,popout=null,clay=false;
  const coarse=()=>matchMedia('(pointer: coarse)').matches;
 
  // Theme colours arrive as CSS values (var(), hex, rgb); three.js wants something it can parse.
@@ -29,7 +31,7 @@
   return `<div class="disc-photo illustration-detail disc3d" data-disc3d><div class="disc3d-stage" data-sync-keep><div class="disc3d-poster">${poster}</div></div><span class="illustration-caption">${d.model3d?'3D illustration · a modelled mold profile, not a scan; generic stamp':measured(d)?'3D illustration · built from the PDGA dimensions, to scale; not a scan of the mold, generic stamp':'3D illustration · a generic shape from the flight numbers, not a measured mold or stamp'}</span></div>`;
  }
  function load(){
-  return loading||=import('./disc3d/viewer.mjs').then(m=>{viewerModule=m;viewer=m.createDiscViewer({onExpand:openPopout,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom · ${coarse()?'tap':'click'} to enlarge`});return viewer;}).catch(err=>{failed=true;console.warn('3D disc viewer unavailable; keeping the illustration.',err);throw err;});
+  return loading||=import('./disc3d/viewer.mjs').then(m=>{viewerModule=m;viewer=m.createDiscViewer({onExpand:openPopout,onClay:setClay,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom · ${coarse()?'tap':'click'} to enlarge`});return viewer;}).catch(err=>{failed=true;console.warn('3D disc viewer unavailable; keeping the illustration.',err);throw err;});
  }
  // `colors` {rim, plate} are optional overmold colours (bag colour choices later); without them the viewer
  // derives both from `color`. Whether a disc is an overmold is decided per record in disc3d/overmold.mjs.
@@ -95,12 +97,12 @@
   if(popout||!viewer?.state.props||!viewerModule)return;
   const props={...viewer.state.props,hand:viewer.state.hand},pose=viewer.getPose();
   let big;
-  try{big=viewerModule.createDiscViewer({segments:coarse()?72:128,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom`});}
+  try{big=viewerModule.createDiscViewer({segments:coarse()?72:128,onClay:setClay,hint:`Drag to turn · ${coarse()?'pinch':'scroll'} to zoom`});}
   catch(err){console.warn('3D pop-out unavailable; keeping the panel viewer.',err);return;}
   const dlg=popoutDialog(),lock=lockScroll(),stage=viewer.element.closest('.disc3d-stage')||viewer.element;
   dlg.querySelector('#disc3dDialogTitle').textContent=props.mold||'Disc';
   dlg.querySelector('.disc3d-dialog-caption').textContent=viewer.element.closest('[data-disc3d]')?.querySelector('.illustration-caption')?.textContent||'';
-  big.update(props);
+  big.setClay(clay);big.update(props);
   const p=popout={viewer:big,trigger:trigger||document.activeElement,lock,stage,anim:null,closing:false,done:false};
   dlg.classList.remove('is-closing');
   // Held invisible until the morph starts, so the full-size dialog is never painted ahead of it.
@@ -176,6 +178,7 @@
   return ()=>{root.style.overflow=before.overflow;root.style.paddingRight=before.paddingRight;};
  }
  function setHand(next){hand=next||'RHBH';viewer?.setHand(hand);popout?.viewer.setHand(hand);}
- window.Disc3D={hasModel,markup,sync,setHand,get viewer(){return viewer;},get popout(){return popout?.viewer||null;},get popoutAnimation(){return popout?.anim||null;},
+ function setClay(on){clay=!!on;viewer?.setClay(clay);popout?.viewer.setClay(clay);}
+ window.Disc3D={hasModel,markup,sync,setHand,setClay,get clay(){return clay;},get viewer(){return viewer;},get popout(){return popout?.viewer||null;},get popoutAnimation(){return popout?.anim||null;},
   open:()=>openPopout(viewer?.element.querySelector('[data-disc3d-expand]')),close:()=>requestClose()};
 })();

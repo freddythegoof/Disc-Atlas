@@ -14,14 +14,27 @@
 .disc3d-toolbar{display:flex;gap:6px;margin-top:10px;align-items:stretch}
 .disc3d-views{display:flex;flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .disc3d-toolbar button{flex:1;min-width:0;min-height:32px;padding:4px 6px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+.disc3d-views button{flex:1 1 auto}   /* sized by their labels, so "Bottom" never clips beside Flip and Clay */
 .disc3d-views button+button{border-left:1px solid var(--line)}
-.disc3d-toolbar [data-disc3d-flip]{flex:0 0 auto;padding:4px 12px;border:1px solid var(--line);border-radius:10px}
+.disc3d-toolbar [data-disc3d-flip],.disc3d-toolbar [data-disc3d-clay]{flex:0 0 auto;padding:4px 10px;border:1px solid var(--line);border-radius:10px}
 .disc3d-toolbar button:hover{background:var(--surface)}
 .disc3d-toolbar button[aria-pressed=true]{background:var(--accent-soft);color:var(--lime)}
 .disc3d-tilt{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;margin-top:10px;font-size:11px;color:var(--muted)}
 .disc3d-tilt input[type=range]{margin:0;min-width:0}
 .disc3d-tilt output{grid-column:1/-1;text-align:center;font-size:12px;color:var(--text);font-variant-numeric:tabular-nums}
 .disc3d .illustration-caption{display:block;margin-top:8px}
+/* Clay (Prompt 4): the disc in plain clay on a dark ground, in every theme, with the mold's cross-section
+   drawn under the stage (never over the disc). The tones live in disc3d/profile.mjs. */
+.disc3d-viewer{--clay-ground:#16181c;--clay-ink:rgba(255,255,255,.82)}
+.disc3d-viewer.is-clay .disc3d-viewport{background:radial-gradient(ellipse 70% 62% at 50% 48%,#2a2d33,var(--clay-ground) 78%)}
+.disc3d-viewer.is-clay .disc3d-hint{color:rgba(255,255,255,.58)}
+.disc3d-profile{margin:8px 0 0;padding:8px 0 7px;border-radius:12px;background:var(--clay-ground);color:var(--clay-ink)}
+.disc3d-profile[hidden]{display:none}
+.disc3d-profile-svg{display:block;width:100%;height:auto;overflow:visible}
+.disc3d-profile-svg text{font-size:10.5px;font-weight:600;fill:currentColor;font-variant-numeric:tabular-nums}
+.disc3d-profile-dims line{stroke:currentColor;stroke-width:1;opacity:.7}
+.disc3d-profile-dims line.ext{opacity:.4;stroke-dasharray:2 3}
+.disc3d-profile-caption{margin-top:3px;font-size:11px;text-align:center;color:rgba(255,255,255,.58)}
 /* Enlarge: opens the pop-out below. A tap or click on the canvas does the same. */
 .disc3d-expand{position:absolute;top:8px;right:8px;z-index:1;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
 .disc3d-expand:hover{background:var(--surface)}
@@ -44,7 +57,8 @@
 .disc3d-dialog .disc3d-viewer{display:flex;flex-direction:column;flex:1;min-height:0}
 .disc3d-dialog .disc3d-viewport{flex:1;min-height:0;height:auto}
 .disc3d-dialog .disc3d-canvas{position:absolute;inset:0;height:100%}
-.disc3d-dialog .disc3d-toolbar,.disc3d-dialog .disc3d-tilt{width:100%;max-width:620px;margin-inline:auto}
+.disc3d-dialog .disc3d-toolbar,.disc3d-dialog .disc3d-tilt,.disc3d-dialog .disc3d-profile{width:100%;max-width:620px;margin-inline:auto}
+.disc3d-dialog .disc3d-profile{flex:0 0 auto;margin-top:10px}
 .disc3d-dialog .disc3d-toolbar button{min-height:40px;font-size:13px}
 .disc3d-dialog .disc3d-hint{font-size:12px;bottom:10px}
 .disc3d-dialog-caption{margin:10px 0 0;font-size:12px;text-align:center}
@@ -64,7 +78,7 @@
  /* Landscape phones: the disc keeps as much height as the controls allow. */
  .disc3d-dialog{inset:8px;margin:0;width:calc(100vw - 16px);height:calc(100dvh - 16px)}
  .disc3d-dialog-panel{padding:8px 14px 10px}
- .disc3d-dialog-eyebrow,.disc3d-dialog-caption,.disc3d-dialog .disc3d-hint{display:none}
+ .disc3d-dialog-eyebrow,.disc3d-dialog-caption,.disc3d-dialog .disc3d-hint,.disc3d-dialog .disc3d-profile{display:none}
  .disc3d-dialog h2{margin:0;font-size:18px}
  .disc3d-dialog .close{margin-top:-4px}
  .disc3d-dialog-body{margin-top:2px}

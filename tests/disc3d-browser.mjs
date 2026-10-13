@@ -4,6 +4,9 @@
 // Writes review shots: a driver and a putter (rim difference) and the hollow underside. Phase 2: each mold
 // is shaped and scaled from its PDGA dimensions (Destroyer vs Buzzz vs Aviar side by side, ten random
 // molds), a record without them falls back to the generic shape, and the phone draws no slower.
+// Prompt 4: the Clay toggle swaps to clay materials on a dark ground and back exactly, keeps the overmold split
+// in two clay tones, survives a change of disc, and shows a cross-section drawn from the geometry's own profile
+// points with the panel's PDGA numbers.
 // Run: PLAYWRIGHT_MODULE=<playwright> node tests/disc3d-browser.mjs   (shots: outputs/disc3d/)
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -64,6 +67,34 @@ const coverage=page=>page.evaluate(()=>{
 });
 const shot=(page,name,selector='#detail')=>page.locator(selector).screenshot({path:`${dir}/${name}.png`});
 const view=async(page,name)=>{await page.locator(`#detail [data-disc3d-view="${name}"]`).click();await page.waitForTimeout(750);await settle(page);};
+// Clay: which materials the mesh wears, the plastic materials underneath, the stamp, ground and cross-section.
+const clayState=page=>page.evaluate(()=>{
+ const v=Disc3D.viewer,{body,stamp,bodyMaterial,rimMaterial,clayMaterial,clayRimMaterial,profileFigure}=v.debug;
+ const name=m=>m===clayMaterial?'clay':m===clayRimMaterial?'clayRim':m===bodyMaterial?'body':m===rimMaterial?'rim':'?';
+ const snap=m=>({uuid:m.uuid,type:m.type,color:'#'+m.color.getHexString(),roughness:m.roughness,clearcoat:m.clearcoat,clearcoatRoughness:m.clearcoatRoughness});
+ const vp=v.element.querySelector('.disc3d-viewport'),fig=profileFigure.getBoundingClientRect(),canvas=vp.getBoundingClientRect();
+ return {clay:v.state.clay,host:Disc3D.clay,pressed:v.element.querySelector('[data-disc3d-clay]').getAttribute('aria-pressed'),
+  mats:[].concat(body.material).map(name),plastic:{body:snap(bodyMaterial),rim:snap(rimMaterial)},
+  tones:['#'+clayMaterial.color.getHexString(),'#'+clayRimMaterial.color.getHexString()],stamp:stamp.visible,
+  ground:getComputedStyle(vp).backgroundImage,profileHidden:profileFigure.hidden,figure:{top:fig.top,bottom:fig.bottom,height:fig.height,left:fig.left,right:fig.right},
+  canvas:{top:canvas.top,bottom:canvas.bottom},label:v.debug.renderer.domElement.getAttribute('aria-label')};
+});
+// The cross-section's outline against the live geometry: LatheGeometry's first ring (angle 0) lies in the z-y
+// plane with z the radius, so its first n vertices are the profile points the lathe was given.
+const profileVsGeometry=page=>page.evaluate(()=>{
+ const v=Disc3D.viewer,pos=v.debug.body.geometry.attributes.position,svg=v.debug.profileFigure.querySelector('svg'),n=v.state.profile.points.length;
+ const s=+svg.dataset.scale,cx=+svg.dataset.cx,base=+svg.dataset.base,bottom=+svg.dataset.bottom;
+ const d=svg.querySelector('.disc3d-profile-outline').getAttribute('d').replace(/Z$/,'').slice(1).split('L').map(p=>p.split(' ').map(Number));
+ let worst=0,mirror=0;
+ for(let i=0;i<n;i++){const z=pos.getZ(i),y=pos.getY(i),[px,py]=d[i],[lx,ly]=d[d.length-1-i];
+  worst=Math.max(worst,Math.abs(pos.getX(i)),Math.abs((px-cx)/s-z),Math.abs((base-py)/s+bottom-y));mirror=Math.max(mirror,Math.abs((cx-lx)/s-z),Math.abs(ly-py));}
+ const texts=[...svg.querySelectorAll('text')].map(t=>t.textContent);
+ const panel=Object.fromEntries([...document.querySelectorAll('#detail > details.specs > div')].map(r=>[r.querySelector('span').textContent,r.querySelector('b').textContent]));
+ return {n,drawn:d.length,worst,mirror,texts,panel,caption:v.debug.profileFigure.querySelector('figcaption').textContent,rims:svg.querySelectorAll('.disc3d-profile-rim').length};
+});
+// The colour at the middle of the canvas (the top of the disc in the 3/4 view), straight after a draw.
+const centrePixel=page=>page.evaluate(()=>{const v=Disc3D.viewer;v.debug.renderNow();const gl=v.debug.renderer.getContext(),px=new Uint8Array(4);
+ gl.readPixels(Math.round(gl.drawingBufferWidth/2),Math.round(gl.drawingBufferHeight*.52),1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);return [...px];});
 
 try{
  // Desktop.
@@ -78,6 +109,13 @@ try{
   await show(page,'Destroyer');
   assert.ok(requests.some(u=>/three\.module/.test(u))&&requests.some(u=>/disc3d\/viewer\.mjs/.test(u)));
   check('selecting a rated disc lazy-loads three.js and the viewer');
+  for(const width of [1440,1100,800]){
+   await page.setViewportSize({width,height:900});await page.waitForTimeout(150);
+   const clipped=await page.evaluate(()=>[...document.querySelectorAll('#detail .disc3d-toolbar button')].filter(b=>b.scrollWidth>b.clientWidth+1).map(b=>`${b.textContent} ${b.clientWidth}/${b.scrollWidth}`));
+   assert.deepEqual(clipped,[],`at ${width} px no toolbar label clips beside Clay`);
+  }
+  await page.setViewportSize({width:1440,height:900});await page.waitForTimeout(150);
+  check('the toolbar fits Clay without clipping a preset at 1440, 1100 and 800 px');
   const frame=await coverage(page);
   assert.ok(frame>.08&&frame<.9,`the whole disc is in frame at the default camera (covers ${(frame*100).toFixed(0)}%)`);
   // Project every vertex of the mesh (not its box: a box's corners sit outside a round disc).
@@ -333,6 +371,109 @@ try{
   }
   check('overmold review board written');
 
+  // Prompt 4, clay mode. Destroyer first: plastic, then clay, then plastic again, exactly as it was.
+  {
+   await show(page,'Destroyer');
+   const before=await clayState(page),beforePixel=await centrePixel(page);
+   assert.equal(before.clay,false);assert.equal(before.pressed,'false');assert.deepEqual(before.mats,['body']);
+   assert.equal(before.stamp,true);assert.equal(before.profileHidden,true);
+   await shot(page,'clay-off-destroyer','#detail .disc3d-viewer');
+   await page.locator('#detail [data-disc3d-clay]').click();await settle(page);
+   const on=await clayState(page),onPixel=await centrePixel(page);
+   assert.equal(on.clay,true);assert.equal(on.host,true,'the host remembers clay');assert.equal(on.pressed,'true');
+   assert.deepEqual(on.mats,['clay'],'the mesh wears the clay material');
+   assert.equal(on.stamp,false,'the name stamp is hidden in clay');
+   assert.deepEqual(on.plastic,before.plastic,'the plastic material underneath is untouched');
+   assert.match(on.ground,/rgb\(22, 24, 28\)/,'dark clay ground: '+on.ground);
+   assert.match(on.label,/plain clay/);
+   assert.ok(Math.max(...onPixel.slice(0,3))-Math.min(...onPixel.slice(0,3))<10,`the disc draws neutral grey: ${onPixel}`);
+   assert.notDeepEqual(onPixel,beforePixel);
+   // The cross-section: below the stage, never over it; drawn from the geometry's own points; the panel's numbers.
+   assert.equal(on.profileHidden,false);
+   assert.ok(on.figure.top>=on.canvas.bottom-.5&&on.figure.height>40,`the cross-section sits below the stage: ${JSON.stringify(on.figure)} vs ${JSON.stringify(on.canvas)}`);
+   const prof=await profileVsGeometry(page);
+   assert.equal(prof.drawn,prof.n*2,'both halves of every lathe point');
+   assert.ok(prof.worst<.01,`outline matches the lathe's profile points to ${prof.worst.toFixed(4)} cm`);
+   assert.ok(prof.mirror<.01,'the left half mirrors the right');
+   for(const k of ['Diameter','Height','Rim width','Rim depth'])assert.ok(prof.texts.includes(`${k} ${prof.panel[k]}`),`${k} reads ${prof.panel[k]} as in the panel: ${prof.texts.join(' | ')}`);
+   assert.equal(prof.texts.length,4);assert.match(prof.caption,/PDGA dimensions, to scale/);
+   await shot(page,'clay-on-destroyer','#detail .disc3d-viewer');
+   check(`clay: matte grey on a dark ground, stamp hidden, plastic untouched; cross-section below the stage from the lathe's ${prof.n} points with the panel's ${prof.texts.join(', ')}`);
+
+   // Another disc keeps clay on, rendered for the new disc.
+   const looks=[];
+   for(const name of ['Buzzz','Aviar','Destroyer']){
+    await show(page,name);
+    const st=await clayState(page),pr=await profileVsGeometry(page);
+    assert.equal(st.clay,true,name+' keeps clay on');assert.deepEqual(st.mats,['clay']);assert.equal(st.stamp,false);
+    assert.ok(pr.worst<.01,`${name}: outline matches its own lathe points`);
+    assert.ok(pr.texts.includes(`Diameter ${pr.panel.Diameter}`)&&pr.texts.includes(`Rim width ${pr.panel['Rim width']}`),name+': its own numbers '+JSON.stringify(pr));
+    await shot(page,`clay-${name.toLowerCase()}`,'#detail .disc3d-viewer');
+    looks.push({name,texts:pr.texts});
+   }
+   assert.notDeepEqual(looks[0].texts,looks[1].texts);
+   check('clay stays on from disc to disc, each drawn and annotated for itself');
+
+   // Theme: the clay ground stays dark in every theme; the plastic ground comes back with the theme's own.
+   const theme0=await page.evaluate(()=>document.documentElement.dataset.theme);
+   for(const theme of ['light','midnight','charcoal','black']){
+    await page.evaluate(t=>{document.documentElement.dataset.theme=t;window.dispatchEvent(new CustomEvent('atlas-theme-change',{detail:t}));},theme);
+    const st=await clayState(page);
+    assert.match(st.ground,/rgb\(22, 24, 28\)/,theme+': dark clay ground');assert.deepEqual(st.mats,['clay'],theme+': still clay');
+   }
+   await page.evaluate(t=>{document.documentElement.dataset.theme=t;window.dispatchEvent(new CustomEvent('atlas-theme-change',{detail:t}));},theme0);
+   check('the clay ground is dark in light, midnight, charcoal and black');
+
+   // Off again: exactly the plastic it had.
+   await page.locator('#detail [data-disc3d-clay]').click();await settle(page);
+   const off=await clayState(page);
+   assert.equal(off.clay,false);assert.equal(off.host,false);assert.equal(off.pressed,'false');
+   assert.deepEqual(off.mats,['body']);assert.deepEqual(off.plastic,before.plastic,'the same plastic material, colour and finish');
+   assert.equal(off.stamp,true);assert.equal(off.profileHidden,true);
+   assert.equal(off.ground,before.ground,'the theme backdrop is back');assert.equal(off.label,before.label);
+   assert.deepEqual(await centrePixel(page),beforePixel,'the same pixels as before clay');
+   check('turning clay off restores the plastic material, finish, colour, stamp and backdrop exactly');
+  }
+
+  // Overmold in clay: two clay tones split at the same seam; a chosen rim colour waits underneath.
+  {
+   await show(page,'Envy');
+   const id=await byName(page,'Envy');
+   const plasticBefore=await clayState(page);
+   await page.locator('#detail [data-disc3d-clay]').click();await settle(page);
+   const st=await clayState(page),m=await material(page);
+   assert.deepEqual(st.mats,['clay','clayRim'],'plate and rim each in their clay tone');
+   assert.notEqual(st.tones[0],st.tones[1]);
+   assert.deepEqual(m.colorHex,st.tones);
+   const diff=m.pixels.rim.slice(0,3).reduce((s,c,i)=>s+Math.abs(c-m.pixels.plate[i]),0);
+   assert.ok(diff>45,`the overmold split shows in clay: rim ${m.pixels.rim} vs plate ${m.pixels.plate}`);
+   const pr=await profileVsGeometry(page);
+   assert.equal(pr.rims,2,'the cross-section draws both rim pieces');assert.ok(pr.worst<.01);
+   await shot(page,'clay-overmold-envy','#detail .disc3d-viewer');
+   await view(page,'top');await shot(page,'clay-overmold-envy-top','#detail .disc3d-viewport');await view(page,'angle');
+   // A user-chosen rim colour does not tint the clay, and is there when clay is turned off.
+   await page.evaluate(async id=>{Disc3D.sync(document.querySelector('#detail'),discs.find(x=>x.id===id),{color:'#d94f2b',colors:{rim:'#2b6cd9'},hand:'RHBH'});await new Promise(r=>setTimeout(r,0));},id);
+   const chosen=await clayState(page);
+   assert.deepEqual(chosen.mats,['clay','clayRim']);assert.deepEqual(chosen.tones,st.tones,'clay tones ignore the chosen rim colour');
+   assert.equal(chosen.plastic.rim.color,'#2b6cd9','the chosen rim colour is applied underneath');
+   await page.locator('#detail [data-disc3d-clay]').click();await settle(page);
+   const back=await clayState(page);
+   assert.deepEqual(back.mats,['body','rim']);assert.equal(back.plastic.rim.color,'#2b6cd9');assert.equal(back.stamp,true);
+   await page.evaluate(async id=>{Disc3D.sync(document.querySelector('#detail'),discs.find(x=>x.id===id),{color:'#d94f2b',hand:'RHBH'});await new Promise(r=>setTimeout(r,0));},id);
+   assert.equal((await clayState(page)).plastic.rim.color,plasticBefore.plastic.rim.color);
+   await shot(page,'clay-off-overmold-envy','#detail .disc3d-viewer');
+   check(`overmold in clay: plate ${st.tones[0]} and rim ${st.tones[1]} split at the seam on screen and in the cross-section; a chosen rim colour waits underneath`);
+  }
+
+  // Board: Destroyer, Buzzz and Aviar in clay, side by side.
+  {
+   const img=f=>'data:image/png;base64,'+fs.readFileSync(`${dir}/${f}.png`).toString('base64');
+   const board=await context.newPage();await board.setViewportSize({width:1500,height:900});
+   await board.setContent('<style>body{margin:0;padding:24px;font:15px system-ui;background:#fff;color:#1d232b}main{display:grid;gap:20px;grid-template-columns:repeat(4,1fr)}h2{margin:0 0 8px;font-size:18px}img{width:100%;display:block}</style>'+
+    `<main>${['destroyer','buzzz','aviar','overmold-envy'].map(n=>`<section><h2>${n}</h2><img src="${img('clay-'+n)}"></section>`).join('')}</main>`);
+   await board.screenshot({path:`${dir}/clay-side-by-side.png`,fullPage:true});await board.close();
+  }
+
   // A rated disc without PDGA dimensions falls back to the Phase 1 generic shape and caption.
   {
    const id=await byName(page,'Leopard');
@@ -340,6 +481,13 @@ try{
    await page.waitForFunction(id=>{const s=document.querySelector('#detail .disc3d-stage');return s?.dataset.state==='ready'&&s.dataset.disc===id&&Disc3D.viewer.state.source==='flight';},id);
    assert.match(await page.locator('#detail [data-disc3d] .illustration-caption').textContent(),/generic shape from the flight numbers/);
    await settle(page);await shot(page,'no-specs-generic-leopard');
+   // In clay, its cross-section is that generic shape, labelled so, with no numbers.
+   await page.locator('#detail [data-disc3d-clay]').click();await settle(page);
+   const gp=await profileVsGeometry(page);
+   assert.ok(gp.worst<.01,'the generic cross-section is the generic lathe profile');
+   assert.deepEqual(gp.texts,[],'no PDGA numbers on a generic shape');assert.match(gp.caption,/generic shape from its flight numbers/);
+   await shot(page,'clay-generic-leopard','#detail .disc3d-viewer');
+   await page.locator('#detail [data-disc3d-clay]').click();
    await page.evaluate(id=>{const d=discs.find(x=>x.id===id);d.specs=d.__specs;delete d.__specs;},id);
    check('a rated disc without PDGA dimensions keeps the Phase 1 generic shape');
   }
@@ -390,6 +538,25 @@ try{
   assert.ok(await coverage(page)>.06);
   await page.screenshot({path:`${dir}/phone-envy.png`});
   check(`phone draws the Envy overmold in two materials (${om.tris} triangles)`);
+  // Clay on the phone: the cross-section sits under the stage, inside the sheet, never over the disc.
+  for(const name of ['Destroyer','Envy']){
+   await show(page,name);
+   if(!await page.evaluate(()=>Disc3D.clay))await page.locator('#detail [data-disc3d-clay]').click();
+   await settle(page);
+   const st=await clayState(page),sh=await page.locator('#detail').boundingBox(),tb=await page.locator('#detail .disc3d-toolbar').boundingBox();
+   assert.equal(st.clay,true);assert.equal(st.profileHidden,false);
+   assert.ok(st.figure.top>=st.canvas.bottom-.5,`phone ${name}: cross-section below the stage`);
+   assert.ok(st.figure.left>=sh.x-.5&&st.figure.right<=sh.x+sh.width+.5,'phone: cross-section fits the sheet');
+   assert.ok(tb.x+tb.width<=sh.x+sh.width+.5&&tb.y>=st.figure.bottom-.5,'phone: toolbar fits, under the cross-section');
+   const clipped=await page.evaluate(()=>[...document.querySelectorAll('#detail .disc3d-toolbar button')].filter(b=>b.scrollWidth>b.clientWidth+1).map(b=>b.textContent));
+   assert.deepEqual(clipped,[],'no toolbar label clips');
+   await page.locator('#detail .disc3d-viewer').scrollIntoViewIfNeeded();
+   await page.screenshot({path:`${dir}/phone-clay-${name.toLowerCase()}.png`});
+  }
+  await page.locator('#detail [data-disc3d-clay]').click();await settle(page);
+  assert.equal((await clayState(page)).clay,false);
+  await page.locator('#detail .disc3d-viewer').scrollIntoViewIfNeeded();await page.screenshot({path:`${dir}/phone-clay-off-envy.png`});
+  check('phone: clay keeps its cross-section under the stage and the controls inside the sheet');
   await context.close();
  }
  const real=errors.filter(e=>!/Frontend test: backend excluded|status of 503|Failed to load resource/.test(e));

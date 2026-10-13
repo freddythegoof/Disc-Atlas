@@ -3,7 +3,7 @@
 // hyzer/anhyzer tilt. One renderer is reused for every disc; it draws only when something moves.
 //
 // createDiscViewer() returns {element, attach(host), update(props), setView(name), flip(), setTilt(deg),
-// setHand(hand), getPose(), applyPose(pose), glidePose(pose, ms), dispose()}. Options: {segments, onExpand, hint}. With `onExpand`
+// setHand(hand), getPose(), applyPose(pose), glidePose(pose, ms), setClay(on), dispose()}. Options: {segments, onExpand, hint, onClay}. With `onExpand`
 // the viewer offers a pop-out: an Enlarge button and a tap or click on the canvas call onExpand(trigger),
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
@@ -16,11 +16,16 @@
 // are looked up in overmold.mjs. `colors` {rim, plate} are optional overrides of the two colours; the
 // plate defaults to `color`; the rim defaults to black in light theme, white in dark themes.
 // Every other disc is one material, as before.
+// Clay (Prompt 4) is a shape-only inspect view: the same mesh in matte studio clay on a dark ground, the stamp
+// hidden, and the mold's cross-section drawn from the lathe's own points (profile.mjs) under the stage. It only
+// swaps materials and a backdrop class; the plastic materials are left untouched underneath, so turning it off
+// restores them exactly. The Clay button calls onClay(on) so the host can carry the mode to its other viewer.
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc} from './shape.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
+import {profileSVG,CLAY_TONES} from './profile.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
 import {isOvermold,overmoldColors} from './overmold.mjs';
 
@@ -40,18 +45,40 @@ const SOURCE_TEXT={model:'its mold profile',pdga:'its PDGA dimensions, to scale'
 // The edge that drops on hyzer is the fade side: left for RHBH and LHFH, right for RHFH and LHBH.
 export const hyzerSign=hand=>hand==='RHFH'||hand==='LHBH'?-1:1;
 
+// The clay matcap: one grey sphere baked once per page into a canvas (each viewer wraps it in its own texture).
+// A key from the upper left falls off steeply (diffuse squared) so the dome, the shoulder and the flat of the
+// flight plate separate into distinct values; a tight highlight marks the shoulder's curvature; a cool fill from
+// below keeps the cavity readable; and a bright fresnel edge keeps the silhouette off the dark ground at any angle.
+let matcapCanvas=null;
+function clayMatcap(){
+ if(matcapCanvas)return matcapCanvas;
+ const size=256,canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+ const g=canvas.getContext('2d'),img=g.createImageData(size,size),d=img.data;
+ const norm=v=>{const l=Math.hypot(...v);return v.map(c=>c/l);};
+ const key=norm([-.45,.55,.7]),fill=norm([.55,-.6,.5]),half=norm([key[0],key[1],key[2]+1]);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){
+  const x=(i+.5)/size*2-1,y=1-(j+.5)/size*2,k=(j*size+i)*4;
+  const z=Math.sqrt(Math.max(0,1-Math.min(1,x*x+y*y))),dot=a=>Math.max(0,x*a[0]+y*a[1]+z*a[2]);
+  const diffuse=dot(key),v=.05+.5*diffuse*diffuse+.7*Math.pow(dot(half),18)+.2*dot(fill)+.65*Math.pow(1-z,2.4);
+  const c=Math.round(Math.min(1,v)*255);d[k]=d[k+1]=d[k+2]=c;d[k+3]=255;
+ }
+ g.putImageData(img,0,0);
+ return matcapCanvas=canvas;
+}
+
 const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const angleDelta=(a,b)=>{let d=(b-a)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d;};
 
-export function createDiscViewer({segments,onExpand,hint}={}){
+export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const coarse=matchMedia('(pointer: coarse)').matches;
  const radial=segments||(coarse?56:80);
  const element=document.createElement('div');element.className='disc3d-viewer';
  element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · scroll to zoom'}</span>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
-<div class="disc3d-toolbar"><div class="disc3d-views" role="group" aria-label="Preset views">${Object.entries(VIEWS).map(([k,v])=>`<button type="button" data-disc3d-view="${k}" aria-pressed="${k==='angle'}">${v.label}</button>`).join('')}</div><button type="button" data-disc3d-flip aria-pressed="false">Flip</button></div>
+<figure class="disc3d-profile" hidden><div class="disc3d-profile-art"></div><figcaption class="disc3d-profile-caption"></figcaption></figure>
+<div class="disc3d-toolbar"><div class="disc3d-views" role="group" aria-label="Preset views">${Object.entries(VIEWS).map(([k,v])=>`<button type="button" data-disc3d-view="${k}" aria-pressed="${k==='angle'}">${v.label}</button>`).join('')}</div><button type="button" data-disc3d-flip aria-pressed="false">Flip</button><button type="button" data-disc3d-clay aria-pressed="false" title="Clay: plain shape and cross-section">Clay</button></div>
 <label class="disc3d-tilt"><span class="disc3d-tilt-end">Anhyzer</span><input type="range" min="${-MAX_TILT}" max="${MAX_TILT}" step="1" value="0" data-disc3d-tilt aria-label="Release angle, anhyzer to hyzer"><span class="disc3d-tilt-end">Hyzer</span><output data-disc3d-tilt-value>Flat</output></label>`;
- const canvas=element.querySelector('canvas'),viewport=element.querySelector('.disc3d-viewport');
+ const canvas=element.querySelector('canvas'),viewport=element.querySelector('.disc3d-viewport'),profileFigure=element.querySelector('.disc3d-profile');
  // Throws where WebGL is unavailable; the caller keeps the static illustration.
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -75,10 +102,14 @@ export function createDiscViewer({segments,onExpand,hint}={}){
  const stampMaterial=makeStampMaterial();
  // Overmold discs only: bodyMaterial becomes the flight plate and rimMaterial the rim.
  const rimMaterial=new THREE.MeshPhysicalMaterial({color:0x444444,side:THREE.FrontSide});
+ // Clay: matte matcap materials (no lights, no environment, not tone mapped), one per part.
+ const matcap=new THREE.CanvasTexture(clayMatcap());matcap.colorSpace=THREE.SRGBColorSpace;
+ const clayMaterial=new THREE.MeshMatcapMaterial({matcap,color:CLAY_TONES.plate,toneMapped:false});
+ const clayRimMaterial=new THREE.MeshMatcapMaterial({matcap,color:CLAY_TONES.rim,toneMapped:false});
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,thickness:2,fit:40,props:null,frames:0};
+ const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
 
  const spherical=()=>new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
@@ -116,6 +147,7 @@ export function createDiscViewer({segments,onExpand,hint}={}){
 
  function resize(){
   const r=viewport.getBoundingClientRect(),w=Math.round(r.width),h=Math.round(r.height);
+  drawProfile();
   if(!w||!h||(w===size.w&&h===size.h))return;
   const first=!size.w;size={w,h};
   renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
@@ -179,8 +211,9 @@ export function createDiscViewer({segments,onExpand,hint}={}){
 
  function build(shape,mold,color,overmold){
   // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs).
-  const {geometry,seamRadius}=discGeometry(shape,{segments:radial,overmold});
-  body.material=overmold?[bodyMaterial,rimMaterial]:bodyMaterial;state.seamRadius=seamRadius;
+  const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold});
+  state.seamRadius=seamRadius;state.shape=shape;state.profile=profile;state.profileWidth=0;
+  applyMaterials(overmold);
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
@@ -208,14 +241,45 @@ export function createDiscViewer({segments,onExpand,hint}={}){
   build(shape,props.mold,color,overmold);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   if(overmold){rimMaterial.color.set(colors.rim);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
-  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[source]}${overmold?', with its overmold rim in a second colour':''}. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){
    state.flipped=false;flipTween=null;flipGroup.rotation.x=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');
    if(size.w)setZoomRange();
    setView('angle',{instant:true});
   }
+  label();drawProfile();
   request();return true;
+ }
+
+ // Which materials the mesh wears: the plastic ones, or clay. Neither set is modified by the other.
+ function applyMaterials(overmold=state.overmold){
+  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold?[bodyMaterial,rimMaterial]:bodyMaterial);
+  stamp.visible=!state.clay;
+ }
+ function label(){
+  const props=state.props||{};
+  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
+ }
+ // The cross-section under the stage, while clay is on: static SVG, redrawn only for a new disc or width.
+ function drawProfile(){
+  profileFigure.hidden=!state.clay;
+  if(!state.clay||!state.profile)return;
+  const width=Math.round(profileFigure.clientWidth);
+  if(!width||width===state.profileWidth)return;
+  state.profileWidth=width;
+  const {svg,caption}=profileSVG(state.profile,{shape:state.shape,source:state.source,specs:state.props?.specs,width,mold:state.props?.mold||'disc'});
+  profileFigure.querySelector('.disc3d-profile-art').innerHTML=svg;
+  profileFigure.querySelector('.disc3d-profile-caption').textContent=caption;
+ }
+ // `notify` (the Clay button) tells the host, which carries the mode to its other viewer.
+ function setClay(on,{notify=false}={}){
+  on=!!on;
+  if(on!==state.clay){
+   state.clay=on;element.classList.toggle('is-clay',on);
+   element.querySelector('[data-disc3d-clay]').setAttribute('aria-pressed',String(on));
+   applyMaterials();state.profileWidth=0;drawProfile();label();request();
+  }
+  if(notify)onClay?.(on);
  }
 
  // A tap is decided on pointerup but acted on at the click that follows it, so the pop-out never opens
@@ -235,6 +299,7 @@ export function createDiscViewer({segments,onExpand,hint}={}){
   const x=e.target.closest('[data-disc3d-expand]');if(x){onExpand?.(x);return;}
   const v=e.target.closest('[data-disc3d-view]');if(v){noteInteraction();setView(v.dataset.disc3dView);}
   if(e.target.closest('[data-disc3d-flip]')){noteInteraction();flip();}
+  if(e.target.closest('[data-disc3d-clay]'))setClay(!state.clay,{notify:true});
  });
  element.querySelector('[data-disc3d-tilt]').addEventListener('input',e=>{noteInteraction();setTilt(e.target.value);});
  canvas.addEventListener('keydown',e=>{
@@ -258,11 +323,11 @@ export function createDiscViewer({segments,onExpand,hint}={}){
  function dispose(){
   window.removeEventListener('atlas-theme-change',themeChanged);
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
-  body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
+  body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();clayMaterial.dispose();clayRimMaterial.dispose();matcap.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
   envTexture.dispose();renderer.dispose();renderer.forceContextLoss();element.remove();
  }
  setTilt(0);
- return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,dispose,state,
+ return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,setClay,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
-  debug:{renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
+  debug:{renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

@@ -3,7 +3,8 @@
 // and overmold colours, takes the same drag / wheel / pinch / preset / flip / tilt input, and starts from the
 // panel's pose and hands its pose back. Escape, the close button or a click outside close it; focus moves in
 // and returns to the opener. The panel's own viewer is untouched while it is open. Phones: fits the screen,
-// touch rotate and pinch zoom.
+// touch rotate and pinch zoom. Clay mode (Prompt 4) is one setting for both viewers: on in the panel, the pop-out
+// opens in clay with its cross-section under the stage; toggled in the pop-out, the panel follows.
 // Run: PLAYWRIGHT_MODULE=<playwright> node tests/disc3d-popout-browser.mjs   (shots: outputs/disc3d-popout/)
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -57,6 +58,14 @@ const focusInside=page=>page.evaluate(sel=>document.querySelector(sel).contains(
 // The page behind a modal dialog is inert: Tab may leave for the browser's own UI (nothing focused in the page) but never reaches it.
 const focusContained=page=>page.evaluate(sel=>{const a=document.activeElement;return a===document.body||document.querySelector(sel).contains(a);},dlg);
 // What a viewer is showing: shape, colours and materials, independent of mesh resolution.
+// Clay in one viewer: on or off, which materials, and where its cross-section sits against its canvas.
+const clayOf=(page,which)=>page.evaluate(w=>{
+ const v=Disc3D[w],{body,clayMaterial,clayRimMaterial,profileFigure}=v.debug,vp=v.element.querySelector('.disc3d-viewport').getBoundingClientRect(),f=profileFigure.getBoundingClientRect();
+ return {clay:v.state.clay,pressed:v.element.querySelector('[data-disc3d-clay]').getAttribute('aria-pressed'),
+  mats:[].concat(body.material).map(m=>m===clayMaterial?'clay':m===clayRimMaterial?'clayRim':'plastic'),
+  shown:!profileFigure.hidden&&getComputedStyle(profileFigure).display!=='none',figure:{top:f.top,bottom:f.bottom,left:f.left,right:f.right,height:f.height},canvasBottom:vp.bottom,canvasHeight:vp.height,
+  texts:[...profileFigure.querySelectorAll('text')].map(t=>t.textContent),points:v.state.profile?.points.length};
+},which);
 const look=(page,which)=>page.evaluate(w=>{
  const v=Disc3D[w],{body,bodyMaterial,rimMaterial}=v.debug;body.geometry.computeBoundingBox();const b=body.geometry.boundingBox;
  return {diameter:+((b.max.x-b.min.x)).toFixed(4),height:+(b.max.y-b.min.y).toFixed(4),source:v.state.source,overmold:v.state.overmold,colors:v.state.colors,
@@ -239,6 +248,35 @@ try{
   await page.keyboard.press('Escape');await waitClosed(page);
   check('overmold two-tone and custom colours carry over; the pop-out follows the theme');
 
+  // Clay: on in the panel, the pop-out opens in clay; toggled in the pop-out, the panel follows; it stays on after close.
+  for(const name of ['Envy','Destroyer']){
+   await show(page,name);
+   if(!await page.evaluate(()=>Disc3D.clay))await page.locator('#detail [data-disc3d-clay]').click();
+   const panel=await clayOf(page,'viewer');
+   assert.equal(panel.clay,true);
+   await page.locator('#detail [data-disc3d-expand]').click();await waitOpen(page);
+   const pop=await clayOf(page,'popout');
+   assert.equal(pop.clay,true,name+': the pop-out opens in clay');assert.equal(pop.pressed,'true');
+   assert.deepEqual(pop.mats,panel.mats,name+': same clay materials ('+pop.mats.join('/')+')');
+   assert.ok(pop.shown&&pop.figure.top>=pop.canvasBottom-.5,name+': the cross-section sits under the pop-out stage');
+   assert.deepEqual(pop.texts,panel.texts,name+': the same dimensions as the panel');assert.equal(pop.points,panel.points,'the same profile points');
+   const d=await page.locator(dlg).boundingBox();
+   assert.ok(pop.figure.bottom<=d.y+d.height+.5&&pop.figure.left>=d.x-.5&&pop.figure.right<=d.x+d.width+.5,'the cross-section fits the dialog');
+   await settle(page);await page.screenshot({path:`${dir}/desktop-clay-${name.toLowerCase()}.png`});
+   await page.keyboard.press('Escape');await waitClosed(page);
+  }
+  await page.locator('#detail [data-disc3d-expand]').click();await waitOpen(page);
+  await page.locator(`${dlg} [data-disc3d-clay]`).click();
+  assert.equal((await clayOf(page,'popout')).clay,false);assert.equal((await clayOf(page,'viewer')).clay,false,'turning clay off in the pop-out turns it off in the panel');
+  assert.deepEqual((await clayOf(page,'popout')).mats,['plastic']);assert.equal((await clayOf(page,'popout')).shown,false);
+  await page.locator(`${dlg} [data-disc3d-clay]`).click();
+  assert.equal((await clayOf(page,'viewer')).clay,true,'and on again');
+  await page.keyboard.press('Escape');await waitClosed(page);
+  assert.equal(await page.evaluate(()=>Disc3D.clay),true);assert.deepEqual((await clayOf(page,'viewer')).mats,['clay'],'clay stays on in the panel after the pop-out closes');
+  await page.locator('#detail [data-disc3d-clay]').click();
+  assert.deepEqual((await clayOf(page,'viewer')).mats,['plastic']);
+  check('clay carries into the pop-out with the same cross-section and numbers; toggling in either viewer turns both');
+
   // Opening and closing repeatedly leaves no dialog viewer or open context behind.
   for(let i=0;i<4;i++){await page.locator('#detail [data-disc3d-expand]').click();await waitOpen(page);await page.keyboard.press('Escape');await waitClosed(page);}
   assert.equal(await page.locator('dialog.disc3d-dialog').count(),1,'one dialog element is reused');
@@ -335,6 +373,22 @@ try{
   assert.equal(await page.evaluate(()=>document.activeElement.matches('[data-disc3d-expand]')),true);
   check('phone: presets and close by touch; focus returns to the opener');
 
+  // Clay on the phone pop-out: the cross-section sits between the disc and the controls, and the disc keeps room.
+  await show(page,'Envy');
+  await page.evaluate(()=>Disc3D.setClay(true));
+  await page.evaluate(()=>Disc3D.open());await waitOpen(page);
+  {
+   const pop=await clayOf(page,'popout'),dd=await page.locator(dlg).boundingBox(),tb=await page.locator(`${dlg} .disc3d-toolbar`).boundingBox();
+   assert.equal(pop.clay,true);assert.ok(pop.shown,'phone pop-out shows the cross-section');
+   assert.ok(pop.figure.top>=pop.canvasBottom-.5&&tb.y>=pop.figure.bottom-.5,'phone: disc, then cross-section, then controls');
+   assert.ok(pop.figure.bottom<=dd.y+dd.height+.5&&tb.y+tb.height<=dd.y+dd.height+.5,'phone: it all fits the dialog');
+   assert.ok(pop.canvasHeight>220,'phone: the disc keeps a roomy stage in clay: '+pop.canvasHeight);
+   await page.evaluate(()=>Disc3D.popout.debug.renderNow());await page.waitForTimeout(150);
+   await page.screenshot({path:`${dir}/phone-clay-envy.png`});
+   await page.evaluate(()=>Disc3D.close());await waitClosed(page);
+  }
+  check('phone: the clay pop-out keeps the disc, its cross-section and the controls in order on screen');
+
   // Landscape: the controls still fit.
   await page.setViewportSize({width:844,height:390});await page.waitForTimeout(200);
   await page.locator('#detail [data-disc3d-expand]').scrollIntoViewIfNeeded();
@@ -346,6 +400,18 @@ try{
   await page.screenshot({path:`${dir}/phone-landscape.png`});
   await page.evaluate(()=>Disc3D.close());await waitClosed(page);
   check(`phone landscape: controls fit and the disc keeps ${Math.round(lv.height)}px of height`);
+  // In clay, landscape folds the cross-section away so the disc keeps its height.
+  await page.evaluate(()=>Disc3D.setClay(true));await page.evaluate(()=>Disc3D.open());await waitOpen(page);
+  {
+   const pop=await clayOf(page,'popout'),cv=await page.locator(`${dlg} .disc3d-viewport`).boundingBox();
+   assert.equal(pop.clay,true);assert.equal(pop.shown,false,'landscape hides the cross-section');
+   assert.ok(Math.abs(cv.height-lv.height)<2,`landscape clay keeps the same stage height (${cv.height} vs ${lv.height})`);
+   await page.evaluate(()=>Disc3D.popout.debug.renderNow());await page.waitForTimeout(150);
+   await page.screenshot({path:`${dir}/phone-landscape-clay.png`});
+   await page.evaluate(()=>Disc3D.close());await waitClosed(page);
+   await page.evaluate(()=>Disc3D.setClay(false));
+  }
+  check('phone landscape in clay: the cross-section folds away and the disc keeps its height');
   await context.close();
  }
 
