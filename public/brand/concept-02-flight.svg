@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="brand-concept" viewBox="-80 -80 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Flight-Path S-Curve — Disc Atlas concept 2</title>
+  <desc id="desc">An outlined disc, continuous flight trace, and waypoints give the mark the reference’s sense of motion.</desc>
+  <!-- Revised from Freddy's supplied vector reference. Geometry is editable. -->
+  <!-- Inline consumers may override the four brand color properties per theme. -->
+  <style>
+    .brand-concept { --brand-ink:#202731; --brand-secondary:#687384; --brand-accent:#4d7c0f; --brand-surface:#f7f8fa; }
+    @media (prefers-color-scheme:dark) {
+      .brand-concept { --brand-ink:#edf2fc; --brand-secondary:#97a3b5; --brand-accent:#b8ff00; --brand-surface:#080b10; }
+    }
+  </style>
+  <g>
+      <ellipse cx="-24" cy="34" rx="28" ry="11" transform="rotate(-28 -24 34)" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="4" opacity="0.35"/>
+      <circle cx="-24" cy="34" r="5" fill="var(--brand-ink, #202731)"/>
+      <path d="M -24,34 C -6,22 18,12 28,-12 C 36,-30 20,-48 -2,-48 C -22,-48 -32,-30 -24,-10 C -18,6 2,16 26,24 C 42,28 54,38 54,52"
+            fill="none" stroke="var(--brand-accent, #4d7c0f)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="28" cy="-12" r="4.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-24" cy="-10" r="3.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="54" cy="52" r="5.5" fill="var(--brand-accent, #4d7c0f)"/>
+
+  </g>
+</svg>

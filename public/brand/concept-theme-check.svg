@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="846" viewBox="0 0 1200 846" role="img" aria-labelledby="title desc">
+  <title id="title">Disc Atlas — supplemental theme and single-ink checks</title>
+  <desc id="desc">The same three revised concepts in charcoal, black, and monochrome.</desc>
+  <defs><symbol id="mark-0" viewBox="-80 -80 160 160"><g>
+      <circle cx="0" cy="0" r="58" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="6"/>
+      <circle cx="0" cy="0" r="44" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="1.5" stroke-dasharray="3 6" opacity="0.6"/>
+      <line x1="0" y1="-72" x2="0" y2="-58" stroke="var(--brand-accent, #4d7c0f)" stroke-width="4.5" stroke-linecap="round"/>
+      <line x1="0" y1="58" x2="0" y2="70" stroke="var(--brand-ink, #202731)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="-70" y1="0" x2="-58" y2="0" stroke="var(--brand-ink, #202731)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="58" y1="0" x2="70" y2="0" stroke="var(--brand-ink, #202731)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M 0,-52 L 15, -4 L 0, -14 L -15, -4 Z" fill="var(--brand-accent, #4d7c0f)"/>
+      <path d="M 0, -14 L 14, 38 L 0, 24 L -14, 38 Z" fill="var(--brand-secondary, #687384)"/>
+      <circle cx="0" cy="-6" r="4.5" fill="var(--brand-surface, #f7f8fa)" stroke="var(--brand-ink, #202731)" stroke-width="2.5"/>
+      <circle cx="0" cy="-6" r="2" fill="var(--brand-accent, #4d7c0f)"/>
+    </g></symbol>
+<symbol id="mark-1" viewBox="-80 -80 160 160"><g>
+      <ellipse cx="-24" cy="34" rx="28" ry="11" transform="rotate(-28 -24 34)" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="4" opacity="0.35"/>
+      <circle cx="-24" cy="34" r="5" fill="var(--brand-ink, #202731)"/>
+      <path d="M -24,34 C -6,22 18,12 28,-12 C 36,-30 20,-48 -2,-48 C -22,-48 -32,-30 -24,-10 C -18,6 2,16 26,24 C 42,28 54,38 54,52"
+            fill="none" stroke="var(--brand-accent, #4d7c0f)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="28" cy="-12" r="4.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-24" cy="-10" r="3.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="54" cy="52" r="5.5" fill="var(--brand-accent, #4d7c0f)"/>
+    </g></symbol>
+<symbol id="mark-2" viewBox="-80 -80 160 160"><g>
+      <circle cx="0" cy="0" r="58" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="5.5"/>
+      <line x1="-58" y1="0" x2="58" y2="0" stroke="var(--brand-ink, #202731)" stroke-width="1.8" stroke-dasharray="3 4" opacity="0.45"/>
+      <line x1="0" y1="-58" x2="0" y2="58" stroke="var(--brand-ink, #202731)" stroke-width="1.8" stroke-dasharray="3 4" opacity="0.45"/>
+      <path d="M -44,22 C -20,-16 20,-24 46,-12" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="2.5" opacity="0.35"/>
+      <path d="M -36,36 C -12,4 28,-2 42,20" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="2" opacity="0.25"/>
+      <circle cx="-28" cy="-32" r="8" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-10" cy="-38" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="16" cy="-34" r="7.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="34" cy="-26" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-38" cy="-6" r="5.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-16" cy="-12" r="7" fill="var(--brand-ink, #202731)"/>
+      <circle cx="6" cy="-4" r="10.5" fill="var(--brand-accent, #4d7c0f)"/>
+      <circle cx="6" cy="-4" r="3.5" fill="var(--brand-surface, #f7f8fa)"/>
+      <circle cx="28" cy="2" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-24" cy="22" r="6.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-4" cy="30" r="8" fill="var(--brand-ink, #202731)"/>
+      <circle cx="18" cy="26" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="36" cy="18" r="5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="0" cy="0" r="2.2" fill="var(--brand-accent, #4d7c0f)"/>
+    </g></symbol></defs><style>text{font-family:Arial,Helvetica,sans-serif}.title{font-size:27px;font-weight:600;fill:#f1f5f9}.phase{font-size:11px;letter-spacing:1.5px;fill:#b8ff00}.intro{font-size:14px;fill:#a6b3c4}.number{font-size:11px;letter-spacing:1.5px;fill:#b8ff00}.name{font-size:20px;font-weight:600;fill:#f1f5f9}.idea{font-size:14px;fill:#a6b3c4}.theme{font-size:10px;letter-spacing:1px}.footer{font-size:12px;fill:#a6b3c4}</style>
+  <rect width="1200" height="846" fill="#090b10"/>
+  <text x="48" y="49" class="title">DISC ATLAS / THEME CHECKS</text>
+  <text x="48" y="99" class="name">01 / Compass Rose</text>
+<text x="424" y="99" class="name">02 / Flight-Path S-Curve</text>
+<text x="800" y="99" class="name">03 / Disc + Scatter Atlas</text>
+  <g style="--brand-ink:#f1f2f5;--brand-secondary:#aeb3bf;--brand-accent:#b8ff00;--brand-surface:#101113">
+  <rect x="48" y="124" width="352" height="202" rx="12" fill="#101113" stroke="#373b43"/>
+  <text x="64" y="150" class="theme" fill="#aeb3bf">CHARCOAL</text>
+  <use href="#mark-0" x="152" y="165.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#f1f2f5;--brand-secondary:#aeb3bf;--brand-accent:#b8ff00;--brand-surface:#101113">
+  <rect x="424" y="124" width="352" height="202" rx="12" fill="#101113" stroke="#373b43"/>
+  <text x="440" y="150" class="theme" fill="#aeb3bf">CHARCOAL</text>
+  <use href="#mark-1" x="528" y="165.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#f1f2f5;--brand-secondary:#aeb3bf;--brand-accent:#b8ff00;--brand-surface:#101113">
+  <rect x="800" y="124" width="352" height="202" rx="12" fill="#101113" stroke="#373b43"/>
+  <text x="816" y="150" class="theme" fill="#aeb3bf">CHARCOAL</text>
+  <use href="#mark-2" x="904" y="165.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#f4f4f4;--brand-secondary:#aaaaaa;--brand-accent:#b8ff00;--brand-surface:#000000">
+  <rect x="48" y="346" width="352" height="202" rx="12" fill="#000000" stroke="#262626"/>
+  <text x="64" y="372" class="theme" fill="#aaaaaa">BLACK</text>
+  <use href="#mark-0" x="152" y="387.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#f4f4f4;--brand-secondary:#aaaaaa;--brand-accent:#b8ff00;--brand-surface:#000000">
+  <rect x="424" y="346" width="352" height="202" rx="12" fill="#000000" stroke="#262626"/>
+  <text x="440" y="372" class="theme" fill="#aaaaaa">BLACK</text>
+  <use href="#mark-1" x="528" y="387.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#f4f4f4;--brand-secondary:#aaaaaa;--brand-accent:#b8ff00;--brand-surface:#000000">
+  <rect x="800" y="346" width="352" height="202" rx="12" fill="#000000" stroke="#262626"/>
+  <text x="816" y="372" class="theme" fill="#aaaaaa">BLACK</text>
+  <use href="#mark-2" x="904" y="387.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#202731;--brand-secondary:#202731;--brand-accent:#202731;--brand-surface:#f7f8fa">
+  <rect x="48" y="568" width="352" height="202" rx="12" fill="#f7f8fa" stroke="#dfe3e9"/>
+  <text x="64" y="594" class="theme" fill="#202731">ONE INK</text>
+  <use href="#mark-0" x="152" y="609.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#202731;--brand-secondary:#202731;--brand-accent:#202731;--brand-surface:#f7f8fa">
+  <rect x="424" y="568" width="352" height="202" rx="12" fill="#f7f8fa" stroke="#dfe3e9"/>
+  <text x="440" y="594" class="theme" fill="#202731">ONE INK</text>
+  <use href="#mark-1" x="528" y="609.5" width="144" height="144"/>
+</g>
+<g style="--brand-ink:#202731;--brand-secondary:#202731;--brand-accent:#202731;--brand-surface:#f7f8fa">
+  <rect x="800" y="568" width="352" height="202" rx="12" fill="#f7f8fa" stroke="#dfe3e9"/>
+  <text x="816" y="594" class="theme" fill="#202731">ONE INK</text>
+  <use href="#mark-2" x="904" y="609.5" width="144" height="144"/>
+</g>
+  <text x="48" y="816" class="footer">Same geometry in every theme · Phase 2 will derive the simplified mark and 16px sub-mark after selection.</text>
+</svg>

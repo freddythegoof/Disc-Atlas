@@ -214,8 +214,7 @@ header nav button.active::after{transform:scaleX(1)}
 header{background:var(--bg);border-bottom-color:color-mix(in srgb,var(--line) 65%,transparent)}
 .logo{gap:10px;letter-spacing:-.55px;font:600 19px/1 -apple-system,BlinkMacSystemFont,'DM Sans',sans-serif}
 .logo .wordmark{font-weight:600;color:var(--text)}
-.atlas-logo{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.35;flex-shrink:0}
-.atlas-logo path{opacity:.35;stroke-width:1}.atlas-logo circle{fill:currentColor;stroke:none}
+.atlas-logo{width:34px;height:34px;flex-shrink:0}
 header>nav{align-self:center;gap:3px;border-radius:11px;background:var(--surface);padding:4px}
 header>nav button{border:0;border-radius:8px;padding:7px 17px;font-size:12px;min-height:32px}
 header>nav button::after{display:none}

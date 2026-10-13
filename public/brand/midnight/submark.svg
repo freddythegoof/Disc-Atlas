@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-labelledby="da-submark-title da-submark-desc" style="--da-ink:#edf2fc;--da-accent:#b8ff00">
+  <title id="da-submark-title">Disc Atlas — Sub-mark / Midnight</title>
+  <desc id="da-submark-desc">Minimal scatter badge drawn on a 16 pixel grid, with three small nodes and one larger highlighted node.</desc>
+
+  <!-- Native 16px geometry. The selected node is solid to retain its weight. -->
+  <path d="M15 8A7 7 0 1 1 1 8A7 7 0 1 1 15 8Z M13.5 8A5.5 5.5 0 1 1 2.5 8A5.5 5.5 0 1 1 13.5 8Z" fill="var(--da-ink, #202731)" fill-rule="evenodd"/>
+  <g fill="var(--da-ink, #202731)"><path d="M6.5 5.5A1 1 0 1 1 4.5 5.5A1 1 0 1 1 6.5 5.5Z"/>
+    <path d="M11.5 5.5A1 1 0 1 1 9.5 5.5A1 1 0 1 1 11.5 5.5Z"/>
+    <path d="M6.5 10.5A1 1 0 1 1 4.5 10.5A1 1 0 1 1 6.5 10.5Z"/></g>
+  <path d="M11.75 10A1.75 1.75 0 1 1 8.25 10A1.75 1.75 0 1 1 11.75 10Z" fill="var(--da-accent, #4d7c0f)"/>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="brand-concept" viewBox="-80 -80 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Disc + Scatter Atlas — Disc Atlas concept 3</title>
+  <desc id="desc">Speed and stability axes, clustered discs, and a highlighted node turn the disc into the atlas itself.</desc>
+  <!-- Revised from Freddy's supplied vector reference. Geometry is editable. -->
+  <!-- Inline consumers may override the four brand color properties per theme. -->
+  <style>
+    .brand-concept { --brand-ink:#202731; --brand-secondary:#687384; --brand-accent:#4d7c0f; --brand-surface:#f7f8fa; }
+    @media (prefers-color-scheme:dark) {
+      .brand-concept { --brand-ink:#edf2fc; --brand-secondary:#97a3b5; --brand-accent:#b8ff00; --brand-surface:#080b10; }
+    }
+  </style>
+  <g>
+      <circle cx="0" cy="0" r="58" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="5.5"/>
+      <line x1="-58" y1="0" x2="58" y2="0" stroke="var(--brand-ink, #202731)" stroke-width="1.8" stroke-dasharray="3 4" opacity="0.45"/>
+      <line x1="0" y1="-58" x2="0" y2="58" stroke="var(--brand-ink, #202731)" stroke-width="1.8" stroke-dasharray="3 4" opacity="0.45"/>
+      <path d="M -44,22 C -20,-16 20,-24 46,-12" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="2.5" opacity="0.35"/>
+      <path d="M -36,36 C -12,4 28,-2 42,20" fill="none" stroke="var(--brand-ink, #202731)" stroke-width="2" opacity="0.25"/>
+      <circle cx="-28" cy="-32" r="8" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-10" cy="-38" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="16" cy="-34" r="7.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="34" cy="-26" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-38" cy="-6" r="5.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-16" cy="-12" r="7" fill="var(--brand-ink, #202731)"/>
+      <circle cx="6" cy="-4" r="10.5" fill="var(--brand-accent, #4d7c0f)"/>
+      <circle cx="6" cy="-4" r="3.5" fill="var(--brand-surface, #f7f8fa)"/>
+      <circle cx="28" cy="2" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-24" cy="22" r="6.5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="-4" cy="30" r="8" fill="var(--brand-ink, #202731)"/>
+      <circle cx="18" cy="26" r="6" fill="var(--brand-ink, #202731)"/>
+      <circle cx="36" cy="18" r="5" fill="var(--brand-ink, #202731)"/>
+      <circle cx="0" cy="0" r="2.2" fill="var(--brand-accent, #4d7c0f)"/>
+
+  </g>
+</svg>

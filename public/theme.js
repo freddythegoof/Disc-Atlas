@@ -16,6 +16,10 @@
     });
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = value === 'light' ? '#f7f8fa' : value === 'charcoal' ? '#101113' : value === 'black' ? '#000000' : '#080b10';
+    const favicon = `/brand/${value}/submark.svg`;
+    document.querySelectorAll('link[rel="icon"]').forEach(link => {
+      if (link.getAttribute('href') !== favicon) link.setAttribute('href', favicon);
+    });
     window.dispatchEvent(new CustomEvent('atlas-theme-change', {detail: value}));
   };
   const choose = value => {

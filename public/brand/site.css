@@ -1,0 +1,8 @@
+/* Approved Scatter Atlas branding. Palette follows the site's explicit theme. */
+:root{--da-ink:var(--text);--da-accent:#4d7c0f}
+:root:is([data-theme="midnight"],[data-theme="charcoal"],[data-theme="black"],[data-theme="dark"]){--da-accent:#b8ff00}
+.atlas-logo{fill:var(--da-ink);stroke:none}
+.logo .brand-wordmark{display:block;flex:none;width:120px;height:19px;line-height:0}
+.brand-wordmark svg{display:block;width:100%;height:100%;fill:var(--da-ink)}
+.brand-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:700px){.logo .brand-wordmark{width:107px;height:17px}}
