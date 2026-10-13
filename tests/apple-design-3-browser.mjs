@@ -188,7 +188,7 @@ try{
  if(wants('--branding')){
   const header=page=>page.evaluate(()=>{
    const h=document.querySelector('header'),logo=h.querySelector('.logo'),mark=h.querySelector('.atlas-logo'),word=h.querySelector('.wordmark svg'),r=mark.getBoundingClientRect(),w=word.getBoundingClientRect(),hr=h.getBoundingClientRect();
-   return {height:hr.height,token:parseFloat(getComputedStyle(h).height),markLeft:Math.round(r.left*10)/10,markCenterY:Math.round((r.top+r.height/2)*10)/10,markSize:Math.round(r.width),wordBottom:Math.round(w.bottom*10)/10,wordLeft:Math.round(w.left*10)/10,bg:getComputedStyle(document.body).backgroundColor,line:getComputedStyle(h).borderBottomColor,fixed:getComputedStyle(document.documentElement).getPropertyValue('--header-height').trim()};
+   return {height:hr.height,token:parseFloat(getComputedStyle(h).height),markLeft:Math.round(r.left*10)/10,markCenterY:Math.round((r.top+r.height/2)*10)/10,markSize:Math.round(r.width),wordBottom:Math.round(w.bottom*10)/10,wordLeft:Math.round(w.left*10)/10,actions:(a=>a&&[Math.round(a.right*10)/10,Math.round((a.top+a.height/2)*10)/10])(h.querySelector('.header-actions')?.getBoundingClientRect()),bg:getComputedStyle(document.body).backgroundColor,line:getComputedStyle(h).borderBottomColor,fixed:getComputedStyle(document.documentElement).getPropertyValue('--header-height').trim()};
   });
   for(const width of [1440,390]){
    for(const theme of ['light','midnight']){
@@ -196,15 +196,17 @@ try{
     for(const [name,route] of [['app','/'],['about','/about'],['account','/signin'],['privacy','/privacy'],['terms','/terms']]){
      const page=await open(route,{width,height:width>700?900:844,theme,touch:width<700});
      rows[name]=await header(page);
-     if(['app','about','account'].includes(name))await page.screenshot({path:`${dir}/${name}-${width}-${theme}.png`,clip:{x:0,y:0,width,height:name==='app'?Math.min(300,844):300}});
-     if(name==='about'){
-      // The theme control is Account's: an icon toggle and a menu of four radios, no labelled select.
+     await page.screenshot({path:`${dir}/${name}-${width}-${theme}.png`,clip:{x:0,y:0,width,height:name==='app'?Math.min(300,844):300}});
+     if(['about','privacy','terms'].includes(name)){
+      // The theme control is Account's: an icon toggle and a menu of four radios, no labelled select (Privacy and
+      // Terms since Prompt 4).
+      const title=name[0].toUpperCase()+name.slice(1);
       const control=await page.evaluate(()=>({select:document.querySelectorAll('[data-theme-select],.theme-picker').length,toggle:document.querySelectorAll('header [data-theme-toggle]').length,choices:[...document.querySelectorAll('#siteMenu [data-theme-choice]')].map(b=>b.dataset.themeChoice),menu:!!document.querySelector('#siteMenuButton[aria-haspopup="menu"]#siteMenuButton')}));
-      assert.deepEqual(control,{select:0,toggle:1,choices:['light','midnight','charcoal','black'],menu:true},`About ${width} ${theme}: the Account theme control`);
+      assert.deepEqual(control,{select:0,toggle:1,choices:['light','midnight','charcoal','black'],menu:true},`${title} ${width} ${theme}: the Account theme control`);
       await page.locator('[data-theme-toggle]').click();await page.waitForFunction(t=>document.documentElement.dataset.theme!==t,theme);
       await page.locator('#siteMenuButton').click();
       await page.locator('[data-theme-choice="charcoal"]').click();await page.waitForFunction(()=>document.documentElement.dataset.theme==='charcoal');
-      assert.equal(await page.evaluate(()=>document.querySelector('[data-theme-choice="charcoal"]').getAttribute('aria-checked')),'true','About: choosing a radio checks it');
+      assert.equal(await page.evaluate(()=>document.querySelector('[data-theme-choice="charcoal"]').getAttribute('aria-checked')),'true',`${title}: choosing a radio checks it`);
       await page.keyboard.press('Escape');
      }
      await page.context().close();
@@ -212,14 +214,19 @@ try{
     for(const name of ['about','account','privacy','terms'])assert.equal(rows[name].height,rows[name].token,`${width} ${theme}: ${name} header height is its --header-height token (${rows[name].fixed})`);
     // The lockup does not move between the information pages, and sits where the app's first row puts it.
     for(const name of ['about','privacy','terms'])assert.deepEqual([rows[name].markLeft,rows[name].markCenterY,rows[name].markSize,rows[name].height],[rows.account.markLeft,rows.account.markCenterY,rows.account.markSize,rows.account.height],`${width} ${theme}: ${name} header matches Account`);
+    // And the theme controls sit where Account's do (right edge and vertical centre), on Privacy and Terms too.
+    for(const name of ['about','privacy','terms'])assert.deepEqual(rows[name].actions,rows.account.actions,`${width} ${theme}: ${name} header controls sit where Account's do`);
     assert.equal(rows.about.markLeft,rows.app.markLeft,`${width} ${theme}: the lockup's left edge matches the app's`);
     assert.ok(Math.abs(rows.about.markCenterY-rows.app.markCenterY)<=1.5,`${width} ${theme}: its vertical centre is within 1.5 px of the app's (${rows.about.markCenterY} vs ${rows.app.markCenterY})`);
     if(width>700)assert.equal(rows.about.height,rows.app.height,`${width}: the header is as tall as the app's`);
     if(theme==='light'){
      assert.equal(rows.about.bg,'rgb(247, 248, 250)','About\'s light surface is the app\'s cool #f7f8fa');
      assert.equal(rows.about.bg,rows.app.bg);assert.equal(rows.about.bg,rows.account.bg);assert.equal(rows.about.line,rows.account.line,'and its hairline matches Account\'s');
+     for(const name of ['privacy','terms'])assert.deepEqual([rows[name].bg,rows[name].line],[rows.account.bg,rows.account.line],`${name}: light surface and hairline match Account's`);
+    }else{
+     for(const name of ['about','privacy','terms'])assert.equal(rows[name].bg,rows.account.bg,`${width} midnight: ${name} surface matches Account's`);
     }
-    check(`${width} ${theme}: About's theme control is Account's; About, Account, Privacy and Terms headers share the token, the lockup position and (light) the surface`);
+    check(`${width} ${theme}: About, Privacy and Terms carry Account's theme control; all four headers share the token, the lockup and control positions and the surface`);
    }
   }
   // Navigating About <-> Account in light: the background and the lockup hold still.

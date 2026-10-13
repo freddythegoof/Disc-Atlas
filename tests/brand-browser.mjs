@@ -75,7 +75,8 @@ try{
  await savedPage.goto(base+'/privacy');await savedPage.evaluate(()=>localStorage.setItem('disc-atlas-theme','dark'));await savedPage.reload();
  assert.equal(await savedPage.locator('html').getAttribute('data-theme'),'midnight');
  assert.equal(await savedPage.locator('link[rel="icon"]').getAttribute('href'),'/brand/midnight/submark.svg?v=tilted-disc');
- await savedPage.locator('[data-theme-select]').selectOption('black');await savedPage.reload();
+ await savedPage.getByRole('button',{name:'Site menu',exact:true}).click();await savedPage.locator('[data-theme-choice="black"]').click();await savedPage.keyboard.press('Escape');
+ await savedPage.waitForFunction(()=>!document.documentElement.classList.contains('theme-switching'));await savedPage.reload();
  assert.equal(await savedPage.locator('html').getAttribute('data-theme'),'black');
  assert.equal(await savedPage.locator('link[rel="icon"]').getAttribute('href'),'/brand/black/submark.svg?v=tilted-disc');
  await saved.close();
