@@ -183,6 +183,22 @@ try{
   const tokens=await (await open('/',{})).evaluate(()=>{const c=getComputedStyle(document.documentElement);return ['--dur-press','--dur-ui','--dur-surface','--ease-out'].map(n=>c.getPropertyValue(n).trim());});
   assert.deepEqual(tokens,['100ms','180ms','280ms','cubic-bezier(.16,1,.3,1)']);
   check('The motion tokens exist on :root: 100 / 180 / 280 ms and the expo-out ease');
+  // Prompt 4: the detail panel's GSAP reveal, dismiss and expand take their durations from the tokens.
+  for(const [size,touch] of [[{width:1440,height:900},false],[{width:390,height:844},true]]){
+   const page=await open('/',{...size,touch});
+   const got=await page.evaluate(async()=>{
+    const seen=[],wrap=k=>{const f=gsap[k].bind(gsap);gsap[k]=(...a)=>{const v=a.at(-1);if(v&&v.duration!=null)seen.push(+v.duration.toFixed(3));return f(...a);};};wrap('to');wrap('fromTo');
+    const wait=ms=>new Promise(r=>setTimeout(r,ms));
+    select(discs.find(d=>d.name==='Destroyer'&&d.speed!=null));await wait(400);const reveal=seen.slice();seen.length=0;
+    let expand=null;if(innerWidth<700){document.querySelector('#expandDetail').click();await wait(500);expand=seen.slice();seen.length=0;document.querySelector('#expandDetail').click();await wait(500);seen.length=0;}
+    closeDetail();await wait(400);return {reveal,dismiss:seen.slice(),expand};
+   });
+   assert.ok(got.reveal.includes(.18),`reveal runs --dur-ui (180 ms): ${got.reveal}`);
+   assert.ok(got.dismiss.includes(.1),`dismiss runs --dur-press (100 ms, was 120): ${got.dismiss}`);
+   if(got.expand)assert.ok(got.expand.includes(.28),`expand runs --dur-surface (280 ms): ${got.expand}`);
+   await page.context().close();
+  }
+  check('Detail panel GSAP: reveal --dur-ui, dismiss --dur-press, expand --dur-surface');
  }
 
  if(wants('--branding')){

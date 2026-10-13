@@ -4,6 +4,12 @@ window.AtlasMotion = (() => {
   const enabled = () => !reduced.matches && !!window.gsap;
   const panels = new WeakMap();
   const cancel = node => {window.gsap?.killTweensOf(node);panels.get(node)?.tween?.kill();};
+  // The motion tokens (cosmic.css :root, batch 3) in seconds, read once; the fallback is the value they replaced.
+  const tokens = {};
+  const token = (name, fallback) => {
+    if (!(name in tokens)) { const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)); tokens[name] = Number.isFinite(v) ? v / 1000 : fallback; }
+    return tokens[name];
+  };
   function slide(node, from, to, direction, duration, complete) {
     const state={value:from};panels.set(node,state);
     const mobile=innerWidth<700&&node.id==='detail',travel=reduced.matches?0:1;   // reduced motion: a fade, no slide
@@ -25,13 +31,13 @@ window.AtlasMotion = (() => {
       node.style.transform='';node.style.opacity='';panels.delete(node);
       return;
     }
-    slide(node,from,1,direction,.18);
+    slide(node,from,1,direction,token('--dur-ui',.18));
   }
   function dismiss(node, immediate = false) {
     const from=panels.get(node)?.value??1;cancel(node); node.inert = true;
     const finish = () => { node.hidden = true; node.inert = false; if(node.id==='detail'){node.classList.remove('is-expanded');node.querySelectorAll('svg').forEach(svg=>svg.pauseAnimations());}node.style.transform='';node.style.opacity='';node.style.height='';panels.delete(node); };
     if (node.hidden || immediate || !window.gsap) { finish(); return; }
-    slide(node,from,0,node.id==='filters'?'left':'right',.12,finish);
+    slide(node,from,0,node.id==='filters'?'left':'right',token('--dur-press',.12),finish);
   }
   // A user-triggered toggle reads as responsive when it eases out: the height, and the corners that go from
   // the sheet's rounded top to square at full screen, travel together (expo-out, the surface duration).
@@ -44,7 +50,7 @@ window.AtlasMotion = (() => {
     if (enabled()) {
       const after = node.getBoundingClientRect().height, to = parseFloat(getComputedStyle(node).borderTopLeftRadius) || 0;
       gsap.fromTo(node,{height:before,borderTopLeftRadius:radius,borderTopRightRadius:radius},{height:after,borderTopLeftRadius:to,borderTopRightRadius:to,
-        duration:.28,ease:'expo.out',clearProps:'height,borderTopLeftRadius,borderTopRightRadius',overwrite:true});
+        duration:token('--dur-surface',.28),ease:'expo.out',clearProps:'height,borderTopLeftRadius,borderTopRightRadius',overwrite:true});
     }
   }
   function selected(node) {
