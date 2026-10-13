@@ -15,8 +15,9 @@
 //   time budget, and idle time draws the next zoom level's discs ahead.
 // - Images live in a byte-capped LRU, geometries in a count-capped one.
 //
-// createAtlasArt({dpr, maxBytes}) returns {get(d, color, size, rim), render(d, color, size, rim), has(d, color, size, rim),
-// lodFor(size), stats, dispose()}. `size` is the disc's diameter on screen in CSS px; an entry is
+// createAtlasArt({dpr, maxBytes}) returns {get(d, color, size, rim, lod), render(...), has(...), lodFor(size, prev, hold),
+// stats, dispose()}. `size` is the disc's diameter on screen in CSS px; `lod` (default lodFor(size)) is the level
+// to draw it at, for a caller that keeps a disc's level steady across a zoom (lod.mjs); an entry is
 // {canvas, fill, lod}, where `fill` is the share of the image the disc's diameter spans (a pixel of room
 // is kept at each edge for antialiasing).
 import * as THREE from 'three';
@@ -24,16 +25,9 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc,normalizeShape} from './shape.mjs';
 import {isOvermold,overmoldColors} from './overmold.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
-
-// `css`: the largest on-screen diameter a level serves. The full level covers a curated disc at its
-// largest (76 px × artRoom 1.24 = 94 px).
-export const LODS=Object.freeze({
- low:Object.freeze({css:24,segments:24,detail:.35}),
- mid:Object.freeze({css:64,segments:48,detail:.6}),
- full:Object.freeze({css:96,segments:96,detail:1}),
-});
-export const lodFor=size=>size<=LODS.low.css?'low':size<=LODS.mid.css?'mid':'full';
-const ORDER=['low','mid','full'];
+import {LODS,ORDER,lodFor} from './lod.mjs';
+// Levels of detail by size on screen (lod.mjs): the thresholds, and the hysteresis a moving camera needs.
+export {LODS,lodFor};
 
 export function discShapeProps(d){
  return {model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade}};
@@ -107,20 +101,20 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
 
  // The cached image at the level `size` needs, else the best other level already drawn (a disc growing
  // past its level shows the smaller image, scaled, until the next is drawn). Null when nothing is cached.
- function get(d,color,size,rim){
+ function get(d,color,size,rim,lod=lodFor(size)){
   const s=shapeOf(d);if(!s)return null;
-  const c=colorsOf(s,color,rim),want=lodFor(size),order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
-  for(const lod of order){const e=touch(keyOf(d,lod,c));if(e)return e;}
+  const c=colorsOf(s,color,rim),want=lod,order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
+  for(const level of order){const e=touch(keyOf(d,level,c));if(e)return e;}
   return null;
  }
- function has(d,color,size,rim){
+ function has(d,color,size,rim,lod=lodFor(size)){
   const s=shapeOf(d);if(!s)return true;
-  return images.has(keyOf(d,lodFor(size),colorsOf(s,color,rim)));
+  return images.has(keyOf(d,lod,colorsOf(s,color,rim)));
  }
  // Draws the disc at the level `size` needs (or returns it from the cache). Null for a disc without a model.
- function render(d,color,size,rim){
+ function render(d,color,size,rim,lod=lodFor(size)){
   const s=shapeOf(d);if(!s)return null;
-  const lod=lodFor(size),c=colorsOf(s,color,rim),key=keyOf(d,lod,c);
+  const c=colorsOf(s,color,rim),key=keyOf(d,lod,c);
   const cached=touch(key);if(cached)return cached;
   const start=performance.now(),px=Math.max(8,Math.ceil(LODS[lod].css*dpr));
   mesh.geometry=geometryOf(s,lod);mesh.material=s.overmold?[plateMaterial,rimMaterial]:plateMaterial;

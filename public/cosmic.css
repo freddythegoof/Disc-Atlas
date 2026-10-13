@@ -179,6 +179,8 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
 .atlas-marker.is-dot .map-dot,.atlas-marker.is-dot.is-stack .map-dot{inset:16px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 .atlas-marker.is-dot .marker-name{top:44px}
 #map.is-dragging .atlas-marker{cursor:grabbing}
+/* A disc or name the canvas draws (a small disc, a mini) is clickable like a marker: the pointer says so. */
+#map.is-over-disc:not(.is-dragging) canvas{cursor:pointer}
 #map.is-dragging .atlas-marker:hover .marker-halo{opacity:0}
 #map.is-dragging .atlas-marker.is-selected .marker-halo{opacity:1}
 .map-edge-feedback{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit;z-index:4}

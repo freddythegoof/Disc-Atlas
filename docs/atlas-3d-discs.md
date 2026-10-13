@@ -42,6 +42,12 @@ discs.
   again at the next level. Until then it shows its smaller image, scaled up. Every level is the full
   lathe model with fewer segments and profile points. The underside is never visible from above, but it
   costs nothing after the one render.
+- **Steady levels while zooming.** `disc3d/lod.mjs` picks the level. A canvas disc keeps its level until its
+  size is `LOD_MARGIN` (18%) past a threshold, so a size hovering at 24 or 64 px never flips it with each
+  wheel nudge. While the zoom is changing (and for `ART_SETTLE`, 180 ms, after) the atlas holds every
+  disc's level outright, and looks again once the zoom is still; only a growing disc that outgrows its
+  image by `HOLD_LIMIT` (1.5x) moves up early. The map itself zooms throughout; a first render is never
+  held back.
 - **Budget.** Missing renders are drawn in `draw()` within `ART_BUDGET` (6 ms) a frame. The first frame
   after the renderer is ready gets `ART_FIRST_BUDGET` (250 ms), so the map fills in one go. Idle time
   draws the discs of the levels on either side of the camera's ahead of time, so a zoom usually finds
@@ -84,7 +90,8 @@ discs.
     than the plate and catch more light upper left than lower right. An overmold rim must be dark beyond
     the measured seam, with the plate's colour inside it.
   - **Levels of detail.** Thresholds, per-level resolution and segment counts must hold, and a recolour
-    must reuse the shape's geometry.
+    must reuse the shape's geometry. `tests/atlas-lod.mjs` checks the hysteresis and the zoom hold; the
+    browser suite nudges the wheel with minis at their 24 px threshold and requires no render to change.
   - **On the map.** Desktop and phone, dark and light, at 1x, 3x, 9x and a complete Axiom view (1x and 9x).
     Every curated disc and dot must carry its full render. Every small disc and mini must carry its level's
     render, fully faded in. Every disc's spot and size and every name's box must equal the 2D build's to

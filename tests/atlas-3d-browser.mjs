@@ -86,7 +86,7 @@ const SCENE=()=>{
   return {key:node.dataset.cluster,large:node.classList.contains('is-large'),transform:p.style.transform,art:rect(art),
    name:getComputedStyle(name).visibility==='hidden'?null:rect(name),has3d:art.classList.contains('has-3d'),canvas:c?{px:c.width,inArt:c.parentNode===art}:null};
  }).sort((a,b)=>a.key<b.key?-1:1);
- const gaps=mapGaps.filter(g=>g.drawn).map(g=>({key:g.id+'|'+g.tier,tier:g.tier,x:+g.x.toFixed(2),y:+g.y.toFixed(2),size:+g.size.toFixed(3),lod:g.lod,want:mapArt.lods?.(g.size)||null,three:g.three,
+ const gaps=mapGaps.filter(g=>g.drawn).map(g=>({key:g.id+'|'+g.tier,tier:g.tier,x:+g.x.toFixed(2),y:+g.y.toFixed(2),size:+g.size.toFixed(3),lod:g.lod,held:g.want,want:mapArt.lods?.(g.size)||null,fits:mapArt.lods?.(g.size,g.want)===g.want,three:g.three,
   box:g.box&&g.strength>0?{x:+g.box.x.toFixed(2),y:+g.box.y.toFixed(2)}:null})).sort((a,b)=>a.key<b.key?-1:1);
  return {zoom,marks,gaps};
 };
@@ -182,7 +182,7 @@ try{
     tiers[m.large?'curated':'dot']++;
    }
    for(const g of view.gaps){
-    assert.ok(g.lod===g.want&&g.three===1,`${label}: ${g.key} (${g.size}px) draws its ${g.want} render, not ${g.lod}`);
+    assert.ok(g.lod===g.held&&g.fits&&g.three===1,`${label}: ${g.key} (${g.size}px) draws its ${g.held} render (${g.want} plain), not ${g.lod}`);
     tiers[g.tier]++;
    }
    for(const m of plain.marks)assert.ok(!m.has3d&&!m.canvas,`${label}: the 2D build draws orbs`);
@@ -242,6 +242,51 @@ try{
   }
   check(`${viewport}: a putter filter and an Innova + Discraft brand view show only their discs, every render repainted in the view's colours`);
   await page.context().close();await flat.context().close();
+ }
+
+ // 2b. Zooming smoothly: a size at a level-of-detail threshold does not flip a disc's render with each
+ // nudge, and a zoom in progress keeps the renders it has until it settles.
+ {
+  const page=await open('desktop');
+  // The zoom at which minis are exactly as big as the low level's largest size.
+  const z0=await page.evaluate(()=>{let lo=1,hi=9;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(AtlasGroups.gapSize(m,'mini')<24)lo=m;else hi=m;}return (lo+hi)/2;});
+  await show(page,{zoom:z0});
+  await page.evaluate(()=>{
+   window.__lods=new Map();window.__changes=[];window.__stand=0;
+   const tick=()=>{
+    for(const g of mapGaps){if(!g.drawn||!g.lod)continue;const key=g.id+'|'+g.tier,was=__lods.get(key);
+     if(was&&was!==g.lod)__changes.push({key,from:was,to:g.lod,size:g.size,zoom});
+     if(g.lod!==g.want)__stand++;
+     __lods.set(key,g.lod);}
+    requestAnimationFrame(tick);
+   };
+   tick();
+  });
+  const at=await page.evaluate(()=>({x:mapViewport.left+mapViewport.width*.55,y:mapViewport.top+mapViewport.height*.5}));
+  await page.mouse.move(at.x,at.y);
+  const reading=()=>page.evaluate(()=>({changes:__changes.length,stand:__stand,
+   minis:mapGaps.filter(g=>g.drawn&&g.tier==='mini'&&g.lod).length,sizes:[...new Set(mapGaps.filter(g=>g.drawn&&g.tier==='mini').map(g=>g.lod))]}));
+  const start=await reading();
+  assert.ok(start.minis>20&&start.sizes.length===1,`zoom: minis on screen at the threshold (${start.minis}, ${start.sizes})`);
+  // Nudges in and out of a couple of percent, each left to settle: the minis sit on their threshold and none flips.
+  for(let i=0;i<14;i++){await page.mouse.wheel(0,i%2?9:-9);await page.waitForTimeout(320);}
+  const nudged=await reading();
+  assert.equal(nudged.changes,0,`zoom: minis hovering at the 24px threshold keep their render through ${14} settled nudges (${JSON.stringify(await page.evaluate(()=>__changes.slice(0,3)))})`);
+  // The same nudges back to back, as a wheel delivers them: nothing is drawn again mid-gesture either.
+  for(let i=0;i<14;i++){await page.mouse.wheel(0,i%2?9:-9);await page.waitForTimeout(30);}
+  assert.equal((await reading()).changes,0,'zoom: rapid nudges at the threshold change no render');
+  // A steady zoom in across the threshold: the renders hold while it moves, then the settled pass draws the next level once.
+  const before=await reading();
+  for(let i=0;i<40&&await page.evaluate(()=>AtlasGroups.gapSize(zoom,'mini'))<31;i++){await page.mouse.wheel(0,-15);await page.waitForTimeout(25);}
+  const during=await page.evaluate(()=>({changes:__changes.length,size:AtlasGroups.gapSize(zoom,'mini')}));
+  assert.ok(during.size>24*1.18&&during.size<24*1.5,`zoom: the gesture took minis past the margin (${during.size.toFixed(1)}px)`);
+  assert.equal(during.changes,before.changes,'zoom: renders hold while the zoom is moving '+JSON.stringify(await page.evaluate(()=>({size:AtlasGroups.gapSize(zoom,'mini'),c:__changes.slice(0,3)}))));
+  await settled(page);
+  const after=await page.evaluate(()=>({changes:__changes.slice(),minis:mapGaps.filter(g=>g.drawn&&g.tier==='mini'&&g.lod).map(g=>g.lod)}));
+  assert.ok(after.changes.length>0&&after.changes.every(c=>c.from==='low'&&c.to==='mid')&&after.minis.every(l=>l==='mid'),'zoom: once settled, the minis that outgrew the margin move up a level, once');
+  assert.equal(new Set(after.changes.map(c=>c.key)).size,after.changes.length,'zoom: no disc changes level twice');
+  check(`zoom: minis at their 24px threshold keep their render through ${28} nudges, hold it through a zoom in progress and change level once when it settles`);
+  await page.context().close();
  }
 
  // 3. No usable WebGL: the atlas keeps its orbs and works as before.

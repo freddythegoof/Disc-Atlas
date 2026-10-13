@@ -1,6 +1,12 @@
 // Stable scattered flight positions, grouped only where screen space is limited.
 let mapClusters=[],activeCluster=null,clusterPinned=false,clusterAnchor=null,clusterPicks=new Set(),clusterCompared=false;
 let clusterHoverTimer=null,clusterCloseTimer=null,mapDrag=null;
+// Readable means clickable, and stays put while the pointer reaches for it (AtlasTargets). `pointerAt`: the
+// pointer in map pixels, when it last moved, pressed or wheeled, and whether it is down. A regroup that falls
+// due waits on it (`swapDueAt`, `holdTimer`); a readable disc a set change would drop stays as a pin while the
+// pointer is on or near it (`markerPins` for DOM discs, `gapPins` for the canvas's), then fades as a regroup's do.
+const pointerAt={x:0,y:0,at:0,inside:false,pressed:false};
+const markerPins=new Map(),gapPins=new Map();let swapDueAt=0,holdTimer=0,pinTimer=0;
 function photoMarkup(d,extra=''){
  const label=d.catalogName||d.name;
  return `<span class="disc-art clean-disc ${extra}" style="--disc-color:${discColor(d)}" role="img" aria-label="${esc(d.brand+' '+label)} — representative disc illustration"></span>`;
@@ -88,6 +94,59 @@ function organicOptions(area,w,h,cache,first=null){
 }
 // The selected disc's group: the curate walk places it first when it would otherwise be hidden.
 function selectedGroup(groups){return selected?groups.find(g=>g.members.includes(selected)||g.members.includes(selected.id)):null;}
+// Readable means clickable (AtlasTargets). Everything the map draws at a readable size is a target: a curated
+// disc's art and its name's box, a dot's art (and its name once strong enough), a small disc's or mini's art
+// and its name on the canvas. Boxes are the ones layout reserved (the measured footprints), so a click lands
+// wherever a viewer sees the disc or its name.
+function markerLabel(g,f){
+ if(!f)return null;
+ if(g.large)return {x:g.x+f.x+(g.nudge?.x||0),y:g.y+f.y+(g.nudge?.y||0),w:f.w,h:f.h};
+ if(g.minorLabel||g.satellite){const s=f.satellite,o=g.labelOffset||{x:0,y:0};return {x:g.x+s.x+o.x,y:g.y+s.y+o.y,w:s.w,h:s.h};}
+ // A complete view's dot, named where its name is strong enough (it hangs as far below its edge as a curated name).
+ if(g.gapLabel&&AtlasGroups.gapLabelAlpha(zoom)>=AtlasTargets.READABLE)return {x:g.x+f.x,y:g.y+f.y+AtlasGroups.gapDrop(AtlasGroups.gapSize(zoom,'small')),w:f.w,h:f.h};
+ return null;
+}
+// A dot's button is a generous target (22px); a curated disc's is its art (the footprint's radius, scaled) and 8px.
+function markerTarget(g){
+ const f=groupCache.footprints.get(g.key);
+ return {kind:'marker',ref:g,x:g.x,y:g.y,r:g.large?(f?.radius??34)*mapMarkerScale()+8:22,label:markerLabel(g,f)};
+}
+function gapTarget(e){return {kind:'gap',ref:e,x:e.x,y:e.y,r:Math.max(e.size/2+6,12),label:e.strength>=AtlasTargets.READABLE&&e.box?e.box:null};}
+function mapTargets(){
+ const out=[];
+ for(const g of mapClusters){const node=markerNodes.get(g.key);if(node&&!node.position.inert)out.push(markerTarget(g));}
+ // A small disc fading out (its level just changed) is still on screen, so it still lands a click.
+ for(const e of mapGaps)if(e.drawn&&(e.on||e.art>=.35))out.push(gapTarget(e));
+ return out;
+}
+// A regroup falls due when the zoom asks for a level the map is not at. It waits while the pointer is
+// reaching for a disc (AtlasTargets.hold) and happens once the pointer has settled.
+function levelHeld(wanted){
+ if(!groupCache||wanted===groupCache.level){swapDueAt=0;return false;}
+ const now=performance.now();if(!swapDueAt)swapDueAt=now;
+ const verdict=AtlasTargets.hold({now,due:swapDueAt,pointer:pointerAt,onTarget:AtlasTargets.reads(mapTargets(),pointerAt.x,pointerAt.y)});
+ if(verdict.hold&&isFinite(verdict.until)){clearTimeout(holdTimer);holdTimer=setTimeout(scheduleMapDraw,verdict.until-now+20);}
+ return verdict.hold;
+}
+// A readable disc that a new set (a regroup, or a zoom between levels re-curating) drops stays, in place, while
+// the pointer is on or near it: a pin. It goes once the pointer has been away AtlasTargets.PIN.leave ms (a
+// press keeps it) and fades as a regroup's retiring discs do. `place` is buildClusters' own, so a pin follows the
+// camera like any disc.
+function keepPinned(result,place){
+ const now=performance.now(),P=AtlasTargets.PIN,live=new Set(result.map(g=>g.key)),pointing=pointerAt.inside||pointerAt.pressed;
+ if(pointing)for(const g of mapClusters){
+  if(live.has(g.key)||markerPins.has(g.key)||!markerLabel(g,groupCache.footprints.get(g.key)))continue;
+  if(AtlasTargets.reach(markerTarget(g),pointerAt.x,pointerAt.y,P.slack))markerPins.set(g.key,{g:{...g,joined:null,leader:null,pinned:true},since:now,away:0});
+ }
+ for(const [key,pin] of markerPins){
+  const entry=live.has(key)?null:place(pin.g);
+  if(!entry){markerPins.delete(key);continue;}
+  if(pointing&&AtlasTargets.reach(markerTarget(entry),pointerAt.x,pointerAt.y,P.slack))pin.away=0;
+  else if(!pin.away)pin.away=now;
+  if(now-pin.since>P.max||pin.away&&now-pin.away>P.leave&&!pointerAt.pressed){markerPins.delete(key);continue;}
+  result.push(entry);
+ }
+}
 function cancelRegroup(){
  regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
  retirementTimer=null;retirementFrame=0;regrouping=false;
@@ -140,6 +199,7 @@ function buildClusters(items,w,h){
  if(changed){
   cancelRegroup();
   for(const node of markerNodes.values()){node.position.classList.remove('is-new','is-retiring');node.position.inert=false;}
+  markerPins.clear();gapPins.clear();
   groupRevision++;groupContext={items,w,h,immersive,footprints:measureFullLabels(items)};preparedGroups.clear();pendingGroups.clear();
   // The organic overview is a pure function of footprints and camera; keep it while they hold.
   if(groupCache){
@@ -157,7 +217,8 @@ function buildClusters(items,w,h){
   }
  }
  // Keep the current map intact while a different density is prepared in a worker.
- const level=groupCache&&(cameraTween||mapDrag)?groupCache.level:AtlasGroups.level(zoom,groupCache?.level);
+ const wanted=AtlasGroups.level(zoom,groupCache?.level);
+ const level=groupCache&&(cameraTween||mapDrag||levelHeld(wanted))?groupCache.level:wanted;
  const contextPending=groupCache.items!==items||groupCache.w!==w||groupCache.h!==h||groupCache.immersive!==immersive;
  let appliedContext=false;
  if(contextPending||level!==groupCache.level){
@@ -194,22 +255,28 @@ function buildClusters(items,w,h){
   }
   groupCache.prominenceZoom=prominence;
  }
- const result=[];
- for(const g of groupCache.groups){
-  // The organic overview draws only the discs it placed; the rest wait for room deeper in.
-  if(organic&&g.hidden)continue;
+ // Where a group stands on screen now, or null past the map's edges.
+ const place=g=>{
   const x=area.left+g.pos.x*area.width*zoom+pan.x,y=area.bottom-g.pos.y*area.height*zoom+pan.y;
   // Keep the entire enlarged disc beyond the clipped plot viewport.
   // A 48px entry band covers its radius; the wider exit band prevents DOM churn.
   const margin=markerNodes.has(g.key)?80:48;
   // Discs run on under the toolbar and legend to the map's own edges.
-  if(x < -margin||x>w+margin||y < -margin||y>h+margin)continue;
+  if(x < -margin||x>w+margin||y < -margin||y>h+margin)return null;
   const original=g.pos;
   const dx=g.markerOffset?.x||0,dy=g.markerOffset?.y||0;
   const leader=g.leader?{x1:x+g.leader.x1-g.px*zoom/(2**(groupCache.level/3)),
    y1:y+g.leader.y1+g.py*zoom/(2**(groupCache.level/3)),x2:x,y2:y}:null;
-  result.push({...g,members:g.joined?[...g.members,...g.joined]:g.members,x:x+dx,y:y+dy,leader,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y});
+  return {...g,members:g.joined?[...g.members,...g.joined]:g.members,x:x+dx,y:y+dy,leader,actualX:area.left+original.x*area.width*zoom+pan.x,actualY:area.bottom-original.y*area.height*zoom+pan.y};
+ };
+ const result=[];
+ for(const g of groupCache.groups){
+  // The organic overview draws only the discs it placed; the rest wait for room deeper in.
+  if(organic&&g.hidden)continue;
+  const placed=place(g);if(placed)result.push(placed);
  }
+ // A readable disc this set drops stays while the pointer is on it (a pin).
+ if(!changed&&!contextPending)keepPinned(result,place);
  // Evaluate offscreen filter results only after their worker result is applied.
  // Keeping the old groups visible must not suppress the existing Show all fallback.
  if(appliedContext&&!result.length&&items.some(d=>d.speed!=null)&&zoom!==1){
@@ -273,6 +340,8 @@ function draw(){
  // Discs still waiting for their 3D render get another frame's budget.
  if(atlasArt&&mapClusters.length)artFirst=false;
  if(artPending)scheduleMapDraw();
+ // Pins let go when the pointer has been away a while: look again.
+ if(markerPins.size||gapPins.size){clearTimeout(pinTimer);pinTimer=setTimeout(scheduleMapDraw,120);}
 }
 // A steady dashed outline identifies tray membership independently of hover/selection glow.
 // Paint in screen pixels outside the art, including small canvas discs and a stack's hidden members.
@@ -308,7 +377,12 @@ const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let
 // its render shows the orb, then crossfades over ART_FADE ms. Without WebGL the orbs stay.
 // window.ATLAS_3D_OFF (set before load) keeps the orbs too, for comparison.
 const ART_BUDGET=6,ART_FIRST_BUDGET=250,ART_FADE=180;
-let atlasArt=null,artState='off',artDeadline=0,artFirst=true,artPending=0;
+// While the zoom is changing, a canvas disc keeps the level of detail it has (a size crossing a threshold
+// back and forth would otherwise redraw it at each nudge, and show a stand-in scaled from another level
+// meanwhile); it is looked at again once the zoom has been still for ART_SETTLE ms. A level also holds
+// across a threshold by a margin (disc3d/lod.mjs), so a size hovering there doesn't flip it either.
+const ART_SETTLE=180;
+let atlasArt=null,artState='off',artDeadline=0,artFirst=true,artPending=0,artZoom=0,artZoomAt=0,artZoomTimer=0;
 // For tests: the art's state ('off', 'loading', 'ready' or 'failed'), the last frame's waiting discs and
 // the renderer's own counts.
 const mapArt={get state(){return artState;},get pending(){return artPending;},get stats(){return atlasArt?.stats||null;},get lods(){return atlasArt?.lodFor;}};
@@ -325,17 +399,26 @@ function loadAtlasArt(){
  });
 }
 function artFrame(){artDeadline=performance.now()+(artFirst&&atlasArt?ART_FIRST_BUDGET:ART_BUDGET);artPending=0;}
+// True while the zoom is moving; draws once more when it has settled to look at the levels again.
+function artZooming(){
+ const now=performance.now();
+ if(zoom!==artZoom){
+  const first=!artZoom;artZoom=zoom;
+  if(!first){artZoomAt=now;clearTimeout(artZoomTimer);artZoomTimer=setTimeout(scheduleMapDraw,ART_SETTLE+20);}
+ }
+ return now-artZoomAt<ART_SETTLE;
+}
 // A disc's render for `size` px on screen: cached, or drawn now while the frame's budget lasts. Null while
 // it must wait (it counts as pending, and the frame asks for another). A cached render of another size
 // stands in until its own is drawn.
-function discArt(d,color,size){
+function discArt(d,color,size,lod){
  if(!atlasArt)return null;
  const rim=mapRimColor(d);
- if(!atlasArt.has(d,color,size,rim)){
-  if(performance.now()<artDeadline)atlasArt.render(d,color,size,rim);
+ if(!atlasArt.has(d,color,size,rim,lod)){
+  if(performance.now()<artDeadline)atlasArt.render(d,color,size,rim,lod);
   else artPending++;
  }
- return atlasArt.get(d,color,size,rim);
+ return atlasArt.get(d,color,size,rim,lod);
 }
 function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}
 // Idle time draws a neighbouring level's discs before the camera gets there: its curated discs and dots at
@@ -453,14 +536,18 @@ function drawGaps(area,w,h){
  mapGaps=[];
  const list=organicAtlas()&&groupCache.gaps||[],now=performance.now(),animate=gapClock&&window.AtlasMotion?.enabled();
  gapNameBudget=6;let waiting=false;
+ const zooming=artZooming();
  const step=animate?Math.min(1,(now-gapClock)/GAP_FADE):1;gapClock=now;
  for(const e of gapFade.values())e.on=false;
  for(const g of list){
   // One entry per disc and tier: a disc that changes tier across a level swap fades out as one and in as the other.
+  // A disc a pinned marker still shows is drawn once: its small disc waits for the pin to go.
+  if(markerPins.has(g.id))continue;
   const key=g.id+'|'+g.tier;let e=gapFade.get(key);
   if(!e){e={id:g.id,art:0,label:0,ox:g.x,oy:g.y};gapFade.set(key,e);}
   e.on=true;e.d=g.d;e.pos=g.pos;e.tx=g.x;e.ty=g.y;e.named=g.label;e.tier=g.tier;
  }
+ keepPinnedGaps(now,new Set(list.map(g=>g.id)));
  const toward=(v,t,s)=>v<t?Math.min(t,v+s):Math.max(t,v-s),dpr=Math.min(devicePixelRatio||1,2),snap=v=>Math.round(v*dpr)/dpr;
  const depth=AtlasGroups.gapAlpha(zoom);
  const look=Object.fromEntries(AtlasGroups.TIERS.map(t=>{const size=AtlasGroups.gapSize(zoom,t);return [t,{size,strength:AtlasGroups.nameAlpha(size,t),drop:AtlasGroups.gapDrop(size)}];}));
@@ -483,9 +570,10 @@ function drawGaps(area,w,h){
   const alpha=e.strength=shown*strength;
   mapGaps.push(e);
   // Its name hangs up to about 100px below it.
-  if(x<-reach-80||x>w+reach+80||y<-reach-100||y>h+reach)continue;
+  if(x<-reach-80||x>w+reach+80||y<-reach-100||y>h+reach){e.want=null;continue;}
   // Its 3D render over its drop shadows; the orb while the render waits, crossfading when it arrives.
-  const color=discColor(e.d),art=discArt(e.d,color,size);
+  e.want=atlasArt?.lodFor(size,e.want,zooming)||null;
+  const color=discColor(e.d),art=discArt(e.d,color,size,e.want);
   if(!art)e.three=0;
   else if(e.three==null)e.three=1;
   else if(e.three<1){e.three=animate?Math.min(1,e.three+step*GAP_FADE/ART_FADE):1;moving=true;}
@@ -510,6 +598,25 @@ function drawGaps(area,w,h){
  }
  ctx.globalAlpha=1;
  if(moving||waiting)scheduleMapDraw();
+}
+// A small disc or mini with a readable name that a new set would fade out stays while the pointer is on or
+// near it (markers' keepPinned does the same for the DOM's): its entry holds `on`, drawn where it was.
+function keepPinnedGaps(now,listed){
+ const P=AtlasTargets.PIN,pointing=pointerAt.inside||pointerAt.pressed;
+ // Not a disc the new set still lists (in another tier it crossfades) or has made a curated disc.
+ const shown=id=>listed.has(id)||mapClusters.some(g=>g.key===id);
+ if(pointing)for(const [key,e] of gapFade){
+  if(e.on||gapPins.has(key)||!e.drawn||e.strength<AtlasTargets.READABLE||e.art<.5||shown(e.id))continue;
+  if(AtlasTargets.reach(gapTarget(e),pointerAt.x,pointerAt.y,P.slack))gapPins.set(key,{since:now,away:0});
+ }
+ for(const [key,pin] of gapPins){
+  const e=gapFade.get(key);
+  if(!e||e.on||!e.drawn||shown(e.id)){gapPins.delete(key);continue;}
+  if(pointing&&AtlasTargets.reach(gapTarget(e),pointerAt.x,pointerAt.y,P.slack))pin.away=0;
+  else if(!pin.away)pin.away=now;
+  if(now-pin.since>P.max||pin.away&&now-pin.away>P.leave&&!pointerAt.pressed){gapPins.delete(key);continue;}
+  e.on=true;
+ }
 }
 // Draw a level's small names ahead, while the browser is idle, so zooming in finds them ready.
 function warmGapNames(gaps){
@@ -571,7 +678,8 @@ function renderMarkers(){
   live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=filterPending&&node?node.discColor:discColor(lead);
   // Existing markers can change size and label priority too; budget those updates
   // together with additions so the browser does not repaint a whole level at once.
-  if(regrouping&&(!node||node.groupVersion!==groupCache)){
+  // A pinned disc is updated at once: the pointer is on it.
+  if(regrouping&&!g.pinned&&(!node||node.groupVersion!==groupCache)){
    if(updated>=8){pendingMarkers=true;continue;}updated++;
   }
   if(!node){
@@ -587,9 +695,10 @@ function renderMarkers(){
    if(!hasPaintedMarkers)window.AtlasMotion?.enter(node);
    if(regrouping)requestAnimationFrame(()=>requestAnimationFrame(()=>{node.position.classList.remove('is-new');if(!node.position.classList.contains('is-retiring'))node.position.inert=false;}));
   }
-  if(node.position.classList.contains('is-retiring')){node.position.classList.remove('is-retiring');node.position.inert=false;}
+  if(node.position.classList.contains('is-retiring')){clearTimeout(node.fadeTimer);node.position.classList.remove('is-retiring');node.position.inert=false;}
   if(node.discCount!==n){node.discCount=n;node.badge.hidden=n<2;node.badge.textContent=n;node.setAttribute('aria-label',(lead.catalogName||lead.name)+', '+lead.brand+', '+({putter:'Putter',mid:'Midrange',fairway:'Fairway driver',distance:'Distance driver',unknown:'Unrated'}[typeOf(lead)])+(n>1?' and '+(n-1)+' nearby discs':'')+' - view disc details');}
   if(node.discColor!==color){node.discColor=color;node.style.setProperty('--disc-color',color);}
+  node.pinned=!!g.pinned;
   syncMarkerArt(node,lead,color,!!myMap&&!g.large&&!g.satellite);
   if(!filterPending&&(node.groupVersion!==groupCache||node.brandView!==brandView||node.selection!==selected||node.scaleLarge!==g.large)){
    if(regrouping&&node.groupVersion&&(node.classList.contains('is-large')!==g.large||node.mapX!==g.x||node.mapY!==g.y))node.position.classList.add('is-updating');
@@ -651,9 +760,20 @@ function renderMarkers(){
  }
  if(retirementTimer||retirementFrame)return;
  for(const [key,node] of markerNodes)if(!live.has(key)){
+  // A pin letting go fades out as a regroup's retiring discs do, rather than vanishing.
+  if(node.position.classList.contains('is-retiring')&&node.fadeTimer)continue;
+  if(node.pinned&&node.position.isConnected){fadeOut(key,node);continue;}
   if(document.activeElement===node)$('#map').focus({preventScroll:true});
   window.gsap?.killTweensOf([node,...node.children]);node.position.remove();markerNodes.delete(key);
  }
+}
+function fadeOut(key,node){
+ node.pinned=false;node.position.classList.add('is-retiring');node.position.inert=true;
+ node.fadeTimer=setTimeout(()=>{
+  if(markerNodes.get(key)!==node||!node.position.classList.contains('is-retiring'))return;
+  if(document.activeElement===node)$('#map').focus({preventScroll:true});
+  window.gsap?.killTweensOf([node,...node.children]);node.position.remove();markerNodes.delete(key);
+ },220);
 }
 function clearClusterTimers(){clearTimeout(clusterHoverTimer);clearTimeout(clusterCloseTimer);clusterHoverTimer=null;clusterCloseTimer=null;}
 function scheduleClusterClose(){clearTimeout(clusterHoverTimer);if(clusterPinned)return;clearTimeout(clusterCloseTimer);clusterCloseTimer=setTimeout(()=>closeCluster(),420);}
@@ -702,21 +822,31 @@ function initAtlasMap(){
  map.addEventListener('click',e=>{
   if(e.target.closest('.map-controls,#clusterPopover,a')||mapMoved&&e.detail!==0)return;
   const button=e.target.closest('[data-cluster]');
-  if(!button&&(zoom<2.7||e.target.closest('button')))return;
-  let group=button?mapClusters.find(g=>g.key===button.dataset.cluster):null;
+  if(!button&&e.target.closest('button'))return;
+  let group=button?mapClusters.find(g=>g.key===button.dataset.cluster):null,gap=null;
   // Dot buttons have generous invisible targets. In a dense deep view those
   // can cover a neighbor's visible center; resolve pointer clicks spatially.
-  // Keyboard activation keeps the focused button's identity.
-  if(zoom>=2.7&&e.detail!==0){
-   const x=e.clientX-mapViewport.left,y=e.clientY-mapViewport.top;let best=Infinity;
-   group=null;
-   for(const g of mapClusters){
-    const node=markerNodes.get(g.key);if(!node||node.position.inert)continue;
-    const distance=Math.hypot(g.x-x,g.y-y),radius=g.large?(groupCache.footprints.get(g.key)?.radius??34)*mapMarkerScale()+8:22;
-    if(distance<=radius&&distance<best){best=distance;group=g;}
-   }
+  // Keyboard activation keeps the focused button's identity. Off a button (or
+  // from 2.7x, always) a click lands on whatever the map drew there: a disc's
+  // art or its name, a marker's or one the canvas draws (AtlasTargets).
+  if(e.detail!==0&&(zoom>=2.7||!button)){
+   const hit=AtlasTargets.pick(mapTargets(),e.clientX-mapViewport.left,e.clientY-mapViewport.top);
+   group=hit?.kind==='marker'?hit.ref:null;gap=hit?.kind==='gap'?hit.ref:null;
   }
+  if(gap){e.stopPropagation();select(gap.d);return;}
   if(group){e.stopPropagation();if(group.members.length>1&&group.members.length<=3)openStackDetail(group,markerNodes.get(group.key));else select(group.lead);}
+ });
+ // Where the pointer is, for what the map holds still for it (levelHeld, keepPinned) and its cursor.
+ const track=e=>{
+  const r=mapViewport||canvas.getBoundingClientRect();
+  Object.assign(pointerAt,{x:e.clientX-r.left,y:e.clientY-r.top,at:performance.now(),inside:true});
+  if(e.pointerType==='mouse'&&!pointerAt.pressed)map.classList.toggle('is-over-disc',!!AtlasTargets.pick(mapTargets(),pointerAt.x,pointerAt.y));
+ };
+ map.addEventListener('pointermove',track);map.addEventListener('pointerenter',track);
+ map.addEventListener('pointerleave',()=>{
+  pointerAt.inside=false;map.classList.remove('is-over-disc');
+  // A regroup that waited on the pointer happens now.
+  if(swapDueAt||markerPins.size||gapPins.size)scheduleMapDraw();
  });
  pop.addEventListener('pointerenter',()=>clearClusterTimers());pop.addEventListener('pointerleave',()=>scheduleClusterClose());
  pop.addEventListener('focusin',()=>{clusterPinned=true;clearClusterTimers();});
@@ -734,6 +864,7 @@ function initAtlasMap(){
  map.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('.map-controls'))return;
   measureMap();stopCamera();resetEdge();closeCluster();velocity={x:0,y:0};lastMove=performance.now();mapMoved=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  track(e);pointerAt.pressed=true;
   mapDrag={x:e.clientX,y:e.clientY};
   if(!e.target.closest('button'))map.setPointerCapture(e.pointerId);
   map.classList.add('is-dragging');
@@ -753,7 +884,9 @@ function initAtlasMap(){
   }
  });
  const stop=e=>{if(!pointers.has(e.pointerId))return;pointers.delete(e.pointerId);pinchDistance=0;mapDrag=pointers.size?[...pointers.values()][0]:null;
-  if(!pointers.size){map.classList.remove('is-dragging');
+  if(!pointers.size){map.classList.remove('is-dragging');pointerAt.pressed=false;pointerAt.at=performance.now();
+   // A finger that lifts leaves nothing to hover.
+   if(e.pointerType==='touch')pointerAt.inside=false;
    const hitEdge=!!(edgeFeedback.x||edgeFeedback.y);releaseEdge();
    if(!hitEdge&&e.type==='pointerup'&&mapMoved&&performance.now()-lastMove<90&&window.AtlasMotion?.enabled()){
     const vx=Math.max(-1.5,Math.min(1.5,velocity.x)),vy=Math.max(-1.5,Math.min(1.5,velocity.y));
@@ -765,7 +898,7 @@ function initAtlasMap(){
  };
  map.addEventListener('pointerup',stop);map.addEventListener('pointercancel',stop);map.addEventListener('lostpointercapture',stop);
  map.addEventListener('wheel',e=>{
-  e.preventDefault();measureMap();
+  e.preventDefault();measureMap();track(e);
   // Wheel and trackpad pinch always zoom, including fine pixel deltas.
   // Capture over child controls too so the atlas never scrolls the document.
   resetEdge();
