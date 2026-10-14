@@ -11,11 +11,11 @@ export function bagDiscGeometry(d,low=false){
  const overmold=!!d&&isOvermold({...d,record:d.name});
  const {geometry}=discGeometry(shape,{segments:low?20:40,detail:low ? .3 : .5,overmold});
  geometry.computeBoundingBox();
- const box=geometry.boundingBox,thickness=box.max.y-box.min.y;
+ const box=geometry.boundingBox,thickness=box.max.y-box.min.y,center=(box.min.y+box.max.y)/2;
  geometry.translate(0,-(box.min.y+box.max.y)/2,0);
  geometry.scale(DISC.radius*2/shape.diameter,DISC.thickness/thickness,DISC.radius*2/shape.diameter);
  geometry.rotateZ(-Math.PI/2);geometry.computeBoundingSphere();geometry.computeBoundingBox();
- return {geometry,overmold};
+ return {geometry,overmold,shape,center,thickness};
 }
 
 /** Operates on the named GLB disc nodes; the shell and animation are untouched. */

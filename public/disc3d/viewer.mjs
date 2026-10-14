@@ -27,6 +27,7 @@ import {shapeForDisc} from './shape.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
+import {photoSurface} from './photo.mjs';
 import {isOvermold,overmoldColors} from './overmold.mjs';
 
 const DEG=Math.PI/180;
@@ -110,6 +111,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  discGroup.add(body,stamp);
 
  const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
+ let photo=null;
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
 
  const spherical=()=>new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
@@ -233,14 +235,16 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim:props.colors?.rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors]);
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,props.photoURL]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
   const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
   state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
+  photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
   build(shape,props.mold,color,overmold);
+  if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,plastic,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   if(overmold){rimMaterial.color.set(colors.rim);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
@@ -256,7 +260,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  // Which materials the mesh wears: the plastic ones, or clay. Neither set is modified by the other.
  function applyMaterials(overmold=state.overmold){
   body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold?[bodyMaterial,rimMaterial]:bodyMaterial);
-  stamp.visible=!state.clay;
+  stamp.visible=!state.clay&&!photo?.userData.photoReady;
+  if(photo)photo.visible=!state.clay&&!!photo.userData.photoReady;
  }
  function label(){
   const props=state.props||{};
@@ -397,11 +402,12 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   canvas.removeEventListener('lostpointercapture',lostCapture);canvas.removeEventListener('pointerleave',leaveRim);
   window.removeEventListener('atlas-theme-change',themeChanged);
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
+  photo?.userData.disposePhoto();
   body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();clayMaterial.dispose();clayRimMaterial.dispose();matcap.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
   envTexture.dispose();renderer.dispose();renderer.forceContextLoss();element.remove();
  }
  setTilt(0);
  return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,setClay,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
-  debug:{renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
+  debug:{get photo(){return photo;},renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

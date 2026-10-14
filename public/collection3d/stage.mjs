@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc,normalizeShape,discProfile,overmoldProfile} from '../disc3d/shape.mjs';
 import {isOvermold,overmoldColors} from '../disc3d/overmold.mjs';
+import {photoSurface} from '../disc3d/photo.mjs';
 import {stampTexture,stampGeometry,stampMaterial} from '../disc3d/stamp.mjs';
 
 export const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -110,15 +111,17 @@ export function discMaterial(color='#ffffff'){
  return stage().low?new THREE.MeshStandardMaterial({color,roughness:.38}):new THREE.MeshPhysicalMaterial({color,roughness:.3,clearcoat:.6,clearcoatRoughness:.22});
 }
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
-export function discModel(d,{color,rimColor,name,stamp=true}={}){
+export function discModel(d,{color,rimColor,name,photoURL,onChange=()=>{},stamp=true}={}){
  const entry=discParts(d),colors=discColors(entry,color,rimColor),group=new THREE.Group();
  const plate=new THREE.Mesh(entry.plate,discMaterial(colors.plate));group.add(plate);
  if(entry.rim)group.add(new THREE.Mesh(entry.rim,discMaterial(colors.rim)));
+ let ink=null;
  if(stamp){
   const ring=stampGeometry(entry.shape,{segments:32,rings:5});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);
   const material=stampMaterial();material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate);
-  group.add(new THREE.Mesh(ring,material));
+  ink=new THREE.Mesh(ring,material);group.add(ink);
  }
+ if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
  group.userData.parts=entry;
  return group;
@@ -173,6 +176,7 @@ export class NameTag{
 export function disposeObject(root){
  const shareable=new Set();for(const e of parts.values()){shareable.add(e.plate);if(e.rim)shareable.add(e.rim);}
  root.traverse(o=>{
+  if(o.userData.disposePhoto){o.userData.disposePhoto();return;}
   if(o.geometry&&!shareable.has(o.geometry)&&!o.userData.sharedGeometry)o.geometry.dispose();
   for(const m of [o.material].flat().filter(Boolean)){if(m.map&&!o.userData.keepTexture&&!m.userData?.sharedMaps)m.map.dispose();if(!m.userData?.shared)m.dispose();}
  });

@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
+import {photoSurface} from '../disc3d/photo.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 export { parseDiscParams } from './disc-state.mjs';
@@ -390,6 +391,7 @@ export async function mountBag(container, {
     for (const record of records.values()) for(const material of [record.mesh.material].flat())materials.add(material);
     for(const entry of moldGeometries.values())geometries.add(entry.geometry);
     scene.traverse(object => {
+      object.userData.disposePhoto?.();
       if (object.geometry) geometries.add(object.geometry);
       if (object.material) for (const material of [object.material].flat()) materials.add(material);
     });
@@ -488,7 +490,7 @@ export async function mountBag(container, {
   });
   const setBagLayout = slots => {
     const previous = new Map([...records.values()].filter(record => !record.placement.empty).map(record => [record.key, record]));
-    for (const record of records.values()) { discGroup.remove(record.mesh); for(const material of [record.mesh.material].flat())if(material!==ghostMaterial)material.dispose(); }
+    for (const record of records.values()) { record.mesh.traverse(o=>o.userData.disposePhoto?.());discGroup.remove(record.mesh); for(const material of [record.mesh.material].flat())if(material!==ghostMaterial)material.dispose(); }
     records.clear();
     const result = bagLayout(slots);
     clipped = result.clipped;
@@ -497,16 +499,17 @@ export async function mountBag(container, {
     for (const placement of result.placements) {
       // An empty go-to pocket shows the GLB's dashed outline instead of a ghost disc.
       if (placement.empty && placement.pocket === 'goTo') continue;
-      let geometry=discGeometry,overmold=false;
+      let geometry=discGeometry,overmold=false,parts=null;
       if(!placement.empty&&placement.mold){
         const key=JSON.stringify(placement.mold);
         if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low));
-        ({geometry,overmold}=moldGeometries.get(key));
+        parts=moldGeometries.get(key);({geometry,overmold}=parts);
       }
       let material = placement.empty ? ghostMaterial : discTemplate.clone();
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
+      if(parts&&placement.photoURL){const photo=photoSurface(parts.shape,placement.photoURL,{overmold,size:256,onChange:invalidate});photo.geometry.translate(0,-parts.center,0);photo.geometry.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);photo.geometry.rotateZ(-Math.PI/2);mesh.add(photo);}
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
