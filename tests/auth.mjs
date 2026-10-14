@@ -112,10 +112,12 @@ test('expired and forged sessions cannot read identity or mutate an account',asy
  }finally{DB.close();}
 });
 
-test('account deletion cleans only its photos and cron retries a failed R2 delete',async()=>{
- for(const outage of [false,true]){
+test('account deletion cleans only its photos and cron retries a failed R2 delete or queue read',async()=>{
+ // 'queue': the cleanup query itself fails after the account is gone. Deletion must still succeed.
+ for(const outage of [false,'r2','queue']){
   const DB=database({allMigrations:true}),objects=new Set();let failing=outage;
-  const env={DB,TEXTURES:{async delete(key){if(failing)throw Error('R2 unavailable');objects.delete(key);}}};
+  const prepare=DB.prepare;DB.prepare=sql=>{if(failing==='queue'&&sql.startsWith('SELECT key FROM texture_cleanup'))throw Error('D1 unavailable');return prepare(sql);};
+  const env={DB,TEXTURES:{async delete(key){if(failing==='r2')throw Error('R2 unavailable');objects.delete(key);}}};
   try{
    const token='x'.repeat(43),digest=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))).toString('base64url');
    for(const id of ['a','b']){
@@ -125,7 +127,7 @@ test('account deletion cleans only its photos and cron retries a failed R2 delet
    }
    await DB.prepare('INSERT INTO auth_sessions VALUES (?,?,?,?)').bind(digest,'a','csrf',Math.floor(Date.now()/1000)+3600).run();
    const response=await publicWorker.default.fetch(new Request('https://atlas.example/api/account',{method:'DELETE',headers:{Cookie:'__Host-atlas-session='+token,Origin:'https://atlas.example','Content-Type':'application/json','X-Atlas-CSRF':'csrf'},body:JSON.stringify({confirmation:'DELETE'})}),env);
-   assert.equal(response.status,200);assert.deepEqual(await response.json(),{deleted:true});
+   assert.equal(response.status,200);assert.deepEqual(await response.json(),{deleted:true});assert.match(response.headers.get('Set-Cookie'),/Max-Age=0/);
    assert.equal((await DB.prepare('SELECT COUNT(*) AS n FROM bag_discs').first()).n,1);
    assert.equal((await DB.prepare('SELECT user_id FROM bag_discs').first()).user_id,'b');
    assert.equal(objects.size,outage?2:1);

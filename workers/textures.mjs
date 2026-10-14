@@ -3,9 +3,11 @@ const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control
 
 // No upload can become untracked: queued before put; attachment and dequeue share a D1 transaction.
 // Failed R2 deletion retains its queue entry. Triggers include deletion through the account FK cascade.
+// Never throws: a cleanup outage must not turn a committed save, removal or account deletion into an
+// error response. The queue row stays and the cron retries it.
 export async function cleanupTextures(env){
  if(!env.DB||!env.TEXTURES)return;
- const rows=(await env.DB.prepare('SELECT key FROM texture_cleanup WHERE not_before<=? AND NOT EXISTS (SELECT 1 FROM bag_discs WHERE texture_key=texture_cleanup.key) LIMIT 100').bind(Math.floor(Date.now()/1000)).all()).results;
+ let rows;try{rows=(await env.DB.prepare('SELECT key FROM texture_cleanup WHERE not_before<=? AND NOT EXISTS (SELECT 1 FROM bag_discs WHERE texture_key=texture_cleanup.key) LIMIT 100').bind(Math.floor(Date.now()/1000)).all()).results;}catch{return;}
  for(const {key} of rows){try{await env.TEXTURES.delete(key);await env.DB.prepare('DELETE FROM texture_cleanup WHERE key=?').bind(key).run();}catch{/* Durable retry on the next request/cron. */}}
 }
 async function imageBytes(request){

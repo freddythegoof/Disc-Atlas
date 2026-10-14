@@ -120,3 +120,19 @@ test('failed attachment retains durable upload intent and cleanup preserves the 
   assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').get().n,0);
  }finally{s.db.close();}
 });
+
+test('a cleanup outage after a committed photo change still reports success',async()=>{
+ const s=fixture();try{
+  const prepare=s.DB.prepare;s.DB.prepare=sql=>{if(sql.startsWith('SELECT key FROM texture_cleanup'))throw Error('D1 unavailable');return prepare(sql);};
+  assert.equal((await s.call('PUT',webp())).status,200);
+  const first=s.db.prepare('SELECT texture_key FROM bag_discs').get().texture_key;assert.ok(first);
+  assert.equal((await s.call('PUT',webp())).status,200,'replacement committed; cleanup retries later');
+  assert.notEqual(s.db.prepare('SELECT texture_key FROM bag_discs').get().texture_key,first);
+  assert.equal((await s.call('DELETE')).status,200);
+  assert.equal((await s.call('DELETE',undefined,'a','/api/bag/discs/disc')).status,200);
+  assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').get().n,2,'both detached photos stay queued');
+  s.DB.prepare=prepare;
+  const {cleanupTextures}=await import('../workers/textures.mjs');await cleanupTextures({DB:s.DB,TEXTURES:s.TEXTURES});
+  assert.equal(s.objects.size,0);assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').get().n,0);
+ }finally{s.db.close();}
+});
