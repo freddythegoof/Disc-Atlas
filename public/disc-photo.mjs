@@ -106,7 +106,12 @@ function drawGuides(canvas,size,plate){
  stroke(()=>g.arc(c,c,10*u,0,TAU),1.5);
  g.setLineDash([]);g.fillStyle='#fff';g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=1.5*u;g.beginPath();g.arc(c,c,3.2*u,0,TAU);g.fill();g.stroke();
  g.font=`600 ${11*u}px system-ui,sans-serif`;g.textAlign='center';g.lineWidth=3*u;g.strokeStyle='rgba(0,0,0,.6)';g.fillStyle='#fff';
- for(const [label,r] of [['RIM',R],['FLIGHT PLATE',R*plate]]){const y=c-r-6*u;g.strokeText(label,c+R*.42,y+r*.09);g.fillText(label,c+R*.42,y+r*.09);}
+ // RIM just outside its ring at upper right, FLIGHT PLATE just inside its own at upper left, so the two
+ // never collide however close a mold's plate edge sits to its rim.
+ g.textBaseline='middle';
+ for(const [label,r,angle,offset] of [['RIM',R,-55,13],['FLIGHT PLATE',R*plate,-125,-14]]){
+  const a=angle*Math.PI/180,x=c+(r+offset*u)*Math.cos(a),y=c+(r+offset*u)*Math.sin(a);g.strokeText(label,x,y);g.fillText(label,x,y);
+ }
 }
 
 const DEFAULTS={scale:.94,aspect:1,perspective:0,angle:0,cx:.5,cy:.5};
