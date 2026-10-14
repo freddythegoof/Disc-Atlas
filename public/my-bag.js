@@ -269,7 +269,7 @@ async function openDisc(d,item=null,destination='bag') {
  const overmold=isOvermold({...d,record:d.name});
  $('#bagDiscColorLabel').textContent=overmold?'Flight plate':'Disc color';
  $('#bagRimColorField').hidden=!overmold;
- discEditSequence++;photoEditor.reset(values);
+ discEditSequence++;photoEditor.reset(values,d);
  rimCustomized=!!values.rim_color;
  $('#bagRimColor').value=overmoldColors($('#bagDiscColor').value,{rim:values.rim_color}).rim;
  $('#addDiscStatus').textContent='';updateSaveLabel();$('#saveDisc').disabled=false;

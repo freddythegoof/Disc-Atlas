@@ -37,6 +37,8 @@ try {
  // My Bag shows one list at a time (Bag, Storage or Lost).
  const showList=name=>page.locator(`#bagListPicker [data-bag-list="${name}"]`).click();
  const save=async()=>{await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});};
+ // Choosing a photo opens the aligner pop-out; Use photo prepares it and returns to the sheet.
+ const usePhoto=async(adjust)=>{await page.locator('.photo-aligner[open]').waitFor();if(adjust)await adjust();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();};
 
  await open('Envy');await save();
  let data=await (await page.request.get(base+'/api/bag')).json(),disc=data.discs[0];
@@ -45,10 +47,19 @@ try {
  await page.locator('#detail [data-disc3d-expand]').click();await page.locator('.disc3d-dialog').screenshot({path:dir+'/popout-before.png'});await page.keyboard.press('Escape');await page.waitForTimeout(400);await page.locator('#closeDetail').click();
  await page.locator(`[data-bag-edit="${disc.id}"]`).click();
  await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');
- await page.locator('.bag-photo-edit').waitFor();await page.locator('#addDiscDialog').screenshot({path:dir+'/photo-editor.png'});
+ await page.locator('.photo-aligner[open]').waitFor();await page.waitForTimeout(300);await page.locator('.photo-aligner').screenshot({path:dir+'/photo-aligner.png'});
+ // Cancel returns with nothing changed; choosing again and Use photo returns with the prepared photo.
+ const colorBefore=await page.locator('#bagDiscColor').inputValue();
+ await page.locator('.photo-aligner [data-aligner-cancel]').first().click();await page.locator('.photo-aligner').waitFor({state:'hidden'});
+ assert.equal(await page.locator('.bag-photo-thumb').isHidden(),true);assert.equal(await page.locator('#bagDiscColor').inputValue(),colorBefore);
+ await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await usePhoto();
+ await page.locator('#addDiscDialog').screenshot({path:dir+'/photo-editor.png'});
  let upload;page.on('request',r=>{if(r.method()==='PUT'&&r.url().includes('/photo')){upload=r.postDataBuffer();fs.writeFileSync(dir+'/processed-upload.webp',upload);}});
  await save();assert.ok(upload.length<=512*1024);assert.equal(upload.toString('ascii',0,4),'RIFF');
  data=await (await page.request.get(base+'/api/bag')).json();disc=data.discs[0];assert.ok(disc.texture_key);
+ // The guides are chrome: the upload is exactly the pipeline's output for the same photo and framing.
+ const independent=await page.evaluate(async bytes=>{const {preparePhoto}=await import('/disc-photo.mjs');const image=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/webp'}));const {blob,color}=await preparePhoto(image,{});return {bytes:[...new Uint8Array(await blob.arrayBuffer())],color};},[...fs.readFileSync('tests/fixtures/stamped-disc.webp')]);
+ assert.ok(Buffer.from(independent.bytes).equals(upload),'no guide pixels in the processed photo');
  const privatePhoto=await page.request.get(base+'/api/bag/discs/'+disc.id+'/photo');assert.equal(privatePhoto.status(),200);assert.equal(privatePhoto.headers()['cache-control'],'private, no-store');
  const anonymous=await browser.newContext({ignoreHTTPSErrors:true});assert.equal((await anonymous.request.get(base+'/api/bag/discs/'+disc.id+'/photo')).status(),401);await anonymous.close();
  await inspect();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
@@ -107,12 +118,12 @@ try {
  });
  await page.waitForTimeout(1000);assert.ok(fixtureLoads>0&&fixtureLoads<=2,'only intersecting thumbnails load: '+fixtureLoads);await page.evaluate(()=>document.querySelector('#photoScrollTest').remove());
  // Replacing keeps the copy ID; a fresh page receives the new key and photo.
- await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await page.locator('.bag-photo-edit').waitFor();
- await page.locator('[data-photo="scale"]').evaluate(n=>{n.value='.88';n.dispatchEvent(new Event('input',{bubbles:true}));});const oldKey=disc.texture_key;await save();
+ await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');
+ await usePhoto(()=>page.locator('.photo-aligner [data-photo="scale"]').evaluate(n=>{n.value='.88';n.dispatchEvent(new Event('input',{bubbles:true}));}));const oldKey=disc.texture_key;await save();
  data=await (await page.request.get(base+'/api/bag')).json();disc=data.discs.find(d=>d.id===disc.id);assert.notEqual(disc.texture_key,oldKey);assert.equal(data.discs.length,1);
  await page.reload();await page.locator(`[data-bag-edit="${disc.id}"]`).waitFor();await inspect();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
  // A late network failure still leaves one saved copy; retry updates it instead of duplicating it.
- await page.locator('#closeDetail').click();await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await page.locator('.bag-photo-edit').waitFor();
+ await page.locator('#closeDetail').click();await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await usePhoto();
  await context.route(/\/api\/bag\/discs\/[^/]+\/photo$/,route=>route.request().method()==='PUT'?route.abort('failed'):route.continue(),{times:1});
  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#saveDisc').disabled&&document.querySelector('#addDiscStatus').textContent!=='Saving…');
  await save();data=await (await page.request.get(base+'/api/bag')).json();assert.equal(data.discs.length,2);assert.equal(await page.locator('[data-bag-edit]').count(),2);
