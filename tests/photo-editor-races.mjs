@@ -156,17 +156,19 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
  let observer,onPhoto,nextFrame=0;
  const frames=new Map(),rendered=[];
  const host=(id,url)=>({
-  id,dataset:{discThumbnail:id,photoUrl:url,plateColor:'red'},isConnected:true,
+  id,dataset:{discThumbnail:id,photoUrl:url,plateColor:'red'},isConnected:true,classList:{add(){}},replaceChildren(){},
   checkVisibility:()=>true,getBoundingClientRect:()=>({width:64}),
  });
  const visible=host('visible-a','photo-a'),offscreen=host('offscreen-a','photo-a'),other=host('visible-b','photo-b');
  const context={
   performance:{now:()=>0},
-  getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return null;}}),
+  document:{createElement:()=>({style:{},setAttribute(){},getContext:()=>({drawImage(){}})})},
+  // Every photo here is still loading, so each render returns its placeholder.
+  getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return {canvas:{},px:64,fill:.9,pending:true};}}),
   window:{addEventListener:(_type,fn)=>onPhoto=fn,removeEventListener(){}},
   requestAnimationFrame:fn=>{frames.set(++nextFrame,fn);return nextFrame;},
   cancelAnimationFrame:id=>frames.delete(id),
-  IntersectionObserver:class{constructor(fn){observer=fn;}observe(){}disconnect(){}},
+  IntersectionObserver:class{constructor(fn){observer=fn;}observe(){}unobserve(){}disconnect(){}},
  };
  vm.createContext(context);vm.runInContext(source,context);
  context.observeThumbnails({querySelectorAll:()=>[visible,offscreen,other]},id=>({id}));
@@ -185,4 +187,29 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
  onPhoto({detail:{url:'photo-a'}});
  await flush();
  assert.deepEqual(rendered,[]);
+});
+
+test('finished thumbnails stop being observed; only a loading photo stays watched',async()=>{
+ const source=readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
+  .replace(/^import[^\n]*\n/,'').replace('export function','function');
+ let observer,onPhoto,nextFrame=0;const frames=new Map(),unobserved=[],rendered=[];
+ const canvas=()=>({width:0,height:0,style:{},setAttribute(){},getContext:()=>({drawImage(){}})});
+ const host=(id,url)=>({id,dataset:{discThumbnail:id,photoUrl:url,plateColor:'red'},isConnected:true,classList:{add(){}},replaceChildren(){},
+  checkVisibility:()=>true,getBoundingClientRect:()=>({width:64})});
+ const plain=host('plain',''),loading=host('loading','photo-a');let ready=false;
+ const context={
+  performance:{now:()=>0},document:{createElement:canvas},
+  getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return {canvas:canvas(),px:64,fill:.9,pending:!!disc.photoURL&&!ready};}}),
+  window:{addEventListener:(_type,fn)=>onPhoto=fn,removeEventListener(){}},
+  requestAnimationFrame:fn=>{frames.set(++nextFrame,fn);return nextFrame;},cancelAnimationFrame:id=>frames.delete(id),
+  IntersectionObserver:class{constructor(fn){observer=fn;}observe(){}unobserve(el){unobserved.push(el.id);}disconnect(){}},
+ };
+ vm.createContext(context);vm.runInContext(source,context);
+ context.observeThumbnails({querySelectorAll:()=>[plain,loading]},id=>({id}));
+ const flush=async()=>{await Promise.resolve();await Promise.resolve();while(frames.size){const [id,fn]=frames.entries().next().value;frames.delete(id);fn();}};
+ observer([{target:plain,isIntersecting:true},{target:loading,isIntersecting:true}]);await flush();
+ assert.deepEqual(unobserved,['plain'],'a finished plain disc is no longer observed');
+ ready=true;rendered.length=0;onPhoto({detail:{url:'photo-a'}});await flush();
+ assert.deepEqual(rendered,['loading']);assert.deepEqual(unobserved,['plain','loading'],'the photo row is released once finished');
+ rendered.length=0;onPhoto({detail:{url:'photo-a'}});await flush();assert.deepEqual(rendered,[],'released rows do no further work');
 });

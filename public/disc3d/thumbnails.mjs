@@ -27,7 +27,9 @@ export function observeThumbnails(root,lookup){
      const pad=(1/entry.fill-1)/2*100;Object.assign(canvas.style,{left:-pad+'%',top:-pad+'%',width:100/entry.fill+'%',height:100/entry.fill+'%'});
      host.replaceChildren(canvas);host.classList.add('has-3d');
     }
-
+    // A finished image needs no more observation; only a row whose photo is still loading stays watched,
+    // so the photo's readiness can redraw it while it is on screen.
+    if(!entry?.pending){state.observer.unobserve(host);state.visible.delete(host);}
     if(performance.now()>=deadline)break;
    }
    schedule();
