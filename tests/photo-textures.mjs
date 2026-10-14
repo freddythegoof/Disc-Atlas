@@ -136,3 +136,30 @@ test('a cleanup outage after a committed photo change still reports success',asy
   assert.equal(s.objects.size,0);assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').get().n,0);
  }finally{s.db.close();}
 });
+
+test('a lying client cannot pass flags, trailing bytes or a mismatched lossy frame',async()=>{
+ const s=fixture();try{
+  const lossless=Buffer.from(webp().slice(12));
+  const lossy=(w,h,key=true)=>{const b=Buffer.alloc(12);b[0]=key?0:1;b.set([0x9d,1,0x2a],3);b.writeUInt16LE(w,6);b.writeUInt16LE(h,8);return chunk('VP8 ',b);};
+  const header=(flags,w=1024,h=1024)=>{const b=Buffer.alloc(10);b[0]=flags;b.writeUIntLE(w-1,4,3);b.writeUIntLE(h-1,7,3);return chunk('VP8X',b);};
+  const trailing=Buffer.concat([container(header(0),lossless),Buffer.from('original-photo-bytes')]);
+  const candidates=[
+   ['animation flag',container(header(0x02),lossless)],
+   ['XMP flag',container(header(0x04),lossless)],
+   ['EXIF flag',container(header(0x08),lossless)],
+   ['bytes after the RIFF payload',trailing],
+   ['RIFF size covering appended bytes',(()=>{const b=Buffer.from(trailing);b.writeUInt32LE(b.length-8,4);return b;})()],
+   ['lossy frame larger than its canvas',container(header(0,512,512),lossy(1024,1024))],
+   ['lossy frame smaller than its canvas',container(header(0),lossy(512,512))],
+   ['non-square lossy frame',container(lossy(1024,768))],
+   ['tiny frame',container(lossy(64,64))],
+   ['lossy interframe',container(lossy(1024,1024,false))],
+   ['declared alpha without ALPH',container(header(0x10),lossy(1024,1024))],
+   ['ALPH beside a lossless frame',container(header(0x10),chunk('ALPH',Buffer.from([1,0])),lossless)],
+   ['oversized canvas',container(header(0,2048,2048),lossy(2048,2048))],
+  ];
+  for(const [name,bytes] of candidates)assert.equal((await s.call('PUT',bytes)).status,400,name);
+  assert.equal(s.objects.size,0);assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').get().n,0);
+  assert.equal((await s.call('PUT',container(lossy(1024,1024)))).status,200,'a plain static lossy frame is accepted');
+ }finally{s.db.close();}
+});
