@@ -511,7 +511,10 @@ export async function mountBag(container, {
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
-      if(parts&&placement.photoURL){const photo=photoSurface(parts.shape,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:invalidate});photo.geometry.translate(0,-parts.center,0);photo.geometry.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);photo.geometry.rotateZ(-Math.PI/2);mesh.add(photo);}
+      // The bag shows a disc's plate by turning its +X toward the viewer about the vertical axis, which
+      // leaves the photo's top pointing sideways. A quarter turn about the disc's own axis first (as the
+      // storage rack's pulled disc does for its stamp) makes the design read upright out of the pocket.
+      if(parts&&placement.photoURL){const photo=photoSurface(parts.shape,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:invalidate});photo.geometry.rotateY(Math.PI/2);photo.geometry.translate(0,-parts.center,0);photo.geometry.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);photo.geometry.rotateZ(-Math.PI/2);mesh.add(photo);}
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
