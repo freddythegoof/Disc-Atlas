@@ -244,8 +244,9 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
   build(shape,props.mold,color,overmold);
-  if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,plastic,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
+  // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
+  if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   if(overmold){rimMaterial.color.set(colors.rim);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){

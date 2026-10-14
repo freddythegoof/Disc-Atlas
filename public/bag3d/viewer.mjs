@@ -480,6 +480,8 @@ export async function mountBag(container, {
     // one, which lights up in its own color.
     for(const material of materials){material.emissive.copy(material.color).lerp(WHITE, .3);
     material.emissiveIntensity = (record.glow ?? 0) * GLOW;}
+    // A photo plate glows with the plate it covers.
+    for(const child of record.mesh.children)if(child.userData.disposePhoto){child.material.emissive.copy(materials[0].emissive);child.material.emissiveIntensity=materials[0].emissiveIntensity;}
   };
 
   // Layout mode replaces the GLB's twelve fixed discs with slots built from the same disc mesh.
@@ -509,7 +511,7 @@ export async function mountBag(container, {
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
-      if(parts&&placement.photoURL){const photo=photoSurface(parts.shape,placement.photoURL,{overmold,size:256,onChange:invalidate});photo.geometry.translate(0,-parts.center,0);photo.geometry.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);photo.geometry.rotateZ(-Math.PI/2);mesh.add(photo);}
+      if(parts&&placement.photoURL){const photo=photoSurface(parts.shape,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:invalidate});photo.geometry.translate(0,-parts.center,0);photo.geometry.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);photo.geometry.rotateZ(-Math.PI/2);mesh.add(photo);}
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);

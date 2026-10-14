@@ -121,7 +121,7 @@ export function discModel(d,{color,rimColor,name,photoURL,onChange=()=>{},stamp=
   const material=stampMaterial();material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate);
   ink=new THREE.Mesh(ring,material);group.add(ink);
  }
- if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
+ if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,like:plate.material,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
  group.userData.parts=entry;
  return group;

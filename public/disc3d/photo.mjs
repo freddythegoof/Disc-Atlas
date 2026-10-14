@@ -13,22 +13,51 @@ const cache=new Map();let epoch=0;
 export function clearPhotoCache(){epoch++;for(const entry of cache.values()){entry.controller.abort();entry.texture?.dispose();entry.image?.close?.();}cache.clear();window.dispatchEvent(new Event('atlas-photo-clear'));}
 // Only same-origin owner-checked routes are accepted. No public bucket URLs or persistent browser cache.
 window.addEventListener('atlas-photo-reset',clearPhotoCache);
-export function acquirePhoto(url,size=1024){
- const cacheKey=url+'|'+size;
+// A whisper of relief for detail views: height is how far a pixel's brightness sits from the plate's, so
+// a stamp (dark on light or light on dark) stands a hair proud of the plastic and catches the light at its
+// edges. Smooth gradients have no slope worth shading, so leftover lighting adds nothing.
+function reliefTexture(image){
+ const n=Math.min(512,image.width),canvas=document.createElement('canvas');canvas.width=canvas.height=n;
+ const g=canvas.getContext('2d',{willReadFrequently:true});g.drawImage(image,0,0,n,n);
+ const d=g.getImageData(0,0,n,n).data,L=new Float32Array(n*n),histogram=new Uint32Array(256);let counted=0;
+ for(let i=0;i<n*n;i++){
+  const l=.2126*d[4*i]+.7152*d[4*i+1]+.0722*d[4*i+2],x=(i%n+.5)/n*2-1,y=((i/n|0)+.5)/n*2-1;L[i]=l;
+  if(d[4*i+3]>250&&x*x+y*y<.6){histogram[l|0]++;counted++;}
+ }
+ let plate=128;for(let v=0,seen=0;v<256;v++){seen+=histogram[v];if(seen>=counted/2){plate=v;break;}}
+ const height=new Uint8Array(n*n);
+ for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+  let sum=0,count=0;
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii>=0&&jj>=0&&ii<n&&jj<n){sum+=Math.abs(L[jj*n+ii]-plate);count++;}}
+  height[j*n+i]=Math.min(255,sum/count*2.5);
+ }
+ const texture=new THREE.DataTexture(height,n,n,THREE.RedFormat,THREE.UnsignedByteType);
+ texture.minFilter=THREE.LinearMipmapLinearFilter;texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=true;texture.needsUpdate=true;
+ return texture;
+}
+const RELIEF=.35;
+export function acquirePhoto(url,size=1024,{relief=false}={}){
+ const cacheKey=url+'|'+size+(relief?'|relief':'');
  if(!/^\/api\/bag\/discs\/[^/]+\/photo\?v=[a-f0-9-]+\.webp$/.test(url))return {ready:Promise.reject(Error('Invalid photo route.')),release(){}};
  let entry=cache.get(cacheKey);
  if(!entry){
   const controller=new AbortController(),start=epoch;entry={refs:0,controller};cache.set(cacheKey,entry);
-  entry.ready=fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('Photo unavailable');const image=await createImageBitmap(await r.blob(),{imageOrientation:'flipY',resizeWidth:size,resizeHeight:size,resizeQuality:'high'});if(start!==epoch||controller.signal.aborted){image.close();throw Error('Photo cleared');}const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;texture.anisotropy=4;entry.texture=texture;entry.image=image;return texture;}).catch(e=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey);throw e;});
+  entry.ready=fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('Photo unavailable');const image=await createImageBitmap(await r.blob(),{imageOrientation:'flipY',resizeWidth:size,resizeHeight:size,resizeQuality:'high'});if(start!==epoch||controller.signal.aborted){image.close();throw Error('Photo cleared');}const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;texture.anisotropy=4;entry.texture=texture;entry.image=image;entry.relief=relief?reliefTexture(image):null;return {map:texture,relief:entry.relief};}).catch(e=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey);throw e;});
  }
  entry.refs++;let released=false;
- return {ready:entry.ready,release(){if(released)return;released=true;if(--entry.refs===0){if(cache.get(cacheKey)===entry)cache.delete(cacheKey);entry.controller.abort();entry.texture?.dispose();entry.image?.close?.();}}};
+ return {ready:entry.ready,release(){if(released)return;released=true;if(--entry.refs===0){if(cache.get(cacheKey)===entry)cache.delete(cacheKey);entry.controller.abort();entry.texture?.dispose();entry.relief?.dispose();entry.image?.close?.();}}};
 }
-export function photoSurface(shape,url,{overmold=false,onChange=()=>{},plastic={},size=1024}={}){
- const material=new THREE.MeshPhysicalMaterial({color:0xffffff,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,...plastic});
+// `like`: the plate material the photo covers. The photo wears a copy of it (same lighting model,
+// roughness, clearcoat and any shader hook) with the photo as its colour, so the scene lights the design
+// exactly as it lights the plastic around it: highlights and falloff come from the model, not the photo.
+export function photoSurface(shape,url,{overmold=false,onChange=()=>{},plastic={},like=null,relief=false,size=1024}={}){
+ const material=like?like.clone():new THREE.MeshPhysicalMaterial(plastic);
+ if(like){material.onBeforeCompile=like.onBeforeCompile;material.customProgramCacheKey=like.customProgramCacheKey;}
+ for(const slot of ['map','normalMap','bumpMap','roughnessMap','metalnessMap','aoMap','alphaMap','emissiveMap','lightMap'])if(slot in material)material[slot]=null;
+ material.color.set(0xffffff);material.emissive?.set(0x000000);Object.assign(material,{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
  const mesh=new THREE.Mesh(photoGeometry(shape,{overmold}),material);mesh.visible=false;let disposed=false;
- const handle=acquirePhoto(url,size);
- handle.ready.then(texture=>{if(disposed)return;material.map=texture;material.needsUpdate=true;mesh.userData.photoReady=true;mesh.visible=true;onChange(mesh);},()=>{if(!disposed){mesh.userData.photoFailed=true;onChange(mesh);}});
+ const handle=acquirePhoto(url,size,{relief});
+ handle.ready.then(({map,relief:height})=>{if(disposed)return;material.map=map;if(height){material.bumpMap=height;material.bumpScale=RELIEF;}material.needsUpdate=true;mesh.userData.photoReady=true;mesh.visible=true;onChange(mesh);},()=>{if(!disposed){mesh.userData.photoFailed=true;onChange(mesh);}});
  const clear=()=>{mesh.visible=false;mesh.userData.photoReady=false;onChange(mesh);};window.addEventListener('atlas-photo-clear',clear);
  mesh.userData.disposePhoto=()=>{disposed=true;window.removeEventListener('atlas-photo-clear',clear);handle.release();mesh.geometry.dispose();material.dispose();};
  return mesh;
