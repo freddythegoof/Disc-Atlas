@@ -47,6 +47,39 @@ Baseline wall-clock median: **67.68 s**. Raw logs and JSON are retained locally 
 
 ## Rebuild plan
 
-Preserve the 241-frame 1×→9×→1× flight, 120-frame still workload, devices, throttle, GPU flags, and original frame margins (desktop 1.15× + 1.5 ms, phone 1.15× + 3 ms). First try the median of three complete warm repetitions per build and device, with a single cold flight per page as warm-up/diagnostics. Keep the +1 long-task allowance, applied to median counts. Alternate build order between repetitions and device order between rounds. Run measurements serially.
+Preserve the 241-frame 1×→9×→1× flight, 120-frame still workload, devices, throttle, GPU flags, and original frame margins (desktop 1.15× + 1.5 ms, phone 1.15× + 3 ms). First try the median of three complete warm repetitions per build and device, with a single cold flight per page as warm-up/diagnostics. Keep the +1 long-task allowance, applied to median counts. Alternate build order between repetitions; device order remains desktop then phone. Run measurements serially.
 
 Three repetitions target the runtime constraint: four configurations × (one cold + three warm) = 16 full flights, versus the original eight. Five warm repetitions would require 24 full flights, about 3× the old gate before setup savings; use configurable `PERF_REPS` for that longer trade-off. Acceptance depends on actual sensitivity and stability evidence, not this estimate.
+
+## Part 2 — decision rule
+
+Implemented the plan above without changing any numeric margin. For each device, take the median of the repetition p95s independently for 2D and 3D, for flight and 1×. A frame check fails strictly above `median(2D p95) × 1.15 + slack`, slack **1.5 ms desktop / 3 ms phone**. Long tasks fail strictly above `median(2D count) + 1`. All six metrics must pass both aggregate checks described below; no pooling across devices or phases, percentile of pooled frames, outlier removal, retry-until-green, or tolerance adjustments. Even repetition counts use the mean of the two middle values.
+
+**Why these numbers:** 1.15, 1.5 ms, 3 ms, and +1 are unchanged from the original gate; Part 1's variance is a reason to aggregate, not to widen them. Three warm repetitions are the smallest odd sample with a nontrivial median and fit the measured runtime budget. Set `PERF_REPS=5` (or a larger integer) for more resistance to outliers at additional runtime. Values below 3, fractions, empty or nonnumeric values fail before launching Chromium. This is a median over repeated full flights on retained warmed pages, not fresh-browser repetitions; caches/process state may correlate repetitions. A new invocation creates a fresh browser and contexts.
+
+One cold flight per build remains diagnostic only, as before. Every warm repetition still has 241 flight draw-time samples and 120 still samples. The original FLIGHT measurement code is unchanged. Only the orchestration and decision change. 2D/3D order alternates 3D-first, 2D-first, 3D-first; measurements are serial, including across devices. Retaining two pages per device amortizes setup. Each measured row checks 3D `ready` / 2D `off` and reports actual render/disc counts, so disabling 3D cannot create a green result.
+
+Every run prints all cold/warm rows (including frame median, p95, max, sample counts, long-task count/longest task, discs, state, renders), six median/limit checks plus paired excesses and both failure flags, and elapsed seconds. `outputs/atlas-3d/perf.json` now contains `{reps, elapsedSeconds, rows, summary, error?}` rather than the old bare row array; no repository reader consumes the old file. A red assertion also writes the full report before closing Chromium/the local server. Partial reports survive browser/state errors.
+
+### Initial rebuilt run
+
+| Device | Check | 3D median | 2D median | Limit | Verdict |
+| --- | --- | ---: | ---: | ---: | --- |
+| desktop | flight p95 | 4 | 4 | 6.1 | pass |
+| desktop | 1x p95 | 1.3 | 0.9 | 2.535 | pass |
+| desktop | long tasks | 0 | 0 | 1 | pass |
+| phone | flight p95 | 10.4 | 10.9 | 15.535 | pass |
+| phone | 1x p95 | 3.8 | 3.1 | 6.565 | pass |
+| phone | long tasks | 1 | 0 | 1 | pass |
+
+Exit 0; external wall-clock **112.41 s**, **1.66×** the old median 67.68 s (report timer 111.99 s excludes final teardown). This is one exploratory result, not stability proof. Lower absolute values than Part 1 reinforce the loaded-machine limitation. Full raw distribution: `outputs/perf-gate/rebuild-first.{log,json}`.
+
+Validation so far: browser-free `--self-test` first failed because the median implementation was absent, then passed after implementation; covers isolated outliers, sustained flight/1×/long-task regressions, exact limits, odd/even medians, and invalid repetition inputs. Related `node --test tests/atlas-lod.mjs`: **7/7 pass** (retried outside sandbox after its child-process spawn was denied). Static review found no Critical/Important issue; its device-order documentation mismatch was corrected. Mutation and stability evidence follows in subsequent parts.
+
+### Paired sensitivity guard
+
+An exploratory +40% mutation exposed a central-tendency trap: desktop independent medians passed (6.5 ms 3D vs 4.6 ms 2D, limit 6.79), although paired flight excesses over the original limit were **+1.01, −1.265, +0.745 ms**. Two of three original flight comparisons were red, but sorting each build independently hid that persistent relative slowdown. The phone made that exploratory gate red; relying on it alone would leave desktop coverage weaker.
+
+The final rule therefore also takes `median(3D_i − (2D_i × multiplier + allowance))` for every metric, matching repetitions by measurement order. Fail if this paired median excess is strictly positive **or** the independent-median check fails. Use the same multiplier and allowance: frame 1.15 and device slack, long tasks 1 and +1. Zero means exactly the original limit, not a new tolerance. The +40% desktop sample now has paired median excess +0.745 ms and fails. A single isolated bad pair remains insufficient at three reps. Even repetition counts average the two middle excesses; this is a median guard, not always a strict-majority vote.
+
+This adds sensitivity without increasing sample count, wall-clock workload, or any margin. It can add reds under sequential timing noise, which is why Part 4 must exercise this final combined rule. JSON/table output includes every paired excess, the paired median excess, independent/paired failure flags, and the combined verdict. The measured crossed-median fixture first failed the self-test under the initial rule, then passed after adding the guard; self-tests also cover crossed long-task counts, phone slack, and mismatched/empty pairs. The initial unmutated report re-evaluates green under both aggregate checks, but the required final browser runs follow. Exploratory mutation logs are kept as `outputs/perf-gate/exploratory-mutation-{40,15}.{log,json}`; they are not the final sensitivity proof.
