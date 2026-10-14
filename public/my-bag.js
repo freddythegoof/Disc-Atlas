@@ -289,10 +289,11 @@ $('#addDiscForm').addEventListener('submit',async event=>{
   // Save the physical copy first; retain its ID on photo failure so retry cannot create a duplicate.
   if(photoChanged){
    editing=result.disc;
-   const r=await fetch('/api/bag/discs/'+result.disc.id+'/photo',{method:photo?'PUT':'DELETE',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'image/webp','X-Atlas-CSRF':account?.csrfToken||''},...(photo?{body:photo}:{})});
-   const data=await r.json();if(epoch!==generation)throw new DOMException('Account changed','AbortError');
+   // A dropped connection or an edge error page (not JSON) still reports that the disc itself saved.
+   const r=await fetch('/api/bag/discs/'+result.disc.id+'/photo',{method:photo?'PUT':'DELETE',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'image/webp','X-Atlas-CSRF':account?.csrfToken||''},...(photo?{body:photo}:{})}).catch(()=>null);
+   const data=r?await r.json().catch(()=>({})):{};if(epoch!==generation)throw new DOMException('Account changed','AbortError');
    if(operation!==discEditSequence){void loadBag();return;}
-   if(!r.ok){void loadBag();throw Error(data.error||'Disc saved. Its photo could not save; try again.');}
+   if(!r?.ok){void loadBag();throw Error('Disc saved. '+(data.error||'Its photo could not save; try again.'));}
    result.disc.texture_key=data.texture_key;
   }
   items=items.some(i=>i.id===result.disc.id)?items.map(i=>i.id===result.disc.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();

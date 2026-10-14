@@ -76,7 +76,7 @@ test('network failure preserves the saved copy and successful retry updates exac
  assert.equal(f.context.items.length,1);
  assert.equal(f.context.items[0].id,'saved-disc');
  assert.equal(f.context.editing.id,'saved-disc');
- assert.equal(f.node('#addDiscStatus').textContent,'Connection lost');
+ assert.equal(f.node('#addDiscStatus').textContent,'Disc saved. Its photo could not save; try again.');
  assert.equal(f.counts.closes,0);
  await f.submit();
  assert.equal(f.context.items.length,1);
@@ -86,6 +86,17 @@ test('network failure preserves the saved copy and successful retry updates exac
   'PUT /api/bag/discs/saved-disc','PUT /api/bag/discs/saved-disc/photo',
  ]);
  assert.equal(f.counts.closes,1);
+});
+
+test('an edge error page instead of JSON reports the saved disc and retry still updates it',async()=>{
+ let attempts=0;
+ const f=editorFixture({upload:async()=>++attempts===1?{ok:false,status:502,json:async()=>{throw new SyntaxError('Unexpected token <');}}:photoResponse()});
+ await f.submit();
+ assert.equal(f.node('#addDiscStatus').textContent,'Disc saved. Its photo could not save; try again.');
+ assert.equal(f.counts.refreshes,1,'reconciles with the server copy');
+ await f.submit();
+ assert.equal(f.context.items.length,1);
+ assert.equal(f.context.items[0].texture_key,'saved-photo.webp');
 });
 
 for(const reopen of [false,true])test(`${reopen?'reopening':'closing'} the editor during photo upload reconciles without changing the newer editor`,async()=>{
