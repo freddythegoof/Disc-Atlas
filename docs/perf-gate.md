@@ -1,6 +1,6 @@
 # Atlas 3D performance gate
 
-Freddy's October 14, 2026 rebuild. Started from clean main HEAD `ee74817920c600fb109b5ef70bdf194ac5e242f3` in a managed worktree; the original checkout's pre-existing Wrangler formatting edit is preserved. Test infrastructure only; no push, deployment, or remote Cloudflare commands.
+Freddy's October 14, 2026 rebuild. Started from clean main HEAD `ee74817920c600fb109b5ef70bdf194ac5e242f3` in a managed worktree; the original checkout's pre-existing Wrangler formatting edit is preserved. Test infrastructure only; no push, deployment, or remote Cloudflare commands. Parts 1–4 retain the pass-1 measurements and configuration as historical evidence. **Pass 2 below changes the current defaults to 7 desktop / 3 phone repetitions; its browser measurements are blocked and remain unmeasured.**
 
 ## Part 1 — unchanged gate
 
@@ -196,3 +196,60 @@ Start with the device and metric in the summary, then read `medianFailed` and `p
 Aggregation self-tests, syntax checking, and the seven related LOD tests passed. The final FLIGHT body matches the original after normalizing Windows line endings. Static review found no outstanding code issue. Full browser evidence is reported above, including both red stability runs and the +15% uncertainty; unrelated product browser suites were not rerun. Only `tests/atlas-3d-perf.mjs` and this document changed. `public/data.json`, other tests, product code, and the original checkout's Wrangler edit remain untouched. The mutation hook is absent and the worktree is clean after each scoped commit.
 
 Four local commits on `codex/atlas-perf-medians`: Part 1 characterization, Part 2 test rebuild, Part 3 mutation evidence, Part 4 this stability/runtime write-up. No push, deployment, or remote Cloudflare command. The recorded 3/5 stability result is not a successful quiet acceptance run; any further attempt follows Freddy's requested Claude Sonnet high, then Opus routing.
+
+## Pass 2 — desktop repetitions and quiet-machine preflight
+
+October 14, 2026, continued from pass-1 HEAD `4af2bc8` in the existing `/Users/freddy/Disc-Atlas` checkout on `codex/atlas-perf-medians`, as requested in the new Codex/Sol pass-2 instruction. No new branch or worktree was created. The checkout initially had an untracked `package-lock.json`; it is preserved byte-for-byte and excluded from commits. The four pass-1 commits are present locally.
+
+### Current repetition configuration
+
+| Variable | Default | Behavior |
+| --- | ---: | --- |
+| `PERF_REPS_DESKTOP` | 7 | Desktop override, taking precedence over `PERF_REPS` |
+| `PERF_REPS_PHONE` | 3 | Phone override, taking precedence over `PERF_REPS` |
+| `PERF_REPS` | unset | Backward-compatible shared fallback for both devices |
+
+All supplied values must be integers ≥3, including a supplied shared fallback when both device overrides are present. Invalid configuration fails before importing Playwright or launching Chromium. `PERF_REPS=5` selects 5/5; `PERF_REPS=5 PERF_REPS_DESKTOP=7` selects 7/5. With no repetition variables set, the full gate measures 16 desktop flights (two cold, fourteen warm) and eight phone flights (two cold, six warm). The independent medians, paired sensitivity guard, frame workloads, alternating build order, device/throttle settings, and all margins are unchanged: frame multiplier 1.15, desktop slack 1.5 ms, phone slack 3 ms, long-task allowance +1.
+
+The JSON `reps` field now reports `{ "desktop": 7, "phone": 3 }` at defaults, rather than a shared number. The log header and progress denominators identify each device's count. Existing browser-free self-tests now cover defaults, shared fallback, device precedence, even counts, and invalid inputs for every variable. Aggregation self-tests and syntax validation pass; related LOD tests pass 7/7. No product code changed.
+
+### Machine state checked before benchmarking
+
+**Quiet preflight: yes, based on local activity inspection plus Freddy's explicit confirmation; no completed benchmark window exists.** Only this local Codex chat was active in the app's chat listing; no subagents were launched. Freddy confirmed: “No; other agent work and heavy tasks are stopped.” Shell `ps` and `top` were denied by the sandbox, so Activity Monitor was used to inspect activity instead. Its sorted CPU view showed normal application/system activity and no active compiler/build among the visible busiest processes. A separate `node` search showed Node processes at 0.0–0.2% CPU. The final preflight Activity Monitor sample was 83.87% idle, 10.97% user, 5.15% system. These are spot observations during inspection, not sustained monitoring or proof of zero background activity. No unrelated application or process was stopped.
+
+Pass-2 host: macOS 15.7.3 (24G419), arm64; Node 24.21.0; installed Playwright 1.64.1 and Chromium headless shell build 1248. The pass-1 write-up records Windows ANGLE D3D11, Playwright 1.62.1, Chromium 1243. Any future comparison with its 67.68 s original runtime must disclose this host/runtime difference. No dependencies or browsers were installed by this task.
+
+### Browser execution blocker and mutation restoration
+
+The first startup attempt failed at `listen EPERM: operation not permitted 127.0.0.1`, before any frames. After the local-server network permission was granted, a second attempt started the server but Chromium terminated before creating a page:
+
+```text
+FATAL:base/apple/mach_port_rendezvous_mac.cc:159
+bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.<pid>:
+Permission denied (1100)
+```
+
+The current session cannot grant the unsandboxed process execution needed for this launch; its sandbox-approval category is disabled. Filesystem and network grants do not remove that macOS process restriction. **These are infrastructure failures, not red perf results.** Both reports have zero rows and an empty summary. The five-run stability sequence was therefore not started.
+
+The temporary desktop-only mutation runner would wrap the actual 3D `draw()` with proportional CPU work, measure underlying draw durations for calibration, run +15% once at seven desktop reps, then +40% once, and restore the exact pre-mutation test in `finally`. Startup was blocked before the injected draw code could execute. The test was restored byte-for-byte after each runner invocation; no mutation hook, draw wrapper, calibration field, desktop-only device loop, or mutation flag remains in the test. The committed decision function and FLIGHT body also match pass-1 HEAD exactly. Ignored startup logs and the clean source snapshot are under `outputs/perf-gate/pass2/`; the runner is retained locally under `work/perf-gate-pass2/`. Neither is committed.
+
+| Desktop target at 7 reps | Completed measurement | Result |
+| --- | --- | --- |
+| +15% draw cost | none | Unmeasured; browser launch blocked |
+| +40% draw cost | none | Unmeasured; sequence stopped after the +15% launch failure |
+
+**Desktop floor remains the pass-1 observation: +15% escaped, +40% was caught with three repetitions under load.** No pass-2 sensitivity claim can be made at seven reps. Increasing repetitions reduces sampling noise but does not itself prove a 15% floor with the unchanged additive allowances. No additional sensitivity chase was performed.
+
+### Five consecutive full gate runs at final defaults
+
+| Run | Reps desktop / phone | Exit | Desktop medians | Phone medians | Total seconds |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
+| 2 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
+| 3 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
+| 4 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
+| 5 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
+
+**Stability: not yet measured (0 of 5 completed; quiet preflight yes).** This is neither 0/5 failures nor a repeated under-load 3/5. The last measured stability remains the historical pass-1 3/5 under load. Quiet-machine acceptance and desktop sensitivity at seven reps require a session that can launch the local Playwright Chromium process; repeat the quiet preflight when resuming.
+
+**Final-default runtime: unmeasured.** The latest measured gate runtime is still pass 1's 116.339 s median at 3/3, or 1.72× the original 67.68 s median. That runtime must not be attributed to the new 7/3 default. Startup-failure times are not gate runtimes. No push, deploy, or remote Cloudflare command was run.
