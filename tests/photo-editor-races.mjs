@@ -88,6 +88,16 @@ test('network failure preserves the saved copy and successful retry updates exac
  assert.equal(f.counts.closes,1);
 });
 
+test('closing the editor during photo compression prevents all save requests',async()=>{
+ const compression=deferred(),f=editorFixture({photoValue:()=>compression.promise});
+ const saving=f.submit();
+ f.close();
+ compression.resolve('stale-photo');
+ await saving;
+ assert.equal(f.calls.length,0);
+ assert.equal(f.context.items.length,0);
+});
+
 test('an edge error page instead of JSON reports the saved disc and retry still updates it',async()=>{
  let attempts=0;
  const f=editorFixture({upload:async()=>++attempts===1?{ok:false,status:502,json:async()=>{throw new SyntaxError('Unexpected token <');}}:photoResponse()});
