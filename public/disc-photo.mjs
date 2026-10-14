@@ -1,4 +1,5 @@
 // Photos never leave the browser until reduced to a bounded, metadata-free circular WebP.
+import {delightPixels} from './disc-albedo.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
@@ -28,16 +29,24 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
  }
  ctx.putImageData(pixels,0,0);return out;
 }
-export async function processPhoto(image,options={}){
+// The crop with the photo's lighting removed (disc-albedo.mjs), and the plate colour it measured.
+export function albedoCanvas(image,options={},size=PHOTO_SIZE){
+ const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
+ const {color}=delightPixels(pixels.data,size);ctx.putImageData(pixels,0,0);
+ return {canvas,color};
+}
+// Resolves to {blob, color}: the upload and the plate colour the disc should start with.
+export async function preparePhoto(image,options={}){
  for(const size of [1024,768,512]){
-  const canvas=photoCanvas(image,options,size);
+  const {canvas,color}=albedoCanvas(image,options,size);
   for(const quality of [.86,.72,.56,.4]){
    const blob=await new Promise(r=>canvas.toBlob(r,'image/webp',quality));
-   if(blob?.type==='image/webp'&&blob.size<=PHOTO_BYTES)return blob;
+   if(blob?.type==='image/webp'&&blob.size<=PHOTO_BYTES)return {blob,color};
   }
  }
  throw Error('This photo could not be compressed. Try another photo.');
 }
+export async function processPhoto(image,options={}){return (await preparePhoto(image,options)).blob;}
 
 export function createPhotoEditor(root){
  root.innerHTML='<button type="button" class="bag-photo-choose">Add photo</button><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden><div class="bag-photo-edit" hidden><p>Photograph straight down in even light. Fill the circle with your disc.</p><div class="bag-photo-frame"><canvas width="240" height="240" tabindex="0" aria-label="Photo crop preview. Drag or use arrow keys to center the disc."></canvas><span aria-hidden="true"></span></div><small>Drag to center · fit the disc inside the guide</small><details><summary>Adjust photo</summary><label>Framing<input type="range" data-photo="scale" min="0.3" max="1" step="0.01" value="0.94"></label><label>Tilt correction<input type="range" data-photo="aspect" min="0.8" max="1.2" step="0.01" value="1"></label><label>Tilt direction<input type="range" data-photo="angle" min="0" max="180" step="5" value="0"></label><label>Perspective<input type="range" data-photo="perspective" min="-0.12" max="0.12" step="0.01" value="0"></label></details></div><button type="button" class="bag-photo-remove" hidden>Remove photo</button><p class="bag-photo-status" role="status"></p>';

@@ -49,7 +49,7 @@
     "test:3d:polish": "node --test tests/compare-viewer-polish-browser.mjs",
     "test:sliders": "node tests/slider-drag-browser.mjs",
     "test:my-map": "node --test tests/personal-lens.mjs tests/personal-map-worker.mjs && node tests/my-map-browser.mjs",
-    "test:photo-textures": "node --test tests/photo-textures.mjs tests/photo-math.mjs tests/photo-editor-races.mjs && node tests/photo-textures-browser.mjs"
+    "test:photo-textures": "node --test tests/photo-textures.mjs tests/photo-math.mjs tests/photo-albedo.mjs tests/photo-editor-races.mjs && node tests/photo-textures-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
