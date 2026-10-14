@@ -527,12 +527,20 @@ body[data-view="bag"] main {display:none!important}
  .bag-list-picker {display:flex;width:100%}
  .bag-list-picker button {flex:1 1 auto;justify-content:center;padding:0 8px}
 }
-.bag-photo-control{margin:18px 0;color:var(--muted);font-size:12px}
-.bag-photo-control button{min-height:40px;background:none;border:0;padding:6px 0;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.bag-photo-control{margin:4px 0 22px;font-size:13px}
+.bag-photo-label{display:block;margin-bottom:10px}.bag-photo-label small{display:block;margin-top:4px;font-size:11px;color:var(--muted);line-height:1.5}
+/* A real, findable action in the sheet's chip family: the accent outline and camera say "tap me" without
+   competing with Save. Replace and Remove keep the same weight once a photo exists. */
+.bag-photo-control button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:24px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.bag-photo-control button:hover{background:var(--selected)}
+.bag-photo-control button:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.bag-photo-control .bag-photo-choose{padding-left:14px;border-color:color-mix(in srgb,var(--lime) 70%,var(--line));background:var(--accent-soft);font-weight:600}
+.bag-photo-icon{flex:none;width:20px;height:20px;fill:none;stroke:var(--lime);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:700px){.bag-photo-control .bag-photo-choose{min-height:48px;padding:12px 18px 12px 16px}}
 .bag-photo-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .bag-photo-thumb{flex:none;width:56px;height:56px;border-radius:50%;overflow:hidden;background:var(--surface);box-shadow:0 0 0 1px var(--line)}
 .bag-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover}
-.bag-photo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px}.bag-photo-status:empty{display:none}
+.bag-photo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.bag-photo-status:empty{display:none}
 /* The aligner: the 3D pop-out's frame (its panel, head and close), full screen on phones, the disc as
    large as the screen allows. */
 .photo-aligner{width:min(880px,calc(100vw - 48px));height:min(920px,calc(100dvh - 48px));max-width:none;max-height:none;padding:0;overflow:hidden;overscroll-behavior:contain}
