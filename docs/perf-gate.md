@@ -146,3 +146,53 @@ Calibration and raw warm rows follow. “Base” is the actual draw duration ins
 **+15% result: observed FAIL, but an uncertain causal sensitivity floor.** Desktop passes all checks at this cost. Phone flight and long tasks fail. Phone's same-run base flight p95 median is already above its independent-median limit before the extra cost, so this run cannot establish that a clean 15% regression alone would fail. The exploratory +15% run also failed, only on phone long tasks, which remain noisy under load. Do not claim universal 15% detection: additive margins allow some percentage slowdowns, timing varies, and these were loaded-machine measurements. The proven injected frame-cost point here is roughly +40%; desktop sensitivity lies above this observed +15% pass and at/below the observed +40% failure for these samples. Quiet paired controls would be needed to locate a smaller general floor.
 
 Restoration: the runner's `finally` copied the exact pre-mutation test back, removed its process-only flag, and `git diff --exit-code -- tests/atlas-3d-perf.mjs` plus `git status --short` returned no changes. No injection or env hook is committed. Ignored `outputs/perf-gate/mutation-{40,15}.{log,json}` retain the full raw distribution; the committed test has no mutation flag.
+
+## Part 4 — five consecutive unchanged runs
+
+The final committed rule ran five times consecutively with default `PERF_REPS=3`, a new browser per invocation, no test edits between runs, no skipped failures, and no retry window. Other heavy work continued as the user requested. Times below are October 14, 2026, America/New_York. CPU is whole-machine utilization averaged over each complete run using `os.cpus()` time deltas; it includes the gate itself. Baseline CPU figures were one-second spot samples, so the two measurement windows are not directly comparable estimates of background load. No other browser benchmark was started by this task during the window.
+
+| Run | Start → end | Exit | External seconds | Mean CPU busy | Failed condition |
+| --- | --- | ---: | ---: | ---: | --- |
+| 1 | 15:38:44 → 15:40:35 | 0 | 111.149 | 22.6% | none |
+| 2 | 15:40:35 → 15:42:26 | 0 | 110.75 | 21.6% | none |
+| 3 | 15:42:26 → 15:44:22 | 1 | 116.339 | 34.6% | phone long tasks (independent + paired) |
+| 4 | 15:44:22 → 15:46:19 | 1 | 117.111 | 40% | desktop flight p95 (paired) |
+| 5 | 15:46:19 → 15:48:20 | 0 | 120.497 | 45.2% | none |
+
+Every run's medians follow. Flight/1× columns are **3D / 2D**, in ms; long tasks are counts. Paired excesses are flight ms / 1× ms / task count; positive means red. Verdict is per device, with either aggregate failure sufficient.
+
+| Run | Device | Flight p95 3D / 2D | 1× p95 3D / 2D | Long tasks 3D / 2D | Paired median excesses | Verdict |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | desktop | 3.7 / 3.2 | 1.1 / 0.6 | 0 / 0 | -1.595 / -1.09 / -1 | pass |
+| 1 | phone | 11 / 10 | 3.4 / 2.9 | 1 / 0 | -2.78 / -2.935 / 0 | pass |
+| 2 | desktop | 3.6 / 3.2 | 1 / 0.6 | 0 / 0 | -1.58 / -1.19 / -1 | pass |
+| 2 | phone | 10.5 / 10 | 3.9 / 2.8 | 0 / 2 | -4 / -2.55 / -2 | pass |
+| 3 | desktop | 3.7 / 3.1 | 1.2 / 0.6 | 0 / 0 | -1.365 / -0.99 / -1 | pass |
+| 3 | phone | 15.4 / 19 | 3.6 / 2.6 | 8 / 6 | -3.93 / -2.39 / 1 | FAIL |
+| 4 | desktop | 6.2 / 4.3 | 1.9 / 1 | 0 / 0 | 0.445 / -0.765 / -1 | FAIL |
+| 4 | phone | 10.8 / 13.8 | 3.8 / 2.7 | 0 / 4 | -4.99 / -2.42 / -1 | pass |
+| 5 | desktop | 5.3 / 4.3 | 1.6 / 0.9 | 0 / 0 | -1.145 / -1.135 / -1 | pass |
+| 5 | phone | 20.1 / 20.6 | 3.9 / 2.6 | 7 / 11 | -7.855 / -2.16 / -1 | pass |
+
+**Observed stability: 3/5 pass; target 5/5 was not achieved.** Run 3's phone long-task median is 8 versus 6 (limit 7); its paired excess is +1. Run 4's desktop independent median flight check passes (6.2 versus 4.3, limit 6.445), but the paired excesses are +0.755, −2.515, +0.445 ms and median +0.445, so the sensitivity guard correctly keeps that result red under the original per-pair margins. These are unchanged-tree failures; this experiment does not establish their cause or quiet-machine stability. CPU averages ranged 21.6%–45.2%. The higher-load run 5 passed, so load is a limitation, not proof that it caused either failure. No allowance or rule was loosened after this window. The candidate is retained locally for review, without claiming acceptance of the 5/5 goal.
+
+Full distributions (16 cold/warm rows per invocation, every raw emitted number and all decision flags) are in ignored `outputs/perf-gate/stability-{1,2,3,4,5}.{log,json}`. The five-run runner is `outputs/perf-gate/run-stability.cjs`; it records exit, external elapsed time, CPU deltas, and timestamps, and continues through red assertions to complete exactly five runs.
+
+### Runtime before / after
+
+| Gate | Runs | External wall-clock range | Median | Ratio to original median |
+| --- | ---: | --- | ---: | ---: |
+| Original single warm run | 3 | 64.97–69.94 s | 67.68 s | 1× |
+| Final median + paired guard, 3 warm repetitions | 5 | 110.75–120.50 s | 116.34 s | 1.72× |
+
+The observed default gate stays below the ~2× target. Five warm repetitions are available with `PERF_REPS=5`, but would require 24 full flights instead of the original eight (rather than the default 16); budget approximately 3× original flight time before setup savings. That longer option was not used to replace or hide the failed stability window. Runtime and pass rates were observed under changing load, not a controlled quiet before/after comparison.
+
+### How to read a red run
+
+Start with the device and metric in the summary, then read `medianFailed` and `pairedFailed`. The independent limit is 2D's median p95 × 1.15 plus 1.5 ms desktop or 3 ms phone; long tasks use 2D's median +1. A positive paired median excess means the original comparison repeatedly went over its allowance even if independent medians look green. Match 2D/3D rows by device and rep to see those pairs. Rep 0 is cold diagnostics only; warm rows supply the verdict. Check max/longest values for spikes, the 241/120 sample counts, equal disc counts, and 3D `ready` / 2D `off`. Keep the full `outputs/atlas-3d/perf.json` and log when investigating. If other work is active, record that and repeat on a quiet machine without dropping the original red result; do not adjust margins from a single run.
+
+## Verification and local delivery
+
+Aggregation self-tests, syntax checking, and the seven related LOD tests passed. The final FLIGHT body matches the original after normalizing Windows line endings. Static review found no outstanding code issue. Full browser evidence is reported above, including both red stability runs and the +15% uncertainty; unrelated product browser suites were not rerun. Only `tests/atlas-3d-perf.mjs` and this document changed. `public/data.json`, other tests, product code, and the original checkout's Wrangler edit remain untouched. The mutation hook is absent and the worktree is clean after each scoped commit.
+
+Four local commits on `codex/atlas-perf-medians`: Part 1 characterization, Part 2 test rebuild, Part 3 mutation evidence, Part 4 this stability/runtime write-up. No push, deployment, or remote Cloudflare command. The recorded 3/5 stability result is not a successful quiet acceptance run; any further attempt follows Freddy's requested Claude Sonnet high, then Opus routing.
