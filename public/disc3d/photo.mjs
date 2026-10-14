@@ -28,7 +28,7 @@ export function photoSurface(shape,url,{overmold=false,onChange=()=>{},plastic={
  const material=new THREE.MeshPhysicalMaterial({color:0xffffff,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,...plastic});
  const mesh=new THREE.Mesh(photoGeometry(shape,{overmold}),material);mesh.visible=false;let disposed=false;
  const handle=acquirePhoto(url,size);
- handle.ready.then(texture=>{if(disposed)return;material.map=texture;material.needsUpdate=true;mesh.userData.photoReady=true;mesh.visible=true;onChange(mesh);},()=>{if(!disposed)onChange(mesh);});
+ handle.ready.then(texture=>{if(disposed)return;material.map=texture;material.needsUpdate=true;mesh.userData.photoReady=true;mesh.visible=true;onChange(mesh);},()=>{if(!disposed){mesh.userData.photoFailed=true;onChange(mesh);}});
  const clear=()=>{mesh.visible=false;mesh.userData.photoReady=false;onChange(mesh);};window.addEventListener('atlas-photo-clear',clear);
  mesh.userData.disposePhoto=()=>{disposed=true;window.removeEventListener('atlas-photo-clear',clear);handle.release();mesh.geometry.dispose();material.dispose();};
  return mesh;

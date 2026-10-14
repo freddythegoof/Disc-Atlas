@@ -81,7 +81,23 @@ try {
   for(const d of photoTestDiscs)photoTestArt.render(d,'#e6c668',80);
  });
  await page.waitForFunction(()=>{for(const d of photoTestDiscs)photoTestArt.render(d,'#e6c668',80);return photoTestDiscs.every(d=>photoTestArt.has(d,'#e6c668',80));});
- assert.equal(fixtureLoads,12);await page.evaluate(()=>photoTestArt.dispose());
+ assert.equal(fixtureLoads,12);
+ // Changing level: a recently drawn photo draws at once from its live texture; an evicted one shows its
+ // finished image from another level meanwhile, never the plain placeholder.
+ const relevel=await page.evaluate(()=>{
+  // Draw every disc at a new level in order, so the least recently drawn are test-0 … test-4.
+  for(const d of photoTestDiscs)photoTestArt.render(d,'#e6c668',40);
+  const extra={...photoTestDiscs[0],id:'test-extra',photoURL:'/api/bag/discs/cache-extra/photo?v=00000000-0000-0000-0000-999999999999.webp'};
+  photoTestArt.render(extra,'#e6c668',80);
+  const recent=photoTestArt.render(photoTestDiscs[11],'#e6c668',20);
+  photoTestArt.render(photoTestDiscs[0],'#e6c668',20);
+  const evicted=photoTestArt.get(photoTestDiscs[0],'#e6c668',20);
+  return {recent:!!recent.pending,evicted:!!evicted.pending,evictedLevel:evicted.lod};
+ });
+ assert.deepEqual(relevel,{recent:false,evicted:false,evictedLevel:'mid'});
+ await page.waitForFunction(()=>{photoTestArt.render(photoTestDiscs[0],'#e6c668',20);return photoTestArt.has(photoTestDiscs[0],'#e6c668',20);});
+ assert.equal(fixtureLoads,14,'only the new photo and the evicted one are fetched again');
+ await page.evaluate(()=>photoTestArt.dispose());
  fixtureLoads=0;
  await page.evaluate(async()=>{
   const root=document.createElement('div');root.id='photoScrollTest';root.style='position:fixed;right:0;top:0;height:90px;width:90px;overflow:auto;z-index:99999';document.body.append(root);

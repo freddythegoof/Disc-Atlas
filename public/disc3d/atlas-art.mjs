@@ -77,10 +77,17 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const mesh=new THREE.Mesh(new THREE.BufferGeometry(),plateMaterial);scene.add(mesh);
 
  const shapes=new Map(),geometries=new Map(),images=new Map(),photos=new Map();
+ // Decoded photos stay live for a few discs (least recently drawn first out), so a disc changing level
+ // draws its photo at once instead of fetching and decoding it again for every level.
+ const PHOTOS_LIVE=8;
  const photoOf=(d,s)=>{
   if(!d.photoURL)return null;
   let photo=photos.get(d.photoURL);
-  if(!photo){photo=photoSurface(s.shape,d.photoURL,{overmold:s.overmold,size:256,plastic:PLASTICS.premium,onChange:()=>window.dispatchEvent(new CustomEvent('atlas-photo-ready',{detail:{url:d.photoURL}}))});photos.set(d.photoURL,photo);}
+  if(photo){photos.delete(d.photoURL);photos.set(d.photoURL,photo);return photo;}
+  photo=photoSurface(s.shape,d.photoURL,{overmold:s.overmold,size:256,plastic:PLASTICS.premium,onChange:()=>window.dispatchEvent(new CustomEvent('atlas-photo-ready',{detail:{url:d.photoURL}}))});photos.set(d.photoURL,photo);
+  // A photo still loading is never evicted: with more photos on screen than live slots, evicting them
+  // would restart every load forever.
+  for(const [url,old] of photos){if(photos.size<=PHOTOS_LIVE)break;if(old.userData.photoReady||old.userData.photoFailed){photos.delete(url);old.userData.disposePhoto();}}
   return photo;
  };
  const clearPhotos=()=>{for(const [key,entry] of images)if(key.includes('/photo?')){entry.canvas.getContext('2d').clearRect(0,0,entry.px,entry.px);stats.bytes-=entry.bytes;images.delete(key);}for(const p of photos.values())p.userData.disposePhoto();photos.clear();};
@@ -110,10 +117,12 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
 
  // The cached image at the level `size` needs, else the best other level already drawn (a disc growing
  // past its level shows the smaller image, scaled, until the next is drawn). Null when nothing is cached.
+ // A photo disc's finished image at any level beats its placeholder (drawn while the photo loads).
  function get(d,color,size,rim,lod=lodFor(size)){
   const s=shapeOf(d);if(!s)return null;
   const c=colorsOf(s,color,rim),want=lod,order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
-  for(const level of order){const e=touch(keyOf(d,level,c))||touch(keyOf(d,level,c)+'|pending');if(e)return e;}
+  for(const level of order){const e=touch(keyOf(d,level,c));if(e)return e;}
+  if(d.photoURL)for(const level of order){const e=touch(keyOf(d,level,c)+'|pending');if(e)return e;}
   return null;
  }
  function has(d,color,size,rim,lod=lodFor(size)){
@@ -138,9 +147,11 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   const image=document.createElement('canvas');image.width=image.height=px;
   // The viewport is the drawing buffer's bottom-left corner.
   image.getContext('2d').drawImage(canvas,0,side-px,px,px,0,0,px,px);
-  const entry={canvas:image,fill:(px-2)/px,lod,px,bytes:px*px*4};
+  const entry={canvas:image,fill:(px-2)/px,lod,px,bytes:px*px*4,pending:!ready};
   images.set(key,entry);stats.bytes+=entry.bytes;
-  if(photo?.userData.photoReady){photos.delete(d.photoURL);photo.userData.disposePhoto();}
+  // The finished image replaces its placeholder.
+  const placeholder=photo&&ready&&images.get(finalKey+'|pending');
+  if(placeholder){images.delete(finalKey+'|pending');stats.bytes-=placeholder.bytes;}
   while(stats.bytes>maxBytes&&images.size>1){const [k,old]=images.entries().next().value;images.delete(k);stats.bytes-=old.bytes;stats.evicted++;}
   stats.renders++;stats.ms+=performance.now()-start;
   return entry;
