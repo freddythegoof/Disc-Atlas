@@ -36,6 +36,7 @@ function editorFixture({photoValue=async()=> 'processed-photo',upload=async()=>p
   account:{user:{id:'owner-a'},csrfToken:'owner-a-token'},
   editing:null,items:[],loading:false,active:false,plastics:{},rimCustomized:false,
   photoEditor:{changed:true,value:photoValue,reset(){}},
+  colorHint:()=>({textContent:''}),colorBeforePhoto:null,photoColor:null,
   mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),
   render(){counts.renders++;},status(){},loadBag(){counts.refreshes++;},name:()=> 'Disc',
   async fetch(url,options){

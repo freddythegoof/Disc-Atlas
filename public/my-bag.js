@@ -14,8 +14,24 @@ let discEditSequence=0;
 let colorCustomized=false,rimCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
 // The view above (Bag, My Map, Storage or Lost) and the one list shown below it (Bag, Storage or Lost).
 let bagView='bag',listView='bag',removeOrigin=null;
-const photoEditor=createPhotoEditor($('#bagPhoto'));
-$('#addDiscDialog').addEventListener('close',()=>{discEditSequence++;photoEditor.reset(null);});
+// A photo starts the disc matched: its plate colour becomes the disc's colour, so the rim and edges agree
+// with the photographed plate. The colour stays editable; removing that photo in the same sheet restores
+// the colour it replaced, unless it was changed by hand since.
+let colorBeforePhoto=null,photoColor=null;
+const colorHint=()=>$('#bagDiscColor').closest('label').querySelector('small');
+function matchPhotoColor(color){
+ const input=$('#bagDiscColor');
+ if(color){
+  colorBeforePhoto??={color:input.value,customized:colorCustomized};
+  input.value=color;photoColor=input.value;colorCustomized=true;colorHint().textContent='Matched to your photo.';
+ }else{
+  if(colorBeforePhoto&&input.value===photoColor){input.value=colorBeforePhoto.color;colorCustomized=colorBeforePhoto.customized;}
+  colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';
+ }
+ updateRimColor();
+}
+const photoEditor=createPhotoEditor($('#bagPhoto'),{onColor:matchPhotoColor});
+$('#addDiscDialog').addEventListener('close',()=>{discEditSequence++;photoEditor.reset(null);colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';});
 const pendingPockets=new Map();
 const pendingFound=new Set();
 const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async path => {const r = await fetch(path);if (!r.ok) throw Error('Bag choices could not load. Please try again.');return r.json();})).then(([p,m])=>{plastics=p;models=m;});
@@ -269,7 +285,7 @@ async function openDisc(d,item=null,destination='bag') {
  const overmold=isOvermold({...d,record:d.name});
  $('#bagDiscColorLabel').textContent=overmold?'Flight plate':'Disc color';
  $('#bagRimColorField').hidden=!overmold;
- discEditSequence++;photoEditor.reset(values,d);
+ discEditSequence++;photoEditor.reset(values,d);colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';
  rimCustomized=!!values.rim_color;
  $('#bagRimColor').value=overmoldColors($('#bagDiscColor').value,{rim:values.rim_color}).rim;
  $('#addDiscStatus').textContent='';updateSaveLabel();$('#saveDisc').disabled=false;
@@ -304,7 +320,7 @@ $('#addDiscForm').addEventListener('submit',async event=>{
  finally {if(epoch===generation&&operation===discEditSequence)button.disabled=false;}
 });
 function updateRimColor(){if(!rimCustomized)$('#bagRimColor').value=overmoldColors($('#bagDiscColor').value).rim;}
-$('#bagWear').addEventListener('input',updateWear);$('#bagDiscColor').addEventListener('input',()=>{colorCustomized=true;updateRimColor();});
+$('#bagWear').addEventListener('input',updateWear);$('#bagDiscColor').addEventListener('input',()=>{colorCustomized=true;colorHint().textContent='Your disc, your color.';updateRimColor();});
 $('#bagRimColor').addEventListener('input',()=>{rimCustomized=true;});
 $('#bagPlastic').addEventListener('change',()=>{updatePlastic();if(!colorCustomized)$('#bagDiscColor').value=plasticColor(mold($('#addDiscId').value).brand,$('#bagPlastic').value,plastics);updateRimColor();if(!$('#bagPlasticOther').hidden)$('#bagPlasticOther').focus();});
 function setStabilityBias(value){

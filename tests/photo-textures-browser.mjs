@@ -53,13 +53,14 @@ try {
  await page.locator('.photo-aligner [data-aligner-cancel]').first().click();await page.locator('.photo-aligner').waitFor({state:'hidden'});
  assert.equal(await page.locator('.bag-photo-thumb').isHidden(),true);assert.equal(await page.locator('#bagDiscColor').inputValue(),colorBefore);
  await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await usePhoto();
+ const matched=await page.locator('#bagDiscColor').inputValue();assert.notEqual(matched,colorBefore,'the disc colour starts matched to the photo');
  await page.locator('#addDiscDialog').screenshot({path:dir+'/photo-editor.png'});
  let upload;page.on('request',r=>{if(r.method()==='PUT'&&r.url().includes('/photo')){upload=r.postDataBuffer();fs.writeFileSync(dir+'/processed-upload.webp',upload);}});
  await save();assert.ok(upload.length<=512*1024);assert.equal(upload.toString('ascii',0,4),'RIFF');
- data=await (await page.request.get(base+'/api/bag')).json();disc=data.discs[0];assert.ok(disc.texture_key);
+ data=await (await page.request.get(base+'/api/bag')).json();disc=data.discs[0];assert.ok(disc.texture_key);assert.equal(disc.color,matched,'the matched colour saved with the photo');
  // The guides are chrome: the upload is exactly the pipeline's output for the same photo and framing.
  const independent=await page.evaluate(async bytes=>{const {preparePhoto}=await import('/disc-photo.mjs');const image=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/webp'}));const {blob,color}=await preparePhoto(image,{});return {bytes:[...new Uint8Array(await blob.arrayBuffer())],color};},[...fs.readFileSync('tests/fixtures/stamped-disc.webp')]);
- assert.ok(Buffer.from(independent.bytes).equals(upload),'no guide pixels in the processed photo');
+ assert.ok(Buffer.from(independent.bytes).equals(upload),'no guide pixels in the processed photo');assert.equal(independent.color,matched);
  const privatePhoto=await page.request.get(base+'/api/bag/discs/'+disc.id+'/photo');assert.equal(privatePhoto.status(),200);assert.equal(privatePhoto.headers()['cache-control'],'private, no-store');
  const anonymous=await browser.newContext({ignoreHTTPSErrors:true});assert.equal((await anonymous.request.get(base+'/api/bag/discs/'+disc.id+'/photo')).status(),401);await anonymous.close();
  await inspect();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
