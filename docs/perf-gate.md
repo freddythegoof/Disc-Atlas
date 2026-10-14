@@ -83,3 +83,66 @@ An exploratory +40% mutation exposed a central-tendency trap: desktop independen
 The final rule therefore also takes `median(3D_i − (2D_i × multiplier + allowance))` for every metric, matching repetitions by measurement order. Fail if this paired median excess is strictly positive **or** the independent-median check fails. Use the same multiplier and allowance: frame 1.15 and device slack, long tasks 1 and +1. Zero means exactly the original limit, not a new tolerance. The +40% desktop sample now has paired median excess +0.745 ms and fails. A single isolated bad pair remains insufficient at three reps. Even repetition counts average the two middle excesses; this is a median guard, not always a strict-majority vote.
 
 This adds sensitivity without increasing sample count, wall-clock workload, or any margin. It can add reds under sequential timing noise, which is why Part 4 must exercise this final combined rule. JSON/table output includes every paired excess, the paired median excess, independent/paired failure flags, and the combined verdict. The measured crossed-median fixture first failed the self-test under the initial rule, then passed after adding the guard; self-tests also cover crossed long-task counts, phone slack, and mismatched/empty pairs. The initial unmutated report re-evaluates green under both aggregate checks, but the required final browser runs follow. Exploratory mutation logs are kept as `outputs/perf-gate/exploratory-mutation-{40,15}.{log,json}`; they are not the final sensitivity proof.
+
+## Part 3 — final mutation proof
+
+Temporary local changes in this test only wrapped the real page `draw()` function for 3D pages after load. Each call executed its real draw, measured its elapsed duration, then burned CPU until `start + duration × (1 + cost)`. Cost was 0.40, then 0.15. 2D pages were unmodified. This adds actual render-path work, not synthetic report values, sleeps, or changed thresholds. Temporary parallel arrays recorded the underlying draw duration for the same measured flight/still frames. Busy-wait quantization and scheduler preemption make the realized p95 increase approximate; calibration is below. No product file was patched.
+
+Both final runs used three repetitions and the final independent-plus-paired rule. Every repetition and assertion was printed/saved.
+
+| Target extra draw cost | Exit | External seconds | Device | Check | 3D median | 2D median | Independent limit | Paired median excess | Failure flags (independent / paired) |
+| --- | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: | --- |
+| +40% | 1 | 126.88 | desktop | flight p95 | 6.5 | 4.2 | 6.33 | 0.47 | FAIL / FAIL |
+| +40% | 1 | 126.88 | desktop | 1x p95 | 2.1 | 1.2 | 2.88 | -0.78 | pass / pass |
+| +40% | 1 | 126.88 | desktop | long tasks | 0 | 0 | 1 | -1 | pass / pass |
+| +40% | 1 | 126.88 | phone | flight p95 | 27.8 | 16.6 | 22.09 | 5.71 | FAIL / FAIL |
+| +40% | 1 | 126.88 | phone | 1x p95 | 5 | 3.3 | 6.795 | -1.795 | pass / pass |
+| +40% | 1 | 126.88 | phone | long tasks | 20 | 6 | 7 | 16 | FAIL / FAIL |
+| +15% | 1 | 122.66 | desktop | flight p95 | 6.1 | 4.8 | 7.02 | -1 | pass / pass |
+| +15% | 1 | 122.66 | desktop | 1x p95 | 2.4 | 1.1 | 2.765 | -0.365 | pass / pass |
+| +15% | 1 | 122.66 | desktop | long tasks | 0 | 0 | 1 | -1 | pass / pass |
+| +15% | 1 | 122.66 | phone | flight p95 | 23.7 | 12.4 | 17.26 | 0.875 | FAIL / FAIL |
+| +15% | 1 | 122.66 | phone | 1x p95 | 6.2 | 3.6 | 7.14 | -1.055 | pass / pass |
+| +15% | 1 | 122.66 | phone | long tasks | 12 | 3 | 4 | 8 | FAIL / FAIL |
+
+Calibration and raw warm rows follow. “Base” is the actual draw duration inside the wrapper before the added work, in the same mutated invocation; it is not a separate quiet control run. All frame times are ms.
+
+| Target | Device | Build | Rep | Base flight p95 | Measured flight p95 | Base 1× p95 | Measured 1× p95 | Long tasks |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| +40% | desktop | 3D | 1 | 4.4 | 6.2 | 1.3 | 1.9 | 0 |
+| +40% | desktop | 2D | 1 | 3.5 | 3.5 | 0.9 | 0.9 | 0 |
+| +40% | desktop | 2D | 2 | 4.2 | 4.2 | 1.2 | 1.2 | 0 |
+| +40% | desktop | 3D | 2 | 4.8 | 6.8 | 1.5 | 2.1 | 0 |
+| +40% | desktop | 3D | 3 | 4.6 | 6.5 | 1.5 | 2.2 | 0 |
+| +40% | desktop | 2D | 3 | 7.2 | 7.2 | 1.5 | 1.5 | 0 |
+| +40% | phone | 3D | 1 | 19.2 | 26.9 | 3.3 | 5 | 23 |
+| +40% | phone | 2D | 1 | 17.1 | 17.1 | 3.3 | 3.3 | 6 |
+| +40% | phone | 2D | 2 | 16.5 | 16.5 | 3 | 3 | 3 |
+| +40% | phone | 3D | 2 | 21.5 | 30.2 | 3.6 | 5.2 | 20 |
+| +40% | phone | 3D | 3 | 19.8 | 27.8 | 3.5 | 5 | 17 |
+| +40% | phone | 2D | 3 | 16.6 | 16.6 | 3.4 | 3.4 | 7 |
+| +15% | desktop | 3D | 1 | 5.2 | 6.1 | 2.1 | 2.5 | 0 |
+| +15% | desktop | 2D | 1 | 4.8 | 4.8 | 1.1 | 1.1 | 0 |
+| +15% | desktop | 2D | 2 | 4 | 4 | 0.9 | 0.9 | 0 |
+| +15% | desktop | 3D | 2 | 4.4 | 5.1 | 1.3 | 1.5 | 0 |
+| +15% | desktop | 3D | 3 | 6 | 7 | 2 | 2.4 | 2 |
+| +15% | desktop | 2D | 3 | 5.7 | 5.7 | 1.1 | 1.1 | 0 |
+| +15% | phone | 3D | 1 | 12.8 | 14.8 | 3.1 | 3.6 | 1 |
+| +15% | phone | 2D | 1 | 9.5 | 9.5 | 2.7 | 2.7 | 0 |
+| +15% | phone | 2D | 2 | 12.4 | 12.4 | 3.6 | 3.6 | 3 |
+| +15% | phone | 3D | 2 | 20.6 | 23.7 | 7.6 | 8.9 | 12 |
+| +15% | phone | 3D | 3 | 24.6 | 28.8 | 5.3 | 6.2 | 23 |
+| +15% | phone | 2D | 3 | 22.9 | 22.9 | 3.7 | 3.7 | 14 |
+
+| Target | Device | Median base → inflated flight p95 | Realized p95 increase |
+| --- | --- | --- | ---: |
+| +40% | desktop | 4.6 → 6.5 ms | 41.3% |
+| +40% | phone | 19.8 → 27.8 ms | 40.4% |
+| +15% | desktop | 5.2 → 6.1 ms | 17.3% |
+| +15% | phone | 20.6 → 23.7 ms | 15.0% |
+
+**Sensitivity result:** +40% is caught on both desktop and phone flight p95 (phone long tasks also fail). In that final run, underlying base flight times pass the original frame relationship before added cost; the inflated times fail it, so the cost measurably crosses the gate rather than relying only on an already-red frame baseline. The paired guard also catches the exploratory desktop crossed-median hole without moving a threshold. These are direct sensitivity checks of the old decision's intent under repetition.
+
+**+15% result: observed FAIL, but an uncertain causal sensitivity floor.** Desktop passes all checks at this cost. Phone flight and long tasks fail. Phone's same-run base flight p95 median is already above its independent-median limit before the extra cost, so this run cannot establish that a clean 15% regression alone would fail. The exploratory +15% run also failed, only on phone long tasks, which remain noisy under load. Do not claim universal 15% detection: additive margins allow some percentage slowdowns, timing varies, and these were loaded-machine measurements. The proven injected frame-cost point here is roughly +40%; desktop sensitivity lies above this observed +15% pass and at/below the observed +40% failure for these samples. Quiet paired controls would be needed to locate a smaller general floor.
+
+Restoration: the runner's `finally` copied the exact pre-mutation test back, removed its process-only flag, and `git diff --exit-code -- tests/atlas-3d-perf.mjs` plus `git status --short` returned no changes. No injection or env hook is committed. Ignored `outputs/perf-gate/mutation-{40,15}.{log,json}` retain the full raw distribution; the committed test has no mutation flag.
