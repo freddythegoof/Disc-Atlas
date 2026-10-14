@@ -1,5 +1,6 @@
 // Compare complete warm 3D/2D flights on desktop and an emulated mid-range phone.
-// PERF_REPS (integer >= 3, default 3) controls repetitions. One cold flight warms each
+// Defaults: 7 desktop / 3 phone warm repetitions. PERF_REPS sets both; per-device
+// PERF_REPS_DESKTOP / PERF_REPS_PHONE override it (all integers >= 3). One cold flight warms each
 // page; warm repetitions alternate build order and run serially on the machine's GPU.
 // Each flight retains the original 241 zoom frames and 120 full-view frames.
 // Verdict: median warm p95/counts plus median paired excess, with the original margins.
@@ -11,10 +12,17 @@ import http from 'node:http';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 
-function parseReps(value){
- const reps=value===undefined?3:Number(value);
- assert.ok((value===undefined||/^[1-9]\d*$/.test(value))&&Number.isSafeInteger(reps)&&reps>=3,'PERF_REPS must be an integer >= 3');
+function parseReps(value,fallback=3,name='PERF_REPS'){
+ const reps=value===undefined?fallback:Number(value);
+ assert.ok((value===undefined||/^[1-9]\d*$/.test(value))&&Number.isSafeInteger(reps)&&reps>=3,name+' must be an integer >= 3');
  return reps;
+}
+function deviceReps(env){
+ const common=env.PERF_REPS===undefined?undefined:parseReps(env.PERF_REPS);
+ return {
+  desktop:parseReps(env.PERF_REPS_DESKTOP,common??7,'PERF_REPS_DESKTOP'),
+  phone:parseReps(env.PERF_REPS_PHONE,common??3,'PERF_REPS_PHONE'),
+ };
 }
 function median(values){
  assert.ok(values.length>0&&values.every(Number.isFinite),'median requires finite measurements');
@@ -39,6 +47,13 @@ if(process.argv.includes('--self-test')){
  assert.equal(median([4,1,3,2]),2.5);
  assert.equal(parseReps(undefined),3);assert.equal(parseReps('5'),5);
  for(const value of ['','0','1','2','3.5','NaN','Infinity','5oops'])assert.throws(()=>parseReps(value),/PERF_REPS/);
+ assert.deepEqual(deviceReps({}),{desktop:7,phone:3});
+ assert.deepEqual(deviceReps({PERF_REPS:'5'}),{desktop:5,phone:5});
+ assert.deepEqual(deviceReps({PERF_REPS:'5',PERF_REPS_DESKTOP:'7',PERF_REPS_PHONE:'3'}),{desktop:7,phone:3});
+ assert.deepEqual(deviceReps({PERF_REPS_PHONE:'4'}),{desktop:7,phone:4});
+ for(const name of ['PERF_REPS','PERF_REPS_DESKTOP','PERF_REPS_PHONE']){
+  for(const value of ['','2','3.5','5oops','9007199254740992'])assert.throws(()=>deviceReps({[name]:value}),new RegExp(name));
+ }
  const sample=(flight,still=1,longTasks=0)=>({fly:{p95:flight},still:{p95:still},longTasks});
  const flat=[sample(4),sample(4),sample(4)];
  assert.equal(decide('desktop',flat,[sample(5),sample(90),sample(5)]).failed,false,'an isolated slow repetition must not set the verdict');
@@ -84,7 +99,7 @@ const FLIGHT=async()=>{
 
 
 async function main(){
- const reps=parseReps(process.env.PERF_REPS),started=performance.now();
+ const reps=deviceReps(process.env),started=performance.now();
  const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
  const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');
@@ -109,7 +124,7 @@ async function main(){
   const base='http://127.0.0.1:'+server.address().port;
   const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?process.env.BAG3D_CHROMIUM_ARGS.split(' ').filter(Boolean):process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu'];
   browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs});
-  console.log('Atlas perf: '+reps+' warm repetitions per configuration; one cold flight per page; serial, alternating 2D/3D order');
+  console.log('Atlas perf: desktop '+reps.desktop+' / phone '+reps.phone+' warm repetitions per configuration; one cold flight per page; serial, alternating 2D/3D order');
   for(const device of Object.keys(DEVICES)){
    const contexts=[],pages=new Map(),warm=new Map([[true,[]],[false,[]]]);
    try{
@@ -124,12 +139,12 @@ async function main(){
      const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:DEVICES[device].cpu});
      await record(device,flat,0,'cold',page);
     }
-    for(let rep=1;rep<=reps;rep++){
+    for(let rep=1;rep<=reps[device];rep++){
      for(const flat of rep%2?[false,true]:[true,false]){
       const page=pages.get(flat);await page.bringToFront();
       warm.get(flat).push(await record(device,flat,rep,'warm',page));
      }
-     console.log('measured - '+device+' repetition '+rep+'/'+reps);
+     console.log('measured - '+device+' repetition '+rep+'/'+reps[device]);
     }
     const verdict=decide(device,warm.get(true),warm.get(false));summary.push(...verdict.metrics);
     console.log((verdict.failed?'not ok':'ok')+' - '+device+': median warm 3D vs 2D');
