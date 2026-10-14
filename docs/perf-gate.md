@@ -1,6 +1,6 @@
 # Atlas 3D performance gate
 
-Freddy's October 14, 2026 rebuild. Started from clean main HEAD `ee74817920c600fb109b5ef70bdf194ac5e242f3` in a managed worktree; the original checkout's pre-existing Wrangler formatting edit is preserved. Test infrastructure only; no push, deployment, or remote Cloudflare commands. Parts 1–4 retain the pass-1 measurements and configuration as historical evidence. **Pass 2 below changes the current defaults to 7 desktop / 3 phone repetitions; its browser measurements are blocked and remain unmeasured.**
+Freddy's October 14, 2026 rebuild. Started from clean main HEAD `ee74817920c600fb109b5ef70bdf194ac5e242f3` in a managed worktree; the original checkout's pre-existing Wrangler formatting edit is preserved. Test infrastructure only; no push, deployment, or remote Cloudflare commands. Parts 1–4 retain the pass-1 measurements and configuration as historical evidence. **Pass 2 uses 7 desktop / 3 phone repetitions and passed 5/5 consecutive full gates on Freddy's quiet MacBook Air in his own Terminal, at 154.6–158.7 s per run. The +15% desktop mutation at seven reps remains UNMEASURED and is accepted as a documented follow-up; 15% desktop sensitivity is NOT claimed.**
 
 ## Part 1 — unchanged gate
 
@@ -191,13 +191,13 @@ The observed default gate stays below the ~2× target. Five warm repetitions are
 
 Start with the device and metric in the summary, then read `medianFailed` and `pairedFailed`. The independent limit is 2D's median p95 × 1.15 plus 1.5 ms desktop or 3 ms phone; long tasks use 2D's median +1. A positive paired median excess means the original comparison repeatedly went over its allowance even if independent medians look green. Match 2D/3D rows by device and rep to see those pairs. Rep 0 is cold diagnostics only; warm rows supply the verdict. Check max/longest values for spikes, the 241/120 sample counts, equal disc counts, and 3D `ready` / 2D `off`. Keep the full `outputs/atlas-3d/perf.json` and log when investigating. If other work is active, record that and repeat on a quiet machine without dropping the original red result; do not adjust margins from a single run.
 
-## Verification and local delivery
+## Pass-1 verification and local delivery (historical)
 
 Aggregation self-tests, syntax checking, and the seven related LOD tests passed. The final FLIGHT body matches the original after normalizing Windows line endings. Static review found no outstanding code issue. Full browser evidence is reported above, including both red stability runs and the +15% uncertainty; unrelated product browser suites were not rerun. Only `tests/atlas-3d-perf.mjs` and this document changed. `public/data.json`, other tests, product code, and the original checkout's Wrangler edit remain untouched. The mutation hook is absent and the worktree is clean after each scoped commit.
 
 Four local commits on `codex/atlas-perf-medians`: Part 1 characterization, Part 2 test rebuild, Part 3 mutation evidence, Part 4 this stability/runtime write-up. No push, deployment, or remote Cloudflare command. The recorded 3/5 stability result is not a successful quiet acceptance run; any further attempt follows Freddy's requested Claude Sonnet high, then Opus routing.
 
-## Pass 2 — desktop repetitions and quiet-machine preflight
+## Pass 2 — desktop repetitions and completed quiet-machine stability
 
 October 14, 2026, continued from pass-1 HEAD `4af2bc8` in the existing `/Users/freddy/Disc-Atlas` checkout on `codex/atlas-perf-medians`, as requested in the new Codex/Sol pass-2 instruction. No new branch or worktree was created. The checkout initially had an untracked `package-lock.json`; it is preserved byte-for-byte and excluded from commits. The four pass-1 commits are present locally.
 
@@ -213,13 +213,27 @@ All supplied values must be integers ≥3, including a supplied shared fallback 
 
 The JSON `reps` field now reports `{ "desktop": 7, "phone": 3 }` at defaults, rather than a shared number. The log header and progress denominators identify each device's count. Existing browser-free self-tests now cover defaults, shared fallback, device precedence, even counts, and invalid inputs for every variable. Aggregation self-tests and syntax validation pass; related LOD tests pass 7/7. No product code changed.
 
+### Fresh-clone setup
+
+`playwright` is now declared in `package.json` as a devDependency (`^1.64.1`) on this branch. Fresh clones can install the dependencies and Chromium, then run the suite:
+
+```sh
+npm install
+npx playwright install chromium
+npm run test:atlas:3d:perf
+```
+
+The standard setup resolves the declared local Playwright package and its installed Chromium; explicit `PLAYWRIGHT_MODULE` and `PLAYWRIGHT_EXECUTABLE_PATH` overrides are optional for custom runtimes. Run browser measurements in a Terminal session that permits Chromium to launch.
+
 ### Machine state checked before benchmarking
 
-**Quiet preflight: yes, based on local activity inspection plus Freddy's explicit confirmation; no completed benchmark window exists.** Only this local Codex chat was active in the app's chat listing; no subagents were launched. Freddy confirmed: “No; other agent work and heavy tasks are stopped.” Shell `ps` and `top` were denied by the sandbox, so Activity Monitor was used to inspect activity instead. Its sorted CPU view showed normal application/system activity and no active compiler/build among the visible busiest processes. A separate `node` search showed Node processes at 0.0–0.2% CPU. The final preflight Activity Monitor sample was 83.87% idle, 10.97% user, 5.15% system. These are spot observations during inspection, not sustained monitoring or proof of zero background activity. No unrelated application or process was stopped.
+**Quiet preflight: yes.** Freddy reports that the completed five-run stability window was on a quiet MacBook Air, with the full gate run consecutively in his own Terminal at the final defaults (7 desktop / 3 phone). This evidence was supplied by Freddy for the merge write-up; it was not collected by the sandboxed Codex runner.
 
-Pass-2 host: macOS 15.7.3 (24G419), arm64; Node 24.21.0; installed Playwright 1.64.1 and Chromium headless shell build 1248. The pass-1 write-up records Windows ANGLE D3D11, Playwright 1.62.1, Chromium 1243. Any future comparison with its 67.68 s original runtime must disclose this host/runtime difference. No dependencies or browsers were installed by this task.
+Before the initial sandboxed attempts, only this local Codex chat was active in the app's chat listing; no subagents were launched. Freddy confirmed: “No; other agent work and heavy tasks are stopped.” Shell `ps` and `top` were denied by the sandbox, so Activity Monitor was used to inspect activity instead. Its sorted CPU view showed normal application/system activity and no active compiler/build among the visible busiest processes. A separate `node` search showed Node processes at 0.0–0.2% CPU. The final preflight Activity Monitor sample was 83.87% idle, 10.97% user, 5.15% system. These were spot observations during the earlier inspection, not CPU measurements of Freddy's subsequent Terminal runs. No unrelated application or process was stopped by Codex.
 
-### Browser execution blocker and mutation restoration
+The inspected pass-2 host is a MacBook Air: macOS 15.7.3 (24G419), arm64; Node 24.21.0; installed Playwright 1.64.1 and Chromium headless shell build 1248. The pass-1 write-up records a PC with Windows ANGLE D3D11, Playwright 1.62.1, Chromium 1243. Runtime comparisons below therefore span different hosts/runtimes. No dependencies or browsers were installed by Codex during this task.
+
+### Initial sandbox execution blocker and mutation restoration
 
 The first startup attempt failed at `listen EPERM: operation not permitted 127.0.0.1`, before any frames. After the local-server network permission was granted, a second attempt started the server but Chromium terminated before creating a page:
 
@@ -229,7 +243,7 @@ bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.<pid>:
 Permission denied (1100)
 ```
 
-The current session cannot grant the unsandboxed process execution needed for this launch; its sandbox-approval category is disabled. Filesystem and network grants do not remove that macOS process restriction. **These are infrastructure failures, not red perf results.** Both reports have zero rows and an empty summary. The five-run stability sequence was therefore not started.
+The Codex session could not grant the unsandboxed process execution needed for this launch; its sandbox-approval category was disabled. Filesystem and network grants did not remove that macOS process restriction. **These were infrastructure failures, not red perf results.** Both reports have zero rows and an empty summary. The five-run stability sequence was not started inside Codex; Freddy subsequently completed it successfully in his own Terminal, as recorded below.
 
 The temporary desktop-only mutation runner would wrap the actual 3D `draw()` with proportional CPU work, measure underlying draw durations for calibration, run +15% once at seven desktop reps, then +40% once, and restore the exact pre-mutation test in `finally`. Startup was blocked before the injected draw code could execute. The test was restored byte-for-byte after each runner invocation; no mutation hook, draw wrapper, calibration field, desktop-only device loop, or mutation flag remains in the test. The committed decision function and FLIGHT body also match pass-1 HEAD exactly. Ignored startup logs and the clean source snapshot are under `outputs/perf-gate/pass2/`; the runner is retained locally under `work/perf-gate-pass2/`. Neither is committed.
 
@@ -238,18 +252,22 @@ The temporary desktop-only mutation runner would wrap the actual 3D `draw()` wit
 | +15% draw cost | none | Unmeasured; browser launch blocked |
 | +40% draw cost | none | Unmeasured; sequence stopped after the +15% launch failure |
 
-**Desktop floor remains the pass-1 observation: +15% escaped, +40% was caught with three repetitions under load.** No pass-2 sensitivity claim can be made at seven reps. Increasing repetitions reduces sampling noise but does not itself prove a 15% floor with the unchanged additive allowances. No additional sensitivity chase was performed.
+**Desktop floor, stated plainly:** +40% was caught at three reps on the PC. +15% escaped desktop at three reps and was caught on phone. At seven reps, the +15% desktop mutation is **UNMEASURED**, and Freddy accepts it as a documented follow-up. **The gate claims reliable ≥40% desktop sensitivity; 15% desktop sensitivity is NOT claimed.** The measured support for the desktop claim is the pass-1 PC +40% mutation at three reps; the quiet MacBook Air runs establish unchanged-code stability, not a new mutation result. Part 3 retains the loaded-phone causal caveat for the observed +15% phone failure. No additional sensitivity chase was performed, and all margins remain unchanged.
 
 ### Five consecutive full gate runs at final defaults
 
-| Run | Reps desktop / phone | Exit | Desktop medians | Phone medians | Total seconds |
-| --- | --- | --- | --- | --- | --- |
-| 1 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
-| 2 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
-| 3 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
-| 4 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
-| 5 | 7 / 3 | not started | unmeasured | unmeasured | unmeasured |
+**Freddy-reported result: 5/5 PASSES, quiet MacBook Air, preflight quiet: yes, Freddy's own Terminal.** Across the five runs, desktop 3D flight-p95 medians were 2.2–2.3 ms against limits approximately 3.2–3.5 ms; phone 3D flight-p95 medians were 3.9–4.2 ms against limits approximately 6.0–6.6 ms. Every repetition of every run had zero long tasks.
 
-**Stability: not yet measured (0 of 5 completed; quiet preflight yes).** This is neither 0/5 failures nor a repeated under-load 3/5. The last measured stability remains the historical pass-1 3/5 under load. Quiet-machine acceptance and desktop sensitivity at seven reps require a session that can launch the local Playwright Chromium process; repeat the quiet preflight when resuming.
+Exact attribution of timings and medians to individual runs was not captured in the supplied evidence. Each row therefore repeats the **five-run bounds**, not a separately measured range within that run. No exact per-run values, median wall-clock, 1× medians, 2D medians, paired excesses, or timestamps are reconstructed.
 
-**Final-default runtime: unmeasured.** The latest measured gate runtime is still pass 1's 116.339 s median at 3/3, or 1.72× the original 67.68 s median. That runtime must not be attributed to the new 7/3 default. Startup-failure times are not gate runtimes. No push, deploy, or remote Cloudflare command was run.
+| Run | Reps desktop / phone | Verdict | Desktop 3D flight-p95 median bounds / approximate limit bounds (ms) | Phone 3D flight-p95 median bounds / approximate limit bounds (ms) | Long tasks in every rep | Wall-clock bounds (s) |
+| --- | --- | --- | --- | --- | ---: | --- |
+| 1 | 7 / 3 | PASS | 2.2–2.3 / ~3.2–3.5 | 3.9–4.2 / ~6.0–6.6 | 0 | 154.6–158.7 |
+| 2 | 7 / 3 | PASS | 2.2–2.3 / ~3.2–3.5 | 3.9–4.2 / ~6.0–6.6 | 0 | 154.6–158.7 |
+| 3 | 7 / 3 | PASS | 2.2–2.3 / ~3.2–3.5 | 3.9–4.2 / ~6.0–6.6 | 0 | 154.6–158.7 |
+| 4 | 7 / 3 | PASS | 2.2–2.3 / ~3.2–3.5 | 3.9–4.2 / ~6.0–6.6 | 0 | 154.6–158.7 |
+| 5 | 7 / 3 | PASS | 2.2–2.3 / ~3.2–3.5 | 3.9–4.2 / ~6.0–6.6 | 0 | 154.6–158.7 |
+
+**Final-default runtime: 154.6–158.7 s per full run at 7/3.** This is approximately 2.28–2.34× the historical original PC median of 67.68 s; it exceeds the earlier ~2× runtime target and is a cross-host comparison, not a controlled same-machine before/after measurement. The previous 116.339 s median belongs to pass 1's 3/3 configuration under load. No exact pass-2 median is available from the supplied ranges. Startup-failure times are excluded.
+
+**Merge close-out:** quiet stability is 5/5; the seven-rep +15% desktop sensitivity check is accepted as an unmeasured follow-up. Playwright is declared for fresh-clone setup. Mutation code is absent, product code is unchanged, and the finalization adds only the requested dependency and evidence commits. The pre-existing untracked `package-lock.json` remains excluded. No push, deploy, or remote Cloudflare command was run.
