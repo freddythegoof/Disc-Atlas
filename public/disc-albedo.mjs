@@ -14,6 +14,8 @@
 // 3. Exposure: the plate's median is brought into a sane band; otherwise the photo's exposure stands.
 // 4. Glare: clipped, colourless pixels well above the light field are pulled halfway back toward the
 //    plate. A hard reflection can be reduced, not un-invented: there is no colour under a clipped pixel.
+// 5. Glare softening (an experiment behind SOFTEN_GLARE, docs/photo-glare-experiment.md): a hotspot with a
+//    soft halo, and only such a hotspot, is pulled further toward the plastic around it. See softenGlare.
 // Limits: a hard cast shadow (a phone or hand) is not smooth and stays; mixed light sources of different
 // colours are corrected only for their average.
 
@@ -25,6 +27,10 @@ const encode=v=>toSRGB[v<=0?0:v>=1?SRGB_STEPS:Math.round(v*SRGB_STEPS)];
 const luma=(r,g,b)=>.2126*r+.7152*g+.0722*b;
 const basis=(x,y)=>[1,x,y,x*x,x*y,y*y];
 const median=values=>{const s=Float64Array.from(values).sort();return s.length?s[s.length>>1]:0;};
+const smoothstep=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3-2*t);};
+// The glare experiment's kill switch. false: delightPixels writes exactly the bytes it wrote before the
+// experiment existed (the pass below never runs).
+export const SOFTEN_GLARE=true;
 
 // Weighted least squares for the six quadratic terms (normal equations, Gaussian elimination).
 function fitQuadratic(xs,ys,zs,ws){
@@ -50,7 +56,7 @@ const evaluate=(c,x,y)=>{const b=basis(x,y);let v=0;for(let i=0;i<6;i++)v+=c[i]*
  * Returns {color:'#rrggbb'|null, gradient, corrected} — gradient is the light field's brightest/darkest
  * ratio over the plate before correction (for tests and diagnostics).
  */
-export function delightPixels(data,size,{plate=.78}={}){
+export function delightPixels(data,size,{plate=.78,softenGlare:soften=SOFTEN_GLARE}={}){
  const step=Math.max(1,Math.floor(size/160)),xs=[],ys=[],zs=[],rgb=[];
  for(let j=step>>1;j<size;j+=step)for(let i=step>>1;i<size;i+=step){
   const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1;if(x*x+y*y>plate*plate)continue;
@@ -86,6 +92,7 @@ export function delightPixels(data,size,{plate=.78}={}){
  const my=median(plateY.length?plateY:[.2]),exposure=my>0?Math.min(1.8,Math.max(.6,Math.min(.6,Math.max(.08,my))/my)):1;
 
  // Apply to every visible pixel; alpha (the circular mask and any source transparency) is untouched.
+ const input=soften?data.slice():null;
  for(let j=0;j<size;j++)for(let i=0;i<size;i++){
   const k=(j*size+i)*4;if(!data[k+3])continue;
   const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1,g=gainAt(x,y)*exposure;
@@ -98,7 +105,111 @@ export function delightPixels(data,size,{plate=.78}={}){
   }
   data[k]=encode(r);data[k+1]=encode(gg);data[k+2]=encode(b);
  }
- return {color:plateColor(data,size,plate),gradient:Math.exp(hi-lo),corrected:true};
+ // The plate colour is measured before the experiment, so the disc's matched colour never depends on it.
+ const color=plateColor(data,size,plate);
+ const glare=soften?softenGlare(data,input,size,(x,y)=>Math.exp(evaluate(c,x,y))):null;
+ return {color,gradient:Math.exp(hi-lo),corrected:true,...glare&&{glare}};
+}
+
+// Glare softening, the experiment (docs/photo-glare-experiment.md). It runs after the baseline has written
+// every pixel and rewrites only pixels inside an accepted hotspot: every other byte stays exactly as the
+// baseline wrote it.
+// A hotspot is a connected patch of pixels well above the light field (q, luminance over the fitted light,
+// above Q0) that holds clipped, colourless glare (the baseline's own glare test) and has a soft halo.
+// Room-light glare fades out over several pixels; crisp white ink steps down to the plate within a pixel or
+// two. A patch whose near-neutral halo is narrower, on average around its clipped core, than `halo` pixels
+// reads as ink and is left alone, as is a glint too small to see.
+// Inside a hotspot glare is treated as light added on top of the plastic: each pixel gives up the excess it
+// carries, in the light's colour, over the plastic around it (`fill`, a pull-push interpolation of the
+// untouched pixels nearby), so a coloured stamp beside a hotspot keeps its colour, and only the excess above
+// the knee is taken. A clipped pixel has no colour of its own left and takes the fill's, under the knee's
+// ceiling of sheen. Nothing is ever brightened.
+// Glare up to KNEE times the plastic's own luminance passes untouched (the patch's edge, so it cannot show a
+// seam); above that it is compressed smoothly and monotonically toward KNEE+ROOM: a bright sheen, not a hole.
+const Q0=1.3,KNEE=.3,ROOM=.25;
+const compress=x=>x<=KNEE?x:KNEE+ROOM*(1-Math.exp(-(x-KNEE)/ROOM));
+function softenGlare(data,input,size,fieldAt){
+ const n=size*size,ratio=new Float32Array(n),kind=new Uint8Array(n); // kind 1: above the light, 2: clipped glare
+ const chroma=k=>{const r=toLinear[input[k]],g=toLinear[input[k+1]],b=toLinear[input[k+2]],peak=Math.max(r,g,b);return peak>0?(peak-Math.min(r,g,b))/peak:0;};
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){
+  const p=j*size+i,k=4*p;if(input[k+3]<250)continue;
+  const r0=toLinear[input[k]],g0=toLinear[input[k+1]],b0=toLinear[input[k+2]];
+  const q=luma(r0,g0,b0)/fieldAt((i+.5)/size*2-1,(j+.5)/size*2-1);ratio[p]=q;
+  if(q>Q0)kind[p]=Math.max(r0,g0,b0)>.95&&chroma(k)<.15&&q>1.6?2:1;
+ }
+ // Connected patches (8-neighbour), breadth first; `order` holds each patch's pixels contiguously.
+ const minCore=Math.max(3,Math.round(6*(size/1024)**2)),halo=Math.max(2,3*size/1024);
+ const patch=new Int32Array(n).fill(-1),order=new Int32Array(n),soft=[];let end=0,rejected=0;
+ for(let p0=0;p0<n;p0++){
+  if(!kind[p0]||patch[p0]>=0)continue;
+  const id=soft.length,start=end;patch[p0]=id;order[end++]=p0;let core=0,edge=0,neutral=0;
+  for(let at=start;at<end;at++){
+   const p=order[at],i=p%size,j=(p-i)/size;
+   if(kind[p]===2){core++;if(!i||!j||i===size-1||j===size-1||kind[p-1]!==2||kind[p+1]!==2||kind[p-size]!==2||kind[p+size]!==2)edge++;}
+   else if(chroma(4*p)<.4)neutral++;
+   for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){
+    const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;
+    const q=jj*size+ii;if(kind[q]&&patch[q]<0){patch[q]=id;order[end++]=q;}
+   }
+  }
+  const accepted=core>=minCore&&neutral>=halo*edge;if(core>=minCore&&!accepted)rejected++;
+  soft.push(accepted?[start,end]:null);
+ }
+ const spans=soft.filter(Boolean),stats={hotspots:spans.length,rejected,pixels:0};
+ if(!spans.length)return stats;
+ // The plastic around each hotspot: every opaque pixel at or below the light field's band, as the baseline
+ // wrote it, interpolated into the patches by pull-push.
+ const R=new Float32Array(n),G=new Float32Array(n),B=new Float32Array(n),W=new Float32Array(n);let sources=0;
+ for(let p=0;p<n;p++){const k=4*p;if(kind[p]||input[k+3]<250)continue;R[p]=toLinear[data[k]];G[p]=toLinear[data[k+1]];B[p]=toLinear[data[k+2]];W[p]=1;sources++;}
+ if(!sources)return stats;
+ pullPush(R,G,B,W,size);
+ // Clipped in the photo, or pushed to full scale by the baseline's own gain: either way that pixel's colour
+ // is no longer a measurement.
+ const peak=k=>Math.max(toLinear[input[k]],toLinear[input[k+1]],toLinear[input[k+2]],toLinear[data[k]],toLinear[data[k+1]],toLinear[data[k+2]]);
+ for(const [start,stop] of spans){
+  // The glare's own colour (the light's, after white balance), from the patch's strong unclipped pixels: the
+  // mean of what each carries over the fill. Neutral when there are none, or when the mean is too coloured
+  // to be light (a patch that is mostly ink).
+  const light=[0,0,0];
+  for(let at=start;at<stop;at++){const p=order[at],k=4*p;if(ratio[p]<1.6||peak(k)>=.8)continue;light[0]+=toLinear[data[k]]-R[p];light[1]+=toLinear[data[k+1]]-G[p];light[2]+=toLinear[data[k+2]]-B[p];}
+  const top=Math.max(...light),dir=top>0&&Math.min(...light)/top>.6?light.map(v=>v/top):[1,1,1];
+  for(let at=start;at<stop;at++){
+   const p=order[at],k=4*p,base=[toLinear[data[k]],toLinear[data[k+1]],toLinear[data[k+2]]],fill=[R[p],G[p],B[p]];
+   const plastic=Math.max(1e-4,luma(...fill)),unit=plastic/luma(...dir);
+   const glare=Math.max(0,Math.min(...base.map((v,c)=>(v-fill[c])/dir[c]))),kept=compress(glare/unit)*unit;
+   // A clipped pixel's measured glare is a floor (the sensor stopped counting): it keeps the knee's ceiling.
+   // Only when the light explains its brightness: bright yellow ink is near full scale too, but not glare.
+   const brighter=luma(...base)-plastic,explained=brighter>0?glare*luma(...dir)/brighter:0;
+   const clip=smoothstep(.8,.95,peak(k))*smoothstep(.3,.7,explained),ceiling=(KNEE+ROOM)*unit;
+   const target=base.map((v,c)=>{const unlit=v-(glare-kept)*dir[c];return unlit+(fill[c]+ceiling*dir[c]-unlit)*clip;});
+   if(luma(...target)>=luma(...base))continue;
+   const [r,g,b]=target.map(encode);
+   if(r!==data[k]||g!==data[k+1]||b!==data[k+2]){data[k]=r;data[k+1]=g;data[k+2]=b;stats.pixels++;}
+  }
+ }
+ return stats;
+}
+// Pull-push hole filling: average the known pixels (W 1) down a pyramid, then fill each unknown pixel from
+// the bilinear coarser level on the way back up, so a hole takes the colours of its own surroundings.
+function pullPush(R,G,B,W,size){
+ const levels=[{C:[R,G,B],W,n:size}];
+ while(levels.at(-1).n>1){
+  const {C,W:w,n}=levels.at(-1),m=Math.ceil(n/2),C2=[0,1,2].map(()=>new Float32Array(m*m)),W2=new Float32Array(m*m);
+  for(let j=0;j<m;j++)for(let i=0;i<m;i++){
+   const sum=[0,0,0];let sw=0;
+   for(let dj=0;dj<2;dj++)for(let di=0;di<2;di++){const ii=2*i+di,jj=2*j+dj;if(ii>=n||jj>=n)continue;const p=jj*n+ii;if(!w[p])continue;for(let c=0;c<3;c++)sum[c]+=C[c][p]*w[p];sw+=w[p];}
+   const q=j*m+i;if(sw)for(let c=0;c<3;c++)C2[c][q]=sum[c]/sw;W2[q]=Math.min(1,sw);
+  }
+  levels.push({C:C2,W:W2,n:m});
+ }
+ for(let l=levels.length-2;l>=0;l--){
+  const {C,W:w,n}=levels[l],{C:up,n:m}=levels[l+1];
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+   const p=j*n+i;if(w[p]>=1)continue;
+   const x=Math.min(m-1,Math.max(0,(i+.5)/2-.5)),y=Math.min(m-1,Math.max(0,(j+.5)/2-.5)),a=Math.floor(x),b=Math.floor(y),fx=x-a,fy=y-b,a1=Math.min(m-1,a+1),b1=Math.min(m-1,b+1);
+   for(let c=0;c<3;c++){const u=up[c],v=(u[b*m+a]*(1-fx)+u[b*m+a1]*fx)*(1-fy)+(u[b1*m+a]*(1-fx)+u[b1*m+a1]*fx)*fy;C[c][p]=w[p]*C[c][p]+(1-w[p])*v;}
+  }
+ }
 }
 
 // The plate's dominant colour: the most common colour (a coarse 3D histogram) over the flight plate,
