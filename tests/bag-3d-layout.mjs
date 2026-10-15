@@ -7,6 +7,14 @@ import models from '../source-data/bag-models.json' with {type:'json'};
 const disc=(id,color='#ed7868')=>({id,color});
 const filled=placements=>placements.filter(p=>!p.empty);
 
+test('bag layout uses the photo rim only while attached and explicit rim wins',()=>{
+ const item={id:'photo',color:'#cc7733',texture_key:'photo.webp',photo_rim_color:'#101418'};
+ const rim=value=>bagLayout({main:[{item:value}]}).placements.find(p=>!p.empty).rimColor;
+ assert.equal(rim(item),'#101418');
+ assert.equal(rim({...item,rim_color:'#abcdef'}),'#abcdef');
+ assert.equal(rim({...item,texture_key:null}),null);
+});
+
 test('every bag model fits its main and putter capacity in the 3D pockets', () => {
  for(const model of models.models){
   const main=(model.main_capacity ?? model.capacity)+(model.extra_capacity ?? 0),putter=model.putter_capacity ?? 0;

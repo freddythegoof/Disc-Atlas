@@ -1,5 +1,5 @@
 // Photos never leave the browser until reduced to a bounded, metadata-free circular WebP.
-import {delightPixels} from './disc-albedo.mjs';
+import {delightPixels,rimColor} from './disc-albedo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
@@ -118,7 +118,8 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
  const {color}=delightPixels(pixels.data,size);ctx.putImageData(pixels,0,0);
- return {canvas,color};
+ const photoRimColor=options.rimInner?rimColor(pixels.data,size,options.rimInner):null;
+ return {canvas,color,photoRimColor};
 }
 let canvasWebP,webpModule;
 const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
@@ -136,18 +137,20 @@ async function fallbackWebP(canvas,quality){
  // Only the already cropped, de-lit pixels reach the encoder. Never original bytes or metadata.
  return codec.encodeWebP(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),quality);
 }
-// Resolves to {blob, color}: the upload and the plate colour the disc should start with.
+// Resolves to {blob, color, photoRimColor}. Sample the rim once from the 1024px
+// processed pixels, retaining that value even if upload compression needs a smaller image.
 export async function preparePhoto(image,options={}){
- let native=await supportsCanvasWebP(),encoded=0,empty=0;
+ let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null;
  for(const size of [1024,768,512]){
-  const {canvas,color}=albedoCanvas(image,options,size);
+  const {canvas,color,photoRimColor:sample}=albedoCanvas(image,size===1024?options:{...options,rimInner:null},size);
+  if(size===1024)photoRimColor=sample;
   try{
    for(const quality of [.86,.72,.56,.4]){
     let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
     // A null result is an encode failure, not evidence that WebP is unsupported.
     if(blob&&blob.type!=='image/webp'){native=false;blob=await fallbackWebP(canvas,quality);}
     if(!blob){empty++;continue;}
-    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color};
+    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor};
    }
   }finally{canvas.width=canvas.height=0;}
  }
@@ -247,7 +250,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,url}.
  // draft: what the aligner is working on {bitmap,options}.
- let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,frameId=0,settle=0,gesture=null;
+ let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,frameId=0,settle=0,gesture=null;
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -302,8 +305,8 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent='Preparing your photo…';
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-   const {blob,color}=await preparePhoto(bitmap,options);if(id!==serial)return;
-   const previous=used;used={bitmap,options:{...options},blob,color,url:URL.createObjectURL(blob)};
+   const {blob,color,photoRimColor}=await preparePhoto(bitmap,{...options,rimInner});if(id!==serial)return;
+   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,url:URL.createObjectURL(blob)};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
@@ -361,10 +364,12 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  const reset=(item,mold)=>{
   closeSources();serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();
   current=photoURL(item);removed=false;changed=false;plate=plateRatio(mold);
+  rimInner=mold&&isOvermold({...mold,record:mold.name})?plate:null;
   q('.bag-photo-status').textContent='';renderSheet();
  };
  reset(null);
  return {reset,get changed(){return changed||busy;},
+  get photoRimColor(){return used?.photoRimColor??null;},
   async value(){if(busy)throw Error('Wait for the photo to finish.');return used?used.blob:null;},
   // For tests: the aligner and what it is working on.
   debug:{dialog,get draft(){return draft;},get used(){return used;}}};

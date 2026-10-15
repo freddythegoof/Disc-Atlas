@@ -33,6 +33,11 @@ export function isOvermold({overmold,manufacturer,record}={}){
 // rim_color) and a chosen rim always wins. Anything unreadable falls back to the default.
 export const DEFAULT_DISC_COLOR='#8a8f98';
 export const DEFAULT_RIM_COLOR='#0a0a0a';
+// Resolve saved intent before handing colors to any renderer. A removed photo
+// cannot keep an automatic rim alive; each renderer retains its own fallback.
+export function bagRimColor(item){
+ return item?.rim_color || (item?.texture_key?item.photo_rim_color:null) || null;
+}
 export function overmoldColors(base,{rim,plate}={}){
  const plateRgb=parseColor(plate)||parseColor(base)||parseColor(DEFAULT_DISC_COLOR);
  const rimRgb=parseColor(rim)||parseColor(DEFAULT_RIM_COLOR);

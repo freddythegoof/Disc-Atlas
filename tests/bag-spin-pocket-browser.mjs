@@ -39,7 +39,11 @@ try {
  const tools=page=>{
   const viewer=(fn,arg)=>page.locator('[data-bag-canvas]').evaluate((n,[source,value])=>new Function('v','arg',`return (${source})(v,arg)`)(n.bagViewer,value),[fn.toString(),arg]);
   const scene=page.locator('#bagScene'),detail=page.locator('#detail'),slot=id=>page.locator(`[data-physical-disc="${id}"]`),pocket=page.locator('[data-bag-pocket]');
-  const setTheme=theme=>page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);
+  const setTheme=async theme=>{
+   await page.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);
+   // The view-transition snapshot intercepts pointer taps until its cross-fade ends.
+   await page.waitForFunction(t=>document.documentElement.dataset.theme===t&&!document.documentElement.classList.contains('theme-switching'),theme);
+  };
   const settled=()=>page.waitForFunction(()=>{const s=document.querySelector('#bagScene'),v=s.querySelector('[data-bag-canvas]').bagViewer;return !v.stage.moving && !v.turning && v.puttersSettled && (s.dataset.staging===undefined || s.dataset.staging==='still') && s.dataset.putterPocket!=='moving' && !s.querySelector('[data-bag-canvas]').getAnimations().length;},null,{timeout:15000});
   const outIds=()=>viewer(v=>v.outDiscs);
   const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s.dataset.engine==='ready' && s.dataset.phase==='open';},null,{timeout:30000});await scene.scrollIntoViewIfNeeded();await page.mouse.move(2,2).catch(()=>{});await settled();};
