@@ -1,8 +1,8 @@
 # Glare experiment (A/B): baseline is the champion
 
-**Status: experiment, awaiting Freddy's eye.** Nothing here is "done" until Freddy has looked at the pairs below and said the experiment beats today's look. If he says no, the Part 1 commit is dropped and the baseline stands; that is a successful outcome.
+**Status: accepted.** Freddy judged the pairs below on October 15, 2026: the experiment beats today's look, so both commits stay. `SOFTEN_GLARE` remains the kill switch: `false` restores the old output byte for byte.
 
-Branch `codex/photo-glare-orientation`, base `main` at `5b50637`. Part 1 is the commit on top of the Part 2 commit, so dropping it removes nothing else (`git reset --hard HEAD~1` on this branch, before anything is pushed).
+Branch `codex/photo-glare-orientation`, base `main` at `5b50637`. Part 1 is the commit on top of the Part 2 commit, so it could be dropped without touching Part 2.
 
 ## What changed, and what did not
 
@@ -87,7 +87,6 @@ Automated checks:
 
 ## Freddy's decision
 
-- **Experiment wins:** keep both commits.
-- **Champion stays:** drop the Part 1 commit (or set `SOFTEN_GLARE=false`, which is byte-identical to today). Part 2 does not depend on it.
+**Experiment wins** (October 15, 2026): both commits stay. If real photos later show a problem, set `SOFTEN_GLARE=false` (byte-identical to the old output); Part 2 does not depend on it.
 
 Real photos are the true test. The synthetic cases above are built to be measurable, and the repo has only one real photo, which has no glare. The best check is one of Freddy's own glare photos through both settings.
