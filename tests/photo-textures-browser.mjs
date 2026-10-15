@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
+import {verifyPhotoDecode} from './photo-decode-browser.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const config='tests/auth.wrangler.jsonc',state='work/photo-textures/local',base='https://localhost:8822',dir='outputs/photo-textures';
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
@@ -25,7 +26,7 @@ try {
   const callback=new URL(u.searchParams.get('redirect_uri'));callback.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();
   await route.fulfill({contentType:'text/html',body:`<a href="${callback.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});
  });
- await page.goto(base+'/?bag=1');await page.locator('#myBagDemo').waitFor();await page.locator('#myBagSignIn').click();
+ await page.goto(base+'/?bag=1');await verifyPhotoDecode(page);await page.locator('#myBagDemo').waitFor();await page.locator('#myBagSignIn').click();
  const link=page.getByRole('link',{name:'Continue with Google',exact:true});await link.waitFor();
  const redirect=await page.request.get(base+await link.getAttribute('href'),{maxRedirects:0});
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();

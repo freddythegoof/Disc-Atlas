@@ -9,11 +9,85 @@ export function photoPoint(x,y,{width,height,scale=.94,aspect=1,perspective=0,an
  const r=Math.min(width,height)*scale/2,a=angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a),u=x*c+y*s,v=-x*s+y*c,k=1+perspective*v;
  return {x:cx*width+(u*c-v*aspect*s)*r/k,y:cy*height+(u*s+v*aspect*c)*r/k,inside:x*x+y*y<=1};
 }
+// Labels from phone pickers may be empty or wrong. Only recognized raster bytes get decoded.
+export function sniffPhotoFormat(bytes){
+ const text=(at,n)=>String.fromCharCode(...bytes.subarray(at,at+n));
+ if(bytes[0]===0xff&&bytes[1]===0xd8)return 'image/jpeg';
+ if(bytes.length>=8&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v))return 'image/png';
+ if(bytes.length>=12&&text(0,4)==='RIFF'&&text(8,4)==='WEBP')return 'image/webp';
+ // ISO BMFF ftyp: major brand, minor version (not a brand), compatible brands.
+ // Inspect bounded leading boxes as well as the usual ftyp at offset zero.
+ const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+ for(let at=0;at+8<=bytes.length;){
+  let size=view.getUint32(at),header=8;
+  if(size===1){if(at+16>bytes.length)return null;size=Number(view.getBigUint64(at+8));header=16;}
+  if(size===0)size=bytes.length-at;
+  if(size<header||size>bytes.length-at)return null;
+  if(text(at+4,4)==='ftyp'){
+   if(size<header+8||(size-header-8)%4)return null;
+   const brands=[text(at+header,4)];
+   for(let i=at+header+8;i<at+size;i+=4)brands.push(text(i,4));
+   if(brands.some(b=>b==='avif'||b==='avis'))return null;
+   return brands.some(b=>/^(heic|heix|hevc|hevx|heim|heis|hevm|hevs|mif1|msf1)$/.test(b))?'image/heic':null;
+  }
+  at+=size;
+ }
+ return null;
+}
+function checkPhotoSize(width,height){
+ if(width*height>60e6)throw new RangeError('Choose a photo smaller than 60 megapixels.');
+}
+async function canvasBitmap(canvas){
+ try{return await createImageBitmap(canvas);}catch{
+  // Some Safari versions decode in <img> but lack bitmap support. A canvas is also a
+  // drawable source; give it the same release contract used by the editor.
+  canvas.close=()=>{canvas.width=canvas.height=0;};return canvas;
+ }
+}
+async function elementBitmap(file){
+ const url=URL.createObjectURL(file),image=new Image();
+ try{
+  image.src=url;await image.decode();checkPhotoSize(image.naturalWidth,image.naturalHeight);
+  const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+  canvas.getContext('2d').drawImage(image,0,0);return await canvasBitmap(canvas);
+ }finally{image.removeAttribute('src');URL.revokeObjectURL(url);}
+}
+let heifModule;
+async function heicBitmap(file){
+ // No import, download or WASM initialization until both native HEIC paths fail.
+ const lib=await (heifModule||=import('./vendor/libheif/libheif-bundle-1.23.5.mjs')
+  .then(({default:factory})=>factory()).catch(error=>{heifModule=null;throw error;}));
+ const decoder=new lib.HeifDecoder();let images=[];
+ try{
+  images=decoder.decode(new Uint8Array(await file.arrayBuffer()));
+  const image=images.find(i=>i.is_primary())||images[0];
+  if(!image)throw Error('No HEIC image');
+  const width=image.get_width(),height=image.get_height();checkPhotoSize(width,height);
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(width,height);
+  const decoded=await new Promise((resolve,reject)=>image.display(pixels,data=>data?resolve(data):reject(Error('HEIC decode failed'))));
+  ctx.putImageData(decoded,0,0);return await canvasBitmap(canvas);
+ }finally{
+  for(const image of images)image.free();
+  if(decoder.decoder)lib.heif_context_free(decoder.decoder);
+ }
+}
 export async function decodePhoto(file){
- if(!file||file.size>30*1024*1024||!/^image\/(jpeg|png|webp|heic|heif)$/i.test(file.type))throw Error('Choose a JPG, PNG or WebP photo up to 30 MB.');
- let bitmap;try{bitmap=await createImageBitmap(file);}catch{throw Error('This photo could not open. Try a JPG, PNG or WebP.');}
- if(bitmap.width*bitmap.height>60e6){bitmap.close();throw Error('Choose a photo smaller than 60 megapixels.');}
- return bitmap;
+ if(!file||file.size>30*1024*1024)throw Error('Choose a JPG, PNG, WebP or HEIC photo up to 30 MB.');
+ const format=sniffPhotoFormat(new Uint8Array(await file.slice(0,4096).arrayBuffer()));
+ if(!format)throw Error('Choose a JPG, PNG, WebP or HEIC photo up to 30 MB.');
+ // MIME is only a hint; give native decoders the format the bytes actually contain.
+ const source=file.type===format?file:file.slice(0,file.size,format);
+ let bitmap;try{bitmap=await createImageBitmap(source);}catch{/* Try the native image element next. */}
+ if(bitmap){
+  try{checkPhotoSize(bitmap.width,bitmap.height);return bitmap;}catch(error){bitmap.close();throw error;}
+ }
+ try{return await elementBitmap(source);}catch(error){if(error instanceof RangeError)throw error;}
+ if(format==='image/heic'){
+  try{return await heicBitmap(source);}catch(error){if(error instanceof RangeError)throw error;}
+  throw Error('This HEIC photo could not open in this browser. Try Safari, or set Camera → Formats to Most Compatible and take a new photo.');
+ }
+ throw Error('This '+format.slice(6).toUpperCase()+' photo could not open. It may be damaged; choose another photo.');
 }
 // A 2048px working copy bounds memory and sampling cost even for large phone photos. Kept per decoded
 // photo (an ImageBitmap never changes), so the aligner's live preview does not re-read millions of pixels
