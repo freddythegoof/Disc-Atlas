@@ -16,26 +16,31 @@ try{
  for(const engine of ['chromium','webkit']){
   const browser=await playwright[engine].launch({headless:true});
   try{
-   for(const mode of ['png','native','null','transient-null','oversize','late-png']){
+   for(const mode of ['png','png-jpeg','png-heic','native','null','transient-null','oversize','late-png']){
     const page=await browser.newPage(),requests=[];page.on('request',r=>{if(/disc-webp|vendor\/webp/.test(r.url()))requests.push(r.url());});
     await page.goto(harness.base);
     const result=await page.evaluate(async mode=>{
      const {decodePhoto,preparePhoto,albedoCanvas}=await import('/disc-photo.mjs');
-     const image=await decodePhoto(await (await fetch('/fixtures/stamped-disc.webp')).blob());
+     let image=await decodePhoto(await (await fetch('/fixtures/'+(mode==='png-heic'?'disc-photo.heic':'stamped-disc.webp'))).blob());
+     // Exercise real JPEG bytes from the same photographic source, plus the metadata-bearing HEIC.
+     if(mode==='png-jpeg'){
+      const jpeg=document.createElement('canvas');jpeg.width=image.width;jpeg.height=image.height;jpeg.getContext('2d').drawImage(image,0,0);
+      const source=await new Promise(r=>jpeg.toBlob(r,'image/jpeg',.95));image.close();image=await decodePhoto(source);
+     }
      const native=HTMLCanvasElement.prototype.toBlob,steps=[];
      const {canvas}=albedoCanvas(image);const expected=await new Promise(r=>native.call(canvas,r,'image/webp',.86));
      HTMLCanvasElement.prototype.toBlob=function(callback,type,quality){
       steps.push([this.width,quality]);
       if(mode==='null'||mode==='transient-null'&&this.width===1024){callback(null);return;}
       if(mode==='oversize'&&this.width>1){callback(new Blob([new Uint8Array(600000)],{type:'image/webp'}));return;}
-      return native.call(this,callback,mode==='png'||mode==='late-png'&&this.width>1?'image/png':type,quality);
+      return native.call(this,callback,mode.startsWith('png')||mode==='late-png'&&this.width>1?'image/png':type,quality);
      };
      try{
       const {blob,color}=await preparePhoto(image),bitmap=await createImageBitmap(blob);
       const dimensions=[bitmap.width,bitmap.height];bitmap.close();
       const bytes=[...new Uint8Array(await blob.arrayBuffer())];
       // Repeated saves must reuse the support result and initialized fallback.
-      if(mode==='png')await preparePhoto(image);
+      if(mode.startsWith('png'))await preparePhoto(image);
       return {type:blob.type,bytes,color,dimensions,steps,nativeEqual:expected&&bytes.join(',')===[...new Uint8Array(await expected.arrayBuffer())].join(',')};
      }catch(e){return {error:e.message,steps};}
      finally{HTMLCanvasElement.prototype.toBlob=native;image.close();}
@@ -51,7 +56,7 @@ try{
      assert.deepEqual(result.dimensions,[mode==='transient-null'?768:1024,mode==='transient-null'?768:1024]);
      await validateUpload(result.bytes);
      if(mode==='native'){assert.equal(result.nativeEqual,true,'native bytes unchanged');assert.equal(requests.length,0);}
-     if(mode==='png'){assert.equal(requests.filter(u=>u.endsWith('.wasm')).length,1,'WASM fetched once');assert.equal(result.steps.filter(([s])=>s===1).length,1,'feature detected once');}
+     if(mode.startsWith('png')){assert.equal(requests.filter(u=>u.endsWith('.wasm')).length,1,'WASM fetched once');assert.equal(result.steps.filter(([s])=>s===1).length,1,'feature detected once');}
     }
     await page.close();
    }

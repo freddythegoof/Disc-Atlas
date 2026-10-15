@@ -25,6 +25,54 @@
   },
   {
     "engine": "chromium",
+    "mode": "png-jpeg",
+    "type": "image/webp",
+    "bytes": 88740,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "mode": "png-heic",
+    "type": "image/webp",
+    "bytes": 22990,
+    "color": "#dc7257",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "chromium",
     "mode": "native",
     "type": "image/webp",
     "bytes": 90764,
@@ -245,6 +293,54 @@
     "type": "image/webp",
     "bytes": 88778,
     "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "mode": "png-jpeg",
+    "type": "image/webp",
+    "bytes": 88740,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "mode": "png-heic",
+    "type": "image/webp",
+    "bytes": 22990,
+    "color": "#dc7257",
     "dimensions": [
       1024,
       1024

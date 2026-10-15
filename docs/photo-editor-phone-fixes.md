@@ -6,10 +6,10 @@ Baseline: clean managed worktree at `f31fd41` (PR #2); `sniffPhotoFormat` verifi
 
 Freddy's October 14 brief is the implementation specification. Execute inline, compression before gestures, one scoped commit per numbered part; no push, deploy, or remote Cloudflare commands.
 
-- [ ] Part 1: instrument the actual compression ladder with a real photo in Chromium and WebKit, including forced PNG/null boundaries. Save matrices and a standalone dev-only phone diagnostic under `tests/diagnostics/` (never `public/`). Record verdict before product edits.
-- [ ] Part 2: test the absent-WebP boundary RED, add a same-origin lazy pixel-only WASM encoder, retain `[1024,768,512]` / `[.86,.72,.56,.4]` order and 512 KiB cap, and verify GREEN with the Worker's unchanged structural validator and native-output equality.
-- [ ] Part 3: record pre-fix CDP touch streams; test pinch distance/midpoint anchoring, finger transitions, cancellation/capture loss, and desktop controls RED; implement persistent captured Pointer Events state and local Safari interference guards; verify GREEN.
-- [ ] Part 4: run photo/HEIC, bag, viewer and motion suites; run the atlas perf gate once; lint changed source; record payload sizes, evidence and limitations; independent code review.
+- [x] Part 1: instrument the actual compression ladder with a real photo in Chromium and WebKit, including forced PNG/null boundaries. Save matrices and a standalone dev-only phone diagnostic under `tests/diagnostics/` (never `public/`). Record verdict before product edits.
+- [x] Part 2: test the absent-WebP boundary RED, add a same-origin lazy pixel-only WASM encoder, retain `[1024,768,512]` / `[.86,.72,.56,.4]` order and 512 KiB cap, and verify GREEN with the Worker's unchanged structural validator and native-output equality.
+- [x] Part 3: record pre-fix CDP touch streams; test pinch distance/midpoint anchoring, finger transitions, cancellation/capture loss, and desktop controls RED; implement persistent captured Pointer Events state and local Safari interference guards; verify GREEN.
+- [x] Part 4: run photo/HEIC, bag, viewer and motion suites; run the atlas perf gate once; lint changed source; record payload sizes, evidence and limitations; independent code review.
 
 Review focus: null canvas results must be distinguished from unsupported WebP; failed lazy downloads must remain retryable; fingers landing/lifting must re-anchor with no change; non-default aspect/perspective must retain the crop point under the pinch midpoint; reset/close/confirm must clear captured pointers without changing an in-flight export.
 
@@ -80,3 +80,41 @@ The stage has `touch-action:none`; the dialog uses `touch-action:manipulation` a
 `node tests/photo-gestures-browser.mjs` passes ten sequences with **1e-5 tolerance**: drag, pinch in/out with off-center midpoint, mid-drag landing/lift, full cancellation, partial cancellation, lost capture, tilt/aspect/perspective anchoring, both zoom bounds, mouse/wheel/keyboard/sliders after touch, and reset during capture. Capture is asserted for every down; viewport scale and page scroll stay unchanged. Controls test waits for the dialog close event before reopening, matching the editor's asynchronous lifecycle.
 
 `node tests/photo-editor-contract-browser.mjs` compares baseline and final processing in Chromium and WebKit for default, pinched and corrected transforms: **exact RGBA/color/WebP equality** for all three. It also verifies computed touch-action/overflow, effective `preventDefault` for legacy gesture/touch/double-click events and uncancelled native control taps. The dialog guard assertion was observed RED (`auto` instead of `manipulation`) then GREEN. These synthetic legacy events prove listener registration/cancellation, not physical Safari behavior. Guides and crop math are unchanged.
+
+## Part 4 — final verification
+
+Repeat the new regression suites with `npm run test:photo-phone`. It runs compression in both engines, captured CDP touch sequences, and processing/guard parity in both engines. All pass. No test threshold or assertion was weakened. The initial touch harness named the wrong contact in a CDP partial lift; corrected the injection, re-recorded the historical stream, then ran the exact same sequences on the fixed code. The harness also waits for the asynchronous close lifecycle before immediately selecting a new file.
+
+| Existing suite | Result |
+| --- | --- |
+| Photo textures/math/albedo/races, bag/values/3D-layout/demo/collection-layout, disc3d shape/molds/overmold/profile (`node --test` for those 13 files) | **110/110 pass**, zero skipped |
+| `node tests/photo-textures-browser.mjs` (includes `photo-decode-browser.mjs`) | PASS; local D1/R2, real HEIC decode/editor/save/reload/replace and privacy assertions |
+| `node tests/bag-browser.mjs` | PASS; add/edit/remove, auth, focus, themes, desktop/mobile |
+| `node tests/disc3d-browser.mjs` | PASS; viewer, models, clay, phone, no page errors |
+| `node tests/disc3d-popout-browser.mjs` | PASS; popout/rim touch, phone orientations, motion/reduced motion, no page errors |
+| `node tests/motion.mjs` | PASS; marker identity/focus, panels, catalog, search, reduced motion/mobile |
+| `node tests/photo-texture-perf-browser.mjs` | PASS; photo texture/frame tests, phone viewport at 4× CPU |
+| ESLint on both changed product modules and all five new `.mjs` harness/test files | **0 errors, 0 warnings** |
+
+Atlas perf gate: **RED**, recorded once with unchanged defaults and thresholds (`node tests/atlas-3d-perf.mjs`, 7 desktop / 3 phone warm repetitions, 178.55 seconds). Desktop passes all metrics. Phone flight p95 (24.6 ms vs 27.61 ms limit) and 1× p95 (4.2 ms vs 6.795 ms limit) pass. Phone median long tasks fail: **19 vs limit 17** (2D median 16); paired median excess is 0, which passes the paired check, but the independent median check is red. No rerun, threshold adjustment or atlas change was made to chase this load-sensitive gate. [Full cold/warm repetitions and verdict](photo-phone-evidence/atlas-perf.json).
+
+Saved exit statuses: [verification.json](photo-phone-evidence/verification.json). Full local logs remain in `work/verify-*.log`. Full-repo ESLint was also run separately: **40 pre-existing errors**, all in unchanged `public/bag3d/vendor/three/{addons/loaders/GLTFLoader.js,three.core.min.js,three.module.min.js}` (17/19/4 respectively). Existing warnings remain in unchanged files. No lint exclusions or Three.js files were changed; the repo's existing exclusion for unmodified `public/vendor/**` applies to the new upstream encoder.
+
+The actual public build was exercised by the local suites. `dist/workers-public/tests/diagnostics/photo-encode.html` is absent. Workers, upload format/cap/validation, delight/color and crop/guide drawing functions are unchanged. The pre-existing original-checkout Wrangler formatting diff is still untouched.
+
+The compression suite additionally exercises real JPEG bytes derived from the photographed disc and the metadata-bearing HEIC fixture through forced missing canvas WebP support, real local encoding, and the unchanged Worker validator. Both engines pass: JPEG produces **88,740 bytes**, HEIC **22,990 bytes**, both at **1024 × 1024**. These cover decoder/encoder composition as well as the isolated encode boundary.
+
+Independent read-only review of `f31fd41..9be40a8`: **no actionable correctness or regression findings**. Reviewer checked lifecycle, null/probe semantics, lazy-load retry/reload behavior, midpoint math, input compatibility and all three vendor hashes; it did not overlap GPU/perf runs.
+
+Browser setup note: Playwright's initial WebKit install garbage-collected the previously cached Chromium 153 revision 1243. That exact Chromium/headless-shell cache was restored using Playwright 1.63.0 with browser cleanup disabled. The recorded harness results use the bundled Playwright with Chromium 151.0.7922.34 and WebKit 26.5. No application dependencies/lockfile were installed or modified; temporary browser tools live under ignored `work/`.
+
+Freddy owns deployment and physical iPhone checks. Neither emulated engines, CDP touch injection nor synthetic legacy events establish real-device success. In particular, the actual cause of his compression error remains for the phone diagnostic to distinguish.
+
+```text
+Freddy's phone checks after deploy (his, not yours)
+Library HEIC photo → aligns → pinch-zooms and centers under his fingers →
+   Use photo → Save → reopen the disc: photo present, correct.
+Fresh rear-camera HEIC photo → same flow.
+A library JPEG → same flow (the Bug A repro case).
+Pinch mid-drag finger lift: no jump. Sliders still work after touching.
+```
