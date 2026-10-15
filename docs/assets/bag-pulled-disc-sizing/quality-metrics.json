@@ -1,0 +1,103 @@
+{
+  "uprightBefore": -4.569173315842022,
+  "one": {
+    "look": "detail",
+    "material": "MeshPhysicalMaterial",
+    "photo": {
+      "size": 1024,
+      "relief": true
+    },
+    "segments": 80,
+    "shown": 409.53705856299666,
+    "pixelRatio": 2,
+    "dpr": 2,
+    "disc": {
+      "left": 989.8238356283746,
+      "top": 350.51272071850144,
+      "width": 409.53705856299666,
+      "height": 409.53705856299655
+    },
+    "rendered": 819.0741171259933,
+    "displayed": 819.0741171259933
+  },
+  "uprightAfter": [
+    -0.004306900505980593,
+    -0.004306900505980593,
+    -0.004306900505980593,
+    -0.004306900505980593
+  ],
+  "drift": 0,
+  "two": {
+    "look": "detail",
+    "material": "MeshPhysicalMaterial",
+    "photo": {
+      "size": 1024,
+      "relief": true
+    },
+    "segments": 80,
+    "shown": 409.53705856299666,
+    "pixelRatio": 2,
+    "dpr": 2,
+    "disc": {
+      "left": 35.99999999999886,
+      "top": 350.51272071850167,
+      "width": 409.53705856299666,
+      "height": 409.53705856299666
+    },
+    "rendered": 819.0741171259933,
+    "displayed": 819.0741171259933
+  },
+  "viewer": {
+    "pixelRatio": 2,
+    "photo": {
+      "size": 1024,
+      "relief": true
+    },
+    "disc": {
+      "left": 514.8630390043598,
+      "top": 263.8303938803691,
+      "width": 410.2739219912803,
+      "height": 410.0540644506294
+    }
+  },
+  "six": {
+    "look": "detail",
+    "material": "MeshPhysicalMaterial",
+    "photo": {
+      "size": 512,
+      "relief": true
+    },
+    "segments": 80,
+    "shown": 205.91662691044087,
+    "pixelRatio": 2,
+    "dpr": 2,
+    "disc": {
+      "left": 211.1135712211975,
+      "top": 452.32293654477945,
+      "width": 205.91662691044087,
+      "height": 205.9166269104408
+    },
+    "rendered": 411.83325382088174,
+    "displayed": 411.83325382088174
+  },
+  "all": {
+    "look": "bag",
+    "material": "MeshStandardMaterial",
+    "photo": {
+      "size": 256,
+      "relief": false
+    },
+    "segments": 40,
+    "shown": 124.4481782368284,
+    "pixelRatio": 1.4242182297397126,
+    "dpr": 2,
+    "disc": {
+      "left": 47.68350498099472,
+      "top": 772.3904942149196,
+      "width": 124.44817823682851,
+      "height": 124.44817823682843
+    },
+    "rendered": 177.24136410278814,
+    "displayed": 248.89635647365702
+  }
+}

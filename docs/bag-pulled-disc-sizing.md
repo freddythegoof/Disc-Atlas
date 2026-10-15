@@ -1,238 +1,293 @@
-# My Bag: desktop pulled-disc sizing
+# My Bag: pulled discs — sizing, quality, upright
 
-October 15, 2026. Local branch `codex/bag-pulled-disc-sizing`, based on freshly
-fetched `origin/main` at `522df14`. No push or deploy; changes remain uncommitted.
+October 15, 2026. Branch `codex/bag-pulled-disc-sizing`, based on `main` at `522df14`.
+Codex Sol built the desktop sizing (`c5d6d7e`); Claude Opus took the branch over,
+reviewed it, fixed its floor, and added the quality and upright work in the commits
+after it. Nothing is pushed, merged or deployed: Freddy reviews the screenshots first.
 
-Freddy approved adjusting pulled-disc positions where needed, then narrowed this
-iteration to **desktop**. Phone sizing and layout stay on the existing path.
-The original marked-up screenshot was described but not attached; the reference
-composition below recreates Premier DD3 + Destroyer with demo colors.
+## For Freddy, in short
 
-## Current layout findings
+- **Sizing** (Sol's design, kept): 1–2 discs out ≈ 410 px, shrinking smoothly as more
+  come out. **Changed:** a whole bag out now lands on **124.45 px, the size pulled
+  discs had before** (Sol landed it on 85.83 px, which made 11–18 out *smaller* than
+  before). At 1440 × 1000 no count is smaller than it used to be.
+- **Quality:** a large pulled disc is now drawn the 3D viewer's way: the viewer's
+  1024 px photo with its relief, the viewer's finer disc shape and plastic, rendered
+  at full screen resolution. Before, it was a 256 px photo stretched to 816 screen
+  pixels from a 581 px render. [Side by side below](#quality-pulled-vs-the-3d-viewer).
+- **Look:** large pulled discs now wear the viewer's premium plastic, so beside the bag's matte discs they read glossier and a touch lighter, as they do in the viewer. A whole bag out keeps the bag's matte look.
+- **Upright:** stamps now stand straight: **−4.6° → 0.00°**. Two causes, both fixed:
+  the turn that faces the disc to the camera also rolled it, and the bag's idle float
+  rocked and bobbed the pulled discs with it.
+- **Phone:** unchanged, by recommendation (the literal rule would make phone discs
+  *smaller*). Your call; options [below](#phone-a-decision-for-freddy).
+
+## Review of Sol's sizing
+
+Verdict: **the design is sound and the code is careful; one real defect (the floor),
+plus two smaller findings.** Re-run, not assumed:
+
+| Check | Result |
+| --- | --- |
+| Curve monotonic, endpoints pinned | ✔ Unit tests (8/8 in `tests/bag-pulled-sizing.mjs`) and measured: every count 1–18 below, at two desktop sizes. One→two out is an intentional plateau (one disc per side). |
+| Labels follow during the 300 ms glide | ✔ Browser suite samples every frame; glide reaches its size in ≈298 ms. |
+| No overlap: discs, names, bag, edges | ✔ 0 overlaps at all 18 counts, at 1440 × 1000 and 1280 × 900 (own sweep, rest boxes). But see the float bob below: the drawn disc could drift 8 px off its rest box. Fixed. |
+| **Floor = size before the change** | ✘ **Fixed.** See next section. |
+| Phone | Left unchanged without a recommendation. Now written up. |
+| Legacy `bag-interactions` failure | Pre-existing on `main`; left alone (evidence kept, see Verification). |
+
+Smaller findings:
+
+1. **Measured diameters were 0.3% low.** The rectangles Sol measured (and this doc's
+   old tables) sample the rim at 24 points; with the disc rolled ~4.6° (the upright bug)
+   the samples miss the circle's extremes. Sol's 124.05 / 85.55 px are really
+   **124.45 / 85.83 px** drawn. All numbers here are measured upright.
+2. **The doubled Destroyer** in Sol's all-out screenshot is not a second disc. After
+   details close with Escape, focus returns to the Destroyer's hit target, which draws
+   a green focus ring at the disc's rest position; the bag's idle float had bobbed the
+   disc itself 8 px up from there, so its red edge peeked out above the ring. Pulled
+   discs now hold still (Upright, below), so disc, ring and name line up.
+3. Sol's commit swept in an unrelated reformat of `wrangler.public.jsonc` (same JSON,
+   tabs instead of spaces). Restored to `main`'s file in its own commit.
+
+### The floor
+
+Freddy's rule: all-out ends at the size discs had before this change, never smaller.
+The original planner drew every pulled disc at **124.45 px** (1440 × 1000) until the
+bag got crowded, then shrank them: 111.57 px at 14–16 out and 85.83 px at 17–18.
+Sol took that crowded all-out size as the floor, so counts 11–18 ended up smaller
+than they used to be. Sol's own side-zone packer fits all 18 at 124.45 px with no
+overlap and no camera pull-back, so the old shrinking was the old planner's limit,
+not the screen's.
+
+The floor is now the original planner's **uncrowded** size. Where the page camera
+cannot pack every count at that size, the floor is the largest size that does,
+never below the original all-out size. Every disc of the 18-disc demo, by count
+(measured, upright, px):
+
+| Out | Before (original) | Sol | Now | | Before, 1280 × 900 | Now, 1280 × 900 |
+| ---: | ---: | ---: | ---: | --- | ---: | ---: |
+| 1–2 | 124.45 | 409.54 | 409.54 | | 109.81 | 359.00 |
+| 3 | 124.45 | 267.32 / 409.54 | 283.83 / 409.54 | | 109.81 | 243.72 / 359.00 |
+| 4 | 124.45 | 267.32 | 283.83 | | 109.81 | 243.72 |
+| 5 | 98.70 | 204.31 / 267.32 | 228.33 / 283.83 | | 87.09 | 192.65 / 243.72 |
+| 6 | 124.45 | 204.31 | 228.33 | | 109.81 | 192.65 |
+| 8 | 124.45 | 166.75 | 195.33 | | 109.81 | 162.20 |
+| 10 | 124.45 | 141.12 | 172.84 | | 109.81 | 141.42 |
+| 12 | 124.45 | **122.20** | 156.26 | | 109.81 | 126.09 |
+| 14 | 111.57 | **107.50** | 143.39 | | 98.45 | 114.17 |
+| 16 | 111.57 | **95.64** | 133.03 | | 87.09 | 104.56 |
+| 18 (all) | 85.83 | 85.83 | **124.45** | | 75.73 | **96.60** |
+
+Odd counts list both sides (the side with fewer discs is larger). Bold: Sol below the
+original. 0 overlaps and no camera pull-back in every row of both sizes.
+
+**1280 × 900 constraint, in numbers:** nine discs plus names per side do not pack at
+the uncrowded 109.81 px in the side zones at the page camera; the largest that does
+is **96.60 px** (the planner's own packing, binary-searched). Holding 109.81 would
+mean pulling the camera back and shrinking the bag at full count, which neither
+planner does for this; so 1280 lands at 96.60, still 28% larger than its original
+75.73 px all-out, and every count stays larger than before. The 32-disc test bag
+likewise lands at 88.67 px, above its original 65.58 px floor.
+
+(The original planner's 5-out dip to 98.70 px is its own quirk, reproduced on its code.)
+
+### Phone: a decision for Freddy
+
+Sol kept phone on the original path. The original ask was the same rule on phone,
+with the maximum bounded by the narrower side zone. Measured at 390 px wide (canvas
+374 × 468): the bag spans x = 67–304 px, leaving **~31 px (left) and ~34 px (right)**
+of side zone after the 12 px edge and 24 px bag clearance. Today a single pulled
+phone disc is **41.4 px**, placed above the bag, not beside it. Bounded by the side
+zones, the "large" tier would be ~31 px: **smaller than today**, so the literal rule
+would make phone worse. Options:
+
+1. **Keep phone as is** (current state; recommended until you pick 2).
+2. **Grow within the phone's existing above/below zones:** at today's phone camera
+   the bag's top is at y = 115 px, so one or two discs above it could reach roughly
+   50–80 px (name below or beside; today 41 px), shrinking to today's 27–41 px as more
+   come out. Larger needs the camera pulled back (a smaller bag). This breaks "beside
+   the bag" on phone and is an estimate, not built, which is why it needs your call.
+3. Shrink the phone bag to make side room. Not recommended: the bag is the page.
+
+## Quality: pulled vs the 3D viewer
+
+Diagnosis, measured on a 2× (Retina) display at 1440 × 1000, the same photo disc
+(Buzzz with the Plan 22 stamped-disc fixture) pulled at the max tier vs the viewer's
+pop-out from the top at the same on-screen size:
+
+| | Pulled, before | Pulled, now | 3D viewer |
+| --- | --- | --- | --- |
+| Photo texture | **256 px** (bag thumbnail tier), no relief | **1024 px + relief** | 1024 px + relief |
+| Canvas pixel ratio | **1.42** (bag's 2.4 M-pixel cap) | **2** | 2 |
+| Disc rendered / shown (device px) | **581 / 816** (upscaled 1.4×) | 819 / 819 | 819 / 819 |
+| Lathe | 40 steps, half profile detail | 80 steps, full detail | 80 (panel) / 128 (pop-out) |
+| Material | bag GLB disc: matte standard, no clearcoat | viewer's premium plastic (physical, clearcoat) | premium plastic |
+| Room light on the plastic | 0.55 × exposure 0.75 | matched to the viewer's 0.85 | 0.85 |
+
+Three things stacked up: the texture tier (4× too few pixels), the canvas budget
+(rendered at 71% of display size, then stretched), and the cheaper bag-interior
+material. All three are closed for large pulled discs.
+
+**What changed** (no second quality implementation):
+
+- `public/disc3d/quality.mjs` (new) holds the viewer's quality settings: lathe steps
+  (80, or 56 on touch), profile detail, the 2× pixel-ratio cap, room-light strength,
+  and Plan 22's photo tiers. The 3D viewer now reads its numbers from there (same
+  values; its rendering is unchanged, `test:disc3d` passes). The pulled disc reads
+  the same ones, so the two cannot drift apart.
+- A pulled disc **larger than the old pulled size (> 128 px)** is drawn the viewer's
+  way: the viewer's lathe, the viewer's default premium plastic lit as strongly as the
+  viewer lights it, and `photoSurface` called exactly as the viewer calls it (relief
+  on; the viewer's default 1024 size for a large disc). While any such disc is out, the
+  bag canvas draws at the viewer's pixel ratio.
+- **Quality scales with size.** Over 256 px (the max tiers): the viewer's own 1024
+  photo on any display. 129–256 px: the smallest tier that covers its device pixels
+  (e.g. 6 of 12 out at 206 px on a 2× display: 512). At or below the old size (a whole
+  bag out): the bag's own lighter path, unchanged, and the canvas returns to its pixel
+  budget. A photo only trades up while its disc is out, keeps showing the old photo
+  until the new one is decoded, and shares the viewer's texture cache (opening details
+  for that disc reuses the decoded photo). Discs change back once they have shrunk
+  (after the size glide) or are home in their pocket. Software (low-quality) rendering
+  is untouched.
+- Cost: with a large disc out on a 2× display, the bag canvas draws 2784 × 1700
+  (4.7 M px) instead of 1982 × 1210 (2.4 M px). It returns to the budget when the large
+  discs go. Frame time at 4.7 M px was not measured on your hardware.
+- **First pull stall, found and fixed.** The two new shader programs (premium plate;
+  photo with relief) compiled on first use cost two ~150–180 ms main-thread tasks on
+  the first large pull (Sol's code: none). On a desktop page the bag now compiles them
+  in the background 1.5 s after it loads (`compileAsync`). Measured three times since:
+  no long task on the first pull, the second, or while idle.
+
+| Pulled, before | Pulled, now | 3D viewer, same size |
+| --- | --- | --- |
+| ![before](assets/bag-pulled-disc-sizing/quality-pulled-before.png) | ![now](assets/bag-pulled-disc-sizing/quality-pulled-after.png) | ![viewer](assets/bag-pulled-disc-sizing/quality-viewer.png) |
+
+**Remaining gap, deliberately not closed:** lighting direction. The viewer lights the
+disc with its own studio lights from above; the pulled disc stands in the bag's scene
+and is lit by the bag's lights. So the relief ink reads silvery in the viewer and
+navy beside the bag, and highlights fall differently. Matching that would mean a
+second light rig or render pass for pulled discs; ask if you want it. A pulled disc
+off to the side also shows a sliver of its rim wall: its face is kept exactly
+parallel to the screen (so the stamp is never keystoned), and in perspective that
+shows a little of the side, like a coin seen off-centre.
+
+## Upright: diagnosis and fix
+
+Fixture: a generated disc photo whose only stamp is one vertical bar with a blue dot
+above it, uploaded through the real photo pipeline. Its orientation is known, so the
+rendered bar's angle *is* the presentation's roll (measured from the pixels: principal
+axis of the bar, + = clockwise). In the 3D viewer it reads **0.000°**.
+
+Pulled out of the bag (before): **−4.0° to −5.1°**, depending on the moment. Two
+presentation causes, no texture cause:
+
+1. **Facing roll, −4.6°.** A pulled disc is turned to face the camera with the
+   shortest turn from its face axis to the view axis. Because the page camera looks
+   from above and to one side, that shortest turn also rolls the disc about its face.
+   Fixed with `uprightFacing`: the face still lies exactly parallel to the screen, and
+   the disc's up is now the screen's up. This is **the identical hunk** already on
+   `codex/photo-glare-orientation` (applied verbatim), so the two branches merge
+   cleanly.
+2. **The idle float, ±0.57° and ±8 px.** The bag gently bobs and rocks, and pulled
+   discs, being in the same group, bobbed and rocked with it, while their names, hit
+   targets and focus rings stay at rest. A pulled disc now holds still against the
+   float (it fades in with the travel out). This also removes the "doubled Destroyer".
+
+After: **−0.004°** at four moments across the float cycle; the drawn stamp moves
+0.00 device px between them.
+
+| Before (old facing) | Now |
+| --- | --- |
+| ![before](assets/bag-pulled-disc-sizing/upright-before.png) | ![now](assets/bag-pulled-disc-sizing/upright-after.png) |
+
+**Separate from this fix:** a photo that was shot or aligned crooked has its tilt in
+the texture itself. This branch does not re-level textures; that is the "Level stamp"
+work on `codex/photo-glare-orientation` (built, not landed). With both, a level stamp
+reads level in the bag, the panel and the pop-out.
+
+Scope: My Bag's pulled discs only (desktop and phone, since both are My Bag's pulled
+view). The atlas, Storage racks, the bag interior and the 3D viewer's own poses are
+untouched.
+
+## Sizing screenshots (desktop, 1440 × 1000, 18-disc demo)
+
+| One out | Two out (max tier) |
+| --- | --- |
+| ![One out](assets/bag-pulled-disc-sizing/desktop-1.png) | ![Two out](assets/bag-pulled-disc-sizing/desktop-2.png) |
+
+| Six out | All 18 out (124.45 px, the size before) |
+| --- | --- |
+| ![Six out](assets/bag-pulled-disc-sizing/desktop-6.png) | ![All out](assets/bag-pulled-disc-sizing/desktop-all.png) |
+
+Phone, unchanged: ![Phone](assets/bag-pulled-disc-sizing/phone-unchanged.png)
+
+Pre-change evidence (Sol's captures of the original planner):
+[18 out](assets/bag-pulled-disc-sizing/baseline-1440-18.png),
+[6 out](assets/bag-pulled-disc-sizing/baseline-1440-6.png),
+[reference pair](assets/bag-pulled-disc-sizing/reference-1440-2.png),
+[phone, one out](assets/bag-pulled-disc-sizing/baseline-390-1.json),
+[phone, all out](assets/bag-pulled-disc-sizing/baseline-390-18.json).
+
+## How the sizing works (Sol's design)
 
 `public/bag-scene.js` gathers the pulled IDs, Atlas stability/speed, and measured
-HTML labels. `public/bag3d/viewer.mjs` projects the viewport and bag silhouette
-into the disc plane and calls `scatterFrame()` in `public/bag3d/bag-layout.mjs`.
-That original planner remains intact.
+HTML labels. Only `BagScene.stageOut()` at viewport widths above 700 px enables
+`desktopSizing`; phone and every other caller keep the original planner.
+`assignSides()` ranks the pulled set by stability: the less overstable half left,
+the more overstable half right; faster discs higher on each side. A pixel-space
+planner in `public/bag3d/pulled-sizing.mjs` packs complete disc + name footprints
+beside the bag and the viewer projects their centres back onto the disc plane.
 
-`assignSides()` ranks the currently pulled set by stability: the less-overstable
-half goes left, the more-overstable half right. An odd median joins its closer
-neighbor, choosing right on a tie. A lone disc rests right. Equal stability ranks
-resolve by disc ID. Faster discs tend higher on each side. The original scatter
-is deterministic by ID; changing the pulled set already changes positions and
-can change side assignment. Phone layouts can extend above/below the bag, use
-staggered rows, and pull the camera back.
-
-**Today's original size was not constant across counts.** The planner tries
-scales `.58`, `.52`, `.46`, `.40`, largest first. Camera pullback further changes
-their pixel diameters. In the 18-disc demo at 1440 × 1000, the original 1/2/6-out
-diameter was 124.05 px, and the all-out diameter was 85.55 px.
-
-## Desktop implementation and scope
-
-Only `BagScene.stageOut()` at viewport widths above 700 px enables the new
-`desktopSizing` option. Other users of the bag viewer receive the original
-behavior. Atlas, Storage, the individual 3D viewer/pop-out, and the bag's interior
-placements do not opt in.
-
-The desktop path retains side assignment and orders each side by speed,
-stability, then ID. It measures every physical bag disc's name so its largest
-label is included in planning, excluding Storage and empty slots. A pixel-space
-planner in `public/bag3d/pulled-sizing.mjs` places the enlarged footprints beside
-the bag, alternating their horizontal lean when several occupy one column.
-Dense sides can use more than one column. Centers are projected back onto the
-same 3D plane. The original meshes, stamps, colors, photo surfaces, clay,
-materials, pocket geometry, and pull/return paths are reused.
-
-At full count, the original all-out **diameter** is retained. Centers use the new
-side zones so even larger bags stay outside the inner boundary. The floor calculation
-uses the original planner with the complete bag, every measured label, and
-original projected-fit checks. The cached result includes the bag silhouette,
-viewport, and label/flight data, so changed geometry invalidates it.
-
-## Count curve and hard bounds
-
-For each side, let `n` be its current count and `N` its count with the complete bag
-out, using the same relative-side assignment. Odd bags therefore have distinct
-left/right capacities. Define:
+For each side, `n` is its current count and `N` its count with the complete bag out:
 
 ```text
 w(n, N, p) = (n^(-p) - N^(-p)) / (1 - N^(-p))
 diameter(n) = floor + (max - floor) * w(clamp(n, 1, N), N, p)
 ```
 
-The default exponent is `p = 0.5` (inverse square root). This reduces area pressure quickly as neighbors arrive,
-then approaches the existing dense-bag floor gently. For `N > 1` and `max > floor`, it is continuous
-and strictly decreasing between 1 and N; it pins `diameter(1) = max` and
-`diameter(N) = floor`. The unit test pins the hand-calculated case
-`N=9, max=420, floor=84`: `diameter(4)=168`.
+`p = 0.5` by default (inverse square root): area pressure drops quickly as neighbours
+arrive, then approaches the floor gently. Continuous and strictly decreasing from
+`diameter(1) = max` to `diameter(N) = floor`. If a dense bag needs faster decay, the
+least exponent in 0.5–8 that fits every count is used. Max and exponent are frozen
+against the complete bag, so camera pull-back can never make discs grow as more come
+out. The planner keeps 12 px from canvas edges, 24 px from the bag's projected
+silhouette, each label's measured size plus a 6 px name gap, and 12 px between
+footprints. Where the floor cannot be held at all, the original planner is kept.
 
-One or two globally pulled discs occupy one disc per used side, so both belong
-to the maximum tier. Strict decrease is asserted as a **side's** count grows;
-one-to-two global discs is intentionally a plateau. If a side's complete
-capacity is one, its only disc is already at that side's floor.
-
-The planner reserves:
-
-- 12 px inside the canvas edges;
-- 24 px outward from the bag's projected silhouette at each side's inner edge;
-- each label's actual measured width and height, plus the existing name padding
-  and 6 px disc/name gap;
-- 12 px between neighboring disc/name footprints.
-
-These margins interpret the requested inner boundary using the measured bag;
-they are not traced coordinates from the unavailable red ticks.
-
-For every possible side count, the planner calculates the largest diameter
-that packs complete disc/name footprints into the side rectangle. It keeps the
-largest one-disc maximum. If a dense bag needs more rapid decay, it finds the
-least exponent between 0.5 and 8 that fits every count at the calibration camera.
-The unit test includes a 32-disc geometry that needs this adjustment.
-
-The maximum and exponent are then **frozen across count and camera changes**.
-This prevents camera pullback or a packing-mode change from increasing diameter.
-The maximum is also bounded by the side widths at the original home camera. The
-camera only pulls further back when the current count needs that room; a few
-discs beside an open details panel do not inherit a future full-bag pullback. No
-footprint can overlap a neighbor, its own name, the bag, or the canvas edge in a
-settled layout.
-
-When an unusually narrow or crowded desktop cannot hold the preserved floor in
-its side zones, the new planner declines the layout and retains the original
-planner instead of reducing the floor. Existing zoom, turntable, top-view,
-popup, and pull/return interactions keep their existing policies. The geometric
-proof concerns settled staging; the original travel arcs and zoom behavior are
-not redesigned in this change.
-
-## Size animation
-
-Existing pulled discs interpolate their screen diameter over **300 ms**, using
-the viewer's existing cubic ease-in-out. Depth is compensated during the center's
-motion, so perspective does not stretch the size glide to the existing 650 ms
-restage duration. Interrupted glides start from the current pose and size.
-Center motion and pull/return timings retain their existing durations.
-
-Desktop size glides expose live circular bounds to hit targets and HTML labels,
-and refresh them during rendering. Labels therefore follow their discs. Reduced
-motion remains instant. Phone keeps its existing target-bound behavior.
-
-## Measured result
-
-Signed-out 18-disc demo, reference fixture Premier DD3 + Destroyer. Dimensions
-are measured circular bounds after settling, not nominal world scales.
-
-| Desktop viewport | Pulled count | Before diameter | After diameter |
-| --- | ---: | ---: | ---: |
-| 1440 × 1000 | 1 | 124.05 px | 408.23 px |
-| 1440 × 1000 | 2 | 124.05 px | 408.23 px each |
-| 1440 × 1000 | 6 | 124.05 px | 203.66 px each |
-| 1440 × 1000 | all 18 | 85.55 px | 85.55 px each |
-| 1280 × 900 | 6 | — | 178.84 px each |
-| 1280 × 900 | all 18 | — | 75.49 px each |
-
-The reference max tier is **3.29×** its original diameter, within the requested
-3–4× range. Both side zones are bounded by their actual free width; the smaller
-side determines the shared maximum. At odd partial counts, sides with different
-loads can have different diameters. For example, at three out the one-disc side
-is 408.23 px and the two-disc side is 266.47 px.
-
-Frame sampling of the rendered circular rim measured the 300 ms shrink glide
-reaching within 1 px of its target in approximately **285–315 ms** across runs,
-with intermediate diameters and the label visible and following the live rim.
-Newly arriving names fade in after their disc lands.
-
-Phone comparison at 390 × 1000 matches the original centers and diameters:
-41.30 px at one out, 41.18 px at two, 33.57 px at six, and 27.20 px at all 18.
-The original phone above/below-bag zones are deliberately retained.
+Size changes glide over **300 ms** (cubic ease-in-out), depth-compensated so the
+650 ms restage of the centre does not stretch them; names and hit targets follow the
+live rim; reduced motion stays instant.
 
 ## Verification
 
-- `npm run test:bag`: includes the new sizing tests alongside existing bag,
-  layout, data, and collection unit suites. Tests cover curve endpoints,
-  continuous monotonic decrease, bounds, floor preservation, odd side capacities,
-  all 1–18 footprint counts, determinism, an infeasible side zone, dense-bag
-  camera changes, and partial-bag framing beside a details panel.
-- `npm run test:bag:pulled-sizing`: browser checks at 1440 and 1280 px, the named
-  reference pair, 1/2/3/6/all out, zero settled disc/bag/disc/name/viewport overlap,
-  rendered size animation, visible moving labels, return-one/return-all, a rotated
-  enlarged pair, a 32-disc DOM fixture across camera pullback, and unchanged
-  390 px phone geometry. The first run against the old implementation failed on
-  the required 3× maximum tier.
-- Existing staging suite: 1–24 counts, mixed and overstable sets, three themes,
-  motion, relative sides, deterministic placement, zoom/details, return-all,
-  type buttons, reduced motion, and phone resize.
-
-Final results:
+All on this machine, GPU Chromium (`--use-angle=d3d11`), October 15.
 
 | Check | Result |
 | --- | --- |
-| `npm run test:bag` | 68 passed, 0 failed |
-| `npm run test:bag:pulled-sizing` | Passed: desktop sizes/bounds/labels/animation, rotated pair, details open/close, 32-disc camera regression, unchanged phone |
-| `tests/bag-staging-browser.mjs` | Passed: 13 checks, 59 screenshots; counts 1–24, three themes, desktop and phone |
-| Existing demo, 3D, scene, spin/pocket, popup, switch/dump, map-controls, overmold, and pockets browser suites | All nine passed |
-| Changed product code and new tests: targeted ESLint | 0 errors, 0 warnings |
-| Independent code review | No remaining actionable findings |
+| `npm run test:bag` (unit) | ✔ 69 passed (68 before + the tier rule) |
+| `npm run test:bag:pulled-quality` (new) | ✔ Max tier: detail look, 1024 + relief, 80 steps, pixel ratio 2, rendered = shown (818.4 / 818.4 px); 512 tier at 206 px; all out back on the bag path (256, 40 steps, ratio 1.42); home again: nothing left on the detail look; stamp −4.57° with the old facing (control) → −0.004°, 0.00 px drift across the float; viewer pop-out at the same size wears the same photo tier and pixel ratio |
+| `npm run test:bag:pulled-sizing` (Sol's, floor updated) | ✔ All checks, final code: sizes, bounds, labels following the live rim, 300 ms glide (reached in 305 ms), return, turned bag, details open/close, 1280, 32-disc bag (full count 88.67 px, above its original 65.58), unchanged phone |
+| Other bag suites | ✔ staging (13 checks, counts 1–24, three themes), demo, 3D, scene, spin/pocket, popup, switch/dump, map controls, overmold, pockets. bag-3d failed once inside a parallel run (its colour crop hit the bag behind a disc still mid-way; it also tripped its phone idle long-task gate under the run's CPU load) and passed 5 of 5 alone, including on the final code. |
+| 3D viewer and photo suites | ✔ `test:disc3d` units + browser + pop-out (the viewer reads the shared constants with unchanged values); `test:photo-textures` units + browser; `test:photo-rim` |
+| `tests/bag-interactions-browser.mjs` (legacy, unregistered) | ✘ as before: times out at line 159 waiting for details on the first disc click, the October 5 behaviour Sol documented as reproducing on `522df14`. Not registered in `package.json`; left alone. |
+| ESLint, changed files | 0 errors; 2 pre-existing warnings in the viewer's `renderNow` |
 
-The final set is **11 passing browser suites**, counting the new sizing suite
-and ten existing suites. Targeted lint including the existing staging test has
-one pre-existing unused `width` parameter warning; it is outside this change.
+Tests added: the tier rule (unit, `tests/bag-pulled-sizing.mjs`), and
+`tests/bag-pulled-quality-browser.mjs` (quality tier by size, pixel ratio vs display,
+upright stamp within 0.5° with a control that must see the old roll, stillness).
+Sol's suite now asserts the new floor (all out = 124.45 px at 1440; 1280 above its
+original all-out; the 32-disc bag never below its original floor).
 
-One additional **legacy** script, `tests/bag-interactions-browser.mjs`, fails at
-line 159 waiting for details to open on the first disc click. Its assertion
-explicitly describes the old October 5 behavior; current behavior opens details
-through a name's popup. The same failure was reproduced against base `522df14`
-by serving that revision's original bag scene, viewer, layout, and CSS. This
-script is not registered in `package.json`. Its obsolete expectation was left
-unchanged; no product behavior was altered to satisfy it.
+## Deliberately not changed
 
-The staging test now waits for the actual restored canvas width and settled
-animation after closing details. Its earlier fixed-delay check could observe a
-later ResizeObserver restage before it finished. The final full sweep passes
-with the same width assertion, after waiting for that observable state.
-
-[Rendered measurements and animation samples](assets/bag-pulled-disc-sizing/metrics.json)
-include the 32-disc fixture's preserved 65.39 px floor and count-by-count sizes
-across camera pullback. The desktop acceptance test also verifies visible label
-tracking throughout every sampled frame of the shrink glide.
-
-The atlas performance gate is untouched. The new planner is reached only from
-the lazily mounted My Bag viewer and only when that page opts into desktop
-sizing. Atlas marker, camera, clustering, rendering, and performance-test code
-are unchanged; no atlas performance run is claimed.
-
-## Desktop screenshots
-
-### One Premier DD3 out
-
-![One out, desktop](assets/bag-pulled-disc-sizing/desktop-1.png)
-
-### Premier DD3 + Destroyer: max tier
-
-![Two out, desktop](assets/bag-pulled-disc-sizing/desktop-2.png)
-
-### Six out
-
-![Six out, desktop](assets/bag-pulled-disc-sizing/desktop-6.png)
-
-### All 18 out: original floor
-
-![All out, desktop](assets/bag-pulled-disc-sizing/desktop-all.png)
-
-### Phone: unchanged
-
-![Phone unchanged](assets/bag-pulled-disc-sizing/phone-unchanged.png)
-
-## Baseline evidence
-
-[Original reference-pair screenshot](assets/bag-pulled-disc-sizing/reference-1440-2.png),
-[measured reference rectangles](assets/bag-pulled-disc-sizing/reference-1440-2.json),
-[original phone, one out](assets/bag-pulled-disc-sizing/baseline-390-1.json), and
-[original phone, all out](assets/bag-pulled-disc-sizing/baseline-390-18.json).
-
-Keeping the original phone centers would not satisfy a strict full-height side
-boundary: in the one-disc baseline the center is X=265.79 px while the bag right
-edge is X=303.65 px. Freddy explicitly deferred that phone change and authorized
-desktop repositioning. The earlier fixed-center desktop cap of roughly 242 px
-for the reference pair therefore no longer limits this implementation.
-
-The pre-existing `wrangler.public.jsonc` edit is outside this work and preserved.
+- Lighting of pulled discs (bag scene, not the viewer's studio): see Quality.
+- Phone sizing: awaiting your pick above.
+- Discs at or below the old size (a whole bag out) keep the bag's cheaper path and
+  its 2.4 M-pixel canvas budget, so on a 2× display they are still drawn at 1.42× as
+  before this change. They are no worse than before; they are not viewer quality.
+- The bag's zoom (up to 3×) magnifies pulled discs beyond their settled size without
+  changing their tier.
+- Photo pipeline, aligner, re-levelling, the 3D viewer's rendering, atlas, Storage,
+  bag interior: untouched.
+- The legacy `bag-interactions` script's obsolete expectation.
