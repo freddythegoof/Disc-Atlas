@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
+import {verifyPhotoDecode} from './photo-decode-browser.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const config='tests/auth.wrangler.jsonc',state='work/photo-textures/local',base='https://localhost:8822',dir='outputs/photo-textures';
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
@@ -25,7 +26,7 @@ try {
   const callback=new URL(u.searchParams.get('redirect_uri'));callback.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();
   await route.fulfill({contentType:'text/html',body:`<a href="${callback.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});
  });
- await page.goto(base+'/?bag=1');await page.locator('#myBagDemo').waitFor();await page.locator('#myBagSignIn').click();
+ await page.goto(base+'/?bag=1');await verifyPhotoDecode(page);await page.locator('#myBagDemo').waitFor();await page.locator('#myBagSignIn').click();
  const link=page.getByRole('link',{name:'Continue with Google',exact:true});await link.waitFor();
  const redirect=await page.request.get(base+await link.getAttribute('href'),{maxRedirects:0});
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
@@ -38,7 +39,7 @@ try {
  const showList=name=>page.locator(`#bagListPicker [data-bag-list="${name}"]`).click();
  const save=async()=>{await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});};
  // Choosing a photo opens the aligner pop-out; Use photo prepares it and returns to the sheet.
- const usePhoto=async(adjust)=>{await page.locator('.photo-aligner[open]').waitFor();if(adjust)await adjust();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();};
+ const confirmPhoto=async(adjust)=>{await page.locator('.photo-aligner[open]').waitFor();if(adjust)await adjust();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();};
 
  await open('Envy');await save();
  let data=await (await page.request.get(base+'/api/bag')).json(),disc=data.discs[0];
@@ -52,7 +53,7 @@ try {
  const colorBefore=await page.locator('#bagDiscColor').inputValue();
  await page.locator('.photo-aligner [data-aligner-cancel]').first().click();await page.locator('.photo-aligner').waitFor({state:'hidden'});
  assert.equal(await page.locator('.bag-photo-thumb').isHidden(),true);assert.equal(await page.locator('#bagDiscColor').inputValue(),colorBefore);
- await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await usePhoto();
+ await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await confirmPhoto();
  const matched=await page.locator('#bagDiscColor').inputValue();assert.notEqual(matched,colorBefore,'the disc colour starts matched to the photo');
  await page.locator('#addDiscDialog').screenshot({path:dir+'/photo-editor.png'});
  let upload;page.on('request',r=>{if(r.method()==='PUT'&&r.url().includes('/photo')){upload=r.postDataBuffer();fs.writeFileSync(dir+'/processed-upload.webp',upload);}});
@@ -120,11 +121,11 @@ try {
  await page.waitForTimeout(1000);assert.ok(fixtureLoads>0&&fixtureLoads<=2,'only intersecting thumbnails load: '+fixtureLoads);await page.evaluate(()=>document.querySelector('#photoScrollTest').remove());
  // Replacing keeps the copy ID; a fresh page receives the new key and photo.
  await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');
- await usePhoto(()=>page.locator('.photo-aligner [data-photo="scale"]').evaluate(n=>{n.value='.88';n.dispatchEvent(new Event('input',{bubbles:true}));}));const oldKey=disc.texture_key;await save();
+ await confirmPhoto(()=>page.locator('.photo-aligner [data-photo="scale"]').evaluate(n=>{n.value='.88';n.dispatchEvent(new Event('input',{bubbles:true}));}));const oldKey=disc.texture_key;await save();
  data=await (await page.request.get(base+'/api/bag')).json();disc=data.discs.find(d=>d.id===disc.id);assert.notEqual(disc.texture_key,oldKey);assert.equal(data.discs.length,1);
  await page.reload();await page.locator(`[data-bag-edit="${disc.id}"]`).waitFor();await inspect();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
  // A late network failure still leaves one saved copy; retry updates it instead of duplicating it.
- await page.locator('#closeDetail').click();await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await usePhoto();
+ await page.locator('#closeDetail').click();await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await confirmPhoto();
  await context.route(/\/api\/bag\/discs\/[^/]+\/photo$/,route=>route.request().method()==='PUT'?route.abort('failed'):route.continue(),{times:1});
  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#saveDisc').disabled&&document.querySelector('#addDiscStatus').textContent!=='Saving…');
  await save();data=await (await page.request.get(base+'/api/bag')).json();assert.equal(data.discs.length,2);assert.equal(await page.locator('[data-bag-edit]').count(),2);
@@ -135,6 +136,28 @@ try {
  await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-remove').click();await save();await inspect();
  assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.stamp.visible),true);assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.photo),null);
  assert.equal((await page.request.get(base+'/api/bag/discs/'+disc.id+'/photo')).status(),404);
+ // HEIC takes the real Chromium converter rung through the actual bag editor,
+ // then the unchanged private Worker route. No converter or upload is mocked.
+ await page.locator('#closeDetail').click();await open('Envy');
+ const heicSource=fs.readFileSync('tests/fixtures/disc-photo.heic');
+ assert.ok(heicSource.includes(Buffer.from('Exif')),'HEIC fixture actually contains metadata');
+ await page.locator('.bag-photo-file').setInputFiles({name:'IMG_0001.HEIC',mimeType:'image/heic',buffer:heicSource});await confirmPhoto();
+ const heicColor=await page.locator('#bagDiscColor').inputValue();await save();
+ const heicUpload=Buffer.from(upload);assert.ok(heicUpload.length<=512*1024);assert.ok(!heicUpload.equals(heicSource));
+ const chunks=[];for(let at=12;at<heicUpload.length;){chunks.push(heicUpload.toString('ascii',at,at+4));const length=heicUpload.readUInt32LE(at+4);at+=8+length+(length%2);}
+ assert.ok(!chunks.includes('EXIF')&&!chunks.includes('XMP '),'HEIC metadata never reaches the upload');
+ assert.ok(!heicUpload.includes(Buffer.from('Disc Atlas synthetic HEIC privacy fixture')));
+ data=await (await page.request.get(base+'/api/bag')).json();const heicDisc=data.discs.find(d=>d.color===heicColor&&d.texture_key);
+ assert.ok(heicDisc);assert.equal((await page.request.get(base+'/api/bag/discs/'+heicDisc.id+'/photo')).status(),200);
+ await page.reload();await page.locator(`[data-bag-edit="${heicDisc.id}"]`).waitFor();
+ await page.locator(`[data-disc-id="${heicDisc.id}"] [data-bag-inspect]`).click();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
+ await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${heicDisc.id}"]`).click();
+ // Empty type is dispatched as an actual File on the file input, as an iOS picker
+ // can supply it; this also checks release/replace of the previous decoded image.
+ await page.locator('.bag-photo-file').evaluate((input,bytes)=>{const transfer=new DataTransfer();transfer.items.add(new File([new Uint8Array(bytes)],'IMG_0002.HEIC',{type:''}));input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));},[...heicSource]);
+ await confirmPhoto();const oldHeicKey=heicDisc.texture_key;await save();
+ data=await (await page.request.get(base+'/api/bag')).json();assert.notEqual(data.discs.find(d=>d.id===heicDisc.id).texture_key,oldHeicKey);
+ console.log('PASS: real HEIC editor choose/use/save/reload/render/replace, color match, bounded WebP and EXIF/GPS stripping; HEIC upload bytes: '+heicUpload.length);
  assert.deepEqual(errors,[]);console.log('PASS: local D1/R2 photo save/remove, circular processing, planar UV, private route, fallback, panel/popout and clay. Compressed upload bytes: '+upload.length);
 }catch(error){if(page)await page.screenshot({path:dir+'/failure.png',fullPage:true});throw error;}
 finally{await browser?.close();server.kill();}
