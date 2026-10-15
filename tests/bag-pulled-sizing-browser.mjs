@@ -47,9 +47,9 @@ try{
  await open();
  const ids=['demo-04','demo-01',...(await page.locator('[data-physical-disc]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc))).filter(id=>!['demo-04','demo-01'].includes(id))];
  await pull(ids[0]);const one=await check('desktop-1');await shot('desktop-1');
- assert.ok(one.discs[0].width>=3*124.05,'single pulled disc reaches at least 3× its measured desktop baseline');
+ assert.ok(one.discs[0].width>=3*124.45,'single pulled disc reaches at least 3× its measured desktop baseline');
  await pull(ids[1]);const two=await check('desktop-2');await shot('desktop-2');
- assert.ok(two.discs.every(d=>d.width>=3*124.05),'Premier DD3 + Destroyer are both in the large max tier');
+ assert.ok(two.discs.every(d=>d.width>=3*124.45),'Premier DD3 + Destroyer are both in the large max tier');
  // Watch a real size change, including the DOM label, while the side count grows.
  await page.locator('[data-bag-canvas]').evaluate(n=>{
   n.sizingFrames=[];n.sizingSampling=true;const start=performance.now();
@@ -82,7 +82,7 @@ try{
  await page.locator('.bag-dump').evaluate(n=>n.click());await settled();
  const all=await check('desktop-all');await shot('desktop-all');
  assert.equal(all.discs.length,18);
- assert.ok(all.discs.every(d=>Math.abs(d.width-85.55)<.2),'all-out floor preserves the measured baseline');
+ assert.ok(all.discs.every(d=>Math.abs(d.width-85.83)<.2),'all-out floor preserves the measured baseline (measured upright, the true circle)');
  assert.ok(all.discs.every(d=>d.width<Math.min(...several.discs.map(e=>e.width))));
  // Returning discs grows their remaining neighbors; return-all still empties staging.
  await pull(ids[0]);await check('desktop-return-one');

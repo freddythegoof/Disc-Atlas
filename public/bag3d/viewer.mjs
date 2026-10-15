@@ -43,7 +43,7 @@ const DRAG_PX = 8, TURN_PER_PX = .012, SPIN_SAMPLE_MS = 90, SPIN_HOLD_MS = 70, S
 // A hovered disc lights up in its own color at this emissive intensity.
 const GLOW = 1.1;
 export const MAX_ZOOM = 3;
-const Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0), WHITE = new THREE.Color(1, 1, 1);
+const Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0), Z_AXIS = new THREE.Vector3(0, 0, 1), WHITE = new THREE.Color(1, 1, 1);
 const clamp01 = value => Math.min(1, Math.max(0, value));
 // Slide-out runs in two overlapping stages, like pulling a disc out by hand.
 const stage = (progress, from, to) => easeInOut(clamp01((progress - from) / (to - from)));
@@ -764,10 +764,19 @@ export async function mountBag(container, {
   // face parallel to the screen (along the view's axis, not toward the eye), so under the camera's
   // oblique look (from one side and above) every out disc draws as a round disc, never tipped or
   // elliptical. Every out disc draws the same size: one a little nearer the camera is made that much
-  // smaller, one further away that much larger.
+  // smaller, one further away that much larger. Its own up (+Y, where a photo's top points) stays on the
+  // screen's up, so a level stamp reads level: the shortest turn from +X to the face (setFromUnitVectors)
+  // would also roll it, 3 to 6 degrees under the page and home cameras.
   const restingPose = (spot, view) => {
     const position = new THREE.Vector3(...spot.position), face = view.position.clone().sub(view.target).normalize();
-    return { position, quaternion: new THREE.Quaternion().setFromUnitVectors(X_AXIS, face), size: spot.scale * depthRatio(position, view) };
+    return { position, quaternion: uprightFacing(face), size: spot.scale * depthRatio(position, view) };
+  };
+  // The turn that points the disc's face (+X) along `face` with its +Y toward the world's up as seen along
+  // that axis (the camera's screen up, as the cameras look at their targets with +Y up).
+  const uprightFacing = face => {
+    if (Math.abs(face.y) > .999) return new THREE.Quaternion().setFromUnitVectors(X_AXIS, face);
+    const right = face.clone().cross(Y_AXIS).normalize(), up = right.clone().cross(face);
+    return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(face, up, right));
   };
   // How much further from the camera than its target a point lies, along the view (1: at the
   // target's depth), for `view` ({position, target}).
@@ -890,7 +899,7 @@ export async function mountBag(container, {
     const scale = base.scale.clone().lerp(new THREE.Vector3(...out.scale), Math.max(along, turn));
     return { position, quaternion, scale };
   };
-  const scratch = { position: new THREE.Vector3(), seat: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(), face: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1) };
+  const scratch = { position: new THREE.Vector3(), seat: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(), face: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), unroll: new THREE.Quaternion() };
   const poseRecord = (record, now) => {
     let busy = false;
     const { rest, placement, mesh } = record;
@@ -948,6 +957,11 @@ export async function mountBag(container, {
         arc(pose.position, spot.position, travel, bulge(scratch.seat.set(...placement.slide.position), spot.position, DISC.radius * spot.scale.y), pose.position);
         pose.quaternion.slerp(spot.quaternion, travel);
         pose.scale.lerp(spot.scale, travel);
+        // The bag's gentle float bobs it and rocks it about the view axis, and the disc group with it. A disc
+        // out of the bag holds still against both: its stamp stays upright on screen, and the disc stays on
+        // its name, hit target and focus ring, which are placed at rest (a bob is ±8 px at the page view).
+        const unroll = scratch.unroll.setFromAxisAngle(Z_AXIS, -float.rotation.z * travel);
+        pose.position.y -= float.position.y * travel; pose.position.applyQuaternion(unroll); pose.quaternion.premultiply(unroll);
       }
       mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.scale.copy(pose.scale);
     }
@@ -1054,6 +1068,12 @@ export async function mountBag(container, {
       spin.velocity *= Math.exp(-SPIN_FRICTION * delta);
       if (Math.abs(spin.velocity) < SPIN_STOP) settleTurn(); else busy = true;
     }
+    // The float next, so out discs (held still against it) pose for this frame's bob and rock.
+    const ambient = active && !dragging && now >= resumeAt;
+    time = advanceTime(time, delta, ambient);
+    const pose = poseAt(time);
+    float.position.y = pose.y;
+    float.rotation.z = pose.tilt;
     let desktopLayoutFrame=false;
     for (const record of records.values()) {
       if((record.spot?.sizeDuration&&record.spot.from&&now-record.spot.start<record.spot.duration+20)||(record.spot?.desktop&&record.slideTo===1&&record.slide<1))desktopLayoutFrame=true;
@@ -1084,12 +1104,7 @@ export async function mountBag(container, {
     }
     if (dragging) busy = true;
     if (controls?.update()) busy = true;
-    const ambient = active && !dragging && now >= resumeAt;
-    time = advanceTime(time, delta, ambient);
-    const pose = poseAt(time);
-    float.position.y = pose.y;
     float.rotation.y = (turn ? pose.rotation + offset : 0) + yaw;
-    float.rotation.z = pose.tilt;
     shadow.scale.setScalar(1 + pose.y * 7);
     shadowMaterial.opacity = .85 - pose.y * 5;
     // Settling after motion at reduced resolution redraws once at full resolution.
@@ -1230,7 +1245,10 @@ export async function mountBag(container, {
     const record = records.get(key);
     if (!record) return null;
     camera.updateMatrixWorld();
-    return boxOf(record.placement, { position: record.mesh.position, quaternion: record.mesh.quaternion, scale: record.mesh.scale },false,rim);
+    const pose = { position: record.mesh.position.clone(), quaternion: record.mesh.quaternion.clone(), scale: record.mesh.scale };
+    // A disc out of the bag holds still against the float (poseRecord): add the float back to measure where it is drawn.
+    if (record.slide > 0) { const roll = scratch.unroll.setFromAxisAngle(Z_AXIS, float.rotation.z); pose.position.applyQuaternion(roll).y += float.position.y; pose.quaternion.premultiply(roll); }
+    return boxOf(record.placement, pose, false, rim);
   };
 
   return {
