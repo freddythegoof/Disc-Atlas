@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Disc Atlas — local canvas encoding diagnostic</title>
+<style>body{font:16px system-ui;max-width:50em;margin:2em auto;padding:0 1em}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>
+<h1>Canvas WebP diagnostic</h1>
+<p>Pick the failing photo. Everything runs on this device; nothing is uploaded. This standalone probe tests canvas encoding, without the app's crop or lighting correction. Save or copy its output for Freddy.</p>
+<input type="file" accept="image/*"><pre role="status">Waiting for a photo.</pre>
+<script>
+const output=document.querySelector('pre');
+document.querySelector('input').onchange=async event=>{
+ const file=event.target.files[0];if(!file)return;
+ const image=new Image(),url=URL.createObjectURL(file),lines=[navigator.userAgent];
+ output.textContent='Decoding locally…';
+ try{
+  image.src=url;await image.decode();lines.push(`Decoded: ${image.naturalWidth} × ${image.naturalHeight}`);
+  const probe=document.createElement('canvas');probe.width=probe.height=1;
+  const support=await new Promise(r=>probe.toBlob(r,'image/webp',.86));
+  lines.push(`WebP-encode support: ${support?.type==='image/webp'?'YES':support?'NO (returned '+support.type+')':'UNKNOWN (null blob)'}`);
+  lines.push('size | quality | returned type | bytes');
+  for(const size of [1024,768,512]){
+   const canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+   const g=canvas.getContext('2d');g.beginPath();g.arc(size/2,size/2,size/2,0,Math.PI*2);g.clip();
+   const side=Math.min(image.naturalWidth,image.naturalHeight);
+   g.drawImage(image,(image.naturalWidth-side)/2,(image.naturalHeight-side)/2,side,side,0,0,size,size);
+   for(const quality of [.86,.72,.56,.4]){
+    const blob=await new Promise(r=>canvas.toBlob(r,'image/webp',quality));
+    lines.push(`${size} | ${quality} | ${blob?.type??'null'} | ${blob?.size??'null'}`);output.textContent=lines.join('\n');
+   }
+   canvas.width=canvas.height=0;
+  }
+ }catch(error){lines.push('Failed: '+error.message);}
+ finally{image.removeAttribute('src');URL.revokeObjectURL(url);output.textContent=lines.join('\n');}
+};
+</script></html>
