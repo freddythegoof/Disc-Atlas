@@ -1,0 +1,87 @@
+{
+  "viewport": 1440,
+  "count": 2,
+  "canvas": {
+    "width": 1392,
+    "height": 850
+  },
+  "stage": {
+    "mode": "scatter",
+    "sides": {
+      "demo-04": "left",
+      "demo-01": "right"
+    },
+    "around": false,
+    "brick": false,
+    "scale": 0.58,
+    "labels": "below",
+    "fits": true,
+    "pull": 1,
+    "pullGoal": 1,
+    "moving": false
+  },
+  "diameters": [
+    124.05,
+    124.05
+  ],
+  "fixedCenterMaxFactor": 1.952,
+  "floorFitsStrictSideBounds": true,
+  "bag": {
+    "left": 447.1977135656805,
+    "top": 190.56396910988428,
+    "width": 490.813461830033,
+    "height": 617.3954251919741
+  },
+  "discs": [
+    {
+      "key": "demo-01",
+      "id": "demo-01",
+      "pocket": "main",
+      "order": 0,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.10165,
+        -0.072,
+        0.01
+      ],
+      "left": 1061.3141005348,
+      "top": 362.9633789331154,
+      "width": 124.05219634574019,
+      "height": 124.0521963457403
+    },
+    {
+      "key": "demo-04",
+      "id": "demo-04",
+      "pocket": "main",
+      "order": 2,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.08025,
+        -0.072,
+        0.01
+      ],
+      "left": 67.02885206135882,
+      "top": 356.1695507008779,
+      "width": 124.05219634574023,
+      "height": 124.0521963457403
+    }
+  ],
+  "labels": {
+    "demo-04": {
+      "left": 73.0859375,
+      "top": 486.21875,
+      "width": 111.921875,
+      "height": 29.125
+    },
+    "demo-01": {
+      "left": 1074.7578125,
+      "top": 493,
+      "width": 97.140625,
+      "height": 29.125
+    }
+  }
+}

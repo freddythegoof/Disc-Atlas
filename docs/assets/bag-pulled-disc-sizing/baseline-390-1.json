@@ -1,0 +1,61 @@
+{
+  "viewport": 390,
+  "count": 1,
+  "canvas": {
+    "width": 374,
+    "height": 467.5
+  },
+  "stage": {
+    "mode": "scatter",
+    "sides": {
+      "demo-04": "right"
+    },
+    "around": true,
+    "brick": true,
+    "scale": 0.4,
+    "labels": "outer",
+    "fits": true,
+    "pull": 1.1406190395355225,
+    "pullGoal": 1.1406190395355225,
+    "moving": false
+  },
+  "diameters": [
+    41.3
+  ],
+  "fixedCenterMaxFactor": 0,
+  "floorFitsStrictSideBounds": false,
+  "bag": {
+    "left": 67.2929490162771,
+    "top": 115.35378957586322,
+    "width": 236.3555480767931,
+    "height": 296.636475005759
+  },
+  "discs": [
+    {
+      "key": "demo-04",
+      "id": "demo-04",
+      "pocket": "main",
+      "order": 0,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.10165,
+        -0.072,
+        0.01
+      ],
+      "left": 245.14095459619642,
+      "top": 8.000030826611477,
+      "width": 41.29740533379737,
+      "height": 41.29740533379742
+    }
+  ],
+  "labels": {
+    "demo-04": {
+      "left": 292.265625,
+      "top": 17.640625,
+      "width": 55.34375,
+      "height": 21.75
+    }
+  }
+}

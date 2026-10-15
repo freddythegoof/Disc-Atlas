@@ -1,0 +1,503 @@
+{
+  "viewport": 390,
+  "count": 18,
+  "canvas": {
+    "width": 374,
+    "height": 467.5
+  },
+  "stage": {
+    "mode": "scatter",
+    "sides": {
+      "demo-04": "left",
+      "demo-08": "left",
+      "demo-09": "left",
+      "demo-13": "left",
+      "demo-12": "left",
+      "demo-10": "left",
+      "demo-17": "left",
+      "demo-18": "left",
+      "demo-15": "left",
+      "demo-02": "right",
+      "demo-01": "right",
+      "demo-03": "right",
+      "demo-06": "right",
+      "demo-05": "right",
+      "demo-07": "right",
+      "demo-11": "right",
+      "demo-14": "right",
+      "demo-16": "right"
+    },
+    "around": true,
+    "brick": false,
+    "scale": 0.52,
+    "labels": "below",
+    "fits": true,
+    "pull": 2.251588821411133,
+    "pullGoal": 2.251588821411133,
+    "moving": false
+  },
+  "diameters": [
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2,
+    27.2
+  ],
+  "fixedCenterMaxFactor": 0,
+  "floorFitsStrictSideBounds": false,
+  "bag": {
+    "left": 126.09937261037112,
+    "top": 176.67345048697308,
+    "width": 120.78157154109164,
+    "height": 148.8660840754702
+  },
+  "discs": [
+    {
+      "key": "demo-04",
+      "id": "demo-04",
+      "pocket": "main",
+      "order": 0,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.10165,
+        -0.072,
+        0.01
+      ],
+      "left": 124.77531356227851,
+      "top": 20.37724771781478,
+      "width": 27.1967902251844,
+      "height": 27.19679022518444
+    },
+    {
+      "key": "demo-01",
+      "id": "demo-01",
+      "pocket": "main",
+      "order": 1,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.09095,
+        -0.072,
+        0.01
+      ],
+      "left": 215.32877580722678,
+      "top": 35.15121972565387,
+      "width": 27.196790225184373,
+      "height": 27.196790225184415
+    },
+    {
+      "key": "demo-02",
+      "id": "demo-02",
+      "pocket": "main",
+      "order": 2,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.08025,
+        -0.072,
+        0.01
+      ],
+      "left": 302.9198298825467,
+      "top": 18.37040393081328,
+      "width": 27.196790225184373,
+      "height": 27.19679022518439
+    },
+    {
+      "key": "demo-03",
+      "id": "demo-03",
+      "pocket": "main",
+      "order": 3,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.06955,
+        -0.072,
+        0.01
+      ],
+      "left": 307.31559917284955,
+      "top": 103.22705917010732,
+      "width": 27.196790225184373,
+      "height": 27.19679022518436
+    },
+    {
+      "key": "demo-06",
+      "id": "demo-06",
+      "pocket": "main",
+      "order": 4,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.05885,
+        -0.072,
+        0.01
+      ],
+      "left": 211.90148899120825,
+      "top": 106.34435639114365,
+      "width": 27.196790225184373,
+      "height": 27.196790225184444
+    },
+    {
+      "key": "demo-05",
+      "id": "demo-05",
+      "pocket": "main",
+      "order": 5,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.04815,
+        -0.072,
+        0.01
+      ],
+      "left": 293.24490047816397,
+      "top": 176.76728730856055,
+      "width": 27.19679022518443,
+      "height": 27.1967902251844
+    },
+    {
+      "key": "demo-07",
+      "id": "demo-07",
+      "pocket": "main",
+      "order": 6,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.03745,
+        -0.072,
+        0.01
+      ],
+      "left": 307.26825829092985,
+      "top": 246.94638696703043,
+      "width": 27.196790225184373,
+      "height": 27.19679022518443
+    },
+    {
+      "key": "demo-09",
+      "id": "demo-09",
+      "pocket": "main",
+      "order": 7,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.026749999999999996,
+        -0.072,
+        0.01
+      ],
+      "left": 101.30042100836299,
+      "top": 105.11839752204277,
+      "width": 27.196790225184415,
+      "height": 27.19679022518436
+    },
+    {
+      "key": "demo-08",
+      "id": "demo-08",
+      "pocket": "main",
+      "order": 8,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.01605000000000001,
+        -0.072,
+        0.01
+      ],
+      "left": 37.40161246542619,
+      "top": 36.80114190341239,
+      "width": 27.19679022518438,
+      "height": 27.196790225184394
+    },
+    {
+      "key": "demo-11",
+      "id": "demo-11",
+      "pocket": "main",
+      "order": 9,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        -0.0053500000000000075,
+        -0.072,
+        0.01
+      ],
+      "left": 311.71070099165064,
+      "top": 316.06220255902366,
+      "width": 27.196790225184373,
+      "height": 27.19679022518443
+    },
+    {
+      "key": "demo-12",
+      "id": "demo-12",
+      "pocket": "main",
+      "order": 10,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0.005349999999999994,
+        -0.072,
+        0.01
+      ],
+      "left": 33.39360243013036,
+      "top": 185.5518322418534,
+      "width": 27.196790225184394,
+      "height": 27.196790225184344
+    },
+    {
+      "key": "demo-13",
+      "id": "demo-13",
+      "pocket": "main",
+      "order": 11,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0.016049999999999995,
+        -0.072,
+        0.01
+      ],
+      "left": 30.727425634227664,
+      "top": 118.11005990543094,
+      "width": 27.196790225184394,
+      "height": 27.1967902251844
+    },
+    {
+      "key": "demo-14",
+      "id": "demo-14",
+      "pocket": "main",
+      "order": 12,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0.026749999999999982,
+        -0.072,
+        0.01
+      ],
+      "left": 306.7125117850617,
+      "top": 383.7899293623474,
+      "width": 27.19679022518443,
+      "height": 27.196790225184486
+    },
+    {
+      "key": "demo-16",
+      "id": "demo-16",
+      "pocket": "putter",
+      "order": 0,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0,
+        0.249,
+        0.035
+      ],
+      "left": 221.31110436858788,
+      "top": 381.7335897072538,
+      "width": 27.196790225184373,
+      "height": 27.19679022518443
+    },
+    {
+      "key": "demo-17",
+      "id": "demo-17",
+      "pocket": "putter",
+      "order": 1,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0,
+        0.265,
+        0.023000000000000003
+      ],
+      "left": 34.57190277112176,
+      "top": 317.30913659148376,
+      "width": 27.196790225184373,
+      "height": 27.196790225184373
+    },
+    {
+      "key": "demo-15",
+      "id": "demo-15",
+      "pocket": "putter",
+      "order": 2,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0,
+        0.281,
+        0.011000000000000003
+      ],
+      "left": 128.13186470192738,
+      "top": 376.76270263672285,
+      "width": 27.1967902251844,
+      "height": 27.196790225184373
+    },
+    {
+      "key": "demo-18",
+      "id": "demo-18",
+      "pocket": "putter",
+      "order": 3,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0,
+        0.297,
+        -0.0010000000000000009
+      ],
+      "left": 42.0112571724536,
+      "top": 381.9643269765801,
+      "width": 27.1967902251844,
+      "height": 27.19679022518443
+    },
+    {
+      "key": "demo-10",
+      "id": "demo-10",
+      "pocket": "goTo",
+      "order": 0,
+      "empty": false,
+      "shape": "ellipse",
+      "out": true,
+      "position": [
+        0,
+        0.137,
+        0.176
+      ],
+      "left": 36.678900430431405,
+      "top": 251.99984403964115,
+      "width": 27.196790225184394,
+      "height": 27.1967902251844
+    }
+  ],
+  "labels": {
+    "demo-04": {
+      "left": 110.6875,
+      "top": 53.5625,
+      "width": 55.34375,
+      "height": 21.75
+    },
+    "demo-01": {
+      "left": 193.1171875,
+      "top": 68.34375,
+      "width": 71.609375,
+      "height": 21.75
+    },
+    "demo-02": {
+      "left": 294.734375,
+      "top": 51.5625,
+      "width": 43.5625,
+      "height": 21.75
+    },
+    "demo-03": {
+      "left": 294.1171875,
+      "top": 136.421875,
+      "width": 53.578125,
+      "height": 21.75
+    },
+    "demo-06": {
+      "left": 195.9375,
+      "top": 139.53125,
+      "width": 59.09375,
+      "height": 21.75
+    },
+    "demo-05": {
+      "left": 264.5625,
+      "top": 209.953125,
+      "width": 84.53125,
+      "height": 21.75
+    },
+    "demo-07": {
+      "left": 291.7578125,
+      "top": 280.140625,
+      "width": 58.203125,
+      "height": 21.75
+    },
+    "demo-08": {
+      "left": 15,
+      "top": 69.984375,
+      "width": 72,
+      "height": 21.75
+    },
+    "demo-09": {
+      "left": 92.4609375,
+      "top": 138.3125,
+      "width": 44.859375,
+      "height": 21.75
+    },
+    "demo-10": {
+      "left": 25.421875,
+      "top": 285.1875,
+      "width": 49.6875,
+      "height": 21.75
+    },
+    "demo-11": {
+      "left": 301.21875,
+      "top": 349.25,
+      "width": 48.15625,
+      "height": 21.75
+    },
+    "demo-12": {
+      "left": 18.65625,
+      "top": 218.734375,
+      "width": 56.65625,
+      "height": 21.75
+    },
+    "demo-13": {
+      "left": 20.78125,
+      "top": 151.296875,
+      "width": 47.0625,
+      "height": 21.75
+    },
+    "demo-14": {
+      "left": 298.03125,
+      "top": 416.984375,
+      "width": 44.53125,
+      "height": 21.75
+    },
+    "demo-15": {
+      "left": 119.2890625,
+      "top": 409.953125,
+      "width": 44.859375,
+      "height": 21.75
+    },
+    "demo-16": {
+      "left": 212.78125,
+      "top": 414.921875,
+      "width": 44.25,
+      "height": 21.75
+    },
+    "demo-17": {
+      "left": 26.203125,
+      "top": 350.5,
+      "width": 43.90625,
+      "height": 21.75
+    },
+    "demo-18": {
+      "left": 29.59375,
+      "top": 415.15625,
+      "width": 52.03125,
+      "height": 21.75
+    }
+  }
+}

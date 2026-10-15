@@ -1,0 +1,1270 @@
+{
+  "desktop-1": {
+    "diameters": [
+      408.23
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-2": {
+    "diameters": [
+      408.23,
+      408.23
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-01": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-3": {
+    "diameters": [
+      266.47,
+      266.47,
+      408.23
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-02": "right",
+        "demo-01": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 267.3180426033617
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "animation": {
+    "target": 266.46746282363506,
+    "frames": [
+      {
+        "t": 24.299999997019768,
+        "width": 408.22359680702675
+      },
+      {
+        "t": 33.3999999910593,
+        "width": 408.13436597551413
+      },
+      {
+        "t": 49.79999999701977,
+        "width": 407.4301305249618
+      },
+      {
+        "t": 67.20000000298023,
+        "width": 405.4806048342467
+      },
+      {
+        "t": 83.29999999701977,
+        "width": 401.88886789781975
+      },
+      {
+        "t": 99.8999999910593,
+        "width": 395.83012503345367
+      },
+      {
+        "t": 116.8999999910593,
+        "width": 386.65932415990187
+      },
+      {
+        "t": 134.09999999403954,
+        "width": 374.1630671356055
+      },
+      {
+        "t": 150,
+        "width": 357.69989016148804
+      },
+      {
+        "t": 166.09999999403954,
+        "width": 337.3507073270149
+      },
+      {
+        "t": 183.20000000298023,
+        "width": 315.7672170045953
+      },
+      {
+        "t": 199.79999999701977,
+        "width": 299.4199496519484
+      },
+      {
+        "t": 216.8999999910593,
+        "width": 286.96986872948946
+      },
+      {
+        "t": 234.29999999701977,
+        "width": 278.1324768027275
+      },
+      {
+        "t": 250.5,
+        "width": 272.56063961614404
+      },
+      {
+        "t": 266.5,
+        "width": 268.99938677924183
+      },
+      {
+        "t": 283.29999999701977,
+        "width": 267.1818026136282
+      },
+      {
+        "t": 299.20000000298023,
+        "width": 266.56353421395306
+      },
+      {
+        "t": 317.20000000298023,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 333.3999999910593,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 349,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 367.29999999701977,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 383.59999999403954,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 399.59999999403954,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 417,
+        "width": 266.46746282363483
+      },
+      {
+        "t": 433.70000000298023,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 450.3999999910593,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 468,
+        "width": 266.4674628236355
+      },
+      {
+        "t": 485.20000000298023,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 499.79999999701977,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 516.3999999910593,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 533.3999999910593,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 549.5999999940395,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 566.7000000029802,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 583.5,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 600.2999999970198,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 616.2000000029802,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 633.2000000029802,
+        "width": 266.4674628236353
+      },
+      {
+        "t": 650.0999999940395,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 667.3999999910593,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 684.2000000029802,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 699.0999999940395,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 716.8999999910593,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 733.2000000029802,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 750,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 766.7999999970198,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 783.2999999970198,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 799.3999999910593,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 816.7000000029802,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 834.5,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 849.2999999970198,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 867.5,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 883.5,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 900.7999999970198,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 916.7000000029802,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 933.5999999940395,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 949.5999999940395,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 965,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 981.5,
+        "width": 266.46746282363506
+      },
+      {
+        "t": 997.8999999910593,
+        "width": 266.46746282363506
+      }
+    ],
+    "reachedMs": 283.29999999701977
+  },
+  "desktop-6": {
+    "diameters": [
+      203.66,
+      203.66,
+      203.66,
+      203.66,
+      203.66,
+      203.66
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 204.31268001656076,
+          "right": 204.31268001656076
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-6-details": {
+    "diameters": [
+      137.88,
+      137.88,
+      137.88,
+      137.88,
+      137.88,
+      137.88
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 138.319175700404,
+          "right": 138.319175700404
+        },
+        "max": 230.53705856299666,
+        "floor": 85.07715620558876,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-6-details-closed": {
+    "diameters": [
+      203.66,
+      203.66,
+      203.66,
+      203.66,
+      203.66,
+      203.66
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 204.31268001656076,
+          "right": 204.31268001656076
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-all": {
+    "diameters": [
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 85.82632981850236,
+          "right": 85.82632981850236
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-return-one": {
+    "diameters": [
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      85.55,
+      95.34,
+      95.34,
+      85.55,
+      95.34,
+      95.34,
+      85.55,
+      85.55,
+      95.34,
+      95.34,
+      95.34,
+      95.34
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 95.64450402480846,
+          "right": 85.82632981850236
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-2-after-turn": {
+    "diameters": [
+      408.23,
+      408.23
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-01": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 85.82632981850236,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-1280-6": {
+    "diameters": [
+      178.84,
+      178.84,
+      178.84,
+      178.84,
+      178.84,
+      178.84
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 179.4146578880608,
+          "right": 179.4146578880608
+        },
+        "max": 359.00328696734994,
+        "floor": 75.72911454573737,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-1280-all": {
+    "diameters": [
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49,
+      75.49
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 75.72911454573737,
+          "right": 75.72911454573737
+        },
+        "max": 359.00328696734994,
+        "floor": 75.72911454573737,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-2": {
+    "diameters": [
+      408.23,
+      408.23
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-01": "left",
+        "demo-19": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-8": {
+    "diameters": [
+      179.67,
+      179.67,
+      179.67,
+      179.67,
+      179.67,
+      179.67,
+      179.67,
+      179.67
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 180.2453052133727,
+          "right": 180.2453052133727
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-16": {
+    "diameters": [
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73,
+      112.73
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-22": "left",
+        "demo-23": "left",
+        "demo-24": "left",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 113.08730552742111,
+          "right": 113.08730552742111
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-18": {
+    "diameters": [
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48,
+      103.48
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-22": "left",
+        "demo-23": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 103.81472076349803,
+          "right": 103.81472076349803
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-24": {
+    "diameters": [
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07,
+      83.07
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-05": "left",
+        "demo-07": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-11": "left",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.1750741004943848,
+      "pullGoal": 1.1750741004943848,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 83.33520738311539,
+          "right": 83.33520738311539
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-31": {
+    "diameters": [
+      69.14,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      69.14,
+      69.14,
+      69.14,
+      65.39,
+      69.14,
+      69.14,
+      69.14,
+      69.14,
+      69.14,
+      69.14,
+      69.14,
+      65.39,
+      69.14,
+      69.14,
+      69.14,
+      69.14
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-05": "left",
+        "demo-07": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-11": "left",
+        "demo-16": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-19": "right",
+        "demo-20": "right",
+        "demo-21": "right",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right",
+        "demo-06": "right",
+        "demo-14": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.3424832820892334,
+      "pullGoal": 1.3424832820892334,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 69.35930414985437,
+          "right": 65.5994285385607
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-32": {
+    "diameters": [
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39,
+      65.39
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-05": "left",
+        "demo-07": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-11": "left",
+        "demo-16": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-19": "right",
+        "demo-20": "right",
+        "demo-21": "right",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right",
+        "demo-06": "right",
+        "demo-14": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.3083395957946777,
+      "pullGoal": 1.3083395957946777,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 65.5994285385607,
+          "right": 65.5994285385607
+        },
+        "max": 409.53705856299666,
+        "floor": 65.5994285385607,
+        "decay": 0.5
+      }
+    }
+  },
+  "denseFloor": 65.39069759420272,
+  "phone-1": {
+    "diameters": [
+      41.29740533379737
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "right"
+      },
+      "around": true,
+      "brick": true,
+      "scale": 0.4,
+      "labels": "outer",
+      "fits": true,
+      "pull": 1.1406190395355225,
+      "pullGoal": 1.1406190395355225,
+      "moving": false
+    }
+  },
+  "phone-2": {
+    "diameters": [
+      41.18094084095978,
+      41.18094084095978
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-01": "right"
+      },
+      "around": true,
+      "brick": true,
+      "scale": 0.4,
+      "labels": "outer",
+      "fits": true,
+      "pull": 1.1438448429107666,
+      "pullGoal": 1.1438448429107666,
+      "moving": false
+    }
+  },
+  "phone-6": {
+    "diameters": [
+      33.56528896868837,
+      33.565288968688435,
+      33.565288968688435,
+      33.56528896868838,
+      33.56528896868849,
+      33.56528896868837
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-02": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": 0.46,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.6138784885406494,
+      "pullGoal": 1.6138784885406494,
+      "moving": false
+    }
+  },
+  "phone-18": {
+    "diameters": [
+      27.1967902251844,
+      27.196790225184373,
+      27.196790225184373,
+      27.196790225184373,
+      27.196790225184373,
+      27.19679022518443,
+      27.196790225184373,
+      27.196790225184415,
+      27.19679022518438,
+      27.196790225184373,
+      27.196790225184394,
+      27.196790225184394,
+      27.19679022518443,
+      27.196790225184373,
+      27.196790225184373,
+      27.1967902251844,
+      27.1967902251844,
+      27.196790225184394
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": true,
+      "brick": false,
+      "scale": 0.52,
+      "labels": "below",
+      "fits": true,
+      "pull": 2.251588821411133,
+      "pullGoal": 2.251588821411133,
+      "moving": false
+    }
+  }
+}

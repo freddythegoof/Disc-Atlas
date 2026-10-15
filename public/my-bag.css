@@ -244,6 +244,9 @@ body[data-view="bag"] main {display:none!important}
 .bag-out-name {transform:translateX(-50%);max-width:min(180px,calc(100% - 12px));padding:calc(4px * var(--bag-type)) calc(11px * var(--bag-type));font-size:calc(12px * var(--bag-type));letter-spacing:.15px;box-shadow:0 4px 14px #00000038;pointer-events:auto;cursor:pointer;transition:border-color 120ms,background-color 120ms}
 .bag-out-name:hover {border-color:#ffffff66;background:#1d242ef5}
 .bag-scene[data-staging="moving"] .bag-out-name {pointer-events:none}
+.bag-scene[data-desktop-sizing][data-staging="moving"] .bag-out-names {opacity:1;transition:none}
+.bag-scene[data-desktop-sizing] .bag-out-name {transition:opacity 200ms ease,border-color 120ms,background-color 120ms}
+.bag-scene[data-desktop-sizing] .bag-out-name.is-arriving {opacity:0}
 .bag-hit-slot[data-out] .bag-physical-disc {border-radius:50%}
 /* On a phone the bag's sides are narrow, so every out-disc name is a size smaller there: still read
    at a glance, and the bag stays larger. */

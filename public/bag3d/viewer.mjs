@@ -6,6 +6,7 @@ import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
+import {desktopPulledLayout,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -177,6 +178,7 @@ export async function mountBag(container, {
   // ('scatter' or null), whether it spreads around the bag or only beside it (or takes staggered rows), the disc size and
   // names ('below' or 'flush' their discs), and the camera's pull-back (1 = the page view).
   let outKeys = [], sides = new Map(), stagedMode = null, stageAround = false, stageBrick = false, stageScale = null, nameSpot = 'below', stageFits = true, pull = 1, pullGoal = 1, pullTween = null;
+  let desktopSizeState=null,desktopFloorCache=null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -618,7 +620,7 @@ export async function mountBag(container, {
   // the bag, the other discs and the other names.
   // `reserve` keeps a top-right corner of the canvas clear, `clear` more boxes ({left, top, right,
   // bottom}, canvas fractions). Resolves when every disc and the camera settle.
-  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active } = {}) => {
+  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active, desktopSizing = null } = {}) => {
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
     // The page may have just resized the canvas (out discs widen it): catch up now rather than on
@@ -633,6 +635,7 @@ export async function mountBag(container, {
     const entries = keys.map(key => { const label = labels.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
     let spots = new Map(), goal = 1;
     sides = new Map(); stageAround = false; stageBrick = false; stageScale = null; nameSpot = 'below'; stageFits = true;
+    desktopSizeState=null;
     if (mode === 'scatter') {
       // The canvas at the page view, laid on the discs' plane: the camera looks on from one side and
       // above, so the canvas covers a skewed patch of it. The planner gets the rectangle inside that
@@ -667,6 +670,63 @@ export async function mountBag(container, {
       stageAround = !!frame.around; stageBrick = !!frame.brick;
       for (const [key, spot] of spots) sides.set(key, spot.side);
       goal = pullToFit(spots, labels, reserve, clear, nameSpot);
+      if(desktopSizing && !keep.length){
+        const allLabels=new Map(desktopSizing.entries.map(entry=>[entry.key,entry.label]));
+        const allEntries=desktopSizing.entries.map(entry=>({...entry,label:{width:entry.label.width*unit,height:entry.label.height*unit}}));
+        const fullBag=standingRect(1,[]);
+        const cacheKey=JSON.stringify([allEntries,view,width,height,clear,reserve,fullBag]);
+        if(desktopFloorCache?.key!==cacheKey){
+          // pullToFit uses fitCamera while searching. Restore the page view
+          // before converting the full bag's silhouette into the home plane.
+          fitCamera.position.copy(page.position);fitCamera.lookAt(page.target);fitCamera.updateMatrixWorld();
+          const emptyBag=standingRect(1,allEntries.map(entry=>entry.key));
+          const c=spanOf(emptyBag.left,emptyBag.top,emptyBag.left+emptyBag.width,emptyBag.top+emptyBag.height);
+          const fullBox={xMin:Math.min(c.tl.x,c.bl.x),xMax:Math.max(c.tr.x,c.br.x),yMin:Math.min(c.bl.y,c.br.y),yMax:Math.max(c.tl.y,c.tr.y)};
+          const full=scatterFrame({bag:fullBox,view,center:onPlane(width/2,height/2),centerY:home.target.y,keep,edge:STAGE_EDGE*unit,entries:allEntries,
+            verify:f=>pullToFit(f.spots,allLabels,reserve,clear,f.labels,{at:f.pull,bag:true})});
+          const fullPull=pullToFit(full.spots,allLabels,reserve,clear,full.labels);
+          const floor=2*DISC.radius*full.scale/(unit*fullPull);
+          const calibrate=factor=>desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},bag:standingRect(factor,[]),floor});
+          let minPull=1,calibration=calibrate(1);
+          if(!calibration){
+            let low=1,high=STAGE.scatter.maxPull;
+            calibration=calibrate(high);
+            if(calibration){
+              for(let i=0;i<18;i++){const mid=(low+high)/2;if(calibrate(mid))high=mid;else low=mid;}
+              minPull=high;calibration=calibrate(high);
+            }
+          }
+          const homeMaximum=Math.max(floor,Math.min(fullBag.left-PULLED_SPACE.edge-PULLED_SPACE.inner,width-PULLED_SPACE.edge-fullBag.left-fullBag.width-PULLED_SPACE.inner));
+          desktopFloorCache={key:cacheKey,floor,minPull,curve:calibration&&{max:Math.min(calibration.max,homeMaximum),decay:calibration.decay}};
+        }
+        // Freeze the curve against the complete bag, so camera pullback cannot
+        // make more discs grow. Full count keeps the original pixel diameter,
+        // with new side-zone centers when the legacy scatter crossed inward.
+        if(desktopFloorCache.curve){
+          const plan=factor=>desktopPulledLayout({entries:desktopSizing.entries.filter(entry=>keys.includes(entry.key)),allEntries:desktopSizing.entries,
+            viewport:{width,height},bag:standingRect(factor,[]),floor:desktopFloorCache.floor,curve:desktopFloorCache.curve});
+          let sizingGoal=goal,sized=plan(goal);
+          // A narrow details-panel canvas can fit a few discs at the original
+          // camera even when its future full bag needs more room. Pull back only
+          // when the current count requires it, while keeping the curve fixed.
+          if(!sized&&goal<desktopFloorCache.minPull){
+            let low=goal,high=desktopFloorCache.minPull;
+            for(let i=0;i<18;i++){const mid=(low+high)/2;if(plan(mid))high=mid;else low=mid;}
+            sizingGoal=high;sized=plan(high);
+          }
+          if(sized){
+            goal=sizingGoal;
+            const settled=pulledHome(goal);
+            fitCamera.position.copy(settled.position);fitCamera.lookAt(settled.target);fitCamera.updateMatrixWorld();
+            spots=new Map([...sized.spots].map(([key,spot])=>{
+              const p=onPlane(spot.x,spot.y);
+              return [key,{position:[p.x,p.y,STAGE.scatter.z],scale:spot.diameter*unit*goal/(2*DISC.radius),side:spot.side}];
+            }));
+            stageScale=null;nameSpot='below';stageAround=false;stageBrick=false;stageFits=true;
+            desktopSizeState={diameters:sized.diameters,max:sized.max,floor:sized.floor,decay:sized.decay};
+          }
+        }
+      }
     }
     stagedMode = mode;
     const settledView = pulledHome(goal);
@@ -680,7 +740,12 @@ export async function mountBag(container, {
         // A disc already out glides from where it is; one still on its way heads straight for the new spot.
         const moved = !record.spot || record.spot.to.position.distanceToSquared(position) > 1e-10 || Math.abs(record.spot.to.scale.x - size) > 1e-9;
         const glide = !instant && record.slideTo === 1 && record.spot && moved;
-        if (moved || instant || record.slideTo !== 1) record.spot = { from: glide ? spotAt(record, now) : null, to: pose, scale: spot.scale, start: now, duration: glide ? RESTAGE_MS : 0 };
+        if (moved || instant || record.slideTo !== 1) {
+          const from=glide?spotAt(record,now):null;
+          record.spot = { from, to: pose, scale: spot.scale, start: now, duration: glide ? RESTAGE_MS : 0,
+            desktop:!!desktopSizing,
+            ...(desktopSizing&&from?{sizeDuration:PULLED_SIZE_MS,fromSize:from.scale.x/depthRatio(from.position,pulledHome(pull))/pull,toSize:spot.scale/goal}:{}) };
+        }
         if (glide) longest = Math.max(longest, RESTAGE_MS);
       }
       if (record.slideTo === to && !instant) continue;
@@ -781,7 +846,15 @@ export async function mountBag(container, {
     const { from, to, start, duration } = record.spot;
     if (!from || now - start >= duration) return to;
     const e = easeInOut(clamp01((now - start) / duration)), a = toBagFrame(from), b = toBagFrame(to);
-    return { position: arc(from.position, to.position, e, bulge(a.position, b.position, DISC.radius * to.scale.y), new THREE.Vector3()), quaternion: from.quaternion.clone().slerp(to.quaternion, e), scale: from.scale.clone().lerp(to.scale, e) };
+    const position=arc(from.position,to.position,e,bulge(a.position,b.position,DISC.radius*to.scale.y),new THREE.Vector3());
+    let scale=from.scale.clone().lerp(to.scale,e);
+    if(record.spot.sizeDuration){
+      const {sizeDuration,fromSize,toSize}=record.spot,progress=easeInOut(clamp01((now-start)/sizeDuration));
+      // Compensate the moving disc's depth as well as the resting depth, so its
+      // screen diameter finishes its 300 ms glide while its center keeps moving.
+      scale.setScalar((fromSize+(toSize-fromSize)*progress)*pull*depthRatio(position,pulledHome(pull)));
+    }
+    return {position,quaternion:from.quaternion.clone().slerp(to.quaternion,e),scale};
   };
   // Staged spots hold still in the room while the bag's frame turns with the user's drag: undo the turn.
   const toBagFrame = pose => {
@@ -981,7 +1054,11 @@ export async function mountBag(container, {
       spin.velocity *= Math.exp(-SPIN_FRICTION * delta);
       if (Math.abs(spin.velocity) < SPIN_STOP) settleTurn(); else busy = true;
     }
-    for (const record of records.values()) if (poseRecord(record, now)) busy = true;
+    let desktopLayoutFrame=false;
+    for (const record of records.values()) {
+      if((record.spot?.sizeDuration&&record.spot.from&&now-record.spot.start<record.spot.duration+20)||(record.spot?.desktop&&record.slideTo===1&&record.slide<1))desktopLayoutFrame=true;
+      if(poseRecord(record,now))busy=true;
+    }
     if (yawTween) {
       const t = Math.min(1, (now - yawTween.start) / YAW_MS);
       yaw = yawTween.from * (1 - easeOut(t));
@@ -1024,6 +1101,8 @@ export async function mountBag(container, {
       lastRender = now;
       renderer.render(scene, camera);
     }
+    // Include the frame on which an arrival finishes, so its name can fade in.
+    if(desktopLayoutFrame)container.dispatchEvent(new CustomEvent('bagviewlayout'));
     if (!busy && !ambient && !needsRender) stopLoop();
   };
 
@@ -1076,7 +1155,12 @@ export async function mountBag(container, {
     return all.map(placement => {
       // An out disc's target is where it rests (or is heading), whole and face-on.
       const record = records.get(placement.key);
-      if (isOut(placement.key) && record.spot) return { key: placement.key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: false, shape: 'ellipse', out: true, position: placement.position, ...boxOf(placement, toBagFrame(record.spot.to), false, true) };
+      if (isOut(placement.key) && record.spot) {
+        // Existing paths use target hit boxes. Desktop count-size glides expose
+        // live bounds so their hit targets and HTML names travel with the mesh.
+        const pose=record.spot.sizeDuration?spotAt(record,performance.now()):record.spot.to;
+        return { key: placement.key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: false, shape: 'ellipse', out: true, arriving:!!record.spot.desktop && record.slide<1, position: placement.position, ...boxOf(placement, toBagFrame(pose), false, true) };
+      }
       const box = boxOf(placement, undefined, true);
       const rect = { key: placement.key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty, shape: placement.mouth === undefined ? 'ellipse' : 'dome', position: placement.position, ...box };
       const i = mains.indexOf(placement), n = mains.length;
@@ -1142,11 +1226,11 @@ export async function mountBag(container, {
     }
     return { left, top, width: right - left, height: bottom - top };
   };
-  const discScreenRect = key => {
+  const discScreenRect = (key,{rim=false}={}) => {
     const record = records.get(key);
     if (!record) return null;
     camera.updateMatrixWorld();
-    return boxOf(record.placement, { position: record.mesh.position, quaternion: record.mesh.quaternion, scale: record.mesh.scale });
+    return boxOf(record.placement, { position: record.mesh.position, quaternion: record.mesh.quaternion, scale: record.mesh.scale },false,rim);
   };
 
   return {
@@ -1196,7 +1280,7 @@ export async function mountBag(container, {
     // every layout), the camera's pull-back now and where it is heading, and whether anything is still moving.
     get stage() {
       const now = performance.now(), moving = pullTween !== null || [...records.values()].some(r => r.slide !== r.slideTo || (r.spot?.from && now - r.spot.start < r.spot.duration));
-      return { mode: stagedMode, sides: Object.fromEntries(sides), around: stageAround, brick: stageBrick, scale: stageScale, labels: nameSpot, fits: stageFits, pull, pullGoal, moving };
+      return { mode: stagedMode, sides: Object.fromEntries(sides), around: stageAround, brick: stageBrick, scale: stageScale, labels: nameSpot, fits: stageFits, pull, pullGoal, moving, ...(desktopSizeState?{sizing:desktopSizeState}:{}) };
     },
     // Where an out disc rests (or is heading), in container pixels, once the camera has
     // settled at its pull-back (so a page can scroll it into view while it still moves).

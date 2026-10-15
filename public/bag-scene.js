@@ -394,7 +394,20 @@ export class BagScene {
   this.wideCanvas(!!coming);
   // Each name's room: the name with NAME_SPACE around it, and NAME_GAP from its disc.
   const labels=new Map(this.out.map(id=>{const node=this.nameNode(id);node.hidden=false;return [id,{width:node.offsetWidth+2*NAME_SPACE+NAME_GAP,height:node.offsetHeight+NAME_GAP+NAME_SPACE}];}));
-  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,instant}),stage=this.viewer.stage;
+  // Desktop My Bag alone opts into count sizing. Measure the complete physical
+  // bag so its original all-out frame supplies the floor and every label fits.
+  let desktopSizing=null;
+  if(this.out.length && matchMedia('(min-width:701px)').matches){
+   const physical=new Set([...this.layer.querySelectorAll('[data-physical-disc]')].map(node=>node.dataset.physicalDisc));
+   const entries=this.items.filter(item=>physical.has(item.id)).map(item=>{
+    const mold=this.lookup(item.mold_id),node=this.nameNode(item.id);node.hidden=false;
+    return {key:item.id,atlas:atlas.get(item.id)??(mold && window.AtlasLayout?.positions([mold]).get(mold.id))??null,
+     label:{width:node.offsetWidth+2*NAME_SPACE+NAME_GAP,height:node.offsetHeight+NAME_GAP+NAME_SPACE}};
+   });
+   desktopSizing={entries};
+  }
+  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,instant,desktopSizing}),stage=this.viewer.stage;
+  this.root.toggleAttribute('data-desktop-sizing',!!stage.sizing);
   if(stage.mode){this.root.dataset.stage=stage.mode;this.root.dataset.out=String(this.viewer.outDiscs.length);this.root.dataset.names=stage.labels;}
   else{delete this.root.dataset.stage;delete this.root.dataset.out;delete this.root.dataset.names;}
   this.root.dataset.staging='moving';
@@ -600,6 +613,7 @@ export class BagScene {
    const cx=rect && rect.left+rect.width/2,cy=rect && rect.top+rect.height/2;
    if(!rect || cx<0 || cx>width || cy<0 || cy>height){node.hidden=true;delete node.dataset.shown;continue;}
    node.hidden=false;
+   node.classList.toggle('is-arriving',!!rect.arriving);
    const w=node.offsetWidth,h=node.offsetHeight,out=(stage.sides[id]??(cx<centerX?'left':'right'))==='left'?-1:1,bottom=rect.top+rect.height;
    // Under the disc (centered, or flush with its inner edge toward the bag), or beside it away from the bag.
    const under=[stage.labels==='flush'?(out<0?rect.left+rect.width-w/2:rect.left+w/2):cx,bottom+NAME_GAP],beside=[out<0?rect.left-NAME_GAP-w/2:rect.left+rect.width+NAME_GAP+w/2,cy-h/2];
