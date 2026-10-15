@@ -120,16 +120,39 @@ export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const {color}=delightPixels(pixels.data,size);ctx.putImageData(pixels,0,0);
  return {canvas,color};
 }
+let canvasWebP,webpModule;
+const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+function supportsCanvasWebP(){
+ return canvasWebP||= (async()=>{
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+  try{const blob=await canvasBlob(canvas,.86);return blob?blob.type==='image/webp':null;}
+  finally{canvas.width=canvas.height=0;}
+ })();
+}
+async function fallbackWebP(canvas,quality){
+ let codec;
+ try{codec=await (webpModule||=import('./disc-webp.mjs').catch(error=>{webpModule=null;throw error;}));}
+ catch(error){throw Error('Local WebP encoder could not load. Check your connection and reload this page.',{cause:error});}
+ // Only the already cropped, de-lit pixels reach the encoder. Never original bytes or metadata.
+ return codec.encodeWebP(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),quality);
+}
 // Resolves to {blob, color}: the upload and the plate colour the disc should start with.
 export async function preparePhoto(image,options={}){
+ let native=await supportsCanvasWebP(),encoded=0,empty=0;
  for(const size of [1024,768,512]){
   const {canvas,color}=albedoCanvas(image,options,size);
-  for(const quality of [.86,.72,.56,.4]){
-   const blob=await new Promise(r=>canvas.toBlob(r,'image/webp',quality));
-   if(blob?.type==='image/webp'&&blob.size<=PHOTO_BYTES)return {blob,color};
-  }
+  try{
+   for(const quality of [.86,.72,.56,.4]){
+    let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
+    // A null result is an encode failure, not evidence that WebP is unsupported.
+    if(blob&&blob.type!=='image/webp'){native=false;blob=await fallbackWebP(canvas,quality);}
+    if(!blob){empty++;continue;}
+    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color};
+   }
+  }finally{canvas.width=canvas.height=0;}
  }
- throw Error('This photo could not be compressed. Try another photo.');
+ if(!encoded)throw Error('The browser returned no image data while encoding this photo. Close other tabs and retry.');
+ throw Error('The encoded photo still exceeds 512 KiB at 512 pixels and 40% quality.'+(empty?' The browser also returned empty encoding results.':''));
 }
 export async function processPhoto(image,options={}){return (await preparePhoto(image,options)).blob;}
 

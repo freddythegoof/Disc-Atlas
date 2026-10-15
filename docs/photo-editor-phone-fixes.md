@@ -33,3 +33,25 @@ Each cell below lists bytes at quality **.86, .72, .56, .4**, in that order:
 Native `preparePhoto` accepts 1024/.86 at 90,764 bytes. PNG and null each exhaust 12 attempts and throw `This photo could not be compressed. Try another photo.` Even the sub-cap PNG at 512 fails on type alone; PNG quality has no effect. This evidence was collected and recorded before implementing the fix.
 
 Standalone phone probe: [photo-encode.html](../tests/diagnostics/photo-encode.html). Copy this one HTML file to a phone-accessible dev host or open it locally in Safari; select the failing photo and copy the printed support result and 12-row matrix. It has no external dependencies or upload code. It uses a centered circular crop without the app's lighting correction, so exact byte counts differ; the encoding API, requested types, sizes and qualities are identical. Its answer on Freddy's iPhone is ground truth. It is outside `public/` and is not shipped by the app build.
+
+## Part 2 — compression fix and proof
+
+One 1 px canvas probe per module lifetime distinguishes WebP, a returned alternative format, and an inconclusive null. WebP remains the native `toBlob` fast path with identical sizes/qualities. A returned PNG triggers dynamic import of `disc-webp.mjs`, then the pinned portable jSquash encoder. A later unexpected PNG also recovers at the same rung. Null results retain native retries at the original qualities/sizes; they do not masquerade as missing format support. Each rung's canvas is released after use. Original bytes never enter the encoder: it sees only the exact existing cropped, de-lit RGBA pixels; color measurement is untouched.
+
+Errors distinguish empty native encoding results, genuine 512 KiB exhaustion, encoder import/download failure, and WASM encoding failure. A failed WASM download can be retried in-place; a failed JavaScript module import asks for reload (browser module maps cache import failures).
+
+New lazy executable payload: **321,869 bytes raw / 126,320 gzip-9 / 101,105 Brotli**, summing independently compressed files. WASM alone: 281,261 raw / 114,911 gzip / 90,860 Brotli. Native browsers fetch none of it. [Vendor provenance, hashes and licenses](../public/vendor/webp/README.md); package source: [jSquash](https://github.com/jamsinclair/jSquash). No application package or lockfile change.
+
+`node tests/photo-compression-browser.mjs` first failed against unmodified `preparePhoto` with `chromium/png: This photo could not be compressed. Try another photo.` After the fix it passes in both engines, using the real WASM encoder and the unchanged production Worker `photoRoute` to validate every returned upload structurally (storage alone is doubled).
+
+| Case (both engines) | After |
+| --- | --- |
+| Native | 1024 px, 90,764 bytes; exact equality with original native canvas output; no fallback requests |
+| PNG, including unexpected PNG after successful probe | 1024 px, 88,778 bytes; structurally valid WebP, below 512 KiB |
+| Repeated unsupported saves | One probe, one WASM download |
+| All null | Honest `browser returned no image data` error; no WASM download |
+| 1024 null, smaller succeeds | Original four 1024 attempts, then 768/.86, 63,398 bytes |
+| Every encoded blob over cap | All 12 rungs in original order, honest 512 KiB error |
+| WASM download HTTP 503 then retry | Load-specific error, then valid 88,778-byte WebP |
+
+Full after results: [compression-tests.json](photo-phone-evidence/compression-tests.json). Existing photo math/albedo/Worker/race/HEIC-sniff unit suites: **27/27 pass**. Changed source lint: clean.
