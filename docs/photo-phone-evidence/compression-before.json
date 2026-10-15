@@ -1,0 +1,838 @@
+[
+  {
+    "engine": "chromium",
+    "version": "151.0.7922.34",
+    "mode": "native",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "webp": true,
+    "rows": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 90764
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": "image/webp",
+        "bytes": 49296
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": "image/webp",
+        "bytes": 40076
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": "image/webp",
+        "bytes": 32836
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 63398
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": "image/webp",
+        "bytes": 34920
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": "image/webp",
+        "bytes": 28224
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": "image/webp",
+        "bytes": 23282
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 36336
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": "image/webp",
+        "bytes": 21006
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": "image/webp",
+        "bytes": 17426
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": "image/webp",
+        "bytes": 14226
+      }
+    ],
+    "steps": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 90764
+      }
+    ],
+    "outcome": {
+      "type": "image/webp",
+      "bytes": 90764
+    }
+  },
+  {
+    "engine": "chromium",
+    "version": "151.0.7922.34",
+    "mode": "png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "webp": false,
+    "rows": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 453270
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 453270
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 453270
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 453270
+      }
+    ],
+    "steps": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 1527769
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 932664
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 453270
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 453270
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 453270
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 453270
+      }
+    ],
+    "outcome": {
+      "error": "This photo could not be compressed. Try another photo."
+    }
+  },
+  {
+    "engine": "chromium",
+    "version": "151.0.7922.34",
+    "mode": "null",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "webp": false,
+    "rows": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      }
+    ],
+    "steps": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      }
+    ],
+    "outcome": {
+      "error": "This photo could not be compressed. Try another photo."
+    }
+  },
+  {
+    "engine": "webkit",
+    "version": "26.5",
+    "mode": "native",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "webp": true,
+    "rows": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 90764
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": "image/webp",
+        "bytes": 49296
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": "image/webp",
+        "bytes": 40076
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": "image/webp",
+        "bytes": 32836
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 63398
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": "image/webp",
+        "bytes": 34920
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": "image/webp",
+        "bytes": 28224
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": "image/webp",
+        "bytes": 23282
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 36336
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": "image/webp",
+        "bytes": 21006
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": "image/webp",
+        "bytes": 17426
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": "image/webp",
+        "bytes": 14226
+      }
+    ],
+    "steps": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/webp",
+        "bytes": 90764
+      }
+    ],
+    "outcome": {
+      "type": "image/webp",
+      "bytes": 90764
+    }
+  },
+  {
+    "engine": "webkit",
+    "version": "26.5",
+    "mode": "png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "webp": false,
+    "rows": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 380658
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 380658
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 380658
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 380658
+      }
+    ],
+    "steps": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 1227849
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 764461
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": "image/png",
+        "bytes": 380658
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": "image/png",
+        "bytes": 380658
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": "image/png",
+        "bytes": 380658
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": "image/png",
+        "bytes": 380658
+      }
+    ],
+    "outcome": {
+      "error": "This photo could not be compressed. Try another photo."
+    }
+  },
+  {
+    "engine": "webkit",
+    "version": "26.5",
+    "mode": "null",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "webp": false,
+    "rows": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      }
+    ],
+    "steps": [
+      {
+        "size": 1024,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 1024,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 768,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.86,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.72,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.56,
+        "type": null,
+        "bytes": null
+      },
+      {
+        "size": 512,
+        "quality": 0.4,
+        "type": null,
+        "bytes": null
+      }
+    ],
+    "outcome": {
+      "error": "This photo could not be compressed. Try another photo."
+    }
+  }
+]

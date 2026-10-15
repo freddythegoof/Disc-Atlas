@@ -1,0 +1,578 @@
+[
+  {
+    "engine": "chromium",
+    "mode": "png",
+    "type": "image/webp",
+    "bytes": 88778,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "mode": "png-jpeg",
+    "type": "image/webp",
+    "bytes": 88740,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "mode": "png-heic",
+    "type": "image/webp",
+    "bytes": 22990,
+    "color": "#dc7257",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "mode": "native",
+    "type": "image/webp",
+    "bytes": 90764,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ]
+    ],
+    "nativeEqual": true,
+    "requests": []
+  },
+  {
+    "engine": "chromium",
+    "mode": "null",
+    "error": "The browser returned no image data while encoding this photo. Close other tabs and retry.",
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ],
+      [
+        1024,
+        0.72
+      ],
+      [
+        1024,
+        0.56
+      ],
+      [
+        1024,
+        0.4
+      ],
+      [
+        768,
+        0.86
+      ],
+      [
+        768,
+        0.72
+      ],
+      [
+        768,
+        0.56
+      ],
+      [
+        768,
+        0.4
+      ],
+      [
+        512,
+        0.86
+      ],
+      [
+        512,
+        0.72
+      ],
+      [
+        512,
+        0.56
+      ],
+      [
+        512,
+        0.4
+      ]
+    ],
+    "requests": []
+  },
+  {
+    "engine": "chromium",
+    "mode": "transient-null",
+    "type": "image/webp",
+    "bytes": 63398,
+    "color": "#de5852",
+    "dimensions": [
+      768,
+      768
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ],
+      [
+        1024,
+        0.72
+      ],
+      [
+        1024,
+        0.56
+      ],
+      [
+        1024,
+        0.4
+      ],
+      [
+        768,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": []
+  },
+  {
+    "engine": "chromium",
+    "mode": "oversize",
+    "error": "The encoded photo still exceeds 512 KiB at 512 pixels and 40% quality.",
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ],
+      [
+        1024,
+        0.72
+      ],
+      [
+        1024,
+        0.56
+      ],
+      [
+        1024,
+        0.4
+      ],
+      [
+        768,
+        0.86
+      ],
+      [
+        768,
+        0.72
+      ],
+      [
+        768,
+        0.56
+      ],
+      [
+        768,
+        0.4
+      ],
+      [
+        512,
+        0.86
+      ],
+      [
+        512,
+        0.72
+      ],
+      [
+        512,
+        0.56
+      ],
+      [
+        512,
+        0.4
+      ]
+    ],
+    "requests": []
+  },
+  {
+    "engine": "chromium",
+    "mode": "late-png",
+    "type": "image/webp",
+    "bytes": 88778,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "mode": "WASM download retry",
+    "first": "Local WebP encoder could not load. Check your connection and retry.",
+    "bytes": 88778
+  },
+  {
+    "engine": "webkit",
+    "mode": "png",
+    "type": "image/webp",
+    "bytes": 88778,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "mode": "png-jpeg",
+    "type": "image/webp",
+    "bytes": 88740,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "mode": "png-heic",
+    "type": "image/webp",
+    "bytes": 22990,
+    "color": "#dc7257",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "mode": "native",
+    "type": "image/webp",
+    "bytes": 90764,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ]
+    ],
+    "nativeEqual": true,
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "mode": "null",
+    "error": "The browser returned no image data while encoding this photo. Close other tabs and retry.",
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ],
+      [
+        1024,
+        0.72
+      ],
+      [
+        1024,
+        0.56
+      ],
+      [
+        1024,
+        0.4
+      ],
+      [
+        768,
+        0.86
+      ],
+      [
+        768,
+        0.72
+      ],
+      [
+        768,
+        0.56
+      ],
+      [
+        768,
+        0.4
+      ],
+      [
+        512,
+        0.86
+      ],
+      [
+        512,
+        0.72
+      ],
+      [
+        512,
+        0.56
+      ],
+      [
+        512,
+        0.4
+      ]
+    ],
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "mode": "transient-null",
+    "type": "image/webp",
+    "bytes": 63398,
+    "color": "#de5852",
+    "dimensions": [
+      768,
+      768
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ],
+      [
+        1024,
+        0.72
+      ],
+      [
+        1024,
+        0.56
+      ],
+      [
+        1024,
+        0.4
+      ],
+      [
+        768,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "mode": "oversize",
+    "error": "The encoded photo still exceeds 512 KiB at 512 pixels and 40% quality.",
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ],
+      [
+        1024,
+        0.72
+      ],
+      [
+        1024,
+        0.56
+      ],
+      [
+        1024,
+        0.4
+      ],
+      [
+        768,
+        0.86
+      ],
+      [
+        768,
+        0.72
+      ],
+      [
+        768,
+        0.56
+      ],
+      [
+        768,
+        0.4
+      ],
+      [
+        512,
+        0.86
+      ],
+      [
+        512,
+        0.72
+      ],
+      [
+        512,
+        0.56
+      ],
+      [
+        512,
+        0.4
+      ]
+    ],
+    "requests": []
+  },
+  {
+    "engine": "webkit",
+    "mode": "late-png",
+    "type": "image/webp",
+    "bytes": 88778,
+    "color": "#de5852",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "steps": [
+      [
+        1,
+        0.86
+      ],
+      [
+        1024,
+        0.86
+      ]
+    ],
+    "nativeEqual": false,
+    "requests": [
+      "/disc-webp.mjs",
+      "/vendor/webp/1.5.0/webp_enc.js",
+      "/vendor/webp/1.5.0/meta.js",
+      "/vendor/webp/1.5.0/webp_enc.wasm"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "mode": "WASM download retry",
+    "first": "Local WebP encoder could not load. Check your connection and retry.",
+    "bytes": 88778
+  }
+]

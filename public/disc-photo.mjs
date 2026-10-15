@@ -120,16 +120,39 @@ export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const {color}=delightPixels(pixels.data,size);ctx.putImageData(pixels,0,0);
  return {canvas,color};
 }
+let canvasWebP,webpModule;
+const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
+function supportsCanvasWebP(){
+ return canvasWebP||= (async()=>{
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+  try{const blob=await canvasBlob(canvas,.86);return blob?blob.type==='image/webp':null;}
+  finally{canvas.width=canvas.height=0;}
+ })();
+}
+async function fallbackWebP(canvas,quality){
+ let codec;
+ try{codec=await (webpModule||=import('./disc-webp.mjs').catch(error=>{webpModule=null;throw error;}));}
+ catch(error){throw Error('Local WebP encoder could not load. Check your connection and reload this page.',{cause:error});}
+ // Only the already cropped, de-lit pixels reach the encoder. Never original bytes or metadata.
+ return codec.encodeWebP(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),quality);
+}
 // Resolves to {blob, color}: the upload and the plate colour the disc should start with.
 export async function preparePhoto(image,options={}){
+ let native=await supportsCanvasWebP(),encoded=0,empty=0;
  for(const size of [1024,768,512]){
   const {canvas,color}=albedoCanvas(image,options,size);
-  for(const quality of [.86,.72,.56,.4]){
-   const blob=await new Promise(r=>canvas.toBlob(r,'image/webp',quality));
-   if(blob?.type==='image/webp'&&blob.size<=PHOTO_BYTES)return {blob,color};
-  }
+  try{
+   for(const quality of [.86,.72,.56,.4]){
+    let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
+    // A null result is an encode failure, not evidence that WebP is unsupported.
+    if(blob&&blob.type!=='image/webp'){native=false;blob=await fallbackWebP(canvas,quality);}
+    if(!blob){empty++;continue;}
+    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color};
+   }
+  }finally{canvas.width=canvas.height=0;}
  }
- throw Error('This photo could not be compressed. Try another photo.');
+ if(!encoded)throw Error('The browser returned no image data while encoding this photo. Close other tabs and retry.');
+ throw Error('The encoded photo still exceeds 512 KiB at 512 pixels and 40% quality.'+(empty?' The browser also returned empty encoding results.':''));
 }
 export async function processPhoto(image,options={}){return (await preparePhoto(image,options)).blob;}
 
@@ -200,15 +223,20 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
  dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div><p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><details class="photo-aligner-adjust"><summary>Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
  document.body.append(dialog);
- const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame');
+ const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame'),stage=dq('.photo-aligner-stage');
  // capture is applied only for coarse pointers; desktop keeps the ordinary file picker.
  if(matchMedia('(pointer:coarse)').matches)file.setAttribute('capture','environment');
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,url}.
  // draft: what the aligner is working on {bitmap,options}.
- let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,frameId=0,settle=0,dragging=null;
+ let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,frameId=0,settle=0,gesture=null;
+ const pointers=new Map();
+ const clearGesture=()=>{
+  const ids=[...pointers.keys()];pointers.clear();gesture=null;
+  for(const id of ids)if(view.hasPointerCapture(id))view.releasePointerCapture(id);
+ };
  const releaseUsed=()=>{if(!used)return;URL.revokeObjectURL(used.url);if(used.bitmap!==draft?.bitmap)used.bitmap.close();used=null;};
- const releaseDraft=()=>{if(draft&&draft.bitmap!==used?.bitmap)draft.bitmap.close();draft=null;};
+ const releaseDraft=()=>{clearGesture();if(draft&&draft.bitmap!==used?.bitmap)draft.bitmap.close();draft=null;};
  const renderSheet=()=>{
   const src=used?.url||(removed?null:current);
   q('.bag-photo-thumb').hidden=!src;if(src&&q('.bag-photo-thumb img').getAttribute('src')!==src)q('.bag-photo-thumb img').src=src;if(!src)q('.bag-photo-thumb img').removeAttribute('src');
@@ -224,13 +252,13 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  };
  const sync=()=>{for(const el of dialog.querySelectorAll('[data-photo]'))el.value=draft.options[el.dataset.photo];};
  const openAligner=(bitmap,options)=>{
-  draft={bitmap,options:{...DEFAULTS,...options}};sync();
+  clearGesture();draft={bitmap,options:{...DEFAULTS,...options}};sync();
   dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;
   if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();
  };
  const closeAligner=()=>{serial++;busy=false;releaseDraft();if(dialog.open)dialog.close();};
  dialog.addEventListener('close',()=>{if(draft){serial++;busy=false;releaseDraft();}});
- new ResizeObserver(()=>{if(draft)paint();}).observe(frame);
+ new ResizeObserver(()=>{if(draft){reanchor();paint();}}).observe(frame);
 
  q('.bag-photo-choose').onclick=()=>file.click();
  q('.bag-photo-adjust').onclick=()=>{if(used)openAligner(used.bitmap,used.options);};
@@ -243,7 +271,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  };
  for(const el of dialog.querySelectorAll('[data-aligner-cancel]'))el.onclick=closeAligner;
  dq('[data-aligner-confirm]').onclick=async()=>{
-  if(!draft||busy)return;const id=++serial,{bitmap,options}=draft;busy=true;
+  if(!draft||busy)return;const id=++serial,{bitmap}=draft,options={...draft.options};clearGesture();busy=true;
   dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent='Preparing your photo…';
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
@@ -253,22 +281,55 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
  };
- dialog.addEventListener('input',e=>{if(draft&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;paint(true);}});
+ dialog.addEventListener('input',e=>{if(draft&&!busy&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;reanchor();paint(true);}});
  const clamp=v=>Math.max(0,Math.min(1,v));
  view.onkeydown=e=>{
-  if(!draft)return;const o=draft.options,step=e.shiftKey?.05:.01;
+  if(!draft||busy)return;const o=draft.options,step=e.shiftKey?.05:.01;
   const delta={ArrowLeft:[step,0],ArrowRight:[-step,0],ArrowUp:[0,step],ArrowDown:[0,-step]}[e.key];
-  if(delta){e.preventDefault();o.cx=clamp(o.cx+delta[0]);o.cy=clamp(o.cy+delta[1]);paint(true);return;}
-  if(e.key==='+'||e.key==='='||e.key==='-'){e.preventDefault();o.scale=Math.max(.3,Math.min(1,o.scale+(e.key==='-'?.01:-.01)));sync();paint(true);}
+  if(delta){e.preventDefault();o.cx=clamp(o.cx+delta[0]);o.cy=clamp(o.cy+delta[1]);reanchor();paint(true);return;}
+  if(e.key==='+'||e.key==='='||e.key==='-'){e.preventDefault();o.scale=Math.max(.3,Math.min(1,o.scale+(e.key==='-'?.01:-.01)));reanchor();sync();paint(true);}
  };
- view.onwheel=e=>{if(!draft)return;e.preventDefault();const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));sync();paint(true);};
- // Dragging moves the photo under the finger: one crop radius per half the circle's width on screen.
- view.onpointerdown=e=>{if(!draft)return;view.setPointerCapture(e.pointerId);dragging={x:e.clientX,y:e.clientY,cx:draft.options.cx,cy:draft.options.cy};};
+ view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy)return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);},{passive:false});
+ const midpoint=points=>points.length===1?points[0]:{x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};
+ const distance=points=>points.length<2?0:Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y);
+ const atMidpoint=(point,options,rect,w,h)=>photoPoint(((point.x-rect.left)/rect.width*2-1)*VIEW,((point.y-rect.top)/rect.height*2-1)*VIEW,{...options,width:w,height:h});
+ const reanchor=()=>{
+  if(!draft||!pointers.size){gesture=null;return;}
+  const points=[...pointers.values()].slice(0,2),mid=midpoint(points),rect=view.getBoundingClientRect(),{w,h}=workingCopy(draft.bitmap),options={...draft.options};
+  gesture={mid,rect,w,h,options,span:frame.clientWidth/VIEW,distance:distance(points),source:atMidpoint(mid,options,rect,w,h)};
+ };
+ // Gesture state belongs to this editor, never to its preview/guide canvases' pixels.
+ view.onpointerdown=e=>{
+  if(!draft||busy||e.button!==0)return;e.preventDefault();
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});view.setPointerCapture(e.pointerId);reanchor();
+ };
  view.onpointermove=e=>{
-  if(!dragging||!draft)return;const {w,h}=workingCopy(draft.bitmap),o=draft.options,span=frame.clientWidth/VIEW,radius=Math.min(w,h)*o.scale;
-  o.cx=clamp(dragging.cx-(e.clientX-dragging.x)/span*radius/w);o.cy=clamp(dragging.cy-(e.clientY-dragging.y)/span*radius/h);paint(true);
+  if(!gesture||!draft||busy||!pointers.has(e.pointerId))return;e.preventDefault();
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const points=[...pointers.values()].slice(0,2),mid=midpoint(points),o=draft.options,g=gesture;
+  if(points.length===1){
+   // Preserve the existing mouse/single-finger pan semantics.
+   const radius=Math.min(g.w,g.h)*g.options.scale;
+   o.cx=clamp(g.options.cx-(mid.x-g.mid.x)/g.span*radius/g.w);o.cy=clamp(g.options.cy-(mid.y-g.mid.y)/g.span*radius/g.h);
+  }else{
+   o.scale=Math.max(.3,Math.min(1,g.options.scale*(g.distance||1)/Math.max(1,distance(points))));
+   const source=atMidpoint(mid,{...g.options,scale:o.scale},g.rect,g.w,g.h);
+   o.cx=clamp(g.options.cx+(g.source.x-source.x)/g.w);o.cy=clamp(g.options.cy+(g.source.y-source.y)/g.h);sync();
+  }
+  paint(true);
  };
- view.onpointerup=view.onpointercancel=()=>{dragging=null;};
+ view.onpointerup=view.onpointercancel=view.onlostpointercapture=e=>{
+  if(!pointers.delete(e.pointerId))return;reanchor();
+  if(view.hasPointerCapture(e.pointerId))view.releasePointerCapture(e.pointerId);
+ };
+ // Safari's legacy gesture/double-tap handling must not steal a captured stage gesture.
+ // Explicit passive:false is essential on iOS; controls retain their native taps and sliders.
+ const prevent=e=>{if(e.cancelable)e.preventDefault();};
+ for(const type of ['gesturestart','gesturechange','gestureend'])dialog.addEventListener(type,prevent,{passive:false});
+ for(const type of ['touchstart','touchmove','touchend'])dialog.addEventListener(type,e=>{
+  if(stage.contains(e.target)||e.touches.length>1)prevent(e);
+ },{passive:false});
+ dialog.addEventListener('dblclick',e=>{if(stage.contains(e.target))prevent(e);});
 
  const reset=(item,mold)=>{
   serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();

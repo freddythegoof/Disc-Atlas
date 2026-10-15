@@ -1,0 +1,2198 @@
+[
+  {
+    "scenario": "drag",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "one-finger drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.42986528497409326,
+          "cy": 0.46493264248704663
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 239,
+        "y": 443.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 239,
+        "y": 443.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.42986528497409326,
+          "cy": 0.46493264248704663
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 239,
+        "y": 443.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.42986528497409326,
+          "cy": 0.46493264248704663
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 239,
+        "y": 443.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.42986528497409326,
+          "cy": 0.46493264248704663
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "pinch",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "second finger down",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "pinch out + midpoint pan",
+        "options": {
+          "scale": 0.705,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.4707772020725388,
+          "cy": 0.4853886010362694
+        }
+      },
+      {
+        "label": "pinch in",
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.45054603427660417,
+          "cy": 0.4752730171383021
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 175,
+        "y": 441.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 295,
+        "y": 441.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 335,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 335,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.7036270678304364,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47094792938896124,
+          "cy": 0.4964111730027257
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 175,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.7036270678304364,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47094792938896124,
+          "cy": 0.4964111730027257
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 175,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.705,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.4707772020725388,
+          "cy": 0.4853886010362694
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 320,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.7779310344827586,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47984634625692335,
+          "cy": 0.48085402894407714
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 190,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.45054603427660417,
+          "cy": 0.4752730171383021
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 190,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.45054603427660417,
+          "cy": 0.4752730171383021
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 190,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.45054603427660417,
+          "cy": 0.4752730171383021
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 320,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.45054603427660417,
+          "cy": 0.4752730171383021
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 320,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.45054603427660417,
+          "cy": 0.4752730171383021
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "mid-drag",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "first drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lands",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "two-finger pan",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lifts / loses capture",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "continued single drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 155,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 275,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8545454545454545,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.43092793217145536,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 185,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "cancel",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "first drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lands",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "two-finger pan",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "cancel",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "continued single drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 155,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 275,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8545454545454545,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.43092793217145536,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 185,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointercancel",
+        "id": 2,
+        "x": 185,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 185,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointercancel",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 4,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 4,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 4,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 4,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 4,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "partial-cancel",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "first drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lands",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "two-finger pan",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lifts / loses capture",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "continued single drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 155,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 275,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8545454545454545,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.43092793217145536,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 185,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointercancel",
+        "id": 3,
+        "x": 0,
+        "y": 0,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "lostcapture",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "first drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lands",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "two-finger pan",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "second finger lifts / loses capture",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "continued single drag",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 155,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 175,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 275,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8545454545454545,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.43092793217145536,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 185,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 285,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.41233160621761655,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.3831088082901554,
+          "cy": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "corrected-pinch",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "second finger down",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "pinch out + midpoint pan",
+        "options": {
+          "scale": 0.705,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.4699341855053108,
+          "cy": 0.48603758851929535
+        }
+      },
+      {
+        "label": "pinch in",
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.44922102057228985,
+          "cy": 0.47641849997228036
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 175,
+        "y": 441.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 295,
+        "y": 441.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 335,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 335,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.7036270678304364,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.4687970336194688,
+          "cy": 0.498495032306862
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 175,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.7036270678304364,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.4687970336194688,
+          "cy": 0.498495032306862
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 175,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.705,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.4699341855053108,
+          "cy": 0.48603758851929535
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 320,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.7779310344827586,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.4803317788474749,
+          "cy": 0.4801661412630671
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 190,
+        "y": 451.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.44922102057228985,
+          "cy": 0.47641849997228036
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 190,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.44922102057228985,
+          "cy": 0.47641849997228036
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 190,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.44922102057228985,
+          "cy": 0.47641849997228036
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 320,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.44922102057228985,
+          "cy": 0.47641849997228036
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 320,
+        "y": 451.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8676923076923077,
+          "aspect": 1.2,
+          "perspective": 0.12,
+          "angle": 35,
+          "cx": 0.44922102057228985,
+          "cy": 0.47641849997228036
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "bounds",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "scale lower bound",
+        "options": {
+          "scale": 0.3,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "scale upper bound",
+        "options": {
+          "scale": 1,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 195,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 235,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 395,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 395,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.3,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.4253886010362694,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 35,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.3,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.4253886010362694,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 35,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.3,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.3,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5792746113989637,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 205,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 1,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 205,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 1,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 205,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 1,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 1,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 1,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "controls",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "keyboard and wheel",
+        "options": {
+          "scale": 0.9875079882871844,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.49,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "sliders",
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.49,
+          "cy": 0.5
+        }
+      },
+      {
+        "label": "mouse drag",
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.44025906735751297,
+          "cy": 0.4751295336787565
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 2,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 1,
+        "x": 215,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.49,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerdown",
+        "id": 1,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.49,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 1,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.49,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 1,
+        "x": 235,
+        "y": 441.5,
+        "captured": true,
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.44025906735751297,
+          "cy": 0.4751295336787565
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 1,
+        "x": 235,
+        "y": 441.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.44025906735751297,
+          "cy": 0.4751295336787565
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 1,
+        "x": 235,
+        "y": 441.5,
+        "captured": false,
+        "options": {
+          "scale": 0.8,
+          "aspect": 1.1,
+          "perspective": 0.08,
+          "angle": 45,
+          "cx": 0.44025906735751297,
+          "cy": 0.4751295336787565
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "reset",
+    "rect": {
+      "x": 22,
+      "y": 238.5,
+      "width": 386,
+      "height": 386
+    },
+    "snapshots": [
+      {
+        "label": "new draft drag after reset",
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      }
+    ],
+    "events": [
+      {
+        "event": "pointerdown",
+        "id": 2,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 2,
+        "x": 235,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 2,
+        "x": 235,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.44155440414507774,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 2,
+        "x": 235,
+        "y": 431.5,
+        "captured": false,
+        "options": {}
+      },
+      {
+        "event": "pointerdown",
+        "id": 3,
+        "x": 215,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "gotpointercapture",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.5,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointermove",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": true,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "pointerup",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      },
+      {
+        "event": "lostpointercapture",
+        "id": 3,
+        "x": 225,
+        "y": 431.5,
+        "captured": false,
+        "options": {
+          "scale": 0.94,
+          "aspect": 1,
+          "perspective": 0,
+          "angle": 0,
+          "cx": 0.47077720207253887,
+          "cy": 0.5
+        }
+      }
+    ]
+  }
+]

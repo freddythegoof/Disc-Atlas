@@ -1,0 +1,47 @@
+[
+  {
+    "name": "unit-photo-bag-viewer",
+    "status": 0
+  },
+  {
+    "name": "photo-HEIC",
+    "status": 0
+  },
+  {
+    "name": "bag",
+    "status": 0
+  },
+  {
+    "name": "disc3d",
+    "status": 0
+  },
+  {
+    "name": "disc3d-popout",
+    "status": 0
+  },
+  {
+    "name": "motion",
+    "status": 0
+  },
+  {
+    "name": "photo-texture-perf",
+    "status": 0
+  },
+  {
+    "name": "changed-lint",
+    "status": 0
+  },
+  {
+    "name": "photo-phone",
+    "status": 0
+  },
+  {
+    "name": "JPEG-HEIC-WASM-integration",
+    "status": 0
+  },
+  {
+    "name": "atlas-perf-gate",
+    "status": 1,
+    "note": "Phone median long tasks 19 > limit 17; recorded once, thresholds unchanged"
+  }
+]
