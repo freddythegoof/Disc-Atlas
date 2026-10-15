@@ -26,6 +26,29 @@ const luma=(r,g,b)=>.2126*r+.7152*g+.0722*b;
 const basis=(x,y)=>[1,x,y,x*x,x*y,y*y];
 const median=values=>{const s=Float64Array.from(values).sort();return s.length?s[s.length>>1]:0;};
 
+// Equal angular votes across the photographed overmold, outside the projection seam.
+// Discard the transparent edge and seam bleed, then reject high-luminance specular
+// outliers relative to this rim (so a genuinely white rim stays white).
+export function rimColor(data,size,inner){
+ if(!Number.isFinite(inner)||inner<=0||inner>=1)return null;
+ const lo=inner+Math.max(2/size,(1-inner)*.08),hi=1-Math.max(2/size,.02);
+ if(lo>=hi)return null;
+ const samples=[];
+ for(let ring=0;ring<4;ring++)for(let a=0;a<128;a++){
+  const radius=lo+(hi-lo)*(ring+.5)/4,angle=(a+.5)*Math.PI*2/128;
+  const x=Math.floor((1+radius*Math.cos(angle))*size/2),y=Math.floor((1+radius*Math.sin(angle))*size/2),k=(y*size+x)*4;
+  if(data[k+3]<250)continue;
+  const rgb=[toLinear[data[k]],toLinear[data[k+1]],toLinear[data[k+2]]];
+  samples.push({rgb,y:luma(...rgb)});
+ }
+ if(samples.length<256)return null;
+ const levels=samples.map(s=>s.y).sort((a,b)=>a-b),m=median(levels);
+ const mad=median(levels.map(v=>Math.abs(v-m)));
+ const ceiling=Math.min(levels[Math.floor((levels.length-1)*.9)],m+3*Math.max(.005,1.4826*mad));
+ const kept=samples.filter(s=>s.y<=ceiling);
+ return '#'+[0,1,2].map(c=>encode(median(kept.map(s=>s.rgb[c]))).toString(16).padStart(2,'0')).join('');
+}
+
 // Weighted least squares for the six quadratic terms (normal equations, Gaussian elimination).
 function fitQuadratic(xs,ys,zs,ws){
  const n=6,A=Array.from({length:n},()=>new Float64Array(n+1));

@@ -14,11 +14,46 @@ function fixture(){
  const objects=new Map();let failDelete=false,afterPut=null;
  const TEXTURES={async put(k,v){objects.set(k,new Uint8Array(v));await afterPut?.(k);},async get(k){return objects.has(k)?{body:objects.get(k)}:null;},async delete(k){if(failDelete)throw Error('R2 unavailable');objects.delete(k);}};
  const bag=createBag({session:async r=>r.headers.get('User')?{id:r.headers.get('User'),csrf_token:'token'}:null});
- const call=(method='GET',body,user='a',path='/api/bag/discs/disc/photo')=>bag.fetch(new Request('https://atlas.example'+path,{method,headers:{User:user,Origin:'https://atlas.example','X-Atlas-CSRF':'token','Content-Type':'image/webp'},body}),{DB,TEXTURES});
+ const call=(method='GET',body,user='a',path='/api/bag/discs/disc/photo',headers={})=>bag.fetch(new Request('https://atlas.example'+path,{method,headers:{User:user,Origin:'https://atlas.example','X-Atlas-CSRF':'token','Content-Type':'image/webp',...headers},body}),{DB,TEXTURES});
  return {db,DB,TEXTURES,objects,call,setFailDelete:v=>failDelete=v,setAfterPut:fn=>afterPut=fn};
 }
 // Bounded lossless WebP header. Real codec/alpha tests run in the browser suite.
 const webp=()=>{const b=new Uint8Array(32);b.set(Buffer.from('RIFF'));new DataView(b.buffer).setUint32(4,24,true);b.set(Buffer.from('WEBPVP8L'),8);new DataView(b.buffer).setUint32(16,12,true);b[20]=0x2f;new DataView(b.buffer).setUint32(21,1023|(1023<<14),true);return b;};
+
+test('photo rim is stored with attachment, replaced, read fresh and cleared on removal without touching explicit rim',async()=>{
+ const s=fixture();try{
+  s.db.prepare("UPDATE bag_discs SET rim_color='#123456'").run();
+  const upload=color=>s.call('PUT',webp(),'a','/api/bag/discs/disc/photo',{'X-Atlas-Photo-Rim-Color':color});
+  assert.equal((await upload('#101418')).status,200);
+  let fresh=await (await s.call('GET',undefined,'a','/api/bag/discs/disc')).json();
+  assert.equal(fresh.disc.photo_rim_color,'#101418');assert.equal(fresh.disc.rim_color,'#123456');
+  assert.equal((await upload('#E4E8EC')).status,200);
+  fresh=await (await s.call('GET',undefined,'a','/api/bag')).json();
+  assert.equal(fresh.discs[0].photo_rim_color,'#e4e8ec');
+  const before=s.db.prepare('SELECT * FROM bag_discs').get();
+  for(const color of ['white','#fff','#gg0000','rgb(1,2,3)'])assert.equal((await upload(color)).status,400);
+  assert.deepEqual(s.db.prepare('SELECT * FROM bag_discs').get(),before,'invalid samples do not replace photo or color');
+  assert.equal((await s.call('PUT',webp())).status,200,'older clients can replace without a sample');
+  assert.equal(s.db.prepare('SELECT photo_rim_color FROM bag_discs').get().photo_rim_color,null,'replacement cannot retain stale sample');
+  await upload('#101418');
+  await s.call('DELETE');
+  const row=s.db.prepare('SELECT * FROM bag_discs').get();
+  assert.equal(row.texture_key,null);assert.equal(row.photo_rim_color,null);assert.equal(row.rim_color,'#123456');
+ }finally{s.db.close();}
+});
+
+test('photo rim migration preserves old photos and explicit colors and rejects malformed stored colors',()=>{
+ const db=new DatabaseSync(':memory:');try{
+  for(const f of fs.readdirSync('migrations/accounts').sort().filter(f=>f<'0011'))db.exec(fs.readFileSync('migrations/accounts/'+f,'utf8'));
+  db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('a','a','a@example.com','A',1,1);
+  db.prepare('INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,added_at,rim_color,texture_key) VALUES (?,?,?,?,?,?,?,?,?)').run('d','a','m','p',10,175,'now','#abcdef','00000000-0000-0000-0000-000000000000.webp');
+  const before=db.prepare('SELECT * FROM bag_discs').get();
+  assert.ok(fs.existsSync('migrations/accounts/0011_photo_rim_color.sql'),'dedicated nullable column migration must exist');
+  db.exec(fs.readFileSync('migrations/accounts/0011_photo_rim_color.sql','utf8'));
+  const {photo_rim_color,...after}=db.prepare('SELECT * FROM bag_discs').get();assert.equal(photo_rim_color,null);assert.deepEqual(after,{...before});
+  for(const c of ['#fff','black','#zz1122'])assert.throws(()=>db.prepare('UPDATE bag_discs SET photo_rim_color=?').run(c));
+ }finally{db.close();}
+});
 
 const chunk=(type,payload)=>{const b=Buffer.alloc(8+payload.length+(payload.length%2));b.write(type);b.writeUInt32LE(payload.length,4);b.set(payload,8);return b;};
 const container=(...chunks)=>{const b=Buffer.concat([Buffer.from('RIFF0000WEBP'),...chunks]);b.writeUInt32LE(b.length-8,4);return b;};
@@ -95,11 +130,12 @@ test('a delayed upload cannot resurrect a deleted disc or overwrite a newer phot
   const s=fixture();try{
    let release,started;const waiting=new Promise(r=>release=r),putStarted=new Promise(r=>started=r);
    s.setAfterPut(async()=>{s.setAfterPut(null);started();await waiting;});
-   const late=s.call('PUT',webp());await putStarted;
+   const late=s.call('PUT',webp(),'a','/api/bag/discs/disc/photo',{'X-Atlas-Photo-Rim-Color':'#101418'});await putStarted;
    if(change==='delete')assert.equal((await s.call('DELETE',undefined,'a','/api/bag/discs/disc')).status,200);
-   else assert.equal((await s.call('PUT',webp())).status,200);
+   else assert.equal((await s.call('PUT',webp(),'a','/api/bag/discs/disc/photo',{'X-Atlas-Photo-Rim-Color':'#e4e8ec'})).status,200);
    const saved=s.db.prepare('SELECT texture_key FROM bag_discs').get()?.texture_key;
    release();assert.equal((await late).status,409);
+   assert.equal(s.db.prepare('SELECT photo_rim_color FROM bag_discs').get()?.photo_rim_color,change==='delete'?undefined:'#e4e8ec','late photo cannot overwrite the newer sample');
    assert.deepEqual([...s.objects.keys()],saved?[saved]:[]);
    assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM texture_cleanup').get().n,0);
   }finally{s.db.close();}

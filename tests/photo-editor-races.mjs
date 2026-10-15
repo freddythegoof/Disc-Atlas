@@ -67,6 +67,21 @@ test('account switch during photo compression prevents all save requests',async(
  assert.equal(f.counts.refreshes,0);
 });
 
+test('photo attachment keeps the captured rim sample when photo controls change during disc save',async()=>{
+ for(const changedSample of ['#e4e8ec',null]){
+  const wait=deferred(),started=deferred(),f=editorFixture(),fetch=f.context.fetch;
+  f.context.photoEditor.photoRimColor='#101418';
+  f.context.fetch=async(url,options)=>{
+   if(!url.endsWith('/photo')){started.resolve();await wait.promise;}
+   return fetch(url,options);
+  };
+  const saving=f.submit();await started.promise;
+  f.context.photoEditor.photoRimColor=changedSample;wait.resolve();await saving;
+  const upload=f.calls.find(c=>c.url.endsWith('/photo'));
+  assert.equal(upload.headers['X-Atlas-Photo-Rim-Color'],'#101418','sample belongs to the captured blob');
+ }
+});
+
 test('network failure preserves the saved copy and successful retry updates exactly one item',async()=>{
  let attempts=0;
  const f=editorFixture({upload:async()=>{

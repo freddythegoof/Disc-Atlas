@@ -5,6 +5,7 @@
 // drawing. The lists below remain the full keyboard path.
 import {rackCount,rackSlot,RACK_CAPACITY} from './collection3d/rack-layout.mjs';
 import {epitaph,lifespan,restingPlace} from './collection3d/graveyard-layout.mjs';
+import {bagRimColor} from './disc3d/overmold.mjs';
 import {RACK_STYLES,rackStyle} from './bag-values.js';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -128,7 +129,7 @@ export class StorageScene extends CollectionScene{
   if(focused)this.card.querySelector(`[data-storage-action="${focused}"]`)?.focus({preventScroll:true});
  }
  draw(viewer){
-  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:i.rim_color,photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d)};}));
+  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:bagRimColor(i),photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d)};}));
   if(this.picked&&viewer.state.pulled!==this.picked)viewer.pull(this.picked);
   if(!this.picked&&viewer.state.pulled)viewer.putBack();
  }
@@ -210,7 +211,7 @@ export class LostScene extends CollectionScene{
   if(focused)this.card.querySelector(focused==='found'?'[data-grave-found]':`[data-grave-step="${focused}"]`)?.focus({preventScroll:true});
  }
  draw(viewer){
-  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:i.rim_color,photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d),lines:this.lines(i)};}));
+  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:bagRimColor(i),photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d),lines:this.lines(i)};}));
   viewer.select(this.selected);this.placeTargets();
  }
 }
