@@ -55,3 +55,28 @@ New lazy executable payload: **321,869 bytes raw / 126,320 gzip-9 / 101,105 Brot
 | WASM download HTTP 503 then retry | Load-specific error, then valid 88,778-byte WebP |
 
 Full after results: [compression-tests.json](photo-phone-evidence/compression-tests.json). Existing photo math/albedo/Worker/race/HEIC-sniff unit suites: **27/27 pass**. Changed source lint: clean.
+
+Existing local D1/R2 photo browser suite also passes, including real HEIC decode for four MIME labels, native element/canvas fallbacks and cleanup, 60 MP caps, editor choose/use/save/reload/render/replace, color matching and EXIF/GPS stripping. Its recorded upload remains 25,140 bytes.
+
+## Part 3 — captured pan/pinch gestures
+
+Before: `node tests/photo-gestures-browser.mjs --characterize f31fd41` uses Chromium CDP touch injection with a 430 × 932 mobile viewport and an actual 386 px aligner stage. [Full pre-fix event stream](photo-phone-evidence/gestures-before.json) includes coordinates, pointer IDs/capture and the resulting options after every event. The harness waits two animation frames after each injection so coalesced events and preview redraws settle. Single-pointer cancellation is the only synthetic Pointer Event boundary; CDP's `touchCancel` cancels the entire contact set. All other sequences use real browser-generated Pointer Events from CDP touch input.
+
+| Sequence | Before | After |
+| --- | --- | --- |
+| One finger +24/+12 px | cx .429865285, cy .464932642, scale .94 | Identical |
+| Distance 120 → 160 px; midpoint +20/+10 px | scale .94 (no zoom), cx .850673575 (teleport) | scale **.705**, cx **.470777202**, cy **.485388601** |
+| Pinch back to 130 px | scale .94 | **.867692308** |
+| Drag +20, second finger, two-finger pan +10 | cx **.704559585** (teleport) | **.412331606** |
+| Lift second finger, move survivor +10 | cx .704559585 (stuck) | **.383108808** |
+| Cancel, fresh single drag +10 | cx .675336788 (retains wrong framing) | **.383108808** |
+
+Before assertions fail with `pinch-out scale: 0.94 != 0.705`; the selected cancellation sequence also fails with `mid-drag pan: 0.704559585492228 != 0.41233160621761655`. Both original failure sequences pass after. [Full after stream](photo-phone-evidence/gestures-after.json).
+
+Implementation: one editor-owned pointer map and gesture anchor, with per-pointer capture. One pointer preserves the existing drag semantics. Two pointers invert the distance ratio into crop scale (smaller crop scale means a larger visible photo) and preserve the exact source point under the moving midpoint using the unchanged `photoPoint` projection. Landing, lifting, cancel and lost capture re-anchor without changing any option. Preview/guide redraws do not recreate gesture state. Sliders, wheel, keys and resize re-anchor around the current options. Close/reset/confirm clear captures; confirmation snapshots the options and ignores input while preparing the export.
+
+The stage has `touch-action:none`; the dialog uses `touch-action:manipulation` and retains hidden overflow. Non-passive touch and Safari legacy gesture listeners prevent stage scrolling, page pinch and stage double-tap interference. Native single-finger control taps remain usable. No new gesture payload or library.
+
+`node tests/photo-gestures-browser.mjs` passes ten sequences with **1e-5 tolerance**: drag, pinch in/out with off-center midpoint, mid-drag landing/lift, full cancellation, partial cancellation, lost capture, tilt/aspect/perspective anchoring, both zoom bounds, mouse/wheel/keyboard/sliders after touch, and reset during capture. Capture is asserted for every down; viewport scale and page scroll stay unchanged. Controls test waits for the dialog close event before reopening, matching the editor's asynchronous lifecycle.
+
+`node tests/photo-editor-contract-browser.mjs` compares baseline and final processing in Chromium and WebKit for default, pinched and corrected transforms: **exact RGBA/color/WebP equality** for all three. It also verifies computed touch-action/overflow, effective `preventDefault` for legacy gesture/touch/double-click events and uncancelled native control taps. The dialog guard assertion was observed RED (`auto` instead of `manipulation`) then GREEN. These synthetic legacy events prove listener registration/cancellation, not physical Safari behavior. Guides and crop math are unchanged.
