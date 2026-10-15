@@ -101,3 +101,13 @@ test('a frozen curve fits the current partial bag without forcing the future ful
  assert.equal(layout.max,177);
  assert.ok(layout.diameters.left>60);
 });
+
+test('a pulled disc\'s photo tier covers its device pixels, up to the 3D viewer\'s own (detail) photo',async()=>{
+ const {photoTier,PHOTO_TIERS,DETAIL}=await import('../public/disc3d/quality.mjs');
+ assert.deepEqual(PHOTO_TIERS,[256,512],'thumbnail and Storage tiers, below the detail viewer');
+ assert.equal(photoTier(124.45*2),256,'the pre-change size on a 2× display stays on the thumbnail tier');
+ assert.equal(photoTier(228*2),512,'a middling disc on a 2× display: the smallest tier that covers it');
+ assert.equal(photoTier(409.5*2),null,'the max tier on a 2× display: the viewer\'s own photo (photoSurface\'s 1024 default)');
+ assert.equal(photoTier(513),null,'anything past 512 device px takes the detail photo');
+ assert.equal(DETAIL.maxPixelRatio,2,'the viewer caps its drawing buffer at 2×');
+});

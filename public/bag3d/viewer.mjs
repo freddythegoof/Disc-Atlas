@@ -4,6 +4,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
+import {PLASTICS} from '../disc3d/mesh.mjs';
+import {DETAIL,detailSegments,detailPixelRatio,photoTier} from '../disc3d/quality.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 import {desktopPulledLayout,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
@@ -206,7 +208,13 @@ export async function mountBag(container, {
   setBackground(background);
   // Cap the drawing buffer so a large bag on a dense display stays affordable. Software
   // renderers draw motion at half resolution and settle on one full-resolution frame.
-  let fullRatio = 1, motionRatio = false;
+  // While a pulled disc is drawn the 3D viewer's way (detail looks, below), the canvas draws at the viewer's
+  // own pixel ratio, past `maxPixels`: a disc shown 400 px wide must not be upscaled from a smaller render.
+  let fullRatio = 1, motionRatio = false, detailRatio = false;
+  const ratioFor = (width, height) => {
+    const ratio = Math.max(.5, Math.min(devicePixelRatio, low ? 1 : 2, Math.sqrt(maxPixels / (width * height))));
+    return detailRatio && !low ? Math.max(ratio, detailPixelRatio()) : ratio;
+  };
   const applyRatio = moving => {
     const ratio = moving && low ? Math.max(.35, fullRatio / 2) : fullRatio;
     if (renderer.getPixelRatio() === ratio) return;
@@ -218,7 +226,7 @@ export async function mountBag(container, {
   const resize = () => {
     const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
     sized = { width, height };
-    fullRatio = Math.max(.5, Math.min(devicePixelRatio, low ? 1 : 2, Math.sqrt(maxPixels / (width * height))));
+    fullRatio = ratioFor(width, height);
     renderer.setPixelRatio(fullRatio);
     motionRatio = false;
     renderer.setSize(width, height, false);
@@ -375,7 +383,7 @@ export async function mountBag(container, {
   let mixer, flapAction, flapDuration = 1, compartmentOpen = false, flapMotion = null, flapWaiters = [];
   const discGroup = new THREE.Group();
   const records = new Map();
-  const moldGeometries=new Map();
+  const moldGeometries=new Map(),detailGeometries=new Map();
   let discGeometry, discTemplate, ghostMaterial, fabric = [], accentMaterials = [], placeholders = [], accents = [], glbDiscs = [];
   let layoutMode = false, appliedBagColor = null, accent = new THREE.Color(accentColor ?? '#80bcb0'), liftedKey = null, clipped = { main: 0, putter: 0, goTo: 0 };
   const dispose = () => {
@@ -390,8 +398,8 @@ export async function mountBag(container, {
     controls?.dispose();
     if (mixer && gltf) { mixer.stopAllAction(); mixer.uncacheRoot(gltf.scene); }
     const geometries = new Set(), materials = new Set([...(discFeatures?.originalMaterials ?? []), ...(ghostMaterial ? [ghostMaterial] : [])]), textures = new Set();
-    for (const record of records.values()) for(const material of [record.mesh.material].flat())materials.add(material);
-    for(const entry of moldGeometries.values())geometries.add(entry.geometry);
+    for (const record of records.values()) for(const material of [record.mesh.material,record.detail?.base.material??[]].flat())materials.add(material);
+    for(const entry of [...moldGeometries.values(),...detailGeometries.values()])geometries.add(entry.geometry);
     scene.traverse(object => {
       object.userData.disposePhoto?.();
       if (object.geometry) geometries.add(object.geometry);
@@ -447,6 +455,7 @@ export async function mountBag(container, {
     discTemplate = discFeatures.originalMaterials.values().next().value;
     ghostMaterial = new THREE.MeshBasicMaterial({ color: '#a9b8c9', transparent: true, opacity: .07, depthWrite: false });
     float.add(discGroup);
+    setTimeout(() => warmDetail(), 1500);
   } catch (error) {
     dispose();
     throw error;
@@ -486,15 +495,109 @@ export async function mountBag(container, {
     for(const child of record.mesh.children)if(child.userData.disposePhoto){child.material.emissive.copy(materials[0].emissive);child.material.emissiveIntensity=materials[0].emissiveIntensity;}
   };
 
+  // A pulled disc shown larger than the bag ever showed one before its pulled discs grew (124 px across)
+  // is drawn the 3D viewer's way (disc3d/quality.mjs): the viewer's finer lathe, its default premium
+  // plastic lit by the room as strongly as the viewer lights it, and the photo with its relief, decoded for
+  // the size it shows at, the viewer's own (1024) when large. The canvas meanwhile draws at the viewer's
+  // pixel ratio. A smaller disc (a whole bag out) keeps the bag's own lighter path, as does every disc
+  // in the bag. `shown` is a disc's settled diameter (container px); a disc changes back once it has
+  // shrunk (after its glide) or is home in its pocket.
+  const DETAIL_FROM = 128;
+  const detailMaterial = color => new THREE.MeshPhysicalMaterial({ color, ...PLASTICS.premium, envMap: environment.texture, envMapIntensity: DETAIL.environment / renderer.toneMappingExposure });
+  const setDetailRatio = () => {
+    const on = [...records.values()].some(record => record.detail);
+    if (on === detailRatio) return;
+    detailRatio = on;
+    const width = Math.max(container.clientWidth, 1), height = Math.max(container.clientHeight, 1);
+    fullRatio = ratioFor(width, height); motionRatio = false;
+    renderer.setPixelRatio(fullRatio); renderer.setSize(width, height, false);
+    invalidate();
+  };
+  // The one photo a disc's plate shows: its detail look's ready photo, else the bag's own.
+  const showPhotos = record => {
+    const shown = record.detail?.photos.findLast(photo => photo.userData.photoReady);
+    for (const child of record.mesh.children) if (child.userData.disposePhoto) child.visible = shown ? child === shown : !!child.userData.photoReady;
+  };
+  const dropDetail = record => {
+    const { detail, mesh } = record;
+    if (!detail) return;
+    mesh.geometry = detail.base.geometry; mesh.material = detail.base.material;
+    for (const material of detail.materials) material.dispose();
+    for (const photo of detail.photos) { mesh.remove(photo); photo.userData.disposePhoto(); }
+    record.detail = null;
+    showPhotos(record); paintDisc(record);
+  };
+  // The detail look needs two shader programs the bag otherwise never uses: the premium plate, and a photo
+  // on it with its relief. Compiled on first use they stall the first large pull (~150 ms each, measured), so a
+  // desktop page (where pulled discs grow; My Bag's breakpoint) compiles them once the bag has settled, off the main thread
+  // where the browser can.
+  const warmDetail = () => {
+    if (low || disposed || !matchMedia('(min-width: 701px)').matches) return;
+    const pixel = new THREE.DataTexture(new Uint8Array(4), 1, 1), plate = detailMaterial(new THREE.Color()), photo = plate.clone(), shape = new THREE.PlaneGeometry();
+    pixel.needsUpdate = true; Object.assign(photo, { map: pixel, bumpMap: pixel, transparent: true, depthWrite: false });
+    const group = new THREE.Group().add(new THREE.Mesh(shape, plate), new THREE.Mesh(shape, photo));
+    renderer.compileAsync(group, camera, scene).catch(() => {}).finally(() => { plate.dispose(); photo.dispose(); pixel.dispose(); shape.dispose(); });
+  };
+  const syncLook = (record, now = performance.now()) => {
+    if (low || !record.parts) return;
+    const large = record.slideTo === 1 && record.shown > DETAIL_FROM;
+    if (!large) {
+      // Shrinking: once the size glide ends. Going home: once it is back in its pocket.
+      if (record.detail && (record.slideTo === 1 ? !record.spot?.from || now - record.spot.start >= record.spot.duration : record.slide === 0)) { dropDetail(record); setDetailRatio(); }
+      return;
+    }
+    // A large disc (over twice that old size) takes the viewer's own photo whatever the display's density;
+    // a middling one the smallest tier that still covers its device pixels.
+    const { placement, mesh } = record, tier = record.shown > 2 * DETAIL_FROM ? null : photoTier(record.shown * devicePixelRatio);
+    if (!record.detail) {
+      const key = JSON.stringify(placement.mold);
+      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }));
+      const base = { geometry: mesh.geometry, material: mesh.material }, materials = [base.material].flat().map(material => detailMaterial(material.color));
+      record.detail = { base, materials, parts: detailGeometries.get(key), photos: [], tier: undefined };
+      mesh.geometry = record.detail.parts.geometry; mesh.material = Array.isArray(base.material) ? materials : materials[0];
+      paintDisc(record);
+    }
+    // A photo only ever trades up while the disc is out (a smaller tier would decode the photo again for no gain).
+    // Until it is ready the plate keeps the photo it has.
+    const { detail } = record, rank = size => size ?? Infinity;
+    if (placement.photoURL && (detail.tier === undefined || rank(tier) > rank(detail.tier))) {
+      detail.tier = tier;
+      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
+        if (record.detail !== detail) return;
+        if (photo.userData.photoReady) for (const older of detail.photos.splice(0, detail.photos.indexOf(photo))) { mesh.remove(older); older.userData.disposePhoto(); }
+        showPhotos(record); paintDisc(record); invalidate();
+      } });
+      detail.photos.push(photo); mesh.add(photo);
+    }
+    setDetailRatio();
+  };
+
   // Layout mode replaces the GLB's twelve fixed discs with slots built from the same disc mesh.
   const restPose = placement => ({
     position: new THREE.Vector3(...placement.position),
     quaternion: new THREE.Quaternion().setFromEuler(new THREE.Euler(...placement.rotation)),
     scale: new THREE.Vector3(...placement.scale),
   });
+  // The bag shows a disc's plate by turning its +X toward the viewer about the vertical axis, which
+  // leaves the photo's top pointing sideways. A quarter turn about the disc's own axis first (as the
+  // storage rack's pulled disc does for its stamp) makes the design read upright out of the pocket.
+  // `parts` is the disc's bagDiscGeometry; `options` go to photoSurface.
+  const platePhoto = (parts, url, options) => {
+    const photo = photoSurface(parts.shape, url, options);
+    photo.geometry.rotateY(Math.PI / 2); photo.geometry.translate(0, -parts.center, 0);
+    photo.geometry.scale(DISC.radius * 2 / parts.shape.diameter, DISC.thickness / parts.thickness, DISC.radius * 2 / parts.shape.diameter); photo.geometry.rotateZ(-Math.PI / 2);
+    return photo;
+  };
   const setBagLayout = slots => {
     const previous = new Map([...records.values()].filter(record => !record.placement.empty).map(record => [record.key, record]));
-    for (const record of records.values()) { record.mesh.traverse(o=>o.userData.disposePhoto?.());discGroup.remove(record.mesh); for(const material of [record.mesh.material].flat())if(material!==ghostMaterial)material.dispose(); }
+    // A pulled disc's detail photo is released only after the redrawn disc has taken it up again, so it is not decoded twice.
+    const held = [];
+    for (const record of records.values()) {
+      const kept = record.detail?.photos ?? [];
+      held.push(...kept);
+      record.mesh.traverse(o => { if (!kept.includes(o)) o.userData.disposePhoto?.(); }); discGroup.remove(record.mesh);
+      for (const material of [record.mesh.material, record.detail?.base.material ?? []].flat()) if (material !== ghostMaterial) material.dispose();
+    }
     records.clear();
     const result = bagLayout(slots);
     clipped = result.clipped;
@@ -513,10 +616,8 @@ export async function mountBag(container, {
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
-      // The bag shows a disc's plate by turning its +X toward the viewer about the vertical axis, which
-      // leaves the photo's top pointing sideways. A quarter turn about the disc's own axis first (as the
-      // storage rack's pulled disc does for its stamp) makes the design read upright out of the pocket.
-      if(parts&&placement.photoURL){const photo=photoSurface(parts.shape,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:invalidate});photo.geometry.rotateY(Math.PI/2);photo.geometry.translate(0,-parts.center,0);photo.geometry.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);photo.geometry.rotateZ(-Math.PI/2);mesh.add(photo);}
+      // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
+      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
@@ -525,18 +626,21 @@ export async function mountBag(container, {
       discGroup.add(mesh);
       // Putters have a stowed seat; `out` runs from 0 (stowed) to 1 (standing in their row).
       const out = placement.stow && !puttersOutState ? 0 : 1;
-      const record = { key: placement.key, placement, mesh, rest, lift: 0, liftFrom: 0, liftTo: 0, liftStart: 0, slide: 0, slideFrom: 0, slideTo: 0, slideStart: 0, move: null,
+      const record = { key: placement.key, placement, parts, mesh, rest, detail: null, shown: 0, lift: 0, liftFrom: 0, liftTo: 0, liftStart: 0, slide: 0, slideFrom: 0, slideTo: 0, slideStart: 0, move: null,
         stow: placement.stow ? restPose(placement.stow) : null, out, outFrom: out, outTo: out, outStart: 0, outDuration: 0, glow: 0, glowFrom: 0, glowTo: 0, glowStart: 0 };
       // A disc that changed pockets glides from where it was.
       const before = previous.get(placement.key);
       // An out disc stays out (or keeps sliding) through a redraw.
-      if (before) for (const field of ['slide', 'slideFrom', 'slideTo', 'slideStart', 'slideDuration', 'spot']) record[field] = before[field];
+      if (before) for (const field of ['slide', 'slideFrom', 'slideTo', 'slideStart', 'slideDuration', 'spot', 'shown']) record[field] = before[field];
       if (before && active && !before.slideTo && !before.mesh.position.equals(rest.position)) {
         record.move = { position: before.mesh.position.clone(), quaternion: before.mesh.quaternion.clone(), scale: before.mesh.scale.clone(), start: now };
       }
       records.set(placement.key, record);
       paintDisc(record);
+      syncLook(record, now);
     }
+    for (const photo of held) photo.userData.disposePhoto();
+    setDetailRatio();
     if (!records.has(liftedKey)) liftedKey = null;
     outKeys = outKeys.filter(key => records.has(key));
     if (glowKey !== null && records.has(glowKey)) { const record = records.get(glowKey); record.glow = record.glowFrom = record.glowTo = 1; paintDisc(record); } else glowKey = null;
@@ -755,6 +859,8 @@ export async function mountBag(container, {
             ...(desktopSizing&&from?{sizeDuration:PULLED_SIZE_MS,fromSize:from.scale.x/depthRatio(from.position,pulledHome(pull))/pull,toSize:spot.scale/goal}:{}) };
         }
         if (glide) longest = Math.max(longest, RESTAGE_MS);
+        // Its settled diameter on screen (container px): every out disc draws at its spot's scale at the target's depth.
+        record.shown = 2 * DISC.radius * spot.scale / (unit * goal);
       }
       if (record.slideTo === to && !instant) continue;
       // Progress is linear in time; reversing mid-way covers only the remaining distance.
@@ -763,6 +869,7 @@ export async function mountBag(container, {
       if (instant) record.slide = to;
       longest = Math.max(longest, duration);
     }
+    for (const record of records.values()) syncLook(record, now);
     longest = Math.max(longest, setPull(goal, instant));
     invalidate();
     container.dispatchEvent(new CustomEvent('bagviewlayout'));
@@ -973,6 +1080,7 @@ export async function mountBag(container, {
       }
       mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.scale.copy(pose.scale);
     }
+    if (record.detail) syncLook(record, now);
     return busy;
   };
 
@@ -1381,6 +1489,11 @@ export async function mountBag(container, {
         pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : [mesh.material].flat()[0].emissiveIntensity,
         // Staged out (or heading out), and the spot it rests at in the room's frame.
         out: record.slideTo === 1, spot: record.slideTo === 1 && record.spot ? record.spot.to.position.toArray() : null, spotScale: record.slideTo === 1 && record.spot ? record.spot.scale : null,
+        // What is drawn: the bag's look or the viewer's (detail), the photo actually showing (its decoded
+        // texture size, relief), the mesh's lathe segments and its settled diameter when out.
+        look: record.detail ? 'detail' : 'bag', material: [mesh.material].flat()[0].type, shown: record.slideTo === 1 ? record.shown : null,
+        photo: (() => { const photo = mesh.children.find(child => child.userData.disposePhoto && child.visible), map = photo?.material.map; return photo ? { size: map?.image?.width ?? null, relief: !!photo.material.bumpMap } : null; })(),
+        segments: mesh.geometry.userData.segments ?? null,
       }));
     },
     get renderer() { return { pixelRatio: renderer.getPixelRatio(), width: renderer.domElement.width, height: renderer.domElement.height, rendering: loopOn, visible, quality: low ? 'low' : 'high' }; },
