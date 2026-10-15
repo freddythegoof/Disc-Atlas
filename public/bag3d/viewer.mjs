@@ -699,10 +699,19 @@ export async function mountBag(container, {
   // face parallel to the screen (along the view's axis, not toward the eye), so under the camera's
   // oblique look (from one side and above) every out disc draws as a round disc, never tipped or
   // elliptical. Every out disc draws the same size: one a little nearer the camera is made that much
-  // smaller, one further away that much larger.
+  // smaller, one further away that much larger. Its own up (+Y, where a photo's top points) stays on the
+  // screen's up, so a level stamp reads level: the shortest turn from +X to the face (setFromUnitVectors)
+  // would also roll it, 3 to 6 degrees under the page and home cameras.
   const restingPose = (spot, view) => {
     const position = new THREE.Vector3(...spot.position), face = view.position.clone().sub(view.target).normalize();
-    return { position, quaternion: new THREE.Quaternion().setFromUnitVectors(X_AXIS, face), size: spot.scale * depthRatio(position, view) };
+    return { position, quaternion: uprightFacing(face), size: spot.scale * depthRatio(position, view) };
+  };
+  // The turn that points the disc's face (+X) along `face` with its +Y toward the world's up as seen along
+  // that axis (the camera's screen up, as the cameras look at their targets with +Y up).
+  const uprightFacing = face => {
+    if (Math.abs(face.y) > .999) return new THREE.Quaternion().setFromUnitVectors(X_AXIS, face);
+    const right = face.clone().cross(Y_AXIS).normalize(), up = right.clone().cross(face);
+    return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(face, up, right));
   };
   // How much further from the camera than its target a point lies, along the view (1: at the
   // target's depth), for `view` ({position, target}).

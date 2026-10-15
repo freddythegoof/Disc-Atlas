@@ -51,3 +51,22 @@ test('photo crop keeps a centered circular mask and corrects modest foreshorteni
  const horizontal=m.photoPoint(1,0,{width:1000,height:1000,scale:1,aspect:.8,angle:90});
  assert.ok(Math.abs(horizontal.x-900)<1e-8);assert.ok(Math.abs(horizontal.y-500)<1e-8);
 });
+
+// Stamp levelling (docs/photo-stamp-orientation.md): rotate 0 is the old arithmetic exactly; a turn is
+// clockwise as seen in the aligner and keeps the crop's circle.
+test('photoPoint: rotate 0 is bit-identical to no rotation, and a turn is clockwise about the disc centre',()=>{
+ const frames=[{width:1600,height:1200},{width:1600,height:1200,scale:.8,aspect:1.1,angle:35,perspective:.08,cx:.45,cy:.55},{width:1024,height:1024,scale:1,cx:.5-.5/1024,cy:.5-.5/1024}];
+ for(const frame of frames)for(let i=0;i<500;i++){
+  const x=Math.cos(i*2.4)*((i%37)/36),y=Math.sin(i*2.4)*((i%37)/36),a=photo.photoPoint(x,y,frame),b=photo.photoPoint(x,y,{...frame,rotate:0});
+  assert.ok(Object.is(a.x,b.x)&&Object.is(a.y,b.y)&&a.inside===b.inside,'rotate 0 at '+x+','+y);
+ }
+ // Turned 90°, the output pixel below the centre shows what was right of it: the content turned clockwise.
+ const flat={width:1000,height:1000,scale:1},right=photo.photoPoint(.5,0,flat),below=photo.photoPoint(0,.5,{...flat,rotate:90});
+ assert.ok(Math.abs(below.x-right.x)<1e-9&&Math.abs(below.y-right.y)<1e-9);
+ // A turn moves nothing in or out of the circle, and the centre stays put.
+ for(const rotate of [-3,.1,47.5]){
+  const p=photo.photoPoint(.6,-.7,{...flat,rotate});assert.equal(p.inside,true);
+  const c=photo.photoPoint(0,0,{...flat,rotate});assert.ok(Math.abs(c.x-500)<1e-9&&Math.abs(c.y-500)<1e-9);
+  assert.ok(Math.abs(Math.hypot(p.x-500,p.y-500)-500*Math.hypot(.6,.7))<1e-9,'radius kept');
+ }
+});

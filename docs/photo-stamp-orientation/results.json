@@ -1,0 +1,18 @@
+{
+ "level photo: texture": -0.027,
+ "level photo: detail viewer top": -0.111,
+ "level photo: detail viewer 3/4": -0.046,
+ "level photo: floating out of the bag, before fix": -5.315,
+ "level photo: floating out of the bag, after fix": -0.022,
+ "crooked photo: texture before levelling": -3.001,
+ "crooked photo: texture after +3.0° in the aligner": -0.009,
+ "crooked photo: detail viewer top, before": -3.061,
+ "crooked photo: detail viewer top, levelled": -0.136,
+ "crooked photo: detail viewer 3/4, levelled": -0.019,
+ "saved photo: re-exported at 0° (unchanged)": -3.008,
+ "re-export at 0°: PSNR dB": 49.76,
+ "re-export at 0°: max channel difference": 34,
+ "saved photo: texture after re-levelling +3.0°": -0.027,
+ "saved photo: detail viewer top, re-levelled": -0.111,
+ "saved photo: detail viewer 3/4, re-levelled": 0.004
+}
