@@ -20,6 +20,11 @@ test('HEIF sniffing reads major and compatible brands, never the version field',
  }
  for(const b of [ftyp('avif',['mif1']),ftyp('avis',['msf1']),ftyp('xxxx',[],'heic'),ftyp('xxxx'),Buffer.from('<svg/>'),Buffer.from('RIFF0000WAVE'),Buffer.from([137,80,78,71]),Buffer.alloc(0),ftyp('heic').subarray(0,15)])assert.equal(photo.sniffPhotoFormat?.(b),null);
  const badSize=ftyp('heic');badSize.writeUInt32BE(9000);assert.equal(photo.sniffPhotoFormat?.(badSize),null);
+ const basic=ftyp('heic'),extended=Buffer.concat([Buffer.from([0,0,0,1]),basic.subarray(4,8),Buffer.alloc(8),basic.subarray(8)]);
+ extended.writeBigUInt64BE(BigInt(extended.length),8);assert.equal(photo.sniffPhotoFormat(extended),'image/heic');
+ const leading=Buffer.from([0,0,0,8,102,114,101,101]);
+ assert.equal(photo.sniffPhotoFormat(Buffer.concat([leading,basic])),'image/heic');
+ assert.equal(photo.sniffPhotoFormat(extended.subarray(0,12)),null,'truncated extended header');
 });
 
 test('decode accepts empty MIME types and keeps the 30 MB and 60 MP limits',async t=>{

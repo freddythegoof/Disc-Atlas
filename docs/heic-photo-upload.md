@@ -72,6 +72,65 @@ observed one lazy module request across repeated HEIC decodes and none for the
 preceding native PNG. Existing local D1/R2 photo behavior passed (90,884-byte
 processed WebP).
 
+## Part 3: verification evidence
+
+All checks below ran locally; no remote Cloudflare command was run.
+
+| Check | Result / evidence |
+| --- | --- |
+| `npm.cmd run test:photo-textures` | Pass: 27 unit/race tests and the full local D1/R2 browser suite, including the new HEIC checks |
+| `node tests/photo-textures-browser.mjs` | Pass independently; there is no separate `test:photo-textures:browser` npm script in this checkout |
+| `node tests/photo-texture-perf-browser.mjs` | Pass, thresholds unchanged: desktop p95 0.1 ms with/without photo; phone viewport with 4× CPU p95 0.3–0.4 ms with photo vs 0.3 ms without |
+| All 26 non-browser `node:test` modules | 210 tests pass: `node --test --test-isolation=none` with the files discovered by `rg -l 'node:test' tests -g '*.mjs' -g '!*-browser.mjs'` (no aggregate `npm test` script exists) |
+| `npm.cmd run build` | Pass: catalog rights gate and production vinext build |
+| `node node_modules/typescript/bin/tsc --noEmit --incremental false` | Pass |
+| Python `-X utf8 validate_data.py` | Pass: 2,434 approval records, 1,182 flight matches, 0 local photos |
+| Full repository ESLint | **Pre-existing failure:** 40 errors in unchanged vendored Three.js files, 1,548 warnings. Unchanged base checkout: 43 errors and the same 1,548 warnings; its additional three errors were false React-hook detections of the photo test helper named `usePhoto`. Renaming that helper to `confirmPhoto` removes those without changing behavior. |
+| ESLint on changed pipeline/tests | Pass: 0 errors, four existing unused-variable warnings |
+| `git diff --check` | Pass |
+
+The browser checks exercise each rung:
+
+- **Bitmap:** real PNG pixels with empty MIME and a misleading `.heic` filename;
+  no codec request. Existing WebP editor and JPEG characterization stay green.
+- **Image element:** force only the native Blob-to-bitmap API to reject, then
+  decode a real PNG through `<img>` and canvas. Exact center pixel is
+  `[235, 113, 83, 255]`; the returned ImageBitmap supports `.close()`. Successful
+  and corrupt-file URLs are revoked. A second case disables bitmap creation
+  entirely and verifies the closeable canvas still produces bounded WebP,
+  then releases its pixels. Oversized native-image dimensions reject at 60 MP
+  before canvas allocation. None of these cases requests the HEIC module.
+- **Converter:** real HEVC fixture bytes decode in Chromium with empty,
+  `image/heic`, `application/octet-stream`, and incorrect `image/jpeg` labels.
+  Dimensions and colored pixels are checked; there is one module request across
+  all decodes. No converter is mocked. A modified `ispe` dimension box exercises
+  the 60 MP rejection before RGBA allocation; truncated HEIC gets the honest
+  HEIC/Safari/Most Compatible error.
+- **Real editor and upload:** `IMG_0001.HEIC` goes through the bag's file input,
+  aligner, Use photo, save, private Worker route, reload, and 3D rendering. An
+  actual File with empty type replaces it through the same input. The matched
+  plate color saves with the disc; replacement changes its key. The captured
+  upload is **25,140 bytes**, a WebP with neither EXIF nor XMP chunks nor the
+  fixture's embedded description. The original HEIC/GPS never uploads.
+
+The optional photo performance harness initially timed out on its pre-existing
+`.bag-photo-edit` selector (the current UI uses the aligner). The test now waits
+for the real aligner, clicks Use photo, and waits for it to close before saving.
+No assertion or performance threshold was removed or weakened. Python's first
+validation attempt encountered Windows' default cp1252 decoding; UTF-8 mode
+resolved that without a source change.
+
+A read-only reviewer independently passed the 27 photo unit tests, verified the
+vendor hash/ownership, and checked real WASM decoding with HEIF rotations of
+0°, 90°, 180° and 270°. No actionable findings. Native HEIC on Safari and
+physical camera/library selection remain unverified; the PNG fallback tests
+exercise the same native-element branch but do not claim an iPhone test.
+
+Scope audit: `public/data.json`, Workers, upload limits, storage, projection and
+editor interactions are unchanged. Only the photo decode module, its decoder
+asset/licenses, photo tests/fixtures and this write-up changed. The vendor-local
+`.gitattributes` preserves the upstream module's exact bytes across checkouts.
+
 ## Phone check after Freddy deploys
 
 On the iPhone 16 Pro Max in Safari, try Add photo from both the library and the

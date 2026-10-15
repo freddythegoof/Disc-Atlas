@@ -39,7 +39,9 @@ try {
  const save=async()=>{await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});};
 
 
- await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');await page.locator('.bag-photo-edit').waitFor();await save();
+ await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');
+ await page.locator('.photo-aligner[open]').waitFor();await page.locator('.photo-aligner [data-aligner-confirm]').click();
+ await page.locator('.photo-aligner').waitFor({state:'hidden'});await save();
  const data=await (await page.request.get(base+'/api/bag')).json(),disc=data.discs[0];
  await page.locator(`[data-disc-id="${disc.id}"] [data-bag-inspect]`).click();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
  await page.evaluate(()=>{window.photoPerfProps={...Disc3D.viewer.state.props};});
