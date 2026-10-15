@@ -1,0 +1,34 @@
+[
+  {
+    "name": "photo-bag-unit",
+    "status": 0
+  },
+  {
+    "name": "phone-fixes-and-chooser-photo-compression-browser.mjs",
+    "status": 0
+  },
+  {
+    "name": "phone-fixes-and-chooser-photo-gestures-browser.mjs",
+    "status": 0
+  },
+  {
+    "name": "phone-fixes-and-chooser-photo-editor-contract-browser.mjs",
+    "status": 0
+  },
+  {
+    "name": "phone-fixes-and-chooser-photo-source-chooser-browser.mjs",
+    "status": 0
+  },
+  {
+    "name": "photo-HEIC",
+    "status": 0
+  },
+  {
+    "name": "bag-browser",
+    "status": 0
+  },
+  {
+    "name": "lint",
+    "status": 0
+  }
+]

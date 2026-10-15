@@ -218,14 +218,32 @@ const SLIDERS='<label>Framing<input type="range" data-photo="scale" min="0.3" ma
 // guides. Use photo prepares the upload there (lighting removed, plate colour measured) and returns to
 // the sheet with it; Cancel returns with nothing changed. Saving still happens with the sheet.
 // onColor(color) reports the plate colour of a newly used photo, onColor(null) its removal.
+let sourceChooserId=0;
 export function createPhotoEditor(root,{onColor=()=>{}}={}){
  root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden><p class="bag-photo-status" role="status"></p>';
+ // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
+ root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
  dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div><p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><details class="photo-aligner-adjust"><summary>Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
  document.body.append(dialog);
  const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame'),stage=dq('.photo-aligner-stage');
- // capture is applied only for coarse pointers; desktop keeps the ordinary file picker.
- if(matchMedia('(pointer:coarse)').matches)file.setAttribute('capture','environment');
+ const choose=q('.bag-photo-choose'),sources=q('.bag-photo-source-menu');
+ file.dataset.photoInput='default';sources.id='photoSources-'+(++sourceChooserId);
+ const closeSources=(focus=false)=>{if(sources.matches(':popover-open'))sources.hidePopover();choose.setAttribute('aria-expanded','false');if(focus)choose.focus({preventScroll:true});};
+ const placeSources=()=>{
+  if(!sources.matches(':popover-open'))return;
+  const r=choose.getBoundingClientRect(),width=sources.offsetWidth,height=sources.offsetHeight,w=document.documentElement.clientWidth,h=document.documentElement.clientHeight,below=r.bottom+height+14<=h;
+  sources.style.left=Math.max(8,Math.min(r.left,w-width-8))+'px';sources.style.top=(below?r.bottom+6:Math.max(8,r.top-height-6))+'px';
+  sources.style.setProperty('--menu-origin',below?'top left':'bottom left');
+ };
+ sources.addEventListener('toggle',e=>{choose.setAttribute('aria-expanded',String(e.newState==='open'));});
+ (root.closest('dialog')||document).addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&sources.matches(':popover-open')){e.preventDefault();e.stopPropagation();closeSources(true);}
+ },true);
+ addEventListener('resize',placeSources);
+ // Scrolling the sheet dismisses its source popover; scrolling the popover itself stays native.
+ root.closest('dialog')?.addEventListener('scroll',e=>{if(!sources.contains(e.target))closeSources();},{capture:true,passive:true});
+ if(matchMedia('(pointer:coarse)').matches){choose.popoverTargetElement=sources;choose.setAttribute('aria-expanded','false');}
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,url}.
  // draft: what the aligner is working on {bitmap,options}.
@@ -252,7 +270,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  };
  const sync=()=>{for(const el of dialog.querySelectorAll('[data-photo]'))el.value=draft.options[el.dataset.photo];};
  const openAligner=(bitmap,options)=>{
-  clearGesture();draft={bitmap,options:{...DEFAULTS,...options}};sync();
+  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options}};sync();
   dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;
   if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();
  };
@@ -260,11 +278,20 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  dialog.addEventListener('close',()=>{if(draft){serial++;busy=false;releaseDraft();}});
  new ResizeObserver(()=>{if(draft){reanchor();paint();}}).observe(frame);
 
- q('.bag-photo-choose').onclick=()=>file.click();
+ choose.onclick=e=>{
+  e.preventDefault();if(!matchMedia('(pointer:coarse)').matches){file.click();return;}
+  choose.popoverTargetElement=sources;window.AtlasDropdown?.close(false);sources.togglePopover();placeSources();
+  if(sources.matches(':popover-open'))sources.querySelector('button').focus({preventScroll:true});
+ };
+ sources.onclick=e=>{
+  const source=e.target.closest('[data-photo-source]');
+  if(source){closeSources(true);q('[data-photo-input="'+source.dataset.photoSource+'"]').click();}
+  else if(e.target.closest('[data-photo-source-cancel]'))closeSources(true);
+ };
  q('.bag-photo-adjust').onclick=()=>{if(used)openAligner(used.bitmap,used.options);};
  q('.bag-photo-remove').onclick=()=>{serial++;busy=false;releaseUsed();removed=true;changed=true;q('.bag-photo-status').textContent='';renderSheet();onColor(null);};
- file.onchange=async()=>{
-  const id=++serial,chosen=file.files[0];file.value='';if(!chosen)return;busy=true;
+ for(const input of root.querySelectorAll('input[type="file"]'))input.onchange=async()=>{
+  const chosen=input.files[0];input.value='';if(!chosen)return;const id=++serial;busy=true;
   try{const image=await decodePhoto(chosen);if(id!==serial){image.close();return;}q('.bag-photo-status').textContent='';openAligner(image,DEFAULTS);}
   catch(e){if(id===serial)q('.bag-photo-status').textContent=e.message;}
   finally{if(id===serial)busy=false;}
@@ -332,7 +359,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  dialog.addEventListener('dblclick',e=>{if(stage.contains(e.target))prevent(e);});
 
  const reset=(item,mold)=>{
-  serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();
+  closeSources();serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();
   current=photoURL(item);removed=false;changed=false;plate=plateRatio(mold);
   q('.bag-photo-status').textContent='';renderSheet();
  };

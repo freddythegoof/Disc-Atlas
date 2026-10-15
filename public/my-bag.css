@@ -541,6 +541,10 @@ body[data-view="bag"] main {display:none!important}
 .bag-photo-thumb{flex:none;width:56px;height:56px;border-radius:50%;overflow:hidden;background:var(--surface);box-shadow:0 0 0 1px var(--line)}
 .bag-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .bag-photo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.bag-photo-status:empty{display:none}
+.bag-photo-source-menu{width:min(240px,calc(100vw - 16px));min-width:0;max-height:calc(100dvh - 16px);overflow:auto}
+.bag-photo-source-menu button{display:flex;justify-content:flex-start;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;font-weight:500;text-align:left}
+.bag-photo-source-menu button:hover,.bag-photo-source-menu button:focus-visible{background:var(--accent-soft)}
+.bag-photo-source-menu [data-photo-source-cancel]{margin-top:4px;border-top:1px solid var(--line);border-radius:0;color:var(--muted)}
 /* The aligner: the 3D pop-out's frame (its panel, head and close), full screen on phones, the disc as
    large as the screen allows. */
 .photo-aligner{width:min(880px,calc(100vw - 48px));height:min(920px,calc(100dvh - 48px));max-width:none;max-height:none;padding:0;overflow:hidden;overscroll-behavior:contain;touch-action:manipulation}

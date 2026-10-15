@@ -117,4 +117,40 @@ Library HEIC photo → aligns → pinch-zooms and centers under his fingers →
 Fresh rear-camera HEIC photo → same flow.
 A library JPEG → same flow (the Bug A repro case).
 Pinch mid-drag finger lift: no jump. Sliders still work after touching.
+Add photo shows Camera / Photo Library / Files; each opens the right place; a pick from each reaches the aligner.
 ```
+
+## Addendum — phone photo source chooser
+
+Continues from the four commits ending at `fd6cf3a`, on the same `codex/photo-editor-phone-fixes` branch, with one additional scoped local commit. No push or deployment.
+
+On coarse pointers, Add photo and Replace photo now open a compact native auto popover with **Camera / Photo Library / Files** and a separate Cancel action. It reuses the sheet's rack-menu styling, theme tokens and shared menu transition, with 44 px minimum tap targets. Outside tap, Escape, Cancel, a source choice, reset and sheet dismissal close it; Escape restores trigger focus without closing the bag sheet. The menu is placed above or below its trigger within the viewport. Scrolling the sheet dismisses it; resize repositions it. Fine-pointer Add/Replace still invokes the original ordinary picker directly.
+
+| Input | `accept` | `capture` | Purpose |
+| --- | --- | --- | --- |
+| Default (desktop) | `image/jpeg,image/png,image/webp,image/heic,image/heif` — unchanged | absent | Existing ordinary picker |
+| Camera | `image/*` | `environment` | Explicit rear-camera capture hint |
+| Photo Library | `image/*` | absent | Image/gallery presentation hint |
+| Files | omitted | absent | General file browsing hint |
+
+Every input uses the **same selection handler**, then the unchanged `decodePhoto` → aligner → `preparePhoto` flow. Clearing an input without a selected file returns before changing the selection sequence, busy state, thumbnail, color or prepared photo. No new codec, library, lazy payload, network request, processing branch or upload-contract change. Files can offer other file types; the existing byte-sniffing decoder remains the gate for supported photos.
+
+### Platform findings and limits
+
+Both platform profiles pass the browser harness: **WebKit 26.5 / iPhone 16 Pro Max emulation** and **Chromium 151.0.7922.34 / Pixel 7 Android emulation** report `(pointer:coarse)` true. Tapping Add/Replace generates **zero filechooser events** until a source is chosen. Each option then fires the distinct input in the table above. Desktop profiles in both engines fire only the unchanged default input. [Recorded profiles, user agents, input routes and prepared-output hashes](photo-phone-evidence/source-chooser.json).
+
+**Native iOS and Android picker destinations were not exercised.** Playwright intercepts `filechooser` and supplies fixture files; Windows WebKit with an iPhone user agent does not run UIKit, and Android emulation does not launch Android activities. The harness proves the HTML/input boundary and downstream flow, not the camera roll, camera app or Files app. Freddy's phone checklist is the remaining ground-truth check.
+
+The labels name the intended sources, with OS presentation left to the browser. There is no library-only attribute. Current [WebKit's iOS upload-panel implementation](https://github.com/WebKit/WebKit/blob/main/Source/WebKit/UIProcess/ios/forms/WKFileUploadPanel.mm) checks capture first, otherwise presents its document-picker menu with library/camera/browse choices when eligible. Thus Library and Files may both lead to an OS choice sheet with Browse/Choose Files. Current [Chromium's Android file-dialog implementation](https://chromium.googlesource.com/chromium/src/+/HEAD/ui/android/java/src/org/chromium/ui/base/SelectFileDialog.java) checks explicit capture, then selects a photo picker or an external picker based on accepted types and platform capabilities. These source-based expectations explain the hints; they are not physical-device test results. A merged library/files sheet remains acceptable under the addendum; the dedicated Camera input is separately reachable.
+
+### Before/after proof
+
+`node tests/photo-source-chooser-browser.mjs` was observed RED against the four-commit tree: `webkit: Add photo must offer sources before opening a file dialog`, **1 !== 0**. After implementation it passes both mobile profiles and both desktop profiles. The source test is included in `npm run test:photo-phone`.
+
+The test verifies all three distinct inputs and capture/accept attributes, Add/Replace symmetry, trigger toggle, outside/Escape/Cancel dismissal, focus restoration, reset/parent-close cleanup, cancellation of both empty and replacement OS selections, and cancellation of HEIC replacement framing. Cancellation preserves the existing prepared object/color; OS cancellation also preserves changed state, thumbnail URL and sheet status. The same photographic fixture picked through **each** source reaches the aligner with identical default options and prepares **identical WebP bytes/color**, still below 512 KiB. Screenshots were inspected in light, midnight and charcoal; the popover stays inside both mobile viewports. Local screenshots: `outputs/photo-phone/source-{webkit,chromium}-{light,midnight,charcoal}.png`.
+
+An initial Escape assertion exposed missing trigger-focus restoration; the explicit capture-phase Escape handler fixes it and prevents the parent dialog's default dismissal. The parent-close assertion waits for the asynchronous close event, matching production `my-bag.js`'s reset-on-close lifecycle.
+
+Independent read-only addendum review found **no actionable correctness or regression findings**, including actual bag-sheet/form placement, parent Tab/Escape integration, shared dropdown interaction, synchronous file-picker user activation, theme styling and unchanged desktop behavior. No overlapping browser suites were run by the reviewer.
+
+Final addendum regression results: **87/87 photo/albedo/HEIC-sniff/editor-race/bag unit tests pass**, zero skipped; compression, captured gestures, processing/guard parity and source-chooser browser suites all pass; the existing real photo/HEIC local D1/R2 suite and bag browser suite pass. Changed JavaScript lint is **0 errors / 0 warnings**. [Saved exit statuses](photo-phone-evidence/source-chooser-verification.json). The earlier Part 4 atlas perf result is preserved; it was not rerun for this chooser-only addition. No pre-existing vendor lint errors were changed or hidden.
