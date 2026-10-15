@@ -74,18 +74,22 @@ export async function photoRoute(request,env,user,id){
   return object?new Response(object.body,{headers:{'Content-Type':'image/webp','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Cross-Origin-Resource-Policy':'same-origin'}}):json({error:'Photo not found.'},404);
  }
  if(method==='DELETE'){
-  await env.DB.prepare('UPDATE bag_discs SET texture_key=NULL WHERE user_id=? AND id=?').bind(user.id,id).run();
-  await cleanupTextures(env);return json({texture_key:null});
+  await env.DB.prepare('UPDATE bag_discs SET texture_key=NULL,photo_rim_color=NULL WHERE user_id=? AND id=?').bind(user.id,id).run();
+  await cleanupTextures(env);return json({texture_key:null,photo_rim_color:null});
  }
+ // Same trust boundary as other appearance fields: accept only a plain six-digit hex.
+ const supplied=request.headers.get('X-Atlas-Photo-Rim-Color');
+ if(supplied && !/^#[0-9a-fA-F]{6}$/.test(supplied))return json({error:'Choose a six-digit hex photo rim color.'},400);
+ const photoRimColor=supplied?.toLowerCase()||null;
  let bytes;try{bytes=await imageBytes(request);}catch(error){return json({error:error.message},400);}
  const key=crypto.randomUUID()+'.webp',expires=Math.floor(Date.now()/1000)+3600;
  await env.DB.prepare('INSERT INTO texture_cleanup(key,not_before) VALUES (?,?)').bind(key,expires).run();
  await env.TEXTURES.put(key,bytes,{httpMetadata:{contentType:'image/webp',cacheControl:'private, no-store'}});
  const results=await env.DB.batch([
-  env.DB.prepare('UPDATE bag_discs SET texture_key=? WHERE user_id=? AND id=? AND texture_key IS ? AND EXISTS (SELECT 1 FROM texture_cleanup WHERE key=? AND not_before>?)').bind(key,user.id,id,row.texture_key,key,Math.floor(Date.now()/1000)),
+  env.DB.prepare('UPDATE bag_discs SET texture_key=?,photo_rim_color=? WHERE user_id=? AND id=? AND texture_key IS ? AND EXISTS (SELECT 1 FROM texture_cleanup WHERE key=? AND not_before>?)').bind(key,photoRimColor,user.id,id,row.texture_key,key,Math.floor(Date.now()/1000)),
   env.DB.prepare('DELETE FROM texture_cleanup WHERE key=? AND EXISTS (SELECT 1 FROM bag_discs WHERE texture_key=?)').bind(key,key),
   env.DB.prepare('UPDATE texture_cleanup SET not_before=0 WHERE key=?').bind(key),
  ]);
  await cleanupTextures(env);
- return results[0].meta.changes?json({texture_key:key}):json({error:'This disc changed. Try saving its photo again.'},409);
+ return results[0].meta.changes?json({texture_key:key,photo_rim_color:photoRimColor}):json({error:'This disc changed. Try saving its photo again.'},409);
 }

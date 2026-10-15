@@ -93,6 +93,8 @@ try {
 
  // 5. Mobile.
  await quietTheme('light');await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));
+ // Bag hit targets follow the resized 3D canvas on the next render frame.
+ await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth);
  const box=await cta.boundingBox();assert.ok(box && box.x>=0 && box.x+box.width<=390,'CTA fits a phone');
  {const wide=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,over:[...document.querySelectorAll('body *')].filter(n=>n.getBoundingClientRect().right>innerWidth+1 && n.checkVisibility()).slice(0,6).map(n=>`${n.tagName.toLowerCase()}.${n.className} ${Math.round(n.getBoundingClientRect().right)}`)}));
  assert.ok(wide.scroll<=390,'No horizontal scroll on a phone: '+JSON.stringify(wide));}

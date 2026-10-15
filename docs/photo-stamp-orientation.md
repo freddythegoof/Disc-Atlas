@@ -35,6 +35,7 @@ Measured with a level test photo (a long dark bar and two "text" bars on an oran
 The disc sheet now offers **Level stamp** beside a saved photo, whenever no new photo is in progress. It opens the saved texture itself (the original photo was never uploaded, by design) in the aligner's **level-only** mode. The title reads "Level the stamp", and only the angle can change: framing, tilt and perspective are hidden, and drag, pinch, wheel and arrow keys do nothing. Use photo, then Save, sends it through the same `preparePhoto` ladder (1024 → 768 → 512 px, WebP .86 → .4, 512 KiB cap), the same `PUT /api/bag/discs/:id/photo` route and the same Worker validation as any photo.
 
 - It is not delighted again (the texture already is the albedo), and the disc's colour is left alone.
+- On an overmold disc, the photo-matched rim colour (from `codex/photo-rim-color`, merged in) is measured again from the saved texture and sent with the re-upload, so levelling keeps it instead of clearing it. The Worker test checks it stays within 4 levels per channel.
 - **Adjust** reopens levelling on the same saved texture, not on the re-export, so trying several angles still costs one resample in total.
 - Sampling is pixel centre on pixel centre, so at 0° the crop is an exact copy of the stored pixels.
 

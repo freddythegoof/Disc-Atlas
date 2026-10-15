@@ -2,6 +2,26 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {delightPixels,plateColor,SOFTEN_GLARE} from '../public/disc-albedo.mjs';
 import {glarePhoto,GLARE_CASES} from './photo-glare-cases.mjs';
+import * as albedo from '../public/disc-albedo.mjs';
+
+test('annulus median keeps dark and light rims despite glare across different seam radii',()=>{
+ for(const inner of [.66,.86,.94])for(const rim of [[16,20,24],[228,232,236],[30,100,180]]){
+  const size=256,data=new Uint8ClampedArray(size*size*4);
+  for(let j=0;j<size;j++)for(let i=0;i<size;i++){
+   const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1,r=Math.hypot(x,y),k=(j*size+i)*4;
+   const color=r<inner?[220,70,30]:x>.55&&y<0?[255,255,255]:rim;
+   data.set([...color,r>.99?0:255],k);
+  }
+  assert.equal(typeof albedo.rimColor,'function','photo pipeline needs an annulus estimator');
+  const measured=albedo.rimColor(data,size,inner);
+  for(let ch=0;ch<3;ch++)assert.ok(Math.abs(parseInt(measured.slice(1+2*ch,3+2*ch),16)-rim[ch])<=2,measured+' should match '+rim);
+ }
+});
+
+test('annulus sampling rejects insufficient coverage rather than inventing a rim',()=>{
+ assert.equal(typeof albedo.rimColor,'function');
+ assert.equal(albedo.rimColor(new Uint8ClampedArray(256*256*4),256,.86),null);
+});
 
 // A synthetic photo with known truth: an albedo (plate colour, a dark stamp, white ink, a 2px scratch),
 // lit from above (bright top, dark bottom) under a warm bulb, then sRGB-encoded like a camera would.
@@ -125,4 +145,15 @@ test('glare experiment: coloured ink beside a hotspot keeps its colour',()=>{
   if(x>-.5&&x<-.3&&y>.3&&y<.42){count++;for(let c=0;c<3;c++)assert.equal(experiment[k+c],baseline[k+c],'yellow ink pixel changed');}
  }
  assert.ok(count>500);
+});
+
+test('glare experiment: the photo-matched rim is measured before the pass, so it never depends on it',()=>{
+ // A near-white overmold rim with a white glare wedge lying across it: one bright patch to the glare pass.
+ const size=256,inner=.86,data=new Uint8ClampedArray(size*size*4);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){
+  const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1,r=Math.hypot(x,y),a=Math.atan2(y,x),k=(j*size+i)*4;
+  data.set([...(r<inner?[180,90,40]:a>-1.1&&a<-.8?[255,255,255]:[228,232,236]),r>.99?0:255],k);
+ }
+ const off=delightPixels(data.slice(),size,{rimInner:inner,softenGlare:false}),on=delightPixels(data.slice(),size,{rimInner:inner,softenGlare:true});
+ assert.ok(off.rim);assert.equal(on.rim,off.rim);assert.equal(on.color,off.color);
 });

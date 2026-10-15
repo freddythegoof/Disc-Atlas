@@ -156,6 +156,9 @@ try {
  const crookedKey=crookedDisc.texture_key;await save();assert.ok(upload.length<=512*1024&&upload.toString('ascii',0,4)==='RIFF');
  data=await (await page.request.get(base+'/api/bag')).json();const levelledDisc=data.discs.find(d=>d.id===crookedDisc.id);
  assert.notEqual(levelledDisc.texture_key,crookedKey);assert.equal(levelledDisc.color,crookedDisc.color,'levelling keeps the disc colour');
+ // The photo-matched overmold rim is measured again from the saved texture, not cleared by the re-upload.
+ assert.ok(crookedDisc.photo_rim_color&&levelledDisc.photo_rim_color,'rim colours: '+crookedDisc.photo_rim_color+' → '+levelledDisc.photo_rim_color);
+ for(const at of [1,3,5])assert.ok(Math.abs(parseInt(crookedDisc.photo_rim_color.slice(at,at+2),16)-parseInt(levelledDisc.photo_rim_color.slice(at,at+2),16))<=4,'levelling keeps the matched rim: '+crookedDisc.photo_rim_color+' → '+levelledDisc.photo_rim_color);
  const levelledAngle=await stampAngle('/api/bag/discs/'+levelledDisc.id+'/photo?v='+levelledDisc.texture_key);assert.ok(Math.abs(levelledAngle)<.25,'levelled after saving: '+levelledAngle);
  await page.locator(`[data-disc-id="${levelledDisc.id}"] [data-bag-inspect]`).click();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);await page.waitForTimeout(500);
  await page.locator('#detail').screenshot({path:dir+'/relevel-after-save.png'});

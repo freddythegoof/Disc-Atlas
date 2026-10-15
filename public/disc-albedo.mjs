@@ -32,6 +32,29 @@ const smoothstep=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*
 // experiment existed (the pass below never runs).
 export const SOFTEN_GLARE=true;
 
+// Equal angular votes across the photographed overmold, outside the projection seam.
+// Discard the transparent edge and seam bleed, then reject high-luminance specular
+// outliers relative to this rim (so a genuinely white rim stays white).
+export function rimColor(data,size,inner){
+ if(!Number.isFinite(inner)||inner<=0||inner>=1)return null;
+ const lo=inner+Math.max(2/size,(1-inner)*.08),hi=1-Math.max(2/size,.02);
+ if(lo>=hi)return null;
+ const samples=[];
+ for(let ring=0;ring<4;ring++)for(let a=0;a<128;a++){
+  const radius=lo+(hi-lo)*(ring+.5)/4,angle=(a+.5)*Math.PI*2/128;
+  const x=Math.floor((1+radius*Math.cos(angle))*size/2),y=Math.floor((1+radius*Math.sin(angle))*size/2),k=(y*size+x)*4;
+  if(data[k+3]<250)continue;
+  const rgb=[toLinear[data[k]],toLinear[data[k+1]],toLinear[data[k+2]]];
+  samples.push({rgb,y:luma(...rgb)});
+ }
+ if(samples.length<256)return null;
+ const levels=samples.map(s=>s.y).sort((a,b)=>a-b),m=median(levels);
+ const mad=median(levels.map(v=>Math.abs(v-m)));
+ const ceiling=Math.min(levels[Math.floor((levels.length-1)*.9)],m+3*Math.max(.005,1.4826*mad));
+ const kept=samples.filter(s=>s.y<=ceiling);
+ return '#'+[0,1,2].map(c=>encode(median(kept.map(s=>s.rgb[c]))).toString(16).padStart(2,'0')).join('');
+}
+
 // Weighted least squares for the six quadratic terms (normal equations, Gaussian elimination).
 function fitQuadratic(xs,ys,zs,ws){
  const n=6,A=Array.from({length:n},()=>new Float64Array(n+1));
@@ -56,7 +79,7 @@ const evaluate=(c,x,y)=>{const b=basis(x,y);let v=0;for(let i=0;i<6;i++)v+=c[i]*
  * Returns {color:'#rrggbb'|null, gradient, corrected} — gradient is the light field's brightest/darkest
  * ratio over the plate before correction (for tests and diagnostics).
  */
-export function delightPixels(data,size,{plate=.78,softenGlare:soften=SOFTEN_GLARE}={}){
+export function delightPixels(data,size,{plate=.78,rimInner=null,softenGlare:soften=SOFTEN_GLARE}={}){
  const step=Math.max(1,Math.floor(size/160)),xs=[],ys=[],zs=[],rgb=[];
  for(let j=step>>1;j<size;j+=step)for(let i=step>>1;i<size;i+=step){
   const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1;if(x*x+y*y>plate*plate)continue;
@@ -106,9 +129,9 @@ export function delightPixels(data,size,{plate=.78,softenGlare:soften=SOFTEN_GLA
   data[k]=encode(r);data[k+1]=encode(gg);data[k+2]=encode(b);
  }
  // The plate colour is measured before the experiment, so the disc's matched colour never depends on it.
- const color=plateColor(data,size,plate);
+ const color=plateColor(data,size,plate),rim=rimInner?rimColor(data,size,rimInner):null;
  const glare=soften?softenGlare(data,input,size,(x,y)=>Math.exp(evaluate(c,x,y))):null;
- return {color,gradient:Math.exp(hi-lo),corrected:true,...glare&&{glare}};
+ return {color,gradient:Math.exp(hi-lo),corrected:true,...rimInner&&{rim},...glare&&{glare}};
 }
 
 // Glare softening, the experiment (docs/photo-glare-experiment.md). It runs after the baseline has written

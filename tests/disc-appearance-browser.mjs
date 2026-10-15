@@ -163,7 +163,7 @@ test('My Map refreshes colors and its disc set without reloading the page',async
   await page.locator('#addDiscDialog').waitFor({state:'hidden'});
   assert.equal(await page.evaluate(()=>myMap===window.previousPersonalMap),false,'color changes invalidate the personal map key');
   assert.equal(await page.evaluate(()=>BagApp.mapRimColors().get(discs.find(d=>d.name==='Pyro').id)),'#ff8000');
-  await page.waitForFunction(()=>[...atlasArt.debug.images.keys()].some(k=>k.endsWith('|#008080|#ff8000')));
+  await page.waitForFunction(()=>atlasArt.get(discs.find(d=>d.name==='Pyro'),'#008080',94,'#ff8000'));
   // The existing picker can move a copy to Storage while My Map remains open.
   await page.evaluate(()=>BagApp.add(discs.find(d=>d.name==='Pyro'),{id:'copy-0',mold_id:discs.find(d=>d.name==='Pyro').id,plastic:'Neutron',weight_g:175,wear:10,color:'#008080',rim_color:'#ff8000',in_bag:true,pocket:'main'}));
   await page.locator('#bagDestination').selectOption('storage');await page.locator('#saveDisc').click();
