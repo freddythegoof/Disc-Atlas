@@ -395,7 +395,7 @@ export class BagScene {
   // Each name's room: the name with NAME_SPACE around it, and NAME_GAP from its disc.
   const labels=new Map(this.out.map(id=>{const node=this.nameNode(id);node.hidden=false;return [id,{width:node.offsetWidth+2*NAME_SPACE+NAME_GAP,height:node.offsetHeight+NAME_GAP+NAME_SPACE}];}));
   // Desktop My Bag alone opts into count sizing. Measure the complete physical
-  // bag so its original all-out frame supplies the floor and every label fits.
+  // bag so its floor (the pre-change size) holds at full count and every label fits.
   let desktopSizing=null;
   if(this.out.length && matchMedia('(min-width:701px)').matches){
    const physical=new Set([...this.layer.querySelectorAll('[data-physical-disc]')].map(node=>node.dataset.physicalDisc));

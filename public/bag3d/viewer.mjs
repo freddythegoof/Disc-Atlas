@@ -685,7 +685,15 @@ export async function mountBag(container, {
           const full=scatterFrame({bag:fullBox,view,center:onPlane(width/2,height/2),centerY:home.target.y,keep,edge:STAGE_EDGE*unit,entries:allEntries,
             verify:f=>pullToFit(f.spots,allLabels,reserve,clear,f.labels,{at:f.pull,bag:true})});
           const fullPull=pullToFit(full.spots,allLabels,reserve,clear,full.labels);
-          const floor=2*DISC.radius*full.scale/(unit*fullPull);
+          // The floor is the size a pulled disc had before pulled discs grew: the original planner's
+          // uncrowded size (its largest scale at the page camera). That planner shrank a crowded bag further,
+          // down to its all-out size (`crowded`); the side zones here usually hold the uncrowded size at every
+          // count, so no count draws its discs smaller than before. Where the page camera cannot hold it, the
+          // floor is the largest size that fits there, never below the original all-out size.
+          const crowded=2*DISC.radius*full.scale/(unit*fullPull),uncrowded=2*DISC.radius*STAGE.scatter.scales[0]/unit;
+          const fitsAt=size=>!!desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},bag:standingRect(1,[]),floor:size});
+          let floor=Math.max(crowded,uncrowded);
+          if(floor>crowded&&!fitsAt(floor)){let low=crowded,high=floor;for(let i=0;i<18;i++){const mid=(low+high)/2;if(fitsAt(mid))low=mid;else high=mid;}floor=low;}
           const calibrate=factor=>desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},bag:standingRect(factor,[]),floor});
           let minPull=1,calibration=calibrate(1);
           if(!calibration){
@@ -700,8 +708,8 @@ export async function mountBag(container, {
           desktopFloorCache={key:cacheKey,floor,minPull,curve:calibration&&{max:Math.min(calibration.max,homeMaximum),decay:calibration.decay}};
         }
         // Freeze the curve against the complete bag, so camera pullback cannot
-        // make more discs grow. Full count keeps the original pixel diameter,
-        // with new side-zone centers when the legacy scatter crossed inward.
+        // make more discs grow. Full count lands on the floor (the pre-change size),
+        // with side-zone centers rather than the original scatter.
         if(desktopFloorCache.curve){
           const plan=factor=>desktopPulledLayout({entries:desktopSizing.entries.filter(entry=>keys.includes(entry.key)),allEntries:desktopSizing.entries,
             viewport:{width,height},bag:standingRect(factor,[]),floor:desktopFloorCache.floor,curve:desktopFloorCache.curve});

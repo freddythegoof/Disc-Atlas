@@ -14,6 +14,9 @@ for(const stream of [server.stdout,server.stderr])stream.on('data',d=>logs+=d);
 const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
 const overlap=(a,b)=>a.left<b.left+b.width-.5&&b.left<a.left+a.width-.5&&a.top<b.top+b.height-.5&&b.top<a.top+a.height-.5;
 const errors=[],metrics={};
+// A pulled disc's size before pulled discs grew, 1440 × 1000 (the original planner, 1 to 13 out; it shrank
+// 14 to 16 out to 111.57 px and a whole bag to 85.83 px). Measured upright: the disc's true circle.
+const BEFORE=124.45;
 try{
  const deadline=Date.now()+45000;
  while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(logs);await new Promise(r=>setTimeout(r,200));}
@@ -47,9 +50,9 @@ try{
  await open();
  const ids=['demo-04','demo-01',...(await page.locator('[data-physical-disc]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc))).filter(id=>!['demo-04','demo-01'].includes(id))];
  await pull(ids[0]);const one=await check('desktop-1');await shot('desktop-1');
- assert.ok(one.discs[0].width>=3*124.45,'single pulled disc reaches at least 3× its measured desktop baseline');
+ assert.ok(one.discs[0].width>=3*BEFORE,'single pulled disc reaches at least 3× its measured desktop baseline');
  await pull(ids[1]);const two=await check('desktop-2');await shot('desktop-2');
- assert.ok(two.discs.every(d=>d.width>=3*124.45),'Premier DD3 + Destroyer are both in the large max tier');
+ assert.ok(two.discs.every(d=>d.width>=3*BEFORE),'Premier DD3 + Destroyer are both in the large max tier');
  // Watch a real size change, including the DOM label, while the side count grows.
  await page.locator('[data-bag-canvas]').evaluate(n=>{
   n.sizingFrames=[];n.sizingSampling=true;const start=performance.now();
@@ -82,7 +85,7 @@ try{
  await page.locator('.bag-dump').evaluate(n=>n.click());await settled();
  const all=await check('desktop-all');await shot('desktop-all');
  assert.equal(all.discs.length,18);
- assert.ok(all.discs.every(d=>Math.abs(d.width-85.83)<.2),'all-out floor preserves the measured baseline (measured upright, the true circle)');
+ assert.ok(all.discs.every(d=>Math.abs(d.width-BEFORE)<.3),'all-out lands on the size discs had before they grew, never smaller');
  assert.ok(all.discs.every(d=>d.width<Math.min(...several.discs.map(e=>e.width))));
  // Returning discs grows their remaining neighbors; return-all still empties staging.
  await pull(ids[0]);await check('desktop-return-one');
@@ -100,7 +103,10 @@ try{
  await page.setViewportSize({width:1280,height:900});await open();
  for(const id of ids.slice(0,6))await pull(id);
  await check('desktop-1280-6');
- await page.locator('.bag-dump').evaluate(n=>n.click());await settled();await check('desktop-1280-all');
+ await page.locator('.bag-dump').evaluate(n=>n.click());await settled();
+ const all1280=await check('desktop-1280-all');
+ // 1280 × 900 cannot pack nine discs and names a side at the uncrowded 109.81 px; the floor is the largest that fits, above the original 75.73 px all-out.
+ assert.ok(all1280.discs.every(d=>d.width>75.73+10),'1280 all-out stays larger than the original planner drew it');
  // A larger real DOM fixture exercises camera pullback and the full-count
  // boundary. Compare its floor with the existing planner, with sizing disabled.
  const extras=Array.from({length:14},()=>" ['3d60892b6812','Star',173,8,'#ed7868','main',null,''],").join('\n');
@@ -131,7 +137,8 @@ try{
   }
   prior=f;last=count;
  }
- assert.ok(prior.discs.every(d=>Math.abs(d.width-denseFloor)<.2),'large-bag full count preserves its measured legacy floor');
+ assert.ok(prior.discs.every(d=>d.width>=denseFloor-.2),'large-bag full count is never below its measured legacy floor');
+ metrics.denseFull=prior.discs[0].width;
  metrics.denseFloor=denseFloor;
  // Phone takes exactly the existing path. Use its original demo fixture too.
  await page.unroute('**/bag-demo.js');await page.setViewportSize({width:390,height:1000});await open();
@@ -146,7 +153,7 @@ try{
    assert.equal(f.stage.around,baseline.stage.around);
    for(const d of f.discs){const old=baseline.discs.find(e=>e.id===d.id);assert.ok(Math.abs(d.left-old.left)<.2&&Math.abs(d.top-old.top)<.2,'phone centers unchanged');}
   }
-  metrics[`phone-${count}`]={diameters:f.discs.map(d=>d.width),stage:f.stage};
+  metrics[`phone-${count}`]={diameters:f.discs.map(d=>d.width),stage:f.stage,canvas:{width:f.width,height:f.height},bag:f.bag};
  }
  await shot('phone-unchanged');
  assert.deepEqual(errors,[]);
