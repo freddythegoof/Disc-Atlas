@@ -76,9 +76,9 @@ try{
  },key);
  // The stamp's angle from the pixels: dark pixels on the plate (the bar), their principal axis in degrees from
  // vertical, + clockwise on screen; and whether the blue dot is above the bar's middle.
- const stampAngle=async(m,file)=>{
-  const png=await page.screenshot({clip:{x:m.disc.left,y:m.disc.top,width:m.disc.width,height:m.disc.height},...(file?{path:file}:{})});
-  return page.evaluate(async b64=>{
+ const stampAngle=async(m,file,on=page)=>{
+  const png=await on.screenshot({clip:{x:m.disc.left,y:m.disc.top,width:m.disc.width,height:m.disc.height},...(file?{path:file}:{})});
+  return on.evaluate(async b64=>{
    const img=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=new OffscreenCanvas(img.width,img.height),g=c.getContext('2d');g.drawImage(img,0,0);
    const d=g.getImageData(0,0,img.width,img.height).data,w=img.width,h=img.height,cx=w/2,cy=h/2,R=Math.min(w,h)/2*.8,luma=i=>.2126*d[i]+.7152*d[i+1]+.0722*d[i+2];
    const hist=new Uint32Array(256);let total=0;for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2)if((x-cx)**2+(y-cy)**2<=R*R){hist[luma(4*(y*w+x))|0]++;total++;}
@@ -169,6 +169,40 @@ try{
  // Home again: nothing keeps the detail look.
  await page.locator('.bag-return-all').evaluate(n=>n.click());await settled();
  await page.waitForFunction(()=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().every(d=>d.look==='bag'&&(!d.photo||d.photo.size===256)),null,{timeout:8000});
+ // A phone (390 px, a 3x display): a grown pulled disc keeps the bag's own path, and its 256 px photo
+ // covers the disc's device pixels (no second quality system for phones).
+ const phoneContext=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:390,height:844},deviceScaleFactor:3,storageState:await context.storageState()});
+ const phone=await phoneContext.newPage();phone.on('pageerror',e=>errors.push(e.stack));
+ await phone.goto(base+'/?bag=1');
+ await phone.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s?.dataset.engine==='ready'&&s.dataset.phase==='open';},null,{timeout:40000});
+ await phone.locator(`[data-physical-disc="${buzzz}"]`).evaluate(n=>n.click());
+ await phone.waitForFunction(()=>{const s=document.querySelector('#bagScene');return !s.querySelector('[data-bag-canvas]').bagViewer.stage.moving&&s.dataset.staging==='still';},null,{timeout:20000});
+ await phone.waitForFunction(key=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().find(d=>d.key===key).photo?.size===256,buzzz,{timeout:20000});
+ const grown=await phone.locator('[data-bag-canvas]').evaluate((n,key)=>{const v=n.bagViewer,s=v.getBagLayoutState().find(d=>d.key===key);
+  return {look:s.look,photo:s.photo,shown:s.shown,width:v.discScreenRect(key,{rim:true}).width,pixelRatio:v.renderer.pixelRatio,dpr:devicePixelRatio,sizing:v.stage.phoneSizing};},buzzz);
+ metrics.phone=grown;
+ assert.equal(grown.dpr,3);
+ assert.ok(grown.sizing&&!grown.sizing.original&&grown.width>grown.sizing.today+5,`the phone disc grew (${grown.width.toFixed(1)} px from ${grown.sizing?.today.toFixed(1)})`);
+ assert.equal(grown.look,'bag','phone pulled discs stay under the detail-look size');
+ assert.deepEqual(grown.photo,{size:256,relief:false},'the bag photo tier');
+ assert.ok(grown.width*grown.dpr<=256,`256 px covers the grown disc's ${(grown.width*grown.dpr).toFixed(0)} device px`);
+ // Upright and still on the phone too: the fixture's bar, second disc out.
+ await phone.locator(`[data-physical-disc="${destroyer}"]`).evaluate(n=>n.click());
+ await phone.waitForFunction(()=>{const s=document.querySelector('#bagScene');return !s.querySelector('[data-bag-canvas]').bagViewer.stage.moving&&s.dataset.staging==='still';},null,{timeout:20000});
+ await phone.waitForFunction(key=>document.querySelector('[data-bag-canvas]').bagViewer.getBagLayoutState().find(d=>d.key===key).photo?.size===256,destroyer,{timeout:20000});
+ await phone.mouse.move(2,2);await phone.waitForTimeout(300);
+ const phoneAngles=[];
+ for(const wait of [0,700,1400]){
+  await phone.waitForTimeout(wait&&700);
+  const m=await phone.locator('[data-bag-canvas]').evaluate((n,key)=>{const c=n.getBoundingClientRect(),r=n.bagViewer.discScreenRect(key,{rim:true});return {disc:{left:c.left+r.left,top:c.top+r.top,width:r.width,height:r.height}};},destroyer);
+  const stamp=await stampAngle(m,wait?null:`${dir}/upright-phone.png`,phone);
+  assert.ok(stamp.dark>200&&stamp.blueAbove,'the fixture stamp is found on the phone');
+  phoneAngles.push(stamp.angle);
+ }
+ metrics.phoneUpright=phoneAngles;
+ assert.ok(phoneAngles.every(a=>Math.abs(a)<.5),`phone stamp upright (${phoneAngles.map(a=>a.toFixed(3)).join('/')}°)`);
+ assert.ok(Math.max(...phoneAngles)-Math.min(...phoneAngles)<.2,'and still across the float');
+ await phoneContext.close();
  assert.deepEqual(errors,[]);
  fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(metrics,null,2));
  console.log(`ok - pulled discs: viewer quality by size (1024/512/256, ×${one.pixelRatio}), stamp upright (${control.angle.toFixed(2)}° before, ${angles.map(a=>a.toFixed(3)).join('/')}° after)`);

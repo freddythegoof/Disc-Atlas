@@ -140,23 +140,78 @@ try{
  assert.ok(prior.discs.every(d=>d.width>=denseFloor-.2),'large-bag full count is never below its measured legacy floor');
  metrics.denseFull=prior.discs[0].width;
  metrics.denseFloor=denseFloor;
- // Phone takes exactly the existing path. Use its original demo fixture too.
- await page.unroute('**/bag-demo.js');await page.setViewportSize({width:390,height:1000});await open();
- const phoneIds=await page.locator('[data-physical-disc][tabindex="0"]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc));
- for(const count of [1,2,6,18]){
-  if(count===18){await page.locator('.bag-dump').evaluate(n=>n.click());await settled();}
-  else for(let i=count===1?0:count===2?1:2;i<count;i++)await pull(phoneIds[i]);
-  const f=await snapshot(),baseline=JSON.parse(fs.readFileSync(`docs/assets/bag-pulled-disc-sizing/baseline-390-${count===2||count===6?1:count}.json`,'utf8'));
-  const expected={1:41.2974,2:41.1809,6:33.565,18:27.196}[count];
-  assert.ok(f.discs.every(d=>Math.abs(d.width-expected)<.2),`phone ${count}: unchanged diameters`);
-  if(count===1||count===18){
-   assert.equal(f.stage.around,baseline.stage.around);
-   for(const d of f.discs){const old=baseline.discs.find(e=>e.id===d.id);assert.ok(Math.abs(d.left-old.left)<.2&&Math.abs(d.top-old.top)<.2,'phone centers unchanged');}
+ // Phone: one or two discs out grow above the bag, as large as the room beside the standing putters holds
+ // (at most 80 px); more out keep the original scatter exactly. "Before" is measured live on a page with the
+ // phone opt-in switched off, at every count checked, so the floor is today's own size.
+ await page.unroute('**/bag-demo.js');
+ const phoneOff=source.replace("const phoneSizing=matchMedia('(max-width:700px)').matches","const phoneSizing=false");
+ assert.notEqual(phoneOff,source,'the comparison disables only the phone opt-in');
+ const phoneRun=async(width,{legacy=false,shots=null}={})=>{
+  const p=await browser.newPage({ignoreHTTPSErrors:true,viewport:{width,height:844}});
+  p.on('pageerror',e=>errors.push(e.stack));
+  if(legacy)await p.route('**/bag-scene.js',route=>route.fulfill({status:200,contentType:'text/javascript',body:phoneOff}));
+  await p.goto(base+'/?bag=1');
+  await p.waitForFunction(()=>{const s=document.querySelector('#bagScene');return s?.dataset.engine==='ready'&&s.dataset.phase==='open';},null,{timeout:30000});
+  await p.evaluate(()=>document.fonts.ready);await p.mouse.move(2,2);
+  const still=()=>p.waitForFunction(()=>{const s=document.querySelector('#bagScene');return !s.querySelector('[data-bag-canvas]').bagViewer.stage.moving&&s.dataset.staging==='still';},null,{timeout:20000});
+  const ids=await p.locator('[data-physical-disc][tabindex="0"]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc));
+  const runs={};let out=0;
+  for(const count of [1,2,6,'all']){
+   if(count==='all')await p.locator('.bag-dump').evaluate(n=>n.click());
+   else while(out<count)await p.locator(`[data-physical-disc="${ids[out++]}"]`).evaluate(n=>n.click());
+   await still();
+   await p.waitForFunction(()=>[...document.querySelectorAll('[data-out-name][data-shown]')].every(n=>Number(getComputedStyle(n).opacity)>.99),null,{timeout:2500});
+   runs[count]=await p.locator('[data-bag-canvas]').evaluate(n=>{
+    const v=n.bagViewer,c=n.getBoundingClientRect(),box=r=>({left:r.left,top:r.top,width:r.width,height:r.height});
+    return {stage:v.stage,width:c.width,height:c.height,bag:v.bagRect(),
+     discs:v.discRects().filter(r=>r.out).map(r=>({id:r.id,...box(r)})),
+     standing:v.discRects().filter(r=>!r.out&&!r.empty&&(r.pocket==='putter'||r.pocket==='goTo')).map(r=>({id:r.id,...box(r)})),
+     names:[...n.querySelectorAll('[data-out-name][data-shown]')].map(e=>{const r=e.getBoundingClientRect();return {id:e.dataset.outName,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};}),
+     // The phone's controls (under the canvas), in canvas coordinates.
+     controls:[...document.querySelectorAll('[data-bag-controls] button, .bag-return-all, .bag-dump')].filter(e=>e.checkVisibility()).map(e=>{const r=e.getBoundingClientRect();return {id:e.className,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};})};
+   });
+   if(shots?.[count]){await p.mouse.move(2,2);await p.waitForTimeout(250);await p.locator('[data-bag-canvas]').screenshot({path:`${dir}/${shots[count]}.png`});}
   }
-  metrics[`phone-${count}`]={diameters:f.discs.map(d=>d.width),stage:f.stage,canvas:{width:f.width,height:f.height},bag:f.bag};
+  await p.close();
+  return runs;
+ };
+ const phoneCheck=(label,f)=>{
+  assert.equal(f.names.length,f.discs.length,`${label}: every disc has a name`);
+  const boxes=[...f.discs,...f.names];
+  for(const box of boxes){
+   assert.ok(box.left>=7.5&&box.top>=7.5&&box.left+box.width<=f.width-7.5&&box.top+box.height<=f.height-7.5,`${label}: ${box.id} within the canvas`);
+   assert.ok(!overlap(box,f.bag),`${label}: ${box.id} clear of the bag`);
+   for(const other of [...f.standing,...f.controls])assert.ok(!overlap(box,other),`${label}: ${box.id} clear of ${other.id}`);
+  }
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)assert.ok(!overlap(boxes[i],boxes[j]),`${label}: ${boxes[i].id} and ${boxes[j].id} apart`);
+ };
+ for(const width of [390,430,360]){
+  const before=await phoneRun(width,{legacy:true,shots:width===390?{1:'phone-1-before'}:null});
+  const after=await phoneRun(width,{shots:width===390?{1:'phone-1',2:'phone-2',6:'phone-6',all:'phone-all'}:null});
+  for(const count of [1,2,6,'all']){
+   const was=before[count],now=after[count],label=`phone-${width}-${count}`;
+   phoneCheck(label,now);
+   const size=Math.min(...now.discs.map(d=>d.width)),old=Math.min(...was.discs.map(d=>d.width));
+   assert.ok(size>=old-.2,`${label}: never smaller than before (${size.toFixed(2)} vs ${old.toFixed(2)})`);
+   // The bag keeps the camera, so its size, at every count.
+   assert.ok(Math.abs(now.stage.pullGoal-was.stage.pullGoal)<1e-6,`${label}: no camera pull-back`);
+   assert.ok(['left','top','width','height'].every(k=>Math.abs(now.bag[k]-was.bag[k])<1),`${label}: the bag is the size it was`);
+   if(count===1||count===2){
+    // A grown disc stays within its bag photo (256 px) on a 3x display.
+    assert.ok(size<=80+.01&&size*3<=256,`${label}: within the cap`);
+    if(width>=390){
+     assert.ok(!now.stage.phoneSizing.original&&size>=50,`${label}: grows into the band above the bag (${size.toFixed(2)} px)`);
+     assert.ok(now.discs.every(d=>d.top+d.height<=now.bag.top-12),`${label}: above the bag`);
+    }
+   }else{
+    // More discs out: the original scatter exactly.
+    assert.equal(now.stage.phoneSizing,undefined,`${label}: no phone sizing past two out`);
+    for(const d of now.discs){const o=was.discs.find(e=>e.id===d.id);assert.ok(['left','top','width','height'].every(k=>Math.abs(d[k]-o[k])<.2),`${label}: ${d.id} where it was`);}
+   }
+   metrics[label]={before:+old.toFixed(2),after:+size.toFixed(2),labels:now.stage.labels,pull:now.stage.pullGoal};
+  }
  }
- await shot('phone-unchanged');
  assert.deepEqual(errors,[]);
  fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(metrics,null,2));
- console.log('ok - desktop sizes, bounds, labels, animation, return behavior, smaller desktop, and unchanged phone');
+ console.log('ok - desktop sizes, bounds, labels, animation, return behavior, smaller desktop, and phone growth at one or two out');
 }finally{await browser?.close();server.kill();}
