@@ -166,9 +166,19 @@ test('account switch during photo upload does not reconcile into the new account
  assert.equal(f.counts.closes,0);
 });
 
+// thumbnails.mjs runs as a plain script here: drop every import and stand in for what they provided.
+const thumbnailsSource=()=>readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
+ .replace(/^import[^\n]*\n/gm,'').replace('export function','function');
+// No catalog stamp asset, so no stamp texture or shape lookup is needed.
+const stampStubs={
+ catalogStampAsset:()=>null,
+ stampTexture:()=>{throw new Error('stampTexture is not expected here');},
+ shapeForDisc:()=>{throw new Error('shapeForDisc is not expected here');},
+ shapeFrame:()=>{throw new Error('shapeFrame is not expected here');},
+};
+
 test('photo readiness redraws only intersecting thumbnails with the matching URL',async()=>{
- const source=readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
-  .replace(/^import[^\n]*\n/,'').replace('export function','function');
+ const source=thumbnailsSource();
  let observer,onPhoto,nextFrame=0;
  const frames=new Map(),rendered=[];
  const host=(id,url)=>({
@@ -176,7 +186,7 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
   checkVisibility:()=>true,getBoundingClientRect:()=>({width:64}),
  });
  const visible=host('visible-a','photo-a'),offscreen=host('offscreen-a','photo-a'),other=host('visible-b','photo-b');
- const context={
+ const context={...stampStubs,
   performance:{now:()=>0},
   document:{createElement:()=>({style:{},setAttribute(){},getContext:()=>({drawImage(){}})})},
   // Every photo here is still loading, so each render returns its placeholder.
@@ -206,14 +216,13 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
 });
 
 test('finished thumbnails stop being observed; only a loading photo stays watched',async()=>{
- const source=readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
-  .replace(/^import[^\n]*\n/,'').replace('export function','function');
+ const source=thumbnailsSource();
  let observer,onPhoto,nextFrame=0;const frames=new Map(),unobserved=[],rendered=[];
  const canvas=()=>({width:0,height:0,style:{},setAttribute(){},getContext:()=>({drawImage(){}})});
  const host=(id,url)=>({id,dataset:{discThumbnail:id,photoUrl:url,plateColor:'red'},isConnected:true,classList:{add(){}},replaceChildren(){},
   checkVisibility:()=>true,getBoundingClientRect:()=>({width:64})});
  const plain=host('plain',''),loading=host('loading','photo-a');let ready=false;
- const context={
+ const context={...stampStubs,
   performance:{now:()=>0},document:{createElement:canvas},
   getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return {canvas:canvas(),px:64,fill:.9,pending:!!disc.photoURL&&!ready};}}),
   window:{addEventListener:(_type,fn)=>onPhoto=fn,removeEventListener(){}},
