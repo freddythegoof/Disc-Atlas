@@ -28,7 +28,7 @@ class StampManifestTests(unittest.TestCase):
             module.validate_stamp_manifest([entry], [{'id':'innova','brand':'Innova','name':'Destroyer'}], ROOT / 'public')
 
     def test_reviewed_assets_exist_and_match_generated_fields(self):
-        self.assertEqual(len(self.module.validate_stamp_fields(self.entries,self.records,ROOT/'public')),3)
+        self.assertEqual(len(self.module.validate_stamp_fields(self.entries,self.records,ROOT/'public')),len(self.entries))
 
     def test_invalid_rights_identity_source_and_path_are_rejected(self):
         for change in [dict(brand='Innova'),dict(mold='Comet'),dict(asset='stamps/discraft/missing.png'),
@@ -36,6 +36,18 @@ class StampManifestTests(unittest.TestCase):
                        dict(rightsBasis='Discraft permission'),dict(capturedAt='2025-01-01')]:
             with self.subTest(change=change),self.assertRaises(ValueError):
                 self.module.validate_stamp_manifest([{**self.entries[0],**change}],self.records,ROOT/'public')
+
+    def test_infinite_provenance_and_narrow_source_gate(self):
+        entry={**self.entries[0], 'sourceURL':'https://infinitediscs.com/discraft-avenger/esp'}
+        self.module.validate_stamp_manifest([entry],self.records,ROOT/'public')
+        for url in ['http://infinitediscs.com/discraft-avenger/esp',
+                    'https://infinitediscs.com/', 'https://infinitediscs.com/Inf_Uploads/foo.webp',
+                    'https://infinitediscs.com.evil.test/discraft-avenger/esp',
+                    'https://infinitediscs.com@evil.test/discraft-avenger/esp',
+                    'https://infinitediscs.com/discraft-avenger',
+                    'https://infinitediscs.com/innova-destroyer/esp']:
+            with self.subTest(url=url),self.assertRaises(ValueError):
+                self.module.validate_stamp_manifest([{**entry,'sourceURL':url}],self.records,ROOT/'public')
 
     def test_unreviewed_or_removed_catalog_assignment_is_rejected(self):
         records=[dict(d) for d in self.records]
@@ -52,7 +64,8 @@ class StampManifestTests(unittest.TestCase):
         before=json.loads(subprocess.check_output(['git','show',base+':public/data.json'],cwd=ROOT))
         after=json.loads((ROOT/'public/data.json').read_text())
         self.assertEqual(before['meta'],after['meta'])
-        self.assertEqual(before['discs'],[{k:v for k,v in d.items() if k!='stampAsset'} for d in after['discs']])
+        strip=lambda rows:[{k:v for k,v in d.items() if k!='stampAsset'} for d in rows]
+        self.assertEqual(strip(before['discs']),strip(after['discs']))
 
     def test_alpha_assets_cannot_bleed_outside_circular_stamp_mesh(self):
         from PIL import Image

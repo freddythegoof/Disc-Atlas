@@ -839,7 +839,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/d3a50f3-4c91-430f-bb8b-a4a55037c5d3Avenger-ESP.Webp",
     "imageWidth": 1200,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; dark green ring, wordmark and ornate mold lettering on blue plastic. Mild foil highlights on ring (foil-risk); no visible occlusion.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -859,7 +859,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/avenger.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/d3a50f3-4c91-430f-bb8b-a4a55037c5d3Avenger-ESP.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        294,
+        150,
+        896,
+        748
+      ],
+      "assetSize": [
+        623,
+        623
+      ],
+      "assetPasteOffset": [
+        10,
+        12
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 27.557,
+    "sourceSHA256": "fbde5313274d19bbb38e36eda655dfe8b4f462813642bd98e975a00ccbc6a7f4",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Avenger SS",
@@ -869,7 +905,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0226-dbb6-4d5e-9296-5b7f2fcd08e3Avenger-SS-ESP.Webp",
     "imageWidth": 1200,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; dark purple ring/wordmark and ornate SS lettering on cyan plastic; strong contrast.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -887,7 +923,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/avenger-ss.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0226-dbb6-4d5e-9296-5b7f2fcd08e3Avenger-SS-ESP.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        295,
+        136,
+        894,
+        734
+      ],
+      "assetSize": [
+        617,
+        617
+      ],
+      "assetPasteOffset": [
+        9,
+        9
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 21.281,
+    "sourceSHA256": "0ba8f7bfb7cb30f32b62bf7489849edf191abae1ceeee22a4b3b8863056d0d9d",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Banger GT",
@@ -2603,7 +2675,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Comet325.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; red Discraft/ESP, script Comet and flight box contrast on green.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -2621,7 +2693,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/comet.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Comet325.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        581,
+        984,
+        2349,
+        2236
+      ],
+      "assetSize": [
+        1999,
+        1999
+      ],
+      "assetPasteOffset": [
+        115,
+        373
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 99.922,
+    "sourceSHA256": "e10003decad6f31a4e8e1d8060e72c3721a7a858e745d5b7136f78c3844921ac",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Crank",
@@ -3085,7 +3193,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240422100344898_unnamed20-e095becc97a4.webp",
     "imageWidth": 1000,
     "imageHeight": 997,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full near-frontal face; dark Paige Pierce name/logo, Discraft and flight box contrast against swirled ESP. Preserve this mold-own player mark only.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -3103,7 +3211,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/drive.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240422100344898_unnamed20-e095becc97a4.webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1000,
+        997
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        1000,
+        997
+      ],
+      "sourceInkBounds": [
+        130,
+        341,
+        864,
+        876
+      ],
+      "assetSize": [
+        845,
+        845
+      ],
+      "assetPasteOffset": [
+        55,
+        155
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 19.313,
+    "sourceSHA256": "c4681c990994f8d58e7d64fb6a1700049f2315dc11abd60620caafbc57dfe2a7",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Drone",
@@ -3546,7 +3690,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/3c44a3c4-f742-46c0-9bcc-a67e3be2a021Flash-ESP.Webp",
     "imageWidth": 1200,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; dark purple ring, Discraft/ESP and sunburst mold logo against green; strong contrast.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -3564,7 +3708,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/flash.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/3c44a3c4-f742-46c0-9bcc-a67e3be2a021Flash-ESP.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        296,
+        150,
+        892,
+        747
+      ],
+      "assetSize": [
+        616,
+        616
+      ],
+      "assetPasteOffset": [
+        10,
+        9
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 23.761,
+    "sourceSHA256": "bf80b30a8a1d4f37feb662134113d41c7fe543931095610e60139a346f1118c3",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Flick",
@@ -3840,7 +4020,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Force431.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face and stamp visible; signature, champion line, wordmark, ESP and flight box readable. Patterned silver foil needs careful separation (foil-risk), but no evident missing strokes. Older 5x stamp, not refreshed 6x.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -3860,7 +4040,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/force.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Force431.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        555,
+        797,
+        2407,
+        2377
+      ],
+      "assetSize": [
+        1968,
+        1968
+      ],
+      "assetPasteOffset": [
+        58,
+        194
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 190.554,
+    "sourceSHA256": "81a3d4f64d28c2bddef9b611cdafc462aba28ff5a6cc8cb4b5c94088b09a375a",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Fossil",
@@ -4095,7 +4311,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; magenta Hades panel, split rings, Discraft, McBeth emblem and flight box on pink/orange; strong usable contrast.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -4113,7 +4329,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/hades.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        610,
+        595,
+        2406,
+        2338
+      ],
+      "assetSize": [
+        2518,
+        2518
+      ],
+      "assetPasteOffset": [
+        361,
+        387
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 199.236,
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Hallux",
@@ -4360,7 +4612,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Heatefb7.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; solid red Discraft/ESP, Heat and number box on green; strong contrast.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -4378,7 +4630,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/heat.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Heatefb7.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        578,
+        1029,
+        2382,
+        2311
+      ],
+      "assetSize": [
+        2032,
+        2032
+      ],
+      "assetPasteOffset": [
+        114,
+        375
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 91.615,
+    "sourceSHA256": "309008fdb499f00a85bcf40c861168da04551918866c54cbe476f120faa0af33",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Hornet",
@@ -5667,7 +5955,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Meteor_4.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; dark red foil wordmark/name and readable number box contrast on blue/green. Mild foil-risk, no apparent erased strokes.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -5687,7 +5975,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/meteor.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Meteor_4.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        576,
+        1108,
+        2405,
+        2406
+      ],
+      "assetSize": [
+        2258,
+        2258
+      ],
+      "assetPasteOffset": [
+        214,
+        480
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 98.998,
+    "sourceSHA256": "88499fcd46590203ef0287176006e4f5389c89997b01d3e1e135fba1f98355f6",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Nebula",
@@ -6499,7 +6823,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bc7844-6097-4cc5-8c7d-b12d00a600c5Predator-ESP.Webp",
     "imageWidth": 1200,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Selected frontal 1200x900 gallery view; full green ring, Discraft/Predator/ESP and lion emblem on orange, good contrast. Mild ring foil-risk.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -6519,7 +6843,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/predator.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bc7844-6097-4cc5-8c7d-b12d00a600c5Predator-ESP.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        297,
+        142,
+        895,
+        741
+      ],
+      "assetSize": [
+        617,
+        617
+      ],
+      "assetPasteOffset": [
+        9,
+        9
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 28.669,
+    "sourceSHA256": "77ba38186f560f910064fb4dd62747e009691582bc7d9ca19b2da929f676f545",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Pulse",
@@ -6529,7 +6889,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Pulse0f0.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; solid black ring, Discraft/Pulse/ESP and pulse-line emblem on pink. Strong contrast.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -6547,7 +6907,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/pulse.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Pulse0f0.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        541,
+        511,
+        2454,
+        2422
+      ],
+      "assetSize": [
+        1933,
+        1933
+      ],
+      "assetPasteOffset": [
+        10,
+        11
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 227.385,
+    "sourceSHA256": "652d719d9ad2e8232ffed16251246fb0cd178541e2724a5797490cdba8658879",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Punisher",
@@ -9333,7 +9729,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Thrasher_3.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; solid blue wordmark, ESP, mold name and number box on pale pink; strong contrast.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -9351,7 +9747,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/thrasher.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Thrasher_3.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        541,
+        1068,
+        2391,
+        2366
+      ],
+      "assetSize": [
+        2072,
+        2072
+      ],
+      "assetPasteOffset": [
+        111,
+        387
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 111.281,
+    "sourceSHA256": "6b0ada473dd4a03c4a368eb69ff0cff41fb296254f8d3169ba8219a6620f2b72",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Tracker",
@@ -10318,7 +10750,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c9b55ab-7d23-4945-a03f-dc35179a6ab0XL-ESP.Webp",
     "imageWidth": 1200,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Selected larger frontal gallery view: full silver-white ring/wordmark/XL/number box on blue, good contrast. Headline image is smaller rainbow design.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -10336,7 +10768,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/xl.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c9b55ab-7d23-4945-a03f-dc35179a6ab0XL-ESP.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        300,
+        152,
+        893,
+        738
+      ],
+      "assetSize": [
+        610,
+        610
+      ],
+      "assetPasteOffset": [
+        8,
+        12
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 33.672,
+    "sourceSHA256": "539637ccac6da7350624ea68956c66b3cae248331c4c302e3efb5ec4460364aa",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Xpress",
@@ -10754,7 +11222,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Zeusa3be.Webp",
     "imageWidth": 2970,
     "imageHeight": 2970,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full face; solid black split-circle/name panel, Discraft, McBeth emblem and flight box contrast strongly on orange.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -10772,7 +11240,43 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/zeus.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Zeusa3be.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        608,
+        655,
+        2340,
+        2309
+      ],
+      "assetSize": [
+        1802,
+        1802
+      ],
+      "assetPasteOffset": [
+        35,
+        74
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 99.465,
+    "sourceSHA256": "12beeab8bd5662672e9e6b619041f826dc3faa7043730ed6871142329558aa30",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
   },
   {
     "mold": "Zeus 2.0",
@@ -11185,7 +11689,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240402095019925_unnamed19-adfcd303cb9d.webp",
     "imageWidth": 1000,
     "imageHeight": 992,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full first-run wordmark/name/box on pink/lavender, dark red ink has good contrast. Groove visible but does not cut off art. Match Banger Top catalog identity before later assignment. Catalog contains Banger Top and Ringer Top approvals. Candidate art belongs to the Infinite Zone GT listing; exact approval assignment remains unapproved. Never copy it to both.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -11211,7 +11715,54 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": null
+    "asset": "stamps/discraft/zone-gt.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240402095019925_unnamed19-adfcd303cb9d.webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1000,
+        992
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        1000,
+        992
+      ],
+      "sourceInkBounds": [
+        215,
+        387,
+        735,
+        810
+      ],
+      "assetSize": [
+        605,
+        605
+      ],
+      "assetPasteOffset": [
+        42,
+        91
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 10.852,
+    "sourceSHA256": "51f866a45f29c0c55ae58d740e64e472a45c72072dc1a15961183078b146d3fe",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding.",
+    "assignmentReview": {
+      "id": "4a6dfb045c65",
+      "mold": "Zone GT (Banger Top)",
+      "notAssigned": "8b507b3cabd4 (Ringer Top)",
+      "basis": "Source First Run ESP stock photo has broad inner groove. Manufacturer stock form explicitly identifies ESP Zone GT w/Banger Top. Infinite rim depth 1.3cm matches Banger PDGA approval; Ringer record is 1.2cm. Inference from these concordant sources, not a shared-name assignment.",
+      "sources": [
+        "https://discgolf.discraft.com/forms/stock.pdf",
+        "https://www.pdga.com/technical-standards/equipment-certification/discs/zone-gt-banger-top",
+        "https://infinitediscs.com/discraft-zone-gt/esp"
+      ]
+    }
   },
   {
     "mold": "Zone OS",

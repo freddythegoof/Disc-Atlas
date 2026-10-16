@@ -25,8 +25,10 @@ def validate_stamp_manifest(entries, records, public):
         if entry['rightsBasis'] != RIGHTS:
             raise ValueError('Stamp rights basis must retain the Discraft free resource condition')
         source = urlparse(entry['sourceURL'])
-        if source.scheme != 'https' or source.netloc != 'www.discraft.com' or source.path in ('','/'):
-            raise ValueError('Stamp source must be its official Discraft product page')
+        official = source.netloc == 'www.discraft.com' and source.path not in ('','/')
+        infinite = source.netloc == 'infinitediscs.com' and re.fullmatch(r'/discraft-[a-z0-9-]+/esp', source.path)
+        if source.scheme != 'https' or not (official or infinite):
+            raise ValueError('Stamp source must be an official Discraft or reviewed Infinite Discraft ESP product page')
         if date.fromisoformat(entry['capturedAt']) < date(2026,10,15):
             raise ValueError('Stamp capture predates permission')
         path = PurePosixPath(entry['asset'])

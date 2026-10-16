@@ -1,0 +1,707 @@
+[
+  {
+    "mold": "Avenger",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/d3a50f3-4c91-430f-bb8b-a4a55037c5d3Avenger-ESP.Webp",
+    "sourceSHA256": "fbde5313274d19bbb38e36eda655dfe8b4f462813642bd98e975a00ccbc6a7f4",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        294,
+        150,
+        896,
+        748
+      ],
+      "assetSize": [
+        623,
+        623
+      ],
+      "assetPasteOffset": [
+        10,
+        12
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "green-blue",
+      "threshold": -0.02,
+      "ramp": 0.06,
+      "roi": [
+        0.2,
+        0.13,
+        0.8,
+        0.85
+      ]
+    },
+    "asset": "stamps/discraft/avenger.png",
+    "assetKB": 27.557
+  },
+  {
+    "mold": "Avenger SS",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0226-dbb6-4d5e-9296-5b7f2fcd08e3Avenger-SS-ESP.Webp",
+    "sourceSHA256": "0ba8f7bfb7cb30f32b62bf7489849edf191abae1ceeee22a4b3b8863056d0d9d",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        295,
+        136,
+        894,
+        734
+      ],
+      "assetSize": [
+        617,
+        617
+      ],
+      "assetPasteOffset": [
+        9,
+        9
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-green",
+      "threshold": -0.48,
+      "ramp": 0.15,
+      "roi": [
+        0.2,
+        0.12,
+        0.8,
+        0.85
+      ]
+    },
+    "asset": "stamps/discraft/avenger-ss.png",
+    "assetKB": 21.281
+  },
+  {
+    "mold": "Comet",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Comet325.Webp",
+    "sourceSHA256": "e10003decad6f31a4e8e1d8060e72c3721a7a858e745d5b7136f78c3844921ac",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        581,
+        984,
+        2349,
+        2236
+      ],
+      "assetSize": [
+        1999,
+        1999
+      ],
+      "assetPasteOffset": [
+        115,
+        373
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "red-green",
+      "threshold": -0.04,
+      "ramp": 0.16,
+      "roi": [
+        0.18,
+        0.29,
+        0.81,
+        0.78
+      ]
+    },
+    "asset": "stamps/discraft/comet.png",
+    "assetKB": 99.922
+  },
+  {
+    "mold": "Drive",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240422100344898_unnamed20-e095becc97a4.webp",
+    "sourceSHA256": "c4681c990994f8d58e7d64fb6a1700049f2315dc11abd60620caafbc57dfe2a7",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1000,
+        997
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        1000,
+        997
+      ],
+      "sourceInkBounds": [
+        130,
+        341,
+        864,
+        876
+      ],
+      "assetSize": [
+        845,
+        845
+      ],
+      "assetPasteOffset": [
+        55,
+        155
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "blue-red-ratio",
+      "threshold": 0.1,
+      "ramp": 0.2,
+      "roi": [
+        0.12,
+        0.32,
+        0.88,
+        0.89
+      ]
+    },
+    "asset": "stamps/discraft/drive.png",
+    "assetKB": 19.313
+  },
+  {
+    "mold": "Flash",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/3c44a3c4-f742-46c0-9bcc-a67e3be2a021Flash-ESP.Webp",
+    "sourceSHA256": "bf80b30a8a1d4f37feb662134113d41c7fe543931095610e60139a346f1118c3",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        296,
+        150,
+        892,
+        747
+      ],
+      "assetSize": [
+        616,
+        616
+      ],
+      "assetPasteOffset": [
+        10,
+        9
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-green",
+      "threshold": -0.42,
+      "ramp": 0.14,
+      "roi": [
+        0.2,
+        0.14,
+        0.8,
+        0.86
+      ]
+    },
+    "asset": "stamps/discraft/flash.png",
+    "assetKB": 23.761
+  },
+  {
+    "mold": "Force",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Force431.Webp",
+    "sourceSHA256": "81a3d4f64d28c2bddef9b611cdafc462aba28ff5a6cc8cb4b5c94088b09a375a",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        555,
+        797,
+        2407,
+        2377
+      ],
+      "assetSize": [
+        1968,
+        1968
+      ],
+      "assetPasteOffset": [
+        58,
+        194
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-max",
+      "threshold": -0.82,
+      "ramp": 0.14,
+      "roi": [
+        0.17,
+        0.26,
+        0.83,
+        0.81
+      ]
+    },
+    "asset": "stamps/discraft/force.png",
+    "assetKB": 190.554
+  },
+  {
+    "mold": "Hades",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        610,
+        595,
+        2406,
+        2338
+      ],
+      "assetSize": [
+        2518,
+        2518
+      ],
+      "assetPasteOffset": [
+        361,
+        387
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "blue-green",
+      "threshold": 0.12,
+      "ramp": 0.18,
+      "roi": [
+        0.19,
+        0.2,
+        0.81,
+        0.8
+      ]
+    },
+    "asset": "stamps/discraft/hades.png",
+    "assetKB": 199.236
+  },
+  {
+    "mold": "Heat",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Heatefb7.Webp",
+    "sourceSHA256": "309008fdb499f00a85bcf40c861168da04551918866c54cbe476f120faa0af33",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        578,
+        1029,
+        2382,
+        2311
+      ],
+      "assetSize": [
+        2032,
+        2032
+      ],
+      "assetPasteOffset": [
+        114,
+        375
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "red-green",
+      "threshold": -0.04,
+      "ramp": 0.16,
+      "roi": [
+        0.18,
+        0.3,
+        0.81,
+        0.8
+      ]
+    },
+    "asset": "stamps/discraft/heat.png",
+    "assetKB": 91.615
+  },
+  {
+    "mold": "Meteor",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Meteor_4.Webp",
+    "sourceSHA256": "88499fcd46590203ef0287176006e4f5389c89997b01d3e1e135fba1f98355f6",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        576,
+        1108,
+        2405,
+        2406
+      ],
+      "assetSize": [
+        2258,
+        2258
+      ],
+      "assetPasteOffset": [
+        214,
+        480
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "red-green",
+      "threshold": 0.04,
+      "ramp": 0.14,
+      "roi": [
+        0.19,
+        0.32,
+        0.82,
+        0.81
+      ]
+    },
+    "asset": "stamps/discraft/meteor.png",
+    "assetKB": 98.998
+  },
+  {
+    "mold": "Predator",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bc7844-6097-4cc5-8c7d-b12d00a600c5Predator-ESP.Webp",
+    "sourceSHA256": "77ba38186f560f910064fb4dd62747e009691582bc7d9ca19b2da929f676f545",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        297,
+        142,
+        895,
+        741
+      ],
+      "assetSize": [
+        617,
+        617
+      ],
+      "assetPasteOffset": [
+        9,
+        9
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-red",
+      "threshold": -0.42,
+      "ramp": 0.14,
+      "roi": [
+        0.2,
+        0.13,
+        0.8,
+        0.86
+      ]
+    },
+    "asset": "stamps/discraft/predator.png",
+    "assetKB": 28.669
+  },
+  {
+    "mold": "Pulse",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Pulse0f0.Webp",
+    "sourceSHA256": "652d719d9ad2e8232ffed16251246fb0cd178541e2724a5797490cdba8658879",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        541,
+        511,
+        2454,
+        2422
+      ],
+      "assetSize": [
+        1933,
+        1933
+      ],
+      "assetPasteOffset": [
+        10,
+        11
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-max",
+      "threshold": -0.65,
+      "ramp": 0.18,
+      "roi": [
+        0.16,
+        0.16,
+        0.84,
+        0.83
+      ]
+    },
+    "asset": "stamps/discraft/pulse.png",
+    "assetKB": 227.385
+  },
+  {
+    "mold": "Thrasher",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Thrasher_3.Webp",
+    "sourceSHA256": "6b0ada473dd4a03c4a368eb69ff0cff41fb296254f8d3169ba8219a6620f2b72",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        541,
+        1068,
+        2391,
+        2366
+      ],
+      "assetSize": [
+        2072,
+        2072
+      ],
+      "assetPasteOffset": [
+        111,
+        387
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-red",
+      "threshold": -0.7,
+      "ramp": 0.18,
+      "roi": [
+        0.18,
+        0.34,
+        0.83,
+        0.82
+      ]
+    },
+    "asset": "stamps/discraft/thrasher.png",
+    "assetKB": 111.281
+  },
+  {
+    "mold": "XL",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c9b55ab-7d23-4945-a03f-dc35179a6ab0XL-ESP.Webp",
+    "sourceSHA256": "539637ccac6da7350624ea68956c66b3cae248331c4c302e3efb5ec4460364aa",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1200,
+        900
+      ],
+      "sourceDiscCrop": [
+        180,
+        22,
+        1020,
+        877
+      ],
+      "sourceInkBounds": [
+        300,
+        152,
+        893,
+        738
+      ],
+      "assetSize": [
+        610,
+        610
+      ],
+      "assetPasteOffset": [
+        8,
+        12
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "neutral",
+      "threshold": -0.22,
+      "ramp": 0.12,
+      "roi": [
+        0.2,
+        0.13,
+        0.8,
+        0.85
+      ]
+    },
+    "asset": "stamps/discraft/xl.png",
+    "assetKB": 33.672
+  },
+  {
+    "mold": "Zeus",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Zeusa3be.Webp",
+    "sourceSHA256": "12beeab8bd5662672e9e6b619041f826dc3faa7043730ed6871142329558aa30",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        608,
+        655,
+        2340,
+        2309
+      ],
+      "assetSize": [
+        1802,
+        1802
+      ],
+      "assetPasteOffset": [
+        35,
+        74
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-red",
+      "threshold": -0.65,
+      "ramp": 0.18,
+      "roi": [
+        0.18,
+        0.17,
+        0.82,
+        0.81
+      ]
+    },
+    "asset": "stamps/discraft/zeus.png",
+    "assetKB": 99.465
+  },
+  {
+    "mold": "Zone GT",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240402095019925_unnamed19-adfcd303cb9d.webp",
+    "sourceSHA256": "51f866a45f29c0c55ae58d740e64e472a45c72072dc1a15961183078b146d3fe",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        1000,
+        992
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        1000,
+        992
+      ],
+      "sourceInkBounds": [
+        215,
+        387,
+        735,
+        810
+      ],
+      "assetSize": [
+        605,
+        605
+      ],
+      "assetPasteOffset": [
+        42,
+        91
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "dark-green",
+      "threshold": -0.3,
+      "ramp": 0.12,
+      "roi": [
+        0.21,
+        0.37,
+        0.8,
+        0.83
+      ]
+    },
+    "asset": "stamps/discraft/zone-gt.png",
+    "assetKB": 10.852
+  }
+]
