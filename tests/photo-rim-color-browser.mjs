@@ -127,6 +127,51 @@ try {
   assert.equal(await rendered(),theme==='light'?'#0a0a0a':'#ffffff');
   await page.locator('#detail').screenshot({path:dir+'/'+theme+'-photo-removed.png'});await close();
  }
+ // A stamped Pixel with an existing stored black rim: exercise the viewer's own saved-input
+ // contract too, without pre-resolving colors at its caller. No re-apply between panel/popout opens.
+ const stamped=Buffer.from(await page.evaluate(async bytes=>{
+  const image=await createImageBitmap(new Blob([new Uint8Array(bytes)]));
+  const c=document.createElement('canvas');c.width=c.height=1024;const g=c.getContext('2d');
+  g.fillStyle='#101418';g.beginPath();g.arc(512,512,481,0,Math.PI*2);g.fill();
+  g.save();g.beginPath();g.arc(512,512,410,0,Math.PI*2);g.clip();g.drawImage(image,31,31,962,962);g.restore();image.close();
+  return [...new Uint8Array(await (await new Promise(r=>c.toBlob(r,'image/png'))).arrayBuffer())];
+ },[...fs.readFileSync('tests/fixtures/stamped-disc.webp')]));
+ disc=await apply(stamped);await refresh();near(disc.photo_rim_color,'#101418');
+ for(const theme of ['midnight','light']){
+  await setTheme(theme);await inspect();
+  near(await rendered(),'#101418'); // The normal bag detail path already worked on the base merge.
+  if(theme==='midnight')await page.locator('#detail').screenshot({path:dir+'/viewer-bag-integration.png'});
+  const rawSync=async()=>page.evaluate(({disc,pixel})=>Disc3D.sync(document.querySelector('#detail'),pixel,{
+   color:disc.color,colors:{plate:disc.color,rim:disc.rim_color},photoURL:'/api/bag/discs/'+disc.id+'/photo?v='+disc.texture_key,
+   texture_key:disc.texture_key,photo_rim_color:disc.photo_rim_color,
+  }),{disc,pixel});
+  await rawSync();await page.waitForTimeout(300);
+  if(theme==='midnight')await page.locator('#detail').screenshot({path:dir+'/viewer-saved-input.png'});
+  near(await rendered(),'#101418');
+  await page.locator('#detail [data-disc3d-expand]').click();await page.waitForFunction(()=>Disc3D.popout?.debug.photo?.userData.photoReady);
+  near(await page.evaluate(()=> '#'+Disc3D.popout.debug.rimMaterial.color.getHexString()),'#101418');
+  assert.ok(await page.evaluate(()=>[Disc3D.viewer,Disc3D.popout].every(v=>v.state.props.photo_rim_color&&v.state.props.texture_key)),'both viewers carry the stored sample');
+  const clay=await page.evaluate(()=>{Disc3D.setClay(true);return [Disc3D.viewer,Disc3D.popout].every(v=>v.debug.body.material[1]===v.debug.clayRimMaterial&&!v.debug.photo.visible);});assert.ok(clay);
+  await page.evaluate(()=>Disc3D.setClay(false));
+  await page.keyboard.press('Escape');await page.locator('.disc3d-dialog').waitFor({state:'hidden'});
+  disc=(await api('/discs/'+disc.id,'PUT',{...disc,rim_color:'#663399'})).disc;
+  await rawSync();await page.waitForTimeout(200);assert.equal(await rendered(),'#663399');
+  await page.locator('#detail [data-disc3d-expand]').click();await page.waitForFunction(()=>Disc3D.popout?.debug.photo?.userData.photoReady);
+  assert.equal(await page.evaluate(()=> '#'+Disc3D.popout.debug.rimMaterial.color.getHexString()),'#663399');
+  await page.keyboard.press('Escape');await page.locator('.disc3d-dialog').waitFor({state:'hidden'});await close();
+  disc=(await api('/discs/'+disc.id,'PUT',{...disc,rim_color:null})).disc;await refresh();
+ }
+ await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-remove').click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+ disc=(await api('/discs/'+disc.id)).disc;await refresh();
+ for(const theme of ['midnight','light']){
+  await setTheme(theme);await page.locator(`[data-disc-id="${disc.id}"] [data-bag-inspect]`).click();
+  await page.waitForFunction(()=>Disc3D.viewer?.state.props?.mold==='Pixel'&&!Disc3D.viewer.debug.photo);
+  const fallback=theme==='light'?'#0a0a0a':'#ffffff';assert.equal(await rendered(),fallback);
+  await page.locator('#detail [data-disc3d-expand]').click();await page.waitForFunction(()=>Disc3D.popout?.state.props?.mold==='Pixel');
+  assert.equal(await page.evaluate(()=> '#'+Disc3D.popout.debug.rimMaterial.color.getHexString()),fallback);
+  await page.evaluate(()=>Disc3D.setClay(true));assert.ok(await page.evaluate(()=>[Disc3D.viewer,Disc3D.popout].every(v=>v.debug.body.material[1]===v.debug.clayRimMaterial)));
+  await page.evaluate(()=>Disc3D.setClay(false));await page.keyboard.press('Escape');await page.locator('.disc3d-dialog').waitFor({state:'hidden'});await close();
+ }
  const pilot=await page.evaluate(()=>discs.find(d=>d.name==='Pilot'));
  disc=await create(pilot);await refresh();disc=await apply(dark);assert.equal(disc.photo_rim_color,null,'non-overmold photo is not rim-matched');
  await refresh();await inspect();

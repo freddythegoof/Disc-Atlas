@@ -4,7 +4,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {discProfile,overmoldProfile,shapeForDisc,shapeFrame,topHeight} from '../public/disc3d/shape.mjs';
-import {OVERMOLD_DISCS,DEFAULT_RIM_COLOR,isOvermold,overmoldColors} from '../public/disc3d/overmold.mjs';
+import {OVERMOLD_DISCS,DEFAULT_RIM_COLOR,isOvermold,overmoldColors,bagRimColor} from '../public/disc3d/overmold.mjs';
+
+test('saved rim intent precedes the surface fallback and requires an attached photo',()=>{
+ for(const fallback of [null,'#ffffff','#0a0a0a']){
+  const photo={texture_key:'already-saved',photo_rim_color:'#101418'};
+  assert.equal(bagRimColor(photo,fallback),'#101418');
+  assert.equal(bagRimColor({...photo,rim_color:'#663399'},fallback),'#663399');
+  assert.equal(bagRimColor({...photo,texture_key:null},fallback),fallback);
+  assert.equal(bagRimColor({},fallback),fallback);
+ }
+});
 
 const {discs}=JSON.parse(fs.readFileSync(new URL('../public/data.json',import.meta.url)));
 const find=(manufacturer,name)=>discs.find(d=>d.manufacturer===manufacturer&&d.name===name);

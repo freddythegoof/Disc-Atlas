@@ -163,7 +163,7 @@ try{
    await p.waitForFunction(()=>[...document.querySelectorAll('[data-out-name][data-shown]')].every(n=>Number(getComputedStyle(n).opacity)>.99),null,{timeout:2500});
    runs[count]=await p.locator('[data-bag-canvas]').evaluate(n=>{
     const v=n.bagViewer,c=n.getBoundingClientRect(),box=r=>({left:r.left,top:r.top,width:r.width,height:r.height});
-    return {stage:v.stage,width:c.width,height:c.height,bag:v.bagRect(),
+    return {stage:v.stage,width:c.width,height:c.height,bag:v.bagRect(),restBag:v.bagRect(v.stage.pullGoal),
      discs:v.discRects().filter(r=>r.out).map(r=>({id:r.id,...box(r)})),
      standing:v.discRects().filter(r=>!r.out&&!r.empty&&(r.pocket==='putter'||r.pocket==='goTo')).map(r=>({id:r.id,...box(r)})),
      names:[...n.querySelectorAll('[data-out-name][data-shown]')].map(e=>{const r=e.getBoundingClientRect();return {id:e.dataset.outName,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};}),
@@ -195,7 +195,10 @@ try{
    assert.ok(size>=old-.2,`${label}: never smaller than before (${size.toFixed(2)} vs ${old.toFixed(2)})`);
    // The bag keeps the camera, so its size, at every count.
    assert.ok(Math.abs(now.stage.pullGoal-was.stage.pullGoal)<1e-6,`${label}: no camera pull-back`);
-   assert.ok(['left','top','width','height'].every(k=>Math.abs(now.bag[k]-was.bag[k])<1),`${label}: the bag is the size it was`);
+   // These pages reach rest at different wall-clock times. Compare the identical
+   // resting pose, not two phases of the ambient bob/roll; keep live bag bounds
+   // above for all collision/clearance assertions and the same 1 px tolerance.
+   assert.ok(['left','top','width','height'].every(k=>Math.abs(now.restBag[k]-was.restBag[k])<1),`${label}: the bag is the size it was`);
    if(count===1||count===2){
     // A grown disc stays within its bag photo (256 px) on a 3x display.
     assert.ok(size<=80+.01&&size*3<=256,`${label}: within the cap`);

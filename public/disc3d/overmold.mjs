@@ -34,9 +34,9 @@ export function isOvermold({overmold,manufacturer,record}={}){
 export const DEFAULT_DISC_COLOR='#8a8f98';
 export const DEFAULT_RIM_COLOR='#0a0a0a';
 // Resolve saved intent before handing colors to any renderer. A removed photo
-// cannot keep an automatic rim alive; each renderer retains its own fallback.
-export function bagRimColor(item){
- return item?.rim_color || (item?.texture_key?item.photo_rim_color:null) || null;
+// cannot keep an automatic rim alive; callers may supply their existing surface fallback.
+export function bagRimColor(item,fallback=null){
+ return item?.rim_color || (item?.texture_key?item.photo_rim_color:null) || fallback;
 }
 export function overmoldColors(base,{rim,plate}={}){
  const plateRgb=parseColor(plate)||parseColor(base)||parseColor(DEFAULT_DISC_COLOR);

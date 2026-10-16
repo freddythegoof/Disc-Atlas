@@ -503,6 +503,16 @@ export async function mountBag(container, {
   // in the bag. `shown` is a disc's settled diameter (container px); a disc changes back once it has
   // shrunk (after its glide) or is home in its pocket.
   const DETAIL_FROM = 128;
+  let photoAfter = 0;
+  const photosMoving = (now = performance.now()) => {
+    if (!photoAfter) return false;
+    if (now < photoAfter || pullTween) return true;
+    // A resize can restage an unchanged destination while its existing slide
+    // is still moving. A new duration of zero must not release that slide's photo.
+    for (const record of records.values()) if (record.slide !== record.slideTo || (record.spot?.from && now - record.spot.start < record.spot.duration)) return true;
+    photoAfter = 0;
+    return false;
+  };
   const detailMaterial = color => new THREE.MeshPhysicalMaterial({ color, ...PLASTICS.premium, envMap: environment.texture, envMapIntensity: DETAIL.environment / renderer.toneMappingExposure });
   const setDetailRatio = () => {
     const on = [...records.values()].some(record => record.detail);
@@ -515,8 +525,16 @@ export async function mountBag(container, {
   };
   // The one photo a disc's plate shows: its detail look's ready photo, else the bag's own.
   const showPhotos = record => {
-    const shown = record.detail?.photos.findLast(photo => photo.userData.photoReady);
-    for (const child of record.mesh.children) if (child.userData.disposePhoto) child.visible = shown ? child === shown : !!child.userData.photoReady;
+    const holding = photosMoving();
+    const held = record.photoHeld?.parent === record.mesh && record.photoHeld.userData.photoReady ? record.photoHeld : null;
+    const shown = holding ? held || record.mesh.children.find(child => child.userData.disposePhoto && child.userData.photoReady && !record.detail?.photos.includes(child)) : record.detail?.photos.findLast(photo => photo.userData.photoReady);
+    for (const child of record.mesh.children) if (child.userData.disposePhoto) child.visible = holding || shown ? child === shown : !!child.userData.photoReady;
+  };
+  const finishDetailPhoto = (record, photo) => {
+    const { detail, mesh } = record;
+    if (photo?.userData.photoReady) for (const older of detail.photos.splice(0, detail.photos.indexOf(photo))) { mesh.remove(older); older.userData.disposePhoto(); }
+    detail.photoPending = false;
+    showPhotos(record); paintDisc(record); invalidate();
   };
   const dropDetail = record => {
     const { detail, mesh } = record;
@@ -540,6 +558,8 @@ export async function mountBag(container, {
   };
   const syncLook = (record, now = performance.now()) => {
     if (low || !record.parts) return;
+    const holding = photosMoving(now);
+    if (record.detail?.photoPending && !holding) finishDetailPhoto(record, record.detail.photos.findLast(photo => photo.userData.photoReady));
     const large = record.slideTo === 1 && record.shown > DETAIL_FROM;
     if (!large) {
       // Shrinking: once the size glide ends. Going home: once it is back in its pocket.
@@ -560,12 +580,14 @@ export async function mountBag(container, {
     // A photo only ever trades up while the disc is out (a smaller tier would decode the photo again for no gain).
     // Until it is ready the plate keeps the photo it has.
     const { detail } = record, rank = size => size ?? Infinity;
-    if (placement.photoURL && (detail.tier === undefined || rank(tier) > rank(detail.tier))) {
+    if (!holding && placement.photoURL && (detail.tier === undefined || rank(tier) > rank(detail.tier))) {
       detail.tier = tier;
       const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
         if (record.detail !== detail) return;
-        if (photo.userData.photoReady) for (const older of detail.photos.splice(0, detail.photos.indexOf(photo))) { mesh.remove(older); older.userData.disposePhoto(); }
-        showPhotos(record); paintDisc(record); invalidate();
+        // A decode started before a new click may finish during its glide. Keep
+        // the current tier visible, and retain both handles until motion settles.
+        if (photosMoving()) { detail.photoPending = true; showPhotos(record); invalidate(); return; }
+        finishDetailPhoto(record, photo);
       } });
       detail.photos.push(photo); mesh.add(photo);
     }
@@ -725,6 +747,7 @@ export async function mountBag(container, {
   // `reserve` keeps a top-right corner of the canvas clear, `clear` more boxes ({left, top, right,
   // bottom}, canvas fractions). Resolves when every disc and the camera settle.
   const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active, desktopSizing = null, phoneSizing = false } = {}) => {
+    for (const record of records.values()) record.photoHeld = record.mesh.children.find(child => child.userData.disposePhoto && child.visible && child.userData.photoReady);
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
     // The page may have just resized the canvas (out discs widen it): catch up now rather than on
@@ -898,8 +921,11 @@ export async function mountBag(container, {
       if (instant) record.slide = to;
       longest = Math.max(longest, duration);
     }
-    for (const record of records.values()) syncLook(record, now);
     longest = Math.max(longest, setPull(goal, instant));
+    // Tier decodes/relief preparation and uploads belong after staging, not in
+    // the middle of a mass glide. At rest the exact existing quality rule runs.
+    photoAfter = instant || !matchMedia('(min-width: 701px)').matches ? 0 : now + longest;
+    for (const record of records.values()) syncLook(record, now);
     invalidate();
     container.dispatchEvent(new CustomEvent('bagviewlayout'));
     return new Promise(resolve => setTimeout(resolve, longest));
@@ -1205,6 +1231,7 @@ export async function mountBag(container, {
     last = now;
     if (document.hidden) return;
     let busy = false;
+    const hadPhotoHold = photoAfter !== 0;
     if (flapMotion) {
       const t = Math.min(1, (now - flapMotion.start) / Math.max(flapMotion.duration, 1));
       setFlap(flapMotion.from + (flapMotion.to - flapMotion.from) * t);
@@ -1222,7 +1249,7 @@ export async function mountBag(container, {
     const pose = poseAt(time);
     float.position.y = pose.y;
     float.rotation.z = pose.tilt;
-    let desktopLayoutFrame=false;
+    let desktopLayoutFrame=false,layoutFrame=false;
     for (const record of records.values()) {
       if((record.spot?.sizeDuration&&record.spot.from&&now-record.spot.start<record.spot.duration+20)||(record.spot?.desktop&&record.slideTo===1&&record.slide<1))desktopLayoutFrame=true;
       if(poseRecord(record,now))busy=true;
@@ -1240,7 +1267,7 @@ export async function mountBag(container, {
       pull = pullTween.from + (pullTween.to - pullTween.from) * easeInOut(t);
       placePulled();
       if (t >= 1) pullTween = null; else busy = true;
-      container.dispatchEvent(new CustomEvent('bagviewlayout'));
+      layoutFrame=true;
     }
     if (zoomTween) {
       const t = Math.min(1, (now - zoomTween.start) / ZOOM_MS), e = easeOut(t), { from, to } = zoomTween;
@@ -1248,8 +1275,11 @@ export async function mountBag(container, {
       zoomCenter = { x: from.center.x + (to.center.x - from.center.x) * e, y: from.center.y + (to.center.y - from.center.y) * e };
       applyZoom();
       if (t >= 1) zoomTween = null; else busy = true;
-      container.dispatchEvent(new CustomEvent('bagviewlayout'));
+      layoutFrame=true;
     }
+    // Start/reveal every deferred tier on the first fully settled frame, even
+    // with ambient motion disabled and no subsequent frame to revisit a disc.
+    if (hadPhotoHold && !photosMoving(now)) for (const record of records.values()) syncLook(record, now);
     if (dragging) busy = true;
     if (controls?.update()) busy = true;
     float.rotation.y = (turn ? pose.rotation + offset : 0) + yaw;
@@ -1265,7 +1295,7 @@ export async function mountBag(container, {
       renderer.render(scene, camera);
     }
     // Include the frame on which an arrival finishes, so its name can fade in.
-    if(desktopLayoutFrame)container.dispatchEvent(new CustomEvent('bagviewlayout'));
+    if(desktopLayoutFrame||layoutFrame)container.dispatchEvent(new CustomEvent('bagviewlayout'));
     if (!busy && !ambient && !needsRender) stopLoop();
   };
 
