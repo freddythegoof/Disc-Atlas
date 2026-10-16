@@ -76,8 +76,8 @@ body[data-view="bag"] main {display:none!important}
 .bag-lift-info [data-lift-bias] {display:block;font-size:calc(10px * var(--bag-type));color:var(--lime);font-weight:500;margin-top:8px}
 .bag-lift-info [hidden] {display:none!important}
 /* Add to: a raised menu by its trigger (as wide as Add to in the details, else sized to its choices), each choice an icon tile with a mono hint. */
-.add-destination-menu {position:fixed;inset:auto;margin:0;width:max-content;min-width:212px;box-sizing:border-box;padding:6px;gap:2px;overflow:visible;border:1px solid var(--hairline,var(--line));border-radius:12px;background:var(--panel);color:var(--text);box-shadow:0 18px 40px -8px var(--shadow,#0004),0 0 0 1px var(--hairline,transparent)}
-:root:is([data-theme="midnight"],[data-theme="charcoal"],[data-theme="black"]) .add-destination-menu {background:var(--surface);border-color:var(--line)}
+.add-destination-menu,.bag-tips {position:fixed;inset:auto;margin:0;width:max-content;min-width:212px;box-sizing:border-box;padding:6px;gap:2px;overflow:visible;border:1px solid var(--hairline,var(--line));border-radius:12px;background:var(--panel);color:var(--text);box-shadow:0 18px 40px -8px var(--shadow,#0004),0 0 0 1px var(--hairline,transparent)}
+:root:is([data-theme="midnight"],[data-theme="charcoal"],[data-theme="black"]) :is(.add-destination-menu,.bag-tips) {background:var(--surface);border-color:var(--line)}
 /* Closed, the browser's [popover]:not(:popover-open){display:none} applies; opening sets the grid, and the shared enter/exit in cosmic.css animates the change. */
 .add-destination-menu:popover-open {display:grid}
 .add-destination-menu button {display:grid;grid-template-columns:32px minmax(0,1fr);column-gap:12px;row-gap:3px;align-items:center;min-height:52px;width:100%;text-align:left;padding:8px 14px 8px 8px;border-radius:8px;color:var(--text)}
@@ -228,6 +228,19 @@ body[data-view="bag"] main {display:none!important}
 .bag-pocket-inline select:disabled {opacity:.6;cursor:progress}
 .bag-pocket-text {font-size:12px;color:var(--muted)}
 .bag-scene-hint {font-size:11px;color:var(--muted);text-align:center;margin:16px 0 0;line-height:1.6}
+/* Tips share the existing action row, outside the canvas and its gesture/hit layers. */
+.bag-tips-button {display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:50%;color:var(--muted);background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 4px 14px var(--shadow)}
+.bag-tips-button svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.bag-tips-button:is(:hover,[aria-expanded="true"]) {color:var(--text);background:var(--selected)}
+.bag-tips {width:420px;min-width:0;padding:6px 6px 14px;overflow:hidden}
+.bag-tips:popover-open {display:flex;flex-direction:column;gap:0}
+.bag-tips-head {display:flex;align-items:center;justify-content:space-between;flex-shrink:0;padding-left:12px}
+.bag-tips-head h2 {margin:0;font:500 16px/1.3 'Space Grotesk',sans-serif;letter-spacing:-.2px}
+.bag-tips-head button {display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:0;border-radius:8px;font-size:26px;color:var(--muted)}
+.bag-tips-head button:hover {background:var(--selected);color:var(--text)}
+.bag-tips-copy {min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 12px}
+.bag-tips-copy p {margin:0;font-size:13px;line-height:1.65;color:var(--muted)}
+.bag-tips :is(button,.bag-tips-copy):focus-visible {outline:2px solid var(--lime);outline-offset:-2px}
 /* Disc names: one dark pill with white text in every theme, on hover and under each out disc. */
 .bag-name-pill {position:absolute;z-index:3;width:max-content;max-width:min(260px,calc(100% - 12px));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:calc(6px * var(--bag-type)) calc(13px * var(--bag-type));border:1px solid #ffffff24;border-radius:999px;background:#151a21f0;color:#fff;box-shadow:0 8px 22px #0000004d;font:600 calc(13px * var(--bag-type))/1.25 'Space Grotesk',sans-serif;letter-spacing:.1px;pointer-events:none}
 .bag-name-pill[hidden] {display:none}

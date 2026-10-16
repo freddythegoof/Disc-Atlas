@@ -187,7 +187,7 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
    keep `display`/`overlay` so their exits can fade; they hold their box for their (opacity) duration, nothing more. */
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition-property:opacity,color,background-color,border-color,outline-color,text-decoration-color,fill,stroke!important}
- .chip-popover,.site-menu,.cluster-popover,.add-destination-menu,.rack-style-menu,dialog,#compareBar{transition-property:opacity,color,background-color,border-color,display,overlay!important;transition-behavior:allow-discrete!important;scale:none!important;translate:none!important}
+ .chip-popover,.site-menu,.cluster-popover,.add-destination-menu,.rack-style-menu,.bag-tips,dialog,#compareBar{transition-property:opacity,color,background-color,border-color,display,overlay!important;transition-behavior:allow-discrete!important;scale:none!important;translate:none!important}
 }
 
 /* Interaction feedback lives on the artwork, separate from camera transforms. */
@@ -519,8 +519,8 @@ body[data-view="map"]:not(.my-bag-mode) .atlas-lens{position:absolute;top:22px;r
 .chip-popover[hidden],.site-menu[hidden]{opacity:0;scale:.96;pointer-events:none;transition-duration:var(--dur-press);transition-timing-function:var(--ease-exit)}
 .cluster-popover{transform-origin:var(--menu-origin,50% 50%);transition:opacity var(--dur-ui) var(--ease-enter),scale var(--dur-ui) var(--ease-enter),translate var(--dur-ui) var(--ease-enter),display var(--dur-ui) allow-discrete}
 .cluster-popover[hidden]{opacity:0;scale:.96;translate:0 6px;pointer-events:none;transition-duration:var(--dur-press);transition-timing-function:var(--ease-exit)}
-.add-destination-menu,.rack-style-menu{opacity:0;scale:.96;transform-origin:var(--menu-origin,top right);transition:opacity var(--dur-press) var(--ease-exit),scale var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
-.add-destination-menu:popover-open,.rack-style-menu:popover-open{opacity:1;scale:1;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
+.add-destination-menu,.rack-style-menu,.bag-tips{opacity:0;scale:.96;transform-origin:var(--menu-origin,top right);transition:opacity var(--dur-press) var(--ease-exit),scale var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
+.add-destination-menu:popover-open,.rack-style-menu:popover-open,.bag-tips:popover-open{opacity:1;scale:1;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
 dialog:not(.disc3d-dialog){opacity:0;translate:0 8px;pointer-events:none;transition:opacity var(--dur-press) var(--ease-exit),translate var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
 dialog:not(.disc3d-dialog)[open]{opacity:1;translate:0 0;pointer-events:auto;transition-duration:.15s;transition-timing-function:var(--ease-enter)}
 dialog:not(.disc3d-dialog)::backdrop{opacity:0;transition:opacity var(--dur-press) var(--ease-exit),overlay var(--dur-press) allow-discrete,display var(--dur-press) allow-discrete}
@@ -530,7 +530,7 @@ dialog:not(.disc3d-dialog)[open]::backdrop{opacity:1;transition-duration:.15s}
 @starting-style{
  .chip-popover:not([hidden]),.site-menu:not([hidden]){opacity:0;scale:.96}
  .cluster-popover:not([hidden]){opacity:0;scale:.96;translate:0 6px}
- .add-destination-menu:popover-open,.rack-style-menu:popover-open{opacity:0;scale:.96}
+ .add-destination-menu:popover-open,.rack-style-menu:popover-open,.bag-tips:popover-open{opacity:0;scale:.96}
  dialog:not(.disc3d-dialog)[open]{opacity:0;translate:0 8px}
  dialog:not(.disc3d-dialog)[open]::backdrop{opacity:0}
  #compareBar:not([hidden]){opacity:0;translate:0 12px}

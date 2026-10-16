@@ -3,6 +3,7 @@
 October 15, 2026. Branch `codex/rim-viewer-bag-animation`, from `main` at
 `3930a0c1` (PR #6). Parts 1–2 were completed October 15. Part 3 was added
 October 16 as a separate, independently landable commit; local only.
+Part 4 was added October 16 as its own local commit.
 
 ## Part 1: characterize the rim path
 
@@ -357,5 +358,109 @@ the per-count measurements and screenshots are committed with this write-up.
 Freddy's feel check after deployment: pull one disc out; it should read big,
 but never bigger than the bag it came from. This commit adds the measured
 limit; it does not claim a visual trim where the measurements show none.
+
+## Part 4: bag instructions, one tap away
+
+Freddy's October 15 request: keep the instructions, clean up the initial bag
+view. The bag's always-visible paragraph is now a **Bag tips** popover, hidden
+on load. Its text is unchanged, including punctuation. A small outlined help
+icon sits beside Dump bag / Return all in their existing action row; no eye
+icon was found in the site's current UI icon set. It uses the same round
+control material and outline stroke language as the bag controls.
+
+The trigger is a real button with an accessible name, `aria-controls`,
+`aria-expanded`, and a 44 × 44 px hit area at every size. The nonmodal dialog
+has a named heading and a 44 px close button; both buttons have visible
+keyboard focus. Click/tap opens it and focuses close. Close, Escape, outside
+press, or a second trigger press dismiss it and return focus to the trigger.
+The shared `AtlasDropdown` controller coordinates it with the site's other
+menus and handles view changes, scrolling and resize. Its card materials and
+enter/exit motion come from the existing Add destination / rack popovers,
+including the shared opacity-only reduced-motion policy.
+
+The card prefers the space above the whole control cluster, with 8 px viewport
+gutters. If scrolling brings the icon near the viewport top, it moves below
+the action row. Its copy scrolls independently when necessary, while the
+heading and close button remain visible. A phone scroll regression caught
+the first version shrinking to just its header; the final positioning uses
+the larger available space and keeps the controls clear.
+
+**Separate hit areas:** the trigger is a sibling of Dump bag / Return all,
+outside `[data-bag-canvas]`, the 3D stage, and the disc hit layer. The card
+uses the browser's popover top layer. The tips dismissal listener neither
+cancels the press nor stops propagation; an uncovered disc can dismiss tips
+and slide out on the same first click. No renderer, gesture, picking or
+disc-toggle code changed.
+
+Outside dismissal restores focus after the matching pointer release or
+cancellation, then the browser's compatibility click. A native 120 ms held
+phone tap reproduced focus falling to the page body with an earlier restore;
+the regression now checks both quick and held taps.
+
+The removed paragraph has no placeholder or reserved height. The canvas
+keeps its existing size; the figure and following content close up naturally:
+
+| Viewport | Figure before | Figure after | Reclaimed height |
+| --- | ---: | ---: | ---: |
+| 1440 × 1000 | 1089.97 px | 986 px | 103.97 px |
+| 390 × 844 | 810 px | 602 px | 208 px |
+| 360 × 640 | 804.5 px | 564.5 px | 240 px |
+
+Measurements: [tips-metrics.json](assets/rim-viewer-bag-animation/tips-metrics.json).
+
+The same signed-out 18-disc demo bag was captured before product changes and
+afterward in local Chromium. These are full bag-figure captures, so their
+height change shows the reclaimed space rather than cropping it away.
+
+| Desktop before | Desktop after, initial view |
+| --- | --- |
+| ![Desktop bag with instructions](assets/rim-viewer-bag-animation/tips-1440-before.png) | ![Desktop bag with a tips icon](assets/rim-viewer-bag-animation/tips-1440-after.png) |
+
+| Phone before | Phone after, initial view |
+| --- | --- |
+| ![Phone bag with instructions](assets/rim-viewer-bag-animation/tips-390-before.png) | ![Phone bag with a tips icon](assets/rim-viewer-bag-animation/tips-390-after.png) |
+
+| Phone tips open, Light | Phone tips open, Midnight |
+| --- | --- |
+| ![Tips above phone controls](assets/rim-viewer-bag-animation/tips-390-open.png) | ![Tips in Midnight](assets/rim-viewer-bag-animation/tips-390-open-midnight.png) |
+
+**Scope / follow-up for Freddy:** `#storageSceneHint` and `#lostSceneHint`
+remain unchanged and always visible. Whether those sibling bars should use
+the same disclosure is a separate product decision.
+
+### Part 4 proof and review
+
+| Check | Result |
+| --- | --- |
+| `npm run test:bag` | 73 passed, zero failures |
+| `test:bag:tips` | Pass at 1440 × 1000, 390 × 844 and 360 × 640: hidden load/reload, exact original text, close/Esc/outside/toggle, focus return, native quick/held phone taps, focus ring, 44 px targets, viewport/control clearance, scrolling, Light/Midnight and reduced motion |
+| Real disc input in the tips suite | Pass: normal desktop/phone pull and return; an uncovered desktop disc dismisses open tips and slides out on the same click; no automatic details |
+| `test:bag:popup` | Pass: all 7 checks, including desktop/phone popup and control geometry with 1–24 discs out at 1440/360/390 |
+| Changed-file ESLint / `git diff --check` | Pass, zero warnings or errors |
+| Independent read-only review | No actionable concerns, including a second pass over the held-tap fix |
+
+The first tips regression failed on the old UI because no Bag tips button
+existed. The scroll and held-tap regressions each reproduced their failures
+before their fixes. Final tips runs reported zero page errors. All six
+screenshots above were visually inspected. The original bag text and the
+complete Storage/Lost hint markup were also compared directly against HEAD.
+
+**Pre-existing test mismatch:** the broader legacy
+`tests/bag-interactions-browser.mjs` fails at line 159 waiting for details to
+open on the first putter click (its assertion is labeled “Oct 5 tweaks”).
+The current Oct 7 popup contract deliberately keeps details closed until
+the name's card is clicked. The identical failure was reproduced using
+unchanged `7c8aea7` HTML/JS/CSS served from the ignored build directory, with
+the checkout untouched. The current popup and new tips suites both verify
+the intended first-click behavior. The legacy test was left unchanged.
+
+Local logs: ignored `outputs/bag-tips-final.log`, `bag-tips-units-final.log`,
+`bag-tips-popup.log`, `bag-tips-interactions.log` and
+`bag-tips-interactions-baseline.log`. Browser captures used local GPU Chromium
+156 / ANGLE D3D11 and the signed-out demo, with no live account changes.
+
+Freddy's feel check: open My Bag—no instruction paragraph; tap the help
+icon—the same words are one tap away. This is a local-only, independently
+landable UI change; no push, merge or deployment.
 
 
