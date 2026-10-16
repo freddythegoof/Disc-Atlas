@@ -5,7 +5,7 @@ import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
 import {PLASTICS} from '../disc3d/mesh.mjs';
-import {catalogStampAsset,stampTexture,stampGeometry,stampMaterial} from '../disc3d/stamp.mjs';
+import {catalogStampAsset,stampTexture,stampGeometry,stampMaterial,catalogStampPlacement} from '../disc3d/stamp.mjs';
 import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../disc3d/quality.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
@@ -561,12 +561,17 @@ export async function mountBag(container, {
     // Only a pulled stock disc asks for stamp art. Pocketed discs and user photos cost no stamp request.
     const asset=record.placement.photoURL?null:catalogStampAsset(record.placement.mold);
     if(asset&&record.parts&&record.slideTo===1&&!record.ink){
-      const parts=record.parts,g=stampGeometry(parts.shape),m=stampMaterial();
-      g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
-      g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);
-      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,onChange:invalidate});
-      record.ink=new THREE.Mesh(g,m);record.mesh.add(record.ink);
-      record.ink.userData.disposeStamp=()=>{g.dispose();m.map.dispose();m.dispose();};
+      const parts=record.parts,m=stampMaterial(),placement=catalogStampPlacement(record.placement.mold);
+      const geometry=stock=>{
+        const g=stampGeometry(parts.shape,{placement:stock});
+        g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
+        g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);return g;
+      };
+      const ink=new THREE.Mesh(geometry(null),m);record.ink=ink;record.mesh.add(ink);
+      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,onChange:texture=>{
+        if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}invalidate();
+      }});
+      ink.userData.disposeStamp=()=>{ink.geometry.dispose();m.map.dispose();m.dispose();};
     }
     if(record.ink)record.ink.visible=record.slideTo===1;
     if (low || !record.parts) return;

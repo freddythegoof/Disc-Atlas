@@ -10,7 +10,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc,normalizeShape,discProfile,overmoldProfile} from '../disc3d/shape.mjs';
 import {isOvermold,overmoldColors} from '../disc3d/overmold.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
-import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset} from '../disc3d/stamp.mjs';
+import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset,catalogStampPlacement} from '../disc3d/stamp.mjs';
 
 export const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -117,9 +117,12 @@ export function discModel(d,{color,rimColor,name,photoURL,onChange=()=>{},stamp=
  if(entry.rim)group.add(new THREE.Mesh(entry.rim,discMaterial(colors.rim)));
  let ink=null;
  if(stamp){
-  const ring=stampGeometry(entry.shape,{segments:32,rings:5});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);
-  const material=stampMaterial();material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:photoURL?null:catalogStampAsset(d),onChange});
-  ink=new THREE.Mesh(ring,material);group.add(ink);
+  const geometry=placement=>{const ring=stampGeometry(entry.shape,{segments:32,rings:5,placement});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);return ring;};
+  const material=stampMaterial(),placement=photoURL?null:catalogStampPlacement(d);
+  ink=new THREE.Mesh(geometry(null),material);group.add(ink);
+  material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:photoURL?null:catalogStampAsset(d),onChange:texture=>{
+   if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}onChange();
+  }});
  }
  if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,like:plate.material,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});

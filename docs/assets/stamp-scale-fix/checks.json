@@ -1,0 +1,54 @@
+{
+  "baseSHA": "d4a49442c0912c06a1831343a7267a416c339198",
+  "branch": "codex/stamp-scale-fix",
+  "date": "2026-10-16",
+  "manifestTests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "nodeSuites": {
+    "passed": 101,
+    "failed": 0,
+    "files": [
+      "disc3d-shape",
+      "disc3d-molds",
+      "disc3d-overmold",
+      "disc3d-profile",
+      "atlas-lod",
+      "bag-3d-layout",
+      "bag-pulled-sizing",
+      "collection-layout",
+      "photo-textures",
+      "photo-math",
+      "photo-albedo",
+      "photo-editor-races"
+    ]
+  },
+  "browserSuites": [
+    "stamp-scale-browser",
+    "discraft-stamps-browser",
+    "disc3d-browser",
+    "disc3d-popout-browser",
+    "photo-textures-browser"
+  ],
+  "brandGate": "pass",
+  "dataValidation": "pass",
+  "productionBuild": "pass",
+  "independentCodeReview": "no important findings",
+  "perf": {
+    "passed": true,
+    "desktopReps": 7,
+    "phoneReps": 3,
+    "seconds": 159.04,
+    "thresholdChanges": false
+  },
+  "invariants": {
+    "artworkBytesUnchanged": true,
+    "assignmentsUnchanged": true,
+    "inkUnchanged": true,
+    "fallbackTexturesAndGeometryIdentical": true,
+    "atlasRendererUnchanged": true,
+    "sweepBranchUnmodified": true
+  },
+  "pending": "Freddy real-Buzzz feel check after deployment; this run did not push or deploy"
+}
