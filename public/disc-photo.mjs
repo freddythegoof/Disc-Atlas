@@ -2,6 +2,7 @@
 import {delightPixels,rimColor} from './disc-albedo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
+import {findDiscCircle,discColours} from './disc3d/photo-clean.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
@@ -113,6 +114,24 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
   pixels.data[k+3]=Math.round(pixels.data[k+3]*Math.min(1,(1-Math.hypot(x,y))*size/2));
  }
  ctx.putImageData(pixels,0,0);return out;
+}
+// The disc's own edge in the photo, near the aligner's circle (photo-clean.mjs finds it: the one circle that
+// many rays agree has the disc inside and something else outside). Returns the framing that puts the circle on
+// that edge, {cx, cy, scale}, or null when no edge is clear enough. Hand alignment is rarely exact, and every
+// pixel of table inside the circle bakes into the texture; the aligner snaps to this and says so.
+export function snapToDisc(image,options={}){
+ const {data,w,h}=workingCopy(image),o={...DEFAULTS,...options,width:w,height:h};
+ const sample=(u,v)=>{
+  const p=photoPoint(u,v,o);if(p.x<0||p.y<0||p.x>=w-1||p.y>=h-1)return null;
+  const a=Math.floor(p.x),b=Math.floor(p.y),fx=p.x-a,fy=p.y-b,k=(b*w+a)*4,out=[0,0,0,0];
+  for(let c=0;c<4;c++)out[c]=(data[k+c]*(1-fx)+data[k+4+c]*fx)*(1-fy)+(data[k+4*w+c]*(1-fx)+data[k+4*w+4+c]*fx)*fy;
+  return out;
+ };
+ const edge=findDiscCircle(sample,{mode:'photo',from:.45,to:1.3,step:1/160,rMin:.7,rMax:1.25,maxOffset:.3,isDisc:discColours(sample,.5,64,1/160)});
+ if(!edge)return null;
+ // Inset by half a percent, so the edge's own blend with the table stays outside the crop.
+ const center=photoPoint(edge.x,edge.y,o),scale=Math.max(.3,Math.min(1,o.scale*edge.r*.995));
+ return {cx:Math.max(0,Math.min(1,center.x/w)),cy:Math.max(0,Math.min(1,center.y/h)),scale,edge};
 }
 // The crop with the photo's lighting removed (disc-albedo.mjs), and the plate colour it measured.
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
@@ -227,7 +246,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
- dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div><p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><details class="photo-aligner-adjust"><summary>Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
+ dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div><p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><p class="photo-aligner-snap" aria-live="polite" hidden><span></span> <button type="button" class="photo-aligner-snap-action"></button></p><details class="photo-aligner-adjust"><summary>Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
  document.body.append(dialog);
  const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame'),stage=dq('.photo-aligner-stage');
  const choose=q('.bag-photo-choose'),sources=q('.bag-photo-source-menu');
@@ -272,12 +291,36 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   });
  };
  const sync=()=>{for(const el of dialog.querySelectorAll('[data-photo]'))el.value=draft.options[el.dataset.photo];};
- const openAligner=(bitmap,options)=>{
-  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options}};sync();
-  dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;
-  if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();
+ // Snap: after the ring settles (on opening, and after each drag, pinch, key or slider), it moves onto the disc's
+ // own edge when snapToDisc finds one at least 1.5% away (a smaller miss leaves no crescent worth a move, and the
+ // load-time cleanup takes care of it), and says so with an Undo. Undo keeps the user's ring and stops snapping
+ // for this photo until Snap to edge. Using the photo never snaps on the way out: what is saved is what was shown.
+ // <html data-photo-snap="off"> turns the automatic snap off (the gesture tests measure raw gesture maths).
+ const snapLine=dq('.photo-aligner-snap'),snapText=snapLine.querySelector('span'),snapAction=snapLine.querySelector('button');
+ let snapTimer=0;
+ const showSnap=(text,action)=>{snapText.textContent=text;snapAction.textContent=action||'';snapAction.hidden=!action;snapLine.hidden=!text;};
+ const snapNow=(asked=false)=>{
+  clearTimeout(snapTimer);if(!draft||busy||pointers.size)return;
+  const o=draft.options,found=snapToDisc(draft.bitmap,o);
+  if(!found){if(asked)showSnap('No clear disc edge near the ring. Line it up by hand.');return;}
+  const {w,h}=workingCopy(draft.bitmap),r=Math.min(w,h)*o.scale/2,moved=Math.hypot((found.cx-o.cx)*w,(found.cy-o.cy)*h)/r,resized=Math.abs(found.scale/o.scale-1);
+  if(moved<.015&&resized<.015){if(asked)showSnap('The ring is on the disc’s edge.');return;}
+  draft.snap.undo={cx:o.cx,cy:o.cy,scale:o.scale};Object.assign(o,{cx:found.cx,cy:found.cy,scale:found.scale});sync();paint();
+  showSnap('Snapped the ring to your disc’s edge.','Undo');
  };
- const closeAligner=()=>{serial++;busy=false;releaseDraft();if(dialog.open)dialog.close();};
+ const scheduleSnap=()=>{clearTimeout(snapTimer);if(draft?.snap.auto&&document.documentElement.dataset.photoSnap!=='off')snapTimer=setTimeout(snapNow,350);};
+ snapAction.onclick=()=>{
+  if(!draft||busy)return;
+  if(draft.snap.undo){Object.assign(draft.options,draft.snap.undo);draft.snap={auto:false,undo:null};sync();paint();showSnap('Ring back where you put it.','Snap to edge');}
+  else{draft.snap.auto=true;snapNow(true);}
+  view.focus({preventScroll:true});
+ };
+ const openAligner=(bitmap,options)=>{
+  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options},snap:{auto:true,undo:null}};sync();
+  dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;showSnap('');
+  if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();scheduleSnap();
+ };
+ const closeAligner=()=>{clearTimeout(snapTimer);serial++;busy=false;releaseDraft();if(dialog.open)dialog.close();};
  dialog.addEventListener('close',()=>{if(draft){serial++;busy=false;releaseDraft();}});
  new ResizeObserver(()=>{if(draft){reanchor();paint();}}).observe(frame);
 
@@ -301,7 +344,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  };
  for(const el of dialog.querySelectorAll('[data-aligner-cancel]'))el.onclick=closeAligner;
  dq('[data-aligner-confirm]').onclick=async()=>{
-  if(!draft||busy)return;const id=++serial,{bitmap}=draft,options={...draft.options};clearGesture();busy=true;
+  if(!draft||busy)return;clearTimeout(snapTimer);const id=++serial,{bitmap}=draft,options={...draft.options};clearGesture();busy=true;
   dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent='Preparing your photo…';
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
@@ -311,15 +354,17 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
  };
- dialog.addEventListener('input',e=>{if(draft&&!busy&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;reanchor();paint(true);}});
+ // Any hand adjustment replaces a snap's Undo: the ring is the user's again until it settles.
+ const adjusted=()=>{if(draft.snap.undo){draft.snap.undo=null;showSnap('');}scheduleSnap();};
+ dialog.addEventListener('input',e=>{if(draft&&!busy&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;reanchor();paint(true);adjusted();}});
  const clamp=v=>Math.max(0,Math.min(1,v));
  view.onkeydown=e=>{
   if(!draft||busy)return;const o=draft.options,step=e.shiftKey?.05:.01;
   const delta={ArrowLeft:[step,0],ArrowRight:[-step,0],ArrowUp:[0,step],ArrowDown:[0,-step]}[e.key];
-  if(delta){e.preventDefault();o.cx=clamp(o.cx+delta[0]);o.cy=clamp(o.cy+delta[1]);reanchor();paint(true);return;}
-  if(e.key==='+'||e.key==='='||e.key==='-'){e.preventDefault();o.scale=Math.max(.3,Math.min(1,o.scale+(e.key==='-'?.01:-.01)));reanchor();sync();paint(true);}
+  if(delta){e.preventDefault();o.cx=clamp(o.cx+delta[0]);o.cy=clamp(o.cy+delta[1]);reanchor();paint(true);adjusted();return;}
+  if(e.key==='+'||e.key==='='||e.key==='-'){e.preventDefault();o.scale=Math.max(.3,Math.min(1,o.scale+(e.key==='-'?.01:-.01)));reanchor();sync();paint(true);adjusted();}
  };
- view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy)return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);},{passive:false});
+ view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy)return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);adjusted();},{passive:false});
  const midpoint=points=>points.length===1?points[0]:{x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};
  const distance=points=>points.length<2?0:Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y);
  const atMidpoint=(point,options,rect,w,h)=>photoPoint(((point.x-rect.left)/rect.width*2-1)*VIEW,((point.y-rect.top)/rect.height*2-1)*VIEW,{...options,width:w,height:h});
@@ -331,7 +376,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  // Gesture state belongs to this editor, never to its preview/guide canvases' pixels.
  view.onpointerdown=e=>{
   if(!draft||busy||e.button!==0)return;e.preventDefault();
-  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});view.setPointerCapture(e.pointerId);reanchor();
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});view.setPointerCapture(e.pointerId);reanchor();clearTimeout(snapTimer);
  };
  view.onpointermove=e=>{
   if(!gesture||!draft||busy||!pointers.has(e.pointerId))return;e.preventDefault();
@@ -351,6 +396,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  view.onpointerup=view.onpointercancel=view.onlostpointercapture=e=>{
   if(!pointers.delete(e.pointerId))return;reanchor();
   if(view.hasPointerCapture(e.pointerId))view.releasePointerCapture(e.pointerId);
+  if(!pointers.size&&draft)adjusted();
  };
  // Safari's legacy gesture/double-tap handling must not steal a captured stage gesture.
  // Explicit passive:false is essential on iOS; controls retain their native taps and sliders.

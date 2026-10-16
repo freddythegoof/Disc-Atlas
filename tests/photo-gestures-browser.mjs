@@ -14,6 +14,8 @@ try{
   for(const scenario of ['drag','pinch','mid-drag','cancel','partial-cancel','lostcapture','corrected-pinch','bounds','controls','reset'].filter(s=>!selected||s===selected)){
    const page=await context.newPage();await page.goto(harness.base);
    await page.evaluate(async()=>{
+    // Raw gesture maths: no snap to the disc's edge once a gesture settles (photo-edge-cleanup covers the snap).
+    document.documentElement.dataset.photoSnap='off';
     const {createPhotoEditor}=await import('/disc-photo.mjs');window.editor=createPhotoEditor(document.querySelector('#editor'));
    });
    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));

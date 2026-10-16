@@ -1,0 +1,322 @@
+{
+ "misaligned": {
+  "mold": "DD3 (new)",
+  "manufacturer": "Discmania",
+  "overmold": false,
+  "Rs": 0.8082,
+  "Ri": 0.782,
+  "bytes": 44706,
+  "size": 1024,
+  "discInTexture": {
+   "x": -0.0721,
+   "y": 0.027,
+   "r": 0.973
+  },
+  "rings": [
+   {
+    "ring": "0.64-0.67",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.67-0.70",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.70-0.73",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.73-0.76",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.76-0.79",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.79-0.82",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.82-0.85",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.85-0.88",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.88-0.91",
+    "table": 6.35,
+    "finger": 0
+   },
+   {
+    "ring": "0.91-0.94",
+    "table": 29.36,
+    "finger": 0
+   },
+   {
+    "ring": "0.94-0.97",
+    "table": 43.71,
+    "finger": 0
+   },
+   {
+    "ring": "0.97-1.00",
+    "table": 55.98,
+    "finger": 0
+   }
+  ],
+  "foreignShown": {
+   "beforePR9": 0,
+   "afterPR9": 7.63
+  }
+ },
+ "generous": {
+  "mold": "Leopard",
+  "manufacturer": "Innova Champion Discs",
+  "overmold": false,
+  "Rs": 0.8791,
+  "Ri": 0.8491,
+  "bytes": 44364,
+  "size": 1024,
+  "discInTexture": {
+   "x": 0,
+   "y": 0,
+   "r": 0.9351
+  },
+  "rings": [
+   {
+    "ring": "0.64-0.67",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.67-0.70",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.70-0.73",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.73-0.76",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.76-0.79",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.79-0.82",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.82-0.85",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.85-0.88",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.88-0.91",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.91-0.94",
+    "table": 16.55,
+    "finger": 0
+   },
+   {
+    "ring": "0.94-0.97",
+    "table": 100,
+    "finger": 0
+   },
+   {
+    "ring": "0.97-1.00",
+    "table": 100,
+    "finger": 0
+   }
+  ],
+  "foreignShown": {
+   "beforePR9": 0,
+   "afterPR9": 12.29
+  }
+ },
+ "fingers": {
+  "mold": "Destroyer",
+  "manufacturer": "Innova Champion Discs",
+  "overmold": false,
+  "Rs": 0.8165,
+  "Ri": 0.7915,
+  "bytes": 32214,
+  "size": 1024,
+  "discInTexture": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "rings": [
+   {
+    "ring": "0.64-0.67",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.67-0.70",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.70-0.73",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.73-0.76",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.76-0.79",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.79-0.82",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.82-0.85",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.85-0.88",
+    "table": 0,
+    "finger": 0.9
+   },
+   {
+    "ring": "0.88-0.91",
+    "table": 0,
+    "finger": 4.48
+   },
+   {
+    "ring": "0.91-0.94",
+    "table": 0,
+    "finger": 7.79
+   },
+   {
+    "ring": "0.94-0.97",
+    "table": 0,
+    "finger": 8.99
+   },
+   {
+    "ring": "0.97-1.00",
+    "table": 0,
+    "finger": 9.2
+   }
+  ],
+  "foreignShown": {
+   "beforePR9": 0,
+   "afterPR9": 1.76
+  }
+ },
+ "clean": {
+  "mold": "Thunderbird",
+  "manufacturer": "Innova Champion Discs",
+  "overmold": false,
+  "Rs": 0.8493,
+  "Ri": 0.8208,
+  "bytes": 28962,
+  "size": 1024,
+  "discInTexture": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "rings": [
+   {
+    "ring": "0.64-0.67",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.67-0.70",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.70-0.73",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.73-0.76",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.76-0.79",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.79-0.82",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.82-0.85",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.85-0.88",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.88-0.91",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.91-0.94",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.94-0.97",
+    "table": 0,
+    "finger": 0
+   },
+   {
+    "ring": "0.97-1.00",
+    "table": 0,
+    "finger": 0
+   }
+  ],
+  "foreignShown": {
+   "beforePR9": 0,
+   "afterPR9": 0
+  }
+ }
+}
