@@ -1,0 +1,3375 @@
+[
+  {
+    "mold": "2024 Ace Race Prototype",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-acerace",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback. Catalog alias: Ace Race 2024 (DIS-1024-P), production unknown.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "ESP Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "1f401dc9c036",
+        "name": "Ace Race 2024  (DIS-1024-P)",
+        "catalogName": null,
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "2025 Ace Race Prototype",
+    "inCatalog": false,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-ace-race-2025",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback. No matching named catalog record found. Do not identify with another Ace Race mold from similar artwork.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "ESP Swirl"
+    ],
+    "catalogMatches": [],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Anax",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-anax/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Anaxfda2.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "risky",
+    "notes": "Full face; blue foil on pink has speckling and pale patches (foil-risk). Central pale circular spot near name needs full-resolution occlusion check.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "79bc1496e337",
+        "name": "Anax",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "APX",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-apx",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "ESP Swirl",
+      "Jawbreaker",
+      "Jawbreaker Misprint",
+      "Pro-D Misprint",
+      "Tour Series ESP",
+      "X Line Misprint",
+      "X Soft",
+      "X Soft Misprint",
+      "Z Line"
+    ],
+    "catalogMatches": [
+      {
+        "id": "9917e34430e4",
+        "name": "APX",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Archer",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-archer/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/archer.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full 2016 Ace Race character/artwork visible; dark ink on purple, about 630px disc; fine text below bar.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 630,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "46efed768b52",
+        "name": "Archer",
+        "catalogName": "Archer",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Ares",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-ares",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Confetti ESP Glo",
+      "Signature ESP",
+      "Signature ESP Misprint"
+    ],
+    "catalogMatches": [
+      {
+        "id": "1b456425771e",
+        "name": "Ares (PM-0226-D) (renamed from Zeus 2.0)",
+        "catalogName": "Ares",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Athena",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-athena/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20250709125516846_Big-Z-Athena-b7140b891.webp",
+    "imageWidth": 675,
+    "imageHeight": 675,
+    "verdict": "no",
+    "notes": "Only 675x675; page image filename says Big-Z-Athena and artwork is character art rather than verified ESP stock stamp. Source/plastic mismatch needs resolution; foil-risk.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 675,
+    "flags": [
+      "foil-risk",
+      "plastic-provenance-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "68d64ed1b6a3",
+        "name": "Athena",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Avenger",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-avenger/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/d3a50f3-4c91-430f-bb8b-a4a55037c5d3Avenger-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "ready",
+    "notes": "Full face; dark green ring, wordmark and ornate mold lettering on blue plastic. Mild foil highlights on ring (foil-risk); no visible occlusion.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "fa5bf2ffb814",
+        "name": "Avenger",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Avenger SS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-avenger-ss/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0226-dbb6-4d5e-9296-5b7f2fcd08e3Avenger-SS-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "ready",
+    "notes": "Full face; dark purple ring/wordmark and ornate SS lettering on cyan plastic; strong contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "dbc14745b731",
+        "name": "Avenger-SS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Banger GT",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-banger-gt/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bangerbig.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full red Banger GT script on lavender, about 600px disc span.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 600,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "ff0b51fdb61e",
+        "name": "Banger-GT",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Buzzz",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-buzzz/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/f93ade-3b4b.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "800x600 canvas; disc about 620px across. Legacy wordmark/name stamp, lime ink on pale lime plastic has low contrast. Sampled stock enlargement 620x465 is smaller.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 620,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "7446eb39abe5",
+        "name": "Buzzz",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Sampled one stock original: 620x465, smaller than gallery. Stock inventory not exhaustively measured.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Buzzz GT",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-buzzz-gt/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Infinite1_10.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full small rainbow Buzzz logo on swirled plastic, about 590px disc; foil-risk.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 590,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "3dcc0b3ea2b6",
+        "name": "Buzzz-GT",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Buzzz OS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-buzzz-os/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/buzzzosesp.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full multicolor distressed OS design, about 630px disc; foil/green plastic overlap (foil-risk), uncertain fine artwork.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 630,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "482b2fd2724e",
+        "name": "Buzzz OS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Buzzz SS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-buzzz-ss/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/asdfasdf_22.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full 2013 World Championships bee event stamp on blue, gold ink; about 600px disc. Event representativeness and foil-risk.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 600,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "8ee24bd0899f",
+        "name": "Buzzz-SS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Captains Caliber",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-captains-caliper",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Jawbreaker Z"
+    ],
+    "catalogMatches": [
+      {
+        "id": "d52158a41efd",
+        "name": "Captain's Caliber (DIS-0426-P)",
+        "catalogName": "Captains Caliber",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Captains Raptor",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-captains-raptor",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "ESP Misprint",
+      "ESP Swirl",
+      "Jawbreaker Z FLX",
+      "Special Blend Z",
+      "Special Blend Z X-Out",
+      "Z Confetti",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "e766b23042b3",
+        "name": "Captain's Raptor (modified overstable Raptor)",
+        "catalogName": "Captains Raptor",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Captains Thrasher",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-captains-thrasher",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Jawbreaker Z",
+      "Signature Z Swirl",
+      "Special Blend ESP"
+    ],
+    "catalogMatches": [
+      {
+        "id": "819f586f92d3",
+        "name": "Captain's Thrasher (modified overstable Thrasher)",
+        "catalogName": "Captains Thrasher",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Challenger",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-challenger/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/asdfasdfasdf.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full white/silver wordmark/name/box on pale peach; about 570px disc and weak contrast (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 570,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "a23eea57ccd3",
+        "name": "Challenger",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Challenger OS",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-challenger-os",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "Crazy Tuff",
+      "CT Jawbreaker",
+      "ESP Swirl",
+      "Jawbreaker",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Putter Line",
+      "Rubber Blend",
+      "Rubber Blend Misprint",
+      "Signature ESP Swirl",
+      "Signature Z Line",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "164453bcdf5d",
+        "name": "Challenger OS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Challenger SS",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-challenger-ss",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Crazy Tuff Glo",
+      "CT Jawbreaker",
+      "ESP Swirl",
+      "Jawbreaker",
+      "Jawbreaker Misprint",
+      "Jawbreaker Swirl",
+      "Mega Glo",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Putter Line",
+      "Putter Line Misprint",
+      "Rubber Blend",
+      "Signature ESP Swirl",
+      "Titanium Swirl",
+      "Z Colorshift",
+      "Z Glo",
+      "Z Line"
+    ],
+    "catalogMatches": [
+      {
+        "id": "cb6398daf646",
+        "name": "Challenger SS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Cicada",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-cicada/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20231130143626049_download-ff90198b5c044.webp",
+    "imageWidth": 600,
+    "imageHeight": 450,
+    "verdict": "no",
+    "notes": "600x450 composite top/profile photo; top disc spans only about 400px. Full design visible but flight box too small. Inventory includes bottom-stamp ESP runs; those do not establish a canonical top stamp.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 400,
+    "flags": [
+      "bottom-stamp-inventory",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "acea1b7d9cc6",
+        "name": "Cicada",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "36 loaded rows from 74 stock units; includes Bottom Stamp ESP. Stock images not exhaustively measured.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Cigarra",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-cigarra/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20250723094118324_unnamed56-75a68d2d685a.webp",
+    "imageWidth": 1077,
+    "imageHeight": 1077,
+    "verdict": "risky",
+    "notes": "Full face; Anthony Barela marks and standard name/number box visible. Silver patterned foil blends with cream swirls and highlights (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 1070,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "86cca3bb507c",
+        "name": "Cigarra (modified overstable Cicada)",
+        "catalogName": "Cigarra",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Comet",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-comet/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Comet325.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; red Discraft/ESP, script Comet and flight box contrast on green.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "07e4d9e1c005",
+        "name": "Comet",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Crank",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-crank/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/c2f65c-87d6.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full stamp visible; red on white is readable, but disc only about 610px across on 800x600 canvas.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 610,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "282d6483a722",
+        "name": "Crank",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Crank SS",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-crank-ss",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "Titanium",
+      "Titanium Ledgestone Edition",
+      "Z Line",
+      "Z Line Misprint",
+      "Z Lite"
+    ],
+    "catalogMatches": [
+      {
+        "id": "8ea3cc0a7f94",
+        "name": "Crank SS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Crush",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-crush/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/9d6765ad-0050-420d-adb7-0c7807ba95c6Crush-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "risky",
+    "notes": "Full stamp visible; blue holographic flecks interrupt ring and wordmark (foil-risk). Enough pixels, but separation needs review.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "a503716cbffb",
+        "name": "Crush",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Cyclone",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-cyclone/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/e289e45-29cc-435b-b115-f13d8c085f6aCyclone-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "risky",
+    "notes": "Full gold ring and lettering on pink; reflective foil changes brightness and obscures small decorative Cyclone emblem (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "698760cd8daa",
+        "name": "Cyclone",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Drive",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-drive/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240422100344898_unnamed20-e095becc97a4.webp",
+    "imageWidth": 1000,
+    "imageHeight": 997,
+    "verdict": "ready",
+    "notes": "Full near-frontal face; dark Paige Pierce name/logo, Discraft and flight box contrast against swirled ESP. Preserve this mold-own player mark only.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 990,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "535643d0c347",
+        "name": "Drive",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Drone",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-drone/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/drone626.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full blue drone pictogram on pink; about 590px disc, fine linework below threshold.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 590,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "8a784210746c",
+        "name": "Drone",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Eclipse",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-eclipse/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/a3f1e3-da50.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full anniversary/legacy Eclipse art visible, red on violet; about 600px disc span. Out of production listing.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 600,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "111035498d3f",
+        "name": "Eclipse",
+        "catalogName": "Eclipse",
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Fierce",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-fierce",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "CryZtal",
+      "Cryztal Misprint",
+      "Discraft Prototype Putter Blend",
+      "ESP Misprint",
+      "Jawbreaker Swirl",
+      "Jawbreaker Z",
+      "Prototype Putter Blend Misprint",
+      "Putter Line Soft Misprint",
+      "Putter Line Super Soft",
+      "Signature ESP",
+      "Signature Putter Line Hard",
+      "Signature Putter Line Hard Misprint",
+      "Signature Putter Line Soft",
+      "Signature Putter Line Soft Misprint",
+      "Signature Rubber Blend",
+      "Signature Tour Series ESP",
+      "Signature Z Glo",
+      "Super Soft Blend",
+      "Titanium Swirl",
+      "Tour Series Z",
+      "Tour Series Z Metallic",
+      "UV Z Glo",
+      "X Swirl",
+      "Z Colorshift",
+      "Z Confetti",
+      "Z Glo",
+      "Z Glo Sparkle",
+      "Z Metallic Misprint",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "becf375dae3f",
+        "name": "Fierce",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Flash",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-flash/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/3c44a3c4-f742-46c0-9bcc-a67e3be2a021Flash-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "ready",
+    "notes": "Full face; dark purple ring, Discraft/ESP and sunburst mold logo against green; strong contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "36e871a923b2",
+        "name": "Flash",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Flick",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-flick/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/ESP-flick.Webp",
+    "imageWidth": 768,
+    "imageHeight": 576,
+    "verdict": "no",
+    "notes": "Whole stamp visible, yellow on lavender; image itself only 768x576, disc about 570px.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 570,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "73f935d5fadb",
+        "name": "Flick",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Focus",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-focus",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Crazy Tuff",
+      "CryZtal",
+      "CryZtal FLX Confetti",
+      "CT Swirl",
+      "Jawbreaker",
+      "Jawbreaker Misprint",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Putter Line",
+      "Putter Line Soft",
+      "Signature Jawbreaker",
+      "Titanium Swirl",
+      "Tour Series Titanium",
+      "UV Z",
+      "X Line",
+      "X Line Misprint",
+      "X Soft",
+      "X Soft Misprint"
+    ],
+    "catalogMatches": [
+      {
+        "id": "1b4636b6c905",
+        "name": "Focus (Ace Race 2009)",
+        "catalogName": "Focus",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Force",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-force/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Force431.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face and stamp visible; signature, champion line, wordmark, ESP and flight box readable. Patterned silver foil needs careful separation (foil-risk), but no evident missing strokes. Older 5x stamp, not refreshed 6x.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "0fcd1f2937b1",
+        "name": "Force",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Fossil",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-fossil",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "CT Swirl",
+      "Jawbreaker Z FLX",
+      "Z Colorshift",
+      "Z Sparkle"
+    ],
+    "catalogMatches": [
+      {
+        "id": "b1c6c2018ccc",
+        "name": "Fossil (RW-1025-P)",
+        "catalogName": "Fossil",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Glide",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-glide",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "Jawbreaker Z FLX",
+      "Tour Series Titanium",
+      "Z Colorshift Confetti",
+      "Z Confetti",
+      "Z FLX",
+      "Z Fly Dyed",
+      "Z Fly Dyed Misprint",
+      "Z Line",
+      "Z Line Misprint",
+      "Z Sparkle"
+    ],
+    "catalogMatches": [
+      {
+        "id": "af12d4978dc3",
+        "name": "Glide (Ace Race 2004)",
+        "catalogName": "Glide",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Hades",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-hades/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; magenta Hades panel, split rings, Discraft, McBeth emblem and flight box on pink/orange; strong usable contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "68bc409ff25f",
+        "name": "Hades",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Hallux",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-hallux",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Jawbreaker Z FLX",
+      "Midnight Victory Edition",
+      "Signature ESP",
+      "Tour Series 2026 Special Blend",
+      "Z Colorshift"
+    ],
+    "catalogMatches": [
+      {
+        "id": "5ee0af6eceaa",
+        "name": "Hallux (RW-0925-D)",
+        "catalogName": "Hallux",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Hawk",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-hawk/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/135209-4184.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full red New Classics/40th anniversary Hawk stamp on pink; about 590px disc. Catalog alias: The Hawk, production unknown.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 590,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "4a4f4d44d01d",
+        "name": "The Hawk",
+        "catalogName": null,
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Heat",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-heat/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Heatefb7.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; solid red Discraft/ESP, Heat and number box on green; strong contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "2fd68923dd2b",
+        "name": "Heat (Ace Race 2014)",
+        "catalogName": "Heat",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Hornet",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-hornet/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hornet.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full ornate hornet circle, red on cream; about 630px disc, intricate strokes below bar.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 630,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "0237447f54d7",
+        "name": "Hornet (Ace Race 2010)",
+        "catalogName": "Hornet",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Impact",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-impact/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Impact.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "risky",
+    "notes": "Full ring/wordmark/Impact emblem. Patterned red foil contains many interior light gaps (foil-risk); distinguish foil pattern from actual negative space.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "f0757dd1a3f9",
+        "name": "Impact (Ace Race 2007)",
+        "catalogName": "Impact",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Joy",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-joy",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Fly Dye Confetti",
+      "Signature ESP"
+    ],
+    "catalogMatches": [
+      {
+        "id": "fd9301dc99ae",
+        "name": "Joy  (PP-1025-M)",
+        "catalogName": "Joy",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Kratos",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-kratos",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "CT Swirl",
+      "Discraft Special Blend",
+      "ESP Swirl",
+      "Jawbreaker Z FLX",
+      "McBeth Fly Dye",
+      "Signature Big Z",
+      "Signature ESP",
+      "Signature Putter Line Hard",
+      "Signature Putter Line Hard Misprint",
+      "Signature Putter Line Soft",
+      "Signature Putter Line Soft Misprint",
+      "Signature Rubber Blend",
+      "Signature Z Glo",
+      "Signature Z Line",
+      "Z Glo Sparkle",
+      "Z Line",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "73f18c517d47",
+        "name": "Kratos",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Luna",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-luna/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240426124834533_download-a26d4b6ea9384.webp",
+    "imageWidth": 600,
+    "imageHeight": 450,
+    "verdict": "no",
+    "notes": "600x450 top/profile composite; top disc about 420px, tiny McBeth/number-box detail. Full design visible but below bar. All four offered ESP stock originals measured separately; inventory is labeled Special Edition.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 420,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "ff4bf9e7743c",
+        "name": "Luna",
+        "catalogName": "Luna",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "All four loaded ESP stock originals measured: 600x450; labeled Special Edition. Gallery remains canonical candidate.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Machete",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-machete/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/highres_110.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Detailed full circular character/lettering art visible, but only about 620px across the disc; fine artwork below bar.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 620,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "0651d9a5b1f8",
+        "name": "Machete",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Magnet",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-magnet",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Crazy Tuff",
+      "Jawbreaker",
+      "Jawbreaker Misprint",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Putter Line",
+      "Putter Line Misprint",
+      "Putter Line Soft",
+      "Putter Line Soft Misprint",
+      "Rubber Blend Glo",
+      "Signature Big Z",
+      "Tour Series ESP"
+    ],
+    "catalogMatches": [
+      {
+        "id": "585ca3f88eeb",
+        "name": "Magnet",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Malita",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-malita/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20261015103826494_ESPWhiteMalita-2_600x-.webp",
+    "imageWidth": 600,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "600x600 source shows blank white disc with no visible stamp; no design to extract. ESP inventory is labeled Bottom Stamp; sampled readable underside photo is only 600x450 and not a canonical top stamp.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 550,
+    "flags": [
+      "bottom-stamp-inventory",
+      "low-resolution",
+      "blank-top"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "d28c376c3a93",
+        "name": "Malita (PM-0725-M)",
+        "catalogName": "Malita",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "16 loaded ESP rows labeled Bottom Stamp. Sampled readable underside original: 600x450. Blank top gallery retained as evidence.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Malta",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-malta/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Malta0ec.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "risky",
+    "notes": "Full face; silver split rings/name panel and McBeth/number box on green. Reflective foil produces dark patches and weak fine text (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "8fc70b7fac9a",
+        "name": "Malta (Paul McBeth Proto Mid-Range)",
+        "catalogName": "Malta",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Mantis",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-mantis",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "Big Z Misprint",
+      "CryZtal",
+      "Cryztal Sparkle",
+      "Glo Confetti Cryztal",
+      "GLO Swirly ESP",
+      "Jawbreaker ESP",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Titanium",
+      "Titanium Misprint",
+      "Tour Series ESP",
+      "X Line",
+      "X Line Misprint",
+      "Z Colorshift",
+      "Z Fly Dyed",
+      "Z Line",
+      "Z Line Misprint",
+      "Z Lite",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "f4e02f8690a1",
+        "name": "Mantis (Ace Race 2013)",
+        "catalogName": "Mantis",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Meteor",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-meteor/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Meteor_4.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; dark red foil wordmark/name and readable number box contrast on blue/green. Mild foil-risk, no apparent erased strokes.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "6693f1eff37c",
+        "name": "Meteor (Ace Race 2006)",
+        "catalogName": "Meteor",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Nebula",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-nebula/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Nebula_1.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "no",
+    "notes": "Full high-contrast black detailed circular Nebula art on pink. Source explicitly carries Ledgestone 2022 / BIG Z marks on plain ESP page: plastic/event mismatch needs provenance review.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "plastic-provenance-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "520800c74e2d",
+        "name": "Nebula (Ace Race 2008)",
+        "catalogName": "Nebula",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Nuke",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-nuke/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/DSC03850.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "800x600 canvas but disc only about 620px across; angled legacy ring/wordmark stamp. Full design visible, resolution below bar. All 12 currently offered stock-photo originals measured: 600x440 or 620x465; none rescues resolution.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 620,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "e8898641fa07",
+        "name": "Nuke",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "All 12 loaded stock originals measured: four 600x440 and eight 620x465. No larger rescue source.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Nuke OS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-nuke-os/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/buzzzzOS.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full design visible but about 600px across; multicolor foil (foil-risk). Image shows a 2016 Ledgestone event stamp despite plain ESP listing; filename is misleading, visible artwork says Nuke OS.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 600,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "60d1ded9d2cf",
+        "name": "Nuke OS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Nuke SS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-nuke-ss/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c21b0-1c6a.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full stamp visible but about 610px across; rainbow foil interrupts wordmark/name/flight box (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 610,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "e76b8f647d6d",
+        "name": "Nuke SS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Passion",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-passion/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Passion.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "risky",
+    "notes": "Full face, fine horizontal lines and Paige Pierce emblem. Magenta plastic swirls overlap similar magenta ink; color separation risk despite large source.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "ink-plastic-overlap"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "4ed85d7c4666",
+        "name": "Passion",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Predator",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-predator/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bc7844-6097-4cc5-8c7d-b12d00a600c5Predator-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "ready",
+    "notes": "Selected frontal 1200x900 gallery view; full green ring, Discraft/Predator/ESP and lion emblem on orange, good contrast. Mild ring foil-risk.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "dfe6b11cb13e",
+        "name": "Predator",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Pulse",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-pulse/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Pulse0f0.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; solid black ring, Discraft/Pulse/ESP and pulse-line emblem on pink. Strong contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "35007aee9bca",
+        "name": "Pulse",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Punisher",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-punisher/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/punisher_2.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full legacy stamp visible; rainbow foil (foil-risk) and about 610px disc span.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 610,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "c2b452e9045d",
+        "name": "Punisher",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Putt'r",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-puttr",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Pro-D Misprint",
+      "Rubber Blend",
+      "X Line Misprint",
+      "X Soft",
+      "X Soft Misprint",
+      "Z GLO FLX"
+    ],
+    "catalogMatches": [
+      {
+        "id": "e217d64dff1e",
+        "name": "Putt'r",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Raptor",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-raptor/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/388a4d-82f2.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full dark stamp visible on pink; only about 550px across disc despite 800x600 canvas.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 550,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "35a861477cf9",
+        "name": "Raptor",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Rattler",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-rattler",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback. Catalog alias: Rattler Putter, production unknown.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "CryZtal",
+      "ESP Swirl",
+      "Jawbreaker Misprint",
+      "Jawbreaker Swirl",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Tour Series ESP"
+    ],
+    "catalogMatches": [
+      {
+        "id": "0aca83e2c0ae",
+        "name": "Rattler Putter",
+        "catalogName": null,
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Reaper",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-reaper/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Reaper.Webp",
+    "imageWidth": 800,
+    "imageHeight": 800,
+    "verdict": "risky",
+    "notes": "Full black reaper figure/script on cyan/purple plastic, good contrast; disc about 750px across on 800x800 canvas, borderline below working threshold.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 750,
+    "flags": [
+      "borderline-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "c5849a139715",
+        "name": "Reaper",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Ringer",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-ringer",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "CryZtal",
+      "CryZtal FLX",
+      "Cryztal FLX Sparkle Misprint",
+      "Cryztal Glo FLX",
+      "Cryztal Misprint",
+      "ESP Swirl",
+      "Midnight Z",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Putter Line",
+      "Putter Line Soft",
+      "X Soft",
+      "X Soft Misprint",
+      "Z FLX Misprint",
+      "Z Line",
+      "Z Metallic"
+    ],
+    "catalogMatches": [
+      {
+        "id": "e2eede045eed",
+        "name": "Ringer",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Ringer GT",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-ringer-gt",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "ESP Swirl",
+      "Jawbreaker",
+      "Jawbreaker Misprint",
+      "Jawbreaker Swirl",
+      "Putter Line Misprint",
+      "Putter Line Soft",
+      "Rubber Blend Glo",
+      "Rubber Blend Swirl",
+      "X Soft",
+      "X Soft Misprint",
+      "Z FLX",
+      "Z FLX Misprint",
+      "Z Metallic"
+    ],
+    "catalogMatches": [
+      {
+        "id": "9b7d6228abf7",
+        "name": "Ringer GT",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Roach",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-roach/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/highres_346.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Detailed diagram/roach event art on white, about 560px disc; fine text and patterned foil are not cleanly readable (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 560,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "84e1e2fa5655",
+        "name": "Roach (Ace Race 2015)",
+        "catalogName": "Roach",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Roost",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-roost",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "CT Swirl",
+      "Putter Line",
+      "Putter Line Soft"
+    ],
+    "catalogMatches": [
+      {
+        "id": "d7c29ad581d4",
+        "name": "Roost (renamed from RW-0325-P (Ricky Wysocki Proto Putter))",
+        "catalogName": "Roost",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Scorch",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-scorch/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Scorch_2.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "risky",
+    "notes": "Full face and fine flight box; silver foil shifts from dark to white across wordmark (foil-risk), close to pale cyan highlights.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "819b7c057af8",
+        "name": "Scorch  ",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Sled",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-sled/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20260227091323979_Discraft_Sled_5-c9b527.webp",
+    "imageWidth": 1077,
+    "imageHeight": 1077,
+    "verdict": "risky",
+    "notes": "Full first-run chain-ring/wordmark/name/flight-box stamp. Rainbow chain foil varies strongly over pale blue swirls (foil-risk); blue lettering remains readable.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 1070,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "caaec70f020f",
+        "name": "Sled (DIS-0126-P)",
+        "catalogName": "Sled",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Soft Magnet",
+    "inCatalog": false,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-soft-magnet",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback. No separate Soft Magnet record; Magnet exists. This is an Infinite named-entry gap, potentially a soft-plastic variant, not evidence a new mold should be added.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Pro-D",
+      "Pro-D Misprint",
+      "Putter Line Soft"
+    ],
+    "catalogMatches": [],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Sol",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-sol/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/espsol.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full legacy blue stamp on mint, but oblique face and about 650px disc span.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 650,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "0e63ffe29c12",
+        "name": "SoL (Ace Race 2018)",
+        "catalogName": "Sol",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Spectra",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-spectra",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Supercolor",
+      "Z Line Misprint"
+    ],
+    "catalogMatches": [
+      {
+        "id": "d6df6dda5fc9",
+        "name": "Spectra",
+        "catalogName": "Spectra",
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Stalker",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-stalker/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Infinite059_1.Webp",
+    "imageWidth": 500,
+    "imageHeight": 375,
+    "verdict": "no",
+    "notes": "500x375 image, disc about 360px; detailed Paige Pierce tiger art and two ink colors lose fine detail. Loaded stock dialog offered no exact ESP rows; other plastics excluded.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 360,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "8cc6c4a94762",
+        "name": "Stalker",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "27 loaded stock rows, no exact ESP row; dialog offers other plastics. Excluded all substitutes.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Sting",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-sting/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/ca507f-2e77.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full purple legacy stamp on pale pink; about 590px across the disc.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 590,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "3f9addcba071",
+        "name": "Sting (Ace Race 2017)",
+        "catalogName": "Sting",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Stratus",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-stratus",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Pro-D",
+      "Pro-D Misprint",
+      "Titanium Colorshift",
+      "Tour Series ESP",
+      "X Line",
+      "X Line Misprint",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "a434851c56c3",
+        "name": "Stratus",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Surge",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-surge/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/11a1de8f-e68d-4507-901f-f70d81e340abSurge-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "risky",
+    "notes": "Full ring/wordmark and Surge emblem; blue foil bright flecks interrupt ring and letters (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 830,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "e5fc6efe1b88",
+        "name": "Surge",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Surge SS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-surge-ss/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/highrez_17.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "About 590px disc span, pale green detailed event art on mottled blue/green plastic is low contrast; full design visible but not cleanly readable.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 590,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "55f31e3ac7bb",
+        "name": "Surge-SS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Swarm",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-swarm/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240716105515913_unnamed27-d7715cb087e7.webp",
+    "imageWidth": 1200,
+    "imageHeight": 1200,
+    "verdict": "risky",
+    "notes": "Full first-run wordmark/name/box visible; reflective gold against orange/yellow swirl causes contrast loss (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 1070,
+    "flags": [
+      "foil-risk"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "8769ec70b5ad",
+        "name": "Swarm",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Talon",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-talon",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "ESP Swirl",
+      "Tour Series Z",
+      "Z Sparkle Glo"
+    ],
+    "catalogMatches": [
+      {
+        "id": "9592bd05f59c",
+        "name": "Talon",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Terminator",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-terminator",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Midnight Victory Edition",
+      "Z Line"
+    ],
+    "catalogMatches": [
+      {
+        "id": "401181be74f0",
+        "name": "Terminator (DIS-0226-D)",
+        "catalogName": "Terminator",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Thrasher",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-thrasher/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Thrasher_3.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; solid blue wordmark, ESP, mold name and number box on pale pink; strong contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "7dfe3f9278d8",
+        "name": "Thrasher",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Tracker",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-tracker",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "CryZtal FLX",
+      "Cryztal FLX Misprint",
+      "Tour ESP Misprint",
+      "Tour Series ESP",
+      "Z Fly Dyed",
+      "Z Line",
+      "Z Line Misprint"
+    ],
+    "catalogMatches": [
+      {
+        "id": "b5902835de8f",
+        "name": "Tracker",
+        "catalogName": "Tracker",
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "UltraLuna",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-ultraluna",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Signature Putter Line Hard",
+      "Signature Putter Line Soft",
+      "Z Colorshift X-Out"
+    ],
+    "catalogMatches": [
+      {
+        "id": "0ffa1d7af927",
+        "name": "UltraLuna (PM-1025-P)",
+        "catalogName": "UltraLuna",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "UltraSled",
+    "inCatalog": false,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-ultrasled",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback. No matching named catalog record found. Do not merge with Sled or UltraLuna.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Kitchen Sink"
+    ],
+    "catalogMatches": [],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Undertaker",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-undertaker/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/undertaker.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full blue stamp on lavender; fine number box on about 620px disc, below bar.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 620,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "6be51219c6db",
+        "name": "Undertaker",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Venom",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-venom/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/highres_168.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full snake/wordmark design, maroon on pink, but detailed scales about 650px across disc. Retooled/current identity must be reviewed before later assignment. Both original Venom and Venom (retooled) exist; current source identity must be resolved before assigning any later art.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 650,
+    "flags": [
+      "approval-identity-review",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "f69a2d3bb610",
+        "name": "Venom (retooled)",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      },
+      {
+        "id": "17be4e748b7a",
+        "name": "Venom",
+        "catalogName": null,
+        "productionStatus": "unknown"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Vulture",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-vulture/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/asdfasdf_33.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full silver/white legacy stamp on purple/orange; about 600px disc, glare/low contrast near wordmark (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 600,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "ba04ef87b683",
+        "name": "Vulture",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Wasp",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-wasp/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/a03b11fa-5f46-45e3-9a9d-c4e5665bf94dDSC07301.Webp",
+    "imageWidth": 313,
+    "imageHeight": 235,
+    "verdict": "no",
+    "notes": "313x235 source, about 250px disc. Only small Discraft wordmark and multicolor foil visible (foil-risk); no readable mold identifier. No individual-stock selection button on ESP page.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 250,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "56f772ae3de5",
+        "name": "Wasp",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "No stock-selection button on plain ESP page.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Wildcat",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-wildcat/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/WILDCAT.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Fine gold decorative text and cat emblem on blue; foil-risk and only about 590px disc span.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 590,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "1b41ce3dae8a",
+        "name": "Wildcat",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "XL",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-xl/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c9b55ab-7d23-4945-a03f-dc35179a6ab0XL-ESP.Webp",
+    "imageWidth": 1200,
+    "imageHeight": 900,
+    "verdict": "ready",
+    "notes": "Selected larger frontal gallery view: full silver-white ring/wordmark/XL/number box on blue, good contrast. Headline image is smaller rainbow design.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 810,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "e7246744eae5",
+        "name": "XL",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Xpress",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-xpress/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Infinite034_1.Webp",
+    "imageWidth": 500,
+    "imageHeight": 375,
+    "verdict": "no",
+    "notes": "Full blue Xpress script mark visible, but 500x375 canvas and about 370px disc. No stock-selection button.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 370,
+    "flags": [
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "55c4dedb8124",
+        "name": "Xpress",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "No stock-selection button on plain ESP page.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "XS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-xs/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/highrez_30.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Detailed pile/hand-sign event artwork on orange/purple; about 650px disc and foil/plastic color overlap (foil-risk). Canonical-stock representativeness needs review.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 650,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "241b4355c5e6",
+        "name": "XS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Xtreme",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-xtreme",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "Jawbreaker Z FLX",
+      "Signature Z Line",
+      "Tour Series Z",
+      "Z Glo Lite",
+      "Z Line Misprint",
+      "Z Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "a4fe09b047da",
+        "name": "Xtreme",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zeppelin",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-zeppelin",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Tour Series ESP",
+      "X Swirl"
+    ],
+    "catalogMatches": [
+      {
+        "id": "1e7bb91c200b",
+        "name": "Zeppelin (Ace Race 2011)",
+        "catalogName": "Zeppelin",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zeus",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-zeus/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Zeusa3be.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "ready",
+    "notes": "Full face; solid black split-circle/name panel, Discraft, McBeth emblem and flight box contrast strongly on orange.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "da3c28085382",
+        "name": "Zeus (renamed from Kong)",
+        "catalogName": "Zeus",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zeus 2.0",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-zeus-20",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback. Catalog already records this renamed identity as Ares; Infinite retains a separate old-name listing. Do not add a duplicate mold.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Z Colorshift"
+    ],
+    "catalogMatches": [
+      {
+        "id": "1b456425771e",
+        "name": "Ares (PM-0226-D) (renamed from Zeus 2.0)",
+        "catalogName": "Ares",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zombee",
+    "inCatalog": true,
+    "esp": false,
+    "pageUrl": "https://infinitediscs.com/discraft-zombee",
+    "imageUrl": null,
+    "imageWidth": null,
+    "imageHeight": null,
+    "verdict": "no-esp",
+    "notes": "No plain ESP listing; retain generated fallback.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": null,
+    "flags": [
+      "no-plain-esp"
+    ],
+    "otherListedPlastics": [
+      "Big Z",
+      "Big Z Misprint",
+      "CryZtal",
+      "Cryztal Misprint",
+      "ESP GLO",
+      "ESP Swirl",
+      "Pro-D",
+      "Pro-D Misprint",
+      "Titanium",
+      "Titanium Misprint",
+      "Titanium Swirl",
+      "Z Fly Dyed",
+      "Z Fly Dyed Misprint",
+      "Z Glo",
+      "Z Glo Misprint",
+      "Z Line",
+      "Z Line Misprint"
+    ],
+    "catalogMatches": [
+      {
+        "id": "71fd543c562a",
+        "name": "Zombee (Ace Race 2012)",
+        "catalogName": "Zombee",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": null,
+    "inventoryCheck": "Not applicable; no substitute plastic inspected.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zone",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-zone/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/c56fc4-50c5.Webp",
+    "imageWidth": 800,
+    "imageHeight": 600,
+    "verdict": "no",
+    "notes": "Full legacy wordmark, Zone emblem and box on yellow; about 620px disc; blue patterned foil (foil-risk). No added signature.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 620,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "850e9dc7104d",
+        "name": "Zone",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zone GT",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-zone-gt/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240402095019925_unnamed19-adfcd303cb9d.webp",
+    "imageWidth": 1000,
+    "imageHeight": 992,
+    "verdict": "ready",
+    "notes": "Full first-run wordmark/name/box on pink/lavender, dark red ink has good contrast. Groove visible but does not cut off art. Match Banger Top catalog identity before later assignment. Catalog contains Banger Top and Ringer Top approvals. Candidate art belongs to the Infinite Zone GT listing; exact approval assignment remains unapproved. Never copy it to both.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 990,
+    "flags": [
+      "approval-identity-review"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "8b507b3cabd4",
+        "name": "Zone GT (Ringer Top)",
+        "catalogName": null,
+        "productionStatus": "unknown"
+      },
+      {
+        "id": "4a6dfb045c65",
+        "name": "Zone GT (Banger Top)",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zone OS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-zone-os/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20231219094640227_download-ff34c9232a2b4.webp",
+    "imageWidth": 600,
+    "imageHeight": 450,
+    "verdict": "no",
+    "notes": "600x450 composite, about 470px top disc; silver stamp against pale blue is very low contrast (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 470,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "365a8fed0594",
+        "name": "Zone OS",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  },
+  {
+    "mold": "Zone SS",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-zone-ss/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20251106132639962_merged-b2a0fedfaaac436.webp",
+    "imageWidth": 600,
+    "imageHeight": 450,
+    "verdict": "no",
+    "notes": "600x450 composite, about 430px top disc; blue patterned foil over gray/green swirls, tiny flight box (foil-risk).",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 430,
+    "flags": [
+      "foil-risk",
+      "low-resolution"
+    ],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "49d84f3e0be5",
+        "name": "Zone SS (DIS-0725-P)",
+        "catalogName": "Zone SS",
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": null
+  }
+]
