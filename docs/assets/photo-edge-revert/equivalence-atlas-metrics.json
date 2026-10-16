@@ -1,0 +1,745 @@
+{
+  "stored": {
+    "stamp": {
+      "mold_id": "e70f48273d7f",
+      "photo_rim_color": null,
+      "rim_color": null,
+      "color": "#d1d2d3"
+    },
+    "wraith": {
+      "mold_id": "e70f48273d7f",
+      "photo_rim_color": null,
+      "rim_color": null,
+      "color": "#c7c7c7"
+    },
+    "clean": {
+      "mold_id": "e9a88cc4f3b1",
+      "photo_rim_color": null,
+      "rim_color": null,
+      "color": "#439164"
+    },
+    "pixel": {
+      "mold_id": "e125b84243c2",
+      "photo_rim_color": "#101418",
+      "rim_color": null,
+      "color": "#b45a28"
+    }
+  },
+  "reference": {
+    "stamp": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#928d81",
+            "crossings": 20,
+            "spread": 161
+          },
+          "0.75": {
+            "rgb": "#736c5f",
+            "crossings": 50,
+            "spread": 158
+          },
+          "0.8": {
+            "rgb": "#80755c",
+            "crossings": 47,
+            "spread": 146
+          },
+          "0.85": {
+            "rgb": "#b8b9ba",
+            "crossings": 0,
+            "spread": 12
+          },
+          "0.88": {
+            "rgb": "#b1b2b3",
+            "crossings": 0,
+            "spread": 25
+          },
+          "0.91": {
+            "rgb": "#a9aaab",
+            "crossings": 1,
+            "spread": 47
+          },
+          "0.94": {
+            "rgb": "#a0a1a2",
+            "crossings": 2,
+            "spread": 132
+          },
+          "0.97": {
+            "rgb": "#838485",
+            "crossings": 2,
+            "spread": 147
+          }
+        }
+      },
+      "map": {
+        "px": 192,
+        "rings": {
+          "0.6": {
+            "rgb": "#908c80",
+            "crossings": 20,
+            "spread": 164
+          },
+          "0.75": {
+            "rgb": "#6d685c",
+            "crossings": 46,
+            "spread": 160
+          },
+          "0.8": {
+            "rgb": "#81765a",
+            "crossings": 43,
+            "spread": 146
+          },
+          "0.85": {
+            "rgb": "#b9babb",
+            "crossings": 0,
+            "spread": 11
+          },
+          "0.88": {
+            "rgb": "#b1b2b3",
+            "crossings": 0,
+            "spread": 23
+          },
+          "0.91": {
+            "rgb": "#a9aaab",
+            "crossings": 1,
+            "spread": 41
+          },
+          "0.94": {
+            "rgb": "#a1a2a3",
+            "crossings": 2,
+            "spread": 119
+          },
+          "0.97": {
+            "rgb": "#838485",
+            "crossings": 2,
+            "spread": 134
+          }
+        }
+      }
+    },
+    "wraith": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#857e69",
+            "crossings": 24,
+            "spread": 118
+          },
+          "0.75": {
+            "rgb": "#a39c6e",
+            "crossings": 28,
+            "spread": 139
+          },
+          "0.8": {
+            "rgb": "#989b7e",
+            "crossings": 31,
+            "spread": 138
+          },
+          "0.85": {
+            "rgb": "#afafaf",
+            "crossings": 0,
+            "spread": 12
+          },
+          "0.88": {
+            "rgb": "#a8a8a8",
+            "crossings": 0,
+            "spread": 25
+          },
+          "0.91": {
+            "rgb": "#a1a1a1",
+            "crossings": 1,
+            "spread": 45
+          },
+          "0.94": {
+            "rgb": "#989898",
+            "crossings": 2,
+            "spread": 139
+          },
+          "0.97": {
+            "rgb": "#7c7c7c",
+            "crossings": 2,
+            "spread": 148
+          }
+        }
+      }
+    },
+    "clean": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#4f8a67",
+            "crossings": 0,
+            "spread": 113
+          },
+          "0.75": {
+            "rgb": "#4e8a67",
+            "crossings": 0,
+            "spread": 114
+          },
+          "0.8": {
+            "rgb": "#4d8966",
+            "crossings": 0,
+            "spread": 114
+          },
+          "0.85": {
+            "rgb": "#46825e",
+            "crossings": 0,
+            "spread": 94
+          },
+          "0.88": {
+            "rgb": "#2f7b51",
+            "crossings": 0,
+            "spread": 19
+          },
+          "0.91": {
+            "rgb": "#227449",
+            "crossings": 0,
+            "spread": 26
+          },
+          "0.94": {
+            "rgb": "#2c704b",
+            "crossings": 2,
+            "spread": 131
+          },
+          "0.97": {
+            "rgb": "#1a5a39",
+            "crossings": 2,
+            "spread": 159
+          }
+        }
+      },
+      "map": {
+        "px": 48,
+        "rings": {
+          "0.6": {
+            "rgb": "#518b68",
+            "crossings": 0,
+            "spread": 97
+          },
+          "0.75": {
+            "rgb": "#4d8966",
+            "crossings": 0,
+            "spread": 98
+          },
+          "0.8": {
+            "rgb": "#4e8866",
+            "crossings": 0,
+            "spread": 102
+          },
+          "0.85": {
+            "rgb": "#3f805a",
+            "crossings": 0,
+            "spread": 62
+          },
+          "0.88": {
+            "rgb": "#2d7a50",
+            "crossings": 0,
+            "spread": 40
+          },
+          "0.91": {
+            "rgb": "#29764c",
+            "crossings": 1,
+            "spread": 67
+          },
+          "0.94": {
+            "rgb": "#286c47",
+            "crossings": 2,
+            "spread": 110
+          },
+          "0.97": {
+            "rgb": "#165534",
+            "crossings": 2,
+            "spread": 126
+          }
+        }
+      }
+    },
+    "pixel": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#a25630",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.75": {
+            "rgb": "#a0542b",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.8": {
+            "rgb": "#a0532a",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.85": {
+            "rgb": "#a05228",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.88": {
+            "rgb": "#a05227",
+            "crossings": 0,
+            "spread": 8
+          },
+          "0.91": {
+            "rgb": "#2e2420",
+            "crossings": 0,
+            "spread": 62
+          },
+          "0.94": {
+            "rgb": "#0b0e12",
+            "crossings": 0,
+            "spread": 45
+          },
+          "0.97": {
+            "rgb": "#0c0e10",
+            "crossings": 0,
+            "spread": 151
+          }
+        }
+      },
+      "map": {
+        "px": 192,
+        "rings": {
+          "0.6": {
+            "rgb": "#a25630",
+            "crossings": 0,
+            "spread": 7
+          },
+          "0.75": {
+            "rgb": "#a0542b",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.8": {
+            "rgb": "#a0532a",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.85": {
+            "rgb": "#a05228",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.88": {
+            "rgb": "#a05228",
+            "crossings": 0,
+            "spread": 7
+          },
+          "0.91": {
+            "rgb": "#292322",
+            "crossings": 0,
+            "spread": 47
+          },
+          "0.94": {
+            "rgb": "#0b0f12",
+            "crossings": 0,
+            "spread": 16
+          },
+          "0.97": {
+            "rgb": "#0c0e10",
+            "crossings": 0,
+            "spread": 178
+          }
+        }
+      }
+    },
+    "cost": {
+      "photo": 0.17,
+      "plain": 0.147,
+      "overmold": false
+    },
+    "overmold": {
+      "stamp": false,
+      "wraith": false,
+      "clean": false,
+      "pixel": true
+    }
+  },
+  "referenceServed": 74,
+  "current": {
+    "stamp": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#928d81",
+            "crossings": 20,
+            "spread": 161
+          },
+          "0.75": {
+            "rgb": "#736c5f",
+            "crossings": 50,
+            "spread": 158
+          },
+          "0.8": {
+            "rgb": "#80755c",
+            "crossings": 47,
+            "spread": 146
+          },
+          "0.85": {
+            "rgb": "#b8b9ba",
+            "crossings": 0,
+            "spread": 12
+          },
+          "0.88": {
+            "rgb": "#b1b2b3",
+            "crossings": 0,
+            "spread": 25
+          },
+          "0.91": {
+            "rgb": "#a9aaab",
+            "crossings": 1,
+            "spread": 47
+          },
+          "0.94": {
+            "rgb": "#a0a1a2",
+            "crossings": 2,
+            "spread": 132
+          },
+          "0.97": {
+            "rgb": "#838485",
+            "crossings": 2,
+            "spread": 147
+          }
+        }
+      },
+      "map": {
+        "px": 192,
+        "rings": {
+          "0.6": {
+            "rgb": "#908c80",
+            "crossings": 20,
+            "spread": 164
+          },
+          "0.75": {
+            "rgb": "#6d685c",
+            "crossings": 46,
+            "spread": 160
+          },
+          "0.8": {
+            "rgb": "#81765a",
+            "crossings": 43,
+            "spread": 146
+          },
+          "0.85": {
+            "rgb": "#b9babb",
+            "crossings": 0,
+            "spread": 11
+          },
+          "0.88": {
+            "rgb": "#b1b2b3",
+            "crossings": 0,
+            "spread": 23
+          },
+          "0.91": {
+            "rgb": "#a9aaab",
+            "crossings": 1,
+            "spread": 41
+          },
+          "0.94": {
+            "rgb": "#a1a2a3",
+            "crossings": 2,
+            "spread": 119
+          },
+          "0.97": {
+            "rgb": "#838485",
+            "crossings": 2,
+            "spread": 134
+          }
+        }
+      }
+    },
+    "wraith": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#857e69",
+            "crossings": 24,
+            "spread": 118
+          },
+          "0.75": {
+            "rgb": "#a39c6e",
+            "crossings": 28,
+            "spread": 139
+          },
+          "0.8": {
+            "rgb": "#989b7e",
+            "crossings": 31,
+            "spread": 138
+          },
+          "0.85": {
+            "rgb": "#afafaf",
+            "crossings": 0,
+            "spread": 12
+          },
+          "0.88": {
+            "rgb": "#a8a8a8",
+            "crossings": 0,
+            "spread": 25
+          },
+          "0.91": {
+            "rgb": "#a1a1a1",
+            "crossings": 1,
+            "spread": 45
+          },
+          "0.94": {
+            "rgb": "#989898",
+            "crossings": 2,
+            "spread": 139
+          },
+          "0.97": {
+            "rgb": "#7c7c7c",
+            "crossings": 2,
+            "spread": 148
+          }
+        }
+      }
+    },
+    "clean": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#4f8a67",
+            "crossings": 0,
+            "spread": 113
+          },
+          "0.75": {
+            "rgb": "#4e8a67",
+            "crossings": 0,
+            "spread": 114
+          },
+          "0.8": {
+            "rgb": "#4d8966",
+            "crossings": 0,
+            "spread": 114
+          },
+          "0.85": {
+            "rgb": "#46825e",
+            "crossings": 0,
+            "spread": 94
+          },
+          "0.88": {
+            "rgb": "#2f7b51",
+            "crossings": 0,
+            "spread": 19
+          },
+          "0.91": {
+            "rgb": "#227449",
+            "crossings": 0,
+            "spread": 26
+          },
+          "0.94": {
+            "rgb": "#2c704b",
+            "crossings": 2,
+            "spread": 131
+          },
+          "0.97": {
+            "rgb": "#1a5a39",
+            "crossings": 2,
+            "spread": 159
+          }
+        }
+      },
+      "map": {
+        "px": 48,
+        "rings": {
+          "0.6": {
+            "rgb": "#518b68",
+            "crossings": 0,
+            "spread": 97
+          },
+          "0.75": {
+            "rgb": "#4d8966",
+            "crossings": 0,
+            "spread": 98
+          },
+          "0.8": {
+            "rgb": "#4e8866",
+            "crossings": 0,
+            "spread": 102
+          },
+          "0.85": {
+            "rgb": "#3f805a",
+            "crossings": 0,
+            "spread": 62
+          },
+          "0.88": {
+            "rgb": "#2d7a50",
+            "crossings": 0,
+            "spread": 40
+          },
+          "0.91": {
+            "rgb": "#29764c",
+            "crossings": 1,
+            "spread": 67
+          },
+          "0.94": {
+            "rgb": "#286c47",
+            "crossings": 2,
+            "spread": 110
+          },
+          "0.97": {
+            "rgb": "#165534",
+            "crossings": 2,
+            "spread": 126
+          }
+        }
+      }
+    },
+    "pixel": {
+      "thumb": {
+        "px": 128,
+        "rings": {
+          "0.6": {
+            "rgb": "#a25630",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.75": {
+            "rgb": "#a0542b",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.8": {
+            "rgb": "#a0532a",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.85": {
+            "rgb": "#a05228",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.88": {
+            "rgb": "#a05227",
+            "crossings": 0,
+            "spread": 8
+          },
+          "0.91": {
+            "rgb": "#2e2420",
+            "crossings": 0,
+            "spread": 62
+          },
+          "0.94": {
+            "rgb": "#0b0e12",
+            "crossings": 0,
+            "spread": 45
+          },
+          "0.97": {
+            "rgb": "#0c0e10",
+            "crossings": 0,
+            "spread": 151
+          }
+        }
+      },
+      "map": {
+        "px": 192,
+        "rings": {
+          "0.6": {
+            "rgb": "#a25630",
+            "crossings": 0,
+            "spread": 7
+          },
+          "0.75": {
+            "rgb": "#a0542b",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.8": {
+            "rgb": "#a0532a",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.85": {
+            "rgb": "#a05228",
+            "crossings": 0,
+            "spread": 6
+          },
+          "0.88": {
+            "rgb": "#a05228",
+            "crossings": 0,
+            "spread": 7
+          },
+          "0.91": {
+            "rgb": "#292322",
+            "crossings": 0,
+            "spread": 47
+          },
+          "0.94": {
+            "rgb": "#0b0f12",
+            "crossings": 0,
+            "spread": 16
+          },
+          "0.97": {
+            "rgb": "#0c0e10",
+            "crossings": 0,
+            "spread": 178
+          }
+        }
+      }
+    },
+    "cost": {
+      "photo": 0.137,
+      "plain": 0.123,
+      "overmold": false
+    },
+    "overmold": {
+      "stamp": false,
+      "wraith": false,
+      "clean": false,
+      "pixel": true
+    }
+  },
+  "pixelDiff": {
+    "stamp-thumb": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 16384
+    },
+    "stamp-mymap-art": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 36864
+    },
+    "wraith-thumb": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 16384
+    },
+    "clean-thumb": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 16384
+    },
+    "clean-mymap-art": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 2304
+    },
+    "pixel-thumb": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 16384
+    },
+    "pixel-mymap-art": {
+      "max": 0,
+      "moved": 0,
+      "over8": 0,
+      "pixels": 36864
+    }
+  }
+}

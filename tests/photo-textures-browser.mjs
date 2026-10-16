@@ -80,46 +80,6 @@ try {
   ctx.clearRect(0,0,100,100);ctx.fillStyle='rgba(255,0,0,.5)';ctx.fillRect(0,0,100,100);const sourceAlpha=photoCanvas(canvas,{},128).getContext('2d').getImageData(64,64,1,1).data[3];
   return {projection,rim,sourceAlpha,corner:c.getImageData(0,0,1,1).data[3],center:[...c.getImageData(64,64,1,1).data],dimensions};
  });assert.deepEqual(checks,{projection:true,rim:true,sourceAlpha:128,corner:0,center:[255,0,0,255],dimensions:[1024,1024]});
- // One-piece discs (Oct 16): the photo runs over the shoulder to the nose (`edge`), on top of the disc's own
- // profile, with the photo's outer annulus on the shoulder. Overmolds ignore `edge`: the same arrays as before,
- // stopping at the seam. Without `edge` (the atlas) a one-piece photo still stops at the shoulder.
- const edges=await page.evaluate(async()=>{
-  const {photoGeometry}=await import('/disc3d/photo.mjs'),{shapeForDisc,shapeFrame,topProfile}=await import('/disc3d/shape.mjs'),{isOvermold}=await import('/disc3d/overmold.mjs');
-  const out={};
-  for(const name of ['Wraith','Destroyer','Aviar','Pixel','Atlas']){
-   const d=discs.find(d=>d.name===name&&/Innova|Axiom/.test(d.manufacturer)),overmold=isOvermold({...d,record:d.name});
-   const {shape}=shapeForDisc({model:d.model3d,specs:d.specs,flight:{speed:d.speed,turn:d.turn,fade:d.fade}}),{R,Rs,Ri}=shapeFrame(shape);
-   const edge=photoGeometry(shape,{overmold,edge:true}),plain=photoGeometry(shape,{overmold}),reach=g=>{const p=g.attributes.position;let m=0;for(let i=0;i<p.count;i++)m=Math.max(m,Math.hypot(p.getX(i),p.getZ(i)));return m;};
-   const same=['position','uv','normal'].every(k=>edge.attributes[k].array.length===plain.attributes[k].array.length&&edge.attributes[k].array.every((v,i)=>v===plain.attributes[k].array[i]))&&edge.index.array.every((v,i)=>v===plain.index.array[i]);
-   const p=edge.attributes.position,n=edge.attributes.normal,uv=edge.attributes.uv;
-   // Every vertex stands on or just off the top profile (never under it), its UV is its own top-down spot,
-   // and every triangle faces the way its vertices' normals do (up and out).
-   const top=topProfile(shape).slice().reverse(),surface=r=>{for(let i=1;i<top.length;i++)if(top[i].x>=r){const a=top[i-1],b=top[i],t=(r-a.x)/((b.x-a.x)||1);return a.y+(b.y-a.y)*t;}return top.at(-1).y;};
-   let above=true,uvRadius=0,facing=true,normals=true;
-   for(let i=0;i<p.count;i++){
-    const r=Math.hypot(p.getX(i),p.getZ(i)),y=p.getY(i),u=uv.getX(i)-.5,v=uv.getY(i)-.5;uvRadius=Math.max(uvRadius,Math.hypot(u,v));
-    if(!overmold&&r<R-.05&&y<surface(r)-1e-4)above=false;
-    normals&&=Math.abs(Math.hypot(n.getX(i),n.getY(i),n.getZ(i))-1)<1e-4&&n.getY(i)>-1e-4;
-   }
-   const ix=edge.index.array;
-   for(let k=0;k<ix.length&&!overmold;k+=3){
-    const [a,b,c]=[ix[k],ix[k+1],ix[k+2]].map(i=>[p.getX(i),p.getY(i),p.getZ(i)]),e1=b.map((v,i)=>v-a[i]),e2=c.map((v,i)=>v-a[i]);
-    const f=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]],area=Math.hypot(...f);if(area<1e-9)continue;
-    const nv=[n.getX(ix[k]),n.getY(ix[k]),n.getZ(ix[k])];if(f[0]*nv[0]+f[1]*nv[1]+f[2]*nv[2]<=0)facing=false;
-   }
-   out[name]={overmold,edgeReach:+(reach(edge)/R).toFixed(4),plainReach:+(reach(plain)/R).toFixed(4),stop:+((overmold?Ri:Rs)/R).toFixed(4),same,above,facing,normals,uvRadius:+uvRadius.toFixed(4),triangles:ix.length/3};
-   edge.dispose();plain.dispose();
-  }
-  return out;
- });
- for(const [name,e] of Object.entries(edges)){
-  assert.equal(e.plainReach,e.stop,`${name}: without edge, the photo stops at the ${e.overmold?'seam':'shoulder'}`);
-  if(e.overmold){assert.ok(e.same,`${name}: an overmold's photo is the same geometry with or without edge`);assert.equal(e.edgeReach,e.stop);continue;}
-  assert.ok(e.edgeReach>=1&&e.edgeReach<1.003,`${name}: a one-piece photo reaches the nose (${e.edgeReach} R)`);
-  assert.ok(e.uvRadius>.4995&&e.uvRadius<=.5,`${name}: the shoulder takes the photo's own outer edge (uv radius ${e.uvRadius})`);
-  assert.ok(e.above&&e.facing&&e.normals,`${name}: on top of the profile, facing out (${JSON.stringify(e)})`);
- }
- fs.writeFileSync(dir+'/edge-geometry.json',JSON.stringify(edges,null,2));
 
 
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);await page.locator('#detail').screenshot({path:dir+'/panel-after-phone.png'});
@@ -198,6 +158,6 @@ try {
  await confirmPhoto();const oldHeicKey=heicDisc.texture_key;await save();
  data=await (await page.request.get(base+'/api/bag')).json();assert.notEqual(data.discs.find(d=>d.id===heicDisc.id).texture_key,oldHeicKey);
  console.log('PASS: real HEIC editor choose/use/save/reload/render/replace, color match, bounded WebP and EXIF/GPS stripping; HEIC upload bytes: '+heicUpload.length);
- assert.deepEqual(errors,[]);console.log('PASS: local D1/R2 photo save/remove, circular processing, planar UV, one-piece photos to the nose (overmolds unchanged), private route, fallback, panel/popout and clay. Compressed upload bytes: '+upload.length);
+ assert.deepEqual(errors,[]);console.log('PASS: local D1/R2 photo save/remove, circular processing, planar UV, private route, fallback, panel/popout and clay. Compressed upload bytes: '+upload.length);
 }catch(error){if(page)await page.screenshot({path:dir+'/failure.png',fullPage:true});throw error;}
 finally{await browser?.close();server.kill();}
