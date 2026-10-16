@@ -7,6 +7,11 @@ const masks=new Map(),MAX_MASKS=12;
 export function catalogStampAsset(d){
  return (d?.brand||d?.manufacturer)==='Discraft'&&/^stamps\/discraft\/[a-z0-9-]+\.png$/.test(d?.stampAsset||'')?d.stampAsset:null;
 }
+// The ink extent is measured against the FULL disc, independently of texture padding.
+export function catalogStampPlacement(d){
+ const p=d?.stampPlacement;
+ return catalogStampAsset(d)&&p&&[p.diameterFraction,p.assetInkFraction].every(v=>Number.isFinite(v)&&v>0&&v<=1)&&p.diameterFraction<=p.assetInkFraction?p:null;
+}
 function maskFor(asset){
  let entry=masks.get(asset);
  if(entry){masks.delete(asset);masks.set(asset,entry);return entry;}
@@ -40,7 +45,7 @@ export function stampTexture(name,color,{asset=null,onChange=()=>{}}={}){
    g.clearRect(0,0,size,size);g.drawImage(entry.image,0,0,size,size);
    // Only the source alpha survives. Source foil/plastic RGB can never tint the plate.
    g.globalCompositeOperation='source-in';g.fillStyle=ink;g.fillRect(0,0,size,size);g.globalCompositeOperation='source-over';
-   texture.userData.stampAsset=asset;texture.needsUpdate=true;onChange();
+   texture.userData.stampAsset=asset;texture.needsUpdate=true;onChange(texture);
   };
   texture.addEventListener('dispose',()=>{live=false;entry.listeners.delete(paint);});
   if(entry.ready||entry.failed)paint();else entry.listeners.add(paint);
@@ -50,8 +55,10 @@ export function stampTexture(name,color,{asset=null,onChange=()=>{}}={}){
 
 // The stamp rides the top surface, inside the shoulder, on a ring mesh fine enough to follow the dome.
 // Centimetres, in the profile's own frame (y = 0 at the foot), like the lathe.
-export function stampGeometry(shape,{segments=48,rings=8}={}){
- const {Rs}=shapeFrame(shape),stampR=Math.min(Rs*.78,6.2);
+export function stampGeometry(shape,{segments=48,rings=8,placement=null}={}){
+ const {Rs,R}=shapeFrame(shape);
+ // Only decoded official art opts in. Generated/loading/failed stamps keep the legacy radius.
+ const stampR=placement?R*placement.diameterFraction/placement.assetInkFraction:Math.min(Rs*.78,6.2);
  const ring=new THREE.RingGeometry(.001,stampR,segments,rings);ring.rotateX(-Math.PI/2);
  const pos=ring.attributes.position;
  for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,topHeight(shape,Math.hypot(x,z))+.012);}

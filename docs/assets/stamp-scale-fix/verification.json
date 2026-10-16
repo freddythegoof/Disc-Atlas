@@ -1,0 +1,427 @@
+{
+  "base": "d4a49442c0912c06a1831343a7267a416c339198",
+  "results": {
+    "before": {
+      "buzzz": {
+        "discBounds": [
+          354,
+          134,
+          640,
+          420
+        ],
+        "inkBounds": [
+          417,
+          217,
+          577,
+          340
+        ],
+        "discDiameterPx": 286,
+        "stampDiameterPx": 160,
+        "renderedFraction": 0.5594405594405595,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.85,
+        "defaultDetail": {
+          "discBounds": [
+            55,
+            20,
+            245,
+            210
+          ],
+          "inkBounds": [
+            97,
+            75,
+            203,
+            157
+          ],
+          "discDiameterPx": 190,
+          "stampDiameterPx": 106,
+          "renderedFraction": 0.5578947368421052,
+          "meshRadiusCm": 6.200000209225719,
+          "discRadiusCm": 10.85
+        },
+        "storagePhysicalFraction": 0.5417053974768318,
+        "bag": {
+          "inkBounds": [
+            1123,
+            408,
+            1337,
+            573
+          ],
+          "discBounds": [
+            1032.810175653511,
+            294.590076021481,
+            1421.8364244563938,
+            683.4376223718489
+          ],
+          "renderedFraction": 0.5500914158325404
+        }
+      },
+      "zone": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          416,
+          196,
+          578,
+          358
+        ],
+        "discDiameterPx": 278,
+        "stampDiameterPx": 162,
+        "renderedFraction": 0.5827338129496403,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "defaultDetail": {
+          "discBounds": [
+            57,
+            22,
+            243,
+            208
+          ],
+          "inkBounds": [
+            96,
+            61,
+            204,
+            169
+          ],
+          "discDiameterPx": 186,
+          "stampDiameterPx": 108,
+          "renderedFraction": 0.5806451612903226,
+          "meshRadiusCm": 6.200000209225719,
+          "discRadiusCm": 10.55
+        },
+        "storagePhysicalFraction": 0.5677158759710612,
+        "bag": {
+          "inkBounds": [
+            1118,
+            377,
+            1342,
+            601
+          ],
+          "discBounds": [
+            1032.8736544083968,
+            294.54839206350835,
+            1421.9689208907955,
+            683.4748474775956
+          ],
+          "renderedFraction": 0.5756944874325088
+        }
+      },
+      "luna": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          199,
+          578,
+          354
+        ],
+        "discDiameterPx": 280,
+        "stampDiameterPx": 162,
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "defaultDetail": {
+          "discBounds": [
+            57,
+            22,
+            243,
+            208
+          ],
+          "inkBounds": [
+            96,
+            63,
+            204,
+            167
+          ],
+          "discDiameterPx": 186,
+          "stampDiameterPx": 108,
+          "renderedFraction": 0.5806451612903226,
+          "meshRadiusCm": 6.200000209225719,
+          "discRadiusCm": 10.55
+        },
+        "storagePhysicalFraction": 0.5652028279231702,
+        "bag": {
+          "inkBounds": [
+            1119,
+            382,
+            1341,
+            595
+          ],
+          "discBounds": [
+            1032.9470638787705,
+            294.48429983948785,
+            1422.3206096956071,
+            683.5222342644951
+          ],
+          "renderedFraction": 0.5701465915828549
+        }
+      },
+      "hades": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          437,
+          222,
+          555,
+          336
+        ],
+        "discDiameterPx": 278,
+        "stampDiameterPx": 118,
+        "renderedFraction": 0.4244604316546763,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.5,
+        "defaultDetail": {
+          "discBounds": [
+            58,
+            23,
+            242,
+            207
+          ],
+          "inkBounds": [
+            110,
+            78,
+            189,
+            154
+          ],
+          "discDiameterPx": 184,
+          "stampDiameterPx": 79,
+          "renderedFraction": 0.42934782608695654,
+          "meshRadiusCm": 6.200000209225719,
+          "discRadiusCm": 10.5
+        },
+        "storagePhysicalFraction": 0.4211657245142436
+      },
+      "generatedFallback": {
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937",
+        "textureSHA256": "aab69b23c7507f4ad0d63d2d292645f34af92f696af25b8f77a597c8bf39353a"
+      },
+      "failedFallback": {
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937",
+        "textureSHA256": "aab69b23c7507f4ad0d63d2d292645f34af92f696af25b8f77a597c8bf39353a"
+      }
+    },
+    "after": {
+      "buzzz": {
+        "discBounds": [
+          354,
+          134,
+          640,
+          420
+        ],
+        "inkBounds": [
+          393,
+          198,
+          601,
+          359
+        ],
+        "discDiameterPx": 286,
+        "stampDiameterPx": 208,
+        "renderedFraction": 0.7272727272727273,
+        "meshRadiusCm": 8.148096084594727,
+        "discRadiusCm": 10.85,
+        "defaultDetail": {
+          "discBounds": [
+            55,
+            20,
+            245,
+            210
+          ],
+          "inkBounds": [
+            80,
+            62,
+            220,
+            170
+          ],
+          "discDiameterPx": 190,
+          "stampDiameterPx": 140,
+          "renderedFraction": 0.7368421052631579,
+          "meshRadiusCm": 8.148096084594727,
+          "discRadiusCm": 10.85
+        },
+        "storagePhysicalFraction": 0.7119140761871012,
+        "bag": {
+          "inkBounds": [
+            1090,
+            383,
+            1370,
+            600
+          ],
+          "discBounds": [
+            1032.810175653511,
+            294.590076021481,
+            1421.8364244563938,
+            683.4376223718489
+          ],
+          "renderedFraction": 0.7197457777248192
+        }
+      },
+      "zone": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          398,
+          178,
+          596,
+          376
+        ],
+        "discDiameterPx": 278,
+        "stampDiameterPx": 198,
+        "renderedFraction": 0.7122302158273381,
+        "meshRadiusCm": 7.582812823436022,
+        "discRadiusCm": 10.55,
+        "defaultDetail": {
+          "discBounds": [
+            57,
+            22,
+            243,
+            208
+          ],
+          "inkBounds": [
+            84,
+            49,
+            216,
+            181
+          ],
+          "discDiameterPx": 186,
+          "stampDiameterPx": 132,
+          "renderedFraction": 0.7096774193548387,
+          "meshRadiusCm": 7.582812823436022,
+          "discRadiusCm": 10.55
+        },
+        "storagePhysicalFraction": 0.6943359690457214,
+        "bag": {
+          "inkBounds": [
+            1093,
+            352,
+            1367,
+            626
+          ],
+          "discBounds": [
+            1032.8736544083968,
+            294.54839206350835,
+            1421.9689208907955,
+            683.4748474775956
+          ],
+          "renderedFraction": 0.7041977212344082
+        }
+      },
+      "luna": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          402,
+          186,
+          592,
+          368
+        ],
+        "discDiameterPx": 280,
+        "stampDiameterPx": 190,
+        "renderedFraction": 0.6785714285714286,
+        "meshRadiusCm": 7.273730764342716,
+        "discRadiusCm": 10.55,
+        "defaultDetail": {
+          "discBounds": [
+            57,
+            22,
+            243,
+            208
+          ],
+          "inkBounds": [
+            86,
+            54,
+            214,
+            176
+          ],
+          "discDiameterPx": 186,
+          "stampDiameterPx": 128,
+          "renderedFraction": 0.6881720430107527,
+          "meshRadiusCm": 7.273730764342716,
+          "discRadiusCm": 10.55
+        },
+        "storagePhysicalFraction": 0.6630859774454458,
+        "bag": {
+          "inkBounds": [
+            1099,
+            363,
+            1360,
+            614
+          ],
+          "discBounds": [
+            1032.9470638787705,
+            294.48429983948785,
+            1422.3206096956071,
+            683.5222342644951
+          ],
+          "renderedFraction": 0.6703074792933564
+        }
+      },
+      "hades": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          402,
+          191,
+          592,
+          369
+        ],
+        "discDiameterPx": 278,
+        "stampDiameterPx": 190,
+        "renderedFraction": 0.6834532374100719,
+        "meshRadiusCm": 9.87635453770401,
+        "discRadiusCm": 10.5,
+        "defaultDetail": {
+          "discBounds": [
+            58,
+            23,
+            242,
+            207
+          ],
+          "inkBounds": [
+            86,
+            56,
+            213,
+            177
+          ],
+          "discDiameterPx": 184,
+          "stampDiameterPx": 127,
+          "renderedFraction": 0.6902173913043478,
+          "meshRadiusCm": 9.87635453770401,
+          "discRadiusCm": 10.5
+        },
+        "storagePhysicalFraction": 0.6709002698984138
+      },
+      "generatedFallback": {
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937",
+        "textureSHA256": "aab69b23c7507f4ad0d63d2d292645f34af92f696af25b8f77a597c8bf39353a"
+      },
+      "failedFallback": {
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937",
+        "textureSHA256": "aab69b23c7507f4ad0d63d2d292645f34af92f696af25b8f77a597c8bf39353a"
+      }
+    }
+  }
+}
