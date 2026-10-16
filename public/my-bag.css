@@ -606,6 +606,17 @@ body[data-view="bag"] main {display:none!important}
 .photo-aligner-view{touch-action:none;cursor:grab}.photo-aligner-view:active{cursor:grabbing}.photo-aligner-view:focus-visible{outline:2px solid var(--lime);outline-offset:-2px}
 .photo-aligner-guides{pointer-events:none}
 .photo-aligner-tip{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+/* Levelling: fine nudges either side of the angle readout, a snap to 0° and the level lines toggle. */
+.photo-aligner-level{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px}
+.photo-aligner-level button{min-width:44px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;font-variant-numeric:tabular-nums;cursor:pointer;touch-action:manipulation}
+.photo-aligner-level button{display:inline-flex;align-items:center;justify-content:center;gap:4px}.photo-aligner-level svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.photo-aligner-level button:hover{background:var(--selected)}.photo-aligner-level button:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.photo-aligner-level [aria-pressed="true"]{border-color:#e0a82e;background:color-mix(in srgb,#ffc440 22%,var(--surface))}
+.photo-aligner-angle{min-width:64px;text-align:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+/* A saved photo is levelled only: framing and tilt stay as they were saved. */
+.photo-aligner[data-mode="level"] .photo-aligner-sliders label:not(.photo-aligner-rotate){display:none}
+.photo-aligner[data-mode="level"] .photo-aligner-view{cursor:default}
+@media(max-width:700px){.photo-aligner-level{gap:4px}.photo-aligner-level button{min-width:40px;padding:6px 8px}}
 .photo-aligner-adjust summary{padding:8px 0;cursor:pointer;font-size:13px;color:var(--muted)}
 .photo-aligner-sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 28px}
 .photo-aligner-sliders label{display:flex;align-items:center;gap:12px;min-height:36px;font-size:12px;color:var(--muted)}.photo-aligner-sliders input{flex:1;min-width:0}

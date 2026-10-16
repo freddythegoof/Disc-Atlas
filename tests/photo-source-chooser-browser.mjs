@@ -52,7 +52,7 @@ try{
     // The same photo and transform must produce identical bytes through all three sources.
     const selected=await pick();await selected.setFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));
     await page.locator('.photo-aligner[open]').waitFor();
-    assert.deepEqual(await page.evaluate(()=>({...editor.debug.draft.options})),{scale:.94,aspect:1,perspective:0,angle:0,cx:.5,cy:.5});
+    assert.deepEqual(await page.evaluate(()=>({...editor.debug.draft.options})),{scale:.94,aspect:1,perspective:0,angle:0,cx:.5,cy:.5,rotate:0});
     await page.locator('[data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});
     const prepared=await page.evaluate(async()=>{const {blob,color}=editor.debug.used;return {type:blob.type,size:blob.size,color,hash:[...new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()))]};});
     assert.equal(prepared.type,'image/webp');assert.ok(prepared.size<=512*1024);if(expected)assert.deepEqual(prepared,expected);else expected=prepared;
