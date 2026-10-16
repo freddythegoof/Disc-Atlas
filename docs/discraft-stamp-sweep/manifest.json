@@ -889,7 +889,9 @@
         10,
         12
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.7218225419664268,
+      "assetInkFraction": 0.9662921348314607
     },
     "assetKB": 27.557,
     "sourceSHA256": "fbde5313274d19bbb38e36eda655dfe8b4f462813642bd98e975a00ccbc6a7f4",
@@ -953,7 +955,9 @@
         9,
         9
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.7225572979493365,
+      "assetInkFraction": 0.9708265802269044
     },
     "assetKB": 21.281,
     "sourceSHA256": "0ba8f7bfb7cb30f32b62bf7489849edf191abae1ceeee22a4b3b8863056d0d9d",
@@ -2723,7 +2727,9 @@
         115,
         373
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.655786350148368,
+      "assetInkFraction": 0.8844422211105553
     },
     "assetKB": 99.922,
     "sourceSHA256": "e10003decad6f31a4e8e1d8060e72c3721a7a858e745d5b7136f78c3844921ac",
@@ -3241,7 +3247,9 @@
         55,
         155
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.734,
+      "assetInkFraction": 0.8686390532544379
     },
     "assetKB": 19.313,
     "sourceSHA256": "c4681c990994f8d58e7d64fb6a1700049f2315dc11abd60620caafbc57dfe2a7",
@@ -3738,7 +3746,9 @@
         10,
         9
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.7289377289377289,
+      "assetInkFraction": 0.9691558441558441
     },
     "assetKB": 23.761,
     "sourceSHA256": "bf80b30a8a1d4f37feb662134113d41c7fe543931095610e60139a346f1118c3",
@@ -4070,7 +4080,9 @@
         58,
         194
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.703380174705659,
+      "assetInkFraction": 0.9410569105691057
     },
     "assetKB": 190.554,
     "sourceSHA256": "81a3d4f64d28c2bddef9b611cdafc462aba28ff5a6cc8cb4b5c94088b09a375a",
@@ -4359,7 +4371,9 @@
         361,
         387
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.6709002614867389,
+      "assetInkFraction": 0.7132644956314536
     },
     "assetKB": 199.236,
     "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
@@ -4660,7 +4674,9 @@
         114,
         375
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.6901300688599847,
+      "assetInkFraction": 0.8877952755905512
     },
     "assetKB": 91.615,
     "sourceSHA256": "309008fdb499f00a85bcf40c861168da04551918866c54cbe476f120faa0af33",
@@ -6005,7 +6021,9 @@
         214,
         480
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.7078173374613003,
+      "assetInkFraction": 0.8100088573959257
     },
     "assetKB": 98.998,
     "sourceSHA256": "88499fcd46590203ef0287176006e4f5389c89997b01d3e1e135fba1f98355f6",
@@ -6873,7 +6891,9 @@
         9,
         9
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.7122473246135553,
+      "assetInkFraction": 0.9708265802269044
     },
     "assetKB": 28.669,
     "sourceSHA256": "77ba38186f560f910064fb4dd62747e009691582bc7d9ca19b2da929f676f545",
@@ -6937,7 +6957,9 @@
         10,
         11
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.726823708206687,
+      "assetInkFraction": 0.9896533885152613
     },
     "assetKB": 227.385,
     "sourceSHA256": "652d719d9ad2e8232ffed16251246fb0cd178541e2724a5797490cdba8658879",
@@ -9777,7 +9799,9 @@
         111,
         387
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.6994328922495274,
+      "assetInkFraction": 0.8928571428571429
     },
     "assetKB": 111.281,
     "sourceSHA256": "6b0ada473dd4a03c4a368eb69ff0cff41fb296254f8d3169ba8219a6620f2b72",
@@ -10798,7 +10822,9 @@
         8,
         12
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.7320987654320987,
+      "assetInkFraction": 0.9721311475409836
     },
     "assetKB": 33.672,
     "sourceSHA256": "539637ccac6da7350624ea68956c66b3cae248331c4c302e3efb5ec4460364aa",
@@ -11270,7 +11296,9 @@
         35,
         74
       ],
-      "method": "pilot circular-fit padding, no renderer transform"
+      "method": "pilot circular-fit padding, no renderer transform",
+      "diameterFraction": 0.6506386175807664,
+      "assetInkFraction": 0.9611542730299667
     },
     "assetKB": 99.465,
     "sourceSHA256": "12beeab8bd5662672e9e6b619041f826dc3faa7043730ed6871142329558aa30",

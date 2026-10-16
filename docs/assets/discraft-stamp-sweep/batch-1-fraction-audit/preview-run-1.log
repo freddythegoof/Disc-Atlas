@@ -1,0 +1,46 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Avenger SS branch rendering unchanged before main merge
++ actual - expected
+
+  {
++   canvasSHA256: '1d6a9d48d240505d79f7a7320220fd7a311ad0f2fabe6a5b80253ed3f881167f',
+-   canvasSHA256: 'f544e9e1f12c48469c6485e4ca7d1de06df6d88203ecc930dcc9e1356cca6d42',
+    canvasSize: [
+      994,
+      554
+    ],
+    discBounds: [
+
+    at file:///C:/Users/user/.codex/worktrees/discraft-stamp-sweep/disc-atlas/tests/discraft-fraction-audit-browser.mjs:94:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: {
+    discBounds: [ 356, 136, 638, 418 ],
+    inkBounds: [ 415, 195, 579, 358 ],
+    canvasSize: [ 994, 554 ],
+    renderedFraction: 0.5815602836879432,
+    meshRadiusCm: 6.200000209225719,
+    discRadiusCm: 10.7,
+    textureSHA256: '337ae5ecf6809aaca24d99d20fda55d09fc5f11012d7b27865ff5da1f837cd77',
+    canvasSHA256: '1d6a9d48d240505d79f7a7320220fd7a311ad0f2fabe6a5b80253ed3f881167f',
+    geometrySHA256: 'e28a02e0c5234fde916fd0067b0868c9c0dbcbedf7b060c714b0621f25cd01ba'
+  },
+  expected: {
+    discBounds: [ 356, 136, 638, 418 ],
+    inkBounds: [ 415, 195, 579, 358 ],
+    canvasSize: [ 994, 554 ],
+    renderedFraction: 0.5815602836879432,
+    meshRadiusCm: 6.200000209225719,
+    discRadiusCm: 10.7,
+    textureSHA256: '337ae5ecf6809aaca24d99d20fda55d09fc5f11012d7b27865ff5da1f837cd77',
+    canvasSHA256: 'f544e9e1f12c48469c6485e4ca7d1de06df6d88203ecc930dcc9e1356cca6d42',
+    geometrySHA256: 'e28a02e0c5234fde916fd0067b0868c9c0dbcbedf7b060c714b0621f25cd01ba'
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

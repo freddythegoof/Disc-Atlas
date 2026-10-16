@@ -1,0 +1,869 @@
+[
+  {
+    "mold": "Avenger",
+    "catalogMold": "Avenger",
+    "id": "fa5bf2ffb814",
+    "slug": "avenger",
+    "asset": "stamps/discraft/avenger.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/d3a50f3-4c91-430f-bb8b-a4a55037c5d3Avenger-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "fbde5313274d19bbb38e36eda655dfe8b4f462813642bd98e975a00ccbc6a7f4",
+    "sourceSize": [
+      1200,
+      900
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        181,
+        1009
+      ],
+      "vertical": [
+        36,
+        870
+      ]
+    },
+    "sourceDiscBounds": [
+      181,
+      36,
+      1009,
+      870
+    ],
+    "sourceDiscDiameterPx": 834,
+    "sourceInkBounds": [
+      294,
+      150,
+      896,
+      748
+    ],
+    "sourceInkDiameterPx": 602,
+    "assetSize": [
+      623,
+      623
+    ],
+    "assetInkBounds": [
+      10,
+      12,
+      612,
+      610
+    ],
+    "assetSHA256": "989487f4e70545fc1d01bff0000b5984890a37ed48e946be3384d52e5c4986f9",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5651897392410431,
+    "diameterFraction": 0.7218225419664268,
+    "assetInkFraction": 0.9662921348314607,
+    "deltaPercentagePoints": 15.66328027253837,
+    "textureDiameterFraction": 0.7470023980815348,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Avenger SS",
+    "catalogMold": "Avenger-SS",
+    "id": "dbc14745b731",
+    "slug": "avenger-ss",
+    "asset": "stamps/discraft/avenger-ss.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0226-dbb6-4d5e-9296-5b7f2fcd08e3Avenger-SS-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "0ba8f7bfb7cb30f32b62bf7489849edf191abae1ceeee22a4b3b8863056d0d9d",
+    "sourceSize": [
+      1200,
+      900
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        184,
+        1012
+      ],
+      "vertical": [
+        30,
+        859
+      ]
+    },
+    "sourceDiscBounds": [
+      184,
+      30,
+      1012,
+      859
+    ],
+    "sourceDiscDiameterPx": 829,
+    "sourceInkBounds": [
+      295,
+      136,
+      894,
+      734
+    ],
+    "sourceInkDiameterPx": 599,
+    "assetSize": [
+      617,
+      617
+    ],
+    "assetInkBounds": [
+      9,
+      9,
+      608,
+      607
+    ],
+    "assetSHA256": "4079cb77052d497f3b075389b250ca2e14b97c386dbc1c85dc2ab72c989c3b99",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5625350277950287,
+    "diameterFraction": 0.7225572979493365,
+    "assetInkFraction": 0.9708265802269044,
+    "deltaPercentagePoints": 16.00222701543078,
+    "textureDiameterFraction": 0.744270205066345,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Comet",
+    "catalogMold": "Comet",
+    "id": "07e4d9e1c005",
+    "slug": "comet",
+    "asset": "stamps/discraft/comet.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Comet325.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "e10003decad6f31a4e8e1d8060e72c3721a7a858e745d5b7136f78c3844921ac",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        127,
+        2822
+      ],
+      "vertical": [
+        132,
+        2828
+      ]
+    },
+    "sourceDiscBounds": [
+      127,
+      132,
+      2822,
+      2828
+    ],
+    "sourceDiscDiameterPx": 2696,
+    "sourceInkBounds": [
+      581,
+      984,
+      2349,
+      2236
+    ],
+    "sourceInkDiameterPx": 1768,
+    "assetSize": [
+      1999,
+      1999
+    ],
+    "assetInkBounds": [
+      115,
+      373,
+      1883,
+      1625
+    ],
+    "assetSHA256": "ddc648a7372905400d3c7d20565b9a9348ac52a9eee6e3ab52e99996ae16d5aa",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5030772266867378,
+    "diameterFraction": 0.655786350148368,
+    "assetInkFraction": 0.8844422211105553,
+    "deltaPercentagePoints": 15.270912346163012,
+    "textureDiameterFraction": 0.7414688427299704,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Drive",
+    "catalogMold": "Drive",
+    "id": "535643d0c347",
+    "slug": "drive",
+    "asset": "stamps/discraft/drive.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240422100344898_unnamed20-e095becc97a4.webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "c4681c990994f8d58e7d64fb6a1700049f2315dc11abd60620caafbc57dfe2a7",
+    "sourceSize": [
+      1000,
+      997
+    ],
+    "silhouetteMethod": {
+      "channel": "source alpha",
+      "threshold": 127
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        0,
+        1000
+      ],
+      "vertical": [
+        0,
+        997
+      ]
+    },
+    "sourceDiscBounds": [
+      0,
+      0,
+      1000,
+      997
+    ],
+    "sourceDiscDiameterPx": 1000,
+    "sourceInkBounds": [
+      130,
+      341,
+      864,
+      876
+    ],
+    "sourceInkDiameterPx": 734,
+    "assetSize": [
+      845,
+      845
+    ],
+    "assetInkBounds": [
+      55,
+      155,
+      789,
+      690
+    ],
+    "assetSHA256": "e8da163649ac32fd56d35a4d1d3c65b901496c7d778348f6376e09ee04d2be14",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5104798227656412,
+    "diameterFraction": 0.734,
+    "assetInkFraction": 0.8686390532544379,
+    "deltaPercentagePoints": 22.35201772343588,
+    "textureDiameterFraction": 0.845,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Flash",
+    "catalogMold": "Flash",
+    "id": "36e871a923b2",
+    "slug": "flash",
+    "asset": "stamps/discraft/flash.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/3c44a3c4-f742-46c0-9bcc-a67e3be2a021Flash-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "bf80b30a8a1d4f37feb662134113d41c7fe543931095610e60139a346f1118c3",
+    "sourceSize": [
+      1200,
+      900
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        185,
+        1001
+      ],
+      "vertical": [
+        43,
+        862
+      ]
+    },
+    "sourceDiscBounds": [
+      185,
+      43,
+      1001,
+      862
+    ],
+    "sourceDiscDiameterPx": 819,
+    "sourceInkBounds": [
+      296,
+      150,
+      892,
+      747
+    ],
+    "sourceInkDiameterPx": 597,
+    "assetSize": [
+      616,
+      616
+    ],
+    "assetInkBounds": [
+      10,
+      9,
+      606,
+      606
+    ],
+    "assetSHA256": "6cdf0279313502899051a4fbadc00eba89f498a7f0fde4c59e35e5f79a438c86",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5695513017787899,
+    "diameterFraction": 0.7289377289377289,
+    "assetInkFraction": 0.9691558441558441,
+    "deltaPercentagePoints": 15.938642715893902,
+    "textureDiameterFraction": 0.7521367521367521,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Force",
+    "catalogMold": "Force",
+    "id": "0fcd1f2937b1",
+    "slug": "force",
+    "asset": "stamps/discraft/force.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Force431.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "81a3d4f64d28c2bddef9b611cdafc462aba28ff5a6cc8cb4b5c94088b09a375a",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        168,
+        2801
+      ],
+      "vertical": [
+        169,
+        2800
+      ]
+    },
+    "sourceDiscBounds": [
+      168,
+      169,
+      2801,
+      2800
+    ],
+    "sourceDiscDiameterPx": 2633,
+    "sourceInkBounds": [
+      555,
+      797,
+      2407,
+      2377
+    ],
+    "sourceInkDiameterPx": 1852,
+    "assetSize": [
+      1968,
+      1968
+    ],
+    "assetInkBounds": [
+      58,
+      194,
+      1910,
+      1774
+    ],
+    "assetSHA256": "dcb3a14c647166c4ce57556277e57e6eab11dee333d0e2d412fd43dd61dc030e",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5530381844102801,
+    "diameterFraction": 0.703380174705659,
+    "assetInkFraction": 0.9410569105691057,
+    "deltaPercentagePoints": 15.034199029537888,
+    "textureDiameterFraction": 0.7474363843524496,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Hades",
+    "catalogMold": "Hades",
+    "id": "68bc409ff25f",
+    "slug": "hades",
+    "asset": "stamps/discraft/hades.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.12,
+      "minimumRGBBelow": 0.85
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        148,
+        2825
+      ],
+      "vertical": [
+        147,
+        2824
+      ]
+    },
+    "sourceDiscBounds": [
+      148,
+      147,
+      2825,
+      2824
+    ],
+    "sourceDiscDiameterPx": 2677,
+    "sourceInkBounds": [
+      610,
+      595,
+      2406,
+      2338
+    ],
+    "sourceInkDiameterPx": 1796,
+    "assetSize": [
+      2518,
+      2518
+    ],
+    "assetInkBounds": [
+      361,
+      387,
+      2157,
+      2130
+    ],
+    "assetSHA256": "525534d2d2b210fcde3de4aa80116a9b8b22967a553c5d0d2b5c475d96d52a50",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.42116570218238214,
+    "diameterFraction": 0.6709002614867389,
+    "assetInkFraction": 0.7132644956314536,
+    "deltaPercentagePoints": 24.973455930435673,
+    "textureDiameterFraction": 0.9406051550242809,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Heat",
+    "catalogMold": "Heat",
+    "id": "2fd68923dd2b",
+    "slug": "heat",
+    "asset": "stamps/discraft/heat.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Heatefb7.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "309008fdb499f00a85bcf40c861168da04551918866c54cbe476f120faa0af33",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        180,
+        2794
+      ],
+      "vertical": [
+        197,
+        2790
+      ]
+    },
+    "sourceDiscBounds": [
+      180,
+      197,
+      2794,
+      2790
+    ],
+    "sourceDiscDiameterPx": 2614,
+    "sourceInkBounds": [
+      578,
+      1029,
+      2382,
+      2311
+    ],
+    "sourceInkDiameterPx": 1804,
+    "assetSize": [
+      2032,
+      2032
+    ],
+    "assetInkBounds": [
+      114,
+      375,
+      1918,
+      1657
+    ],
+    "assetSHA256": "a1a10a5a09075ef2b44afc3e8a936d1bb0249dc33b89e46677a5e327923727cf",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5217375079299921,
+    "diameterFraction": 0.6901300688599847,
+    "assetInkFraction": 0.8877952755905512,
+    "deltaPercentagePoints": 16.839256092999268,
+    "textureDiameterFraction": 0.7773527161438408,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Meteor",
+    "catalogMold": "Meteor",
+    "id": "6693f1eff37c",
+    "slug": "meteor",
+    "asset": "stamps/discraft/meteor.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Meteor_4.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "88499fcd46590203ef0287176006e4f5389c89997b01d3e1e135fba1f98355f6",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        197,
+        2771
+      ],
+      "vertical": [
+        180,
+        2764
+      ]
+    },
+    "sourceDiscBounds": [
+      197,
+      180,
+      2771,
+      2764
+    ],
+    "sourceDiscDiameterPx": 2584,
+    "sourceInkBounds": [
+      576,
+      1108,
+      2405,
+      2406
+    ],
+    "sourceInkDiameterPx": 1829,
+    "assetSize": [
+      2258,
+      2258
+    ],
+    "assetInkBounds": [
+      214,
+      480,
+      2043,
+      1778
+    ],
+    "assetSHA256": "4dc1dd13bebaa79d052d9fcd3ad2fdca386d10ed9ade78b5aedbf55328cd5d74",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.4671678991492781,
+    "diameterFraction": 0.7078173374613003,
+    "assetInkFraction": 0.8100088573959257,
+    "deltaPercentagePoints": 24.064943831202218,
+    "textureDiameterFraction": 0.8738390092879257,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Predator",
+    "catalogMold": "Predator",
+    "id": "dfe6b11cb13e",
+    "slug": "predator",
+    "asset": "stamps/discraft/predator.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bc7844-6097-4cc5-8c7d-b12d00a600c5Predator-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "77ba38186f560f910064fb4dd62747e009691582bc7d9ca19b2da929f676f545",
+    "sourceSize": [
+      1200,
+      900
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        181,
+        1011
+      ],
+      "vertical": [
+        32,
+        873
+      ]
+    },
+    "sourceDiscBounds": [
+      181,
+      32,
+      1011,
+      873
+    ],
+    "sourceDiscDiameterPx": 841,
+    "sourceInkBounds": [
+      297,
+      142,
+      895,
+      741
+    ],
+    "sourceInkDiameterPx": 599,
+    "assetSize": [
+      617,
+      617
+    ],
+    "assetInkBounds": [
+      9,
+      9,
+      607,
+      608
+    ],
+    "assetSHA256": "33eab7d3793fc87143294a91fa0f4f0f888dc00fec9cd91c30a0a672591e7898",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5678419620195101,
+    "diameterFraction": 0.7122473246135553,
+    "assetInkFraction": 0.9708265802269044,
+    "deltaPercentagePoints": 14.440536259404524,
+    "textureDiameterFraction": 0.7336504161712247,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Pulse",
+    "catalogMold": "Pulse",
+    "id": "35007aee9bca",
+    "slug": "pulse",
+    "asset": "stamps/discraft/pulse.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Pulse0f0.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "652d719d9ad2e8232ffed16251246fb0cd178541e2724a5797490cdba8658879",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        169,
+        2801
+      ],
+      "vertical": [
+        166,
+        2792
+      ]
+    },
+    "sourceDiscBounds": [
+      169,
+      166,
+      2801,
+      2792
+    ],
+    "sourceDiscDiameterPx": 2632,
+    "sourceInkBounds": [
+      541,
+      511,
+      2454,
+      2422
+    ],
+    "sourceInkDiameterPx": 1913,
+    "assetSize": [
+      1933,
+      1933
+    ],
+    "assetInkBounds": [
+      10,
+      11,
+      1923,
+      1922
+    ],
+    "assetSHA256": "cf15c2ab99a0144d4d478e08dddad080b95476496696ee14245a0536184f1262",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5788538687542094,
+    "diameterFraction": 0.726823708206687,
+    "assetInkFraction": 0.9896533885152613,
+    "deltaPercentagePoints": 14.796983945247755,
+    "textureDiameterFraction": 0.7344224924012158,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Thrasher",
+    "catalogMold": "Thrasher",
+    "id": "7dfe3f9278d8",
+    "slug": "thrasher",
+    "asset": "stamps/discraft/thrasher.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Thrasher_3.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "6b0ada473dd4a03c4a368eb69ff0cff41fb296254f8d3169ba8219a6620f2b72",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        160,
+        2805
+      ],
+      "vertical": [
+        161,
+        2806
+      ]
+    },
+    "sourceDiscBounds": [
+      160,
+      161,
+      2805,
+      2806
+    ],
+    "sourceDiscDiameterPx": 2645,
+    "sourceInkBounds": [
+      541,
+      1068,
+      2391,
+      2366
+    ],
+    "sourceInkDiameterPx": 1850,
+    "assetSize": [
+      2072,
+      2072
+    ],
+    "assetInkBounds": [
+      111,
+      387,
+      1961,
+      1685
+    ],
+    "assetSHA256": "0b0dfdf60bbdd03c68f4834de8db4003698ec50526209973ec1cfaaf819099aa",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5247122545700745,
+    "diameterFraction": 0.6994328922495274,
+    "assetInkFraction": 0.8928571428571429,
+    "deltaPercentagePoints": 17.47206376794529,
+    "textureDiameterFraction": 0.7833648393194707,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "XL",
+    "catalogMold": "XL",
+    "id": "e7246744eae5",
+    "slug": "xl",
+    "asset": "stamps/discraft/xl.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c9b55ab-7d23-4945-a03f-dc35179a6ab0XL-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "539637ccac6da7350624ea68956c66b3cae248331c4c302e3efb5ec4460364aa",
+    "sourceSize": [
+      1200,
+      900
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        189,
+        995
+      ],
+      "vertical": [
+        45,
+        855
+      ]
+    },
+    "sourceDiscBounds": [
+      189,
+      45,
+      995,
+      855
+    ],
+    "sourceDiscDiameterPx": 810,
+    "sourceInkBounds": [
+      300,
+      152,
+      893,
+      738
+    ],
+    "sourceInkDiameterPx": 593,
+    "assetSize": [
+      610,
+      610
+    ],
+    "assetInkBounds": [
+      8,
+      12,
+      601,
+      598
+    ],
+    "assetSHA256": "88b066a26ddfa4754176433c7cfd5276b8c16fc561bb071fc04607c8a861c77d",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5712998213037059,
+    "diameterFraction": 0.7320987654320987,
+    "assetInkFraction": 0.9721311475409836,
+    "deltaPercentagePoints": 16.07989441283928,
+    "textureDiameterFraction": 0.7530864197530864,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  },
+  {
+    "mold": "Zeus",
+    "catalogMold": "Zeus",
+    "id": "da3c28085382",
+    "slug": "zeus",
+    "asset": "stamps/discraft/zeus.png",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Zeusa3be.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "12beeab8bd5662672e9e6b619041f826dc3faa7043730ed6871142329558aa30",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "silhouetteMethod": {
+      "channel": "chroma and minimum RGB",
+      "chromaAbove": 0.08,
+      "minimumRGBBelow": 0.95
+    },
+    "sourceCentreAxes": {
+      "horizontal": [
+        155,
+        2816
+      ],
+      "vertical": [
+        154,
+        2816
+      ]
+    },
+    "sourceDiscBounds": [
+      155,
+      154,
+      2816,
+      2816
+    ],
+    "sourceDiscDiameterPx": 2662,
+    "sourceInkBounds": [
+      608,
+      655,
+      2340,
+      2309
+    ],
+    "sourceInkDiameterPx": 1732,
+    "assetSize": [
+      1802,
+      1802
+    ],
+    "assetInkBounds": [
+      35,
+      74,
+      1767,
+      1728
+    ],
+    "assetSHA256": "8733d844db246203f2ef149787b059e8759cb8915bc589eb73982812f8150322",
+    "placementBefore": null,
+    "legacyEffectiveFraction": 0.5648489566621605,
+    "diameterFraction": 0.6506386175807664,
+    "assetInkFraction": 0.9611542730299667,
+    "deltaPercentagePoints": 8.578966091860584,
+    "textureDiameterFraction": 0.6769346356123216,
+    "standardCommit": "3abd397caba4591eb97486e967c428277c4018ef",
+    "baselineCommit": "ba081fd"
+  }
+]

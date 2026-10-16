@@ -36,7 +36,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "fbde5313274d19bbb38e36eda655dfe8b4f462813642bd98e975a00ccbc6a7f4",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7218225419664268,
+      "assetInkFraction": 0.9662921348314607
+    }
   },
   {
     "id": "dbc14745b731",
@@ -48,7 +52,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "0ba8f7bfb7cb30f32b62bf7489849edf191abae1ceeee22a4b3b8863056d0d9d",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7225572979493365,
+      "assetInkFraction": 0.9708265802269044
+    }
   },
   {
     "id": "07e4d9e1c005",
@@ -60,7 +68,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "e10003decad6f31a4e8e1d8060e72c3721a7a858e745d5b7136f78c3844921ac",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.655786350148368,
+      "assetInkFraction": 0.8844422211105553
+    }
   },
   {
     "id": "535643d0c347",
@@ -72,7 +84,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "c4681c990994f8d58e7d64fb6a1700049f2315dc11abd60620caafbc57dfe2a7",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.734,
+      "assetInkFraction": 0.8686390532544379
+    }
   },
   {
     "id": "36e871a923b2",
@@ -84,7 +100,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "bf80b30a8a1d4f37feb662134113d41c7fe543931095610e60139a346f1118c3",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7289377289377289,
+      "assetInkFraction": 0.9691558441558441
+    }
   },
   {
     "id": "0fcd1f2937b1",
@@ -96,7 +116,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "81a3d4f64d28c2bddef9b611cdafc462aba28ff5a6cc8cb4b5c94088b09a375a",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.703380174705659,
+      "assetInkFraction": 0.9410569105691057
+    }
   },
   {
     "id": "68bc409ff25f",
@@ -108,7 +132,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6709002614867389,
+      "assetInkFraction": 0.7132644956314536
+    }
   },
   {
     "id": "2fd68923dd2b",
@@ -120,7 +148,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "309008fdb499f00a85bcf40c861168da04551918866c54cbe476f120faa0af33",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6901300688599847,
+      "assetInkFraction": 0.8877952755905512
+    }
   },
   {
     "id": "6693f1eff37c",
@@ -132,7 +164,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "88499fcd46590203ef0287176006e4f5389c89997b01d3e1e135fba1f98355f6",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7078173374613003,
+      "assetInkFraction": 0.8100088573959257
+    }
   },
   {
     "id": "dfe6b11cb13e",
@@ -144,7 +180,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "77ba38186f560f910064fb4dd62747e009691582bc7d9ca19b2da929f676f545",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7122473246135553,
+      "assetInkFraction": 0.9708265802269044
+    }
   },
   {
     "id": "35007aee9bca",
@@ -156,7 +196,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "652d719d9ad2e8232ffed16251246fb0cd178541e2724a5797490cdba8658879",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.726823708206687,
+      "assetInkFraction": 0.9896533885152613
+    }
   },
   {
     "id": "7dfe3f9278d8",
@@ -168,7 +212,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "6b0ada473dd4a03c4a368eb69ff0cff41fb296254f8d3169ba8219a6620f2b72",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6994328922495274,
+      "assetInkFraction": 0.8928571428571429
+    }
   },
   {
     "id": "e7246744eae5",
@@ -180,7 +228,11 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "539637ccac6da7350624ea68956c66b3cae248331c4c302e3efb5ec4460364aa",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7320987654320987,
+      "assetInkFraction": 0.9721311475409836
+    }
   },
   {
     "id": "da3c28085382",
@@ -192,6 +244,10 @@
     "sourceRetailer": "Infinite Discs",
     "sourceSHA256": "12beeab8bd5662672e9e6b619041f826dc3faa7043730ed6871142329558aa30",
     "capturedAt": "2026-10-16",
-    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6506386175807664,
+      "assetInkFraction": 0.9611542730299667
+    }
   }
 ]

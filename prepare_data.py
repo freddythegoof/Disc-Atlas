@@ -55,8 +55,10 @@ for r in registry:
   if reviewed.get('retailerSource'):d['retailerSource']=reviewed['retailerSource']
  out.append(d)
 stamps=validate_stamp_manifest(json.load(open(ROOT+'/source-data/stamp-manifest.json')),out,ROOT+'/public')
+placements={e['id']:e['placement'] for e in json.load(open(ROOT+'/source-data/stamp-manifest.json')) if 'placement' in e}
 for d in out:
  if d['id'] in stamps:d['stampAsset']=stamps[d['id']]
+ if d['id'] in placements:d['stampPlacement']=placements[d['id']]
 meta={'date':'September 24, 2026','catalogAuditDate':'September 24, 2026','registryCount':len(registry),'statusAsOf':status_data['checkedAt'],'retirementWindowMonths':24,'note':'All records from the PDGA approved-disc CSV export are included, including historical molds. Flight numbers are incomplete. Catalog imagery uses original generic illustrations. This is a dated snapshot, not a live feed.'}
 json.dump({'meta':meta,'discs':out},open(ROOT+'/public/data.json','w'),separators=(',',':'))
 print({'records':len(out),'rated':sum('speed'in x for x in out),'photos':sum('photo'in x for x in out),'brands':len(set(x['brand']for x in out))})

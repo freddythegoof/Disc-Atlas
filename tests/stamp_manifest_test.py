@@ -64,7 +64,7 @@ class StampManifestTests(unittest.TestCase):
         before=json.loads(subprocess.check_output(['git','show',base+':public/data.json'],cwd=ROOT))
         after=json.loads((ROOT/'public/data.json').read_text())
         self.assertEqual(before['meta'],after['meta'])
-        strip=lambda rows:[{k:v for k,v in d.items() if k!='stampAsset'} for d in rows]
+        strip=lambda rows:[{k:v for k,v in d.items() if k not in ('stampAsset','stampPlacement')} for d in rows]
         self.assertEqual(strip(before['discs']),strip(after['discs']))
 
     def test_alpha_assets_cannot_bleed_outside_circular_stamp_mesh(self):
