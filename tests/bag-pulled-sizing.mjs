@@ -111,3 +111,41 @@ test('a pulled disc\'s photo tier covers its device pixels, up to the 3D viewer\
  assert.equal(photoTier(513),null,'anything past 512 device px takes the detail photo');
  assert.equal(DETAIL.maxPixelRatio,2,'the viewer caps its drawing buffer at 2×');
 });
+
+// A phone at 390 px, one disc out (the page camera of the original scatter): the bag's body and the
+// putters standing above it, as the viewer measures them.
+const phone={viewport:{width:374,height:467.5},bag:{left:66,top:118,width:237,height:297},
+ standing:[{left:135,top:70,width:101,height:73},{left:122,top:157,width:100,height:46}]};
+const phoneEntry=(key,x,width)=>({key,atlas:{x,y:.5},label:{width,height:32}});
+const blocks=[phone.bag,...phone.standing];
+
+test('phone pulled discs grow in the corners above the bag, clear of its body and the standing putters',()=>{
+ assert.equal(sizing.PHONE_PULLED_COUNT,2);
+ assert.equal(sizing.PHONE_PULLED_MAX,80);
+ assert.ok(sizing.PHONE_PULLED_MAX*3<=256,'the bag photo (256 px) covers the largest phone disc on a 3x display');
+ const pair=[phoneEntry('slow',.2,69),phoneEntry('fast',.8,99)];
+ const fit=sizing.phonePulledFit({entries:pair,...phone,cap:80});
+ assert.ok(fit,'two names fit above the bag');
+ // The band above the bag: 118 - 24 (bag) - 12 (edge) = 82 px, less a 32 px name below.
+ assert.ok(Math.abs(fit.diameter-50)<.01,`height-bound size (${fit.diameter})`);
+ assert.equal(fit.labels,'below','names beside would leave the disc ~30 px in a corner');
+ for(const [key,spot] of fit.spots){
+  const r=spot.diameter/2,label=pair.find(e=>e.key===key).label;
+  const disc={left:spot.x-r,top:spot.y-r,width:2*r,height:2*r},name={left:spot.x-label.width/2,top:spot.y+r,width:label.width,height:label.height};
+  for(const box of [disc,name]){
+   assert.ok(box.left>=12-1e-6&&box.top>=12-1e-6&&box.left+box.width<=362+1e-6,`${key}: 12 px inside the canvas`);
+   for(const block of blocks)assert.ok(box.top+box.height<=block.top-24+1e-6||box.left+box.width<=block.left-24+1e-6||box.left>=block.left+block.width+24-1e-6,`${key}: 24 px clear of the bag and its putters`);
+  }
+  assert.equal(spot.side,key==='slow'?'left':'right','stability still picks the side');
+ }
+});
+
+test('phone growth is capped, and reports no room where the corners cannot take a name',()=>{
+ const roomy={...phone,bag:{...phone.bag,top:200},standing:[]};
+ const fit=sizing.phonePulledFit({entries:[phoneEntry('one',.5,69)],...roomy,cap:80});
+ assert.equal(fit.diameter,80,'never past the cap');
+ // A 360 px phone: the left corner is 12..101 px, narrower than a 99 px name.
+ const narrow={viewport:{width:344,height:430},bag:{left:62,top:106,width:217,height:274},standing:[{left:125,top:62,width:95,height:68}]};
+ assert.equal(sizing.phonePulledFit({entries:[phoneEntry('a',.2,99),phoneEntry('b',.8,99)],...narrow,cap:80,min:38}),null);
+ assert.equal(sizing.phonePulledLayout({entries:[phoneEntry('a',.2,69)],...phone,diameter:200}),null,'a disc that fits nowhere has no layout');
+});

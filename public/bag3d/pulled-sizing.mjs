@@ -87,3 +87,81 @@ export function desktopPulledLayout({entries,allEntries,viewport,bag,floor,curve
  }
  return {spots,diameters,max,floor,decay};
 }
+
+// My Bag's phone pulled discs. The side zones beside a phone's bag are narrower than a
+// pulled disc already is, so one or two discs out (PHONE_PULLED_COUNT) grow in the room
+// above the bag instead, as large as it holds up to PHONE_PULLED_MAX (a 256 px photo still
+// covers that on a 3x display). More discs out keep the original scatter. Screen pixels.
+export const PHONE_PULLED_COUNT=2,PHONE_PULLED_MAX=80;
+
+// Rows of disc + name footprints, top to bottom, at one `diameter`; names beside their
+// discs, away from the bag ('outer'), or centered under them ('below'). `bag` is the bag's
+// body and `standing` the discs that stay in its pockets (the putters stand above it); every
+// footprint keeps PULLED_SPACE.inner from each. Each side's discs, fastest first, fill its
+// half of each row from the top, innermost room first. Returns {spots: key → {x, y,
+// diameter, side}, labels} or null.
+export function phonePulledLayout({entries,viewport,bag,standing=[],diameter,labels='outer'}){
+ if(!entries.length)return null;
+ const sides=assignSides(entries),d=diameter;
+ const foot=entry=>{
+  const w=entry.label?.width??0,h=entry.label?.height??0;
+  return labels==='outer'?{width:d+w,height:Math.max(d,h)}:{width:Math.max(d,w),height:d+h};
+ };
+ const feet=new Map(entries.map(entry=>[entry.key,foot(entry)]));
+ const rowHeight=Math.max(...[...feet.values()].map(f=>f.height));
+ const middle=bag.left+bag.width/2,blocks=[bag,...standing].map(r=>({left:r.left-INNER,right:r.left+r.width+INNER,top:r.top-INNER,bottom:r.top+r.height+INNER}));
+ // A side's free room in a row: its half of the canvas less every block level with the row,
+ // innermost (nearest the bag's middle) first.
+ const room=(top,side)=>{
+  let spans=[side==='left'?{from:EDGE,to:middle-GAP/2}:{from:middle+GAP/2,to:viewport.width-EDGE}];
+  for(const block of blocks){
+   if(!(top<block.bottom&&top+rowHeight>block.top))continue;
+   spans=spans.flatMap(span=>[{from:span.from,to:Math.min(span.to,block.left)},{from:Math.max(span.from,block.right),to:span.to}]).filter(span=>span.to-span.from>1e-9);
+  }
+  return side==='left'?spans.sort((a,b)=>b.to-a.to):spans.sort((a,b)=>a.from-b.from);
+ };
+ const rows=[];
+ for(let top=EDGE;top+rowHeight<=viewport.height-EDGE+1e-9;top+=rowHeight+GAP)rows.push(top);
+ const spots=new Map();
+ for(const side of ['left','right']){
+  const list=entries.filter(e=>sides.get(e.key)===side).sort((a,b)=>(b.atlas?.y??.5)-(a.atlas?.y??.5)||(a.atlas?.x??.5)-(b.atlas?.x??.5)||String(a.key).localeCompare(String(b.key)));
+  let index=0;
+  for(const top of rows)for(const span of room(top,side)){
+   if(index>=list.length)break;
+   const width=span.to-span.from,taken=[];
+   let used=0;
+   while(index<list.length){
+    const next=used+(taken.length?GAP:0)+feet.get(list[index].key).width;
+    if(next>width+1e-9)break;
+    used=next;taken.push(list[index++]);
+   }
+   if(!taken.length)continue;
+   // Spread a span's discs evenly across it, the disc toward the bag and its name outward.
+   const spare=(width-used)/(taken.length+1),out=side==='left'?-1:1;
+   let x=side==='left'?span.to:span.from;
+   for(const entry of taken){
+    const f=feet.get(entry.key);
+    x+=out*spare;
+    spots.set(entry.key,{x:x+out*(labels==='outer'?d:f.width)/2,y:top+(labels==='outer'?rowHeight/2:d/2),diameter:d,side});
+    x+=out*(f.width+GAP);
+   }
+  }
+  if(index<list.length)return null;
+ }
+ return {spots,labels,diameter:d};
+}
+
+// The largest phone layout up to `cap` (null when even `min` does not fit): each name
+// placement is searched, the larger taken.
+export function phonePulledFit({entries,viewport,bag,standing=[],cap,min=0}){
+ let best=null;
+ for(const labels of ['outer','below']){
+  const at=d=>phonePulledLayout({entries,viewport,bag,standing,diameter:d,labels});
+  if(!at(min))continue;
+  let low=min,high=cap;
+  if(at(cap))low=cap;
+  else for(let i=0;i<24;i++){const mid=(low+high)/2;if(at(mid))low=mid;else high=mid;}
+  if(!best||low>best.diameter+1e-6)best=at(low);
+ }
+ return best;
+}

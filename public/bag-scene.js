@@ -406,7 +406,9 @@ export class BagScene {
    });
    desktopSizing={entries};
   }
-  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,instant,desktopSizing}),stage=this.viewer.stage;
+  // A phone grows one or two pulled discs above the bag instead (the viewer keeps the original scatter for more).
+  const phoneSizing=matchMedia('(max-width:700px)').matches;
+  const motion=this.viewer.stageDiscs(this.out,{atlas,labels,instant,desktopSizing,phoneSizing}),stage=this.viewer.stage;
   this.root.toggleAttribute('data-desktop-sizing',!!stage.sizing);
   if(stage.mode){this.root.dataset.stage=stage.mode;this.root.dataset.out=String(this.viewer.outDiscs.length);this.root.dataset.names=stage.labels;}
   else{delete this.root.dataset.stage;delete this.root.dataset.out;delete this.root.dataset.names;}

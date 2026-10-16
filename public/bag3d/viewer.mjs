@@ -5,10 +5,10 @@ import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
 import {PLASTICS} from '../disc3d/mesh.mjs';
-import {DETAIL,detailSegments,detailPixelRatio,photoTier} from '../disc3d/quality.mjs';
+import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../disc3d/quality.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
-import {desktopPulledLayout,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
+import {desktopPulledLayout,phonePulledFit,phonePulledLayout,PHONE_PULLED_COUNT,PHONE_PULLED_MAX,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
 export { parseDiscParams } from './disc-state.mjs';
 export { bagLayout, depthOrder } from './bag-layout.mjs';
 
@@ -180,7 +180,7 @@ export async function mountBag(container, {
   // ('scatter' or null), whether it spreads around the bag or only beside it (or takes staggered rows), the disc size and
   // names ('below' or 'flush' their discs), and the camera's pull-back (1 = the page view).
   let outKeys = [], sides = new Map(), stagedMode = null, stageAround = false, stageBrick = false, stageScale = null, nameSpot = 'below', stageFits = true, pull = 1, pullGoal = 1, pullTween = null;
-  let desktopSizeState=null,desktopFloorCache=null;
+  let desktopSizeState=null,desktopFloorCache=null,phoneSizeState=null;
   const homeCamera = () => { const preset = VIEWS[initialView] ?? VIEWS.home; return { position: new THREE.Vector3(...preset.position), target: new THREE.Vector3(...preset.target) }; };
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
@@ -724,7 +724,7 @@ export async function mountBag(container, {
   // the bag, the other discs and the other names.
   // `reserve` keeps a top-right corner of the canvas clear, `clear` more boxes ({left, top, right,
   // bottom}, canvas fractions). Resolves when every disc and the camera settle.
-  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active, desktopSizing = null } = {}) => {
+  const stageDiscs = (keys = [], { atlas = new Map(), labels = new Map(), reserve, clear = [], instant = !active, desktopSizing = null, phoneSizing = false } = {}) => {
     keys = [...new Set(keys)].filter(key => records.get(key)?.placement.slide && !records.get(key).placement.empty);
     outKeys = keys;
     // The page may have just resized the canvas (out discs widen it): catch up now rather than on
@@ -739,7 +739,7 @@ export async function mountBag(container, {
     const entries = keys.map(key => { const label = labels.get(key); return { key, atlas: atlas.get(key) ?? null, label: label && { width: label.width * unit, height: label.height * unit } }; });
     let spots = new Map(), goal = 1;
     sides = new Map(); stageAround = false; stageBrick = false; stageScale = null; nameSpot = 'below'; stageFits = true;
-    desktopSizeState=null;
+    desktopSizeState=null;phoneSizeState=null;
     if (mode === 'scatter') {
       // The canvas at the page view, laid on the discs' plane: the camera looks on from one side and
       // above, so the canvas covers a skewed patch of it. The planner gets the rectangle inside that
@@ -839,6 +839,35 @@ export async function mountBag(container, {
           }
         }
       }
+      // My Bag on a phone, one or two discs out: the side zones are narrower than a pulled disc already is, so
+      // they grow in the room above the bag instead (pulled-sizing's phone planner), as large as it holds up to
+      // PHONE_PULLED_MAX and the bag photo's cover at this density. They keep the camera the scatter above
+      // settled on, so the bag stays the size it was, and keep the scatter's own layout wherever growing would
+      // not make them larger (a narrow phone). More discs out keep the scatter as it is.
+      if(phoneSizing && !keep.length && keys.length && keys.length<=PHONE_PULLED_COUNT && stageScale){
+        const today=2*DISC.radius*stageScale/(unit*goal),cap=Math.min(PHONE_PULLED_MAX,PHOTO_TIERS[0]/Math.max(devicePixelRatio,1));
+        const current=keys.map(key=>({key,atlas:atlas.get(key)??null,label:labels.get(key)})),viewport={width,height},around=standingParts(goal,keys);
+        const fit=cap>today+.5?phonePulledFit({entries:current,viewport,...around,cap,min:today}):null;
+        const settled=pulledHome(goal);
+        const project=layout=>{
+          fitCamera.position.copy(settled.position);fitCamera.lookAt(settled.target);fitCamera.updateMatrixWorld();
+          return new Map([...layout.spots].map(([key,spot])=>{const p=onPlane(spot.x,spot.y);return [key,{position:[p.x,p.y,STAGE.scatter.z],scale:spot.diameter*unit*goal/(2*DISC.radius),side:spot.side}];}));
+        };
+        // Each plan is also projected for real at the settled camera; one that would touch draws a little smaller.
+        for(let step=0;fit&&step<8;step++){
+          const diameter=fit.diameter*(1-.03*step);
+          if(diameter<=today+.5)break;
+          const layout=phonePulledLayout({entries:current,viewport,...around,diameter,labels:fit.labels});
+          if(!layout)continue;
+          const grown=project(layout);
+          if(!pullToFit(grown,labels,reserve,clear,layout.labels,{at:goal,bag:'parts'}))continue;
+          spots=grown;sides=new Map([...grown].map(([key,spot])=>[key,spot.side]));
+          stageScale=null;nameSpot=layout.labels;stageAround=false;stageBrick=false;stageFits=true;
+          phoneSizeState={diameter,today,cap,labels:layout.labels};
+          break;
+        }
+        if(!phoneSizeState)phoneSizeState={diameter:today,today,cap,labels:nameSpot,original:true};
+      }
     }
     stagedMode = mode;
     const settledView = pulledHome(goal);
@@ -928,7 +957,10 @@ export async function mountBag(container, {
     const discs = [...spots].map(([key, spot]) => ({ label: labels.get(key), side: spot.side, spot }));
     const rim = Array.from({ length: 16 }, (_, i) => new THREE.Vector3(0, Math.cos(i / 16 * Math.PI * 2) * DISC.radius, Math.sin(i / 16 * Math.PI * 2) * DISC.radius));
     const fits = factor => {
-      const silhouette = bag && standingRect(factor, [...spots.keys()]), body = silhouette && { left: silhouette.left, right: silhouette.left + silhouette.width, top: silhouette.top, bottom: silhouette.top + silhouette.height };
+      // `bag: 'parts'` (the phone planner) keeps off the body and each standing disc apart, not their joint box.
+      const edgesOf = r => ({ left: r.left, right: r.left + r.width, top: r.top, bottom: r.top + r.height });
+      const parts = bag === 'parts' && standingParts(factor, [...spots.keys()]), silhouette = bag && !parts && standingRect(factor, [...spots.keys()]);
+      const blocks = parts ? [parts.bag, ...parts.standing].map(edgesOf) : silhouette ? [edgesOf(silhouette)] : [];
       const home = pulledHome(factor);
       fitCamera.position.copy(home.position); fitCamera.lookAt(home.target); fitCamera.updateMatrixWorld();
       const drawn = [];
@@ -952,7 +984,7 @@ export async function mountBag(container, {
         }
         drawn.push(boxes);
         return boxes.every(box => box.left >= FRAME_MARGIN && box.right <= width - FRAME_MARGIN && box.top >= FRAME_MARGIN && box.bottom <= height - FRAME_MARGIN
-          && !(body && box.left < body.right && body.left < box.right && box.top < body.bottom && body.top < box.bottom)
+          && !blocks.some(body => box.left < body.right && body.left < box.right && box.top < body.bottom && body.top < box.bottom)
           && !keep.some(k => box.left < k.right && k.left < box.right && box.top < k.bottom && k.top < box.bottom));
       });
       // Planning, every disc and name also keeps clear of every other disc and name as drawn.
@@ -1357,6 +1389,13 @@ export async function mountBag(container, {
     }
     return { left, top, width: right - left, height: bottom - top };
   };
+  // The same, apart: the bag's body and each disc staying in its pockets (the putters stand above the body).
+  const standingParts = (factor, leaving = []) => {
+    const bag = bagRect(factor);
+    if (!bag) return null;
+    const standing = [...records.values()].filter(record => !record.placement.empty && !leaving.includes(record.key)).map(record => boxOf(record.placement, undefined, true, false, silhouetteCamera));
+    return { bag, standing };
+  };
   const discScreenRect = (key,{rim=false}={}) => {
     const record = records.get(key);
     if (!record) return null;
@@ -1414,7 +1453,7 @@ export async function mountBag(container, {
     // every layout), the camera's pull-back now and where it is heading, and whether anything is still moving.
     get stage() {
       const now = performance.now(), moving = pullTween !== null || [...records.values()].some(r => r.slide !== r.slideTo || (r.spot?.from && now - r.spot.start < r.spot.duration));
-      return { mode: stagedMode, sides: Object.fromEntries(sides), around: stageAround, brick: stageBrick, scale: stageScale, labels: nameSpot, fits: stageFits, pull, pullGoal, moving, ...(desktopSizeState?{sizing:desktopSizeState}:{}) };
+      return { mode: stagedMode, sides: Object.fromEntries(sides), around: stageAround, brick: stageBrick, scale: stageScale, labels: nameSpot, fits: stageFits, pull, pullGoal, moving, ...(desktopSizeState?{sizing:desktopSizeState}:{}),...(phoneSizeState?{phoneSizing:phoneSizeState}:{}) };
     },
     // Where an out disc rests (or is heading), in container pixels, once the camera has
     // settled at its pull-back (so a page can scroll it into view while it still moves).
