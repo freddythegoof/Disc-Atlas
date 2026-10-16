@@ -96,7 +96,7 @@ function bagDetailMarkup(d){
 function detailAppearance(d){
  const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;
  if(active&&item)window.DiscThumbnails.observe(detailPanel,mold);
- return active && item?{photoURL:photoURL(item),color:item.color,colors:{plate:item.color,rim:bagRimColor(item) || undefined}}:{};
+ return active && item?{photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,color:item.color,colors:{plate:item.color,rim:item.rim_color || undefined}}:{};
 }
 detailPanel.addEventListener('click',event=>{
  const show=event.target.closest('[data-show-on-atlas]'),edit=event.target.closest('[data-bag-detail-edit]');

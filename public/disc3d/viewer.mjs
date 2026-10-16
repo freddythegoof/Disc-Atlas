@@ -8,7 +8,7 @@
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
 // Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
-// overmold, colors}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
+// overmold, colors, photoURL, texture_key, photo_rim_color}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
 // its shape (phase 2), and without them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
 // Overmold discs (Plan 12) draw the rim and the flight plate in two materials, split at the measured rim
@@ -28,7 +28,7 @@ import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
-import {isOvermold,overmoldColors} from './overmold.mjs';
+import {isOvermold,overmoldColors,bagRimColor} from './overmold.mjs';
 import {DETAIL,detailPixelRatio} from './quality.mjs';
 
 const DEG=Math.PI/180;
@@ -233,7 +233,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const resolved=shapeForDisc(props);
   if(!resolved)return false;
   const {shape,source}=resolved;
-  const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim:props.colors?.rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):null;
+  const rim=bagRimColor({rim_color:props.colors?.rim,texture_key:props.texture_key,photo_rim_color:props.photo_rim_color},document.documentElement.dataset.theme==='light'?undefined:'#ffffff');
+  const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim}):null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
   const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,props.photoURL]);
