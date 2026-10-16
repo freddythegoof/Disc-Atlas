@@ -1,0 +1,62 @@
+{
+  "Wraith": {
+    "overmold": false,
+    "edgeReach": 1.0011,
+    "plainReach": 0.8274,
+    "stop": 0.8274,
+    "same": false,
+    "above": true,
+    "facing": true,
+    "normals": true,
+    "uvRadius": 0.5,
+    "triangles": 3840
+  },
+  "Destroyer": {
+    "overmold": false,
+    "edgeReach": 1.0009,
+    "plainReach": 0.8165,
+    "stop": 0.8165,
+    "same": false,
+    "above": true,
+    "facing": true,
+    "normals": true,
+    "uvRadius": 0.5,
+    "triangles": 3840
+  },
+  "Aviar": {
+    "overmold": false,
+    "edgeReach": 1.0018,
+    "plainReach": 0.9363,
+    "stop": 0.9363,
+    "same": false,
+    "above": true,
+    "facing": true,
+    "normals": true,
+    "uvRadius": 0.5,
+    "triangles": 3840
+  },
+  "Pixel": {
+    "overmold": true,
+    "edgeReach": 0.9057,
+    "plainReach": 0.9057,
+    "stop": 0.9057,
+    "same": true,
+    "above": true,
+    "facing": true,
+    "normals": true,
+    "uvRadius": 0.4528,
+    "triangles": 2048
+  },
+  "Atlas": {
+    "overmold": true,
+    "edgeReach": 0.8716,
+    "plainReach": 0.8716,
+    "stop": 0.8716,
+    "same": true,
+    "above": true,
+    "facing": true,
+    "normals": true,
+    "uvRadius": 0.4358,
+    "triangles": 2048
+  }
+}

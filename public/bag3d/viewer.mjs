@@ -582,7 +582,7 @@ export async function mountBag(container, {
     const { detail } = record, rank = size => size ?? Infinity;
     if (!holding && placement.photoURL && (detail.tier === undefined || rank(tier) > rank(detail.tier))) {
       detail.tier = tier;
-      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
+      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, edge: true, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
         if (record.detail !== detail) return;
         // A decode started before a new click may finish during its glide. Keep
         // the current tier visible, and retain both handles until motion settles.
@@ -639,7 +639,7 @@ export async function mountBag(container, {
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
       // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
-      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
+      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,edge:true,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
