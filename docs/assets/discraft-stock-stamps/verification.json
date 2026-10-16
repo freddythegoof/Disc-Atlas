@@ -1,0 +1,22 @@
+{
+  "base": "38a8c4a0e94fb20d703600ebf8391c4ef780e706",
+  "pixelIdenticalControls": [
+    "Destroyer",
+    "Comet",
+    "Force",
+    "Nuke",
+    "clay"
+  ],
+  "photoDecodedPixelsIdentical": true,
+  "bagControlsIdentical": [
+    "Force",
+    "Nuke"
+  ],
+  "thumbnails": [
+    "40a8ecfb8ba27c825c737f1ded45cd1a1972e02b34c83d0a39eb28bede2419c2",
+    "44ff5af32660a1173797829b568e471fa19d8ec94516c47aa8f445cda6ac9066",
+    "1c5da1963d3c933452e426ace0c48656861c47dae8607ed8a8d5219916df0a07",
+    "d88e1445d785f35713f27767d913eb3d8c834d09f3f4d1bf3f4ec5dead1acc69",
+    "5d09ec525f302103a7d323d6fbdc1261100b065a8480907981e2b15eb7ca9c31"
+  ]
+}

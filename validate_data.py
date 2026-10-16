@@ -1,4 +1,5 @@
 import csv,json,math,os,hashlib
+from stamp_manifest import validate_stamp_fields
 root=os.path.dirname(__file__)
 data=json.load(open(root+'/public/data.json'))['discs']
 records=list(csv.DictReader(open(root+'/source-data/pdga-approved-discs.csv')))
@@ -7,6 +8,8 @@ assert len({d['id'] for d in data})==len(data),'Duplicate IDs'
 expected={hashlib.sha1((r['Manufacturer / Distributor']+'|'+r['Disc Model']+'|'+r['Approved Date']).encode()).hexdigest()[:12]:(r['Manufacturer / Distributor'],r['Disc Model'],r['Approved Date'])for r in records}
 assert {d['id']:(d['manufacturer'],d['name'],d['date'])for d in data}==expected,'Registry identity or approval name changed'
 manifest=json.load(open(root+'/source-data/photo-manifest.json'))
+stamps=validate_stamp_fields(json.load(open(root+'/source-data/stamp-manifest.json')),data,root+'/public')
+print(f'Validated {len(stamps)} Discraft stock stamp assets and their rights records.')
 assert set(manifest).issubset(expected),'Photo assigned to nonexistent approval'
 reviewed=json.load(open(root+'/source-data/catalog-reconciliation.json'))['matches']
 assert len({d['id']for d in reviewed})==len(reviewed),'Duplicate reviewed match'
