@@ -187,6 +187,7 @@ function traceProfile(params,{detail=1}={}){
  pts.push(...cubic(F,c1,c2,N,n(14)));
  // 5. A sharp nose is a crease: repeat the point so the lathe gives each side its own normal.
  if(s>=.35)pts.push({...N});
+ const noseIndex=pts.length-1;
  // 6. Shoulder, nose up to where the dome begins. A blunt nose leaves vertically; a sharp one leans in.
  const S={x:Rs,y:Hs},sh=R-Rs;
  const c3=mix({x:R,y:plh+(Hs-plh)*.55},{x:R-sh*.22,y:plh+(Hs-plh)*.62},s);
@@ -195,7 +196,14 @@ function traceProfile(params,{detail=1}={}){
  // 7. The top, shoulder back to the axis.
  const topSteps=n(16),topIndex=pts.length-1;
  for(let i=1;i<=topSteps;i++){const r=Rs*(1-i/topSteps);pts.push({x:r,y:topHeight(p,r)});}
- return {pts,wallTop:wallTopIndex,top:topIndex};
+ return {pts,wallTop:wallTopIndex,top:topIndex,nose:noseIndex};
+}
+
+// The face a top-down photo sees: the profile from the nose, over the shoulder, back to the axis, as
+// [{x, y}] in the profile's own order. A one-piece disc's photo covers all of it (photo.mjs).
+export function topProfile(params,opts){
+ const {pts,nose}=traceProfile(params,opts);
+ return pts.slice(nose);
 }
 
 // Summary numbers the viewer and tests use: overall height, how deep the cavity is, nose angle.
