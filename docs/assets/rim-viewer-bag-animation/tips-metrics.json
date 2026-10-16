@@ -1,0 +1,29 @@
+[
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "before": 1089.96875,
+    "after": 986,
+    "reclaimed": 103.96875
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "before": 810,
+    "after": 602,
+    "reclaimed": 208
+  },
+  {
+    "viewport": {
+      "width": 360,
+      "height": 640
+    },
+    "before": 804.5,
+    "after": 564.5,
+    "reclaimed": 240
+  }
+]

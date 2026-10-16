@@ -798,6 +798,10 @@ export async function mountBag(container, {
       for (const [key, spot] of spots) sides.set(key, spot.side);
       goal = pullToFit(spots, labels, reserve, clear, nameSpot);
       if(desktopSizing && !keep.length){
+        const desktopBag=factor=>{
+          const body=bagRect(factor);
+          return {bag:standingRect(factor,[],body),bagWidth:body.width};
+        };
         const allLabels=new Map(desktopSizing.entries.map(entry=>[entry.key,entry.label]));
         const allEntries=desktopSizing.entries.map(entry=>({...entry,label:{width:entry.label.width*unit,height:entry.label.height*unit}}));
         const fullBag=standingRect(1,[]);
@@ -818,10 +822,10 @@ export async function mountBag(container, {
           // count, so no count draws its discs smaller than before. Where the page camera cannot hold it, the
           // floor is the largest size that fits there, never below the original all-out size.
           const crowded=2*DISC.radius*full.scale/(unit*fullPull),uncrowded=2*DISC.radius*STAGE.scatter.scales[0]/unit;
-          const fitsAt=size=>!!desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},bag:standingRect(1,[]),floor:size});
+          const fitsAt=size=>!!desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},...desktopBag(1),floor:size});
           let floor=Math.max(crowded,uncrowded);
           if(floor>crowded&&!fitsAt(floor)){let low=crowded,high=floor;for(let i=0;i<18;i++){const mid=(low+high)/2;if(fitsAt(mid))low=mid;else high=mid;}floor=low;}
-          const calibrate=factor=>desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},bag:standingRect(factor,[]),floor});
+          const calibrate=factor=>desktopPulledLayout({entries:desktopSizing.entries,allEntries:desktopSizing.entries,viewport:{width,height},...desktopBag(factor),floor});
           let minPull=1,calibration=calibrate(1);
           if(!calibration){
             let low=1,high=STAGE.scatter.maxPull;
@@ -839,7 +843,7 @@ export async function mountBag(container, {
         // with side-zone centers rather than the original scatter.
         if(desktopFloorCache.curve){
           const plan=factor=>desktopPulledLayout({entries:desktopSizing.entries.filter(entry=>keys.includes(entry.key)),allEntries:desktopSizing.entries,
-            viewport:{width,height},bag:standingRect(factor,[]),floor:desktopFloorCache.floor,curve:desktopFloorCache.curve});
+            viewport:{width,height},...desktopBag(factor),floor:desktopFloorCache.floor,curve:desktopFloorCache.curve});
           let sizingGoal=goal,sized=plan(goal);
           // A narrow details-panel canvas can fit a few discs at the original
           // camera even when its future full bag needs more room. Pull back only
@@ -1408,8 +1412,7 @@ export async function mountBag(container, {
   // For planning: the bag at rest seen at a pull-back `factor` (container px), with every disc that
   // stays in its pockets (standing putters, the go-to) at its seat; `leaving` lists the discs on their
   // way out, which do not count.
-  const standingRect = (factor, leaving = []) => {
-    const rect = bagRect(factor);
+  const standingRect = (factor, leaving = [], rect = bagRect(factor)) => {
     if (!rect) return null;
     let left = rect.left, top = rect.top, right = rect.left + rect.width, bottom = rect.top + rect.height;
     for (const record of records.values()) {

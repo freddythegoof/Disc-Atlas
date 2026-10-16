@@ -157,6 +157,7 @@ function render() {
  $('#bagSort').value=settings.sort_mode || 'speed';$('#bagSort').disabled=loading || !!loadError || ordering;
  $('#bagSortHint').textContent=settings.sort_mode==='custom'?'Drag the grip, or use Move earlier / later.':settings.sort_mode==='stability'?'Most stable first · shared atlas index':'Fastest first · stability within each speed';
  $('#bagScene').hidden=!shown || loading || !!loadError || bagView!=='bag';
+ if($('#bagScene').hidden)closeBagTips(false);
  $('#myBagViews').hidden=!signedIn;$('.bag-sort-bar').hidden=bagView!=='bag';$('.bag-sort-bar').toggleAttribute('data-demo',!!demo);
  for(const button of $('#myBagViews').querySelectorAll('[data-bag-view]')){const on=button.dataset.bagView===bagView;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
  $('#myBagContents').hidden||=mapOpen;$('#myMapPanel').hidden=!signedIn || loading || !!loadError || !mapOpen;syncMyMap();
@@ -228,6 +229,7 @@ function syncMyMap(){
  showMyMap({ids:new Set(rated.map(d=>d.id)),positions:personalPositions(window.AtlasLayout,rated,shifts),shifts},$('#myMapHost'));
 }
 function setBagView(next){
+ closeBagTips(false);
  if(bagView===next)return;bagView=next;mapOpen=next==='map';
  // The list follows the view: Storage shows the Storage list, Lost the memorials. My Map has no list.
  if(next!=='map')listView=next;
@@ -508,6 +510,42 @@ $('#confirmRemoveDisc').addEventListener('click',async()=>{
 $('#bagTab').onclick=activateBag;$('#mapTab').onclick=()=>leaveBag('map');$('#listTab').onclick=()=>leaveBag('list');
 $('#addBagDisc').onclick=directory;$('#retryMyBag').onclick=loadBag;
 const addMenu=$('#addDestinationMenu'),dropdown=window.AtlasDropdown;
+const tipsButton=$('#bagTipsButton'),tips=$('#bagTips');
+scene.actions.append(tipsButton);
+function closeBagTips(restore=true){if(dropdown.current()?.panel===tips)dropdown.close(restore);}
+function positionBagTips(panel,button){
+ const controls=scene.controls.getBoundingClientRect(),actions=scene.actions.getBoundingClientRect(),rect=button.getBoundingClientRect();
+ const view=document.documentElement;
+ // Prefer above the entire cluster. If scrolling leaves too little room, use the space below its action row.
+ // Only the copy scrolls; the close control stays reachable in either placement.
+ const above=controls.top-16,below=view.clientHeight-actions.bottom-16,onTop=above>=Math.min(240,below);
+ const available=Math.max(0,Math.min(view.clientHeight-16,onTop?above:below));
+ if(available<80){closeBagTips(false);return;}
+ panel.style.maxWidth=Math.max(0,view.clientWidth-16)+'px';
+ panel.style.maxHeight=available+'px';
+ panel.style.left=Math.max(8,Math.min(view.clientWidth-panel.offsetWidth-8,rect.left+rect.width/2-panel.offsetWidth/2))+'px';
+ panel.style.top=(onTop?Math.max(8,controls.top-panel.offsetHeight-8):actions.bottom+8)+'px';
+ panel.style.setProperty('--menu-origin',onTop?'bottom center':'top center');
+}
+tipsButton.addEventListener('click',()=>{
+ if(dropdown.current()?.panel===tips){closeBagTips();return;}
+ dropdown.show(tips,tipsButton,positionBagTips);$('#closeBagTips').focus({preventScroll:true});
+});
+$('#closeBagTips').addEventListener('click',()=>closeBagTips());
+// Tips return focus even on an outside press (the shared menu policy normally does not).
+// No preventDefault/stopPropagation or canvas listener: that same press can still click a disc.
+document.addEventListener('pointerdown',event=>{
+ if(dropdown.current()?.panel!==tips||tips.contains(event.target)||tipsButton.contains(event.target))return;
+ closeBagTips();
+ // Touch's compatibility click may move focus after the finger lifts. Wait for the whole press,
+ // including a finger held across frames, without cancelling its disc/control action.
+ const finish=end=>{
+  if(end.pointerId!==event.pointerId)return;
+  document.removeEventListener('pointerup',finish,true);document.removeEventListener('pointercancel',finish,true);
+  requestAnimationFrame(()=>{if(tipsButton.checkVisibility()&&!dropdown.current()&&!document.querySelector('dialog[open]'))tipsButton.focus({preventScroll:true});});
+ };
+ document.addEventListener('pointerup',finish,true);document.addEventListener('pointercancel',finish,true);
+},true);
 // The Add menu is one of the site's dropdowns: app.js opens it, closes it on an outside press, Escape,
 // another dropdown, a scroll that takes its button off screen and every view change.
 const addMenuOpen=()=>dropdown.current()?.panel===addMenu;

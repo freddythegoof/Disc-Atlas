@@ -32,7 +32,7 @@ function packing(count,width,height,label){
  return choices;
 }
 
-export function desktopPulledLayout({entries,allEntries,viewport,bag,floor,curve=null}){
+export function desktopPulledLayout({entries,allEntries,viewport,bag,bagWidth=bag?.width,floor,curve=null}){
  if(!entries.length||!allEntries.length)return null;
  const sides=assignSides(entries),total=Math.ceil(allEntries.length/2);
  const fullSides=assignSides(allEntries),capacity={left:0,right:0};
@@ -52,7 +52,11 @@ export function desktopPulledLayout({entries,allEntries,viewport,bag,floor,curve
   if(!curve&&bound<floor)return null;
   bounds[count]=bound;
  }
- const max=curve?.max??(total===1?floor:bounds[1]);
+ // The face-on circle may be no wider than the bag's projected silhouette.
+ // `bag` also contains standing pocket discs for collision; those cannot raise
+ // the cap. Reapply it to frozen curves at the current planning camera too.
+ const max=Math.min(curve?.max??(total===1?floor:bounds[1]),bagWidth);
+ if(max<floor)return null;
  const fits=decay=>Object.values(capacity).every(size=>{
   for(let count=1;count<=size;count++)if(pulledDiameter(count,{total:size,floor,max,decay})>bounds[count]+1e-7)return false;
   return true;
