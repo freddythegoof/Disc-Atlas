@@ -122,9 +122,9 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
 // The crop with the photo's lighting removed (disc-albedo.mjs), and the plate colour it measured.
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
- const {color}=delightPixels(pixels.data,size);ctx.putImageData(pixels,0,0);
- const photoRimColor=options.rimInner?rimColor(pixels.data,size,options.rimInner):null;
- return {canvas,color,photoRimColor};
+ // The rim, like the plate colour, is measured before the glare pass: matched colours never depend on it.
+ const {color,rim=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null});ctx.putImageData(pixels,0,0);
+ return {canvas,color,photoRimColor:rim};
 }
 // A saved texture turned for levelling: resampled only, and its rim measured again as on its first save.
 function levelCanvas(image,options,size){
