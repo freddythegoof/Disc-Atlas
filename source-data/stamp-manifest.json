@@ -1,0 +1,29 @@
+[
+  {
+    "id": "7446eb39abe5",
+    "brand": "Discraft",
+    "mold": "Buzzz",
+    "asset": "stamps/discraft/buzzz.png",
+    "sourceURL": "https://www.discraft.com/paul-mcbeth-6x-esp-buzzz-signature-series-pmebuzzz",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+  },
+  {
+    "id": "850e9dc7104d",
+    "brand": "Discraft",
+    "mold": "Zone",
+    "asset": "stamps/discraft/zone.png",
+    "sourceURL": "https://www.discraft.com/z-line-zone-zzone",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+  },
+  {
+    "id": "ff4bf9e7743c",
+    "brand": "Discraft",
+    "mold": "Luna",
+    "asset": "stamps/discraft/luna.png",
+    "sourceURL": "https://www.discraft.com/paul-mcbeth-luna-mcbethluna",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+  }
+]

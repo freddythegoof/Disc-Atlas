@@ -5,6 +5,7 @@ import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
 import {PLASTICS} from '../disc3d/mesh.mjs';
+import {catalogStampAsset,stampTexture,stampGeometry,stampMaterial} from '../disc3d/stamp.mjs';
 import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../disc3d/quality.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
@@ -557,6 +558,17 @@ export async function mountBag(container, {
     renderer.compileAsync(group, camera, scene).catch(() => {}).finally(() => { plate.dispose(); photo.dispose(); pixel.dispose(); shape.dispose(); });
   };
   const syncLook = (record, now = performance.now()) => {
+    // Only a pulled stock disc asks for stamp art. Pocketed discs and user photos cost no stamp request.
+    const asset=record.placement.photoURL?null:catalogStampAsset(record.placement.mold);
+    if(asset&&record.parts&&record.slideTo===1&&!record.ink){
+      const parts=record.parts,g=stampGeometry(parts.shape),m=stampMaterial();
+      g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
+      g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);
+      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,onChange:invalidate});
+      record.ink=new THREE.Mesh(g,m);record.mesh.add(record.ink);
+      record.ink.userData.disposeStamp=()=>{g.dispose();m.map.dispose();m.dispose();};
+    }
+    if(record.ink)record.ink.visible=record.slideTo===1;
     if (low || !record.parts) return;
     const holding = photosMoving(now);
     if (record.detail?.photoPending && !holding) finishDetailPhoto(record, record.detail.photos.findLast(photo => photo.userData.photoReady));
@@ -617,7 +629,7 @@ export async function mountBag(container, {
     for (const record of records.values()) {
       const kept = record.detail?.photos ?? [];
       held.push(...kept);
-      record.mesh.traverse(o => { if (!kept.includes(o)) o.userData.disposePhoto?.(); }); discGroup.remove(record.mesh);
+      record.mesh.traverse(o => {o.userData.disposeStamp?.(); if (!kept.includes(o)) o.userData.disposePhoto?.(); }); discGroup.remove(record.mesh);
       for (const material of [record.mesh.material, record.detail?.base.material ?? []].flat()) if (material !== ghostMaterial) material.dispose();
     }
     records.clear();

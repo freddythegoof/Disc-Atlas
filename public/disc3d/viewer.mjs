@@ -26,7 +26,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc} from './shape.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
-import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
+import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial,catalogStampAsset} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
 import {isOvermold,overmoldColors,bagRimColor} from './overmold.mjs';
 import {DETAIL,detailPixelRatio} from './quality.mjs';
@@ -214,7 +214,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   else{const radius=Math.min(controls.maxDistance,Math.max(controls.minDistance,pose.zoom*state.fit));placeCamera(new THREE.Spherical(radius,pose.phi,pose.theta));setPressedView(null);request();}
  }
 
- function build(shape,mold,color,overmold){
+ function build(shape,mold,color,overmold,asset){
   // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs).
   const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold});
   state.seamRadius=seamRadius;state.shape=shape;state.profile=profile;state.profileWidth=0;
@@ -223,7 +223,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
   stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
-  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color);stampMaterial.needsUpdate=true;
+  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,onChange:request});stampMaterial.needsUpdate=true;
   // Centre the disc on the orbit target.
   discGroup.position.y=-(box.min.y+box.max.y)/2;
   state.radius=shape.diameter/2;state.frameRadius=Math.max(state.radius,FRAME_DIAMETER/2);state.thickness=box.max.y-box.min.y;
@@ -237,7 +237,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim}):null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,props.photoURL]);
+  const asset=props.photoURL?null:catalogStampAsset(props);
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,props.photoURL,asset]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
@@ -245,7 +246,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
   state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
-  build(shape,props.mold,color,overmold);
+  build(shape,props.mold,color,overmold,asset);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
   if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
