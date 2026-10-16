@@ -21,9 +21,9 @@ page.on('request',r=>requests.push(new URL(r.url()).pathname));
 const dir='docs/assets/discraft-stamp-sweep/batch-1';fs.mkdirSync(dir,{recursive:true});
 const assignments=JSON.parse(fs.readFileSync('source-data/stamp-manifest.json'));
 const batch=assignments.filter(e=>e.sourceRetailer==='Infinite Discs');
-assert.equal(batch.length,15);
+assert.equal(batch.length,14);
 const newMolds=batch.map(e=>e.mold);
-const controls=['Buzzz','Zone','Luna','Nuke','Destroyer'];
+const controls=['Buzzz','Zone','Luna','Nuke','Destroyer','Zone GT (Banger Top)'];
 const molds=[...newMolds,...controls];
 const slug=mold=>batch.find(e=>e.mold===mold)?.asset.split('/').at(-1).replace('.png','')||mold.toLowerCase().replaceAll(' ','-');
 const base='771e8da';
@@ -162,5 +162,5 @@ try{
  await pixelPage.close();
  const summary={base,screenshotDifferences,controlStampTexturesByteIdentical:true,batchAssets:batch.map(e=>({id:e.id,mold:e.mold,asset:e.asset})),unchangedControls:controls,photoDecodedPixelsIdentical:true,clayIdentical:true,atlasStampRequests:0,brandGate:true,bagControlsIdentical:controls.filter(m=>m!=='Destroyer'),thumbnails:results.after.thumbnails};
  fs.writeFileSync(`${dir}/verification.json`,JSON.stringify(summary,null,2));
- console.log('Batch 1 stock stamp browser checks passed: 15 own-mold assignments and 5 unchanged controls');
+ console.log('Batch 1 stock stamp browser checks passed: 14 own-mold assignments and 6 unchanged controls');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

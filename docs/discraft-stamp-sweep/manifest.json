@@ -11689,7 +11689,7 @@
     "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240402095019925_unnamed19-adfcd303cb9d.webp",
     "imageWidth": 1000,
     "imageHeight": 992,
-    "verdict": "extracted",
+    "verdict": "rejected",
     "notes": "Full first-run wordmark/name/box on pink/lavender, dark red ink has good contrast. Groove visible but does not cut off art. Match Banger Top catalog identity before later assignment. Catalog contains Banger Top and Ringer Top approvals. Candidate art belongs to the Infinite Zone GT listing; exact approval assignment remains unapproved. Never copy it to both.",
     "source": "infinite-discs",
     "checkedAt": "2026-10-16",
@@ -11715,7 +11715,7 @@
     "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
     "inventoryCheck": "Not individually audited; product-gallery verdict only.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
-    "asset": "stamps/discraft/zone-gt.png",
+    "asset": null,
     "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240402095019925_unnamed19-adfcd303cb9d.webp",
     "extractionRetailer": "Infinite Discs",
     "inkCountVerified": 1,
@@ -11747,7 +11747,7 @@
       ],
       "method": "pilot circular-fit padding, no renderer transform"
     },
-    "assetKB": 10.852,
+    "assetKB": 0,
     "sourceSHA256": "51f866a45f29c0c55ae58d740e64e472a45c72072dc1a15961183078b146d3fe",
     "batch": 1,
     "extractedAt": "2026-10-16",
@@ -11762,6 +11762,13 @@
         "https://www.pdga.com/technical-standards/equipment-certification/discs/zone-gt-banger-top",
         "https://infinitediscs.com/discraft-zone-gt/esp"
       ]
+    },
+    "rejectedExtraction": {
+      "asset": "stamps/discraft/zone-gt.png",
+      "assetKB": 10.852,
+      "reviewer": "Freddy",
+      "reviewedAt": "2026-10-16",
+      "reason": "Freddy rejected this extracted stamp on quality: it does not meet the fidelity bar. The Banger Top assignment is correct; this rejection applies to this extraction, not the mold or its source reconnaissance."
     }
   },
   {

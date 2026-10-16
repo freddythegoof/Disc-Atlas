@@ -1,5 +1,7 @@
 # Discraft stamp sweep — Batch 1
 
+**Review update — October 16, 2026:** Freddy approved Force and rejected the Zone GT / Banger Top extraction on quality (assignment confirmed correct). That asset is pulled; Banger Top uses the generated fallback. **14 Batch 1 stamps remain shipped.** Original extraction evidence below is retained as history; see [fix checks](batch-1-fix.md).
+
 **15 / 15 extracted and assigned, including Force. Added PNG payload: 1283.561 KB (decimal, bytes / 1000).** All three pilot assets retain their exact bytes. No push, merge or deployment. Freddy reviews these proofs before the normal landing drill.
 
 | Mold | Source retailer | Asset KB | Outcome |
