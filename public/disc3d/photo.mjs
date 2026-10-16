@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {shapeFrame,topHeight,topProfile} from './shape.mjs';
+import {planPhoto,cleanPhoto} from './photo-clean.mjs';
 // The whole photo maps to the disc's diameter. UVs are Cartesian x/z, independent of the lathe's angular UV seam.
 // An overmold's photo stops at the seam: the rim is its own piece, in its own colour. A one-piece disc's photo
 // (`edge`) runs over the shoulder to the nose, so a stamp or a band in the plastic that reaches the edge in the
@@ -38,8 +39,40 @@ function edgeGeometry(shape,{segments,rings}){
  g.setAttribute('position',new THREE.BufferAttribute(position,3));g.setAttribute('normal',new THREE.BufferAttribute(normal,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
  g.setIndex(index);g.computeBoundingSphere();return g;
 }
+// Only the disc survives (photo-clean.mjs): each stored photo gets one cleanup plan, cached by its URL (which
+// names its version) and shared by every size and surface, so the same stored texture always draws the same.
+// A photo the plan leaves alone decodes exactly as before. Plans and cleaned images are made in a worker.
+const plans=new Map();
+export const photoCleanup={plans,stats:{plans:0,planMs:0,cleaned:0,cleanMs:0,worker:null}};
+let worker=null,workerBroken=typeof Worker==='undefined',calls=0;const waiting=new Map();
+function inWorker(message,local){
+ if(!workerBroken&&!worker){
+  try{
+   worker=new Worker(new URL('./photo-clean-worker.mjs',import.meta.url),{type:'module'});
+   worker.onmessage=({data})=>{const call=waiting.get(data.id);if(!call)return;waiting.delete(data.id);if(data.error)call.local();else call.resolve(data);};
+   worker.onerror=()=>{workerBroken=true;worker?.terminate();worker=null;for(const call of waiting.values())call.local();waiting.clear();};
+  }catch{workerBroken=true;worker=null;}
+ }
+ photoCleanup.stats.worker=!workerBroken;
+ if(!worker)return local();
+ return new Promise((resolve,reject)=>{const id=++calls;waiting.set(id,{resolve,local:()=>local().then(resolve,reject)});worker.postMessage({id,...message});});
+}
+function planFor(url,blob){
+ let plan=plans.get(url);
+ if(plan){plans.delete(url);plans.set(url,plan);return plan;}
+ plan=inWorker({op:'plan',blob},async()=>({plan:await planPhoto(blob)})).then(({plan})=>{photoCleanup.stats.plans++;photoCleanup.stats.planMs+=plan.ms;return plan;});
+ plan.catch(()=>{if(plans.get(url)===plan)plans.delete(url);});
+ plans.set(url,plan);while(plans.size>64)plans.delete(plans.keys().next().value);
+ return plan;
+}
+async function photoImage(url,blob,size){
+ const plan=await planFor(url,blob).catch(()=>null);
+ if(!plan?.changed)return createImageBitmap(blob,{imageOrientation:'flipY',resizeWidth:size,resizeHeight:size,resizeQuality:'high'});
+ const start=performance.now(),{image}=await inWorker({op:'clean',blob,size,plan},async()=>({image:await cleanPhoto(blob,size,plan)}));
+ photoCleanup.stats.cleaned++;photoCleanup.stats.cleanMs+=performance.now()-start;return image;
+}
 const cache=new Map();let epoch=0;
-export function clearPhotoCache(){epoch++;for(const entry of cache.values()){entry.controller.abort();entry.texture?.dispose();entry.image?.close?.();}cache.clear();window.dispatchEvent(new Event('atlas-photo-clear'));}
+export function clearPhotoCache(){epoch++;plans.clear();for(const entry of cache.values()){entry.controller.abort();entry.texture?.dispose();entry.image?.close?.();}cache.clear();window.dispatchEvent(new Event('atlas-photo-clear'));}
 // Only same-origin owner-checked routes are accepted. No public bucket URLs or persistent browser cache.
 window.addEventListener('atlas-photo-reset',clearPhotoCache);
 // A whisper of relief for detail views: height is how far a pixel's brightness sits from the plate's, so
@@ -71,7 +104,7 @@ export function acquirePhoto(url,size=1024,{relief=false}={}){
  let entry=cache.get(cacheKey);
  if(!entry){
   const controller=new AbortController(),start=epoch;entry={refs:0,controller};cache.set(cacheKey,entry);
-  entry.ready=fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('Photo unavailable');const image=await createImageBitmap(await r.blob(),{imageOrientation:'flipY',resizeWidth:size,resizeHeight:size,resizeQuality:'high'});if(start!==epoch||controller.signal.aborted){image.close();throw Error('Photo cleared');}const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;texture.anisotropy=4;entry.texture=texture;entry.image=image;entry.relief=relief?reliefTexture(image):null;return {map:texture,relief:entry.relief};}).catch(e=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey);throw e;});
+  entry.ready=fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('Photo unavailable');const image=await photoImage(url,await r.blob(),size);if(start!==epoch||controller.signal.aborted){image.close();throw Error('Photo cleared');}const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;texture.anisotropy=4;entry.texture=texture;entry.image=image;entry.relief=relief?reliefTexture(image):null;return {map:texture,relief:entry.relief};}).catch(e=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey);throw e;});
  }
  entry.refs++;let released=false;
  return {ready:entry.ready,release(){if(released)return;released=true;if(--entry.refs===0){if(cache.get(cacheKey)===entry)cache.delete(cacheKey);entry.controller.abort();entry.texture?.dispose();entry.relief?.dispose();entry.image?.close?.();}}};
