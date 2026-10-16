@@ -250,6 +250,9 @@ try{
   const page=await open('desktop');
   // The zoom at which minis are exactly as big as the low level's largest size.
   const z0=await page.evaluate(()=>{let lo=1,hi=9;for(let i=0;i<40;i++){const m=(lo+hi)/2;if(AtlasGroups.gapSize(m,'mini')<24)lo=m;else hi=m;}return (lo+hi)/2;});
+  // Approach the threshold from below. The opening pull-back can have already
+  // drawn a mini at mid LOD; hysteresis correctly retains that history at 24px.
+  await show(page,{zoom:1});
   await show(page,{zoom:z0});
   // What the hysteresis governs is each disc's decided level (`want`), followed per entry: a disc that leaves the
   // set and rejoins is a new entry and decides afresh from its size, which is not a flip. The image on screen

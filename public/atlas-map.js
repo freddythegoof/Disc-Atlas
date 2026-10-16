@@ -294,12 +294,43 @@ function shownPosition(id){
  const {width:w,height:h}=mapViewport||canvas.getBoundingClientRect();
  return shownPositions(filtered,w,h,!document.body.classList.contains('my-bag-mode')).get(id)??atlasPositions.get(id);
 }
+function featuredDisc(){return filtered.find(d=>d.name.toLowerCase()==='destroyer'&&/innova/i.test(d.brand)&&d.speed!=null)||filtered.find(d=>d.speed!=null);}
 function focusFeatured(){
- const d=filtered.find(d=>d.name.toLowerCase()==='destroyer'&&/innova/i.test(d.brand)&&d.speed!=null)||filtered.find(d=>d.speed!=null);
+ const d=featuredDisc();
  if(!d)return;
  selected=d;const p=shownPosition(d.id);if(!p)return;
  const camera=window.AtlasLayout.camera(p,canvas.clientWidth,canvas.clientHeight,innerWidth<700?4:2.8);
  zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
+}
+// Only a presentation of the shared Atlas consumes the intro (Directory is phone home).
+let atlasPresented=false,atlasIntro=null,atlasCaught=false;
+try{atlasPresented=sessionStorage.getItem('atlas-intro-seen')==='1';}catch{}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- app.js owns shared Atlas presentations.
+function presentAtlas(){
+ if(myMap||view!=='map'||!filtered.some(d=>d.speed!=null))return;
+ measureMap();if(!mapViewport.width||!mapViewport.height)return;
+ stopCamera();
+ const first=!atlasPresented;atlasPresented=true;
+ if(first||!selected)selected=featuredDisc();
+ try{sessionStorage.setItem('atlas-intro-seen','1');}catch{}
+ const {width,height}=mapViewport;
+ // Match buildClusters' pinned 1x camera exactly, including its current extent.
+ const extent=AtlasLayout.extent(shownPositions(filtered,width,height,true));
+ const fit=AtlasLayout.fit(extent,width,height);
+ const target=boundedCamera(fit.zoom===1?{zoom:1,x:0,y:0}:fit);
+ if(!first||!window.AtlasMotion?.enabled()){
+  zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;
+ }
+ focusFeatured();
+ tweenCamera(target);
+ const token=(name,fallback)=>(window.AtlasMotion.token?.(name,fallback)??fallback)*1000;
+ atlasIntro={at:null,breath:token('--dur-ui',.18),duration:token('--dur-surface',.28)*5};
+}
+function catchAtlasIntro(event){
+ if(event?.type==='pointerdown')atlasCaught=!!atlasIntro;
+ if(!atlasIntro)return;
+ // A tap catches even during the opening breath, as it does during a flick.
+ mapCaught=true;stopCamera();scheduleMapDraw();
 }
 function draw(){
  // Fonts/worker callbacks can schedule a frame before app.js has initialized.
@@ -826,6 +857,9 @@ function renderCluster(){
 function initAtlasMap(){
  const map=$('#map'),layer=$('#mapMarkers'),pop=$('#clusterPopover');
  loadAtlasArt();
+ // Capture before controls/markers/normal wheel retargeting see the intro's destination.
+ // Do not prevent the event: its usual handler gets the live camera immediately.
+ for(const type of ['pointerdown','wheel','keydown','click'])document.addEventListener(type,catchAtlasIntro,{capture:true,passive:true});
  const glow=document.createElement('div');glow.className='map-edge-feedback';glow.setAttribute('aria-hidden','true');
  for(const side of ['left','right','top','bottom']){const edge=document.createElement('i');edge.className=side;glow.append(edge);}map.append(glow);
  map.addEventListener('pointerenter',measureMap);
@@ -875,7 +909,7 @@ function initAtlasMap(){
  const pointers=new Map();let pinchDistance=0,pinchMidpoint=null,velocity={zoom:0,x:0,y:0},lastMove=0,gestureCancelled=false;
  map.addEventListener('pointerdown',e=>{
   if(e.button!==0||e.target.closest('.map-controls')||pointers.size>=2)return;
-  if(!pointers.size){mapCaught=cameraMoving();mapMoved=false;gestureCancelled=false;}
+  if(!pointers.size){mapCaught=atlasCaught||cameraMoving();mapMoved=false;gestureCancelled=false;}
   measureMap();stopCamera();resetEdge();closeCluster();velocity={zoom:0,x:0,y:0};lastMove=performance.now();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   track(e);pointerAt.pressed=true;
   mapDrag={x:e.clientX,y:e.clientY};
@@ -962,7 +996,7 @@ function panMap(dx,dy){
  paintEdge();scheduleMapDraw();
 }
 function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(now=>{mapFrame=0;stepCamera(now);draw();if(cameraTween)scheduleMapDraw();});}
-function stopCamera(){cameraTween=null;cameraDestination=null;cameraEase=null;for(const axis of CAMERA_AXES)cameraSpring.velocity[axis]=0;}
+function stopCamera(){cameraTween=null;cameraDestination=null;cameraEase=null;atlasIntro=null;for(const axis of CAMERA_AXES)cameraSpring.velocity[axis]=0;}
 function cameraMoving(){
  if(!cameraTween)return false;
  const v=cameraSpring.velocity,r=mapViewport;
@@ -971,6 +1005,14 @@ function cameraMoving(){
 }
 function stepCamera(now){
  if(!cameraTween)return;
+ if(atlasIntro){
+  if(!window.AtlasMotion?.enabled()||atlasIntro.at!==null&&now>=atlasIntro.at+atlasIntro.breath+atlasIntro.duration){
+   zoom=cameraDestination.zoom;pan.x=cameraDestination.x;pan.y=cameraDestination.y;stopCamera();return;
+  }
+  // Start the clock on the first paint, so startup work cannot eat the close-up.
+  if(atlasIntro.at===null){atlasIntro.at=now;cameraSpring.at=now+atlasIntro.breath;return;}
+  if(now<=atlasIntro.at+atlasIntro.breath)return;
+ }
  const s=cameraSpring,dt=Math.max(0,(now-s.at)/1000);s.at=now;
  // A filter can replace the extent during a glide. Keep its landing point reachable.
  boundedCamera(cameraDestination,cameraDestination,s.area);
@@ -981,7 +1023,7 @@ function stepCamera(now){
   moving=t<1;
  }else for(const axis of CAMERA_AXES){
   const target=cameraDestination[axis],position=axis==='zoom'?zoom:pan[axis],v=s.velocity[axis];
-  const omega=2*Math.PI/(axis==='zoom'||s.zooming ? .35 : .4),d=position-target,c=v+omega*d,e=Math.exp(-omega*dt);
+  const omega=atlasIntro?12/(atlasIntro.duration/1000):2*Math.PI/(axis==='zoom'||s.zooming ? .35 : .4),d=position-target,c=v+omega*d,e=Math.exp(-omega*dt);
   let next=target+(d+c*dt)*e,velocity=(v-omega*c*dt)*e;
   const epsilon=axis==='zoom' ? .0001 : .05;
   if(!window.AtlasMotion?.enabled()||Math.abs(next-target)<epsilon&&Math.abs(velocity)<epsilon*10){next=target;velocity=0;}
@@ -994,7 +1036,7 @@ function stepCamera(now){
  boundedCamera(s.step,s.step,s.area);
  if(x!==s.step.x)s.velocity.x=0;if(y!==s.step.y)s.velocity.y=0;
  zoom=s.step.zoom;pan.x=s.step.x;pan.y=s.step.y;
- if(!moving)stopCamera();
+ if(!moving&&!atlasIntro)stopCamera();
 }
 // Existing callers keep this entry point; it now retargets the shared spring.
 function tweenCamera(target){

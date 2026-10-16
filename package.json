@@ -41,6 +41,7 @@
     "test:atlas:depth": "node --test tests/atlas-depth.mjs && node tests/atlas-depth-browser.mjs",
     "test:atlas:3d": "node --test tests/atlas-lod.mjs && node tests/atlas-3d-browser.mjs",
     "test:atlas:persist": "node --test tests/atlas-targets.mjs && node tests/atlas-persist-browser.mjs",
+    "test:atlas:intro": "node --test tests/atlas-intro-reveal.mjs && node tests/atlas-intro-reveal-browser.mjs",
     "test:atlas:3d:perf": "node tests/atlas-3d-perf.mjs",
     "test:apple-design": "node --test tests/apple-camera.mjs && node tests/apple-design-browser.mjs",
     "test:apple-design:2": "node tests/apple-design-2-browser.mjs",

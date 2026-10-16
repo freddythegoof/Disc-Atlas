@@ -1,0 +1,58 @@
+[
+  {
+    "file": "public/app.js",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 12,
+    "warnings": 12,
+    "added": []
+  },
+  {
+    "file": "public/atlas-layout.js",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 0,
+    "warnings": 0,
+    "added": []
+  },
+  {
+    "file": "public/atlas-map.js",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 4,
+    "warnings": 3,
+    "added": []
+  },
+  {
+    "file": "public/atlas-motion.js",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 0,
+    "warnings": 0,
+    "added": []
+  },
+  {
+    "file": "tests/atlas-3d-browser.mjs",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 0,
+    "warnings": 0,
+    "added": []
+  },
+  {
+    "file": "tests/atlas-intro-reveal.mjs",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 0,
+    "warnings": 0,
+    "added": []
+  },
+  {
+    "file": "tests/atlas-intro-reveal-browser.mjs",
+    "baselineErrors": 0,
+    "errors": 0,
+    "baselineWarnings": 0,
+    "warnings": 0,
+    "added": []
+  }
+]
