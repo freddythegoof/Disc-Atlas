@@ -61,10 +61,8 @@ Two details keep it seated on the slope:
 
 Overmold discs ignore `edge`: the same code path, the same arrays, photo stops at `Ri`. Callers that
 pass `edge: true`: the detail viewer (panel + pop-out), the bag (pocket photo and pulled detail photo)
-and the Storage/Lost collection models. **The atlas does not** (`atlas-art.mjs` untouched, per the
-brief), so the top-down atlas images (My Map's photo discs and the My Bag list thumbnails) still
-stop at the shoulder. Extending it there is a one-word change, but it touches the atlas and needs the
-perf gate rerun, so it's left as a follow-up.
+and the Storage/Lost collection models. The atlas's top-down renders (My Map's photo discs and the
+My Bag list thumbnails) followed in a second commit: see [Atlas top-down renders](#atlas-top-down-renders-thumbnails-and-my-map).
 
 Nothing else moved: no classification change, no stored data, no upload pipeline change, and
 `public/data.json` is untouched. Freddy's existing photos render the new way as soon as this deploys.
@@ -149,15 +147,67 @@ In the bag, each one-piece photo disc adds 1,792 triangles, about 43k for a bag 
   are all green. `test:bag:scene` failed once with `clock.pauseAt: Cannot fast-forward to the past`
   (`tests/bag-scene-browser.mjs:99` pauses the fake clock 50 ms ahead of a `Date.now()` read, which a slow
   step can overrun). That's a race in the test, not in the photo code, and it passed on both reruns.
-  The atlas suites and perf gate were not run: atlas code is unchanged.
+  The atlas suites and perf gate were not run for that first commit, which left atlas code unchanged (see below).
 
 One `test:photo-edge` run (of eight) timed out in fixture setup, with the add-disc dialog never closing
 after Save, before any change was exercised. The next run passed. It now saves a failure screenshot and
 the dialog's text if it recurs.
+
+## Atlas top-down renders (thumbnails and My Map)
+
+The atlas's cached top-down images (`atlas-art.mjs`) draw the My Bag list thumbnails
+(`disc3d/thumbnails.mjs`) and My Map's photo discs, and they still stopped at the shoulder, so the same
+plate-coloured ring showed there. `photoOf()` now passes `edge: true` to `photoSurface()`, as every
+other surface does. Overmolds ignore it, so their photo mesh is the same arrays as before. Classification,
+stored data and `public/data.json` are untouched.
+
+`npm run test:photo-edge:atlas` (new, `tests/non-overmold-photo-edge-atlas-browser.mjs`, about 60 s)
+uploads the stamp Wraith and the Pixel through the real editor, as `test:photo-edge` does. It then reads
+the list thumbnail's canvas (62 px on screen, 128 px image) and the My Map marker's own art canvas
+(full level, 192 px). The before half serves the pre-fix `atlas-art.mjs` from `500dae4` in place of
+the working copy, in the same run and on the same GPU. Crossings of the ring's mean brightness:
+
+| Ring | Thumb, before | Thumb, after | My Map, before | My Map, after |
+|---|---|---|---|---|
+| 0.85 R | `#b8b9ba` · 0 | `#887b51` · 40 | `#b9babb` · 0 | `#897c50` · 42 |
+| 0.88 R | `#b1b2b3` · 0 | `#6f6b4a` · 50 | `#b1b2b3` · 0 | `#6a6949` · 48 |
+| 0.91 R | `#a9aaab` · 1 | `#5e624c` · 47 | `#a9aaab` · 1 | `#5c614b` · 53 |
+| 0.94 R | `#a0a1a2` · 2 | `#686650` · 42 | `#a1a2a3` · 2 | `#656550` · 42 |
+| 0.97 R | `#838485` · 2 | `#5d5a38` · 42 | `#838485` · 2 | `#5a5937` · 42 |
+
+The before half's 1–2 crossings on the shoulder are the key light's highlight arc over plain plastic.
+The Pixel control is **byte-identical** in both surfaces (max channel difference 0 of 16,384 and
+36,864 pixels), and the catalog still classifies Wraith one piece and Pixel overmold. Full numbers are in
+[atlas-metrics.json](assets/non-overmold-photo-edge/atlas-metrics.json).
+
+| | Before | After |
+|---|---|---|
+| Stamp, list thumbnail (3×) | ![](assets/non-overmold-photo-edge/atlas-before-stamp-thumb.png) | ![](assets/non-overmold-photo-edge/atlas-after-stamp-thumb.png) |
+| Stamp, My Map (3×) | ![](assets/non-overmold-photo-edge/atlas-before-stamp-mymap.png) | ![](assets/non-overmold-photo-edge/atlas-after-stamp-mymap.png) |
+| Pixel, list thumbnail (3×) | ![](assets/non-overmold-photo-edge/atlas-before-pixel-thumb.png) | ![](assets/non-overmold-photo-edge/atlas-after-pixel-thumb.png) |
+| Pixel, My Map (3×) | ![](assets/non-overmold-photo-edge/atlas-before-pixel-mymap.png) | ![](assets/non-overmold-photo-edge/atlas-after-pixel-mymap.png) |
+
+**Cost.** A photo disc's photo mesh goes from 2,048 to 3,840 triangles, drawn once per cached image,
+never per frame. A fresh art context drawing the Wraith's photo at the full level, 60 renders (new
+colours, so none is a cache hit), mean per render with the readback into its image: 0.148 ms before,
+0.128 ms after, 0.122 ms for the same disc without a photo (RTX 3070). That is inside the noise.
+
+**Suites.** `test:atlas:3d`, `test:my-map` and `test:photo-rim` (which checks the atlas's outer-ring
+pixels for an overmold photo) are green. The perf gate (`test:atlas:3d:perf`) never reaches the changed line:
+it flies the signed-out main atlas, whose discs carry no `photoURL`, so `photoOf()` returns before
+`edge` is read. At the default 3 phone repetitions it failed in both runs with the change, on **phone long
+tasks** (3D median 9 against a limit of 7, then 7 against 7 with a paired excess). The one run of the pre-fix
+line passed. Other sessions' browsers were open on the same machine. The two builds run identical code in
+the gate, so this is the gate's noise at 3 repetitions, not this change. At `PERF_REPS_PHONE=7` (desktop 3), both pass:
+
+| Medians, 2D / 3D | Desktop flight p95 | Phone flight p95 | Phone 1x p95 | Phone long tasks (limit) |
+|---|---|---|---|---|
+| Before (`edge` off) | 4.3 / 5.1 ms | 17.7 / 18.0 ms | 3.2 / 3.9 ms | 6 / 6 (7) |
+| After | 4.7 / 4.8 ms | 17.2 / 14.3 ms | 3.4 / 3.8 ms | 4 / 4 (5) |
 
 ## Freddy's feel check after deploy
 
 - 30-stamp Wraith: the pattern runs to the edge, with no added rim.
 - Halo Wraith in Storage: the band is the photo's own, with no purple outer ring.
 - Pixel: unchanged, with its black overmold rim.
-- Known, by design for now: the small list thumbnail and My Map still stop at the shoulder (atlas).
+- The My Bag list thumbnail and My Map photo disc of the 30-stamp Wraith: stripes to the edge too.

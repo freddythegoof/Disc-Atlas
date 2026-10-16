@@ -4,7 +4,7 @@ import {shapeFrame,topHeight,topProfile} from './shape.mjs';
 // An overmold's photo stops at the seam: the rim is its own piece, in its own colour. A one-piece disc's photo
 // (`edge`) runs over the shoulder to the nose, so a stamp or a band in the plastic that reaches the edge in the
 // photo reaches it on the model; stopping at the shoulder left a ring of plain plastic that read as an added
-// rim. Without `edge` it stops at the shoulder, as the atlas's top-down discs still draw it.
+// rim. Every surface passes `edge`, the atlas's top-down discs included; without it the photo stops at the shoulder.
 export function photoGeometry(shape,{overmold=false,edge=false,segments=64,rings=16}={}){
  if(edge&&!overmold)return edgeGeometry(shape,{segments,rings});
  const {R,Rs,Ri}=shapeFrame(shape),radius=overmold?Ri:Rs;
