@@ -84,7 +84,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   if(!d.photoURL)return null;
   let photo=photos.get(d.photoURL);
   if(photo){photos.delete(d.photoURL);photos.set(d.photoURL,photo);return photo;}
-  photo=photoSurface(s.shape,d.photoURL,{overmold:s.overmold,edge:true,size:256,like:plateMaterial,onChange:()=>window.dispatchEvent(new CustomEvent('atlas-photo-ready',{detail:{url:d.photoURL}}))});photos.set(d.photoURL,photo);
+  photo=photoSurface(s.shape,d.photoURL,{overmold:s.overmold,size:256,like:plateMaterial,onChange:()=>window.dispatchEvent(new CustomEvent('atlas-photo-ready',{detail:{url:d.photoURL}}))});photos.set(d.photoURL,photo);
   // A photo still loading is never evicted: with more photos on screen than live slots, evicting them
   // would restart every load forever.
   for(const [url,old] of photos){if(photos.size<=PHOTOS_LIVE)break;if(old.userData.photoReady||old.userData.photoFailed){photos.delete(url);old.userData.disposePhoto();}}

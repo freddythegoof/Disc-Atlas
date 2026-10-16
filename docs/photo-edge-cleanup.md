@@ -1,5 +1,7 @@
 # Photo cleanup: only the disc survives
 
+> **Closed October 16, 2026.** PRs #10 and #11 reverted on `codex/photo-edge-revert`; the full-edge project is dropped. See [photo-edge-revert.md](photo-edge-revert.md). This page stays as the record; its suites and code are gone from the tree.
+
 Branch `codex/photo-edge-cleanup`, from `main` at `38a8c4a` (the PR #9 merge). October 16, 2026.
 
 Freddy's feel check of PR #9: the one-piece edge fix works on his Wraith, but his photo of it wasn't

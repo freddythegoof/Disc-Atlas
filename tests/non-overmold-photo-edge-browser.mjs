@@ -1,22 +1,24 @@
-// Non-overmold photo discs reach the edge (Oct 16): a one-piece disc's photo carries its own pixels out over
-// the shoulder to the nose, where the face used to stop at the shoulder and leave a ring of flat plate-colour
-// plastic that read as an added rim. Overmolds still stop at the seam, byte for byte.
+// Photos stop at the shoulder (Oct 16 revert, docs/photo-edge-revert.md): a one-piece disc's photo covers the
+// top inside the shoulder cut (Rs) and the rim is generated plastic in the photo-matched colour; an overmold's
+// photo stops at its seam (Ri) and its rim piece wears the sampled rim colour. Stored textures draw as stored:
+// no load-time cleanup, no aligner snap.
 //
-// Fixtures for Freddy's two cases plus a control, uploaded through the real editor on a local Wrangler + D1:
-//   stamp  Wraith, a full-front "30" stamp: diagonal stripes and the numerals run to the physical edge.
-//   halo   Wraith, Halo-style purple: a pale band in the plastic from 0.80 R to the edge, in the photo.
-//   pixel  Pixel (overmold control): orange plate to the seam, a dark rim piece outside it.
-// Each runs in the detail panel (top and 3/4), My Bag pulled, and Storage pulled, first on the pre-fix photo.mjs
-// (EDGE_BASE, the merge before the fix; served in place of the working copy), then on the working copy, so
-// before and after come from one run and one GPU. EDGE_BEFORE=0 skips the before half.
+// Cases (tests/photo-edge-shared.mjs): stamp, halo, wraith and clean (one piece), pixel (overmold), each uploaded
+// through the real editor on a local Wrangler + D1, into the bag and into Storage. Each draws in the detail panel
+// (top and 3/4), My Bag pulled and Storage pulled.
+//
+// EDGE_REFERENCE=<built checkout> draws every surface through that tree first, then through this one, in one run
+// on one GPU, and requires the same photo meshes, the same texture bytes and the same pixels (GPU tolerance).
+// EDGE_REFERENCE_SAME=0 records the comparison without requiring it (a contrast run).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
+import {caseList,addDisc,referenceTree,pixelDiff} from './photo-edge-shared.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
-const config='tests/auth.wrangler.jsonc',state='work/non-overmold-photo-edge/local',base='https://localhost:8841',dir='outputs/non-overmold-photo-edge';
-const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
+const config='tests/auth.wrangler.jsonc',state='work/non-overmold-photo-edge/local',base='https://localhost:8841',dir='outputs/photo-edge';
+const wrangler='node_modules/wrangler/wrangler-dist/cli.js',SAME=process.env.EDGE_REFERENCE_SAME!=='0';
 fs.mkdirSync(dir,{recursive:true});
 const command=args=>execFileSync(process.execPath,[wrangler,...args,'--config',config,'--persist-to',state],{windowsHide:true,stdio:'pipe'});
 execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
@@ -25,13 +27,15 @@ command(['d1','execute','disc-atlas-accounts','--local','--command','DELETE FROM
 const server=spawn(process.execPath,[wrangler,'dev','--config',config,'--local','--port','8841','--ip','127.0.0.1','--local-protocol','https','--inspector-port','0','--persist-to',state],{windowsHide:true,stdio:['ignore','pipe','pipe']});
 let output='',browser;for(const stream of [server.stdout,server.stderr])stream.on('data',d=>output+=d);
 const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
-const before=process.env.EDGE_BEFORE==='0'?null:execFileSync('git',['show',(process.env.EDGE_BASE||'0dedf8a')+':public/disc3d/photo.mjs'],{encoding:'utf8'});
 const metrics={};
 try{
  const deadline=Date.now()+45000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(output);await new Promise(r=>setTimeout(r,200));}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.env.BAG3D_CHROMIUM_ARGS?.split(' ')||['--use-angle=d3d11','--enable-gpu']});
- const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),errors=[];
+ const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),errors=[],requests=[];
+ const reference=await referenceTree(context,base);
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
+ // This tree's requests only: a reference half fetches whatever its own tree does.
+ context.on('request',r=>{if(!reference?.on)requests.push(r.url());});
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{
   const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64');
   const callback=new URL(u.searchParams.get('redirect_uri'));callback.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();
@@ -43,53 +47,45 @@ try{
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
 
- // The three photos, as a phone would frame them: the disc at the editor's default crop (0.94 of the frame)
- // on a dark table. Ri/R is the Pixel's own seam, so its rim fills exactly the rim piece.
- const COLORS={stripeA:'#f2c230',stripeB:'#1d3f8f',purple:'#5b2a86',band:'#e9c8f7',orange:'#b45a28',rim:'#101418'};
- const fixtures=await page.evaluate(async C=>{
-  const {shapeForDisc,shapeFrame}=await import('/disc3d/shape.mjs');
-  const pixel=discs.find(d=>d.name==='Pixel'),{shape}=shapeForDisc({model:pixel.model3d,specs:pixel.specs,flight:{speed:pixel.speed,turn:pixel.turn,fade:pixel.fade}}),{R,Ri}=shapeFrame(shape);
-  const n=1024,c=n/2,r=n*.47,png=async draw=>{const canvas=document.createElement('canvas');canvas.width=canvas.height=n;const g=canvas.getContext('2d');
-   g.fillStyle='#2a2d33';g.fillRect(0,0,n,n);g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();draw(g);g.restore();
-   return [...new Uint8Array(await (await new Promise(res=>canvas.toBlob(res,'image/png'))).arrayBuffer())];};
-  return {
-   stamp:await png(g=>{
-    g.fillStyle=C.stripeA;g.fillRect(0,0,n,n);g.fillStyle=C.stripeB;
-    g.save();g.translate(c,c);g.rotate(Math.PI/4);for(let x=-n;x<n;x+=72)g.fillRect(x,-n,36,2*n);g.restore();
-    g.font='900 560px Arial Black, Arial, sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=28;g.strokeStyle='#111';g.strokeText('30',c,c+30);g.fillStyle='#fff';g.fillText('30',c,c+30);
-   }),
-   halo:await png(g=>{
-    const ring=g.createRadialGradient(c,c,0,c,c,r);ring.addColorStop(0,C.purple);ring.addColorStop(.78,C.purple);ring.addColorStop(.84,C.band);ring.addColorStop(1,C.band);
-    g.fillStyle=ring;g.fillRect(0,0,n,n);g.fillStyle='#d8b04a';g.font='700 64px Arial, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('WRAITH',c,c);
-   }),
-   pixel:await png(g=>{
-    g.fillStyle=C.rim;g.fillRect(0,0,n,n);g.fillStyle=C.orange;g.beginPath();g.arc(c,c,r*Ri/R,0,Math.PI*2);g.fill();
-    g.fillStyle='#111';g.fillRect(c-24,c-200,48,400);
-   }),
-   seam:Ri/R,
-  };
- },COLORS);
- for(const k of ['stamp','halo','pixel'])fs.writeFileSync(`${dir}/fixture-${k}.png`,Buffer.from(fixtures[k]));
- const add=async(name,photo,destination)=>{
-  await page.evaluate(({name,destination})=>{const d=discs.find(d=>d.name===name&&/Innova|Axiom/.test(d.manufacturer));if(!d)throw Error('Missing mold '+name);return BagApp.add(d,null,destination);},{name,destination});
-  await page.locator('#addDiscDialog').waitFor();
-  await page.locator('.bag-photo-file').setInputFiles(photo);await page.locator('.photo-aligner[open]').waitFor();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();
-  await page.locator('#saveDisc').click();
-  await page.locator('#addDiscDialog').waitFor({state:'hidden'}).catch(async e=>{await page.screenshot({path:`${dir}/failure-add.png`});throw Error(e.message+' | Dialog: '+await page.locator('#addDiscDialog').innerText());});
- };
- const CASES=[['stamp','Wraith'],['halo','Wraith'],['pixel','Pixel']];
- for(const destination of ['bag','storage'])for(const [k,mold] of CASES)await add(mold,{name:k+'.png',mimeType:'image/png',buffer:Buffer.from(fixtures[k])},destination);
- const data=await (await page.request.get(base+'/api/bag')).json();
- assert.equal(data.discs.length,6);
- const ids={bag:{},storage:{}};data.discs.forEach((d,i)=>{ids[i<3?'bag':'storage'][CASES[i%3][0]]=d.id;});
- // Product law: classification is the catalog's, never the photo's. No rim sample on the Wraiths.
- const stored=Object.fromEntries(data.discs.map((d,i)=>[(i<3?'bag-':'storage-')+CASES[i%3][0],{in_bag:d.in_bag,photo_rim_color:d.photo_rim_color,rim_color:d.rim_color,color:d.color}]));
- metrics.stored=stored;
- for(const where of ['bag','storage']){assert.equal(stored[where+'-stamp'].photo_rim_color,null);assert.equal(stored[where+'-halo'].photo_rim_color,null);assert.ok(stored[where+'-pixel'].photo_rim_color,'the Pixel samples its rim');}
+ // Geometry: every photo mesh ends at the shoulder (one piece) or the seam (overmold), whatever else is passed.
+ metrics.geometry=await page.evaluate(async()=>{
+  const {photoGeometry}=await import('/disc3d/photo.mjs'),{shapeForDisc,shapeFrame}=await import('/disc3d/shape.mjs'),{isOvermold}=await import('/disc3d/overmold.mjs');
+  const out={};
+  for(const name of ['Wraith','Destroyer','Thunderbird','Aviar','Pixel','Atlas']){
+   const d=discs.find(d=>d.name===name&&/Innova|Axiom/.test(d.manufacturer)),overmold=isOvermold({...d,record:d.name});
+   const {shape}=shapeForDisc({model:d.model3d,specs:d.specs,flight:{speed:d.speed,turn:d.turn,fade:d.fade}}),{R,Rs,Ri}=shapeFrame(shape);
+   const g=photoGeometry(shape,{overmold}),asked=photoGeometry(shape,{overmold,edge:true}),p=g.attributes.position;
+   let reach=0;for(let i=0;i<p.count;i++)reach=Math.max(reach,Math.hypot(p.getX(i),p.getZ(i)));
+   const same=['position','uv','normal'].every(k=>g.attributes[k].array.length===asked.attributes[k].array.length&&g.attributes[k].array.every((v,i)=>v===asked.attributes[k].array[i]));
+   out[name]={overmold,reach:+(reach/R).toFixed(4),stop:+((overmold?Ri:Rs)/R).toFixed(4),shoulder:+(Rs/R).toFixed(4),ignoresEdge:same,triangles:g.index.count/3};
+   g.dispose();asked.dispose();
+  }
+  return out;
+ });
+ for(const [name,g] of Object.entries(metrics.geometry)){
+  assert.equal(g.reach,g.stop,`${name}: the photo stops at the ${g.overmold?'seam':'shoulder'} (${JSON.stringify(g)})`);
+  assert.ok(g.ignoresEdge,`${name}: no edge path; the same mesh whatever is asked`);
+ }
+ // The cleanup layer and the aligner snap are gone from the served tree.
+ const gone=await page.evaluate(async()=>{const photo=await import('/disc3d/photo.mjs'),editor=await import('/disc-photo.mjs');return {photoCleanup:'photoCleanup' in photo,snapToDisc:'snapToDisc' in editor,cleanModule:await fetch('/disc3d/photo-clean.mjs?probe').then(r=>r.ok&&!!r.headers.get('content-type')?.includes('javascript'))};});
+ assert.deepEqual(gone,{photoCleanup:false,snapToDisc:false,cleanModule:false},'no cleanup or snap left in the tree');
+
+ const {cases:CASES,seam}=await caseList(page,['stamp','halo','wraith','clean','pixel']);
+ for(const destination of ['bag','storage'])for(const [,c] of CASES)await addDisc(page,dir,c,destination);
+ assert.equal(await page.locator('.photo-aligner-snap').count(),0,'the aligner has no snap line');
+ const data=await (await page.request.get(base+'/api/bag')).json(),n=CASES.length;
+ assert.equal(data.discs.length,2*n);
+ const ids={bag:{},storage:{}};data.discs.forEach((d,i)=>{ids[i<n?'bag':'storage'][CASES[i%n][0]]=d.id;});
+ // Product law: classification is the catalog's, never the photo's. Only the overmold samples a rim.
+ metrics.stored=Object.fromEntries(data.discs.map((d,i)=>[(i<n?'bag-':'storage-')+CASES[i%n][0],{photo_rim_color:d.photo_rim_color,rim_color:d.rim_color,color:d.color}]));
+ for(const where of ['bag','storage'])for(const [k] of CASES){
+  if(k==='pixel')assert.ok(metrics.stored[where+'-pixel'].photo_rim_color,'the Pixel samples its rim');
+  else assert.equal(metrics.stored[where+'-'+k].photo_rim_color,null,`${k}: one piece, no rim sample`);
+ }
 
  // Rings of a screenshot around a known centre: mean colour, and how often the brightness crosses its own
  // mean around the ring (a plain plastic ring crosses ~0 times; the stamp's stripes dozens).
- const rings=(png,{cx,cy,R},on=page)=>on.evaluate(async({b64,cx,cy,R})=>{
+ const rings=(png,{cx,cy,R})=>page.evaluate(async({b64,cx,cy,R})=>{
   const img=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=new OffscreenCanvas(img.width,img.height),g=c.getContext('2d');g.drawImage(img,0,0);
   const d=g.getImageData(0,0,img.width,img.height).data,out={};
   for(const f of [.6,.75,.8,.85,.88,.91,.94,.97]){
@@ -104,6 +100,16 @@ try{
 
  const surfaces=async label=>{
   const result={};
+  // Texture cost: each stored photo fetched and decoded fresh at the detail size, to its texture (where a load-time
+  // cleanup would sit). One warm-up, then the median of three per photo.
+  await page.goto(base+'/?bag=1');await page.locator(`[data-bag-edit="${ids.bag.stamp}"]`).waitFor();
+  result.textureMs=await page.evaluate(async urls=>{
+   const {acquirePhoto,clearPhotoCache}=await import('/disc3d/photo.mjs'),out={};
+   const once=async url=>{clearPhotoCache();const t=performance.now(),h=acquirePhoto(url,1024);await h.ready;const ms=performance.now()-t;h.release();return ms;};
+   await once(Object.values(urls)[0]);
+   for(const [k,url] of Object.entries(urls)){const runs=[await once(url),await once(url),await once(url)].sort((a,b)=>a-b);out[k]=+runs[1].toFixed(1);}
+   clearPhotoCache();return out;
+  },Object.fromEntries(data.discs.slice(0,n).map((d,i)=>[CASES[i][0],'/api/bag/discs/'+encodeURIComponent(d.id)+'/photo?v='+encodeURIComponent(d.texture_key)])));
   // Detail panel: the top view (where the ring is measured) and the default 3/4 view.
   await page.goto(base+'/?bag=1');await page.locator(`[data-bag-edit="${ids.bag.stamp}"]`).waitFor();
   for(const [k] of CASES){
@@ -116,17 +122,20 @@ try{
     const cam=v.debug.camera,body=v.debug.body,V=cam.position.constructor,rect=v.debug.renderer.domElement.getBoundingClientRect();
     body.updateWorldMatrix(true,false);cam.updateMatrixWorld();let l=1e9,r=-1e9,t=1e9,b=-1e9;
     for(let i=0;i<64;i++){const a=i/64*Math.PI*2,p=new V(Math.cos(a)*v.state.radius,0,Math.sin(a)*v.state.radius).applyMatrix4(body.matrixWorld).project(cam),x=(p.x+1)/2*rect.width,y=(1-p.y)/2*rect.height;l=Math.min(l,x);r=Math.max(r,x);t=Math.min(t,y);b=Math.max(b,y);}
-    const geometry=v.debug.photo.geometry,g=geometry.attributes.position;let reach=0;for(let i=0;i<g.count;i++)reach=Math.max(reach,Math.hypot(g.getX(i),g.getZ(i)));
-    // FNV-1a over the photo mesh's bytes: the same hash before and after is the same geometry.
-    let hash=0x811c9dc5;for(const array of [g.array,geometry.attributes.uv.array,geometry.attributes.normal.array,geometry.index.array])for(const byte of new Uint8Array(array.buffer,array.byteOffset,array.byteLength))hash=Math.imul(hash^byte,16777619)>>>0;
+    const mesh=v.debug.photo,geometry=mesh.geometry,g=geometry.attributes.position;let reach=0;for(let i=0;i<g.count;i++)reach=Math.max(reach,Math.hypot(g.getX(i),g.getZ(i)));
+    // FNV-1a over the photo mesh's bytes, and over the texture's own pixels as decoded: the same hash is the same.
+    const fnv=(arrays,h=0x811c9dc5)=>{for(const array of arrays)for(const byte of new Uint8Array(array.buffer,array.byteOffset,array.byteLength))h=Math.imul(h^byte,16777619)>>>0;return h.toString(16);};
+    const image=mesh.material.map.image,c=new OffscreenCanvas(image.width,image.height),cg=c.getContext('2d');cg.drawImage(image,0,0);
     // Frame cost: 120 forced frames, closed by a pixel read so the GPU work is inside the timing.
     const gl=v.debug.renderer.getContext(),px=new Uint8Array(4);v.debug.renderNow();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
     const t0=performance.now();for(let i=0;i<120;i++)v.debug.renderNow();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const ms=(performance.now()-t0)/120;
-    return {clip:{x:rect.left+l-6,y:rect.top+t-6,width:r-l+12,height:b-t+12},R:(r-l)/2,photoReach:reach/v.state.radius,hash:hash.toString(16),triangles:geometry.index.count/3,ms,overmold:v.state.overmold,multi:Array.isArray(v.debug.body.material),rim:v.state.overmold?'#'+v.debug.rimMaterial.color.getHexString():null};
+    return {clip:{x:rect.left+l-6,y:rect.top+t-6,width:r-l+12,height:b-t+12},R:(r-l)/2,photoReach:reach/v.state.radius,
+     mesh:fnv([g.array,geometry.attributes.uv.array,geometry.attributes.normal.array,geometry.index.array]),texture:fnv([cg.getImageData(0,0,image.width,image.height).data]),textureSize:[image.width,image.height],
+     triangles:geometry.index.count/3,ms,overmold:v.state.overmold,multi:Array.isArray(v.debug.body.material),rim:v.state.overmold?'#'+v.debug.rimMaterial.color.getHexString():null};
    });
    await page.waitForTimeout(150);
    const png=await page.screenshot({clip:top.clip,path:`${dir}/${label}-${k}-panel-top.png`});
-   result[k]={panel:{photoReach:+top.photoReach.toFixed(4),hash:top.hash,triangles:top.triangles,frameMs:+top.ms.toFixed(3),overmold:top.overmold,multi:top.multi,rim:top.rim,rings:await rings(png,{cx:top.clip.width/2,cy:top.clip.height/2,R:top.R})}};
+   result[k]={panel:{photoReach:+top.photoReach.toFixed(4),mesh:top.mesh,texture:top.texture,textureSize:top.textureSize,triangles:top.triangles,frameMs:+top.ms.toFixed(3),overmold:top.overmold,multi:top.multi,rim:top.rim,rings:await rings(png,{cx:top.clip.width/2,cy:top.clip.height/2,R:top.R})}};
    await page.evaluate(()=>Disc3D.viewer.setView('angle',{instant:true}));
    await page.locator('#closeDetail').click();
   }
@@ -167,50 +176,47 @@ try{
   }
   return result;
  };
- // Two screenshots of one surface: the largest channel difference and how many pixels moved at all.
- const diff=(a,b)=>page.evaluate(async([a,b])=>{
-  const read=async b64=>{const img=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=new OffscreenCanvas(img.width,img.height),g=c.getContext('2d');g.drawImage(img,0,0);return {w:img.width,h:img.height,d:g.getImageData(0,0,img.width,img.height).data};};
-  const x=await read(a),y=await read(b);if(x.w!==y.w||x.h!==y.h)return {size:[x.w,x.h,y.w,y.h]};
-  let max=0,moved=0,over8=0;for(let i=0;i<x.d.length;i+=4){const m=Math.max(...[0,1,2].map(c=>Math.abs(x.d[i+c]-y.d[i+c])));if(m){moved++;max=Math.max(max,m);}if(m>8)over8++;}
-  return {max,moved,over8,pixels:x.w*x.h};
- },[a,b].map(f=>fs.readFileSync(f).toString('base64')));
 
- if(before){
-  await page.route('**/disc3d/photo.mjs',route=>route.fulfill({status:200,contentType:'text/javascript',body:before}));
-  metrics.before=await surfaces('before');
-  await page.unroute('**/disc3d/photo.mjs');
+ if(reference){
+  reference.on=true;metrics.reference=await surfaces('reference');reference.on=false;
+  metrics.referenceServed=reference.served;assert.ok(reference.served>0,'the reference tree answered the asset requests');
  }
- const label=before?'after':'current',after=metrics.after=await surfaces(label);
- if(before){
+ const label=reference?'current':'shoulder',now=metrics.current=await surfaces(label);
+ if(reference){
   metrics.pixelDiff={};
-  for(const k of ['stamp','halo','pixel'])for(const s of ['panel-angle','panel-top','bag-pulled','storage-pulled'])metrics.pixelDiff[k+'-'+s]=await diff(`${dir}/before-${k}-${s}.png`,`${dir}/after-${k}-${s}.png`);
+  for(const [k] of CASES)for(const s of ['panel-angle','panel-top','bag-pulled','storage-pulled'])metrics.pixelDiff[k+'-'+s]=await pixelDiff(page,`${dir}/reference-${k}-${s}.png`,`${dir}/current-${k}-${s}.png`);
  }
+ metrics.cleanupRequests=requests.filter(u=>/photo-clean/.test(u)&&!u.endsWith('?probe'));
  fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(metrics,null,2));
+
  const ring=(m,f)=>m.rings[f],channels=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)),OUTER=[.88,.91,.94,.97];
- for(const k of ['stamp','halo']){
-  const p=after[k].panel;
-  assert.deepEqual([p.overmold,p.multi,p.rim],[false,false,null],`${k}: a Wraith stays one piece, one material`);
-  assert.ok(p.photoReach>=1&&p.photoReach<1.003,`${k}: the photo reaches the nose (${p.photoReach} R)`);
-  assert.equal(after[k].bag.overmold,false);
+ for(const [k] of CASES.filter(([k])=>k!=='pixel')){
+  const p=now[k].panel,mold=k==='clean'?'Thunderbird':'Wraith';
+  assert.deepEqual([p.overmold,p.multi,p.rim],[false,false,null],`${k}: one piece, one material`);
+  assert.ok(Math.abs(p.photoReach-metrics.geometry[mold].shoulder)<1e-3,`${k}: the photo stops at the shoulder (${p.photoReach} R, shoulder ${metrics.geometry[mold].shoulder})`);
+  assert.equal(now[k].bag.overmold,false);
  }
- // (a) The stamp's stripes keep crossing every outer ring, on the panel and the pulled bag disc.
- for(const s of ['panel','bag'])for(const f of OUTER)assert.ok(ring(after.stamp[s],f).crossings>=20,`stamp ${s}: stripes reach ${f} R (${JSON.stringify(ring(after.stamp[s],f))})`);
- // (b) The outer rings are the photo's own pale band, not the plate's purple.
- for(const s of ['panel','bag'])for(const f of OUTER)assert.ok(Math.min(...channels(ring(after.halo[s],f).rgb))>=0xc8,`halo ${s}: the band at ${f} R is the photo's (${ring(after.halo[s],f).rgb})`);
+ // The shoulder is generated plastic: the stamp's stripes stop inside it, on the panel and the pulled bag disc
+ // (at most the key light's one highlight arc), and the halo's outer rings are the plate's purple, not the band.
+ for(const s of ['panel','bag'])for(const f of OUTER){
+  assert.ok(ring(now.stamp[s],f).crossings<=2,`stamp ${s}: plain plastic at ${f} R (${JSON.stringify(ring(now.stamp[s],f))})`);
+  assert.ok(Math.min(...channels(ring(now.halo[s],f).rgb))<0xc8,`halo ${s}: the plate's colour at ${f} R, not the photo's band (${ring(now.halo[s],f).rgb})`);
+ }
  // Control: the Pixel's photo stops at its seam and its rim piece keeps its sampled colour.
- const pix=after.pixel.panel;
+ const pix=now.pixel.panel;
  assert.deepEqual([pix.overmold,pix.multi,pix.rim],[true,true,'#101418']);
- assert.ok(Math.abs(pix.photoReach-fixtures.seam)<1e-3,`the Pixel's photo stops at the seam (${pix.photoReach} R, seam ${fixtures.seam.toFixed(4)})`);
- if(before){
-  for(const k of ['stamp','halo'])assert.ok(Math.abs(metrics.before[k].panel.photoReach-.8274)<1e-3,`${k} before: stopped at the shoulder`);
-  for(const f of OUTER)assert.equal(ring(metrics.before.stamp.panel,f).crossings,0,'the before half reproduces the plain ring');
-  assert.equal(metrics.before.pixel.panel.hash,pix.hash,'the Pixel photo mesh is byte-identical');
-  assert.deepEqual(metrics.before.pixel.panel.rings,pix.rings,'and its rings read the same');
-  assert.equal(metrics.before.pixel.panel.rim,pix.rim);
-  // The Pixel draws the same before and after; the rack is never quite still (its lights and hover settle on
-  // their own clock), so every surface gets a hair of tolerance and the bytes are reported.
-  for(const s of ['panel-angle','panel-top','bag-pulled','storage-pulled']){const d=metrics.pixelDiff['pixel-'+s];assert.ok(!d.size&&d.over8<=d.pixels*.002,`pixel ${s}: unchanged (${JSON.stringify(d)})`);}
+ assert.ok(Math.abs(pix.photoReach-seam)<1e-3,`the Pixel's photo stops at the seam (${pix.photoReach} R, seam ${seam.toFixed(4)})`);
+ assert.deepEqual(metrics.cleanupRequests,[],'no cleanup module or worker is fetched');
+ if(reference&&SAME){
+  // Same geometry and the same texture bytes, so the same drawing; the screens get a hair of GPU tolerance
+  // (the rack's lights and hover settle on their own clock).
+  for(const [k] of CASES){
+   const a=metrics.reference[k].panel,b=now[k].panel;
+   assert.deepEqual([a.mesh,a.texture,a.photoReach,a.rim],[b.mesh,b.texture,b.photoReach,b.rim],`${k}: the reference draws the same photo mesh and texture`);
+   for(const s of ['panel-angle','panel-top','bag-pulled','storage-pulled']){const d=metrics.pixelDiff[k+'-'+s];assert.ok(!d.size&&d.over8<=d.pixels*.002,`${k} ${s}: the same as the reference (${JSON.stringify(d)})`);}
+  }
  }
  assert.deepEqual(errors,[]);
- console.log(`ok - one-piece photos run to the nose: stamp stripes ${OUTER.map(f=>ring(after.stamp.panel,f).crossings).join('/')} crossings at ${OUTER.join('/')} R, halo band ${ring(after.halo.panel,.94).rgb}; Pixel ${before?'byte-identical mesh, '+['panel-angle','bag-pulled'].map(s=>s+' max diff '+metrics.pixelDiff['pixel-'+s].max).join(', '):'stops at its seam'}; frame ${['stamp','pixel'].map(k=>k+' '+after[k].panel.frameMs+' ms').join(', ')}`);
+ const cmp=reference?'; vs reference '+CASES.map(([k])=>k+' '+Math.max(...['panel-angle','panel-top','bag-pulled','storage-pulled'].map(s=>metrics.pixelDiff[k+'-'+s].max))).join(', ')+' max diff':'';
+ console.log(`ok - photos stop at the shoulder: stamp ${OUTER.map(f=>ring(now.stamp.panel,f).crossings).join('/')} crossings at ${OUTER.join('/')} R, halo ${ring(now.halo.panel,.94).rgb} at 0.94 R; Pixel stops at its seam, rim ${pix.rim}; texture ${Object.entries(now.textureMs).map(([k,v])=>k+' '+v).join(', ')} ms${cmp}`);
 }finally{await browser?.close();server.kill();}

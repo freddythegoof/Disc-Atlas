@@ -1,22 +1,22 @@
-// Non-overmold photo discs reach the edge in the atlas's top-down renders too (Oct 16): the My Bag list
-// thumbnails and My Map's photo discs (atlas-art.mjs) draw a one-piece disc's photo over the shoulder to the
-// nose, where they used to stop at the shoulder and leave a ring of plate-colour plastic. Overmolds stay as they were.
+// Photos stop at the shoulder in the atlas's top-down renders too (Oct 16 revert, docs/photo-edge-revert.md):
+// the My Bag list thumbnails and My Map's photo discs (atlas-art.mjs) draw a one-piece disc's photo inside the
+// shoulder cut, the same photo mesh as every other surface; overmolds stop at the seam.
 //
-// Fixtures, uploaded through the real editor on a local Wrangler + D1 (as in non-overmold-photo-edge-browser.mjs):
-//   stamp  Wraith, a full-front "30" stamp: diagonal stripes and the numerals run to the physical edge.
-//   pixel  Pixel (overmold control): orange plate to the seam, a dark rim piece outside it.
-// Each is read from the list thumbnail's canvas and from its My Map marker's canvas, first with the pre-fix
-// atlas-art.mjs (EDGE_ATLAS_BASE, served in place of the working copy), then with the working copy, so
-// before and after come from one run and one GPU. It also times a photo disc's atlas render both ways.
-// EDGE_BEFORE=0 skips the before half.
+// Cases (tests/photo-edge-shared.mjs): stamp, wraith and clean (one piece), pixel (overmold), uploaded through
+// the real editor on a local Wrangler + D1, each read from the list thumbnail's canvas and its My Map marker's
+// canvas. It also times a photo disc's atlas render.
+//
+// EDGE_REFERENCE=<built checkout> draws every surface through that tree first, then through this one, in one run
+// on one GPU, and requires the same pixels (GPU tolerance). EDGE_REFERENCE_SAME=0 only records the comparison.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
+import {caseList,addDisc,referenceTree,pixelDiff} from './photo-edge-shared.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
-const config='tests/auth.wrangler.jsonc',state='work/non-overmold-photo-edge-atlas/local',base='https://localhost:8842',dir='outputs/non-overmold-photo-edge-atlas';
-const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
+const config='tests/auth.wrangler.jsonc',state='work/non-overmold-photo-edge-atlas/local',base='https://localhost:8842',dir='outputs/photo-edge-atlas';
+const wrangler='node_modules/wrangler/wrangler-dist/cli.js',SAME=process.env.EDGE_REFERENCE_SAME!=='0';
 fs.mkdirSync(dir,{recursive:true});
 const command=args=>execFileSync(process.execPath,[wrangler,...args,'--config',config,'--persist-to',state],{windowsHide:true,stdio:'pipe'});
 execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
@@ -25,13 +25,13 @@ command(['d1','execute','disc-atlas-accounts','--local','--command','DELETE FROM
 const server=spawn(process.execPath,[wrangler,'dev','--config',config,'--local','--port','8842','--ip','127.0.0.1','--local-protocol','https','--inspector-port','0','--persist-to',state],{windowsHide:true,stdio:['ignore','pipe','pipe']});
 let output='',browser;for(const stream of [server.stdout,server.stderr])stream.on('data',d=>output+=d);
 const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
-const before=process.env.EDGE_BEFORE==='0'?null:execFileSync('git',['show',(process.env.EDGE_ATLAS_BASE||'500dae4')+':public/disc3d/atlas-art.mjs'],{encoding:'utf8'});
 const metrics={};
 try{
  const deadline=Date.now()+45000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(output);await new Promise(r=>setTimeout(r,200));}
  // A real GPU: the atlas art refuses software WebGL and keeps its 2D orbs.
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.env.BAG3D_CHROMIUM_ARGS?.split(' ')||['--use-angle=d3d11','--enable-gpu']});
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000},deviceScaleFactor:2}),errors=[];
+ const reference=await referenceTree(context,base);
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
  // Rings of a canvas whose disc spans all but a pixel at each edge (the atlas art's `fill`): mean colour,
  // and how often the brightness crosses its own mean around the ring (plain plastic ~0, the stripes dozens).
@@ -57,43 +57,18 @@ try{
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
 
- // The photos as a phone would frame them: the disc at the editor's default crop (0.94 of the frame) on a
- // dark table. Ri/R is the Pixel's own seam, so its rim fills exactly the rim piece.
- const COLORS={stripeA:'#f2c230',stripeB:'#1d3f8f',orange:'#b45a28',rim:'#101418'};
- const fixtures=await page.evaluate(async C=>{
-  const {shapeForDisc,shapeFrame}=await import('/disc3d/shape.mjs');
-  const pixel=discs.find(d=>d.name==='Pixel'),{shape}=shapeForDisc({model:pixel.model3d,specs:pixel.specs,flight:{speed:pixel.speed,turn:pixel.turn,fade:pixel.fade}}),{R,Ri}=shapeFrame(shape);
-  const n=1024,c=n/2,r=n*.47,png=async draw=>{const canvas=document.createElement('canvas');canvas.width=canvas.height=n;const g=canvas.getContext('2d');
-   g.fillStyle='#2a2d33';g.fillRect(0,0,n,n);g.save();g.beginPath();g.arc(c,c,r,0,Math.PI*2);g.clip();draw(g);g.restore();
-   return [...new Uint8Array(await (await new Promise(res=>canvas.toBlob(res,'image/png'))).arrayBuffer())];};
-  return {
-   stamp:await png(g=>{
-    g.fillStyle=C.stripeA;g.fillRect(0,0,n,n);g.fillStyle=C.stripeB;
-    g.save();g.translate(c,c);g.rotate(Math.PI/4);for(let x=-n;x<n;x+=72)g.fillRect(x,-n,36,2*n);g.restore();
-    g.font='900 560px Arial Black, Arial, sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=28;g.strokeStyle='#111';g.strokeText('30',c,c+30);g.fillStyle='#fff';g.fillText('30',c,c+30);
-   }),
-   pixel:await png(g=>{
-    g.fillStyle=C.rim;g.fillRect(0,0,n,n);g.fillStyle=C.orange;g.beginPath();g.arc(c,c,r*Ri/R,0,Math.PI*2);g.fill();
-    g.fillStyle='#111';g.fillRect(c-24,c-200,48,400);
-   }),
-  };
- },COLORS);
- const add=async(name,photo)=>{
-  await page.evaluate(name=>{const d=discs.find(d=>d.name===name&&/Innova|Axiom/.test(d.manufacturer));if(!d)throw Error('Missing mold '+name);return BagApp.add(d,null,'bag');},name);
-  await page.locator('#addDiscDialog').waitFor();
-  await page.locator('.bag-photo-file').setInputFiles(photo);await page.locator('.photo-aligner[open]').waitFor();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();
-  await page.locator('#saveDisc').click();
-  await page.locator('#addDiscDialog').waitFor({state:'hidden'}).catch(async e=>{await page.screenshot({path:`${dir}/failure-add.png`});throw Error(e.message+' | Dialog: '+await page.locator('#addDiscDialog').innerText());});
- };
- const CASES=[['stamp','Wraith'],['pixel','Pixel']];
- for(const [k,mold] of CASES)await add(mold,{name:k+'.png',mimeType:'image/png',buffer:Buffer.from(fixtures[k])});
+ const {cases:CASES}=await caseList(page,['stamp','wraith','clean','pixel']);
+ for(const [,c] of CASES)await addDisc(page,dir,c,'bag');
  const data=await (await page.request.get(base+'/api/bag')).json();
- assert.equal(data.discs.length,2);
+ assert.equal(data.discs.length,CASES.length);
  const ids={},molds={},photos={};
  data.discs.forEach((d,i)=>{const k=CASES[i][0];ids[k]=d.id;molds[k]=d.mold_id;});
  metrics.stored=Object.fromEntries(data.discs.map((d,i)=>[CASES[i][0],{mold_id:d.mold_id,photo_rim_color:d.photo_rim_color,rim_color:d.rim_color,color:d.color}]));
  // Product law: classification is the catalog's, never the photo's.
- assert.equal(metrics.stored.stamp.photo_rim_color,null);assert.ok(metrics.stored.pixel.photo_rim_color,'the Pixel samples its rim');
+ for(const [k] of CASES){if(k==='pixel')assert.ok(metrics.stored.pixel.photo_rim_color,'the Pixel samples its rim');else assert.equal(metrics.stored[k].photo_rim_color,null);}
+ // Two cases share a mold (stamp and wraith are both Wraiths) and My Map draws one marker per mold, wearing one of
+ // its photos: the map half reads each marker as the case whose photo it wears.
+ const markers=[...new Set(Object.values(molds))],onMap=[];
 
  // The atlas art's finished (not placeholder) image of this photo, at any level, has been drawn.
  const finished=url=>page.waitForFunction(async url=>{const art=await (await import('/disc3d/atlas-art.mjs')).getAtlasArt();return [...art.debug.images.keys()].some(k=>k.endsWith('|'+url));},url,{timeout:20000});
@@ -123,66 +98,60 @@ try{
   await page.getByRole('radio',{name:'My Map'}).click();
   await page.waitForFunction(()=>myMap&&document.querySelector('#mapWrap').closest('#myMapHost'));
   await page.waitForFunction(()=>!cameraTween&&groupCache?.items===filtered&&!document.querySelector('#mapMarkers').classList.contains('is-regrouping'));
-  for(const [k] of CASES){
-   const marker=page.locator(`#mapMarkers .atlas-marker[data-cluster="${molds[k]}"]`);
-   await page.waitForFunction(async ({mold,url})=>{
-    const art=await (await import('/disc3d/atlas-art.mjs')).getAtlasArt(),canvas=document.querySelector(`#mapMarkers .atlas-marker[data-cluster="${mold}"] canvas.disc-art-3d`);
-    return !!canvas&&[...art.debug.images].some(([key,e])=>e.canvas===canvas&&key.endsWith('|'+url));
-   },{mold:molds[k],url:photos[k]},{timeout:20000});
+  for(const mold of markers){
+   const marker=page.locator(`#mapMarkers .atlas-marker[data-cluster="${mold}"]`),mine=CASES.map(([k])=>k).filter(k=>molds[k]===mold);
+   const url=await (await page.waitForFunction(async urls=>{
+    const art=await (await import('/disc3d/atlas-art.mjs')).getAtlasArt(),canvas=document.querySelector(`#mapMarkers .atlas-marker[data-cluster="${urls.mold}"] canvas.disc-art-3d`);
+    const hit=canvas&&[...art.debug.images].find(([key,e])=>e.canvas===canvas&&urls.list.some(u=>key.endsWith('|'+u)));
+    return hit&&hit[0].slice(hit[0].lastIndexOf('|')+1);
+   },{mold,list:mine.map(k=>photos[k])},{timeout:20000})).jsonValue(),k=mine.find(k=>photos[k]===url);
+   if(!onMap.includes(k))onMap.push(k);
    await page.waitForTimeout(300);
-   const box=await marker.locator('.disc-art').first().boundingBox();
+   // A full marker draws its art in the disc stack; a depth-tier dot (the Thunderbird here) in the dot itself.
+   const art=marker.locator('canvas.disc-art-3d').first(),box=await art.locator('..').boundingBox();
    await page.screenshot({path:`${dir}/${label}-${k}-mymap.png`,clip:{x:box.x-14,y:box.y-14,width:box.width+28,height:box.height+28}});
-   result[k].map=await save(await marker.locator('canvas.disc-art-3d').elementHandle(),`${label}-${k}-mymap-art`);
+   result[k].map=await save(await art.elementHandle(),`${label}-${k}-mymap-art`);
   }
   await page.locator('#myMapPanel').screenshot({path:`${dir}/${label}-mymap-panel.png`});
   // Cost: a fresh art context draws the Wraith's photo at the full level 60 times (a new plate colour
   // each, so none is a cache hit), after a warm-up pass once the photo has loaded. Mean ms per render,
   // readback into its image included (that is what the atlas pays per disc).
   result.cost=await page.evaluate(async ({mold,url})=>{
-   const {createAtlasArt}=await import('/disc3d/atlas-art.mjs'),{photoGeometry}=await import('/disc3d/photo.mjs');
+   const {createAtlasArt}=await import('/disc3d/atlas-art.mjs');
    const art=await createAtlasArt({dpr:2}),d={...discs.find(d=>d.id===mold),photoURL:url},plain=discs.find(d=>d.id===mold);
    art.render(d,'#808080',94);
    for(let i=0;i<200&&!art.has(d,'#808080',94);i++){await new Promise(r=>setTimeout(r,50));art.render(d,'#808080',94);}
    // Each pass its own colours: a colour drawn before is a cache hit.
    let pass=0;const time=disc=>{const base=0x204060+0x100000*pass++,t=performance.now();for(let i=0;i<60;i++)art.render(disc,'#'+(base+i*0x000203).toString(16),94);return +((performance.now()-t)/60).toFixed(3);};
    time(d);time(plain);
-   const out={photo:time(d),plain:time(plain),overmold:art.debug.shapeOf(d).overmold,triangles:{edge:photoGeometry(art.debug.shapeOf(d).shape,{edge:true}).index.count/3,shoulder:photoGeometry(art.debug.shapeOf(d).shape).index.count/3}};
+   const out={photo:time(d),plain:time(plain),overmold:art.debug.shapeOf(d).overmold};
    art.dispose();return out;
   },{mold:molds.stamp,url:photos.stamp});
   result.overmold=await page.evaluate(async m=>{const art=await (await import('/disc3d/atlas-art.mjs')).getAtlasArt();return Object.fromEntries(Object.entries(m).map(([k,id])=>[k,art.debug.shapeOf(discs.find(d=>d.id===id)).overmold]));},molds);
   return result;
  };
- // Two saved canvases: the largest channel difference and how many pixels moved at all.
- const diff=(a,b)=>page.evaluate(async([a,b])=>{
-  const read=async b64=>{const img=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=new OffscreenCanvas(img.width,img.height),g=c.getContext('2d');g.drawImage(img,0,0);return {w:img.width,h:img.height,d:g.getImageData(0,0,img.width,img.height).data};};
-  const x=await read(a),y=await read(b);if(x.w!==y.w||x.h!==y.h)return {size:[x.w,x.h,y.w,y.h]};
-  let max=0,moved=0,over8=0;for(let i=0;i<x.d.length;i+=4){const m=Math.max(...[0,1,2,3].map(c=>Math.abs(x.d[i+c]-y.d[i+c])));if(m){moved++;max=Math.max(max,m);}if(m>8)over8++;}
-  return {max,moved,over8,pixels:x.w*x.h};
- },[a,b].map(f=>fs.readFileSync(f).toString('base64')));
 
- if(before){
-  await page.route('**/disc3d/atlas-art.mjs',route=>route.fulfill({status:200,contentType:'text/javascript',body:before}));
-  metrics.before=await surfaces('before');
-  await page.unroute('**/disc3d/atlas-art.mjs');
+ if(reference){
+  reference.on=true;metrics.reference=await surfaces('reference');reference.on=false;
+  metrics.referenceServed=reference.served;assert.ok(reference.served>0,'the reference tree answered the asset requests');
  }
- const label=before?'after':'current',after=metrics.after=await surfaces(label);
- if(before){
+ const label=reference?'current':'shoulder',now=metrics.current=await surfaces(label);
+ if(reference){
   metrics.pixelDiff={};
-  for(const k of ['stamp','pixel'])for(const s of ['thumb','mymap-art'])metrics.pixelDiff[k+'-'+s]=await diff(`${dir}/before-${k}-${s}.png`,`${dir}/after-${k}-${s}.png`);
+  for(const [k] of CASES)for(const s of onMap.includes(k)?['thumb','mymap-art']:['thumb'])metrics.pixelDiff[k+'-'+s]=await pixelDiff(page,`${dir}/reference-${k}-${s}.png`,`${dir}/current-${k}-${s}.png`);
  }
  fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(metrics,null,2));
  const ring=(m,f)=>m.rings[f],OUTER=[.88,.91,.94,.97];
- assert.deepEqual(after.overmold,{stamp:false,pixel:true},'the catalog classifies: Wraith one piece, Pixel overmold');
- // The stamp's stripes keep crossing the shoulder's rings out to the nose, in the thumbnail and on My Map.
- for(const s of ['thumb','map'])for(const f of OUTER)assert.ok(ring(after.stamp[s],f).crossings>=12,`stamp ${s}: stripes reach ${f} R (${JSON.stringify(ring(after.stamp[s],f))})`);
- if(before){
-  // Plain plastic: at most the key light's one highlight arc on the shoulder (two crossings).
-  for(const s of ['thumb','map'])for(const f of OUTER)assert.ok(ring(metrics.before.stamp[s],f).crossings<=2,`the before half reproduces the plain ring (${s} ${f} R: ${JSON.stringify(ring(metrics.before.stamp[s],f))})`);
-  // The Pixel draws the same before and after: GPU canvases are not pixel-deterministic, so a hair of tolerance.
-  for(const s of ['thumb','mymap-art']){const d=metrics.pixelDiff['pixel-'+s];assert.ok(!d.size&&d.over8<=d.pixels*.002,`pixel ${s}: unchanged (${JSON.stringify(d)})`);}
-  for(const s of ['thumb','map'])for(const f of [.6,.8,.88,.94])assert.equal(ring(after.pixel[s],f).rgb,ring(metrics.before.pixel[s],f).rgb,`pixel ${s} ${f} R reads the same`);
+ assert.deepEqual(now.overmold,{stamp:false,wraith:false,clean:false,pixel:true},'the catalog classifies: Wraith and Thunderbird one piece, Pixel overmold');
+ // The shoulder is generated plastic: the stamp's stripes stop inside it, in the thumbnail and on My Map
+ // (at most the key light's one highlight arc, two crossings).
+ assert.ok(onMap.includes('stamp'),`My Map's Wraith marker wears the stamp photo (${onMap})`);
+ for(const s of ['thumb','map'])for(const f of OUTER)assert.ok(ring(now.stamp[s],f).crossings<=2,`stamp ${s}: plain plastic at ${f} R (${JSON.stringify(ring(now.stamp[s],f))})`);
+ if(reference&&SAME){
+  // GPU canvases are not pixel-deterministic, so a hair of tolerance.
+  for(const [key,d] of Object.entries(metrics.pixelDiff))assert.ok(!d.size&&d.over8<=d.pixels*.002,`${key}: the same as the reference (${JSON.stringify(d)})`);
  }
  assert.deepEqual(errors,[]);
  const cost=r=>`${r.cost.photo} ms photo / ${r.cost.plain} ms plain`;
- console.log(`ok - atlas photos run to the nose: stamp thumb ${OUTER.map(f=>ring(after.stamp.thumb,f).crossings).join('/')}, My Map ${OUTER.map(f=>ring(after.stamp.map,f).crossings).join('/')} crossings at ${OUTER.join('/')} R${before?` (before ${OUTER.map(f=>ring(metrics.before.stamp.thumb,f).crossings).join('/')})`:''}; Pixel ${before?'thumb max diff '+metrics.pixelDiff['pixel-thumb'].max+', map max diff '+metrics.pixelDiff['pixel-mymap-art'].max:'overmold'}; render ${before?'before '+cost(metrics.before)+', after ':''}${cost(after)}; photo mesh ${after.cost.triangles.shoulder} -> ${after.cost.triangles.edge} triangles`);
+ console.log(`ok - atlas photos stop at the shoulder: stamp thumb ${OUTER.map(f=>ring(now.stamp.thumb,f).crossings).join('/')}, My Map ${OUTER.map(f=>ring(now.stamp.map,f).crossings).join('/')} crossings at ${OUTER.join('/')} R; render ${reference?'reference '+cost(metrics.reference)+', ':''}${cost(now)}${reference?'; vs reference max diff '+Object.entries(metrics.pixelDiff).map(([k,d])=>k+' '+d.max).join(', '):''}`);
 }finally{await browser?.close();server.kill();}

@@ -56,8 +56,7 @@
     "test:photo-phone": "node tests/photo-compression-browser.mjs && node tests/photo-gestures-browser.mjs && node tests/photo-editor-contract-browser.mjs && node tests/photo-source-chooser-browser.mjs",
     "test:photo-rim": "node tests/photo-rim-color-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",
-    "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs",
-    "test:photo-cleanup": "node tests/photo-cleanup-taxonomy-browser.mjs && node tests/photo-cleanup-signatures-browser.mjs && node tests/photo-edge-cleanup-browser.mjs && node tests/photo-cleanup-round2-browser.mjs"
+    "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
