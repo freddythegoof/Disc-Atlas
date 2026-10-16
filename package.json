@@ -57,7 +57,7 @@
     "test:photo-rim": "node tests/photo-rim-color-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",
     "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs",
-    "test:photo-cleanup": "node tests/photo-cleanup-taxonomy-browser.mjs && node tests/photo-edge-cleanup-browser.mjs"
+    "test:photo-cleanup": "node tests/photo-cleanup-taxonomy-browser.mjs && node tests/photo-cleanup-signatures-browser.mjs && node tests/photo-edge-cleanup-browser.mjs && node tests/photo-cleanup-round2-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

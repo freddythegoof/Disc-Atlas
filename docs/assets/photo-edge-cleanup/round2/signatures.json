@@ -1,0 +1,553 @@
+{
+ "wraith": {
+  "truth": {
+   "x": 0.0721,
+   "y": 0,
+   "r": 0.973
+  },
+  "planMs": 180.1,
+  "before": {
+   "report": {
+    "edge": {
+     "x": 0.1049,
+     "y": 0.0223,
+     "r": 1.0133,
+     "inliers": 51,
+     "visible": 71
+    },
+    "register": {
+     "x": 0.1049,
+     "y": 0.0223,
+     "r": 1.0053
+    },
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 366,
+       "core": 220,
+       "span": 30.8
+      },
+      {
+       "pixels": 1247,
+       "core": 326,
+       "span": 93.8
+      },
+      {
+       "pixels": 212,
+       "core": 112,
+       "span": 6.7
+      },
+      {
+       "pixels": 316,
+       "core": 180,
+       "span": 7.4
+      },
+      {
+       "pixels": 36,
+       "core": 22,
+       "span": 2.9
+      }
+     ],
+     "pixels": 4314
+    },
+    "outside": {
+     "pixels": 1058,
+     "rare": 1,
+     "busy": 0.56
+    }
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 1.5,
+    "0.90": 3.9,
+    "0.95": 20.6
+   }
+  },
+  "after": {
+   "report": {
+    "edge": {
+     "x": 0.1049,
+     "y": 0.0223,
+     "r": 1.0133,
+     "inliers": 51,
+     "visible": 71,
+     "confidence": "likely"
+    },
+    "register": {
+     "x": 0.0663,
+     "y": -0.0025,
+     "r": 0.963
+    },
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 34,
+       "core": 18,
+       "span": 6.4
+      },
+      {
+       "pixels": 72,
+       "core": 37,
+       "span": 4.7
+      },
+      {
+       "pixels": 139,
+       "core": 73,
+       "span": 6.9
+      }
+     ],
+     "pixels": 3531
+    },
+    "ray": {
+     "x": 0.0663,
+     "y": -0.0025,
+     "r": 0.971,
+     "inliers": 84,
+     "visible": 94,
+     "confidence": "sure"
+    },
+    "outside": {
+     "pixels": 1392,
+     "rare": 0.865,
+     "foreign": 1,
+     "busy": 2.7
+    },
+    "stop": null,
+    "glare": 720,
+    "cut": 1849
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 0,
+    "0.90": 0.9,
+    "0.95": 0
+   }
+  },
+  "classified": "wrong-fit",
+  "evidence": {
+   "edge": {
+    "x": 0.1049,
+    "y": 0.0223,
+    "r": 1.0133,
+    "inliers": 51,
+    "visible": 71
+   },
+   "register": {
+    "x": 0.1049,
+    "y": 0.0223,
+    "r": 1.0053
+   },
+   "offTruth": 0.0403,
+   "patches": [
+    30.8,
+    93.8,
+    6.7,
+    7.4,
+    2.9
+   ],
+   "outerForeign": 20.6
+  }
+ },
+ "halo": {
+  "truth": {
+   "x": -0.0711,
+   "y": -0.0267,
+   "r": 0.96
+  },
+  "planMs": 110.2,
+  "before": {
+   "report": {
+    "edge": null,
+    "register": null,
+    "foreign": null
+   },
+   "changed": false,
+   "rings": {
+    "0.80": 0,
+    "0.85": 4.7,
+    "0.90": 36.8,
+    "0.95": 59.6
+   }
+  },
+  "after": {
+   "report": {
+    "edge": null,
+    "register": {
+     "x": -0.0741,
+     "y": -0.0269,
+     "r": 0.9538
+    },
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 821,
+       "core": 676,
+       "span": 52.8
+      },
+      {
+       "pixels": 627,
+       "core": 538,
+       "span": 36.2
+      }
+     ],
+     "pixels": 4775
+    },
+    "ray": {
+     "x": -0.0741,
+     "y": -0.0269,
+     "r": 0.9618,
+     "inliers": 83,
+     "visible": 101,
+     "confidence": "sure"
+    },
+    "outside": {
+     "pixels": 2199,
+     "rare": 1,
+     "foreign": 1,
+     "busy": 6.28
+    },
+    "stop": null,
+    "glare": 100,
+    "cut": 1831
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 0,
+    "0.90": 0,
+    "0.95": 0
+   }
+  },
+  "classified": "no-plan",
+  "evidence": {
+   "edge": null,
+   "register": null,
+   "offTruth": null,
+   "patches": [],
+   "outerForeign": 59.6
+  }
+ },
+ "pink": {
+  "truth": {
+   "x": 0,
+   "y": 0.027,
+   "r": 0.973
+  },
+  "planMs": 114.2,
+  "before": {
+   "report": {
+    "edge": null,
+    "register": null,
+    "foreign": null
+   },
+   "changed": false,
+   "rings": {
+    "0.80": 0.2,
+    "0.85": 3.5,
+    "0.90": 9.2,
+    "0.95": 54
+   }
+  },
+  "after": {
+   "report": {
+    "edge": null,
+    "register": null,
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 565,
+       "core": 551,
+       "span": 88.5
+      },
+      {
+       "pixels": 235,
+       "core": 101,
+       "span": 12
+      },
+      {
+       "pixels": 114,
+       "core": 30,
+       "span": 9.8
+      },
+      {
+       "pixels": 126,
+       "core": 35,
+       "span": 11.2
+      }
+     ],
+     "pixels": 2486
+    },
+    "ray": {
+     "x": -0.0013,
+     "y": 0.0318,
+     "r": 0.9801,
+     "inliers": 57,
+     "visible": 79,
+     "confidence": "likely"
+    },
+    "outside": {
+     "pixels": 107,
+     "rare": 0,
+     "foreign": 1,
+     "busy": 2.25
+    },
+    "stop": 0.9341
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 0,
+    "0.90": 0,
+    "0.95": 0
+   }
+  },
+  "classified": "no-plan",
+  "evidence": {
+   "edge": null,
+   "register": null,
+   "offTruth": null,
+   "patches": [],
+   "outerForeign": 54
+  }
+ },
+ "orange": {
+  "truth": {
+   "x": -0.1053,
+   "y": 0,
+   "r": 0.9474
+  },
+  "planMs": 122.5,
+  "before": {
+   "report": {
+    "edge": {
+     "x": -0.1236,
+     "y": -0.0189,
+     "r": 0.966,
+     "inliers": 68,
+     "visible": 97
+    },
+    "register": null,
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 909,
+       "core": 599,
+       "span": 88.7
+      }
+     ],
+     "pixels": 1873
+    },
+    "outside": {
+     "pixels": 3462,
+     "rare": 0.28,
+     "busy": 5.06
+    }
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 1.4,
+    "0.85": 26.7,
+    "0.90": 44.9,
+    "0.95": 59.5
+   }
+  },
+  "after": {
+   "report": {
+    "edge": {
+     "x": -0.1236,
+     "y": -0.0189,
+     "r": 0.966,
+     "inliers": 68,
+     "visible": 97,
+     "confidence": "likely"
+    },
+    "register": {
+     "x": -0.1053,
+     "y": -0.0015,
+     "r": 0.9397
+    },
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 1290,
+       "core": 1061,
+       "span": 96
+      }
+     ],
+     "pixels": 3483
+    },
+    "ray": {
+     "x": -0.1053,
+     "y": -0.0015,
+     "r": 0.9477,
+     "inliers": 102,
+     "visible": 107,
+     "confidence": "sure"
+    },
+    "outside": {
+     "pixels": 3719,
+     "rare": 0.24,
+     "foreign": 1,
+     "busy": 5.05
+    },
+    "stop": null,
+    "cut": 871
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 0,
+    "0.90": 0,
+    "0.95": 0
+   }
+  },
+  "classified": "no-plan",
+  "evidence": {
+   "edge": {
+    "x": -0.1236,
+    "y": -0.0189,
+    "r": 0.966,
+    "inliers": 68,
+    "visible": 97
+   },
+   "register": null,
+   "offTruth": null,
+   "patches": [
+    88.7
+   ],
+   "outerForeign": 59.5
+  }
+ },
+ "destroyer": {
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "planMs": 132.4,
+  "before": {
+   "report": {
+    "edge": {
+     "x": 0.1024,
+     "y": 0.1061,
+     "r": 1.0858,
+     "inliers": 36,
+     "visible": 43
+    },
+    "register": {
+     "x": 0.1024,
+     "y": 0.1061,
+     "r": 1.0778
+    },
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 544,
+       "core": 276,
+       "span": 11.7
+      },
+      {
+       "pixels": 1034,
+       "core": 587,
+       "span": 23.3
+      },
+      {
+       "pixels": 105,
+       "core": 41,
+       "span": 12.8
+      },
+      {
+       "pixels": 342,
+       "core": 153,
+       "span": 12.3
+      }
+     ],
+     "pixels": 3009
+    },
+    "outside": {
+     "pixels": 184,
+     "rare": 0.886,
+     "busy": 38.03
+    }
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 0,
+    "0.90": 0,
+    "0.95": 0
+   }
+  },
+  "after": {
+   "report": {
+    "edge": {
+     "x": 0.1024,
+     "y": 0.1061,
+     "r": 1.0858,
+     "inliers": 36,
+     "visible": 43,
+     "confidence": "likely"
+    },
+    "register": null,
+    "foreign": {
+     "patches": [
+      {
+       "pixels": 450,
+       "core": 162,
+       "span": 84.2
+      },
+      {
+       "pixels": 359,
+       "core": 165,
+       "span": 10.8
+      },
+      {
+       "pixels": 352,
+       "core": 110,
+       "span": 21.2
+      },
+      {
+       "pixels": 340,
+       "core": 172,
+       "span": 12.9
+      }
+     ],
+     "pixels": 3160
+    },
+    "stop": null
+   },
+   "changed": true,
+   "rings": {
+    "0.80": 0,
+    "0.85": 0,
+    "0.90": 0,
+    "0.95": 0
+   }
+  },
+  "classified": "wrong-fit",
+  "evidence": {
+   "edge": {
+    "x": 0.1024,
+    "y": 0.1061,
+    "r": 1.0858,
+    "inliers": 36,
+    "visible": 43
+   },
+   "register": {
+    "x": 0.1024,
+    "y": 0.1061,
+    "r": 1.0778
+   },
+   "offTruth": 0.1475,
+   "patches": [
+    11.7,
+    23.3,
+    12.8,
+    12.3
+   ],
+   "outerForeign": 0
+  }
+ }
+}

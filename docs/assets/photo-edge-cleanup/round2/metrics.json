@@ -1,0 +1,757 @@
+{
+ "before": {
+  "module": "before",
+  "wraith": {
+   "texture": {
+    "n": 1024,
+    "hash": "1bec2672",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "b23a1b69"
+   },
+   "map": {
+    "n": 192,
+    "hash": "807e4ee0"
+   }
+  },
+  "halo": {
+   "texture": {
+    "n": 1024,
+    "hash": "f4f6d6f7",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "201f4fa8"
+   },
+   "map": {
+    "n": 192,
+    "hash": "544f8313"
+   }
+  },
+  "pink": {
+   "texture": {
+    "n": 1024,
+    "hash": "9525a5ea",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "9303a50f"
+   },
+   "map": {
+    "n": 192,
+    "hash": "7eda2a3f"
+   }
+  },
+  "orange": {
+   "texture": {
+    "n": 1024,
+    "hash": "1bc19af3",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "84990b3d"
+   },
+   "map": {
+    "n": 192,
+    "hash": "4d5bd262"
+   }
+  },
+  "destroyer": {
+   "texture": {
+    "n": 1024,
+    "hash": "2b6f724",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "2fd84c75"
+   },
+   "map": {
+    "n": 192,
+    "hash": "7d404f83"
+   }
+  },
+  "clean": {
+   "texture": {
+    "n": 1024,
+    "hash": "499992be",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "331fcff5"
+   },
+   "map": {
+    "n": 48,
+    "hash": "738460c0"
+   }
+  },
+  "stamp": {
+   "texture": {
+    "n": 1024,
+    "hash": "38f229c",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "57e3d8c0"
+   },
+   "map": {
+    "n": 192,
+    "hash": "544f8313"
+   }
+  },
+  "halo9": {
+   "texture": {
+    "n": 1024,
+    "hash": "9d1428d0",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "a506afdf"
+   },
+   "map": {
+    "n": 192,
+    "hash": "7508a006"
+   }
+  },
+  "pixel": {
+   "texture": {
+    "n": 1024,
+    "hash": "f378212c",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "d87d4a71"
+   },
+   "map": {
+    "n": 192,
+    "hash": "906c5b19"
+   }
+  },
+  "plans": {
+   "wraith": {
+    "changed": true,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 58,
+        "core": 22,
+        "span": 6.3
+       },
+       {
+        "pixels": 116,
+        "core": 38,
+        "span": 11.9
+       }
+      ],
+      "pixels": 499
+     }
+    }
+   },
+   "halo": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null
+    }
+   },
+   "pink": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null
+    }
+   },
+   "orange": {
+    "changed": true,
+    "report": {
+     "edge": {
+      "x": -0.1374,
+      "y": -0.022,
+      "r": 0.9822,
+      "inliers": 65,
+      "visible": 90
+     },
+     "register": null,
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 1584,
+        "core": 682,
+        "span": 91.2
+       }
+      ],
+      "pixels": 2554
+     },
+     "outside": {
+      "pixels": 3204,
+      "rare": 0.271,
+      "busy": 5.03
+     }
+    }
+   },
+   "destroyer": {
+    "changed": true,
+    "report": {
+     "edge": {
+      "x": 0.1024,
+      "y": 0.1061,
+      "r": 1.0858,
+      "inliers": 36,
+      "visible": 43
+     },
+     "register": {
+      "x": 0.1024,
+      "y": 0.1061,
+      "r": 1.0778
+     },
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 545,
+        "core": 269,
+        "span": 11.7
+       },
+       {
+        "pixels": 1013,
+        "core": 571,
+        "span": 23.4
+       },
+       {
+        "pixels": 107,
+        "core": 41,
+        "span": 12.8
+       },
+       {
+        "pixels": 342,
+        "core": 153,
+        "span": 12.4
+       }
+      ],
+      "pixels": 3015
+     },
+     "outside": {
+      "pixels": 184,
+      "rare": 0.891,
+      "busy": 35.65
+     }
+    }
+   },
+   "clean": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null
+    }
+   },
+   "stamp": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null
+    }
+   },
+   "halo9": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null
+    }
+   },
+   "pixel": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null
+    }
+   }
+  }
+ },
+ "after": {
+  "module": "after",
+  "wraith": {
+   "texture": {
+    "n": 1024,
+    "hash": "e9b3f6e3",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "25a3a38e"
+   },
+   "map": {
+    "n": 192,
+    "hash": "8eeb68fa"
+   }
+  },
+  "halo": {
+   "texture": {
+    "n": 1024,
+    "hash": "78c2324a",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "8ed17bd1"
+   },
+   "map": {
+    "n": 192,
+    "hash": "3b9d9cc9"
+   }
+  },
+  "pink": {
+   "texture": {
+    "n": 1024,
+    "hash": "c88c2f6b",
+    "rimAlpha": 0
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "3ba39a84"
+   },
+   "map": {
+    "n": 192,
+    "hash": "e5b19876"
+   }
+  },
+  "orange": {
+   "texture": {
+    "n": 1024,
+    "hash": "ae57d8d3",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "acf046a8"
+   },
+   "map": {
+    "n": 192,
+    "hash": "894f2d93"
+   }
+  },
+  "destroyer": {
+   "texture": {
+    "n": 1024,
+    "hash": "fbaae8b6",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "261d846d"
+   },
+   "map": {
+    "n": 192,
+    "hash": "e5b19876"
+   }
+  },
+  "clean": {
+   "texture": {
+    "n": 1024,
+    "hash": "499992be",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "331fcff5"
+   },
+   "map": {
+    "n": 48,
+    "hash": "738460c0"
+   }
+  },
+  "stamp": {
+   "texture": {
+    "n": 1024,
+    "hash": "38f229c",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "57e3d8c0"
+   },
+   "map": {
+    "n": 192,
+    "hash": "3b9d9cc9"
+   }
+  },
+  "halo9": {
+   "texture": {
+    "n": 1024,
+    "hash": "9d1428d0",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "a506afdf"
+   },
+   "map": {
+    "n": 192,
+    "hash": "7508a006"
+   }
+  },
+  "pixel": {
+   "texture": {
+    "n": 1024,
+    "hash": "f378212c",
+    "rimAlpha": 255
+   },
+   "thumb": {
+    "n": 128,
+    "hash": "d87d4a71"
+   },
+   "map": {
+    "n": 192,
+    "hash": "906c5b19"
+   }
+  },
+  "plans": {
+   "wraith": {
+    "changed": true,
+    "report": {
+     "edge": null,
+     "register": {
+      "x": 0.0647,
+      "y": -0.0033,
+      "r": 0.9614
+     },
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 67,
+        "core": 27,
+        "span": 14.5
+       },
+       {
+        "pixels": 70,
+        "core": 38,
+        "span": 4.7
+       },
+       {
+        "pixels": 136,
+        "core": 71,
+        "span": 6.9
+       }
+      ],
+      "pixels": 3401
+     },
+     "ray": {
+      "x": 0.0647,
+      "y": -0.0033,
+      "r": 0.9694,
+      "inliers": 84,
+      "visible": 96,
+      "confidence": "sure"
+     },
+     "outside": {
+      "pixels": 1408,
+      "rare": 0.849,
+      "foreign": 1,
+      "busy": 2.8
+     },
+     "stop": null,
+     "glare": 639,
+     "cut": 1697
+    }
+   },
+   "halo": {
+    "changed": true,
+    "report": {
+     "edge": null,
+     "register": {
+      "x": -0.0737,
+      "y": -0.0264,
+      "r": 0.9533
+     },
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 1348,
+        "core": 1142,
+        "span": 88
+       }
+      ],
+      "pixels": 4687
+     },
+     "ray": {
+      "x": -0.0737,
+      "y": -0.0264,
+      "r": 0.9613,
+      "inliers": 83,
+      "visible": 101,
+      "confidence": "sure"
+     },
+     "outside": {
+      "pixels": 2204,
+      "rare": 1,
+      "foreign": 1,
+      "busy": 6.16
+     },
+     "stop": null,
+     "glare": 183,
+     "cut": 1830
+    }
+   },
+   "pink": {
+    "changed": true,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 86,
+        "core": 80,
+        "span": 14.4
+       },
+       {
+        "pixels": 156,
+        "core": 156,
+        "span": 26.6
+       },
+       {
+        "pixels": 240,
+        "core": 98,
+        "span": 12
+       },
+       {
+        "pixels": 226,
+        "core": 217,
+        "span": 45
+       },
+       {
+        "pixels": 116,
+        "core": 30,
+        "span": 9.5
+       },
+       {
+        "pixels": 128,
+        "core": 37,
+        "span": 11.2
+       }
+      ],
+      "pixels": 2413
+     },
+     "ray": {
+      "x": 0.0042,
+      "y": 0.0801,
+      "r": 1.026,
+      "inliers": 49,
+      "visible": 50,
+      "confidence": "likely"
+     },
+     "outside": {
+      "pixels": 98,
+      "rare": 0,
+      "foreign": 1,
+      "busy": 1.76
+     },
+     "stop": 0.9341
+    }
+   },
+   "orange": {
+    "changed": true,
+    "report": {
+     "edge": {
+      "x": -0.1374,
+      "y": -0.022,
+      "r": 0.9822,
+      "inliers": 65,
+      "visible": 90,
+      "confidence": "likely"
+     },
+     "register": {
+      "x": -0.1053,
+      "y": -0.0017,
+      "r": 0.9396
+     },
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 2215,
+        "core": 1330,
+        "span": 98.4
+       }
+      ],
+      "pixels": 3824
+     },
+     "ray": {
+      "x": -0.1053,
+      "y": -0.0017,
+      "r": 0.9476,
+      "inliers": 102,
+      "visible": 108,
+      "confidence": "sure"
+     },
+     "outside": {
+      "pixels": 3722,
+      "rare": 0.25,
+      "foreign": 1,
+      "busy": 4.97
+     },
+     "stop": null,
+     "cut": 403
+    }
+   },
+   "destroyer": {
+    "changed": true,
+    "report": {
+     "edge": {
+      "x": 0.1024,
+      "y": 0.1061,
+      "r": 1.0858,
+      "inliers": 36,
+      "visible": 43,
+      "confidence": "likely"
+     },
+     "register": null,
+     "foreign": {
+      "patches": [
+       {
+        "pixels": 431,
+        "core": 163,
+        "span": 84.2
+       },
+       {
+        "pixels": 360,
+        "core": 164,
+        "span": 10.8
+       },
+       {
+        "pixels": 356,
+        "core": 115,
+        "span": 21.1
+       },
+       {
+        "pixels": 340,
+        "core": 173,
+        "span": 12.9
+       }
+      ],
+      "pixels": 3136
+     },
+     "stop": null
+    }
+   },
+   "clean": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null,
+     "stop": null
+    }
+   },
+   "stamp": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null,
+     "stop": null
+    }
+   },
+   "halo9": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null,
+     "stop": null
+    }
+   },
+   "pixel": {
+    "changed": false,
+    "report": {
+     "edge": null,
+     "register": null,
+     "foreign": null,
+     "ray": {
+      "x": 0,
+      "y": 0,
+      "r": 0.907,
+      "inliers": 180,
+      "visible": 180,
+      "confidence": "sure"
+     },
+     "outside": {
+      "pixels": 4692,
+      "rare": 0,
+      "foreign": 1,
+      "busy": 0.1
+     },
+     "stop": null
+    }
+   }
+  }
+ },
+ "check": {
+  "wraith": {
+   "changed": true,
+   "planMs": 111.3,
+   "cleanMs": 87.4,
+   "hash": "e9b3f6e3",
+   "annulusForeign": 0.1
+  },
+  "halo": {
+   "changed": true,
+   "planMs": 87,
+   "cleanMs": 82.6,
+   "hash": "78c2324a",
+   "annulusForeign": 0.78
+  },
+  "pink": {
+   "changed": true,
+   "planMs": 76.1,
+   "cleanMs": 59.4,
+   "hash": "c88c2f6b",
+   "annulusForeign": 0
+  },
+  "orange": {
+   "changed": true,
+   "planMs": 80.9,
+   "cleanMs": 82,
+   "hash": "ae57d8d3",
+   "annulusForeign": 0
+  },
+  "destroyer": {
+   "changed": true,
+   "planMs": 63.5,
+   "cleanMs": 50.3,
+   "hash": "fbaae8b6",
+   "annulusForeign": 0
+  },
+  "clean": {
+   "changed": false,
+   "planMs": 35.1
+  },
+  "stamp": {
+   "changed": false,
+   "planMs": 41.2
+  },
+  "halo9": {
+   "changed": false,
+   "planMs": 21.2
+  },
+  "pixel": {
+   "changed": false,
+   "planMs": 46.4
+  }
+ }
+}
