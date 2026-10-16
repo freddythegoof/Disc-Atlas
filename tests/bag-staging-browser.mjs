@@ -120,12 +120,14 @@ try {
   const drawn=Object.fromEntries((await viewer(v=>v.discRects())).filter(d=>d.out).map(d=>[d.id,d]));
   const rects=Object.fromEntries(Object.entries(drawn).map(([id,d])=>[id,{x:d.left+d.width/2,y:d.top+d.height/2}]));
   const bag=await viewer(v=>v.bagRect()),middle=bag.left+bag.width/2,box=await canvasBox();
-  for(const id of left)assert.ok(st.around || st.brick?drawn[id].left+drawn[id].width<=middle+1:rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
-  for(const id of right)assert.ok(st.around || st.brick?drawn[id].left>=middle-1:rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
-  // Desktop My Bag sizes each side by its own count. The legacy phone path and
-  // the all-out floor keep their original common scale.
+  // A phone's one or two grown discs rest above the bag, each in its side's half.
+  const grown=!!st.phoneSizing && !st.phoneSizing.original;
+  for(const id of left)assert.ok(st.around || st.brick || grown?drawn[id].left+drawn[id].width<=middle+1:rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
+  for(const id of right)assert.ok(st.around || st.brick || grown?drawn[id].left>=middle-1:rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
+  // Desktop My Bag sizes each side by its own count, and a phone grows one or two out. Otherwise
+  // the original common scale.
   const scales=(await viewer(v=>v.getBagLayoutState().filter(d=>d.out).map(d=>d.spotScale)));
-  if(!st.sizing)assert.ok(scales.every(v=>v===st.scale),`${label}: original common scale (${[...new Set(scales)]})`);
+  if(!st.sizing && !grown)assert.ok(scales.every(v=>v===st.scale),`${label}: original common scale (${[...new Set(scales)]})`);
   const sizes=Object.values(drawn).map(d=>Math.max(d.width,d.height));
   for(const ids of st.sizing?[left,right]:[out]){
    const zoneSizes=ids.map(id=>Math.max(drawn[id].width,drawn[id].height));
