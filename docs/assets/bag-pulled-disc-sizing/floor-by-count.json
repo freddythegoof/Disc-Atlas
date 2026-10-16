@@ -1,0 +1,766 @@
+{
+ "legacy-1440": [
+  {
+   "count": 1,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 491.1,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 1
+  },
+  {
+   "count": 2,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 490.6,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 2
+  },
+  {
+   "count": 3,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 494.4,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 3
+  },
+  {
+   "count": 4,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 495.6,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 4
+  },
+  {
+   "count": 5,
+   "min": 98.7,
+   "max": 98.7,
+   "pull": 1,
+   "bagWidth": 492,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 5
+  },
+  {
+   "count": 6,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 490.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 6
+  },
+  {
+   "count": 7,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 491.2,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 7
+  },
+  {
+   "count": 8,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 491.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 8
+  },
+  {
+   "count": 9,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 494.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 9
+  },
+  {
+   "count": 10,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 494.7,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 10
+  },
+  {
+   "count": 11,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 491.4,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 11
+  },
+  {
+   "count": 12,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 491,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 12
+  },
+  {
+   "count": 13,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 490.7,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 13
+  },
+  {
+   "count": 14,
+   "min": 111.57,
+   "max": 111.57,
+   "pull": 1,
+   "bagWidth": 492.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 14
+  },
+  {
+   "count": 15,
+   "min": 111.57,
+   "max": 111.57,
+   "pull": 1,
+   "bagWidth": 495.7,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 15
+  },
+  {
+   "count": 16,
+   "min": 111.57,
+   "max": 111.57,
+   "pull": 1,
+   "bagWidth": 493.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 16
+  },
+  {
+   "count": 17,
+   "min": 85.83,
+   "max": 85.83,
+   "pull": 1,
+   "bagWidth": 490.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 17
+  },
+  {
+   "count": 18,
+   "min": 85.83,
+   "max": 85.83,
+   "pull": 1,
+   "bagWidth": 491.3,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 18
+  }
+ ],
+ "sized-1440": [
+  {
+   "count": 1,
+   "min": 409.54,
+   "max": 409.54,
+   "pull": 1,
+   "bagWidth": 491.1,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 1
+  },
+  {
+   "count": 2,
+   "min": 409.54,
+   "max": 409.54,
+   "pull": 1,
+   "bagWidth": 490.6,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 2
+  },
+  {
+   "count": 3,
+   "min": 283.83,
+   "max": 409.54,
+   "pull": 1,
+   "bagWidth": 494.5,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 3
+  },
+  {
+   "count": 4,
+   "min": 283.83,
+   "max": 283.83,
+   "pull": 1,
+   "bagWidth": 495.5,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 4
+  },
+  {
+   "count": 5,
+   "min": 228.33,
+   "max": 283.83,
+   "pull": 1,
+   "bagWidth": 492,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 5
+  },
+  {
+   "count": 6,
+   "min": 228.33,
+   "max": 228.33,
+   "pull": 1,
+   "bagWidth": 490.8,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 6
+  },
+  {
+   "count": 7,
+   "min": 195.33,
+   "max": 228.33,
+   "pull": 1,
+   "bagWidth": 491.2,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 7
+  },
+  {
+   "count": 8,
+   "min": 195.33,
+   "max": 195.33,
+   "pull": 1,
+   "bagWidth": 491.9,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 8
+  },
+  {
+   "count": 9,
+   "min": 172.84,
+   "max": 195.33,
+   "pull": 1,
+   "bagWidth": 494.9,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 9
+  },
+  {
+   "count": 10,
+   "min": 172.84,
+   "max": 172.84,
+   "pull": 1,
+   "bagWidth": 494.7,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 10
+  },
+  {
+   "count": 11,
+   "min": 156.26,
+   "max": 172.84,
+   "pull": 1,
+   "bagWidth": 491.2,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 11
+  },
+  {
+   "count": 12,
+   "min": 156.26,
+   "max": 156.26,
+   "pull": 1,
+   "bagWidth": 491,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 12
+  },
+  {
+   "count": 13,
+   "min": 143.39,
+   "max": 156.26,
+   "pull": 1,
+   "bagWidth": 490.7,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 13
+  },
+  {
+   "count": 14,
+   "min": 143.39,
+   "max": 143.39,
+   "pull": 1,
+   "bagWidth": 493.1,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 14
+  },
+  {
+   "count": 15,
+   "min": 133.03,
+   "max": 143.39,
+   "pull": 1,
+   "bagWidth": 495.7,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 15
+  },
+  {
+   "count": 16,
+   "min": 133.03,
+   "max": 133.03,
+   "pull": 1,
+   "bagWidth": 493.6,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 16
+  },
+  {
+   "count": 17,
+   "min": 124.45,
+   "max": 133.03,
+   "pull": 1,
+   "bagWidth": 490.8,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 17
+  },
+  {
+   "count": 18,
+   "min": 124.45,
+   "max": 124.45,
+   "pull": 1,
+   "bagWidth": 491.3,
+   "sizing": true,
+   "floor": 124.4481782368284,
+   "overlaps": 0,
+   "labels": 18
+  }
+ ],
+ "legacy-1280": [
+  {
+   "count": 1,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 433.3,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 1
+  },
+  {
+   "count": 2,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 432.9,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 2
+  },
+  {
+   "count": 3,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 436.3,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 3
+  },
+  {
+   "count": 4,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 437.2,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 4
+  },
+  {
+   "count": 5,
+   "min": 87.09,
+   "max": 87.09,
+   "pull": 1,
+   "bagWidth": 434.2,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 5
+  },
+  {
+   "count": 6,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 433,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 6
+  },
+  {
+   "count": 7,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 433.4,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 7
+  },
+  {
+   "count": 8,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 433.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 8
+  },
+  {
+   "count": 9,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 436.5,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 9
+  },
+  {
+   "count": 10,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 436.6,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 10
+  },
+  {
+   "count": 11,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 433.7,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 11
+  },
+  {
+   "count": 12,
+   "min": 109.81,
+   "max": 109.81,
+   "pull": 1,
+   "bagWidth": 433.2,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 12
+  },
+  {
+   "count": 13,
+   "min": 98.45,
+   "max": 98.45,
+   "pull": 1,
+   "bagWidth": 433,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 13
+  },
+  {
+   "count": 14,
+   "min": 98.45,
+   "max": 98.45,
+   "pull": 1,
+   "bagWidth": 434.8,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 14
+  },
+  {
+   "count": 15,
+   "min": 98.45,
+   "max": 98.45,
+   "pull": 1,
+   "bagWidth": 437.3,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 15
+  },
+  {
+   "count": 16,
+   "min": 87.09,
+   "max": 87.09,
+   "pull": 1,
+   "bagWidth": 435.7,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 16
+  },
+  {
+   "count": 17,
+   "min": 75.73,
+   "max": 75.73,
+   "pull": 1,
+   "bagWidth": 433,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 17
+  },
+  {
+   "count": 18,
+   "min": 75.73,
+   "max": 75.73,
+   "pull": 1,
+   "bagWidth": 433.5,
+   "sizing": false,
+   "overlaps": 0,
+   "labels": 18
+  }
+ ],
+ "sized-1280": [
+  {
+   "count": 1,
+   "min": 359,
+   "max": 359,
+   "pull": 1,
+   "bagWidth": 433.3,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 1
+  },
+  {
+   "count": 2,
+   "min": 359,
+   "max": 359,
+   "pull": 1,
+   "bagWidth": 432.9,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 2
+  },
+  {
+   "count": 3,
+   "min": 243.72,
+   "max": 359,
+   "pull": 1,
+   "bagWidth": 436.5,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 3
+  },
+  {
+   "count": 4,
+   "min": 243.72,
+   "max": 243.72,
+   "pull": 1,
+   "bagWidth": 437.1,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 4
+  },
+  {
+   "count": 5,
+   "min": 192.65,
+   "max": 243.72,
+   "pull": 1,
+   "bagWidth": 433.8,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 5
+  },
+  {
+   "count": 6,
+   "min": 192.65,
+   "max": 192.65,
+   "pull": 1,
+   "bagWidth": 433.1,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 6
+  },
+  {
+   "count": 7,
+   "min": 162.2,
+   "max": 192.65,
+   "pull": 1,
+   "bagWidth": 433.4,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 7
+  },
+  {
+   "count": 8,
+   "min": 162.2,
+   "max": 162.2,
+   "pull": 1,
+   "bagWidth": 434.3,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 8
+  },
+  {
+   "count": 9,
+   "min": 141.42,
+   "max": 162.2,
+   "pull": 1,
+   "bagWidth": 436.8,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 9
+  },
+  {
+   "count": 10,
+   "min": 141.42,
+   "max": 141.42,
+   "pull": 1,
+   "bagWidth": 436.3,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 10
+  },
+  {
+   "count": 11,
+   "min": 126.09,
+   "max": 141.42,
+   "pull": 1,
+   "bagWidth": 433.4,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 11
+  },
+  {
+   "count": 12,
+   "min": 126.09,
+   "max": 126.09,
+   "pull": 1,
+   "bagWidth": 433.2,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 12
+  },
+  {
+   "count": 13,
+   "min": 114.17,
+   "max": 126.09,
+   "pull": 1,
+   "bagWidth": 433,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 13
+  },
+  {
+   "count": 14,
+   "min": 114.17,
+   "max": 114.17,
+   "pull": 1,
+   "bagWidth": 435.4,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 14
+  },
+  {
+   "count": 15,
+   "min": 104.56,
+   "max": 114.17,
+   "pull": 1,
+   "bagWidth": 437.4,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 15
+  },
+  {
+   "count": 16,
+   "min": 104.56,
+   "max": 104.56,
+   "pull": 1,
+   "bagWidth": 435.2,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 16
+  },
+  {
+   "count": 17,
+   "min": 96.6,
+   "max": 104.56,
+   "pull": 1,
+   "bagWidth": 433.1,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 17
+  },
+  {
+   "count": 18,
+   "min": 96.6,
+   "max": 96.6,
+   "pull": 1,
+   "bagWidth": 433.5,
+   "sizing": true,
+   "floor": 96.59997577826633,
+   "overlaps": 0,
+   "labels": 18
+  }
+ ]
+}

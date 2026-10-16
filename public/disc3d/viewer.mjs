@@ -29,6 +29,7 @@ import {profileSVG,CLAY_TONES} from './profile.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
 import {isOvermold,overmoldColors} from './overmold.mjs';
+import {DETAIL,detailPixelRatio} from './quality.mjs';
 
 const DEG=Math.PI/180;
 // Camera elevations measured from straight above. The 3/4 view is the default: from behind and above,
@@ -73,7 +74,7 @@ const angleDelta=(a,b)=>{let d=(b-a)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<
 
 export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const coarse=matchMedia('(pointer: coarse)').matches;
- const radial=segments||(coarse?56:80);
+ const radial=segments||(coarse?DETAIL.coarseSegments:DETAIL.segments);
  const element=document.createElement('div');element.className='disc3d-viewer';
  element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · Drag the rim to tilt · scroll to zoom'}</span>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
 <figure class="disc3d-profile" hidden><div class="disc3d-profile-art"></div><figcaption class="disc3d-profile-caption"></figcaption></figure>
@@ -82,12 +83,12 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const canvas=element.querySelector('canvas'),viewport=element.querySelector('.disc3d-viewport'),profileFigure=element.querySelector('.disc3d-profile');
  // Throws where WebGL is unavailable; the caller keeps the static illustration.
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ renderer.setPixelRatio(detailPixelRatio());
  renderer.toneMapping=THREE.NeutralToneMapping;
  const scene=new THREE.Scene();
  const pmrem=new THREE.PMREMGenerator(renderer);
  const envTexture=pmrem.fromScene(new RoomEnvironment(),.04).texture;pmrem.dispose();
- scene.environment=envTexture;scene.environmentIntensity=.85;
+ scene.environment=envTexture;scene.environmentIntensity=DETAIL.environment;
  const key=new THREE.DirectionalLight(0xffffff,1.5);key.position.set(-6,14,10);scene.add(key);
  const fill=new THREE.DirectionalLight(0xffffff,.7);fill.position.set(5,-12,7);scene.add(fill);
  scene.add(new THREE.HemisphereLight(0xffffff,0x8090a0,.5));

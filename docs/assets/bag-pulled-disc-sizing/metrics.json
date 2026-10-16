@@ -1,0 +1,1315 @@
+{
+  "desktop-1": {
+    "diameters": [
+      409.54
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-2": {
+    "diameters": [
+      409.54,
+      409.54
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-01": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-3": {
+    "diameters": [
+      283.83,
+      283.83,
+      409.54
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-02": "right",
+        "demo-01": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 283.8255128377415
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "animation": {
+    "target": 283.82551283774137,
+    "frames": [
+      {
+        "t": 42.099999994039536,
+        "width": 409.4518671820049
+      },
+      {
+        "t": 52.3999999910593,
+        "width": 409.23545743812906
+      },
+      {
+        "t": 59.8999999910593,
+        "width": 408.7385574484823
+      },
+      {
+        "t": 70.19999998807907,
+        "width": 407.8512416104644
+      },
+      {
+        "t": 87.09999999403954,
+        "width": 405.16257402560973
+      },
+      {
+        "t": 102.3999999910593,
+        "width": 400.86790889007705
+      },
+      {
+        "t": 120.59999999403954,
+        "width": 393.7702133915734
+      },
+      {
+        "t": 138.09999999403954,
+        "width": 382.8781023234369
+      },
+      {
+        "t": 153.09999999403954,
+        "width": 370.47984085324697
+      },
+      {
+        "t": 170.59999999403954,
+        "width": 352.288492488634
+      },
+      {
+        "t": 187.59999999403954,
+        "width": 332.5580526521636
+      },
+      {
+        "t": 204.5,
+        "width": 316.81894567575307
+      },
+      {
+        "t": 221.09999999403954,
+        "width": 304.835393328947
+      },
+      {
+        "t": 238.8999999910593,
+        "width": 296.2167344622169
+      },
+      {
+        "t": 254.29999999701977,
+        "width": 290.71909135082365
+      },
+      {
+        "t": 269.8999999910593,
+        "width": 286.95799514601526
+      },
+      {
+        "t": 287.79999999701977,
+        "width": 284.8636661225171
+      },
+      {
+        "t": 304.59999999403954,
+        "width": 284.00046477632577
+      },
+      {
+        "t": 320.3999999910593,
+        "width": 283.8274464303097
+      },
+      {
+        "t": 337.09999999403954,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 354.5,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 370.19999998807907,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 387,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 402.8999999910593,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 419.5,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 439.09999999403954,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 454,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 470.09999999403954,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 488.3999999910593,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 504.3999999910593,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 521.5,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 538.2999999970198,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 554.6999999880791,
+        "width": 283.8255128377418
+      },
+      {
+        "t": 571.0999999940395,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 587.6999999880791,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 604.0999999940395,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 622.6999999880791,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 638.1999999880791,
+        "width": 283.8255128377418
+      },
+      {
+        "t": 652.6999999880791,
+        "width": 283.8255128377418
+      },
+      {
+        "t": 670.1999999880791,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 687.3999999910593,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 702.5999999940395,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 720.6999999880791,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 736.7999999970198,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 753.3999999910593,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 769.5,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 787.6999999880791,
+        "width": 283.8255128377416
+      },
+      {
+        "t": 803.1999999880791,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 821.5,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 836.0999999940395,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 853.7999999970198,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 871,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 887.1999999880791,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 904.1999999880791,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 919.8999999910593,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 936.6999999880791,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 953.8999999910593,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 969.8999999910593,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 985.5999999940395,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 998.0999999940395,
+        "width": 283.82551283774137
+      },
+      {
+        "t": 1014.5999999940395,
+        "width": 283.8255128377416
+      }
+    ],
+    "reachedMs": 304.59999999403954
+  },
+  "desktop-6": {
+    "diameters": [
+      228.33,
+      228.33,
+      228.33,
+      228.33,
+      228.33,
+      228.33
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 228.33333341746197,
+          "right": 228.33333341746197
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-6-details": {
+    "diameters": [
+      138.32,
+      138.32,
+      138.32,
+      138.32,
+      138.32,
+      138.32
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 138.319175700404,
+          "right": 138.319175700404
+        },
+        "max": 230.53705856299666,
+        "floor": 85.07715620558876,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-6-details-closed": {
+    "diameters": [
+      228.33,
+      228.33,
+      228.33,
+      228.33,
+      228.33,
+      228.33
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 228.33333341746197,
+          "right": 228.33333341746197
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-all": {
+    "diameters": [
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 124.4481782368284,
+          "right": 124.4481782368284
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-return-one": {
+    "diameters": [
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      124.45,
+      133.03,
+      133.03,
+      124.45,
+      133.03,
+      133.03,
+      124.45,
+      124.45,
+      133.03,
+      133.03,
+      133.03,
+      133.03
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 133.02674512813644,
+          "right": 124.4481782368284
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-2-after-turn": {
+    "diameters": [
+      409.54,
+      409.54
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-01": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 124.4481782368284,
+        "decay": 0.5063987955218181
+      }
+    }
+  },
+  "desktop-1280-6": {
+    "diameters": [
+      192.65,
+      192.65,
+      192.65,
+      192.65,
+      192.65,
+      192.65
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-04": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 192.64625371062436,
+          "right": 192.64625371062436
+        },
+        "max": 359.00328696734994,
+        "floor": 96.59997577826633,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-1280-all": {
+    "diameters": [
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6,
+      96.6
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 96.59997577826633,
+          "right": 96.59997577826633
+        },
+        "max": 359.00328696734994,
+        "floor": 96.59997577826633,
+        "decay": 0.5
+      }
+    }
+  },
+  "desktop-32bag-2": {
+    "diameters": [
+      409.54,
+      409.54
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-01": "left",
+        "demo-19": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 409.53705856299666,
+          "right": 409.53705856299666
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "desktop-32bag-8": {
+    "diameters": [
+      195.26,
+      195.26,
+      195.26,
+      195.26,
+      195.26,
+      195.26,
+      195.26,
+      195.26
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 195.2607403442484,
+          "right": 195.2607403442484
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "desktop-32bag-16": {
+    "diameters": [
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75,
+      132.75
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-22": "left",
+        "demo-23": "left",
+        "demo-24": "left",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 132.75354407852473,
+          "right": 132.75354407852473
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "desktop-32bag-18": {
+    "diameters": [
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14,
+      124.14
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-22": "left",
+        "demo-23": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1,
+      "pullGoal": 1,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 124.13655921383618,
+          "right": 124.13655921383618
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "desktop-32bag-24": {
+    "diameters": [
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12,
+      105.12
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-19": "left",
+        "demo-20": "left",
+        "demo-21": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-05": "left",
+        "demo-07": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-11": "left",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.1750741004943848,
+      "pullGoal": 1.1750741004943848,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 105.1189728237057,
+          "right": 105.1189728237057
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "desktop-32bag-31": {
+    "diameters": [
+      92.15,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      92.15,
+      92.15,
+      92.15,
+      88.67,
+      92.15,
+      92.15,
+      92.15,
+      92.15,
+      92.15,
+      92.15,
+      92.15,
+      88.67,
+      92.15,
+      92.15,
+      92.15,
+      92.15
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-05": "left",
+        "demo-07": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-11": "left",
+        "demo-16": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-19": "right",
+        "demo-20": "right",
+        "demo-21": "right",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right",
+        "demo-06": "right",
+        "demo-14": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.3424832820892334,
+      "pullGoal": 1.3424832820892334,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 92.15297083548154,
+          "right": 88.66665108988641
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "desktop-32bag-32": {
+    "diameters": [
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67,
+      88.67
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-02": "left",
+        "demo-01": "left",
+        "demo-04": "left",
+        "demo-03": "left",
+        "demo-05": "left",
+        "demo-07": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-11": "left",
+        "demo-16": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-19": "right",
+        "demo-20": "right",
+        "demo-21": "right",
+        "demo-22": "right",
+        "demo-23": "right",
+        "demo-24": "right",
+        "demo-25": "right",
+        "demo-26": "right",
+        "demo-27": "right",
+        "demo-28": "right",
+        "demo-29": "right",
+        "demo-30": "right",
+        "demo-31": "right",
+        "demo-32": "right",
+        "demo-06": "right",
+        "demo-14": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": null,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.3086798191070557,
+      "pullGoal": 1.3086798191070557,
+      "moving": false,
+      "sizing": {
+        "diameters": {
+          "left": 88.66665108988641,
+          "right": 88.66665108988641
+        },
+        "max": 409.53705856299666,
+        "floor": 88.66665108988641,
+        "decay": 0.5036724854726344
+      }
+    }
+  },
+  "denseFull": 88.66665108988627,
+  "denseFloor": 65.5823743633976,
+  "phone-1": {
+    "diameters": [
+      41.4179138478672
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "right"
+      },
+      "around": true,
+      "brick": true,
+      "scale": 0.4,
+      "labels": "outer",
+      "fits": true,
+      "pull": 1.1409306526184082,
+      "pullGoal": 1.1409306526184082,
+      "moving": false
+    },
+    "canvas": {
+      "width": 374,
+      "height": 467.5
+    },
+    "bag": {
+      "left": 67.32418084418227,
+      "top": 115.34430026888862,
+      "width": 236.2933071810408,
+      "height": 296.55307128172245
+    }
+  },
+  "phone-2": {
+    "diameters": [
+      41.28851112378821,
+      41.288511123788254
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-01": "right"
+      },
+      "around": true,
+      "brick": true,
+      "scale": 0.4,
+      "labels": "outer",
+      "fits": true,
+      "pull": 1.1445064544677734,
+      "pullGoal": 1.1445064544677734,
+      "moving": false
+    },
+    "canvas": {
+      "width": 374,
+      "height": 467.5
+    },
+    "bag": {
+      "left": 67.54756269219763,
+      "top": 120.36332283887343,
+      "width": 235.44726333834024,
+      "height": 295.8268733125491
+    }
+  },
+  "phone-6": {
+    "diameters": [
+      33.67243134095,
+      33.67243134095003,
+      33.67243134094998,
+      33.67243134094997,
+      33.67243134095003,
+      33.672431340949956
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-02": "left",
+        "demo-05": "left",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right"
+      },
+      "around": false,
+      "brick": false,
+      "scale": 0.46,
+      "labels": "below",
+      "fits": true,
+      "pull": 1.6138784885406494,
+      "pullGoal": 1.6138784885406494,
+      "moving": false
+    },
+    "canvas": {
+      "width": 374,
+      "height": 467.5
+    },
+    "bag": {
+      "left": 101.20206256854104,
+      "top": 149.94278979717646,
+      "width": 168.2531703713228,
+      "height": 208.92889680657262
+    }
+  },
+  "phone-18": {
+    "diameters": [
+      27.283603975703386,
+      27.283603975703443,
+      27.283603975703386,
+      27.283603975703386,
+      27.283603975703443,
+      27.283603975703443,
+      27.283603975703443,
+      27.28360397570343,
+      27.28360397570343,
+      27.283603975703443,
+      27.28360397570335,
+      27.283603975703418,
+      27.283603975703386,
+      27.283603975703386,
+      27.283603975703393,
+      27.283603975703414,
+      27.283603975703386,
+      27.283603975703393
+    ],
+    "stage": {
+      "mode": "scatter",
+      "sides": {
+        "demo-04": "left",
+        "demo-08": "left",
+        "demo-09": "left",
+        "demo-13": "left",
+        "demo-12": "left",
+        "demo-10": "left",
+        "demo-17": "left",
+        "demo-18": "left",
+        "demo-15": "left",
+        "demo-02": "right",
+        "demo-01": "right",
+        "demo-03": "right",
+        "demo-06": "right",
+        "demo-05": "right",
+        "demo-07": "right",
+        "demo-11": "right",
+        "demo-14": "right",
+        "demo-16": "right"
+      },
+      "around": true,
+      "brick": false,
+      "scale": 0.52,
+      "labels": "below",
+      "fits": true,
+      "pull": 2.251588821411133,
+      "pullGoal": 2.251588821411133,
+      "moving": false
+    },
+    "canvas": {
+      "width": 374,
+      "height": 467.5
+    },
+    "bag": {
+      "left": 125.97288040541036,
+      "top": 176.10853719142474,
+      "width": 120.78994594937606,
+      "height": 148.92966452501022
+    }
+  }
+}

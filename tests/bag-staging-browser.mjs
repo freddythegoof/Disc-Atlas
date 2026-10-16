@@ -8,7 +8,7 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE ||
 // on its own. However many are out, they rest scattered beside the bag like discs tossed on a table
 // (no map mode, no columns): split relative to each other at their median (the less overstable half
 // left, the more overstable half right, even for a bag that leans one way), spread evenly over each
-// side, all one size, each facing the camera as a round disc (no tip, never elliptical under the
+ // side, sized by that side's count on desktop, each facing the camera as a round disc (no tip, never elliptical under the
 // oblique camera), faster discs toward the top. The same set always lands
 // the same way. With any disc out the canvas spans the page's free width (to the details panel when
 // it shows) at its usual height, so the bag keeps its full size on a desktop. A Return all button,
@@ -120,14 +120,19 @@ try {
   const drawn=Object.fromEntries((await viewer(v=>v.discRects())).filter(d=>d.out).map(d=>[d.id,d]));
   const rects=Object.fromEntries(Object.entries(drawn).map(([id,d])=>[id,{x:d.left+d.width/2,y:d.top+d.height/2}]));
   const bag=await viewer(v=>v.bagRect()),middle=bag.left+bag.width/2,box=await canvasBox();
-  for(const id of left)assert.ok(st.around || st.brick?drawn[id].left+drawn[id].width<=middle+1:rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
-  for(const id of right)assert.ok(st.around || st.brick?drawn[id].left>=middle-1:rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
-  // One size: every out disc takes the same scale; drawn, they differ only by the camera's
-  // perspective (it looks on from one side and above, so nearer discs draw a little larger).
+  // A phone's one or two grown discs rest above the bag, each in its side's half.
+  const grown=!!st.phoneSizing && !st.phoneSizing.original;
+  for(const id of left)assert.ok(st.around || st.brick || grown?drawn[id].left+drawn[id].width<=middle+1:rects[id].x<bag.left,`${label}: ${atlas[id]?.name} drawn left of the bag`);
+  for(const id of right)assert.ok(st.around || st.brick || grown?drawn[id].left>=middle-1:rects[id].x>bag.left+bag.width,`${label}: ${atlas[id]?.name} drawn right of the bag`);
+  // Desktop My Bag sizes each side by its own count, and a phone grows one or two out. Otherwise
+  // the original common scale.
   const scales=(await viewer(v=>v.getBagLayoutState().filter(d=>d.out).map(d=>d.spotScale)));
-  assert.ok(scales.every(v=>v===st.scale),`${label}: every out disc the same size (${[...new Set(scales)]})`);
+  if(!st.sizing && !grown)assert.ok(scales.every(v=>v===st.scale),`${label}: original common scale (${[...new Set(scales)]})`);
   const sizes=Object.values(drawn).map(d=>Math.max(d.width,d.height));
-  assert.ok(Math.max(...sizes)/Math.min(...sizes)<1.2,`${label}: drawn sizes differ only by perspective (${Math.min(...sizes).toFixed(1)}–${Math.max(...sizes).toFixed(1)} px)`);
+  for(const ids of st.sizing?[left,right]:[out]){
+   const zoneSizes=ids.map(id=>Math.max(drawn[id].width,drawn[id].height));
+   if(zoneSizes.length)assert.ok(Math.max(...zoneSizes)/Math.min(...zoneSizes)<1.2,`${label}: equal sizes within each layout zone`);
+  }
   // Round: each disc faces the camera square on, so its rim draws as a circle (as wide as it is tall), wherever it rests.
   const ratios=Object.values(drawn).map(d=>d.width/d.height);
   assert.ok(ratios.every(r=>Math.abs(r-1)<.01),`${label}: every out disc draws round (width/height ${Math.min(...ratios).toFixed(3)}–${Math.max(...ratios).toFixed(3)})`);
@@ -314,7 +319,11 @@ try {
  st=await viewer(v=>v.stage);assert.ok(st.pull<=1.0001,'Full-size bag with the panel open: pull '+st.pull);
  await sideCheck(await outIds(),'8 out with details (1440)');await shot('side-8-details-1440-midnight',page);
  await page.keyboard.press('Escape');await detail.waitFor({state:'hidden'});await settled();await page.waitForTimeout(450);
- assert.ok(await page.locator('[data-bag-canvas]').evaluate(n=>n.getBoundingClientRect().right>=document.documentElement.clientWidth-24.5),'Closing the panel gives the room back');
+ // Panel visibility and its scheduled ResizeObserver restage can settle on
+ // different frames. Wait for the observable restored canvas, not a fixed delay.
+ await page.waitForFunction(()=>{const n=document.querySelector('[data-bag-canvas]');return n.getBoundingClientRect().right>=document.documentElement.clientWidth-24.5&&!n.getAnimations().length&&!n.bagViewer.stage.moving;},null,{timeout:15000});
+ const restored=await page.locator('[data-bag-canvas]').evaluate(n=>{const c=n.getBoundingClientRect(),r=n.closest('#bagScene'),d=document.querySelector('#detail');return {right:c.right,left:c.left,width:c.width,page:document.documentElement.clientWidth,style:r.getAttribute('style'),detailHidden:d.hidden,detailInert:d.inert,animations:n.getAnimations().map(a=>({playState:a.playState,currentTime:a.currentTime})),stage:n.bagViewer.stage};});
+ assert.ok(restored.right>=restored.page-24.5,'Closing the panel gives the room back: '+JSON.stringify(restored));
  check(`6+ out: still scattered beside the full-size bag (pull ${metrics.eightPull.toFixed(2)}×; eight with names ${metrics['8 out (1440)'].labels}, scale ${metrics['8 out (1440)'].scale}), no map grid or captions; toggles re-scatter; with the details open the canvas ends at the panel and the bag stays full size`);
 
  // 5. Back to five and out to six again: smooth glides, no popping, the camera unmoved.
@@ -328,11 +337,11 @@ try {
  assert.ok(Math.abs(st.pull-metrics.sidePull)<1e-6,'The camera keeps the side framing');
  await startSampling();await toggle(mains[12]);smooth(await stopSampling(),'5 → 6 again');
  await startSampling();await toggle(mains[12]);smooth(await stopSampling(),'6 → 5 again');
- // Names fade while discs move and return when they settle.
+ // Staging reports moving then still; desktop names now stay visible and follow their discs.
  const sawMoving=await page.evaluate(()=>new Promise(resolve=>{const s=document.querySelector('#bagScene'),seen=[];const o=new MutationObserver(()=>seen.push(s.dataset.staging));o.observe(s,{attributes:true,attributeFilter:['data-staging']});document.querySelector(`[data-physical-disc="${s.querySelector('[aria-pressed="true"]').dataset.physicalDisc}"]`).click();setTimeout(()=>{o.disconnect();resolve(seen);},1600);}));
  assert.deepEqual([sawMoving[0],sawMoving.at(-1)],['moving','still'],'Staging goes moving → still');
  await settled();await page.keyboard.press('Escape').catch(()=>{});
- check(`5↔6 (twice) glide frame by frame with no pops (largest disc step ${metrics['5 → 6'].worstStep}/${metrics['6 → 5'].worstStep} m, camera ${metrics['5 → 6'].worstPullStep}/${metrics['6 → 5'].worstPullStep} per frame); names hide while moving`);
+ check(`5↔6 (twice) glide frame by frame with no pops (largest disc step ${metrics['5 → 6'].worstStep}/${metrics['6 → 5'].worstStep} m, camera ${metrics['5 → 6'].worstPullStep}/${metrics['6 → 5'].worstPullStep} per frame); staging reports moving then still`);
 
  // 6. Return all: shown while any disc is out, it stows every out disc at once with the slide-in feel.
  await stageSet([]);

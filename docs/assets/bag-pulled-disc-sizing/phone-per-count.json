@@ -1,0 +1,443 @@
+{
+ "note": "My Bag pulled-disc diameters (px, measured upright, smallest out disc) on the 18-disc demo, pulling discs in tab order then Dump; before = original scatter, after = this branch. Viewport width x 1000 (the canvas is the same at 844). At 430 the before column was measured live in the browser suite at 1, 2, 6 and all out only; counts 3-18 take the original scatter code path unchanged.",
+ "widths": {
+  "360": [
+   {
+    "count": 1,
+    "before": 38.17,
+    "after": 40.39,
+    "pull": 1.138,
+    "names": "below",
+    "grown": true
+   },
+   {
+    "count": 2,
+    "before": 38.22,
+    "after": 40.25,
+    "pull": 1.136,
+    "names": "below",
+    "grown": true
+   },
+   {
+    "count": 3,
+    "before": 28.49,
+    "after": 28.49,
+    "pull": 1.524,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 4,
+    "before": 29.09,
+    "after": 29.09,
+    "pull": 1.492,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 5,
+    "before": 29.19,
+    "after": 29.19,
+    "pull": 1.711,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 6,
+    "before": 27.1,
+    "after": 27.1,
+    "pull": 1.602,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 7,
+    "before": 28.13,
+    "after": 28.13,
+    "pull": 1.775,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 8,
+    "before": 33.57,
+    "after": 33.57,
+    "pull": 1.876,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 9,
+    "before": 38.45,
+    "after": 38.45,
+    "pull": 1.638,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 10,
+    "before": 29.47,
+    "after": 29.47,
+    "pull": 1.694,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 11,
+    "before": 29.47,
+    "after": 29.47,
+    "pull": 1.694,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 12,
+    "before": 22.38,
+    "after": 22.38,
+    "pull": 2.231,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 13,
+    "before": 18.71,
+    "after": 18.71,
+    "pull": 2.321,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 14,
+    "before": 18.35,
+    "after": 18.35,
+    "pull": 2.366,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 15,
+    "before": 15.47,
+    "after": 15.47,
+    "pull": 2.807,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 16,
+    "before": 18.46,
+    "after": 18.46,
+    "pull": 2.352,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 17,
+    "before": 20.81,
+    "after": 20.81,
+    "pull": 2.086,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 18,
+    "before": 20.81,
+    "after": 20.81,
+    "pull": 2.086,
+    "names": "below",
+    "grown": false
+   }
+  ],
+  "390": [
+   {
+    "count": 1,
+    "before": 41.42,
+    "after": 50.31,
+    "pull": 1.141,
+    "names": "below",
+    "grown": true
+   },
+   {
+    "count": 2,
+    "before": 41.29,
+    "after": 50.67,
+    "pull": 1.145,
+    "names": "below",
+    "grown": true
+   },
+   {
+    "count": 3,
+    "before": 46.91,
+    "after": 46.91,
+    "pull": 1.461,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 4,
+    "before": 46.77,
+    "after": 46.77,
+    "pull": 1.465,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 5,
+    "before": 40.82,
+    "after": 40.82,
+    "pull": 1.679,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 6,
+    "before": 33.67,
+    "after": 33.67,
+    "pull": 1.614,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 7,
+    "before": 33.36,
+    "after": 33.36,
+    "pull": 1.629,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 8,
+    "before": 31.99,
+    "after": 31.99,
+    "pull": 1.477,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 9,
+    "before": 42.82,
+    "after": 42.82,
+    "pull": 1.6,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 10,
+    "before": 43.11,
+    "after": 43.11,
+    "pull": 1.59,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 11,
+    "before": 33.56,
+    "after": 33.56,
+    "pull": 2.042,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 12,
+    "before": 33.42,
+    "after": 33.42,
+    "pull": 2.05,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 13,
+    "before": 23.05,
+    "after": 23.05,
+    "pull": 2.05,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 14,
+    "before": 22.57,
+    "after": 22.57,
+    "pull": 2.093,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 15,
+    "before": 25.27,
+    "after": 25.27,
+    "pull": 1.87,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 16,
+    "before": 32.3,
+    "after": 32.3,
+    "pull": 1.902,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 17,
+    "before": 22.79,
+    "after": 22.79,
+    "pull": 2.073,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 18,
+    "before": 27.28,
+    "after": 27.28,
+    "pull": 2.252,
+    "names": "below",
+    "grown": false
+   }
+  ],
+  "430": [
+   {
+    "count": 1,
+    "before": 39.66,
+    "after": 80,
+    "pull": 1.319,
+    "names": "below",
+    "grown": true
+   },
+   {
+    "count": 2,
+    "before": 39.66,
+    "after": 80,
+    "pull": 1.319,
+    "names": "below",
+    "grown": true
+   },
+   {
+    "count": 3,
+    "before": null,
+    "after": 52.46,
+    "pull": 1.446,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 4,
+    "before": null,
+    "after": 53.02,
+    "pull": 1.43,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 5,
+    "before": null,
+    "after": 39.7,
+    "pull": 1.515,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 6,
+    "before": 33.67,
+    "after": 33.67,
+    "pull": 1.787,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 7,
+    "before": null,
+    "after": 35.73,
+    "pull": 1.464,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 8,
+    "before": null,
+    "after": 43.52,
+    "pull": 1.743,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 9,
+    "before": null,
+    "after": 43.07,
+    "pull": 1.761,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 10,
+    "before": null,
+    "after": 41.09,
+    "pull": 1.846,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 11,
+    "before": null,
+    "after": 38.57,
+    "pull": 1.763,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 12,
+    "before": null,
+    "after": 38.62,
+    "pull": 1.761,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 13,
+    "before": null,
+    "after": 28.13,
+    "pull": 1.859,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 14,
+    "before": null,
+    "after": 28.35,
+    "pull": 1.845,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 15,
+    "before": null,
+    "after": 32.3,
+    "pull": 1.619,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 16,
+    "before": null,
+    "after": 34.84,
+    "pull": 1.501,
+    "names": "flush",
+    "grown": false
+   },
+   {
+    "count": 17,
+    "before": null,
+    "after": 30.81,
+    "pull": 1.697,
+    "names": "below",
+    "grown": false
+   },
+   {
+    "count": 18,
+    "before": 32.68,
+    "after": 32.68,
+    "pull": 1.84,
+    "names": "below",
+    "grown": false
+   }
+  ]
+ }
+}
