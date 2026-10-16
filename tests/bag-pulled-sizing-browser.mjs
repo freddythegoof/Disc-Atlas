@@ -30,7 +30,7 @@ try{
  const pull=async id=>{await page.locator(`[data-physical-disc="${id}"]`).evaluate(n=>n.click());await settled();};
  const snapshot=()=>page.locator('[data-bag-canvas]').evaluate(n=>{
   const v=n.bagViewer,c=n.getBoundingClientRect();
-  return {stage:v.stage,discs:v.discRects().filter(r=>r.out),standing:v.discRects().filter(r=>!r.out&&!r.empty&&(r.pocket==='putter'||r.pocket==='goTo')),bag:v.bagRect(),width:c.width,height:c.height,names:[...n.querySelectorAll('[data-out-name][data-shown]')].map(e=>{const r=e.getBoundingClientRect();return {id:e.dataset.outName,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};})};
+  return {stage:v.stage,discs:v.discRects().filter(r=>r.out),standing:v.discRects().filter(r=>!r.out&&!r.empty&&(r.pocket==='putter'||r.pocket==='goTo')),bag:v.bagRect(),plannerBag:v.bagRect(v.stage.pullGoal),width:c.width,height:c.height,names:[...n.querySelectorAll('[data-out-name][data-shown]')].map(e=>{const r=e.getBoundingClientRect();return {id:e.dataset.outName,left:r.left-c.left,top:r.top-c.top,width:r.width,height:r.height};})};
  });
  const check=async label=>{
   await page.waitForFunction(()=>[...document.querySelectorAll('[data-out-name][data-shown]')].every(n=>Number(getComputedStyle(n).opacity)>.99),null,{timeout:2500});
@@ -43,12 +43,29 @@ try{
   }
   for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)assert.ok(!overlap(boxes[i],boxes[j]),`${label}: ${boxes[i].id} and ${boxes[j].id} footprints apart`);
   for(const disc of f.discs)assert.ok(f.stage.sides[disc.id]==='left'?disc.left+disc.width<=f.bag.left-12:disc.left>=f.bag.left+f.bag.width+12,`${label}: hard inner boundary`);
-  metrics[label]={diameters:f.discs.map(d=>+d.width.toFixed(2)),stage:f.stage};
+  for(const disc of f.discs)assert.ok(disc.width<=f.plannerBag.width+1e-6,`${label}: diameter never exceeds the bag silhouette width at the planner camera`);
+  metrics[label]={diameters:f.discs.map(d=>+d.width.toFixed(2)),bag:f.plannerBag,stage:f.stage};
   return f;
  };
  const shot=async name=>{await page.mouse.move(2,2);await page.waitForTimeout(250);await page.locator('[data-bag-canvas]').screenshot({path:`${dir}/${name}.png`});};
  await open();
  const ids=['demo-04','demo-01',...(await page.locator('[data-physical-disc]').evaluateAll(l=>l.map(n=>n.dataset.physicalDisc))).filter(id=>!['demo-04','demo-01'].includes(id))];
+ // All counts at both reference sizes: the real projected body, without the
+ // standing pocket discs that enlarge the planner's collision footprint.
+ for(const width of [1440,1280]){
+  await page.setViewportSize({width,height:width===1440?1000:900});await open();
+  let previous=null;
+  for(let count=1;count<=ids.length;count++){
+   await pull(ids[count-1]);const f=await check(`cap-${width}-${count}`);
+   if(previous)for(const side of ['left','right']){
+    const current=f.stage.sizing.diameters[side],prior=previous.stage.sizing.diameters[side];
+    if(current!==undefined&&prior!==undefined)assert.ok(current<=prior+1e-6,'side diameter never grows with count');
+   }
+   previous=f;
+   if(count<=2)await shot(`cap-${width}-${count}`);
+  }
+ }
+ await page.setViewportSize({width:1440,height:1000});await open();
  await pull(ids[0]);const one=await check('desktop-1');await shot('desktop-1');
  assert.ok(one.discs[0].width>=3*BEFORE,'single pulled disc reaches at least 3× its measured desktop baseline');
  await pull(ids[1]);const two=await check('desktop-2');await shot('desktop-2');
@@ -193,6 +210,7 @@ try{
    phoneCheck(label,now);
    const size=Math.min(...now.discs.map(d=>d.width)),old=Math.min(...was.discs.map(d=>d.width));
    assert.ok(size>=old-.2,`${label}: never smaller than before (${size.toFixed(2)} vs ${old.toFixed(2)})`);
+   assert.ok(now.discs.every(d=>d.width<=now.restBag.width),`${label}: phone sizes already fit under the bag silhouette cap`);
    // The bag keeps the camera, so its size, at every count.
    assert.ok(Math.abs(now.stage.pullGoal-was.stage.pullGoal)<1e-6,`${label}: no camera pull-back`);
    // These pages reach rest at different wall-clock times. Compare the identical
@@ -211,7 +229,7 @@ try{
     assert.equal(now.stage.phoneSizing,undefined,`${label}: no phone sizing past two out`);
     for(const d of now.discs){const o=was.discs.find(e=>e.id===d.id);assert.ok(['left','top','width','height'].every(k=>Math.abs(d[k]-o[k])<.2),`${label}: ${d.id} where it was`);}
    }
-   metrics[label]={before:+old.toFixed(2),after:+size.toFixed(2),labels:now.stage.labels,pull:now.stage.pullGoal};
+   metrics[label]={before:+old.toFixed(2),after:+size.toFixed(2),bag:now.restBag,labels:now.stage.labels,pull:now.stage.pullGoal};
   }
  }
  assert.deepEqual(errors,[]);

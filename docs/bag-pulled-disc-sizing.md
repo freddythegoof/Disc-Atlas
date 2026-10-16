@@ -5,6 +5,13 @@ Codex Sol built the desktop sizing (`c5d6d7e`); Claude Opus took the branch over
 reviewed it, fixed its floor, and added the quality and upright work in the commits
 after it. Nothing is pushed, merged or deployed: Freddy reviews the screenshots first.
 
+**October 16 follow-up:** Part 3 on `codex/rim-viewer-bag-animation` caps the
+desktop maximum at the bag's projected silhouette **width**. The headline
+sizes below remain unchanged: 409.54 px against a 491.65 px bag at 1440 × 1000,
+and 359.00 px against a 433.81 px bag at 1280 × 900. No count or quality tier
+changes at either reference size; phone stays on its existing ≤ 80 px path.
+[Measurements and fresh one/two-out screenshots](rim-viewer-bag-animation.md#part-3-cap-pulled-discs-at-the-bag-silhouette).
+
 ## For Freddy, in short
 
 - **Sizing** (Sol's design, kept): 1–2 discs out ≈ 410 px, shrinking smoothly as more

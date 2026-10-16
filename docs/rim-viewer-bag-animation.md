@@ -1,7 +1,8 @@
 # Photo rim in the viewer and bag animation
 
 October 15, 2026. Branch `codex/rim-viewer-bag-animation`, from `main` at
-`3930a0c1` (PR #6). Two independently landable parts; local commits only.
+`3930a0c1` (PR #6). Parts 1–2 were completed October 15. Part 3 was added
+October 16 as a separate, independently landable commit; local only.
 
 ## Part 1: characterize the rim path
 
@@ -270,5 +271,91 @@ Quality should resolve sharply after motion, with no disappearing photos. A
 slower GPU may still be fill-bound at 4.7 M pixels: this machine's numbers clear
 that suspect here, not on Freddy's hardware. No animation pixel-budget hold was
 added without that evidence.
+
+## Part 3: cap pulled discs at the bag silhouette
+
+October 16, 2026. Desktop `max = min(previous max, projected bag width)`.
+The width comes from the existing `bagRect(factor)` projection of the bag's
+mesh silhouette at the sizing planner's resting camera, in CSS pixels. It
+includes the bag's side pockets, excludes the discs in its pockets, and excludes
+the shadow. Width is the honest comparison for a face-on circular disc beside
+the bag: the disc cannot span more screen width than the bag it came from.
+Using the taller body/handle height would permit a disc wider than the bag.
+The collision rectangle still includes standing pocket discs; those discs do
+not enlarge the size cap. The same projected body box is reused when measuring
+that collision rectangle.
+
+### Measurement result: no trim at either reference size
+
+The requested rule is enforced, but the 18-disc demo's existing maximum was
+already below the actual silhouette width. No smaller central-panel measurement
+or arbitrary padding was substituted to manufacture a trim.
+
+| Viewport | Bag width, before → after | Bag height (context) | Max tier, before → after | Trim | Counts changed |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 1440 × 1000 | 491.65 → 491.65 px | 618.14 px | 409.54 → 409.54 px | 0 px | None, 1–18 |
+| 1280 × 900 | 433.81 → 433.81 px | 545.42 px | 359.00 → 359.00 px | 0 px | None, 1–18 |
+
+Both dimensions use the planner camera, with the ambient float removed, rather
+than comparing different moments of its bob. Before is Part 2's `7c1efbb`;
+after includes only this cap. The one-disc and two-disc views below are fresh
+captures of the final cap code; the cap is inert in these views.
+[Per-count before/after measurements](assets/rim-viewer-bag-animation/cap-metrics.json)
+retain the unrounded silhouette boxes, maximum, floor and decay at all 18
+counts at both sizes, plus the phone checks.
+
+| 1440 × 1000, one out | 1440 × 1000, two out |
+| --- | --- |
+| ![One out, 1440](assets/rim-viewer-bag-animation/cap-1440-1.png) | ![Two out, 1440](assets/rim-viewer-bag-animation/cap-1440-2.png) |
+
+| 1280 × 900, one out | 1280 × 900, two out |
+| --- | --- |
+| ![One out, 1280](assets/rim-viewer-bag-animation/cap-1280-1.png) | ![Two out, 1280](assets/rim-viewer-bag-animation/cap-1280-2.png) |
+
+The cap also applies when reusing a frozen curve at a new planning camera.
+The shrink formula, zone bounds, label packing, 300 ms glide, and quality
+thresholds are unchanged. Full-count floors remain **124.4482 px** at
+1440 × 1000 and **96.6000 px** at 1280 × 900. The old headline sizing numbers
+therefore remain valid in [the sizing write-up](bag-pulled-disc-sizing.md).
+
+**Quality:** no disc at any of the 18 counts crosses a tier boundary at either
+reference size. Diameters are unchanged, so the > 128 px detail look and canvas
+pixel-ratio step-up, the > 256 px detail-photo rule, and device-pixel photo-tier
+selection all remain in the same tiers. No quality setting was adjusted.
+
+**Phone:** implementation untouched. Grown discs still top out at **80 px**
+against a measured **236.95 px** bag at 390 px wide (one out is 50.31 px in
+the demo); the desktop silhouette cap
+does not run there. The browser suite additionally checks every sampled phone
+disc against its measured resting bag width at 360/390/430, with 1, 2, 6 and all
+out. Existing growth, unchanged camera, collision and original-scatter checks
+remain in place.
+
+### Proof and review
+
+The new unit regression fails on the old planner (**411 !== 300**): a 300 px
+body silhouette inside a larger collision footprint caps the maximum exactly,
+including a frozen 411 px curve. Every count stays monotonic and the floor
+stays pinned. The browser sizing suite now checks the actual body silhouette
+width, bounds, collisions and monotonicity at **every count 1–18 at both
+reference sizes**, and captures the four screenshots above. The existing
+quality suite is unmodified. Independent read-only review found no actionable
+issue.
+
+| Final verification | Result |
+| --- | --- |
+| Bag unit suites | 73 passed (71 existing + cap and empty-pull regressions); final run uses the same six files with `--test-isolation=none` |
+| `test:bag:pulled-sizing` | Pass: every reference count, pinned floors, no overlaps, labels, return, turned bag, details, dense bag and phone; 300 ms size glide reached in 295.6 ms |
+| `test:bag:pulled-quality` | Pass, unmodified: detail look, 1024/512/256 photos, full pixel ratio, upright/still stamp and phone |
+| `test:bag:staging` | Pass: 13 checks, desktop/phone counts 1–24 in three themes, category and return glides, resize and reduced motion |
+| Changed-file ESLint / `git diff --check` | Pass, zero warnings or errors |
+
+Captured with local GPU Chromium 156 / ANGLE D3D11. All four fresh screenshots
+were visually inspected. Logs are retained under ignored `outputs/cap-*.log`;
+the per-count measurements and screenshots are committed with this write-up.
+
+Freddy's feel check after deployment: pull one disc out; it should read big,
+but never bigger than the bag it came from. This commit adds the measured
+limit; it does not claim a visual trim where the measurements show none.
 
 

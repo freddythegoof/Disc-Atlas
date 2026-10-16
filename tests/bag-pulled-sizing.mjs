@@ -72,6 +72,27 @@ test('an infeasible desktop zone returns control to the existing planner, never 
  assert.equal(sizing.desktopPulledLayout({entries,allEntries:entries,viewport:{width:600,height:300},bag:{left:150,top:30,width:300,height:240},floor:84}),null);
 });
 
+test('an empty desktop pull needs no bag silhouette',()=>{
+ assert.equal(sizing.desktopPulledLayout({entries:[],allEntries:entries}),null);
+});
+
+test('desktop diameters never exceed the projected bag silhouette width, including a frozen larger curve',()=>{
+ // The collision box can include standing discs; only the bag itself sets the cap.
+ for(const curve of [null,{max:411,decay:.5}]){
+  let previous=Infinity;
+  for(let count=1;count<=entries.length;count++){
+   const layout=sizing.desktopPulledLayout({entries:entries.slice(0,count),allEntries:entries,viewport,bag,bagWidth:300,floor:84,curve});
+   assert.ok(layout);
+   assert.equal(layout.max,300,'cap at the silhouette, without extra padding');
+   assert.ok([...layout.spots.values()].every(s=>s.diameter<=300),'every disc stays within the cap');
+   const diameter=Math.min(...Object.values(layout.diameters));
+   assert.ok(diameter<=previous,'monotonic through all counts');
+   previous=diameter;
+  }
+  assert.equal(previous,84,'the full-count floor stays pinned');
+ }
+});
+
 test('an odd-sized bag reaches the floor when its smaller side is full',()=>{
  const allEntries=Array.from({length:19},(_,i)=>({key:`odd-${String(i).padStart(2,'0')}`,atlas:{x:i/19,y:i/19},label:{width:140,height:32}}));
  const layout=sizing.desktopPulledLayout({entries:allEntries.slice(0,18),allEntries,viewport,bag,floor:84});
