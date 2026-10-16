@@ -307,12 +307,14 @@ export class BagScene {
   }
  }
  place(){
-  if(!this.placeSlots())return;
-  this.placeNames();this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);this.placePopup();
+  if(!this.viewer || !this.slotsByKey)return;
+  const rects=this.viewer.discRects();
+  if(!this.placeSlots(rects))return;
+  this.placeNames(rects);this.placePockets();if(this.lifted && !this.tag.hidden)this.placeTag(this.lifted);this.placePopup();
  }
- placeSlots(){
+ placeSlots(rects=this.viewer?.discRects()){
   if(!this.viewer || !this.slotsByKey)return false;
-  for(const rect of this.viewer.discRects()){
+  for(const rect of rects){
    const slot=this.slotsByKey.get(rect.key);if(!slot)continue;
    Object.assign(slot.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px'});
    slot.dataset.shape=rect.shape;if(rect.out)slot.dataset.out='';else delete slot.dataset.out;
@@ -600,23 +602,36 @@ export class BagScene {
  // where that spot is taken (zoomed in, an odd size), it tries the other of the two, flush under
  // the disc, above it, then its inner side, and takes the first spot clear of the bag,
  // every disc and every placed name (or, failing all, the one that covers least). A disc zoomed out of the canvas has no name.
- placeNames(){
+ placeNames(allRects=null){
   if(!this.viewer || !this.items)return;
-  const rects=new Map(this.viewer.discRects().filter(rect=>rect.out).map(rect=>[rect.key,rect]));
+  const rects=new Map((allRects??this.viewer.discRects()).filter(rect=>rect.out).map(rect=>[rect.key,rect]));
   for(const [id,node] of this.nameById)if(!rects.has(id)){node.remove();this.nameById.delete(id);}
   const width=this.canvas.clientWidth,height=this.canvas.clientHeight;
   const edges=rect=>({key:rect.key,left:rect.left,top:rect.top,right:rect.left+rect.width,bottom:rect.top+rect.height});
-  const bag=this.viewer.bagRect();
+  // The planner has already reserved the bag's footprint at the destination
+  // camera. During a desktop restage hold this collision footprint, rather than
+  // rebuilding/projecting the floating bag's vertices on every disc-size frame.
+  // Re-measure at rest, on a new stage, or while the user turns the bag.
+  const stage=this.viewer.stage,hold=!!stage.sizing && stage.moving && this.root.dataset.dragging===undefined && !this.viewer.cameraMoving;
+  if(!hold)this.stagingBagRect=null;
+  if(hold && this.stagingBagRect?.token!==this.stageToken)this.stagingBagRect={token:this.stageToken,rect:this.viewer.bagRect()};
+  const bag=hold?this.stagingBagRect.rect:this.viewer.bagRect();
   const taken=[...[...rects.values()].map(edges),...(bag?[edges(bag)]:[])];
   const covered=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
-  const centerX=width/2,stage=this.viewer.stage,outer=stage.labels==='outer';
-  for(const id of this.out){
-   const rect=rects.get(id),node=this.nameNode(id);
+  const centerX=width/2,outer=stage.labels==='outer';
+  // Read every name's size together. Interleaving these reads with positioned-name
+  // writes forced a separate browser layout for each moving disc in a mass restage.
+  const rows=this.out.map(id=>({id,rect:rects.get(id),node:this.nameNode(id)}));
+  for(const {rect,node} of rows){
    const cx=rect && rect.left+rect.width/2,cy=rect && rect.top+rect.height/2;
-   if(!rect || cx<0 || cx>width || cy<0 || cy>height){node.hidden=true;delete node.dataset.shown;continue;}
-   node.hidden=false;
-   node.classList.toggle('is-arriving',!!rect.arriving);
-   const w=node.offsetWidth,h=node.offsetHeight,out=(stage.sides[id]??(cx<centerX?'left':'right'))==='left'?-1:1,bottom=rect.top+rect.height;
+   node.hidden=!rect || cx<0 || cx>width || cy<0 || cy>height;
+   node.classList.toggle('is-arriving',!!rect?.arriving);
+  }
+  const sizes=new Map(rows.filter(({node})=>!node.hidden).map(({id,node})=>[id,{w:node.offsetWidth,h:node.offsetHeight}])),updates=[];
+  for(const {id,rect,node} of rows){
+   const cx=rect && rect.left+rect.width/2,cy=rect && rect.top+rect.height/2;
+   if(node.hidden){delete node.dataset.shown;continue;}
+   const {w,h}=sizes.get(id),out=(stage.sides[id]??(cx<centerX?'left':'right'))==='left'?-1:1,bottom=rect.top+rect.height;
    // Under the disc (centered, or flush with its inner edge toward the bag), or beside it away from the bag.
    const under=[stage.labels==='flush'?(out<0?rect.left+rect.width-w/2:rect.left+w/2):cx,bottom+NAME_GAP],beside=[out<0?rect.left-NAME_GAP-w/2:rect.left+rect.width+NAME_GAP+w/2,cy-h/2];
    const spots=[...(outer?[beside,under]:[under,beside]),[out<0?rect.left+rect.width-w/2:rect.left+w/2,bottom+NAME_GAP],[cx,rect.top-NAME_GAP-h],
@@ -629,10 +644,15 @@ export class BagScene {
     if(!best || cost<best.cost)best={x,top,box,cost};
     if(!cost)break;
    }
-   node.dataset.shown='';node.dataset.side=out<0?'left':'right';taken.push({key:id,...best.box});
+   taken.push({key:id,...best.box});updates.push({node,out,best});
+  }
+  for(const {node,out,best} of updates){
+   node.dataset.shown='';node.dataset.side=out<0?'left':'right';
    Object.assign(node.style,{left:best.x+'px',top:best.top+'px'});
   }
-  this.names.replaceChildren(...this.out.map(id=>this.nameById.get(id)).filter(Boolean));
+  // Keep stable nodes attached (including their keyboard focus). Reorder only
+  // when the pulled set's order actually changes, never on every glide frame.
+  rows.forEach(({node},index)=>{if(this.names.children[index]!==node)this.names.insertBefore(node,this.names.children[index]??null);});
   if(this.lifted && this.nameById.get(this.lifted.dataset.physicalDisc)?.dataset.shown!==undefined)this.tag.hidden=true;
  }
 
