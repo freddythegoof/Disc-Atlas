@@ -1,0 +1,35 @@
+# Dependencies, local runtime state and generated output.
+node_modules/
+.wrangler/
+graphify-out/
+public/data.json
+.env*
+.dev.vars*
+*.lock
+pnpm-lock.yaml
+.next/
+.vinext/
+dist/
+outputs/
+work/
+.claude/
+.sites-runtime/
+*.tsbuildinfo
+# Unused starter UI and examples (not imported by app, workers or web).
+/components/ui/
+/hooks/use-mobile.ts
+/lib/utils.ts
+/examples/
+# Third-party source: retain product callers, omit library internals.
+/vendor/
+/public/vendor/
+/public/bag3d/vendor/
+# Assistant-local state is not product source.
+.codex/
+.agents/
+# Private credential files, if introduced locally.
+*.pem
+*.key
+credentials.json
+# Keep maintenance updates in this adoption's code-only corpus.
+*.md
