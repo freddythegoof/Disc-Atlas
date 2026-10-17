@@ -119,7 +119,11 @@ try {
     assert.equal(await menu.getByRole('menuitemradio').count(),3);
     assert.equal(await menu.locator('[aria-checked="true"]').getAttribute('data-lens'),'mine');
     if(width===1440||width===360){await settle();await lens.hover().catch(()=>{});await page.screenshot({path:`${dir}/menu-${width}-${theme}.png`});shots.push(`menu-${width}-${theme}`);}
-    await page.keyboard.press('Escape');assert.ok(await menu.isHidden(),`${width} ${theme}: Escape closes it`);
+    await page.keyboard.press('Escape');
+    assert.ok(await menu.evaluate(n=>n.hidden),`${width} ${theme}: Escape immediately requests close`);
+    // The existing discrete display transition keeps the closing box visible for 150ms.
+    await menu.waitFor({state:'hidden'});
+    assert.ok(await menu.isHidden(),`${width} ${theme}: Escape closes it`);
     assert.ok(await lens.evaluate(n=>n===document.activeElement),`${width} ${theme}: focus returns to the button`);
    }
   }
@@ -136,12 +140,17 @@ try {
   await choose('Standard');
   for(const width of WIDTHS){await page.setViewportSize({width,height:width===360?800:width===768?1024:1000});await page.evaluate(()=>{measureMap();});await overview();await geometry(`Standard ${width}`);if(width===1440||width===360){await settle();await page.screenshot({path:`${dir}/standard-${width}-light.png`});shots.push(`standard-${width}-light`);}}
   await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{measureMap();});await overview();await choose('Personalized');
+  const assertMenuClosed=async message=>{
+   assert.ok(await menu.evaluate(n=>n.hidden),message+' (close immediately requested)');
+   await menu.waitFor({state:'hidden'});
+   assert.ok(await menu.isHidden(),message);
+  };
   // Mouse: a second click on the button closes it; a click outside closes it; keyboard: ArrowDown opens, arrows move, Tab closes.
-  await lens.click();await lens.click();assert.ok(await menu.isHidden(),'Clicking the button again closes the menu');
-  await lens.click();await page.mouse.click(420,30);assert.ok(await menu.isHidden(),"Clicking outside closes the menu");
+  await lens.click();await lens.click();await assertMenuClosed('Clicking the button again closes the menu');
+  await lens.click();await page.mouse.click(420,30);await assertMenuClosed("Clicking outside closes the menu");
   await lens.focus();await page.keyboard.press('ArrowDown');assert.ok(await menu.isVisible(),'ArrowDown opens the menu');
   assert.ok(await menu.locator('[aria-checked="true"]').evaluate(n=>n===document.activeElement),'Focus starts on the current map');
-  await page.keyboard.press('ArrowUp');await page.keyboard.press('Tab');assert.ok(await menu.isHidden(),'Tab closes the menu');
+  await page.keyboard.press('ArrowUp');await page.keyboard.press('Tab');await assertMenuClosed('Tab closes the menu');
   // Directory has no map dropdown; the map brings it back in the same corner.
   await page.locator('#directoryTab').click().catch(()=>{});await page.waitForTimeout(250);
   if(await page.evaluate(()=>document.body.dataset.view)==='list'){assert.ok(await page.locator('#atlasLens').isHidden(),'Directory: no map dropdown');await page.locator('#mapTab').click();await page.waitForFunction(()=>document.body.dataset.view==='map');await mapReady();await geometry('after Directory round trip');}
