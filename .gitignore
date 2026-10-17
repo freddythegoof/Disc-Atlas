@@ -45,3 +45,11 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+
+# Graphify machine-local cache and rebuild bookkeeping.
+/graphify-out/cache/
+/graphify-out/manifest.json
+/graphify-out/.graphify_root
+/graphify-out/.graphify_labels.pending.json
+/graphify-out/20??-??-??/
+*.graphify-bak
