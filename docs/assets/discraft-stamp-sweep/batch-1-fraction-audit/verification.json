@@ -1,0 +1,1935 @@
+{
+  "base": "ba081fd",
+  "standard": "3abd397caba4591eb97486e967c428277c4018ef",
+  "previewOnly": true,
+  "pixelDifferences": {
+    "Avenger branch": {
+      "maxChannelDelta": 1,
+      "changedPixels": 1,
+      "totalPixels": 550676
+    },
+    "Avenger-SS branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Comet branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Drive branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Flash branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Force branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Hades branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Heat branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Meteor branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Predator branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Pulse branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Thrasher branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "XL branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Zeus branch": {
+      "maxChannelDelta": 1,
+      "changedPixels": 1,
+      "totalPixels": 550676
+    },
+    "Buzzz branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Buzzz preview": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Zone branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Zone preview": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Luna branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Luna preview": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Zone GT (Banger Top) branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Zone GT (Banger Top) preview": {
+      "maxChannelDelta": 1,
+      "changedPixels": 1,
+      "totalPixels": 550676
+    },
+    "Destroyer branch": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    },
+    "Destroyer preview": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 550676
+    }
+  },
+  "rendererHashes": {
+    "/disc3d.js": "771355d310be3258fa5948f8fb7e9ed6ec64a0ec579c2274643ccffbb82faf77",
+    "/disc3d/stamp.mjs": "76284691bec71b9ecc99f03c20dc812501ea3323095692d7de1393ecc3d3d7b9",
+    "/disc3d/viewer.mjs": "c143215baed98e41ab77fed0c295393434f084567053cbc586d61fd30e938e1c",
+    "/disc3d/thumbnails.mjs": "3f9a13b06fa73133062d29c0904cf0980a799ca5fe721b0d46cfeda60e5f860d",
+    "/bag3d/viewer.mjs": "024865f7b33876baf2f7b7d0a5835b9069700efa2450d7e8c30a2a5843708ebf",
+    "/collection3d/stage.mjs": "88b4c0ba971dc89a0a6da2d22648c2def41483e8df3b0b64c45e6e4e03f60ad0"
+  },
+  "results": {
+    "before": {
+      "Avenger": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          416,
+          196,
+          577,
+          357
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5709219858156028,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "2928c94799e4dbab08814a1ef81316763fccb7c8ecb2a7df2af62557d8dffa6e",
+        "canvasSHA256": "f87714331ee6e75bc5779e69be3806bf895c47f63a11960bea1382d766a416cd",
+        "geometrySHA256": "1255e45dfe913a277a37ca90dee87563143cb55d2f3f8faf71db15c1d1af5c81"
+      },
+      "Avenger-SS": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          415,
+          195,
+          579,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5815602836879432,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.7,
+        "textureSHA256": "337ae5ecf6809aaca24d99d20fda55d09fc5f11012d7b27865ff5da1f837cd77",
+        "canvasSHA256": "e8ee37377e3b0c8f3a82b7795ce70d71c081a695e55727215b87c66f83024019",
+        "geometrySHA256": "e28a02e0c5234fde916fd0067b0868c9c0dbcbedf7b060c714b0621f25cd01ba"
+      },
+      "Comet": {
+        "discBounds": [
+          353,
+          133,
+          641,
+          421
+        ],
+        "inkBounds": [
+          423,
+          224,
+          571,
+          330
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5138888888888888,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.9,
+        "textureSHA256": "586f4d9465d8d387a5db9880772451d94555e80e974b080df997fa61f7cc9c69",
+        "canvasSHA256": "b70b78b4936e5a9dc0b2e9ffa6b305dc3dff633482507beee92747e0122376da",
+        "geometrySHA256": "276aa193cec394365bbb23b0923148e49be27a95d468d4dacf16c4d24dbb1027"
+      },
+      "Drive": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          424,
+          223,
+          570,
+          331
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5214285714285715,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "062ef8b317701d66521e5a8d391ab23bd4d3638366a72e8340c773beb733239b",
+        "canvasSHA256": "9df4967206c5754c1e403c14e7fef9e26aad57730ebb04da005a8691ee4a6816",
+        "geometrySHA256": "39adf70235f559f716ca83ab47ebcf456261f11660d93a563024e8be30f84a2e"
+      },
+      "Flash": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          196,
+          578,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "e2fbdc4d6f4929253902d43235a948bad89748802e2fc5f37e4eece3eabc0b78",
+        "canvasSHA256": "723c299d580763d36c2ebcee91d4d5a9536558634ede68751c41d92e940ab53a",
+        "geometrySHA256": "641c3ef24ba8a999c85356c494a87eebce8503af5cbd54eacb65380b22829bd4"
+      },
+      "Force": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          418,
+          209,
+          576,
+          345
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5642857142857143,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "53fac04e1c95f192fe9652df411d5b8e82804bddbf0f790c553e920b05839ae8",
+        "canvasSHA256": "99d3d157219a4e2c885aa069947ac8d34ac6c7c948eb98f3f2bd9f2ef73b8bc4",
+        "geometrySHA256": "06f5da20c18a05b6baba9be146c255b92cc5d81c3f59ae0c576c7261ada198fb"
+      },
+      "Hades": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          437,
+          222,
+          555,
+          336
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.4244604316546763,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.5,
+        "textureSHA256": "53af8d56656d3658ad984f76717c1fe3c5bb66f846d6816bfaa3444afc4e26b4",
+        "canvasSHA256": "7e05026d3f6fdd5aeb5c647327e0aab2f169c138a03cd70cc1598a152dd8358f",
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937"
+      },
+      "Heat": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          423,
+          223,
+          571,
+          331
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5323741007194245,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "4ffd90f03edef6e5f9dde24ddeeb5efd1b8e810a01a71c63f9d271de00fd39ef",
+        "canvasSHA256": "edd0a41fb76bd3c6bc31e2290be7b5bd856c8e321635f96cbfbc4360baa5e2d7",
+        "geometrySHA256": "7bcf96fdc5474a24cce910efeba366043e1b23b964bd57fecf170d718b9cb273"
+      },
+      "Meteor": {
+        "discBounds": [
+          355,
+          135,
+          639,
+          419
+        ],
+        "inkBounds": [
+          431,
+          228,
+          565,
+          321
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.47183098591549294,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.75,
+        "textureSHA256": "6249a65506c1a6608e390d4a9064758c39f439110b17cbcbfe2870bde240a26c",
+        "canvasSHA256": "2530ac35f1712a0eddbc4a4721b45893fedb855f928fc7ec60621a8d5af5e839",
+        "geometrySHA256": "b68980540cfc5e62326a03700fa0df5ebb1e5a3b6c759dffa501524238f2acfc"
+      },
+      "Predator": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          415,
+          196,
+          578,
+          359
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5821428571428572,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "81654f389cc70d4702d6e6a29feb0b097c7d9781d2e8bb8b5e6caf53957f361d",
+        "canvasSHA256": "3372b35cabf130dbfb98d226172d241fd4ee8a0880df8cde16593359352cf292",
+        "geometrySHA256": "1f7d78a8f21d80b1626fed355aaa259ab633e4a778d156fd5d4a6757359797bb"
+      },
+      "Pulse": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          414,
+          194,
+          580,
+          360
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5886524822695035,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "a5df01eebe2d078c805a476bfd7093c1ccf9640977a0e6b71c99e0572b53e84e",
+        "canvasSHA256": "c3aec153d340aa9f2a11492a371953348b587351ac98cdcf25ed66c1c045a9dc",
+        "geometrySHA256": "ef9207a21fe0eeee863641371f2c4c2966616abbc4cb25197206bc1abc444541"
+      },
+      "Thrasher": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          422,
+          224,
+          572,
+          330
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5357142857142857,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "eb48535209dfc2a39f2d156b6e1aa8d412ed00e324d6f7e59fa645a2f2926362",
+        "canvasSHA256": "7c517070ea2ee4ad9430ae7bdcc2c26f73ef054211db4e044270846b199c6b99",
+        "geometrySHA256": "8f85c092ca9a3319ec51a6a55ee7cb40e6fc3164a295888a6d8617e4b7b056dc"
+      },
+      "XL": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          415,
+          196,
+          578,
+          357
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5863309352517986,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "a7468a703b2bb580ffa503fdd69e9c8a9dd9053d13da6f6cc608f0012a7d3b6f",
+        "canvasSHA256": "6c316ecaff2733aa932e6aa839d14fce53a0c8861e21956c7ebbccbd45ff9421",
+        "geometrySHA256": "53bd8441f4ad3dad9ae16c1b620c86ea75207c77dea6e998b52c4704fbced6eb"
+      },
+      "Zeus": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          200,
+          578,
+          354
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "161ac2c49ea340b7a33dd01626859454e160622f965f61a7de9855df4be601b1",
+        "canvasSHA256": "062845165d60174ac4e88e5c5ae7ab46e62841e8d66c3c68f191d6b87b0d4b92",
+        "geometrySHA256": "c0ffa72a5018f8045244c606330f12ac459d4dc2b91822c1753c9abc078f7062"
+      },
+      "Buzzz": {
+        "discBounds": [
+          354,
+          134,
+          640,
+          420
+        ],
+        "inkBounds": [
+          417,
+          217,
+          577,
+          340
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5594405594405595,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.85,
+        "textureSHA256": "bb6d404b681a5cb8e3743025c54e5961460ca90ed24aa55bd5cccbffc929cadb",
+        "canvasSHA256": "3408f39cd61c0ed2352c93e33dfb2ea8ee3ada780fbbffba830ff9188ace7e84",
+        "geometrySHA256": "9cc7e66343effb3278b22fa72affb060a87062a5dabef27ab401754442ce3bf8"
+      },
+      "Zone": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          416,
+          196,
+          578,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5827338129496403,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "b775ed559fc738a2b6acb0c7910bdbf3ec105f92d63f41a23bf04d2766f42dcf",
+        "canvasSHA256": "c3a3583008a35c32447067b7225e6f44c1a97c14c10cafa10d967c099d6c90d8",
+        "geometrySHA256": "9babf228c4b2516dfa9f503b1dc9539e83ba70b41233a25c55c6fd9c13480849"
+      },
+      "Luna": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          199,
+          578,
+          354
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "b72ac29a19b04c140f278d5291eef2b4524fd969374c41f1debdd0c4f36a31c6",
+        "canvasSHA256": "bb578343c689b62b1678bbec642dadcae92a028aeacb3bf76371fc483e2563cd",
+        "geometrySHA256": "3811ceb68bb0b4dee30503634760365159f84ac1ce91d6cc31d6a5182ed29553"
+      },
+      "Zone GT (Banger Top)": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          422,
+          202,
+          572,
+          352
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5319148936170213,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "e0922502368e904aad96213d03d96ed79713a0497d8b0bd4bdc1d11384001d4e",
+        "canvasSHA256": "e15fcc6bebc0301e488554295aaaba6d470280b9aa8c71610915450336cb2f83",
+        "geometrySHA256": "a7064faccabe209614332e8918767533428e17c23e3b06dbc25a17c03b82456f"
+      },
+      "Destroyer": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          422,
+          202,
+          572,
+          352
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5357142857142857,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "25509741fbbc463f90334db2f9deb8668d05f0ce65e0334a08a2c56a15cd7d44",
+        "canvasSHA256": "28d7f794732c32aae5646aa990c8edc37eba1cdcf796a0a5281cec3d77454fb2",
+        "geometrySHA256": "e986ead9fad0feac4ee48869c4d78ef24d9da023c773ad171b2a99cb01acefc8"
+      },
+      "bag": {
+        "Avenger": {
+          "inkBounds": [
+            1119,
+            379,
+            1340,
+            599
+          ],
+          "discBounds": [
+            1032.8642034379945,
+            294.5545981375524,
+            1421.7789105557108,
+            683.4693052552685
+          ],
+          "renderedFraction": 0.5682479884544659
+        },
+        "Avenger-SS": {
+          "inkBounds": [
+            1119,
+            378,
+            1341,
+            599
+          ],
+          "discBounds": [
+            1032.5783832940926,
+            294.7423085304639,
+            1421.1377471100166,
+            683.3016723463878
+          ],
+          "renderedFraction": 0.5713412689886178
+        },
+        "Comet": {
+          "inkBounds": [
+            1131,
+            419,
+            1329,
+            559
+          ],
+          "discBounds": [
+            1032.6539547143514,
+            294.6926838088184,
+            1421.491080200767,
+            683.3459888073312
+          ],
+          "renderedFraction": 0.5092106360788259
+        },
+        "Drive": {
+          "inkBounds": [
+            1129,
+            416,
+            1330,
+            562
+          ],
+          "discBounds": [
+            1032.646408915746,
+            294.6976150843782,
+            1421.2903803855315,
+            683.3415865541637
+          ],
+          "renderedFraction": 0.5171828582335964
+        },
+        "Flash": {
+          "inkBounds": [
+            1119,
+            376,
+            1342,
+            601
+          ],
+          "discBounds": [
+            1032.8181092656848,
+            294.584866335862,
+            1421.6755177173131,
+            683.4422747874904
+          ],
+          "renderedFraction": 0.5786182675441779
+        },
+        "Force": {
+          "inkBounds": [
+            1121,
+            396,
+            1339,
+            582
+          ],
+          "discBounds": [
+            1032.8035282116857,
+            294.5944411305029,
+            1421.642811271265,
+            683.4337241900821
+          ],
+          "renderedFraction": 0.5606429429780564
+        },
+        "Hades": {
+          "inkBounds": [
+            1148,
+            414,
+            1313,
+            570
+          ],
+          "discBounds": [
+            1032.6137721624632,
+            294.7190463341664,
+            1421.217173591941,
+            683.3224477636444
+          ],
+          "renderedFraction": 0.42459741575356097
+        },
+        "Heat": {
+          "inkBounds": [
+            1127,
+            416,
+            1332,
+            562
+          ],
+          "discBounds": [
+            1032.4243839827914,
+            294.8434099726176,
+            1420.79236107283,
+            683.2113870626561
+          ],
+          "renderedFraction": 0.5278499054840278
+        },
+        "Meteor": {
+          "inkBounds": [
+            1141,
+            423,
+            1322,
+            548
+          ],
+          "discBounds": [
+            1032.6552111957199,
+            294.6918349793783,
+            1421.4307286774,
+            683.34674837253
+          ],
+          "renderedFraction": 0.46556429574691266
+        },
+        "Predator": {
+          "inkBounds": [
+            1118,
+            377,
+            1341,
+            601
+          ],
+          "discBounds": [
+            1032.703230743435,
+            294.6603024640918,
+            1421.4178361950906,
+            683.3749079157474
+          ],
+          "renderedFraction": 0.5762582544068025
+        },
+        "Pulse": {
+          "inkBounds": [
+            1116,
+            375,
+            1344,
+            603
+          ],
+          "discBounds": [
+            1032.907117539708,
+            294.5264181643396,
+            1421.8751702467107,
+            683.4944708713426
+          ],
+          "renderedFraction": 0.5861663918495255
+        },
+        "Thrasher": {
+          "inkBounds": [
+            1126,
+            416,
+            1333,
+            562
+          ],
+          "discBounds": [
+            1032.5550879111213,
+            294.75758193353323,
+            1421.0855402202708,
+            683.2880342426828
+          ],
+          "renderedFraction": 0.5327767714724515
+        },
+        "XL": {
+          "inkBounds": [
+            1117,
+            378,
+            1342,
+            600
+          ],
+          "discBounds": [
+            1032.4962006782578,
+            294.7962508227424,
+            1420.9534515451505,
+            683.2535016896353
+          ],
+          "renderedFraction": 0.5792143137961339
+        },
+        "Zeus": {
+          "inkBounds": [
+            1119,
+            383,
+            1341,
+            595
+          ],
+          "discBounds": [
+            1032.8237952575562,
+            294.5811325725483,
+            1421.6882718423844,
+            683.4456091573765
+          ],
+          "renderedFraction": 0.570892980376345
+        }
+      }
+    },
+    "branch": {
+      "Avenger": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          416,
+          196,
+          577,
+          357
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5709219858156028,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "2928c94799e4dbab08814a1ef81316763fccb7c8ecb2a7df2af62557d8dffa6e",
+        "canvasSHA256": "c7dbcebc55829e40f4946b6c6435b3d4e62d726a7398278bcfc39927874f8587",
+        "geometrySHA256": "1255e45dfe913a277a37ca90dee87563143cb55d2f3f8faf71db15c1d1af5c81"
+      },
+      "Avenger-SS": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          415,
+          195,
+          579,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5815602836879432,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.7,
+        "textureSHA256": "337ae5ecf6809aaca24d99d20fda55d09fc5f11012d7b27865ff5da1f837cd77",
+        "canvasSHA256": "e8ee37377e3b0c8f3a82b7795ce70d71c081a695e55727215b87c66f83024019",
+        "geometrySHA256": "e28a02e0c5234fde916fd0067b0868c9c0dbcbedf7b060c714b0621f25cd01ba"
+      },
+      "Comet": {
+        "discBounds": [
+          353,
+          133,
+          641,
+          421
+        ],
+        "inkBounds": [
+          423,
+          224,
+          571,
+          330
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5138888888888888,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.9,
+        "textureSHA256": "586f4d9465d8d387a5db9880772451d94555e80e974b080df997fa61f7cc9c69",
+        "canvasSHA256": "b70b78b4936e5a9dc0b2e9ffa6b305dc3dff633482507beee92747e0122376da",
+        "geometrySHA256": "276aa193cec394365bbb23b0923148e49be27a95d468d4dacf16c4d24dbb1027"
+      },
+      "Drive": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          424,
+          223,
+          570,
+          331
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5214285714285715,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "062ef8b317701d66521e5a8d391ab23bd4d3638366a72e8340c773beb733239b",
+        "canvasSHA256": "9df4967206c5754c1e403c14e7fef9e26aad57730ebb04da005a8691ee4a6816",
+        "geometrySHA256": "39adf70235f559f716ca83ab47ebcf456261f11660d93a563024e8be30f84a2e"
+      },
+      "Flash": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          196,
+          578,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "e2fbdc4d6f4929253902d43235a948bad89748802e2fc5f37e4eece3eabc0b78",
+        "canvasSHA256": "723c299d580763d36c2ebcee91d4d5a9536558634ede68751c41d92e940ab53a",
+        "geometrySHA256": "641c3ef24ba8a999c85356c494a87eebce8503af5cbd54eacb65380b22829bd4"
+      },
+      "Force": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          418,
+          209,
+          576,
+          345
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5642857142857143,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "53fac04e1c95f192fe9652df411d5b8e82804bddbf0f790c553e920b05839ae8",
+        "canvasSHA256": "99d3d157219a4e2c885aa069947ac8d34ac6c7c948eb98f3f2bd9f2ef73b8bc4",
+        "geometrySHA256": "06f5da20c18a05b6baba9be146c255b92cc5d81c3f59ae0c576c7261ada198fb"
+      },
+      "Hades": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          437,
+          222,
+          555,
+          336
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.4244604316546763,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.5,
+        "textureSHA256": "53af8d56656d3658ad984f76717c1fe3c5bb66f846d6816bfaa3444afc4e26b4",
+        "canvasSHA256": "7e05026d3f6fdd5aeb5c647327e0aab2f169c138a03cd70cc1598a152dd8358f",
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937"
+      },
+      "Heat": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          423,
+          223,
+          571,
+          331
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5323741007194245,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "4ffd90f03edef6e5f9dde24ddeeb5efd1b8e810a01a71c63f9d271de00fd39ef",
+        "canvasSHA256": "edd0a41fb76bd3c6bc31e2290be7b5bd856c8e321635f96cbfbc4360baa5e2d7",
+        "geometrySHA256": "7bcf96fdc5474a24cce910efeba366043e1b23b964bd57fecf170d718b9cb273"
+      },
+      "Meteor": {
+        "discBounds": [
+          355,
+          135,
+          639,
+          419
+        ],
+        "inkBounds": [
+          431,
+          228,
+          565,
+          321
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.47183098591549294,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.75,
+        "textureSHA256": "6249a65506c1a6608e390d4a9064758c39f439110b17cbcbfe2870bde240a26c",
+        "canvasSHA256": "2530ac35f1712a0eddbc4a4721b45893fedb855f928fc7ec60621a8d5af5e839",
+        "geometrySHA256": "b68980540cfc5e62326a03700fa0df5ebb1e5a3b6c759dffa501524238f2acfc"
+      },
+      "Predator": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          415,
+          196,
+          578,
+          359
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5821428571428572,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "81654f389cc70d4702d6e6a29feb0b097c7d9781d2e8bb8b5e6caf53957f361d",
+        "canvasSHA256": "3372b35cabf130dbfb98d226172d241fd4ee8a0880df8cde16593359352cf292",
+        "geometrySHA256": "1f7d78a8f21d80b1626fed355aaa259ab633e4a778d156fd5d4a6757359797bb"
+      },
+      "Pulse": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          414,
+          194,
+          580,
+          360
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5886524822695035,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "a5df01eebe2d078c805a476bfd7093c1ccf9640977a0e6b71c99e0572b53e84e",
+        "canvasSHA256": "c3aec153d340aa9f2a11492a371953348b587351ac98cdcf25ed66c1c045a9dc",
+        "geometrySHA256": "ef9207a21fe0eeee863641371f2c4c2966616abbc4cb25197206bc1abc444541"
+      },
+      "Thrasher": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          422,
+          224,
+          572,
+          330
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5357142857142857,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "eb48535209dfc2a39f2d156b6e1aa8d412ed00e324d6f7e59fa645a2f2926362",
+        "canvasSHA256": "7c517070ea2ee4ad9430ae7bdcc2c26f73ef054211db4e044270846b199c6b99",
+        "geometrySHA256": "8f85c092ca9a3319ec51a6a55ee7cb40e6fc3164a295888a6d8617e4b7b056dc"
+      },
+      "XL": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          415,
+          196,
+          578,
+          357
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5863309352517986,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "a7468a703b2bb580ffa503fdd69e9c8a9dd9053d13da6f6cc608f0012a7d3b6f",
+        "canvasSHA256": "6c316ecaff2733aa932e6aa839d14fce53a0c8861e21956c7ebbccbd45ff9421",
+        "geometrySHA256": "53bd8441f4ad3dad9ae16c1b620c86ea75207c77dea6e998b52c4704fbced6eb"
+      },
+      "Zeus": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          200,
+          578,
+          354
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "161ac2c49ea340b7a33dd01626859454e160622f965f61a7de9855df4be601b1",
+        "canvasSHA256": "fb299202f96d9870325437e16252d33e18ac4d3d2ad5ac364cc5a3b05e2bcb61",
+        "geometrySHA256": "c0ffa72a5018f8045244c606330f12ac459d4dc2b91822c1753c9abc078f7062"
+      },
+      "Buzzz": {
+        "discBounds": [
+          354,
+          134,
+          640,
+          420
+        ],
+        "inkBounds": [
+          417,
+          217,
+          577,
+          340
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5594405594405595,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.85,
+        "textureSHA256": "bb6d404b681a5cb8e3743025c54e5961460ca90ed24aa55bd5cccbffc929cadb",
+        "canvasSHA256": "3408f39cd61c0ed2352c93e33dfb2ea8ee3ada780fbbffba830ff9188ace7e84",
+        "geometrySHA256": "9cc7e66343effb3278b22fa72affb060a87062a5dabef27ab401754442ce3bf8"
+      },
+      "Zone": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          416,
+          196,
+          578,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5827338129496403,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "b775ed559fc738a2b6acb0c7910bdbf3ec105f92d63f41a23bf04d2766f42dcf",
+        "canvasSHA256": "c3a3583008a35c32447067b7225e6f44c1a97c14c10cafa10d967c099d6c90d8",
+        "geometrySHA256": "9babf228c4b2516dfa9f503b1dc9539e83ba70b41233a25c55c6fd9c13480849"
+      },
+      "Luna": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          199,
+          578,
+          354
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "b72ac29a19b04c140f278d5291eef2b4524fd969374c41f1debdd0c4f36a31c6",
+        "canvasSHA256": "bb578343c689b62b1678bbec642dadcae92a028aeacb3bf76371fc483e2563cd",
+        "geometrySHA256": "3811ceb68bb0b4dee30503634760365159f84ac1ce91d6cc31d6a5182ed29553"
+      },
+      "Zone GT (Banger Top)": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          422,
+          202,
+          572,
+          352
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5319148936170213,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "e0922502368e904aad96213d03d96ed79713a0497d8b0bd4bdc1d11384001d4e",
+        "canvasSHA256": "e15fcc6bebc0301e488554295aaaba6d470280b9aa8c71610915450336cb2f83",
+        "geometrySHA256": "a7064faccabe209614332e8918767533428e17c23e3b06dbc25a17c03b82456f"
+      },
+      "Destroyer": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          422,
+          202,
+          572,
+          352
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5357142857142857,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "25509741fbbc463f90334db2f9deb8668d05f0ce65e0334a08a2c56a15cd7d44",
+        "canvasSHA256": "28d7f794732c32aae5646aa990c8edc37eba1cdcf796a0a5281cec3d77454fb2",
+        "geometrySHA256": "e986ead9fad0feac4ee48869c4d78ef24d9da023c773ad171b2a99cb01acefc8"
+      }
+    },
+    "preview": {
+      "Avenger": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          394,
+          174,
+          599,
+          379
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7269503546099291,
+        "meshRadiusCm": 7.918225536080631,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "2928c94799e4dbab08814a1ef81316763fccb7c8ecb2a7df2af62557d8dffa6e",
+        "canvasSHA256": "b06f31aa875591349a98849f3854d560c5e9958d8eaea8d1b8e534d65c7b495e",
+        "geometrySHA256": "11800a21217c6c6c40954cba1706e5b433ad38a5b40c8659554d4c440379222f"
+      },
+      "Avenger-SS": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          393,
+          173,
+          601,
+          381
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7375886524822695,
+        "meshRadiusCm": 7.963691349050354,
+        "discRadiusCm": 10.7,
+        "textureSHA256": "337ae5ecf6809aaca24d99d20fda55d09fc5f11012d7b27865ff5da1f837cd77",
+        "canvasSHA256": "14936db4c05d8d6f8f728ee7a8f368f3d7252711b69776639f83f9d8d0c90edc",
+        "geometrySHA256": "ab2a066521049f247c39c05d1399c14a71df51c9accc3b482e748c34b84eadc9"
+      },
+      "Comet": {
+        "discBounds": [
+          353,
+          133,
+          641,
+          421
+        ],
+        "inkBounds": [
+          401,
+          209,
+          593,
+          345
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.6666666666666666,
+        "meshRadiusCm": 8.082010638870626,
+        "discRadiusCm": 10.9,
+        "textureSHA256": "586f4d9465d8d387a5db9880772451d94555e80e974b080df997fa61f7cc9c69",
+        "canvasSHA256": "8c20382c12c2980c5f15575eb0753d6f32d8736764299891e070b8e7b103a3c5",
+        "geometrySHA256": "9afaa3aac022865dc637091223b77d1ac6410a53193b95ef2b240313896a4cc5"
+      },
+      "Drive": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          392,
+          201,
+          601,
+          353
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7464285714285714,
+        "meshRadiusCm": 8.91475042420405,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "062ef8b317701d66521e5a8d391ab23bd4d3638366a72e8340c773beb733239b",
+        "canvasSHA256": "2f1ede031ed16308df8ea501848e56b98a869351cf8bf3ccaa000fefd1177787",
+        "geometrySHA256": "7e6b3f38db2849c69b27391c949143051f004e14a47c9244272dd641246252f9"
+      },
+      "Flash": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          393,
+          173,
+          600,
+          381
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7428571428571429,
+        "meshRadiusCm": 7.9350428787594876,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "e2fbdc4d6f4929253902d43235a948bad89748802e2fc5f37e4eece3eabc0b78",
+        "canvasSHA256": "bd48e597aef2d1418476584e6ffaf321f067d320044a9f4a0521dee7591603fd",
+        "geometrySHA256": "d57bea63b8950dc11cf9d8e857bda7bec883245629355891e3d9736e928e51c5"
+      },
+      "Force": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          397,
+          192,
+          597,
+          362
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7142857142857143,
+        "meshRadiusCm": 7.885454169727288,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "53fac04e1c95f192fe9652df411d5b8e82804bddbf0f790c553e920b05839ae8",
+        "canvasSHA256": "0a239f96058c2ef41e2530aa3aedd86f107cfacc218f3ee7d1098850bca3da77",
+        "geometrySHA256": "a3e706bc8eeb87d95ce6f046f22f0bbcba93200c493362bc9ef1ee732e461645"
+      },
+      "Hades": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          402,
+          191,
+          592,
+          369
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.6834532374100719,
+        "meshRadiusCm": 9.87635453770401,
+        "discRadiusCm": 10.5,
+        "textureSHA256": "53af8d56656d3658ad984f76717c1fe3c5bb66f846d6816bfaa3444afc4e26b4",
+        "canvasSHA256": "b6ba2544078bc213b57bd52c11ea0af203035099df5b1b68b9a26dc3a2b2dafb",
+        "geometrySHA256": "32140048e1db83bf032de8048ada2d48ad096bd6f70eaf4f419df91a30031756"
+      },
+      "Heat": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          399,
+          207,
+          595,
+          347
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7050359712230215,
+        "meshRadiusCm": 8.2010713505633,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "4ffd90f03edef6e5f9dde24ddeeb5efd1b8e810a01a71c63f9d271de00fd39ef",
+        "canvasSHA256": "0f7aff4d42f95f8430e7746da3da0d4cc9194595404a6bd265160a2da13820b2",
+        "geometrySHA256": "eda42646c8771a5138387b8a4433ad39ff7aac32c5018c7454c3f8990db9e726"
+      },
+      "Meteor": {
+        "discBounds": [
+          355,
+          135,
+          639,
+          419
+        ],
+        "inkBounds": [
+          398,
+          204,
+          599,
+          343
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7077464788732394,
+        "meshRadiusCm": 9.393769591569635,
+        "discRadiusCm": 10.75,
+        "textureSHA256": "6249a65506c1a6608e390d4a9064758c39f439110b17cbcbfe2870bde240a26c",
+        "canvasSHA256": "153b9931c2dbf110c1e5415f80d51da21f443478bfaf9450fadb355d0245fbf4",
+        "geometrySHA256": "1aa9eae3650151b868bec913e2693cbc36e1cf6f2894d59c294a7afc879055af"
+      },
+      "Predator": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          395,
+          175,
+          598,
+          379
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7285714285714285,
+        "meshRadiusCm": 7.776694587468667,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "81654f389cc70d4702d6e6a29feb0b097c7d9781d2e8bb8b5e6caf53957f361d",
+        "canvasSHA256": "b2e1c672c1285a453d1f52628edb30b72d6bb745aca866525b2c0c579835c338",
+        "geometrySHA256": "959fc16fbcc725d0aeb077b59fbb9186d3a253b6396152e09c9ab4cb2faffc6c"
+      },
+      "Pulse": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          393,
+          173,
+          601,
+          381
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7375886524822695,
+        "meshRadiusCm": 7.784878647212697,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "a5df01eebe2d078c805a476bfd7093c1ccf9640977a0e6b71c99e0572b53e84e",
+        "canvasSHA256": "4aee0d1003c3b58d8f7d185a33d9914c0ca69b4115a0def516a6ae6eb09a40b9",
+        "geometrySHA256": "1041f37e03a182701fd36586472cc2477fcfdbd70d1cea636efeb299d40e855f"
+      },
+      "Thrasher": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          397,
+          207,
+          596,
+          347
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7107142857142857,
+        "meshRadiusCm": 8.264499322999104,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "eb48535209dfc2a39f2d156b6e1aa8d412ed00e324d6f7e59fa645a2f2926362",
+        "canvasSHA256": "3875001d5cb29865215541e8faf4e55b0020185e131a61bdfb38b5f782bf1853",
+        "geometrySHA256": "4be8138015daa080642e59c67eb17887907428b7202dc2e2ae2b9ad3a52302fb"
+      },
+      "XL": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          393,
+          175,
+          600,
+          379
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.7446043165467626,
+        "meshRadiusCm": 7.945061951814064,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "a7468a703b2bb580ffa503fdd69e9c8a9dd9053d13da6f6cc608f0012a7d3b6f",
+        "canvasSHA256": "b11e54d2b587d0a56d701296b95894c425aa253e60473ca272f7f84da0e69742",
+        "geometrySHA256": "c076585ea8ce41276271543adcc1eacbadd2bb46c21ab444e1eddf9959533e33"
+      },
+      "Zeus": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          404,
+          188,
+          590,
+          366
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.6642857142857143,
+        "meshRadiusCm": 7.14166053581696,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "161ac2c49ea340b7a33dd01626859454e160622f965f61a7de9855df4be601b1",
+        "canvasSHA256": "261d704e9e2620b773018110f1dcef08b3ecbee37a861a84f7e9c9012095d5b3",
+        "geometrySHA256": "6f3cd1fd5a445d8a96cb6631f55d5419b1d3cca1e4eaddff87b1db154aec2590"
+      },
+      "Buzzz": {
+        "discBounds": [
+          354,
+          134,
+          640,
+          420
+        ],
+        "inkBounds": [
+          417,
+          217,
+          577,
+          340
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5594405594405595,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.85,
+        "textureSHA256": "bb6d404b681a5cb8e3743025c54e5961460ca90ed24aa55bd5cccbffc929cadb",
+        "canvasSHA256": "3408f39cd61c0ed2352c93e33dfb2ea8ee3ada780fbbffba830ff9188ace7e84",
+        "geometrySHA256": "9cc7e66343effb3278b22fa72affb060a87062a5dabef27ab401754442ce3bf8"
+      },
+      "Zone": {
+        "discBounds": [
+          358,
+          138,
+          636,
+          416
+        ],
+        "inkBounds": [
+          416,
+          196,
+          578,
+          358
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5827338129496403,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "b775ed559fc738a2b6acb0c7910bdbf3ec105f92d63f41a23bf04d2766f42dcf",
+        "canvasSHA256": "c3a3583008a35c32447067b7225e6f44c1a97c14c10cafa10d967c099d6c90d8",
+        "geometrySHA256": "9babf228c4b2516dfa9f503b1dc9539e83ba70b41233a25c55c6fd9c13480849"
+      },
+      "Luna": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          416,
+          199,
+          578,
+          354
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5785714285714286,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "b72ac29a19b04c140f278d5291eef2b4524fd969374c41f1debdd0c4f36a31c6",
+        "canvasSHA256": "bb578343c689b62b1678bbec642dadcae92a028aeacb3bf76371fc483e2563cd",
+        "geometrySHA256": "3811ceb68bb0b4dee30503634760365159f84ac1ce91d6cc31d6a5182ed29553"
+      },
+      "Zone GT (Banger Top)": {
+        "discBounds": [
+          356,
+          136,
+          638,
+          418
+        ],
+        "inkBounds": [
+          422,
+          202,
+          572,
+          352
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5319148936170213,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.6,
+        "textureSHA256": "e0922502368e904aad96213d03d96ed79713a0497d8b0bd4bdc1d11384001d4e",
+        "canvasSHA256": "e0a681c765abddc40afea82651350b3c692dd00ef7d12245ff3b38ed5dfb0c4a",
+        "geometrySHA256": "a7064faccabe209614332e8918767533428e17c23e3b06dbc25a17c03b82456f"
+      },
+      "Destroyer": {
+        "discBounds": [
+          357,
+          137,
+          637,
+          417
+        ],
+        "inkBounds": [
+          422,
+          202,
+          572,
+          352
+        ],
+        "canvasSize": [
+          994,
+          554
+        ],
+        "renderedFraction": 0.5357142857142857,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55,
+        "textureSHA256": "25509741fbbc463f90334db2f9deb8668d05f0ce65e0334a08a2c56a15cd7d44",
+        "canvasSHA256": "28d7f794732c32aae5646aa990c8edc37eba1cdcf796a0a5281cec3d77454fb2",
+        "geometrySHA256": "e986ead9fad0feac4ee48869c4d78ef24d9da023c773ad171b2a99cb01acefc8"
+      },
+      "bag": {
+        "Avenger": {
+          "inkBounds": [
+            1088,
+            348,
+            1371,
+            630
+          ],
+          "discBounds": [
+            1032.8642034379945,
+            294.5545981375524,
+            1421.7789105557108,
+            683.4693052552685
+          ],
+          "renderedFraction": 0.7276659761656735
+        },
+        "Avenger-SS": {
+          "inkBounds": [
+            1087,
+            347,
+            1372,
+            630
+          ],
+          "discBounds": [
+            1032.5783832940926,
+            294.7423085304639,
+            1421.1377471100166,
+            683.3016723463878
+          ],
+          "renderedFraction": 0.7334786561340364
+        },
+        "Comet": {
+          "inkBounds": [
+            1101,
+            398,
+            1358,
+            580
+          ],
+          "discBounds": [
+            1032.6539547143514,
+            294.6926838088184,
+            1421.491080200767,
+            683.3459888073312
+          ],
+          "renderedFraction": 0.6609451185467589
+        },
+        "Drive": {
+          "inkBounds": [
+            1085,
+            384,
+            1373,
+            594
+          ],
+          "discBounds": [
+            1032.646408915746,
+            294.6976150843782,
+            1421.2903803855315,
+            683.3415865541637
+          ],
+          "renderedFraction": 0.7410381252302277
+        },
+        "Flash": {
+          "inkBounds": [
+            1087,
+            345,
+            1373,
+            632
+          ],
+          "discBounds": [
+            1032.8181092656848,
+            294.584866335862,
+            1421.6755177173131,
+            683.4422747874904
+          ],
+          "renderedFraction": 0.7380597457119069
+        },
+        "Force": {
+          "inkBounds": [
+            1092,
+            371,
+            1368,
+            607
+          ],
+          "discBounds": [
+            1032.8035282116857,
+            294.5944411305029,
+            1421.642811271265,
+            683.4337241900821
+          ],
+          "renderedFraction": 0.7098048268896494
+        },
+        "Hades": {
+          "inkBounds": [
+            1098,
+            369,
+            1361,
+            617
+          ],
+          "discBounds": [
+            1032.6137721624632,
+            294.7190463341664,
+            1421.217173591941,
+            683.3224477636444
+          ],
+          "renderedFraction": 0.6767825475344639
+        },
+        "Heat": {
+          "inkBounds": [
+            1094,
+            392,
+            1365,
+            586
+          ],
+          "discBounds": [
+            1032.4243839827914,
+            294.8434099726176,
+            1420.79236107283,
+            683.2113870626561
+          ],
+          "renderedFraction": 0.6977918262740075
+        },
+        "Meteor": {
+          "inkBounds": [
+            1095,
+            390,
+            1369,
+            579
+          ],
+          "discBounds": [
+            1032.6552111957199,
+            294.6918349793783,
+            1421.4307286774,
+            683.34674837253
+          ],
+          "renderedFraction": 0.7047768896942214
+        },
+        "Predator": {
+          "inkBounds": [
+            1089,
+            349,
+            1369,
+            629
+          ],
+          "discBounds": [
+            1032.703230743435,
+            294.6603024640918,
+            1421.4178361950906,
+            683.3749079157474
+          ],
+          "renderedFraction": 0.7203228180085031
+        },
+        "Pulse": {
+          "inkBounds": [
+            1087,
+            346,
+            1373,
+            632
+          ],
+          "discBounds": [
+            1032.907117539708,
+            294.5264181643396,
+            1421.8751702467107,
+            683.4944708713426
+          ],
+          "renderedFraction": 0.735278895039317
+        },
+        "Thrasher": {
+          "inkBounds": [
+            1092,
+            392,
+            1367,
+            586
+          ],
+          "discBounds": [
+            1032.5550879111213,
+            294.75758193353323,
+            1421.0855402202708,
+            683.2880342426828
+          ],
+          "renderedFraction": 0.707795227801566
+        },
+        "XL": {
+          "inkBounds": [
+            1085,
+            347,
+            1373,
+            631
+          ],
+          "discBounds": [
+            1032.4962006782578,
+            294.7962508227424,
+            1420.9534515451505,
+            683.2535016896353
+          ],
+          "renderedFraction": 0.7413943216590514
+        },
+        "Zeus": {
+          "inkBounds": [
+            1102,
+            366,
+            1358,
+            611
+          ],
+          "discBounds": [
+            1032.8237952575562,
+            294.5811325725483,
+            1421.6882718423844,
+            683.4456091573765
+          ],
+          "renderedFraction": 0.6583270404339834
+        }
+      }
+    }
+  }
+}

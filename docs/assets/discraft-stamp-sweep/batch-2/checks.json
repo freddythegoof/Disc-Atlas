@@ -1,0 +1,17 @@
+{
+  "validateData": true,
+  "manifestTests": 10,
+  "batchTests": 6,
+  "nodeTests": 101,
+  "browserSuites": [
+    "Batch 2 deterministic viewer/bag/storage proof",
+    "native Batch 2 physical placement and thumbnails",
+    "native disc3d viewer",
+    "native pop-out",
+    "native bag 3D",
+    "native photo editor/textures"
+  ],
+  "browserNotes": "Native D3D11 cross-context controls showed small raster/compositor differences (1\u20132 channel levels) on unchanged assets/geometry/camera. Pixel proofs therefore use deterministic SwiftShader; all 61 final control production frames are byte-identical, with composited screenshot maximum delta 1. The early Buzzz SS/Buzzz-SS alias selection error was fixed by recorded catalog IDs. Software thumbnail testing correctly hit the existing atlas software-fallback guard, so thumbnail checks were moved to the separate native suite without changing the guard. These proof-harness issues were investigated and corrected, not counted as product failures or quietly discarded.",
+  "suiteNotes": "All existing native suites passed on their first final run. Neither the known bag 3D timeout nor the editor save-dialog non-close occurred.",
+  "perfNotes": "One full measured baseline and one full measured final default gate passed; no measured perf failure or rerun. Deltas are observed warm run-to-run medians, not a causal estimate of stamp cost. The atlas never requests these assets."
+}

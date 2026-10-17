@@ -1,0 +1,12 @@
+test_non_discraft_assignment_is_rejected (main_schema_tests.StampManifestTests.test_non_discraft_assignment_is_rejected) ... ok
+test_invalid_rights_identity_source_and_path_are_rejected (main_schema_tests.StampManifestTests.test_invalid_rights_identity_source_and_path_are_rejected) ... ok
+test_unreviewed_or_removed_catalog_assignment_is_rejected (main_schema_tests.StampManifestTests.test_unreviewed_or_removed_catalog_assignment_is_rejected) ... ok
+test_catalog_changes_only_by_reviewed_stamp_fields (main_schema_tests.StampManifestTests.test_catalog_changes_only_by_reviewed_stamp_fields) ... ok
+test_invalid_or_unreviewed_placement_is_rejected (main_schema_tests.StampManifestTests.test_invalid_or_unreviewed_placement_is_rejected) ... ok
+test_alpha_assets_cannot_bleed_outside_circular_stamp_mesh (main_schema_tests.StampManifestTests.test_alpha_assets_cannot_bleed_outside_circular_stamp_mesh) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.844s
+
+OK
+PASS: main strict placement schema, 17 future assignments, 14 missing-placement mutations; no merge or disk pilot edits

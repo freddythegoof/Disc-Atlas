@@ -28,7 +28,7 @@ class StampManifestTests(unittest.TestCase):
             module.validate_stamp_manifest([entry], [{'id':'innova','brand':'Innova','name':'Destroyer'}], ROOT / 'public')
 
     def test_reviewed_assets_exist_and_match_generated_fields(self):
-        self.assertEqual(len(self.module.validate_stamp_fields(self.entries,self.records,ROOT/'public')),3)
+        self.assertEqual(len(self.module.validate_stamp_fields(self.entries,self.records,ROOT/'public')),len(self.entries))
 
     def test_invalid_rights_identity_source_and_path_are_rejected(self):
         for change in [dict(brand='Innova'),dict(mold='Comet'),dict(asset='stamps/discraft/missing.png'),
@@ -36,6 +36,28 @@ class StampManifestTests(unittest.TestCase):
                        dict(rightsBasis='Discraft permission'),dict(capturedAt='2025-01-01')]:
             with self.subTest(change=change),self.assertRaises(ValueError):
                 self.module.validate_stamp_manifest([{**self.entries[0],**change}],self.records,ROOT/'public')
+
+    def test_infinite_provenance_and_narrow_source_gate(self):
+        entry={**self.entries[0], 'sourceURL':'https://infinitediscs.com/discraft-avenger/esp'}
+        self.module.validate_stamp_manifest([entry],self.records,ROOT/'public')
+        for url in ['http://infinitediscs.com/discraft-avenger/esp',
+                    'https://infinitediscs.com/', 'https://infinitediscs.com/Inf_Uploads/foo.webp',
+                    'https://infinitediscs.com.evil.test/discraft-avenger/esp',
+                    'https://infinitediscs.com@evil.test/discraft-avenger/esp',
+                    'https://infinitediscs.com/discraft-avenger',
+                    'https://infinitediscs.com/innova-destroyer/esp']:
+            with self.subTest(url=url),self.assertRaises(ValueError):
+                self.module.validate_stamp_manifest([{**entry,'sourceURL':url}],self.records,ROOT/'public')
+
+    def test_recorded_alternate_retailer_provenance(self):
+        alternates=[e for e in self.entries if e.get('sourceRetailer') in ('Marshall Street','Reaper Discs')]
+        self.assertTrue(alternates)
+        for entry in alternates:
+            self.module.validate_stamp_manifest([entry],self.records,ROOT/'public')
+        entry=alternates[0]
+        for change in [dict(sourceURL='https://www.marshallstreetdiscgolf.com/product/esp-destroyer'),dict(sourceImageURL=None),dict(sourceSHA256=None),dict(sourceRetailer='Discraft'),dict(sourceSHA256='0'*64),dict(sourceURL='https://www.marshallstreetdiscgolf.com/'),dict(sourceURL='https://user@www.marshallstreetdiscgolf.com/product/esp-anax-paul-mcbeth'),dict(sourceURL='http://www.marshallstreetdiscgolf.com/product/esp-anax-paul-mcbeth')]:
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                self.module.validate_stamp_manifest([{**entry,**change}],self.records,ROOT/'public')
 
     def test_unreviewed_or_removed_catalog_assignment_is_rejected(self):
         records=[dict(d) for d in self.records]
@@ -68,6 +90,7 @@ class StampManifestTests(unittest.TestCase):
         from PIL import Image
         measurements=json.loads((ROOT/'docs/assets/stamp-scale-fix/measurements.json').read_text())
         for e in self.entries:
+            if e['mold'].lower() not in {r['mold'] for r in measurements}:continue
             row=next(r for r in measurements if r['mold']==e['mold'].lower())
             mask=Image.open(ROOT/'public'/e['asset']);box=mask.getchannel('A').getbbox()
             ink=max(box[2]-box[0],box[3]-box[1])

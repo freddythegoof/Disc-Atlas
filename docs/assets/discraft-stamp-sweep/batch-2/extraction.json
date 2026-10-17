@@ -1,0 +1,1242 @@
+[
+  {
+    "mold": "Anax",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-anax-paul-mcbeth",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15093614/Anax_ESP_PM_00-scaled-1.webp",
+    "sourceSHA256": "135b0b9e929617a5003a38f468c3b81d045eac82c9c895674ed51d1dcdea2893",
+    "sourceSize": [
+      2539,
+      2560
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 86.434,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/anax.png",
+    "placement": {
+      "diameterFraction": 0.6434108527131783,
+      "assetInkFraction": 0.9592457420924574
+    },
+    "sourceDiscDiameterPx": 2451,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        50,
+        2478
+      ],
+      [
+        55,
+        2506
+      ]
+    ],
+    "sourceInkBounds": [
+      499,
+      513,
+      2076,
+      2035
+    ],
+    "sourceInkDiameterPx": 1577,
+    "assetSize": [
+      1644,
+      1644
+    ],
+    "assetPasteOffset": [
+      33,
+      61
+    ],
+    "recipe": {
+      "channelTest": "r-g",
+      "threshold": -0.1,
+      "ramp": 0.1,
+      "roi": [
+        0.18,
+        0.2,
+        0.83,
+        0.82
+      ]
+    },
+    "assetSHA256": "05435c47693c31b43a1f744d12d17850b19fbe76e8e91203f4aafeb5abb5dee0"
+  },
+  {
+    "mold": "Ares",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-ares-paul-mcbeth-first-run",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/02081530/Ares_First-Run_Paul-McBeth_00-scaled-7.webp",
+    "sourceSHA256": "90953a4da33542848782e5d889a681ef89e0595487a7f560a1928b86da6051a0",
+    "sourceSize": [
+      2560,
+      2485
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 130.924,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/ares.png",
+    "placement": {
+      "diameterFraction": 0.6589765100671141,
+      "assetInkFraction": 0.9573430834856794
+    },
+    "sourceDiscDiameterPx": 2384,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        70,
+        2454
+      ],
+      [
+        39,
+        2418
+      ]
+    ],
+    "sourceInkBounds": [
+      493,
+      424,
+      2064,
+      1923
+    ],
+    "sourceInkDiameterPx": 1571,
+    "assetSize": [
+      1641,
+      1641
+    ],
+    "assetPasteOffset": [
+      35,
+      71
+    ],
+    "recipe": {
+      "channelTest": "g-b",
+      "threshold": -0.04,
+      "ramp": 0.12,
+      "roi": [
+        0.18,
+        0.14,
+        0.83,
+        0.81
+      ]
+    },
+    "assetSHA256": "1bbbc4931c180553a93fafbf62af9d5c76095cc9cf0a884c6d5c4c7216059b94"
+  },
+  {
+    "mold": "Athena",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-athena-paul-mcbeth",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/02/16083535/Athena_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceSHA256": "1cf0efd59d37e488a48bfd37b0b77fe73d99cadab8da9b917c9a436f2e228e5d",
+    "sourceSize": [
+      2560,
+      2457
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 67.321,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/athena.png",
+    "placement": {
+      "diameterFraction": 0.6481802426343154,
+      "assetInkFraction": 0.9626769626769627
+    },
+    "sourceDiscDiameterPx": 2308,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        119,
+        2427
+      ],
+      [
+        109,
+        2411
+      ]
+    ],
+    "sourceInkBounds": [
+      525,
+      524,
+      2021,
+      1945
+    ],
+    "sourceInkDiameterPx": 1496,
+    "assetSize": [
+      1554,
+      1554
+    ],
+    "assetPasteOffset": [
+      29,
+      66
+    ],
+    "recipe": {
+      "channelTest": "g-b",
+      "threshold": -0.19,
+      "ramp": 0.04,
+      "roi": [
+        0.18,
+        0.18,
+        0.82,
+        0.82
+      ]
+    },
+    "assetSHA256": "9fc48985e76543990c967875e8e71e07db331c171f2dc8b1488b5dd98c28748c"
+  },
+  {
+    "mold": "Buzzz",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-buzzz-paul-mcbeth-6x-7",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120740/Buzzz_ESP_Paul%20McBeth%206X_00-scaled.webp",
+    "sourceSHA256": "034dce61191d0db5934575bf2e2ab8a335ef60875a8cb1c5500c6c16720af938",
+    "sourceSize": [
+      2560,
+      2520
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "control-unchanged",
+    "reason": "Existing approved pilot asset and placement retained unchanged; this alternate revision is not extracted.",
+    "inkCountVerified": null
+  },
+  {
+    "mold": "Buzzz OS",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-buzzz-os-paige-pierce",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120928/Buzzz%20OS_ESP_Paige%20Pierce%205X_00-scaled.webp",
+    "sourceSHA256": "a64bea873f3ca32ae66b9c348c77862085500044f9cae4b2c7a0389dd23f5415",
+    "sourceSize": [
+      2560,
+      2515
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "White PP signature and gold/black main foil have independently different appearance; cannot verify a genuinely single-ink design from this source. Fallback retained.",
+    "inkCountVerified": null
+  },
+  {
+    "mold": "Buzzz SS",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-buzzz-ss-paul-mcbeth-6x",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120419/Buzzz%20SS_ESP_Paul%20McBeth%206X_00-scaled.webp",
+    "sourceSHA256": "3f542cec56dc18ee6588daf7fad2d631fb561db2b9c672004e65dde1426c0f4a",
+    "sourceSize": [
+      2560,
+      2532
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Pink McBeth signature/champion line and black main stamp are distinct inks. Single-ink flattening prohibited; fallback retained.",
+    "inkCountVerified": 2
+  },
+  {
+    "mold": "Cicada",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-cicada",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21114638/Cicada_ESP_00-scaled.webp",
+    "sourceSHA256": "2df3626aeae914a9c7ede3b7a02150b762b0c07abf76331d9a5f56c0d25fd090",
+    "sourceSize": [
+      2560,
+      2550
+    ],
+    "flags": [],
+    "assetKB": 229.131,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/cicada.png",
+    "placement": {
+      "diameterFraction": 0.7220863895680522,
+      "assetInkFraction": 0.9811738648947951
+    },
+    "sourceDiscDiameterPx": 2454,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        51,
+        2500
+      ],
+      [
+        64,
+        2518
+      ]
+    ],
+    "sourceInkBounds": [
+      401,
+      761,
+      2173,
+      1879
+    ],
+    "sourceInkDiameterPx": 1772,
+    "assetSize": [
+      1806,
+      1806
+    ],
+    "assetPasteOffset": [
+      17,
+      344
+    ],
+    "recipe": {
+      "channelTest": "g-b",
+      "threshold": -0.04,
+      "ramp": 0.16,
+      "roi": [
+        0.15,
+        0.28,
+        0.88,
+        0.8
+      ]
+    },
+    "assetSHA256": "5d4b11136eb31c3819c6dff3694055972f5a99f35496738e8b690b356280fb10"
+  },
+  {
+    "mold": "Cigarra",
+    "sourceRetailer": "OTB Discs",
+    "sourceURL": "https://otbdiscs.com/product/refresh-anthony-barela-esp-cigarra/",
+    "sourceImageURL": "https://otbdiscs.b-cdn.net/wp-content/uploads/2030/09/26_R_Cigarra_2-1.png",
+    "sourceSHA256": "ddb997994e0b95efe98813ab78bebf6685b0f2120d7e1b7876a91225385b3d4d",
+    "sourceSize": [
+      1077,
+      1077
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Blue AB signature/champion line and black main stamp are distinct inks. Single-ink flattening prohibited; fallback retained.",
+    "inkCountVerified": 2
+  },
+  {
+    "mold": "Crank",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-crank",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-crank-V5745-default.jpg?v=1697956825",
+    "sourceSHA256": "bb3f7a9f046cebb9e183b4567c5f0906e59362aa5b4d1ebea436f2c2d12c199e",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 20.23,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/crank.png",
+    "placement": {
+      "diameterFraction": 0.6745762711864407,
+      "assetInkFraction": 0.875366568914956
+    },
+    "sourceDiscDiameterPx": 885,
+    "silhouetteMethod": "centre-axis outer silhouette; minimum RGB < .92 against white retailer background",
+    "sourceCentreAxes": [
+      [
+        8,
+        893
+      ],
+      [
+        13,
+        887
+      ]
+    ],
+    "sourceInkBounds": [
+      139,
+      312,
+      736,
+      726
+    ],
+    "sourceInkDiameterPx": 597,
+    "assetSize": [
+      682,
+      682
+    ],
+    "assetPasteOffset": [
+      42,
+      134
+    ],
+    "recipe": {
+      "channelTest": "r-b",
+      "threshold": 0.12,
+      "ramp": 0.16,
+      "roi": [
+        0.12,
+        0.3,
+        0.85,
+        0.84
+      ]
+    },
+    "assetSHA256": "684e22d473cd80a37fa09d98aa02a16959197318ec54f0e7dea058cfcfb87a33"
+  },
+  {
+    "mold": "Drone",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-drone-se-bar-stamp",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-drone-bar-stamp-C5230.jpg?v=1638687279",
+    "sourceSHA256": "0a4ed39b0a42253de073e38f3eb4b793a9394b68e16142baf5551b36d34ab8d4",
+    "sourceSize": [
+      1500,
+      1500
+    ],
+    "flags": [
+      "foil-risk",
+      "brand-only-stamp"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Single reflective silver foil overlaps pale blue plastic and white glare through fine Discraft detail. Complete separation is not reliable without guessing; fallback retained.",
+    "inkCountVerified": 1
+  },
+  {
+    "mold": "Flick",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-flick",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-flick-HI4499-default.jpg?v=1691812427",
+    "sourceSHA256": "5ba9d731e1d6009eac914f87bcba3bba28347e14717380e2c77790a42a6c61e9",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [],
+    "assetKB": 15.093,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/flick.png",
+    "placement": {
+      "diameterFraction": 0.6711259754738016,
+      "assetInkFraction": 0.8737300435413643
+    },
+    "sourceDiscDiameterPx": 897,
+    "silhouetteMethod": "centre-axis outer silhouette; minimum RGB < .92 against white retailer background",
+    "sourceCentreAxes": [
+      [
+        1,
+        898
+      ],
+      [
+        9,
+        894
+      ]
+    ],
+    "sourceInkBounds": [
+      149,
+      299,
+      751,
+      713
+    ],
+    "sourceInkDiameterPx": 602,
+    "assetSize": [
+      689,
+      689
+    ],
+    "assetPasteOffset": [
+      43,
+      137
+    ],
+    "recipe": {
+      "channelTest": "dark",
+      "threshold": 0.65,
+      "ramp": 0.15,
+      "roi": [
+        0.12,
+        0.29,
+        0.86,
+        0.84
+      ]
+    },
+    "assetSHA256": "0843f5c9a8558abc840264c74fe5b9e64411c1e56107f775d0912432d7f5920c"
+  },
+  {
+    "mold": "Hallux",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-hallux-ricky-wysocki-first-run",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/05/27080244/Hallux_ESP_First-Run_Ricky-Wysochi-2X_00-scaled-6.webp",
+    "sourceSHA256": "7b32a63fea98b80b458dd3847e50e033e62f855b8f179d96fe3ae692cc7d6850",
+    "sourceSize": [
+      2560,
+      2495
+    ],
+    "flags": [],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Blue main art and dark first-run/flight strip cannot be verified as one ink from this source. Fallback retained rather than silently merging ink regions.",
+    "inkCountVerified": null
+  },
+  {
+    "mold": "Joy",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-joy-paige-pierce-first-run",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20142705/Joy_ESP_Paige-Pierce_First-Run_00-scaled-3.webp",
+    "sourceSHA256": "eb6bbf4233fc0c03f2e264337b3f41b9e3898d3bd51bff22624369a0dd7c1058",
+    "sourceSize": [
+      2560,
+      2464
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 134.937,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/joy.png",
+    "placement": {
+      "diameterFraction": 0.7199143468950749,
+      "assetInkFraction": 0.9649827784156142
+    },
+    "sourceDiscDiameterPx": 2335,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        71,
+        2406
+      ],
+      [
+        73,
+        2400
+      ]
+    ],
+    "sourceInkBounds": [
+      400,
+      359,
+      2081,
+      2006
+    ],
+    "sourceInkDiameterPx": 1681,
+    "assetSize": [
+      1742,
+      1742
+    ],
+    "assetPasteOffset": [
+      30,
+      47
+    ],
+    "recipe": {
+      "channelTest": "b-r",
+      "threshold": -0.2,
+      "ramp": 0.15,
+      "roi": [
+        0.12,
+        0.1,
+        0.88,
+        0.9
+      ]
+    },
+    "assetSHA256": "fe1e5c885feeb75185afa5b9d80693ccf4af0e25239c6c68ec3424c8ca94f45b"
+  },
+  {
+    "mold": "Luna",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-luna",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-luna-PP1265_034f7459-49db-4949-8a23-16cc51f8d644.jpg?v=1712351143",
+    "sourceSHA256": "8490f009568c36e81102839638481e0441d15f2ea019f35511ef6530891a5abc",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [],
+    "assetKB": 0,
+    "outcome": "control-unchanged",
+    "reason": "Existing approved pilot asset and placement retained unchanged; this alternate revision is not extracted.",
+    "inkCountVerified": null
+  },
+  {
+    "mold": "Malita",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-malita-paul-mcbeth",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/06152705/Malita_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceSHA256": "d2097bc5eb23715c361f77fb93711180c2038439d057cdf42c461e9b4019e2b4",
+    "sourceSize": [
+      2560,
+      2445
+    ],
+    "flags": [],
+    "assetKB": 73.0,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/malita.png",
+    "placement": {
+      "diameterFraction": 0.6544991511035654,
+      "assetInkFraction": 0.957169459962756
+    },
+    "sourceDiscDiameterPx": 2356,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        120,
+        2471
+      ],
+      [
+        50,
+        2406
+      ]
+    ],
+    "sourceInkBounds": [
+      522,
+      470,
+      2064,
+      1956
+    ],
+    "sourceInkDiameterPx": 1542,
+    "assetSize": [
+      1611,
+      1611
+    ],
+    "assetPasteOffset": [
+      34,
+      62
+    ],
+    "recipe": {
+      "channelTest": "dark-g",
+      "threshold": 0.72,
+      "ramp": 0.1,
+      "roi": [
+        0.18,
+        0.18,
+        0.83,
+        0.82
+      ]
+    },
+    "assetSHA256": "c07014f5228ddb285bd2f5483d0bd51c37c7fea710fc9beafd1da88e31c548cb"
+  },
+  {
+    "mold": "Malta",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-malta-paul-mcbeth-5x",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/05/06095223/Malta_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceSHA256": "792d94c837be38e059d09f197ccc78df29d964a7ec68c6848ca3be875543b5df",
+    "sourceSize": [
+      2560,
+      2474
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Trial mask loses patterned foil detail in the lower ring and fine number strip. Lower thresholds admit plastic swirls. Rejected on fidelity; fallback retained.",
+    "inkCountVerified": 1
+  },
+  {
+    "mold": "Nuke",
+    "sourceRetailer": "Gotta Go Gotta Throw",
+    "sourceURL": "https://gottagogottathrow.com/products/discraft-esp-nuke-paige-pierce-5x-distance-driver-golf-disc",
+    "sourceImageURL": "https://gottagogottathrow.com/cdn/shop/files/DCESP-PP_Nuke.jpg?v=1790780682&width=1000",
+    "sourceSHA256": "230abc84b0527ff3cabc09a05f49a412457e061941a4c040496de6a36543a2c9",
+    "sourceSize": [
+      1000,
+      1000
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Two distinct solid inks: blue PP mark and champion line; black Discraft, NUKE, flight strip and ESP. Single-ink flattening prohibited; fallback retained.",
+    "inkCountVerified": 2
+  },
+  {
+    "mold": "Nuke OS",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-nuke-os-swirly",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/23113347/Nuke-OS_ESP_00-scaled-1.webp",
+    "sourceSHA256": "30206c934d21c61a7cce9380cc94c9b79ce3b2282a620a6bccc10ebd53656090",
+    "sourceSize": [
+      2560,
+      2476
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Rainbow foil traverses blue/cyan hues also present in the plastic, especially ESP and Nuke OS/flight detail. Complete separation cannot be verified; fallback retained.",
+    "inkCountVerified": 1
+  },
+  {
+    "mold": "Nuke SS",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/swirly-esp-nuke-ss",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115208/Nuke%20SS_ESP_00-scaled.webp",
+    "sourceSHA256": "862cbcebb04b127f2c05ef3b71343eaee15db31fe360cabdacce65129ba9e9b1",
+    "sourceSize": [
+      2560,
+      2484
+    ],
+    "flags": [],
+    "assetKB": 130.7,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/nuke-ss.png",
+    "placement": {
+      "diameterFraction": 0.7165188001689903,
+      "assetInkFraction": 0.9517396184062851
+    },
+    "sourceDiscDiameterPx": 2367,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        105,
+        2469
+      ],
+      [
+        66,
+        2433
+      ]
+    ],
+    "sourceInkBounds": [
+      457,
+      840,
+      2153,
+      1812
+    ],
+    "sourceInkDiameterPx": 1696,
+    "assetSize": [
+      1782,
+      1782
+    ],
+    "assetPasteOffset": [
+      43,
+      405
+    ],
+    "recipe": {
+      "channelTest": "r-g",
+      "threshold": 0.1,
+      "ramp": 0.15,
+      "roi": [
+        0.12,
+        0.28,
+        0.88,
+        0.79
+      ]
+    },
+    "assetSHA256": "de820527ed9d331700f123ca5004fc6a8273e122f59d3e2d1adb4cca661e7269"
+  },
+  {
+    "mold": "Raptor",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-raptor-ricky-wysocki-2x",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15095126/Raptor_ESP_Ricky-Wysocki-2X_00-scaled-1.webp",
+    "sourceSHA256": "3c7b7960b4a98cf1833ca6b54d882656fc1cd6b5b1694c494a77d5bba24c5320",
+    "sourceSize": [
+      2560,
+      2499
+    ],
+    "flags": [],
+    "assetKB": 113.365,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/raptor.png",
+    "placement": {
+      "diameterFraction": 0.6705154639175258,
+      "assetInkFraction": 0.9475524475524476
+    },
+    "sourceDiscDiameterPx": 2425,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        99,
+        2500
+      ],
+      [
+        25,
+        2450
+      ]
+    ],
+    "sourceInkBounds": [
+      485,
+      519,
+      2111,
+      2033
+    ],
+    "sourceInkDiameterPx": 1626,
+    "assetSize": [
+      1716,
+      1716
+    ],
+    "assetPasteOffset": [
+      45,
+      101
+    ],
+    "recipe": {
+      "channelTest": "r-g",
+      "threshold": -0.2,
+      "ramp": 0.1,
+      "roi": [
+        0.12,
+        0.18,
+        0.86,
+        0.84
+      ]
+    },
+    "assetSHA256": "71f02436d63d7c69f380ffc2a68d9cbf9c6262eb96b5bdbce74e27987b0b2f68"
+  },
+  {
+    "mold": "Scorch",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-scorch",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-scorch-E7143-default.jpg?v=1723518595",
+    "sourceSHA256": "71533c517f76af944cf1cedd97fbe868d6faa843618d5ae6224c6d33fbfa03c3",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [],
+    "assetKB": 18.024,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/scorch.png",
+    "placement": {
+      "diameterFraction": 0.6737668161434978,
+      "assetInkFraction": 0.882525697503671
+    },
+    "sourceDiscDiameterPx": 892,
+    "silhouetteMethod": "centre-axis outer silhouette; minimum RGB < .92 against white retailer background",
+    "sourceCentreAxes": [
+      [
+        5,
+        897
+      ],
+      [
+        18,
+        880
+      ]
+    ],
+    "sourceInkBounds": [
+      146,
+      303,
+      747,
+      712
+    ],
+    "sourceInkDiameterPx": 601,
+    "assetSize": [
+      681,
+      681
+    ],
+    "assetPasteOffset": [
+      40,
+      136
+    ],
+    "recipe": {
+      "channelTest": "dark",
+      "threshold": 0.7,
+      "ramp": 0.15,
+      "roi": [
+        0.12,
+        0.28,
+        0.86,
+        0.85
+      ]
+    },
+    "assetSHA256": "861d2415380d3e79573eb9bd0f13c0dd74693390cd584eb9ea8333bc8f409e23"
+  },
+  {
+    "mold": "Sled",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-sled",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20133151/Sled_ESP_00-scaled-9.webp",
+    "sourceSHA256": "7047f3e7f889583877f6d6b643d45987c1f3067000e676716f9fc3381aea1c04",
+    "sourceSize": [
+      2560,
+      2534
+    ],
+    "flags": [],
+    "assetKB": 67.966,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/sled.png",
+    "placement": {
+      "diameterFraction": 0.6625207296849088,
+      "assetInkFraction": 0.8927374301675978
+    },
+    "sourceDiscDiameterPx": 2412,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        47,
+        2459
+      ],
+      [
+        69,
+        2479
+      ]
+    ],
+    "sourceInkBounds": [
+      443,
+      888,
+      2041,
+      2004
+    ],
+    "sourceInkDiameterPx": 1598,
+    "assetSize": [
+      1790,
+      1790
+    ],
+    "assetPasteOffset": [
+      96,
+      337
+    ],
+    "recipe": {
+      "channelTest": "dark",
+      "threshold": 0.45,
+      "ramp": 0.18,
+      "roi": [
+        0.12,
+        0.28,
+        0.85,
+        0.82
+      ]
+    },
+    "assetSHA256": "1d5328c71c7e31f03674a79e3370c38eb99343c142c7b507decc168f3e1c60be"
+  },
+  {
+    "mold": "Sol",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-sol-paige-pierce",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/06/16104706/Sol_ESP_Paige-Pierce-5X_00-scaled-1.webp",
+    "sourceSHA256": "b38940294746ead509f22082f13473dc57e5208fa6afd1a0b7e54d07d256c403",
+    "sourceSize": [
+      2560,
+      2509
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Silver upper signature/wordmark and dark lower SOL/flight strip cannot be verified as one ink. Reflective fine flight detail is also low contrast; fallback retained.",
+    "inkCountVerified": null
+  },
+  {
+    "mold": "Stalker",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-stalker-paige-pierce-5x",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-stalker-VV2018-default.jpg?v=1703830740",
+    "sourceSHA256": "053165c0f9b8c1ae0422ee862d31903e1940d42cda22d6f9039bf49f9d7a9cfa",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [],
+    "assetKB": 25.731,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/stalker.png",
+    "placement": {
+      "diameterFraction": 0.6707865168539325,
+      "assetInkFraction": 0.9284603421461898
+    },
+    "sourceDiscDiameterPx": 890,
+    "silhouetteMethod": "centre-axis outer silhouette; minimum RGB < .92 against white retailer background",
+    "sourceCentreAxes": [
+      [
+        6,
+        896
+      ],
+      [
+        24,
+        876
+      ]
+    ],
+    "sourceInkBounds": [
+      140,
+      220,
+      737,
+      715
+    ],
+    "sourceInkDiameterPx": 597,
+    "assetSize": [
+      643,
+      643
+    ],
+    "assetPasteOffset": [
+      23,
+      74
+    ],
+    "recipe": {
+      "channelTest": "dark-g",
+      "threshold": 0.6,
+      "ramp": 0.2,
+      "roi": [
+        0.12,
+        0.16,
+        0.85,
+        0.83
+      ]
+    },
+    "assetSHA256": "569b3f4f4ec8680cb1c03b1cfa5561fde07b97f0626c2d7dbe854b74f6f0b7b9"
+  },
+  {
+    "mold": "Swarm",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-swarm",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2024/08/26135020/Swarm_ESP_00-scaled-1.webp",
+    "sourceSHA256": "177c98ce17778a9f0212c0c385be0ca45556a49ace84dff7bb48fdcb08736815",
+    "sourceSize": [
+      2560,
+      2410
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 95.381,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/swarm.png",
+    "placement": {
+      "diameterFraction": 0.6569373942470389,
+      "assetInkFraction": 0.8823863636363637
+    },
+    "sourceDiscDiameterPx": 2364,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        68,
+        2419
+      ],
+      [
+        16,
+        2380
+      ]
+    ],
+    "sourceInkBounds": [
+      479,
+      829,
+      2032,
+      1922
+    ],
+    "sourceInkDiameterPx": 1553,
+    "assetSize": [
+      1760,
+      1760
+    ],
+    "assetPasteOffset": [
+      103,
+      333
+    ],
+    "recipe": {
+      "channelTest": "r-b",
+      "threshold": 0.02,
+      "ramp": 0.15,
+      "roi": [
+        0.12,
+        0.26,
+        0.86,
+        0.86
+      ]
+    },
+    "assetSHA256": "2b12cf923d934b473be6222715ad46726aa04a74d1650f42c19750b794d9a1f7"
+  },
+  {
+    "mold": "Undertaker",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/swirly-esp-undertaker",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115047/Undertaker_ESP_00-scaled.webp",
+    "sourceSHA256": "8809329a07bb58c8956666d5ccc4d8114b3d4d80fe337503513a902c8dd582bc",
+    "sourceSize": [
+      2560,
+      2499
+    ],
+    "flags": [],
+    "assetKB": 258.385,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/undertaker.png",
+    "placement": {
+      "diameterFraction": 0.7402597402597403,
+      "assetInkFraction": 0.9403938265034593
+    },
+    "sourceDiscDiameterPx": 2387,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        96,
+        2478
+      ],
+      [
+        54,
+        2441
+      ]
+    ],
+    "sourceInkBounds": [
+      459,
+      802,
+      2226,
+      1899
+    ],
+    "sourceInkDiameterPx": 1767,
+    "assetSize": [
+      1879,
+      1879
+    ],
+    "assetPasteOffset": [
+      56,
+      391
+    ],
+    "recipe": {
+      "channelTest": "blue-ratio",
+      "threshold": 0.5,
+      "ramp": 0.2,
+      "roi": [
+        0.12,
+        0.28,
+        0.88,
+        0.81
+      ]
+    },
+    "assetSHA256": "ff8b02511faab5179031cf342cb77448acc19dac704dca3c121a466fa58a616e"
+  },
+  {
+    "mold": "Venom",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-venom-3",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15092641/Venom_ESP_000-scaled-2.webp",
+    "sourceSHA256": "837f5f74612d42e05cd772f72c0f7234ee0096bf62b81e41ea77f389617ccae2",
+    "sourceSize": [
+      2560,
+      2548
+    ],
+    "flags": [
+      "foil-risk",
+      "catalog-identity-review"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Trial mask loses patterned foil within the wordmark and fine flight strip. Rejected on fidelity; neither Venom catalog approval is assigned.",
+    "inkCountVerified": 1
+  },
+  {
+    "mold": "Vulture",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-vulture",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-vulture-S5682-Default.jpg?v=1679879507",
+    "sourceSHA256": "745b897c034f9529aa411308d1011cdf26832780b7dfaad9820752e87351bb4f",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Trial mask breaks the signature, wordmark outline and tiny champion/flight detail where patterned foil overlaps plastic hues. Rejected on fidelity; fallback retained.",
+    "inkCountVerified": 1
+  },
+  {
+    "mold": "Zone",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-zone-paul-mcbeth-6x",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120043/Zone_ESP_Paul%20McBeth%206X_00-scaled.webp",
+    "sourceSHA256": "2b83a7789237cb4c63bfe219e9f45b6f735ac765d2e6ee2ea4719477f9c87e01",
+    "sourceSize": [
+      2560,
+      2514
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "control-unchanged",
+    "reason": "Existing approved pilot asset and placement retained unchanged; this alternate revision is not extracted.",
+    "inkCountVerified": null
+  },
+  {
+    "mold": "Zone OS",
+    "sourceRetailer": "Reaper Discs",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-zone-os",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-zone-os-VV2006-default.jpg?v=1703829541",
+    "sourceSHA256": "b5cbe31a5eeb30ff0153aed51c0d0d31b69701476758b5e804e79c805bc65249",
+    "sourceSize": [
+      900,
+      900
+    ],
+    "flags": [
+      "foil-risk"
+    ],
+    "assetKB": 0,
+    "outcome": "fallback",
+    "reason": "Trial mask cannot retain the complete ESP, ZONE OS and flight strip through rainbow foil reflections. Rejected on fidelity; fallback retained.",
+    "inkCountVerified": 1
+  },
+  {
+    "mold": "Zone SS",
+    "sourceRetailer": "Marshall Street",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-zone-ss",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115500/Zone%20SS_ESP_00-scaled.webp",
+    "sourceSHA256": "2d9606dab677e568e76aa96063500b1f477f039f3fbe299407886df93b684b71",
+    "sourceSize": [
+      2560,
+      2463
+    ],
+    "flags": [],
+    "assetKB": 110.497,
+    "outcome": "extracted",
+    "inkCountVerified": 1,
+    "inkReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "asset": "stamps/discraft/zone-ss.png",
+    "placement": {
+      "diameterFraction": 0.712248322147651,
+      "assetInkFraction": 0.963677639046538
+    },
+    "sourceDiscDiameterPx": 2384,
+    "silhouetteMethod": "maximum source-edge RGB gradient across median 5px centre bands; outer 8% searched; Joy table seam excluded",
+    "sourceCentreAxes": [
+      [
+        96,
+        2470
+      ],
+      [
+        22,
+        2406
+      ]
+    ],
+    "sourceInkBounds": [
+      436,
+      865,
+      2134,
+      1745
+    ],
+    "sourceInkDiameterPx": 1698,
+    "assetSize": [
+      1762,
+      1762
+    ],
+    "assetPasteOffset": [
+      32,
+      441
+    ],
+    "recipe": {
+      "channelTest": "b-r",
+      "threshold": -0.35,
+      "ramp": 0.15,
+      "roi": [
+        0.12,
+        0.28,
+        0.88,
+        0.81
+      ]
+    },
+    "assetSHA256": "d770541f265b58151cf46222764e48c016b0a17fa2b90ccf2207a00fa134e32f"
+  }
+]
