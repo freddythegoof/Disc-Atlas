@@ -175,7 +175,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15093614/Anax_ESP_PM_00-scaled-1.webp",
     "imageWidth": 2539,
     "imageHeight": 2560,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Complete own ESP ring/name/Discraft/McBeth emblem/flight strip, gold/dark foil on lime. No central pale occlusion seen, and stronger separation than Infinite blue foil on pink.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -195,7 +195,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/anax.png",
     "infiniteEvidence": {
       "mold": "Anax",
       "inCatalog": true,
@@ -320,7 +320,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "135b0b9e929617a5003a38f468c3b81d045eac82c9c895674ed51d1dcdea2893",
+    "assetKB": 86.434,
+    "placement": {
+      "diameterFraction": 0.6434108527131783,
+      "assetInkFraction": 0.9592457420924574
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15093614/Anax_ESP_PM_00-scaled-1.webp",
+    "sourceSHA256": "135b0b9e929617a5003a38f468c3b81d045eac82c9c895674ed51d1dcdea2893"
   },
   {
     "mold": "APX",
@@ -539,7 +552,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/02081530/Ares_First-Run_Paul-McBeth_00-scaled-7.webp",
     "imageWidth": 2560,
     "imageHeight": 2485,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Named plain ESP first-run listing; full Ares/Discraft/McBeth emblem/first-run label/flight strip in gold on purple, readable. Infinite lacked a plain ESP menu item. Zeus 2.0 alias remains a separate recon row, not a duplicate extraction assignment.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -563,7 +576,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/ares.png",
     "infiniteEvidence": {
       "mold": "Ares",
       "inCatalog": true,
@@ -678,7 +691,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "90953a4da33542848782e5d889a681ef89e0595487a7f560a1928b86da6051a0",
+    "assetKB": 130.924,
+    "placement": {
+      "diameterFraction": 0.6589765100671141,
+      "assetInkFraction": 0.9573430834856794
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/02081530/Ares_First-Run_Paul-McBeth_00-scaled-7.webp",
+    "sourceSHA256": "90953a4da33542848782e5d889a681ef89e0595487a7f560a1928b86da6051a0"
   },
   {
     "mold": "Athena",
@@ -688,7 +714,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/02/16083535/Athena_ESP_Paul-McBeth_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2457,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Own ESP stock Athena ring/name/Discraft/McBeth emblem/number strip fully visible, silver-white on purple. Resolves Infinite Big-Z image mismatch and 675px limit.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -708,7 +734,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/athena.png",
     "infiniteEvidence": {
       "mold": "Athena",
       "inCatalog": true,
@@ -829,7 +855,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "1cf0efd59d37e488a48bfd37b0b77fe73d99cadab8da9b917c9a436f2e228e5d",
+    "assetKB": 67.321,
+    "placement": {
+      "diameterFraction": 0.6481802426343154,
+      "assetInkFraction": 0.9626769626769627
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/02/16083535/Athena_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceSHA256": "1cf0efd59d37e488a48bfd37b0b77fe73d99cadab8da9b917c9a436f2e228e5d"
   },
   {
     "mold": "Avenger",
@@ -1093,7 +1132,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120740/Buzzz_ESP_Paul%20McBeth%206X_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2520,
-    "verdict": "ready",
+    "verdict": "retained-pilot",
     "notes": "Refreshed own ESP 6x Buzzz design fully visible: blue dotted mold lettering, Discraft/ESP/flight strip and silver signature/champion line on orange. Much larger than Infinite ~620px disc. Existing pilot asset unchanged.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -1113,7 +1152,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/buzzz.png",
     "infiniteEvidence": {
       "mold": "Buzzz",
       "inCatalog": true,
@@ -1241,7 +1280,19 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "control-unchanged",
+    "inkCountVerified": null,
+    "extractionReview": "Existing approved pilot asset and placement retained unchanged; this alternate revision is not extracted.",
+    "reviewedSourceSHA256": "034dce61191d0db5934575bf2e2ab8a335ef60875a8cb1c5500c6c16720af938",
+    "extractionRetailer": "Discraft",
+    "extractionSourceURL": "https://www.discraft.com/paul-mcbeth-6x-esp-buzzz-signature-series-pmebuzzz",
+    "placement": {
+      "diameterFraction": 0.7119140625,
+      "assetInkFraction": 0.9479843953185956
+    },
+    "assetKB": 41.139
   },
   {
     "mold": "Buzzz GT",
@@ -1350,7 +1401,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120928/Buzzz%20OS_ESP_Paige%20Pierce%205X_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2515,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Full refreshed own ESP Buzzz OS design: Paige Pierce mark, gold/black dotted name, Discraft, champion line, ESP and number strip readable on red-orange; 2560x2515 replaces Infinite ~630px disc.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -1480,7 +1531,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": null,
+    "extractionReview": "White PP signature and gold/black main foil have independently different appearance; cannot verify a genuinely single-ink design from this source. Fallback retained.",
+    "reviewedSourceSHA256": "a64bea873f3ca32ae66b9c348c77862085500044f9cae4b2c7a0389dd23f5415",
+    "assetKB": 0,
+    "extractionFailure": "White PP signature and gold/black main foil have independently different appearance; cannot verify a genuinely single-ink design from this source. Fallback retained."
   },
   {
     "mold": "Buzzz SS",
@@ -1490,7 +1548,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120419/Buzzz%20SS_ESP_Paul%20McBeth%206X_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2532,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Full refreshed own ESP 6x Buzzz SS stock design; black mold/Discraft/ESP/flight strip and pink McBeth mark/champion line on lime, good contrast. Replaces Infinite low-resolution event stamp.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -1634,7 +1692,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 2,
+    "extractionReview": "Pink McBeth signature/champion line and black main stamp are distinct inks. Single-ink flattening prohibited; fallback retained.",
+    "reviewedSourceSHA256": "3f542cec56dc18ee6588daf7fad2d631fb561db2b9c672004e65dde1426c0f4a",
+    "assetKB": 0,
+    "extractionFailure": "Pink McBeth signature/champion line and black main stamp are distinct inks. Single-ink flattening prohibited; fallback retained."
   },
   {
     "mold": "Captains Caliber",
@@ -2374,7 +2439,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21114638/Cicada_ESP_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2550,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full refreshed own ESP wordmark/dotted CICADA/number strip/ESP stamp; lime on purple is clean and high contrast. Replaces Infinite composite with ~400px top disc.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -2392,7 +2457,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/cicada.png",
     "infiniteEvidence": {
       "mold": "Cicada",
       "inCatalog": true,
@@ -2507,7 +2572,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "2df3626aeae914a9c7ede3b7a02150b762b0c07abf76331d9a5f56c0d25fd090",
+    "assetKB": 229.131,
+    "placement": {
+      "diameterFraction": 0.7220863895680522,
+      "assetInkFraction": 0.9811738648947951
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21114638/Cicada_ESP_00-scaled.webp",
+    "sourceSHA256": "2df3626aeae914a9c7ede3b7a02150b762b0c07abf76331d9a5f56c0d25fd090"
   },
   {
     "mold": "Cigarra",
@@ -2517,7 +2595,7 @@
     "imageUrl": "https://otbdiscs.b-cdn.net/wp-content/uploads/2030/09/26_R_Cigarra_2-1.png",
     "imageWidth": 1077,
     "imageHeight": 1077,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "1077x1077 original, full refreshed own ESP dotted Cigarra/Discraft/ESP/AB mark/signature-edition line/flight strip in dark foil/blue on pink. Clears Infinite silver foil on cream and Marshall Street pink-on-pink concerns.",
     "source": "otb-discs",
     "checkedAt": "2026-10-16",
@@ -2669,7 +2747,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 2,
+    "extractionReview": "Blue AB signature/champion line and black main stamp are distinct inks. Single-ink flattening prohibited; fallback retained.",
+    "reviewedSourceSHA256": "ddb997994e0b95efe98813ab78bebf6685b0f2120d7e1b7876a91225385b3d4d",
+    "assetKB": 0,
+    "extractionFailure": "Blue AB signature/champion line and black main stamp are distinct inks. Single-ink flattening prohibited; fallback retained."
   },
   {
     "mold": "Comet",
@@ -2745,7 +2830,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-crank-V5745-default.jpg?v=1697956825",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "900x900 original, yellow legacy Discraft/ESP/Crank/flight box on gray-blue; fine box is readable and better separated than Marshall Street silver on yellow. Disc about 850px; fixes Infinite ~610px size failure.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -2765,7 +2850,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Reaper Discs photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/crank.png",
     "infiniteEvidence": {
       "mold": "Crank",
       "inCatalog": true,
@@ -2896,7 +2981,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "bb3f7a9f046cebb9e183b4567c5f0906e59362aa5b4d1ebea436f2c2d12c199e",
+    "assetKB": 20.23,
+    "placement": {
+      "diameterFraction": 0.6745762711864407,
+      "assetInkFraction": 0.875366568914956
+    },
+    "extractionRetailer": "Reaper Discs",
+    "extractionSourceURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-crank-V5745-default.jpg?v=1697956825",
+    "sourceSHA256": "bb3f7a9f046cebb9e183b4567c5f0906e59362aa5b4d1ebea436f2c2d12c199e"
   },
   {
     "mold": "Crank SS",
@@ -3265,7 +3363,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-drone-bar-stamp-C5230.jpg?v=1638687279",
     "imageWidth": 1500,
     "imageHeight": 1500,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "1500x1500 original, full Discraft-owned wordmark/bar artwork on a named plain ESP Drone SE Bar Stamp listing; disc about 1160px. Silver on pale blue is readable at original size, with foil-risk. This source has a brand-only stamp: do not invent Drone lettering, ESP text or flight numbers, and do not copy the unrelated Cool Bear art.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -3410,7 +3508,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 1,
+    "extractionReview": "Single reflective silver foil overlaps pale blue plastic and white glare through fine Discraft detail. Complete separation is not reliable without guessing; fallback retained.",
+    "reviewedSourceSHA256": "0a4ed39b0a42253de073e38f3eb4b793a9394b68e16142baf5551b36d34ab8d4",
+    "assetKB": 0,
+    "extractionFailure": "Single reflective silver foil overlaps pale blue plastic and white glare through fine Discraft detail. Complete separation is not reliable without guessing; fallback retained."
   },
   {
     "mold": "Eclipse",
@@ -3764,7 +3869,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-flick-HI4499-default.jpg?v=1691812427",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "900x900 original, full legacy ESP Discraft/ESP/Flick/flight box in solid black on pale green; fine text readable and disc about 850px. Replaces Infinite ~570px weak yellow-ink source.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -3782,7 +3887,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Reaper Discs photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/flick.png",
     "infiniteEvidence": {
       "mold": "Flick",
       "inCatalog": true,
@@ -3880,7 +3985,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "5ba9d731e1d6009eac914f87bcba3bba28347e14717380e2c77790a42a6c61e9",
+    "assetKB": 15.093,
+    "placement": {
+      "diameterFraction": 0.6711259754738016,
+      "assetInkFraction": 0.8737300435413643
+    },
+    "extractionRetailer": "Reaper Discs",
+    "extractionSourceURL": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-flick-HI4499-default.jpg?v=1691812427",
+    "sourceSHA256": "5ba9d731e1d6009eac914f87bcba3bba28347e14717380e2c77790a42a6c61e9"
   },
   {
     "mold": "Focus",
@@ -4389,7 +4507,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/05/27080244/Hallux_ESP_First-Run_Ricky-Wysochi-2X_00-scaled-6.webp",
     "imageWidth": 2560,
     "imageHeight": 2495,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Named plain ESP first-run listing; entire own Hallux stock wordmark, Ricky Wysocki/2x champion line, first-run/Discraft/ESP/number box is readable, blue on pink. Infinite had no plain ESP listing.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -4527,7 +4645,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": null,
+    "extractionReview": "Blue main art and dark first-run/flight strip cannot be verified as one ink from this source. Fallback retained rather than silently merging ink regions.",
+    "reviewedSourceSHA256": "7b32a63fea98b80b458dd3847e50e033e62f855b8f179d96fe3ae692cc7d6850",
+    "assetKB": 0,
+    "extractionFailure": "Blue main art and dark first-run/flight strip cannot be verified as one ink from this source. Fallback retained rather than silently merging ink regions."
   },
   {
     "mold": "Hawk",
@@ -4889,7 +5014,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20142705/Joy_ESP_Paige-Pierce_First-Run_00-scaled-3.webp",
     "imageWidth": 2560,
     "imageHeight": 2464,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Named plain ESP first-run listing; own Paige Pierce smile-pattern JOY/Discraft/first-run/number-box art visible in blue on orange. Fine smile details preserved; foil needs QA. Infinite had no plain ESP listing.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -4912,7 +5037,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/joy.png",
     "infiniteEvidence": {
       "mold": "Joy",
       "inCatalog": true,
@@ -5030,7 +5155,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "eb6bbf4233fc0c03f2e264337b3f41b9e3898d3bd51bff22624369a0dd7c1058",
+    "assetKB": 134.937,
+    "placement": {
+      "diameterFraction": 0.7199143468950749,
+      "assetInkFraction": 0.9649827784156142
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20142705/Joy_ESP_Paige-Pierce_First-Run_00-scaled-3.webp",
+    "sourceSHA256": "eb6bbf4233fc0c03f2e264337b3f41b9e3898d3bd51bff22624369a0dd7c1058"
   },
   {
     "mold": "Kratos",
@@ -5174,7 +5312,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-luna-PP1265_034f7459-49db-4949-8a23-16cc51f8d644.jpg?v=1712351143",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "retained-pilot",
     "notes": "900x900 original, full plain ESP Luna stock Discraft/ESP/spaced LUNA/McBeth emblem/flight box in blue on white. Disc about 850px; avoids Infinite ~420px composite and special-edition inventory. Existing pilot asset unchanged.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -5192,7 +5330,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Reaper Discs photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/luna.png",
     "infiniteEvidence": {
       "mold": "Luna",
       "inCatalog": true,
@@ -5314,7 +5452,19 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "control-unchanged",
+    "inkCountVerified": null,
+    "extractionReview": "Existing approved pilot asset and placement retained unchanged; this alternate revision is not extracted.",
+    "reviewedSourceSHA256": "8490f009568c36e81102839638481e0441d15f2ea019f35511ef6530891a5abc",
+    "extractionRetailer": "Discraft",
+    "extractionSourceURL": "https://www.discraft.com/paul-mcbeth-luna-mcbethluna",
+    "placement": {
+      "diameterFraction": 0.6630859375,
+      "assetInkFraction": 0.9617563739376771
+    },
+    "assetKB": 17.545
   },
   {
     "mold": "Machete",
@@ -5539,7 +5689,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/06152705/Malita_ESP_Paul-McBeth_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2445,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full stock ESP Malita ring/name/Discraft/McBeth emblem/flight strip, dark burgundy on pink. Resolves Infinite blank top and bottom-stamp-only evidence; no artwork borrowed from Malta.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -5557,7 +5707,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/malita.png",
     "infiniteEvidence": {
       "mold": "Malita",
       "inCatalog": true,
@@ -5671,7 +5821,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "d2097bc5eb23715c361f77fb93711180c2038439d057cdf42c461e9b4019e2b4",
+    "assetKB": 73.0,
+    "placement": {
+      "diameterFraction": 0.6544991511035654,
+      "assetInkFraction": 0.957169459962756
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/06152705/Malita_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceSHA256": "d2097bc5eb23715c361f77fb93711180c2038439d057cdf42c461e9b4019e2b4"
   },
   {
     "mold": "Malta",
@@ -5681,7 +5844,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/05/06095223/Malta_ESP_Paul-McBeth_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2474,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Complete own ESP Malta ring/name/Discraft/McBeth emblem/number strip; pink foil on purple offers clear boundaries versus Infinite silver on green. Patterned foil still needs extraction QA.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -5821,7 +5984,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 1,
+    "extractionReview": "Trial mask loses patterned foil detail in the lower ring and fine number strip. Lower thresholds admit plastic swirls. Rejected on fidelity; fallback retained.",
+    "reviewedSourceSHA256": "792d94c837be38e059d09f197ccc78df29d964a7ec68c6848ca3be875543b5df",
+    "assetKB": 0,
+    "extractionFailure": "Trial mask loses patterned foil detail in the lower ring and fine number strip. Lower thresholds admit plastic swirls. Rejected on fidelity; fallback retained."
   },
   {
     "mold": "Mantis",
@@ -6131,7 +6301,7 @@
     "imageUrl": "https://gottagogottathrow.com/cdn/shop/files/DCESP-PP_Nuke.jpg?v=1790780682&width=1000",
     "imageWidth": 1000,
     "imageHeight": 1000,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "1000x1000 original, full refreshed own ESP Nuke design in solid black and blue on pale green: PP mark, Discraft, dotted NUKE, 5x champion line, flight strip and ESP all readable. Disc about 960px. Cleaner separation than Marshall Street 2552x2560 silver-patterned foil; watermark is outside the artwork and excluded. Infinite was ~620px.",
     "source": "gotta-go-gotta-throw",
     "checkedAt": "2026-10-16",
@@ -6374,7 +6544,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 2,
+    "extractionReview": "Two distinct solid inks: blue PP mark and champion line; black Discraft, NUKE, flight strip and ESP. Single-ink flattening prohibited; fallback retained.",
+    "reviewedSourceSHA256": "230abc84b0527ff3cabc09a05f49a412457e061941a4c040496de6a36543a2c9",
+    "assetKB": 0,
+    "extractionFailure": "Two distinct solid inks: blue PP mark and champion line; black Discraft, NUKE, flight strip and ESP. Single-ink flattening prohibited; fallback retained."
   },
   {
     "mold": "Nuke OS",
@@ -6384,7 +6561,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/23113347/Nuke-OS_ESP_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2476,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Full own ESP stock wordmark/ESP/Nuke OS/number box on blue; rainbow foil changes hue but lettering remains visible at original resolution. Replaces low-resolution 2016 event source.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -6524,7 +6701,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 1,
+    "extractionReview": "Rainbow foil traverses blue/cyan hues also present in the plastic, especially ESP and Nuke OS/flight detail. Complete separation cannot be verified; fallback retained.",
+    "reviewedSourceSHA256": "30206c934d21c61a7cce9380cc94c9b79ce3b2282a620a6bccc10ebd53656090",
+    "assetKB": 0,
+    "extractionFailure": "Rainbow foil traverses blue/cyan hues also present in the plastic, especially ESP and Nuke OS/flight detail. Complete separation cannot be verified; fallback retained."
   },
   {
     "mold": "Nuke SS",
@@ -6534,7 +6718,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115208/Nuke%20SS_ESP_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2484,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full refreshed ESP NUKE SS dotted lettering/Discraft/ESP/number strip; solid red on blue, clean contrast and readable box. Replaces Infinite ~610px rainbow-foil source.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -6552,7 +6736,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/nuke-ss.png",
     "infiniteEvidence": {
       "mold": "Nuke SS",
       "inCatalog": true,
@@ -6659,7 +6843,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "862cbcebb04b127f2c05ef3b71343eaee15db31fe360cabdacce65129ba9e9b1",
+    "assetKB": 130.7,
+    "placement": {
+      "diameterFraction": 0.7165188001689903,
+      "assetInkFraction": 0.9517396184062851
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115208/Nuke%20SS_ESP_00-scaled.webp",
+    "sourceSHA256": "862cbcebb04b127f2c05ef3b71343eaee15db31fe360cabdacce65129ba9e9b1"
   },
   {
     "mold": "Passion",
@@ -7175,7 +7372,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15095126/Raptor_ESP_Ricky-Wysocki-2X_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2499,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full own ESP Raptor stamp with Ricky Wysocki signature/2x line, white Discraft/ESP/name/number box on green; clean contrast. Replaces Infinite ~550px disc.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -7193,7 +7390,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/raptor.png",
     "infiniteEvidence": {
       "mold": "Raptor",
       "inCatalog": true,
@@ -7314,7 +7511,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "3c7b7960b4a98cf1833ca6b54d882656fc1cd6b5b1694c494a77d5bba24c5320",
+    "assetKB": 113.365,
+    "placement": {
+      "diameterFraction": 0.6705154639175258,
+      "assetInkFraction": 0.9475524475524476
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15095126/Raptor_ESP_Ricky-Wysocki-2X_00-scaled-1.webp",
+    "sourceSHA256": "3c7b7960b4a98cf1833ca6b54d882656fc1cd6b5b1694c494a77d5bba24c5320"
   },
   {
     "mold": "Rattler",
@@ -8123,7 +8333,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-scorch-E7143-default.jpg?v=1723518595",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "900x900 original, full own ESP Discraft/ESP/distressed Scorch/flight box in solid black on pink-purple; clean fine box and no silver highlights. Resolves Infinite silver-on-cyan foil and Marshall Street soft silver box.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -8141,7 +8351,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Reaper Discs photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/scorch.png",
     "infiniteEvidence": {
       "mold": "Scorch",
       "inCatalog": true,
@@ -8277,7 +8487,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "71533c517f76af944cf1cedd97fbe868d6faa843618d5ae6224c6d33fbfa03c3",
+    "assetKB": 18.024,
+    "placement": {
+      "diameterFraction": 0.6737668161434978,
+      "assetInkFraction": 0.882525697503671
+    },
+    "extractionRetailer": "Reaper Discs",
+    "extractionSourceURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-scorch-E7143-default.jpg?v=1723518595",
+    "sourceSHA256": "71533c517f76af944cf1cedd97fbe868d6faa843618d5ae6224c6d33fbfa03c3"
   },
   {
     "mold": "Sled",
@@ -8287,7 +8510,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20133151/Sled_ESP_00-scaled-9.webp",
     "imageWidth": 2560,
     "imageHeight": 2534,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Complete ESP stock Discraft/ESP/Sled suspension-bridge emblem/number box, solid black on pale yellow. Removes Infinite rainbow-chain foil on pale swirls; this source has its own stock bridge design.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -8305,7 +8528,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/sled.png",
     "infiniteEvidence": {
       "mold": "Sled",
       "inCatalog": true,
@@ -8423,7 +8646,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "7047f3e7f889583877f6d6b643d45987c1f3067000e676716f9fc3381aea1c04",
+    "assetKB": 67.966,
+    "placement": {
+      "diameterFraction": 0.6625207296849088,
+      "assetInkFraction": 0.8927374301675978
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20133151/Sled_ESP_00-scaled-9.webp",
+    "sourceSHA256": "7047f3e7f889583877f6d6b643d45987c1f3067000e676716f9fc3381aea1c04"
   },
   {
     "mold": "Soft Magnet",
@@ -8518,7 +8754,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/06/16104706/Sol_ESP_Paige-Pierce-5X_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2509,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Full ESP Sol stamp with this mold-own Paige Pierce mark/champion line, silver wordmark/ESP and dark Sol/number box on pink. Resolution fixes Infinite ~650px oblique source; silver still needs extraction QA.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -8659,7 +8895,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": null,
+    "extractionReview": "Silver upper signature/wordmark and dark lower SOL/flight strip cannot be verified as one ink. Reflective fine flight detail is also low contrast; fallback retained.",
+    "reviewedSourceSHA256": "b38940294746ead509f22082f13473dc57e5208fa6afd1a0b7e54d07d256c403",
+    "assetKB": 0,
+    "extractionFailure": "Silver upper signature/wordmark and dark lower SOL/flight strip cannot be verified as one ink. Reflective fine flight detail is also low contrast; fallback retained."
   },
   {
     "mold": "Spectra",
@@ -8788,7 +9031,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-stalker-VV2018-default.jpg?v=1703830740",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "900x900 original, full own ESP Stalker/Discraft/ESP/Paige Pierce 5x mark/number box in solid dark blue on green. Fine champion line readable; removes Infinite low resolution and Marshall Street rainbow-on-lime risk.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -8806,7 +9049,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Reaper Discs photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/stalker.png",
     "infiniteEvidence": {
       "mold": "Stalker",
       "inCatalog": true,
@@ -8926,7 +9169,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "053165c0f9b8c1ae0422ee862d31903e1940d42cda22d6f9039bf49f9d7a9cfa",
+    "assetKB": 25.731,
+    "placement": {
+      "diameterFraction": 0.6707865168539325,
+      "assetInkFraction": 0.9284603421461898
+    },
+    "extractionRetailer": "Reaper Discs",
+    "extractionSourceURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-stalker-VV2018-default.jpg?v=1703830740",
+    "sourceSHA256": "053165c0f9b8c1ae0422ee862d31903e1940d42cda22d6f9039bf49f9d7a9cfa"
   },
   {
     "mold": "Sting",
@@ -9409,7 +9665,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2024/08/26135020/Swarm_ESP_00-scaled-1.webp",
     "imageWidth": 2560,
     "imageHeight": 2410,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full ESP stock Discraft/ESP/Swarm/number box, red foil on dark blue, clearer than Infinite gold on orange/yellow. Retailer watermark is outside the disc/stamp and must never enter an extraction.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -9429,7 +9685,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/swarm.png",
     "infiniteEvidence": {
       "mold": "Swarm",
       "inCatalog": true,
@@ -9542,7 +9798,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "177c98ce17778a9f0212c0c385be0ca45556a49ace84dff7bb48fdcb08736815",
+    "assetKB": 95.381,
+    "placement": {
+      "diameterFraction": 0.6569373942470389,
+      "assetInkFraction": 0.8823863636363637
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2024/08/26135020/Swarm_ESP_00-scaled-1.webp",
+    "sourceSHA256": "177c98ce17778a9f0212c0c385be0ca45556a49ace84dff7bb48fdcb08736815"
   },
   {
     "mold": "Talon",
@@ -10101,7 +10370,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115047/Undertaker_ESP_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2499,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full refreshed ESP Discraft/dotted Undertaker/flight strip/ESP stock stamp, solid blue on pale blue; all design readable. Replaces Infinite ~620px disc.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -10119,7 +10388,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/undertaker.png",
     "infiniteEvidence": {
       "mold": "Undertaker",
       "inCatalog": true,
@@ -10236,7 +10505,20 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "8809329a07bb58c8956666d5ccc4d8114b3d4d80fe337503513a902c8dd582bc",
+    "assetKB": 258.385,
+    "placement": {
+      "diameterFraction": 0.7402597402597403,
+      "assetInkFraction": 0.9403938265034593
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115047/Undertaker_ESP_00-scaled.webp",
+    "sourceSHA256": "8809329a07bb58c8956666d5ccc4d8114b3d4d80fe337503513a902c8dd582bc"
   },
   {
     "mold": "Venom",
@@ -10246,7 +10528,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15092641/Venom_ESP_000-scaled-2.webp",
     "imageWidth": 2560,
     "imageHeight": 2548,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "Full own ESP Discraft/ESP/Venom/number-box stamp readable on green, silver patterned foil. Current 13/5/0/3 source belongs to retooled Venom; original and retooled Atlas approvals remain separate before assignment.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -10404,7 +10686,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 1,
+    "extractionReview": "Trial mask loses patterned foil within the wordmark and fine flight strip. Rejected on fidelity; neither Venom catalog approval is assigned.",
+    "reviewedSourceSHA256": "837f5f74612d42e05cd772f72c0f7234ee0096bf62b81e41ea77f389617ccae2",
+    "assetKB": 0,
+    "extractionFailure": "Trial mask loses patterned foil within the wordmark and fine flight strip. Rejected on fidelity; neither Venom catalog approval is assigned."
   },
   {
     "mold": "Vulture",
@@ -10414,7 +10703,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-vulture-S5682-Default.jpg?v=1679879507",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "900x900 original, full ESP Vulture/Discraft/ESP/McBeth 6x mark/flight box, silver-pink foil on dark blue. Signature/champion line has better contrast than Marshall Street rainbow on cyan. Disc about 850px; patterned foil still needs QA.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -10570,7 +10859,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 1,
+    "extractionReview": "Trial mask breaks the signature, wordmark outline and tiny champion/flight detail where patterned foil overlaps plastic hues. Rejected on fidelity; fallback retained.",
+    "reviewedSourceSHA256": "745b897c034f9529aa411308d1011cdf26832780b7dfaad9820752e87351bb4f",
+    "assetKB": 0,
+    "extractionFailure": "Trial mask breaks the signature, wordmark outline and tiny champion/flight detail where patterned foil overlaps plastic hues. Rejected on fidelity; fallback retained."
   },
   {
     "mold": "Wasp",
@@ -11560,7 +11856,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21120043/Zone_ESP_Paul%20McBeth%206X_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2514,
-    "verdict": "ready",
+    "verdict": "retained-pilot",
     "notes": "Full refreshed own ESP Zone/Discraft/ESP/flight strip with this source-own McBeth 6x signature and champion line, gold/brown on yellow. Existing pilot Z artwork remains unchanged; no signature borrowed from another mold.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -11580,7 +11876,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/zone.png",
     "infiniteEvidence": {
       "mold": "Zone",
       "inCatalog": true,
@@ -11707,7 +12003,19 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "control-unchanged",
+    "inkCountVerified": null,
+    "extractionReview": "Existing approved pilot asset and placement retained unchanged; this alternate revision is not extracted.",
+    "reviewedSourceSHA256": "2b83a7789237cb4c63bfe219e9f45b6f735ac765d2e6ee2ea4719477f9c87e01",
+    "extractionRetailer": "Discraft",
+    "extractionSourceURL": "https://www.discraft.com/z-line-zone-zzone",
+    "placement": {
+      "diameterFraction": 0.6943359375,
+      "assetInkFraction": 0.9660326086956522
+    },
+    "assetKB": 32.006
   },
   {
     "mold": "Zone GT",
@@ -11807,7 +12115,7 @@
     "imageUrl": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-zone-os-VV2006-default.jpg?v=1703829541",
     "imageWidth": 900,
     "imageHeight": 900,
-    "verdict": "ready",
+    "verdict": "fallback",
     "notes": "900x900 original, full own ESP wordmark/ESP/Zone OS/flight box in silver on teal; design readable, disc about 850px. Replaces Infinite ~470px low-contrast composite.",
     "source": "reaper-discs",
     "checkedAt": "2026-10-16",
@@ -11932,7 +12240,14 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "fallback",
+    "inkCountVerified": 1,
+    "extractionReview": "Trial mask cannot retain the complete ESP, ZONE OS and flight strip through rainbow foil reflections. Rejected on fidelity; fallback retained.",
+    "reviewedSourceSHA256": "b5cbe31a5eeb30ff0153aed51c0d0d31b69701476758b5e804e79c805bc65249",
+    "assetKB": 0,
+    "extractionFailure": "Trial mask cannot retain the complete ESP, ZONE OS and flight strip through rainbow foil reflections. Rejected on fidelity; fallback retained."
   },
   {
     "mold": "Zone SS",
@@ -11942,7 +12257,7 @@
     "imageUrl": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115500/Zone%20SS_ESP_00-scaled.webp",
     "imageWidth": 2560,
     "imageHeight": 2463,
-    "verdict": "ready",
+    "verdict": "extracted",
     "notes": "Full refreshed ESP Zone SS dotted name/Discraft/ESP/flight strip, white on orange; high contrast and readable fine detail. Replaces Infinite ~430px composite.",
     "source": "marshall-street",
     "checkedAt": "2026-10-16",
@@ -11960,7 +12275,7 @@
     "imageScope": "named alternate retailer original; decoded dimensions verified; stamp artwork only",
     "inventoryCheck": "Selected original visually inspected; see expansion.alternateSources for other checks.",
     "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Marshall Street photography excluded",
-    "asset": null,
+    "asset": "stamps/discraft/zone-ss.png",
     "infiniteEvidence": {
       "mold": "Zone SS",
       "inCatalog": true,
@@ -12073,6 +12388,19 @@
         }
       ],
       "extractionAuthorized": false
-    }
+    },
+    "batch": 2,
+    "batch2Outcome": "extracted",
+    "inkCountVerified": 1,
+    "extractionReview": "One continuous ink/foil design. Metallic brightness/pattern variations are within the same foil; no independent second-color imprint observed.",
+    "reviewedSourceSHA256": "2d9606dab677e568e76aa96063500b1f477f039f3fbe299407886df93b684b71",
+    "assetKB": 110.497,
+    "placement": {
+      "diameterFraction": 0.712248322147651,
+      "assetInkFraction": 0.963677639046538
+    },
+    "extractionRetailer": "Marshall Street",
+    "extractionSourceURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115500/Zone%20SS_ESP_00-scaled.webp",
+    "sourceSHA256": "2d9606dab677e568e76aa96063500b1f477f039f3fbe299407886df93b684b71"
   }
 ]

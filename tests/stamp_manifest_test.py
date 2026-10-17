@@ -49,6 +49,16 @@ class StampManifestTests(unittest.TestCase):
             with self.subTest(url=url),self.assertRaises(ValueError):
                 self.module.validate_stamp_manifest([{**entry,'sourceURL':url}],self.records,ROOT/'public')
 
+    def test_recorded_alternate_retailer_provenance(self):
+        alternates=[e for e in self.entries if e.get('sourceRetailer') in ('Marshall Street','Reaper Discs')]
+        self.assertTrue(alternates)
+        for entry in alternates:
+            self.module.validate_stamp_manifest([entry],self.records,ROOT/'public')
+        entry=alternates[0]
+        for change in [dict(sourceURL='https://www.marshallstreetdiscgolf.com/product/esp-destroyer'),dict(sourceImageURL=None),dict(sourceSHA256=None),dict(sourceRetailer='Discraft'),dict(sourceSHA256='0'*64),dict(sourceURL='https://www.marshallstreetdiscgolf.com/'),dict(sourceURL='https://user@www.marshallstreetdiscgolf.com/product/esp-anax-paul-mcbeth'),dict(sourceURL='http://www.marshallstreetdiscgolf.com/product/esp-anax-paul-mcbeth')]:
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                self.module.validate_stamp_manifest([{**entry,**change}],self.records,ROOT/'public')
+
     def test_unreviewed_or_removed_catalog_assignment_is_rejected(self):
         records=[dict(d) for d in self.records]
         records[0]['stampAsset']='stamps/discraft/buzzz.png'

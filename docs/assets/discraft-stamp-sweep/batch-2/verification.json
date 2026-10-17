@@ -1,0 +1,506 @@
+{
+  "base": "4005a8c",
+  "proofRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "screenshotDifferences": {
+    "Buzzz viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Buzzz bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Zone viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Zone bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Luna viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Luna bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Avenger viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Avenger bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Avenger-SS viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Avenger-SS bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Comet viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Comet bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Drive viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Drive bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Flash viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Flash bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Force viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Force bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Hades viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Hades bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Heat viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Heat bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Meteor viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Meteor bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Predator viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Predator bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Pulse viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Pulse bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Thrasher viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Thrasher bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "XL viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "XL bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Zeus viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Zeus bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Nuke viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Nuke bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Archer viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Archer bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Destroyer viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 96000,
+      "productionFrameIdentical": true
+    },
+    "Buzzz OS viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Buzzz OS bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Buzzz SS viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Buzzz SS bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Cigarra viewer": {
+      "maxChannelDelta": 1,
+      "changedPixels": 4316,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Cigarra bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Drone viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Drone bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Hallux viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Hallux bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Malta viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Malta bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Nuke OS viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Nuke OS bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Sol viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Sol bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Venom viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Venom bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Vulture viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Vulture bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    },
+    "Zone OS viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700,
+      "productionFrameIdentical": true
+    },
+    "Zone OS bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000,
+      "productionFrameIdentical": true
+    }
+  },
+  "controlStampTexturesByteIdentical": true,
+  "controlGeometryAndCameraIdentical": true,
+  "controlViewerFramesByteIdentical": true,
+  "controlBagFramesExactOrOriginalQuantizationBound": true,
+  "batchAssets": [
+    {
+      "id": "79bc1496e337",
+      "mold": "Anax",
+      "asset": "stamps/discraft/anax.png"
+    },
+    {
+      "id": "1b456425771e",
+      "mold": "Ares",
+      "asset": "stamps/discraft/ares.png"
+    },
+    {
+      "id": "68d64ed1b6a3",
+      "mold": "Athena",
+      "asset": "stamps/discraft/athena.png"
+    },
+    {
+      "id": "acea1b7d9cc6",
+      "mold": "Cicada",
+      "asset": "stamps/discraft/cicada.png"
+    },
+    {
+      "id": "282d6483a722",
+      "mold": "Crank",
+      "asset": "stamps/discraft/crank.png"
+    },
+    {
+      "id": "73f935d5fadb",
+      "mold": "Flick",
+      "asset": "stamps/discraft/flick.png"
+    },
+    {
+      "id": "fd9301dc99ae",
+      "mold": "Joy",
+      "asset": "stamps/discraft/joy.png"
+    },
+    {
+      "id": "d28c376c3a93",
+      "mold": "Malita",
+      "asset": "stamps/discraft/malita.png"
+    },
+    {
+      "id": "e76b8f647d6d",
+      "mold": "Nuke SS",
+      "asset": "stamps/discraft/nuke-ss.png"
+    },
+    {
+      "id": "35a861477cf9",
+      "mold": "Raptor",
+      "asset": "stamps/discraft/raptor.png"
+    },
+    {
+      "id": "819b7c057af8",
+      "mold": "Scorch  ",
+      "asset": "stamps/discraft/scorch.png"
+    },
+    {
+      "id": "caaec70f020f",
+      "mold": "Sled",
+      "asset": "stamps/discraft/sled.png"
+    },
+    {
+      "id": "8cc6c4a94762",
+      "mold": "Stalker",
+      "asset": "stamps/discraft/stalker.png"
+    },
+    {
+      "id": "8769ec70b5ad",
+      "mold": "Swarm",
+      "asset": "stamps/discraft/swarm.png"
+    },
+    {
+      "id": "6be51219c6db",
+      "mold": "Undertaker",
+      "asset": "stamps/discraft/undertaker.png"
+    },
+    {
+      "id": "49d84f3e0be5",
+      "mold": "Zone SS",
+      "asset": "stamps/discraft/zone-ss.png"
+    }
+  ],
+  "unchangedControls": [
+    "Buzzz",
+    "Zone",
+    "Luna",
+    "Avenger",
+    "Avenger-SS",
+    "Comet",
+    "Drive",
+    "Flash",
+    "Force",
+    "Hades",
+    "Heat",
+    "Meteor",
+    "Predator",
+    "Pulse",
+    "Thrasher",
+    "XL",
+    "Zeus",
+    "Nuke",
+    "Archer",
+    "Destroyer"
+  ],
+  "photoDecodedPixelsIdentical": true,
+  "clayIdentical": true,
+  "atlasStampRequests": 0,
+  "brandGate": true,
+  "bagControlsIdentical": [
+    "Buzzz",
+    "Zone",
+    "Luna",
+    "Avenger",
+    "Avenger-SS",
+    "Comet",
+    "Drive",
+    "Flash",
+    "Force",
+    "Hades",
+    "Heat",
+    "Meteor",
+    "Predator",
+    "Pulse",
+    "Thrasher",
+    "XL",
+    "Zeus",
+    "Nuke",
+    "Archer"
+  ],
+  "thumbnails": "verified separately on native GPU; software atlas fallback is preserved"
+}

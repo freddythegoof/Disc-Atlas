@@ -4,12 +4,20 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 import re
 import math
+import json
 
 RIGHTS = 'Discraft permission, 2026-10-15, free resource'
 
 def validate_stamp_manifest(entries, records, public):
     if not isinstance(entries, list):
         raise ValueError('Stamp manifest must be a list')
+    # The sweep review records each mold's exact winning retailer source.
+    # Alternate pages are permitted only with that mold's reviewed image/hash.
+    sweep = json.loads((Path(__file__).parent/'docs/discraft-stamp-sweep/manifest.json').read_text(encoding='utf8'))
+    reviewed = {e['catalogMatches'][0]['id']: {
+        'sourceURL':e['pageUrl'], 'sourceImageURL':e['imageUrl'],
+        'sourceRetailer':e['extractionRetailer'], 'sourceSHA256':e['sourceSHA256']
+    } for e in sweep if e.get('batch') == 2 and e.get('verdict') == 'extracted'}
     catalog = {d['id']: d for d in records}
     assignments = {}
     for entry in entries:
@@ -28,8 +36,12 @@ def validate_stamp_manifest(entries, records, public):
         source = urlparse(entry['sourceURL'])
         official = source.netloc == 'www.discraft.com' and source.path not in ('','/')
         infinite = source.netloc == 'infinitediscs.com' and re.fullmatch(r'/discraft-[a-z0-9-]+/esp', source.path)
-        if source.scheme != 'https' or not (official or infinite):
-            raise ValueError('Stamp source must be an official Discraft or reviewed Infinite Discraft ESP product page')
+        provenance = reviewed.get(entry['id'])
+        alternate = provenance is not None and all(entry.get(k) == v for k,v in provenance.items())
+        if provenance is not None and not alternate:
+            raise ValueError('Stamp retailer provenance differs from this mold reviewed source')
+        if source.scheme != 'https' or not (official or infinite or alternate):
+            raise ValueError('Stamp source must be an official Discraft or reviewed Discraft retailer product page')
         if date.fromisoformat(entry['capturedAt']) < date(2026,10,15):
             raise ValueError('Stamp capture predates permission')
         path = PurePosixPath(entry['asset'])
