@@ -1,4 +1,4 @@
-// Storage selects the copy; the shared detail viewer owns geometry, materials and photos.
+// Gallery selects the copy; the shared detail viewer owns geometry, materials and photos.
 import {bagClass} from './bag-values.js';
 import {rackOrder} from './collection3d/rack-layout.mjs';
 import {photoURL} from './disc-photo.mjs';
@@ -16,6 +16,7 @@ export function albumItems(items,lookup,filter='all'){
 export class AllDiscsGallery{
  constructor(root,{lookup}){
   this.root=root;this.lookup=lookup;this.visible=false;this.filter='all';this.index=0;this.items=[];this.revision=0;this.clay=false;
+  this.pose={view:'top',tilt:0,flipped:false};
   this.stage=root.querySelector('[data-album-stage]');this.host=root.querySelector('[data-album-viewer]');
   this.empty=root.querySelector('[data-album-empty]');this.message=root.querySelector('[data-album-message]');
   root.addEventListener('click',event=>{
@@ -43,9 +44,11 @@ export class AllDiscsGallery{
    if(e.type==='pointerup'&&Math.abs(dx)>=50&&Math.abs(dx)>Math.abs(dy)*1.5)this.step(dx<0?1:-1);
   };
   this.stage.addEventListener('pointerup',release,true);this.stage.addEventListener('pointercancel',release,true);
+  // Hide before the shared viewer reacts to a theme and potentially rebuilds its appearance.
+  window.addEventListener('atlas-theme-change',()=>{if(this.visible)this.render();});
  }
  sync(visible,collection){
-  if(!visible){this.visible=false;this.root.hidden=true;this.revision++;this.viewer?.dispose();this.viewer=null;this.filter='all';this.index=0;this.collection=[];this.items=[];return;}
+  if(!visible){this.visible=false;this.root.hidden=true;this.revision++;cancelAnimationFrame(this.appearanceFrame);this.viewer?.dispose();this.viewer=null;this.filter='all';this.index=0;this.collection=[];this.items=[];this.pose={view:'top',tilt:0,flipped:false};return;}
   const selected=this.items[this.index]?.id;
   this.visible=true;this.root.hidden=false;this.collection=collection;this.items=albumItems(collection,this.lookup,this.filter);
   this.index=Math.max(0,this.items.findIndex(i=>i.id===selected));this.render();
@@ -53,6 +56,8 @@ export class AllDiscsGallery{
  step(delta){if(!this.items.length)return;this.index=(this.index+delta+this.items.length)%this.items.length;this.render();}
  render(){
   const revision=++this.revision,item=this.items[this.index],d=item&&this.lookup(item.mold_id);
+  cancelAnimationFrame(this.appearanceFrame);this.host.style.visibility='hidden';
+  this.host.getAnimations().forEach(a=>a.cancel());this.root.dataset.appearance='loading';
   for(const b of this.root.querySelectorAll('[data-album-filter]'))b.setAttribute('aria-pressed',String(b.dataset.albumFilter===this.filter));
   for(const b of this.root.querySelectorAll('[data-album-step]'))b.disabled=!item;
   this.root.querySelector('[data-album-counter]').textContent=`${item?this.index+1:0} / ${this.items.length}`;
@@ -66,27 +71,47 @@ export class AllDiscsGallery{
   const model=!!d&&!!shapeForDisc({model:d.model3d,specs:d.specs,flight:{speed:d.speed,turn:d.turn,fade:d.fade}});
   this.stage.hidden=!item||!model;this.message.hidden=!item||model;
   this.message.textContent=item&&!model?'A 3D view isn’t available for this disc yet.':'';
-  if(!model){this.viewer?.dispose();this.viewer=null;return;}
+  if(!model){if(this.viewer)this.pose=this.viewer.getPose();this.viewer?.dispose();this.viewer=null;this.root.dataset.appearance='unavailable';return;}
   this.stage.setAttribute('aria-busy','true');
   const show=()=>{
    if(!this.visible||revision!==this.revision)return;
+   if(this.viewer)this.pose=this.viewer.getPose();
    this.viewer??=this.module.createDiscViewer({onClay:on=>{this.clay=on;}});
    const v=this.viewer;
-   v.attach(this.host);v.update({brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,
+   const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,
     model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:title(d),
     manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
     color:item.color,colors:{plate:item.color,rim:item.rim_color||undefined},plastic:item.plastic||'premium',
-    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color});
-   v.setClay(this.clay);this.stage.setAttribute('aria-busy','false');this.message.hidden=true;
-   this.host.getAnimations().forEach(a=>a.cancel());
-   if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
-    const style=getComputedStyle(this.root),token=style.getPropertyValue('--dur-ui').trim();
-    const duration=(parseFloat(token)||.18)*(token.endsWith('ms')?1:1000);
-    this.host.animate([{opacity:.65},{opacity:1}],{duration,easing:style.getPropertyValue('--ease-out').trim()||'ease-out'});
-   }
+    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color};
+   // ResizeObserver maintains an attached viewer; reattaching it would force a layout read per flip.
+   if(v.element.parentNode!==this.host)v.attach(this.host);
+   v.update(props);
+   // Restore only the camera choice. The shared viewer still owns flip/tilt reset behavior.
+   v.applyPose({...this.pose,tilt:v.state.tilt,flipped:v.state.flipped});v.setClay(this.clay);
+   const asset=props.photoURL?null:this.module.catalogStampAsset(props);
+   const reveal=(painted=false)=>{
+    if(!this.visible||revision!==this.revision||v!==this.viewer)return;
+    const photo=v.debug.photo?.userData,stamp=v.debug.stamp.material.map?.userData;
+    if(photo?.photoFailed||asset&&stamp?.stampFailed){
+     this.root.dataset.appearance='failed';this.stage.setAttribute('aria-busy','false');
+     this.message.hidden=false;this.message.textContent='This disc’s appearance couldn’t load. You can still browse the collection.';return;
+    }
+    if(props.photoURL&&!photo?.photoReady||asset&&stamp?.stampAsset!==asset){this.appearanceFrame=requestAnimationFrame(()=>reveal());return;}
+    // Let the shared viewer's already-scheduled frame paint the decoded assets before exposure.
+    // A separate rAF turn also covers a ready callback that ran ahead of that renderer this frame.
+    if(!painted){this.appearanceFrame=requestAnimationFrame(()=>reveal(true));return;}
+    this.host.style.visibility='';this.root.dataset.appearance='ready';
+    this.stage.setAttribute('aria-busy','false');this.message.hidden=true;
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+     const style=getComputedStyle(this.root),token=style.getPropertyValue('--dur-ui').trim();
+     const duration=(parseFloat(token)||.18)*(token.endsWith('ms')?1:1000);
+     this.host.animate([{opacity:.65},{opacity:1}],{duration,easing:style.getPropertyValue('--ease-out').trim()||'ease-out'});
+    }
+   };
+   reveal();
   };
-  const failed=()=>{if(revision!==this.revision)return;this.viewer?.dispose();this.viewer=null;this.stage.hidden=true;this.stage.setAttribute('aria-busy','false');this.message.hidden=false;this.message.textContent='The 3D view couldn’t load here. You can still browse every disc’s details.';};
+  const failed=()=>{if(revision!==this.revision)return;this.viewer?.dispose();this.viewer=null;this.root.dataset.appearance='failed';this.stage.hidden=true;this.stage.setAttribute('aria-busy','false');this.message.hidden=false;this.message.textContent='The 3D view couldn’t load here. You can still browse every disc’s details.';};
   if(this.module){try{show();}catch{failed();}}
-  else (this.loading??=import('./disc3d/viewer.mjs')).then(m=>{this.module=m;try{show();}catch{failed();}},failed);
+  else (this.loading??=Promise.all([import('./disc3d/viewer.mjs'),import('./disc3d/stamp.mjs')]).then(([viewer,stamp])=>({...viewer,catalogStampAsset:stamp.catalogStampAsset}))).then(m=>{this.module=m;try{show();}catch{failed();}},failed);
  }
 }

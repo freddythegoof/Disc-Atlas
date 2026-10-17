@@ -1,17 +1,17 @@
 # Graph Report - disc-atlas  (2026-10-17)
 
 ## Corpus Check
-- 329 files · ~4,864,748 words
+- 330 files · ~4,865,303 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 66 file(s) not represented in the graph (top: .log 31, .css 15, .ttf 8)
+- Unclassified: 67 file(s) not represented in the graph (top: .log 31, .css 15, .ttf 8)
 
 ## Summary
-- 2454 nodes · 4990 edges · 145 communities (117 shown, 28 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 189 edges (avg confidence: 0.85)
+- 2463 nodes · 5008 edges · 142 communities (113 shown, 29 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 192 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b517464b`
+- Built from commit: `e59e67e1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,16 +20,16 @@
 - workers/auth.mjs
 - Bag scene
 - bag.js
-- ref_node_module
+- bag-scene-browser.mjs
 - scripts
 - Photo editing and albedo
 - sampling-audit-draw.mjs
 - package.json
 - disc3d-popout-browser.mjs
-- ref_node_path
+- ref_node_http
 - manufacturer-diff.py
 - non-overmold-photo-edge-atlas-browser.mjs
-- stage.mjs
+- disc3d/viewer.mjs
 - my-bag.js
 - atlas-map.js
 - Shared 3D disc viewer
@@ -43,13 +43,13 @@
 - bag-values.js
 - dependencies
 - LostScene
-- detail
+- ref_node_assert
 - Account and bag SQL schema
 - mountGraveyard
 - racks.mjs
 - initAtlasMap
-- directory-layout-browser.mjs
-- ref_node_assert
+- ref_node_fs
+- .zoom
 - bag-3d-layout.mjs
 - mountRacks
 - atlas-art.mjs
@@ -59,8 +59,8 @@
 - photo-editor-races.mjs
 - compilerOptions
 - atlas-groups.js
-- disc3d/viewer.mjs
-- ref_node_test
+- ref_node_path
+- bagDetailMarkup
 - bag-interactions-browser.mjs
 - components.json
 - Detail and pop-out viewer bridge
@@ -93,12 +93,12 @@
 - extract-discraft-batch2.py
 - buildClusters
 - atlas-groups.mjs
-- theme
+- ref_node_module
 - render
 - bag-v13-browser.mjs
 - my-map-browser.mjs
 - pulled-sizing.mjs
-- bag-v12-browser.mjs
+- ref_node_test
 - ref_node_vm
 - atlas-organic.mjs
 - ref_node_child_process
@@ -107,13 +107,14 @@
 - draw
 - profile.mjs
 - StampManifestTests
-- openLostDisc
-- StorageScene
+- apple-design-3-browser.mjs
+- renderMarkers
 - disc-appearance-browser.mjs
 - grouping-zoom.mjs
-- activeLens
+- drawCompareHighlights
 - atlas-motion.js
 - coach.js
+- context-header.mjs
 - install-pnpm.sh
 - discraft_batch2_test.py
 - stamp_fraction_audit_test.py
@@ -139,17 +140,13 @@
 - postcss.config.mjs
 - raw.d.ts
 - build-verified.sh
-- renderList
 - compose-discraft-fraction-proofs.py
-- filter
 - atlas-3d-perf.mjs
 - bag-memorial-browser.mjs
-- brandList
-- updateDetail
 
 ## God Nodes (most connected - your core abstractions)
 1. `BagScene` - 63 edges
-2. `scripts` - 54 edges
+2. `scripts` - 55 edges
 3. `createDiscViewer()` - 44 edges
 4. `mountRacks()` - 36 edges
 5. `render()` - 32 edges
@@ -160,6 +157,8 @@
 10. `disc()` - 26 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `layout()` --indirect_call--> `columns()`  [INFERRED]
+  public/collection3d/graveyard.mjs → tests/bag-3d-layout.mjs
 - `fitDistance()` --indirect_call--> `probe()`  [INFERRED]
   public/disc3d/viewer.mjs → tests/slider-drag-browser.mjs
 - `update()` --indirect_call--> `photo()`  [INFERRED]
@@ -168,41 +167,39 @@
   workers/bag.mjs → public/bag-values.js
 - `createBag()` --calls--> `validateBagSettings()`  [EXTRACTED]
   workers/bag.mjs → public/bag-values.js
-- `columns()` --calls--> `assignSides()`  [EXTRACTED]
-  tests/bag-3d-layout.mjs → public/bag3d/bag-layout.mjs
 
 ## Import Cycles
 - None detected.
 
-## Communities (145 total, 28 thin omitted)
+## Communities (142 total, 29 thin omitted)
 
 ### Community 0 - "app.js"
-Cohesion: 0.09
-Nodes (22): brandPalette, canvas, colors, compareCards, comparison, ctx, discs, featuredRanks (+14 more)
+Cohesion: 0.06
+Nodes (80): activeLens(), addDestinationControl(), applyTheme(), atlasPriority(), bagColors(), brandColor(), brandList(), brandPalette (+72 more)
 
 ### Community 1 - "workers/auth.mjs"
 Cohesion: 0.05
 Nodes (50): jose, delete(), fixture(), item, setup(), database(), setup(), googleFetch (+42 more)
 
 ### Community 2 - "Bag scene"
-Cohesion: 0.11
-Nodes (7): accent(), BAG_SPRING, BagScene, div(), loadViewer(), POCKET, reduced()
+Cohesion: 0.10
+Nodes (9): accent(), BAG_SPRING, BagScene, div(), loadViewer(), POCKET, reduced(), pocketLabel() (+1 more)
 
 ### Community 3 - "bag.js"
 Cohesion: 0.10
 Nodes (49): dynamic, GET(), GET(), DELETE(), photoBytes(), POST(), PUT(), save() (+41 more)
 
-### Community 4 - "ref_node_module"
-Cohesion: 0.07
-Nodes (15): {chromium}, server, {chromium}, errors, metrics, server, {chromium}, errors (+7 more)
+### Community 4 - "bag-scene-browser.mjs"
+Cohesion: 0.22
+Nodes (6): {chromium}, errors, metrics, server, themes, widths
 
 ### Community 5 - "scripts"
 Cohesion: 0.04
-Nodes (54): scripts, build, build:workers, db:generate, deploy:workers, dev, install:ci, lint (+46 more)
+Nodes (55): scripts, build, build:workers, db:generate, deploy:workers, dev, install:ci, lint (+47 more)
 
 ### Community 6 - "Photo editing and albedo"
 Cohesion: 0.08
-Nodes (40): basis(), delightPixels(), encode(), evaluate(), fitQuadratic(), luma(), median(), plateColor() (+32 more)
+Nodes (39): basis(), delightPixels(), encode(), evaluate(), fitQuadratic(), luma(), median(), plateColor() (+31 more)
 
 ### Community 7 - "sampling-audit-draw.mjs"
 Cohesion: 0.05
@@ -216,33 +213,33 @@ Nodes (41): name, packageManager, private, type, version, @base-ui/react, class-
 Cohesion: 0.07
 Nodes (19): byName(), {chromium}, errors, server, settle(), show(), types, view() (+11 more)
 
-### Community 10 - "ref_node_path"
-Cohesion: 0.04
-Nodes (33): output, server, checks, {chromium}, errors, server, types, checks (+25 more)
+### Community 10 - "ref_node_http"
+Cohesion: 0.06
+Nodes (25): output, server, {chromium}, errors, originals, requests, result, server (+17 more)
 
 ### Community 11 - "manufacturer-diff.py"
 Cohesion: 0.07
 Nodes (33): atomic_write(), base_name(), candidate_url(), clean(), compare(), config(), escape(), flights() (+25 more)
 
 ### Community 12 - "non-overmold-photo-edge-atlas-browser.mjs"
-Cohesion: 0.11
-Nodes (14): {chromium}, metrics, server, {chromium}, metrics, server, addDisc(), caseList() (+6 more)
+Cohesion: 0.10
+Nodes (15): {chromium}, server, {chromium}, metrics, server, {chromium}, metrics, server (+7 more)
 
-### Community 13 - "stage.mjs"
-Cohesion: 0.29
-Nodes (12): DISC_BUDGET, discColors(), discMaterial(), discModel(), parts, catalogStampAsset(), catalogStampPlacement(), maskFor() (+4 more)
+### Community 13 - "disc3d/viewer.mjs"
+Cohesion: 0.14
+Nodes (25): DISC_BUDGET, discColors(), discMaterial(), discModel(), discParts(), parts, getAtlasArt(), PLASTICS (+17 more)
 
 ### Community 14 - "my-bag.js"
-Cohesion: 0.07
-Nodes (35): addMenu, addMenuOpen(), bagColorMap, bagPhotoMap, bagRimColorMap, catalogs, closeAddMenu(), colorHint() (+27 more)
+Cohesion: 0.06
+Nodes (41): addMenu, addMenuOpen(), bagColorMap, bagPhotoMap, bagRimColorMap, catalogs, closeAddMenu(), colorHint() (+33 more)
 
 ### Community 15 - "atlas-map.js"
-Cohesion: 0.07
-Nodes (38): artZooming(), atlasPositions, CAMERA_AXES, cameraSpring, clusterPicks, comparisonMarkup(), comparisonPalette(), discArt() (+30 more)
+Cohesion: 0.08
+Nodes (33): artZooming(), atlasPositions, CAMERA_AXES, cameraSpring, clusterPicks, discArt(), drawGaps(), dropMarkerArt() (+25 more)
 
 ### Community 16 - "Shared 3D disc viewer"
 Cohesion: 0.16
-Nodes (32): angleDelta(), createDiscViewer(), applyMaterials(), applyPose(), attach(), build(), cancelRim(), dispose() (+24 more)
+Nodes (33): bagRimColor(), angleDelta(), createDiscViewer(), applyMaterials(), applyPose(), attach(), build(), cancelRim() (+25 more)
 
 ### Community 18 - "SceneView"
 Cohesion: 0.12
@@ -254,79 +251,79 @@ Nodes (17): STAGE, advanceTime(), poseAt(), clamp01(), easeInOut(), easeOut(), F
 
 ### Community 20 - "bag-layout.mjs"
 Cohesion: 0.13
-Nodes (25): BAG_BOX, bagLayout(), brickRows(), byKey(), clamp(), DISC, fan(), footprint() (+17 more)
+Nodes (24): bagLayout(), brickRows(), byKey(), clamp(), depthOrder(), DISC, fan(), footprint() (+16 more)
 
 ### Community 22 - "shape.mjs"
-Cohesion: 0.14
-Nodes (32): discParts(), getAtlasArt(), clamp(), cubic(), DEFAULTS, discProfile(), domeCurve(), finite() (+24 more)
+Cohesion: 0.12
+Nodes (32): attachDiscFeatures(), bagDiscGeometry(), mountBag(), discGeometry(), groupRim(), lathePoints(), clamp(), cubic() (+24 more)
 
 ### Community 23 - "all-discs-gallery.js"
 Cohesion: 0.32
 Nodes (6): albumItems(), AllDiscsGallery, CLASSES, EMPTY, title(), rackOrder()
 
 ### Community 24 - "bag-values.js"
-Cohesion: 0.14
-Nodes (24): DEMO_BAG, DEMO_DISCS, discs, BAG_COLORS, bagClass(), bagComparator(), bagPalette(), bagSlots() (+16 more)
+Cohesion: 0.16
+Nodes (21): DEMO_BAG, DEMO_DISCS, discs, BAG_COLORS, bagClass(), bagPalette(), bagSlots(), DEFAULT_BAG_COLOR (+13 more)
 
 ### Community 25 - "dependencies"
 Cohesion: 0.08
 Nodes (26): dependencies, @base-ui/react, class-variance-authority, clsx, cmdk, date-fns, drizzle-orm, embla-carousel-react (+18 more)
 
 ### Community 26 - "LostScene"
-Cohesion: 0.22
-Nodes (4): CollectionScene, count(), esc(), LostScene
+Cohesion: 0.17
+Nodes (6): rackCount(), CollectionScene, count(), esc(), LostScene, StorageScene
 
-### Community 27 - "detail"
-Cohesion: 0.19
-Nodes (19): addDestinationControl(), applyTheme(), closeDetail(), compareCardMarkup(), compareSketchMarkup(), detail(), esc(), flight() (+11 more)
+### Community 27 - "ref_node_assert"
+Cohesion: 0.06
+Nodes (14): bagCalls, checks, {chromium}, errors, server, shots, read(), {chromium} (+6 more)
 
 ### Community 28 - "Account and bag SQL schema"
 Cohesion: 0.11
 Nodes (19): auth_oauth_states, auth_oauth_states_expiry, auth_sessions, auth_sessions_expiry, auth_sessions_user, auth_users, atlas_coach_budget, atlas_coach_usage (+11 more)
 
 ### Community 29 - "mountGraveyard"
-Cohesion: 0.14
-Nodes (23): ABOVE_GROUND, engraving(), plots(), mountGraveyard(), dress(), hover(), idAt(), layout() (+15 more)
+Cohesion: 0.15
+Nodes (22): ABOVE_GROUND, engraving(), graveColumns(), mountGraveyard(), dress(), hover(), idAt(), layout() (+14 more)
 
 ### Community 30 - "racks.mjs"
-Cohesion: 0.10
-Nodes (23): BAYS_PER_TIER, CLASS_ORDER, pulledSpot(), RACK_DEPTH, RACK_GAP, RACK_HEIGHT, RACK_WIDTH, SHELF_CLEARANCE (+15 more)
+Cohesion: 0.09
+Nodes (24): rackStyle(), BAYS_PER_TIER, CLASS_ORDER, pulledSpot(), RACK_DEPTH, RACK_GAP, RACK_HEIGHT, RACK_WIDTH (+16 more)
 
 ### Community 31 - "initAtlasMap"
 Cohesion: 0.17
-Nodes (23): animateZoom(), boundedCamera(), cameraMoving(), changeZoom(), clearClusterTimers(), closeCluster(), initAtlasMap(), openCluster() (+15 more)
+Nodes (23): animateZoom(), boundedCamera(), cameraMoving(), changeZoom(), clearClusterTimers(), closeCluster(), initAtlasMap(), loadAtlasArt() (+15 more)
 
-### Community 32 - "directory-layout-browser.mjs"
-Cohesion: 0.18
-Nodes (9): checks, {chromium}, desktop, errors, metrics, phone, server, shots (+1 more)
+### Community 32 - "ref_node_fs"
+Cohesion: 0.12
+Nodes (14): output, data, results, results, baseline, characterize, ref, results (+6 more)
 
-### Community 33 - "ref_node_assert"
-Cohesion: 0.05
-Nodes (34): level(), output, data, readExecutionProfile(), NpmCacheProgress, runNpmInstall(), cli, [command, ...args] (+26 more)
+### Community 33 - ".zoom"
+Cohesion: 0.09
+Nodes (15): level(), SCENE(), checkAtlasInteractions(), layout(), checkDeepZoom(), checkFilterRegroup(), checkLabelProminence(), baseline (+7 more)
 
 ### Community 34 - "bag-3d-layout.mjs"
 Cohesion: 0.11
-Nodes (17): depthOrder(), FRONT, SIDE_BAG, TOP, boxesOverlap(), CLEAR, DESKTOP, disc() (+9 more)
+Nodes (17): BAG_BOX, FRONT, PUTTER, TOP, boxesOverlap(), CLEAR, DESKTOP, disc() (+9 more)
 
 ### Community 35 - "mountRacks"
 Cohesion: 0.22
 Nodes (20): rackSlot(), rackX(), restHeight(), rowWidth(), mountRacks(), batchFor(), box(), drop() (+12 more)
 
 ### Community 36 - "atlas-art.mjs"
-Cohesion: 0.20
-Nodes (17): createAtlasArt(), dispose(), geometryOf(), get(), has(), render(), shapeOf(), touch() (+9 more)
+Cohesion: 0.21
+Nodes (16): createAtlasArt(), dispose(), geometryOf(), get(), has(), render(), shapeOf(), touch() (+8 more)
 
 ### Community 37 - "devDependencies"
 Cohesion: 0.10
 Nodes (20): devDependencies, @cloudflare/vite-plugin, @cloudflare/workers-types, drizzle-kit, eslint, eslint-config-next, playwright, react-server-dom-webpack (+12 more)
 
 ### Community 38 - "collection-scenes.js"
-Cohesion: 0.19
-Nodes (15): RACK_STYLES, epitaph(), EPITAPHS, graveColumns(), hash(), lifespan(), MAX_LEAN, MAX_TURN (+7 more)
+Cohesion: 0.18
+Nodes (16): RACK_STYLES, epitaph(), EPITAPHS, hash(), lifespan(), MAX_LEAN, MAX_TURN, PLOT_DEPTH (+8 more)
 
 ### Community 39 - "discraft-stamps-batch2-browser.mjs"
-Cohesion: 0.04
-Nodes (35): {chromium}, metrics, server, mold(), rated(), assignments, baseline, batch (+27 more)
+Cohesion: 0.05
+Nodes (32): mold(), rated(), assignments, baseline, batch, {chromium}, controls, molds (+24 more)
 
 ### Community 40 - "photo-editor-races.mjs"
 Cohesion: 0.10
@@ -340,13 +337,13 @@ Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModu
 Cohesion: 0.22
 Nodes (17): artRoom(), build(), curate(), gapAlpha(), gapDepth(), gapDrop(), gapLabelAlpha(), gapSize() (+9 more)
 
-### Community 43 - "disc3d/viewer.mjs"
+### Community 43 - "ref_node_path"
 Cohesion: 0.12
-Nodes (19): attachDiscFeatures(), bagDiscGeometry(), mountBag(), discGeometry(), groupRim(), lathePoints(), PLASTICS, acquirePhoto() (+11 more)
+Nodes (10): readExecutionProfile(), NpmCacheProgress, runNpmInstall(), cli, [command, ...args], projectRoot, checks, {chromium} (+2 more)
 
-### Community 44 - "ref_node_test"
-Cohesion: 0.18
-Nodes (15): stabilityBiasLabel(), bagRimColor(), photoURL(), bagDetailMarkup(), bagged(), detailAppearance(), gallery, mold() (+7 more)
+### Community 44 - "bagDetailMarkup"
+Cohesion: 0.26
+Nodes (10): photoURL(), bagDetailMarkup(), bagged(), detailAppearance(), syncMyMap(), COPY_BIAS_SHIFT, moldShifts(), personalPositions() (+2 more)
 
 ### Community 45 - "bag-interactions-browser.mjs"
 Cohesion: 0.11
@@ -361,7 +358,7 @@ Cohesion: 0.19
 Nodes (12): clay(), closePopout(), load(), lockScroll(), openPopout(), popoutDialog(), requestClose(), resolveColor() (+4 more)
 
 ### Community 48 - "pnpm-install.mjs"
-Cohesion: 0.21
+Cohesion: 0.19
 Nodes (10): CACHE_SEEDS, holdInstallLocks(), InstallProgress, main(), openLock(), openReport(), OPERATIONAL_FAILURE_CODES, showLine() (+2 more)
 
 ### Community 49 - "api.cjs"
@@ -373,8 +370,8 @@ Cohesion: 0.15
 Nodes (12): checks, {chromium}, clickLands(), errors, mapOwned(), onMap(), READABLE(), reset() (+4 more)
 
 ### Community 51 - "atlas-organic-browser.mjs"
-Cohesion: 0.15
-Nodes (13): checks, {chromium}, errors, layout(), near(), SCENARIOS, server, settled() (+5 more)
+Cohesion: 0.16
+Nodes (12): checks, {chromium}, errors, near(), SCENARIOS, server, settled(), show() (+4 more)
 
 ### Community 52 - "Catalog generation and stamp validation"
 Cohesion: 0.25
@@ -385,16 +382,16 @@ Cohesion: 0.12
 Nodes (22): active(), canvas, desktop, eligible(), fallback(), frame(), hero, motion (+14 more)
 
 ### Community 54 - ".zoom"
-Cohesion: 0.15
-Nodes (13): drawCompareHighlights(), keepPinned(), mapMarkerScale(), markerLabel(), markerTarget(), checks, {chromium}, errors (+5 more)
+Cohesion: 0.20
+Nodes (7): checks, {chromium}, errors, server, settled(), show(), VIEWPORTS
 
 ### Community 55 - "apple-design-2-browser.mjs"
 Cohesion: 0.13
 Nodes (6): checks, {chromium}, errors, only, server, types
 
 ### Community 56 - "overmold.mjs"
-Cohesion: 0.22
-Nodes (12): DEFAULT_DISC_COLOR, DEFAULT_RIM_COLOR, isOvermold(), KEYS, LIST, OVERMOLD_DISCS, overmoldColors(), parseColor() (+4 more)
+Cohesion: 0.20
+Nodes (13): DEFAULT_DISC_COLOR, DEFAULT_RIM_COLOR, isOvermold(), KEYS, LIST, OVERMOLD_DISCS, overmoldColors(), parseColor() (+5 more)
 
 ### Community 57 - "sites-env.sh"
 Cohesion: 0.14
@@ -476,13 +473,13 @@ Nodes (11): buildClusters(), cancelRegroup(), ensureGroupWorker(), hydrateGaps()
 Cohesion: 0.18
 Nodes (8): area, build(), featured, footprints, items, label, worker, runtime
 
-### Community 77 - "theme"
-Cohesion: 0.07
-Nodes (18): theme(), {chromium}, server, {chromium}, COLORS, errors, MOLDS, PLASTICS (+10 more)
+### Community 77 - "ref_node_module"
+Cohesion: 0.05
+Nodes (30): theme(), {chromium}, server, checks, {chromium}, errors, server, types (+22 more)
 
 ### Community 78 - "render"
 Cohesion: 0.25
-Nodes (19): pocketLabel(), api(), chooseRackStyle(), endDrag(), focusFirst(), foundDisc(), loadBag(), lostItems() (+11 more)
+Nodes (23): bagComparator(), api(), chooseRackStyle(), focusFirst(), foundDisc(), loadBag(), lostItems(), memorialWall() (+15 more)
 
 ### Community 79 - "bag-v13-browser.mjs"
 Cohesion: 0.18
@@ -493,20 +490,20 @@ Cohesion: 0.18
 Nodes (7): BAG, checks, {chromium}, errors, metrics, server, shots
 
 ### Community 81 - "pulled-sizing.mjs"
-Cohesion: 0.24
-Nodes (12): assignSides(), clamp(), desktopPulledLayout(), packing(), PHONE_PULLED_COUNT, PHONE_PULLED_MAX, phonePulledFit(), phonePulledLayout() (+4 more)
+Cohesion: 0.20
+Nodes (14): assignSides(), stabilityOf(), clamp(), desktopPulledLayout(), packing(), PHONE_PULLED_COUNT, PHONE_PULLED_MAX, phonePulledFit() (+6 more)
 
-### Community 82 - "bag-v12-browser.mjs"
-Cohesion: 0.22
-Nodes (6): {chromium}, errors, server, shots, themes, widths
+### Community 82 - "ref_node_test"
+Cohesion: 0.20
+Nodes (3): ids, items, close()
 
 ### Community 84 - "atlas-organic.mjs"
 Cohesion: 0.24
 Nodes (6): curate(), field(), footprint, groups(), prints(), runtime
 
 ### Community 85 - "ref_node_child_process"
-Cohesion: 0.06
-Nodes (18): {chromium}, errors, server, bagCalls, checks, {chromium}, errors, server (+10 more)
+Cohesion: 0.04
+Nodes (27): {chromium}, errors, server, {chromium}, server, {chromium}, metrics, server (+19 more)
 
 ### Community 86 - "palette.mjs"
 Cohesion: 0.22
@@ -517,32 +514,32 @@ Cohesion: 0.08
 Nodes (18): canvases, {chromium}, controls, mainFiles, oldData, overlay, pixelDifferences, results (+10 more)
 
 ### Community 88 - "draw"
-Cohesion: 0.18
-Nodes (14): artFrame(), draw(), drawPlanetLabels(), drawSatelliteLeaders(), fadeOut(), focusFeatured(), measureMap(), photoMarkup() (+6 more)
+Cohesion: 0.25
+Nodes (9): artFrame(), draw(), drawPlanetLabels(), drawSatelliteLeaders(), focusFeatured(), measureMap(), setMapText(), shownPosition() (+1 more)
 
 ### Community 89 - "profile.mjs"
-Cohesion: 0.19
-Nodes (12): CLAY_TONES, esc(), LABELS, n(), PROFILE_FRAME, profileDimensions(), profileSVG(), SPEC (+4 more)
+Cohesion: 0.14
+Nodes (18): acquirePhoto(), cache, photoGeometry(), photoSurface(), reliefTexture(), CLAY_TONES, esc(), LABELS (+10 more)
 
-### Community 91 - "openLostDisc"
-Cohesion: 0.33
-Nodes (6): openBagDetail(), openLostDisc(), openRemove(), show(), storageScene, today()
+### Community 91 - "apple-design-3-browser.mjs"
+Cohesion: 0.17
+Nodes (6): checks, {chromium}, errors, only, server, types
 
-### Community 92 - "StorageScene"
-Cohesion: 0.36
-Nodes (3): rackCount(), plural(), StorageScene
+### Community 92 - "renderMarkers"
+Cohesion: 0.29
+Nodes (8): comparisonMarkup(), comparisonPalette(), fadeOut(), photoMarkup(), renderCluster(), renderMarkers(), selectedGroup(), selected()
 
 ### Community 93 - "disc-appearance-browser.mjs"
-Cohesion: 0.07
-Nodes (15): {chromium}, server, {chromium}, server, by(), catalog, {chromium}, examples (+7 more)
+Cohesion: 0.25
+Nodes (7): by(), catalog, {chromium}, examples, items, server, settings
 
 ### Community 94 - "grouping-zoom.mjs"
 Cohesion: 0.58
 Nodes (6): checkGroupingZoom(), checkLowZoomLabels(), checkZoomCandidates(), frameBand(), measureBand(), settleMap()
 
-### Community 95 - "activeLens"
-Cohesion: 0.27
-Nodes (11): activeLens(), atlasPriority(), bagColors(), brandColor(), discColor(), inLens(), myColor(), renderLegend() (+3 more)
+### Community 95 - "drawCompareHighlights"
+Cohesion: 0.33
+Nodes (7): drawCompareHighlights(), keepPinned(), levelHeld(), mapMarkerScale(), mapTargets(), markerLabel(), markerTarget()
 
 ### Community 96 - "atlas-motion.js"
 Cohesion: 0.32
@@ -551,6 +548,10 @@ Nodes (3): dismiss(), reveal(), slide()
 ### Community 97 - "coach.js"
 Cohesion: 0.50
 Nodes (7): allowance(), api(), append(), appendDraft(), open(), render(), reset()
+
+### Community 98 - "context-header.mjs"
+Cohesion: 0.83
+Nodes (3): checkContextHeader(), checkHeaderMenu(), checkThemePicker()
 
 ### Community 99 - "install-pnpm.sh"
 Cohesion: 0.39
@@ -571,10 +572,6 @@ Nodes (5): api(), refresh(), renderPage(), signOut(), sync()
 ### Community 106 - "coach-browser.mjs"
 Cohesion: 0.33
 Nodes (5): baselines, {chromium}, command(), live, sql()
-
-### Community 107 - "personal-map-worker.mjs"
-Cohesion: 0.29
-Nodes (4): ids, items, worker(), runtime
 
 ### Community 108 - "next"
 Cohesion: 0.33
@@ -616,17 +613,9 @@ Nodes (7): activateBag(), closeBagTips(), directory(), leaveBag(), positionBagTi
 Cohesion: 0.67
 Nodes (3): sharp, overrides, miniflare
 
-### Community 140 - "renderList"
-Cohesion: 0.31
-Nodes (9): closeDropdown(), flightCells(), openLensMenu(), placeDropdown(), reanchorDropdown(), renderList(), setView(), showDropdown() (+1 more)
-
 ### Community 142 - "compose-discraft-fraction-proofs.py"
 Cohesion: 0.53
 Nodes (4): compose(), disc_crop(), font(), percent()
-
-### Community 143 - "filter"
-Cohesion: 0.28
-Nodes (9): compareOptional(), filter(), inCollection(), isCurrentOrRecent(), recentCutoff(), renderContextTitle(), renderSearchCoverage(), searchText() (+1 more)
 
 ### Community 144 - "atlas-3d-perf.mjs"
 Cohesion: 0.43
@@ -636,33 +625,25 @@ Nodes (7): decide(), deviceReps(), DEVICES, FLIGHT(), main(), median(), parseRep
 Cohesion: 0.25
 Nodes (5): {chromium}, errors, server, shots, themes
 
-### Community 146 - "brandList"
-Cohesion: 0.50
-Nodes (5): brandList(), load(), prepareFeaturedDetails(), renderBrandChip(), renderBrands()
-
-### Community 147 - "updateDetail"
-Cohesion: 0.50
-Nodes (5): detailBlocks(), detailGhosts(), fadeDetail(), updateDetail(), sync()
-
 ## Knowledge Gaps
 - **53 isolated node(s):** `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react`, `class-variance-authority`, `clsx` (+48 more)
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 1141 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **28 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 1148 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **29 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `jose` connect `workers/auth.mjs` to `package.json`?**
-  _High betweenness centrality (0.099) - this node is a cross-community bridge._
+  _High betweenness centrality (0.101) - this node is a cross-community bridge._
 - **What connects `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react` to the rest of the system?**
   _53 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `app.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.08666666666666667 - nodes in this community are weakly interconnected._
-- **Why does `inCollection()` connect `filter` to `app.js`, `bag-tweaks-browser.mjs`, `brandList`, `detail`, `activeLens`?**
+  _Cohesion score 0.05759623861298854 - nodes in this community are weakly interconnected._
+- **Why does `inCollection()` connect `app.js` to `bag-tweaks-browser.mjs`?**
   _High betweenness centrality (0.051) - this node is a cross-community bridge._
 - **Should `workers/auth.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.05189189189189189 - nodes in this community are weakly interconnected._
 - **Why does `scripts` connect `scripts` to `package.json`?**
   _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Should `Bag scene` be split into smaller, more focused modules?**
-  _Cohesion score 0.10842844600526778 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10434782608695652 - nodes in this community are weakly interconnected._

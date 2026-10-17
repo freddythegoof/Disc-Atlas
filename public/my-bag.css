@@ -408,13 +408,12 @@ body[data-view="bag"] main {display:none!important}
 .my-bag-views button {height:38px;padding:0 18px;border:0;border-radius:9px;background:none;color:var(--muted);font-size:13px;font-weight:500}
 .my-bag-views button:hover {color:var(--text)}
 .my-bag-views button[aria-checked="true"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
-/* Storage's alternate album: the disc has the space, chrome stays in the controls. */
-.storage-modes {margin:0 0 18px}
-.storage-modes button {min-height:44px}
+/* Gallery: the disc has the space, chrome stays in the controls. */
 .all-discs-gallery {margin:0 0 36px}
 .album-filters {justify-content:center;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
 .album-filters button {min-height:44px;padding:0 14px}
-.album-stage {position:relative;max-width:860px;margin:0 auto}
+.album-stage {position:relative;max-width:860px;margin:0 auto;touch-action:pan-y}
+.all-discs-gallery[data-appearance="loading"] .album-stage::after {content:'Loading appearance…';position:absolute;inset:0 0 auto;height:clamp(280px,40dvh,440px);display:grid;place-items:center;color:var(--muted);font-size:12px;pointer-events:none}
 .album-viewer {max-width:720px;margin:auto}
 .album-viewer .disc3d-viewport {height:clamp(280px,40dvh,440px);background:radial-gradient(ellipse 65% 60% at 50% 55%,var(--accent-soft),transparent 78%)}
 .album-viewer :is(.disc3d-toolbar,.disc3d-tilt,.disc3d-profile) {max-width:520px;margin-inline:auto}
@@ -432,7 +431,7 @@ body[data-view="bag"] main {display:none!important}
 .album-empty {display:grid;place-items:center;min-height:280px;margin:0;text-align:center;color:var(--muted);font-size:15px}
 .album-hint {text-align:center;margin-top:20px}
 @media(max-width:700px){
- .storage-modes {max-width:260px}
+ .all-discs-gallery[data-appearance="loading"] .album-stage::after {height:clamp(240px,34dvh,340px)}
  .all-discs-gallery .album-filters {flex-wrap:nowrap;gap:4px}
  .all-discs-gallery .album-filters button {flex:1;padding:0 7px;font-size:11px}
  .album-viewer .disc3d-viewport {height:clamp(240px,34dvh,340px)}

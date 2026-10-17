@@ -13,9 +13,8 @@ let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custo
 let plastics, models, editing = null, removing = null, losing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
 let discEditSequence=0;
 let colorCustomized=false,rimCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
-// The view above (Bag, My Map, Storage or Lost) and the one list shown below it (Bag, Storage or Lost).
+// The section above (Bag, My Map, Storage, Gallery or Lost) and the list below (Bag, Storage or Lost).
 let bagView='bag',listView='bag',removeOrigin=null;
-let storageMode='rack';
 const gallery=new AllDiscsGallery($('#allDiscsGallery'),{lookup:id=>mold(id)});
 // A photo starts the disc matched: its plate colour becomes the disc's colour, so the rim and edges agree
 // with the photographed plate. The colour stays editable; removing that photo in the same sheet restores
@@ -140,11 +139,12 @@ function sync(data) {
 const HEADERS={
  bag:['YOUR EVERYDAY LINEUP','My Bag','Your discs. Ready for the round.'],
  storage:['OFF THE COURSE','Storage','Every disc you own but don’t carry, racked and ready.'],
+ gallery:['YOUR COLLECTION','Gallery','Every disc in your collection, one at a time.'],
  lost:['IN MEMORIAM','Lost','The discs that didn’t come home, and how they went.'],
 };
 function renderHeader(demo){
  const [eyebrow,title,tagline]=HEADERS[bagView]||HEADERS.bag;
- $('#myBagEyebrow').textContent=demo?'SAMPLE LINEUP':eyebrow;$('#myBagTitle').textContent=title;$('#myBagTagline').textContent=bagView==='storage'&&storageMode==='all'?'Every disc in your collection, one at a time.':tagline;
+ $('#myBagEyebrow').textContent=demo?'SAMPLE LINEUP':eyebrow;$('#myBagTitle').textContent=title;$('#myBagTagline').textContent=tagline;
  $('#myBagView').dataset.view=bagView;
 }
 function render() {
@@ -152,7 +152,7 @@ function render() {
  // Until the account check answers, the teaser holds the place; signed out, the demo bag shows.
  $('#myBagTeaser').hidden=shown;$('#myBagDemo').hidden=!demo;renderHeader(demo);
  $('#myBagTeaserStatus').textContent='Checking your account…';
- $('#myBagTools').hidden=!shown || bagView==='storage' || bagView==='lost';$('#editBagModel').hidden=demo;$('#myBagContents').hidden=!shown || loading || !!loadError;
+ $('#myBagTools').hidden=!shown || bagView==='storage' || bagView==='gallery' || bagView==='lost';$('#editBagModel').hidden=demo;$('#myBagContents').hidden=!shown || loading || !!loadError;
  $('#myBagLoadState').hidden=!signedIn || (!loading && !loadError);
  $('#myBagLoadMessage').textContent=loading?'Loading your bag…':loadError;$('#retryMyBag').hidden=!loadError;
  $('#addBagDisc').hidden=!signedIn;
@@ -171,12 +171,8 @@ function render() {
  for(const button of $('#bagListPicker').querySelectorAll('[data-bag-list]')){const on=button.dataset.bagList===listView;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
  $('#bagListPicker [data-list-count="bag"]').textContent=count;$('#bagListPicker [data-list-count="storage"]').textContent=stored.length;$('#bagListPicker [data-list-count="lost"]').textContent=lost.length;
  const ready=signedIn && !loading && !loadError && active;storageScene.setStyle(settings.rack_style);
- const storageReady=ready && bagView==='storage';
- if(!storageReady)storageMode='rack';
- $('#storageModes').hidden=!storageReady;
- for(const b of $('#storageModes').querySelectorAll('[data-storage-mode]')){const on=b.dataset.storageMode===storageMode;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;}
- storageScene.sync(storageReady && storageMode==='rack',storageReady?storedItems():[]);
- gallery.sync(storageReady && storageMode==='all',items);
+ storageScene.sync(ready && bagView==='storage',ready && bagView==='storage'?storedItems():[]);
+ gallery.sync(ready && bagView==='gallery',items);
  lostScene.sync(ready && bagView==='lost',ready && bagView==='lost'?lostItems():[]);
  $('#bagSlotMeter').textContent=`${count} / ${settings.capacity}`;
  const breakdown=`${settings.main_capacity ?? settings.capacity} main + ${settings.putter_capacity ?? 0} putter${settings.extra_capacity?' + '+settings.extra_capacity+' extra':''}`;
@@ -214,7 +210,7 @@ function activateBag() {
  history.replaceState(null,'','/?bag=1');render();window.scrollTo(0,0);
 }
 function leaveBag(view) {
- active=false;storageMode='rack';gallery.sync(false,[]);syncMyMap();scene.release();storageScene.sync(false,[]);lostScene.sync(false,[]);undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
+ active=false;gallery.sync(false,[]);syncMyMap();scene.release();storageScene.sync(false,[]);lostScene.sync(false,[]);undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
  for(const id of ['mapTab','listTab','bagTab'])$('#'+id).setAttribute('aria-current',id===(view==='map'?'mapTab':'listTab')?'page':'false');
  history.replaceState(null,'','/');setView(view);
 }
@@ -239,16 +235,10 @@ function syncMyMap(){
 function setBagView(next){
  closeBagTips(false);
  if(bagView===next)return;bagView=next;mapOpen=next==='map';
- // The list follows the view: Storage shows the Storage list, Lost the memorials. My Map has no list.
- if(next!=='map')listView=next;
+ // Gallery retains the album's existing Storage list below it; the other sections keep their lists.
+ if(next!=='map')listView=next==='gallery'?'storage':next;
  if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);undockDetail();scene.release();render();
 }
-$('#storageModes').addEventListener('click',event=>{const b=event.target.closest('[data-storage-mode]');if(b){storageMode=b.dataset.storageMode;render();}});
-$('#storageModes').addEventListener('keydown',event=>{
- const step={ArrowLeft:-1,ArrowRight:1}[event.key];if(!step&&event.key!=='Home'&&event.key!=='End')return;
- event.preventDefault();const buttons=[...$('#storageModes').querySelectorAll('button')],at=buttons.indexOf(document.activeElement);
- const b=buttons[event.key==='Home'?0:event.key==='End'?1:(at+step+2)%2];storageMode=b.dataset.storageMode;render();b.focus();
-});
 $('#myBagViews').addEventListener('click',event=>{const button=event.target.closest('[data-bag-view]');if(button)setBagView(button.dataset.bagView);});
 $('#myBagViews').addEventListener('keydown',event=>{
  const keys={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1};if(!keys[event.key])return;event.preventDefault();
