@@ -6,7 +6,7 @@ import http from 'node:http';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
-const output='outputs/compare-viewer-polish';fs.mkdirSync(output,{recursive:true});
+const output=process.env.POLISH_OUTPUT||'outputs/compare-viewer-polish';fs.mkdirSync(output,{recursive:true});
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,'http://localhost').pathname;
  if(pathname.startsWith('/api/')){res.writeHead(200,{'Content-Type':'application/json'});res.end('{}');return;}
@@ -137,5 +137,74 @@ test('shared viewer follows theme defaults, keeps custom rim colors and camera, 
   assert.equal(result.unchanged,true,'disposed viewer no longer handles theme events');
   assert.equal(result.matchingDefault,'#ffffff','custom rim equal to previous default still wins');
   assert.deepEqual(page.errors,[]);
+ }finally{await page.close();}
+});
+
+test('three compared discs retain independent rings through hover and tray removal',async()=>{
+ const page=await open();
+ try{
+  const targets=await page.evaluate(()=>{
+   comparison=[];selected=null;draw();
+   return mapClusters.filter(g=>g.large&&g.x>mapViewport.width*.58&&g.x<mapViewport.width-100&&g.y>150&&g.y<mapViewport.height-250)
+    .slice(0,3).map(g=>({id:g.members.at(-1).id,x:g.x,y:g.y,r:70,key:g.key}));
+  });
+  assert.equal(targets.length,3,'three visible groups are available');
+  const before=await Promise.all(targets.map(t=>page.evaluate(ink,t)));
+  await page.evaluate(ids=>{comparison=ids.map(id=>discs.find(d=>d.id===id));renderCompare();},targets.map(t=>t.id));
+  await settle(page);
+  for(let i=0;i<targets.length;i++)assert.ok(await page.evaluate(ink,targets[i])>before[i]+12,'each compared group has a ring');
+  const point=await page.evaluate(key=>{const n=[...document.querySelectorAll('.atlas-marker')].find(n=>n.dataset.cluster===key);const r=n.getBoundingClientRect();n.focus({preventScroll:true});return {x:r.x+r.width/2,y:r.y+r.height/2};},targets[0].key);
+  await page.mouse.move(point.x,point.y);
+  assert.equal(await page.evaluate(key=>[...document.querySelectorAll('.atlas-marker')].find(n=>n.dataset.cluster===key)?.matches(':hover'),targets[0].key),true,'the compared marker is actually hovered');
+  await page.waitForTimeout(350);
+  assert.ok(await page.evaluate(ink,targets[0])>before[0]+12,'focus and hover do not erase membership');
+  const fourth=await page.evaluate(ids=>discs.find(d=>d.speed!=null&&!ids.includes(d.id)).id,targets.map(t=>t.id));
+  await page.evaluate(id=>select(discs.find(d=>d.id===id)),fourth);
+  await page.locator('#compare').click();
+  assert.equal(await page.evaluate(()=>comparison.length),3,'a fourth compare click keeps the tray capped at three');
+  await page.locator('#closeDetail').click();
+  await page.mouse.move(10,10);
+  await page.locator('#compareBar [data-remove]').first().click();await settle(page);
+  assert.deepEqual(await page.evaluate(()=>comparison.map(d=>d.id)),targets.slice(1).map(t=>t.id));
+  assert.ok(await page.evaluate(ink,targets[0])<=before[0]+2,'only the removed disc loses its ring');
+  for(let i=1;i<3;i++)assert.ok(await page.evaluate(ink,targets[i])>before[i]+12,'other compared discs stay highlighted');
+  assert.deepEqual(page.errors,[]);
+ }finally{await page.close();}
+});
+
+test('real sidebar and pop-out repaint default rims together, and the pop-out keeps transferred custom intent',async()=>{
+ const page=await open();
+ try{
+  await page.evaluate(()=>select(discs.find(d=>d.name==='Envy')));
+  await page.waitForFunction(()=>Disc3D.viewer?.state.overmold&&Disc3D.viewer.state.frames>0);
+  for(const theme of ['light','midnight']){
+   await page.evaluate(theme=>document.querySelector(`[data-theme-choice="${theme}"]`).click(),theme);
+   await page.waitForFunction(t=>document.documentElement.dataset.theme===t&&!document.documentElement.classList.contains('theme-switching'),theme);
+   await page.waitForFunction(()=>Disc3D.viewer.state.frames>0);
+   await page.locator('#detail [data-disc3d]').screenshot({path:`${output}/sidebar-${theme}.png`});
+  }
+  await page.locator('#detail [data-disc3d-expand]').click();
+  await page.waitForFunction(()=>Disc3D.popout?.state.frames>0&&!document.querySelector('dialog.disc3d-dialog').getAnimations().length);
+  for(const theme of ['light','midnight','charcoal','black']){
+   // The theme menu behind a native modal is inert; invoke the same theme control's handler.
+   const frames=await page.evaluate(()=>[Disc3D.viewer.state.frames,Disc3D.popout.state.frames]);
+   await page.evaluate(theme=>document.querySelector(`[data-theme-choice="${theme}"]`).click(),theme);
+   await page.waitForFunction(t=>document.documentElement.dataset.theme===t&&!document.documentElement.classList.contains('theme-switching'),theme);
+   await page.waitForFunction(frames=>[Disc3D.viewer,Disc3D.popout].every((v,i)=>v.state.frames>frames[i]),frames,{timeout:5000});
+   const colors=await page.evaluate(()=>[Disc3D.viewer,Disc3D.popout].map(v=>'#'+v.debug.rimMaterial.color.getHexString()));
+   assert.deepEqual(colors,[theme==='light'?'#0a0a0a':'#ffffff',theme==='light'?'#0a0a0a':'#ffffff'],theme+' updates both live viewers');
+   if(['light','midnight'].includes(theme))await page.locator('dialog.disc3d-dialog').screenshot({path:`${output}/viewer-${theme}.png`});
+  }
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>!Disc3D.popout);
+  // Supply a custom rim through normal viewer props, then open the real dialog.
+  await page.evaluate(()=>Disc3D.viewer.update({...Disc3D.viewer.state.props,colors:{rim:'#ffffff'}}));
+  await page.locator('#detail [data-disc3d-expand]').click();await page.waitForFunction(()=>Disc3D.popout?.state.frames>0);
+  await page.evaluate(()=>document.querySelector('[data-theme-choice="light"]').click());
+  await page.waitForFunction(()=>document.documentElement.dataset.theme==='light'&&!document.documentElement.classList.contains('theme-switching'));
+  assert.equal(await page.evaluate(()=> '#'+Disc3D.popout.debug.rimMaterial.color.getHexString()),'#ffffff','a transferred custom rim equal to the old default stays white in light theme');
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>!Disc3D.popout);
+  await page.evaluate(()=>document.querySelector('[data-theme-choice="midnight"]').click());
+  await page.waitForFunction(()=>document.documentElement.dataset.theme==='midnight'&&!document.documentElement.classList.contains('theme-switching'));
+  assert.deepEqual(page.errors,[],'theme changes after modal disposal stay error-free');
  }finally{await page.close();}
 });
