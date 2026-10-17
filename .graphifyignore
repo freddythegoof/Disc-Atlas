@@ -33,3 +33,5 @@ work/
 credentials.json
 # Keep maintenance updates in this adoption's code-only corpus.
 *.md
+# Browser proof images are documentation, outside the AST-only code corpus.
+/docs/images/

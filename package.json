@@ -27,6 +27,7 @@
     "test:appearance": "node --test tests/disc-appearance-browser.mjs",
     "test:bag:memorial": "node tests/bag-memorial-browser.mjs",
     "test:bag:collections": "node tests/bag-collections-browser.mjs",
+    "test:bag:album": "node --test tests/all-discs-order.mjs && node tests/all-discs-browser.mjs",
     "test:bag:scene": "node tests/bag-scene-browser.mjs",
     "test:bag:v13": "node tests/bag-v13-browser.mjs",
     "test:bag:3d": "node tests/bag-3d-browser.mjs",
