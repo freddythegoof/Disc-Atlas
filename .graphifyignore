@@ -31,6 +31,7 @@ work/
 *.pem
 *.key
 credentials.json
+.aws/
 # Keep maintenance updates in this adoption's code-only corpus.
 *.md
 # Browser proof images are documentation, outside the AST-only code corpus.
