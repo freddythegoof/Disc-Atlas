@@ -390,7 +390,7 @@ function loadAtlasArt(){
  if(window.ATLAS_3D_OFF||artState!=='off')return;
  artState='loading';
  import('./disc3d/atlas-art.mjs').then(m=>m.getAtlasArt()).then(art=>{
-  atlasArt=art;artState='ready';window.addEventListener('atlas-photo-ready',()=>scheduleMapDraw());scheduleMapDraw();
+  atlasArt=art;artState='ready';window.addEventListener('atlas-photo-ready',()=>scheduleMapDraw());window.addEventListener('atlas-stamp-ready',()=>scheduleMapDraw());scheduleMapDraw();
   for(const prepared of preparedGroups.values())warmArt(prepared);
  },err=>{
   artState='failed';
@@ -414,11 +414,11 @@ function artZooming(){
 function discArt(d,color,size,lod){
  if(!atlasArt)return null;
  const rim=mapRimColor(d);d=photoDisc(d);
- if(!atlasArt.has(d,color,size,rim,lod)){
-  if(performance.now()<artDeadline)atlasArt.render(d,color,size,rim,lod);
+ if(!atlasArt.has(d,color,size,rim,lod,true)){
+  if(performance.now()<artDeadline)atlasArt.render(d,color,size,rim,lod,true);
   else artPending++;
  }
- return atlasArt.get(d,color,size,rim,lod);
+ return atlasArt.get(d,color,size,rim,lod,true);
 }
 function photoDisc(d){const photoURL=myMap||activeLens()!=='default'?window.BagApp?.mapPhotos?.().get(d.id):null;return photoURL?{...d,photoURL}:d;}
 function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}
@@ -432,7 +432,7 @@ function warmArt(prepared){
  const list=[...prepared.groups.filter(g=>!g.hidden&&g.lead).map(g=>[g.lead,AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)]),
   ...(prepared.gaps||[]).filter(g=>g.d).map(g=>[g.d,AtlasGroups.gapSize(top,g.tier)])];
  const next=deadline=>{
-  while(list.length&&deadline.timeRemaining()>3){const [d,size]=list.shift();if(atlasArt&&organicAtlas())atlasArt.render(photoDisc(d),discColor(d),size,mapRimColor(d));}
+  while(list.length&&deadline.timeRemaining()>3){const [d,size]=list.shift();if(atlasArt&&organicAtlas())atlasArt.render(photoDisc(d),discColor(d),size,mapRimColor(d),undefined,true);}
   if(list.length)requestIdleCallback(next);
  };
  requestIdleCallback(next);
