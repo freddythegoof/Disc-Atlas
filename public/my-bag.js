@@ -6,6 +6,7 @@ import {isOvermold,overmoldColors,bagRimColor} from './disc3d/overmold.mjs';
 import {StorageScene,LostScene} from './collection-scenes.js';
 import {createPhotoEditor,photoURL} from './disc-photo.mjs';
 import {rackOrder} from './collection3d/rack-layout.mjs';
+import {AllDiscsGallery} from './all-discs-gallery.js';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custom bag',capacity:20}, items = [], active = false;
@@ -14,6 +15,8 @@ let discEditSequence=0;
 let colorCustomized=false,rimCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
 // The view above (Bag, My Map, Storage or Lost) and the one list shown below it (Bag, Storage or Lost).
 let bagView='bag',listView='bag',removeOrigin=null;
+let storageMode='rack';
+const gallery=new AllDiscsGallery($('#allDiscsGallery'),{lookup:id=>mold(id)});
 // A photo starts the disc matched: its plate colour becomes the disc's colour, so the rim and edges agree
 // with the photographed plate. The colour stays editable; removing that photo in the same sheet restores
 // the colour it replaced, unless it was changed by hand since.
@@ -141,7 +144,7 @@ const HEADERS={
 };
 function renderHeader(demo){
  const [eyebrow,title,tagline]=HEADERS[bagView]||HEADERS.bag;
- $('#myBagEyebrow').textContent=demo?'SAMPLE LINEUP':eyebrow;$('#myBagTitle').textContent=title;$('#myBagTagline').textContent=tagline;
+ $('#myBagEyebrow').textContent=demo?'SAMPLE LINEUP':eyebrow;$('#myBagTitle').textContent=title;$('#myBagTagline').textContent=bagView==='storage'&&storageMode==='all'?'Every disc in your collection, one at a time.':tagline;
  $('#myBagView').dataset.view=bagView;
 }
 function render() {
@@ -168,7 +171,12 @@ function render() {
  for(const button of $('#bagListPicker').querySelectorAll('[data-bag-list]')){const on=button.dataset.bagList===listView;button.setAttribute('aria-checked',String(on));button.tabIndex=on?0:-1;}
  $('#bagListPicker [data-list-count="bag"]').textContent=count;$('#bagListPicker [data-list-count="storage"]').textContent=stored.length;$('#bagListPicker [data-list-count="lost"]').textContent=lost.length;
  const ready=signedIn && !loading && !loadError && active;storageScene.setStyle(settings.rack_style);
- storageScene.sync(ready && bagView==='storage',ready && bagView==='storage'?storedItems():[]);
+ const storageReady=ready && bagView==='storage';
+ if(!storageReady)storageMode='rack';
+ $('#storageModes').hidden=!storageReady;
+ for(const b of $('#storageModes').querySelectorAll('[data-storage-mode]')){const on=b.dataset.storageMode===storageMode;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;}
+ storageScene.sync(storageReady && storageMode==='rack',storageReady?storedItems():[]);
+ gallery.sync(storageReady && storageMode==='all',items);
  lostScene.sync(ready && bagView==='lost',ready && bagView==='lost'?lostItems():[]);
  $('#bagSlotMeter').textContent=`${count} / ${settings.capacity}`;
  const breakdown=`${settings.main_capacity ?? settings.capacity} main + ${settings.putter_capacity ?? 0} putter${settings.extra_capacity?' + '+settings.extra_capacity+' extra':''}`;
@@ -206,7 +214,7 @@ function activateBag() {
  history.replaceState(null,'','/?bag=1');render();window.scrollTo(0,0);
 }
 function leaveBag(view) {
- active=false;syncMyMap();scene.release();storageScene.sync(false,[]);lostScene.sync(false,[]);undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
+ active=false;storageMode='rack';gallery.sync(false,[]);syncMyMap();scene.release();storageScene.sync(false,[]);lostScene.sync(false,[]);undockDetail();$('#myBagView').hidden=true;$('main').hidden=false;$('#bagTab').classList.remove('active');
  for(const id of ['mapTab','listTab','bagTab'])$('#'+id).setAttribute('aria-current',id===(view==='map'?'mapTab':'listTab')?'page':'false');
  history.replaceState(null,'','/');setView(view);
 }
@@ -235,6 +243,12 @@ function setBagView(next){
  if(next!=='map')listView=next;
  if(detailPanel.parentNode===$('#myBagView') && !detailPanel.hidden)closeDetail(false);undockDetail();scene.release();render();
 }
+$('#storageModes').addEventListener('click',event=>{const b=event.target.closest('[data-storage-mode]');if(b){storageMode=b.dataset.storageMode;render();}});
+$('#storageModes').addEventListener('keydown',event=>{
+ const step={ArrowLeft:-1,ArrowRight:1}[event.key];if(!step&&event.key!=='Home'&&event.key!=='End')return;
+ event.preventDefault();const buttons=[...$('#storageModes').querySelectorAll('button')],at=buttons.indexOf(document.activeElement);
+ const b=buttons[event.key==='Home'?0:event.key==='End'?1:(at+step+2)%2];storageMode=b.dataset.storageMode;render();b.focus();
+});
 $('#myBagViews').addEventListener('click',event=>{const button=event.target.closest('[data-bag-view]');if(button)setBagView(button.dataset.bagView);});
 $('#myBagViews').addEventListener('keydown',event=>{
  const keys={ArrowLeft:-1,ArrowUp:-1,ArrowRight:1,ArrowDown:1};if(!keys[event.key])return;event.preventDefault();
@@ -581,5 +595,5 @@ addMenu.addEventListener('keydown',event=>{
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
 window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,
  // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
- scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;}}};
+ scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;},get album(){return gallery.viewer||null;}}};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();
