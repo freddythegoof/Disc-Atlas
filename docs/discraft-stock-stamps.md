@@ -1,5 +1,109 @@
 # Discraft stock stamp pilot
 
+## Full-disc stamp scale standard — October 16 recalibration
+
+**Express and apply stamp diameter as a fraction of the full outer disc diameter, measured on the flattest available source photo of that same complete design.** This is the standard for Batch 2 and subsequent stamp assignments. It supersedes the historical pilot's fixed 6.2 cm placement below.
+
+Branch `codex/stamp-scale-fix`, dedicated worktree, from freshly fetched `origin/main` **`d4a49442c0912c06a1831343a7267a416c339198`**. No artwork edits, ink changes, reassignment, Atlas renderer changes, push or deployment.
+
+### Measurement and application rule
+
+1. Use the flattest available photo of the **same complete stock design** as the approved alpha. Record the URL, unchanged source bytes/hash and bounds. Do not substitute another plastic's stamp revision. The pilot retains its official Discraft headline sources; Hades uses its hash-verified Infinite original.
+2. Measure the **full outer silhouette, rim to rim**, across its centre, excluding image padding/background. For these nearly circular head-on sources, use the larger centre-axis span. Find a flatter source if visibly tilted. The denominator is never the flight plate, shoulder, PNG square or product-image square; image width counts only when the disc actually fills it.
+3. For an irregular design, stamp diameter means the **larger width/height of the complete nonzero approved alpha bounding box**, mapped back to source coordinates with the extraction crop/paste offsets. Include signatures, flight boxes and all approved elements. Preserve every alpha pixel; do not crop, redraw, thicken or alter extraction thresholds to fit a fraction.
+4. Store `placement.diameterFraction = sourceInkDiameterPx / sourceDiscDiameterPx` and `placement.assetInkFraction = assetInkDiameterPx / assetSquareSidePx` in `source-data/stamp-manifest.json`, retaining numeric precision. The first measures visible ink; the second records transparent padding. Both are finite numbers in `(0, 1]`. Require `diameterFraction <= assetInkFraction` so the texture square fits the full disc; review incompatible padding instead of silently clipping.
+5. Run `python -X utf8 prepare_data.py` and `python -X utf8 validate_data.py`. The pipeline emits this object as `stampPlacement` on the same reviewed records as `stampAsset`. Never hand-edit `public/data.json`. Missing, boolean, nonfinite, out-of-range or altered placement is rejected; the Discraft brand/rights/path gate remains enforced.
+6. Apply the texture at radius **`fullDiscRadius * diameterFraction / assetInkFraction`**. Therefore `visibleInkDiameter / fullDiscDiameter = assetInkFraction * textureRadius / fullDiscRadius = diameterFraction`. Keep the existing dome-following height, UV orientation, ink/material and bag/storage transforms. **Only decoded official stock art opts in**. Generated, loading and failed-load stamps retain exactly the original name canvas and radius.
+7. Verify independently in the production Top viewer and floated beside the bag, against the source, printing fractions on each proof. For flat measurement, use the enlarged viewer at **1.6 times its fitted Top camera distance**, an existing zoom setting, with identical before/after poses. This limits the raised plate's perspective magnification to under two points; it is a QA pose, not a product-camera change. Bag proofs use the ordinary desktop staged-disc pose. Do not bake camera-dependent compensation into source fractions.
+
+Example for Buzzz:
+
+```json
+"placement": {
+  "diameterFraction": 0.7119140625,
+  "assetInkFraction": 0.9479843953185956
+}
+```
+
+### Measured pilot fractions
+
+Exact bounds and source/asset hashes: [measurements.json](assets/stamp-scale-fix/measurements.json). Reproduce with `python -X utf8 scripts/measure-stamp-scale.py`; it reads the existing pixel classifier and never rewrites artwork.
+
+| Mold / source | Full disc | Source ink | Source fraction / target | Asset square | Ink / asset square | Texture square / full disc |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Buzzz / official ESP headline | 1024 px | 729 px | **71.1914%** | 769 px | 94.7984% | 75.0977% |
+| Zone / official Z headline | 1024 px | 711 px | **69.4336%** | 736 px | 96.6033% | 71.8750% |
+| Luna / official headline | 1024 px | 679 px | **66.3086%** | 706 px | 96.1756% | 68.9453% |
+
+These values belong to these approved images/designs, not automatically to another stamp revision.
+
+### Diagnosis: the source-to-screen code path
+
+The pipeline previously emitted only `stampAsset`; no source fraction reached placement. Extraction cropped and padded the complete alpha into a circular-fit square. `stampTexture` painted that square unchanged into a 512 px texture. `stampGeometry` mapped the square onto `min(Rs * .78, 6.2 cm)`, where `Rs` is the procedural **shoulder radius**, not the full disc radius `R`. All four investigated molds hit the 6.2 cm cap. Viewer/pop-out, storage and pulled bag used this function; list thumbnails duplicated the cap. The bag's quarter-turn and envelope scaling preserve the ratio and are not the cause.
+
+**Buzzz:** source `729 / 1024 = 71.1914%`; alpha fills `729 / 769 = 94.7984%` of its square. Old physical placement: `(729 / 769) * (6.2 / 10.85) = 54.17%`. Default detail Top measured **55.79%**, 106 ink pixels / 190 disc pixels. Correct texture radius: **8.1481 cm**, giving exactly 71.1914% physical ink/full-disc scale.
+
+**Hades at `b0686ac`:** source `1796 / 2677 = 67.0900%`; alpha fills only `1796 / 2518 = 71.3264%` of its padded square. Old physical placement: `(1796 / 2518) * (6.2 / 10.5) = 42.12%`. Default detail Top measured **42.93%**, 79 / 184 pixels. Thus both the shared cap and mold-specific padding shrink it. The exact committed asset/source pair does not reproduce the eyeballed 55% / 75% estimates; these measured receipts set the calibration. [Original default-view diagnosis](assets/stamp-scale-fix/diagnosis.json).
+
+Small physical-versus-screen differences come from raised-plate perspective and rasterization. The unmodified default close-up after correction measures Buzzz 73.68%, Zone 70.97%, Luna 68.82% and Hades 69.02%; Buzzz/Luna are about 2.5 points above their physical/source fractions. The longer-distance flat QA pose below limits that bias. Source fractions and product cameras are not changed to compensate for zoom.
+
+### Before/after proofs
+
+[Raw verification and bounds](assets/stamp-scale-fix/verification.json). Rendered ink is measured by a greater-than-three-channel-level difference against an identical render with the stamp hidden, rejecting GPU rounding noise. The Top denominator uses the full rendered silhouette's alpha > 127; the bag denominator projects the actual full-disc mesh vertices. Same art, ink, renderer, lighting and camera per pair. Top results use the enlarged longer-distance pose, explaining the slight difference from the initial default-detail diagnosis.
+
+| Mold | Source | Top before -> after | Bag float before -> after |
+| --- | ---: | ---: | ---: |
+| Buzzz | 71.19% | 55.94% -> **72.73%** | 55.01% -> **71.97%** |
+| Zone | 69.43% | 58.27% -> **71.22%** | 57.57% -> **70.42%** |
+| Luna | 66.31% | 57.86% -> **67.86%** | 57.01% -> **67.03%** |
+
+![Buzzz source and Top before/after](assets/stamp-scale-fix/proof-buzzz-top.png)
+![Buzzz source and bag-float before/after](assets/stamp-scale-fix/proof-buzzz-bag.png)
+![Zone source and Top before/after](assets/stamp-scale-fix/proof-zone-top.png)
+![Zone source and bag-float before/after](assets/stamp-scale-fix/proof-zone-bag.png)
+![Luna source and Top before/after](assets/stamp-scale-fix/proof-luna-top.png)
+![Luna source and bag-float before/after](assets/stamp-scale-fix/proof-luna-bag.png)
+
+### Hades: read-only audit and Batch 1 handoff
+
+[Exact commit, manifests, extraction and proposed placement](assets/stamp-scale-fix/hades-receipt.json). The original 2970 x 2970 WebP's full outer silhouette spans **2677 px**, centre-axis bounds x `[148, 2825)`, y `[147, 2824)`. Its SHA-256 matches the sweep receipt: `1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7`. The sweep's `discSpanPxEstimate: 2640` was an estimate, not a calibrated placement fraction. **Its stamp manifest contains no fraction field at that commit.**
+
+The exact committed PNG is copied as evidence only. Source ink bounds `[610, 595, 2406, 2338)` are independently reproduced from the recorded recipe; asset ink bounds `[361, 387, 2157, 2130)` confirm the same 1796 px maximum span. Required downstream metadata:
+
+```json
+"placement": {
+  "diameterFraction": 0.6709002614867389,
+  "assetInkFraction": 0.7132644956314536
+}
+```
+
+The fixed rule predicts **67.0900%** physical rendered fraction and a **9.8764 cm** texture radius for the 21.0 cm Hades. An isolated viewer test with that exact asset and proposed metadata measured **68.35%** in the flat QA pose, within 1.26 points. Hades is not added to this branch's manifest/public catalog. The sweep branch/worktree is untouched; Batch 1's art audit remains its own follow-up.
+
+![Hades exact source, old placement and isolated corrected placement](assets/stamp-scale-fix/proof-hades-top.png)
+
+### Verification and deploy handoff
+
+The new source-fraction browser regression first failed on the original renderer (Buzzz source .711914 vs render .557895), then passed after the stock-only fix. It checks all four Top fractions, three pilot bag fractions, exact physical viewer/storage fractions, byte-identical official-alpha/ink textures, and byte-identical generated/failed fallback textures and geometry position arrays. Manifest tests: **8/8 pass**, including lying-brand rejection, placement validation, measured padding and catalog invariants. Geometry/LOD/bag/collection/photo node tests: **101/101 pass**. Existing stock-artwork, viewer, pop-out and photo browser suites pass, including tint, load/disposal races, photo/clay precedence and unchanged non-pilot controls. Catalog rights gate, data validation and production build pass. Independent read-only code review: no important findings.
+
+The pilot artwork regression now pins its pre-pilot commit: `merge-base main HEAD` ceases to be a valid pre-pilot baseline once the pilot lands. Its generated captures go to ignored `outputs/`, preserving historical receipts. The new scale regression separately pins this run's origin/main base.
+
+This is **placement metadata and stock mesh/thumbnail transforms only**: no PNG/material/ink changes, topology increase, new per-frame work, Atlas marker/cache edits or perf-margin changes. Stock readiness rebuilds the same topology once at the corrected radius; disposal cancels pending callbacks. Default performance gate: **PASS**, 7 desktop / 3 phone warm repetitions, **159.04 s**, original 1.15x multiplier, desktop 1.5 ms / phone 3 ms slack, +1 long-task allowance, both aggregate and paired checks. [Full raw report](assets/stamp-scale-fix/perf.json). One full run is a pass on this machine, not a statistical-stability claim.
+
+| Device / metric | 2D median | 3D median | Limit | Paired median excess |
+| --- | ---: | ---: | ---: | ---: |
+| Desktop flight p95 | 3.3 ms | 3.6 ms | 5.295 ms | -1.58 ms |
+| Desktop 1x p95 | .6 ms | .9 ms | 2.19 ms | -1.29 ms |
+| Desktop long tasks | 0 | 0 | 1 | -1 |
+| Phone flight p95 | 9.2 ms | 10.9 ms | 13.58 ms | -3.18 ms |
+| Phone 1x p95 | 2.9 ms | 3.2 ms | 6.335 ms | -3.135 ms |
+| Phone long tasks | 1 | 0 | 2 | -2 |
+
+**No push or deployment. Freddy's post-deploy feel check remains pending:** compare Buzzz in the viewer against a real Buzzz photo of this same design; its stamp should span the plate like the real disc. That human check is not claimed by this local verification.
+
+---
+
+The remainder is the historical pilot report. Its fixed-radius placement description is superseded by the standard above.
+
 Built on October 16, 2026, from main `38a8c4a` in the dedicated `codex/discraft-stock-stamps` worktree. That main already includes the non-overmold photo-edge cleanup merge. No photo loader, cleanup, worker, upload, crop, or photo geometry code was changed.
 
 ## Rights and scope

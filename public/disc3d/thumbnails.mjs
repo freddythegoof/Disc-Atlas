@@ -1,5 +1,5 @@
 import {getAtlasArt} from './atlas-art.mjs';
-import {catalogStampAsset,stampTexture} from './stamp.mjs';
+import {catalogStampAsset,catalogStampPlacement,stampTexture} from './stamp.mjs';
 import {shapeForDisc,shapeFrame} from './shape.mjs';
 
 const lists=new WeakMap();
@@ -31,7 +31,8 @@ export function observeThumbnails(root,lookup){
      canvas.getContext('2d').drawImage(entry.canvas,0,0);canvas.setAttribute('aria-hidden','true');
      if(ink?.userData.stampAsset){
       const {shape}=shapeForDisc({model:d.model3d,specs:d.specs,flight:d}),{Rs,R}=shapeFrame(shape);
-      const width=entry.px*entry.fill*Math.min(Rs*.78,6.2)/R;
+      const placement=catalogStampPlacement(d);
+      const width=entry.px*entry.fill*(placement?placement.diameterFraction/placement.assetInkFraction:Math.min(Rs*.78,6.2)/R);
       canvas.getContext('2d').drawImage(ink.image,(entry.px-width)/2,(entry.px-width)/2,width,width);
      }
      const pad=(1/entry.fill-1)/2*100;Object.assign(canvas.style,{left:-pad+'%',top:-pad+'%',width:100/entry.fill+'%',height:100/entry.fill+'%'});

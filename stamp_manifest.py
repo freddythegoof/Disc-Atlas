@@ -38,20 +38,17 @@ def validate_stamp_manifest(entries, records, public):
         asset = Path(public) / str(path)
         if not asset.is_file() or asset.stat().st_size == 0 or not asset.resolve().is_relative_to(Path(public).resolve()):
             raise ValueError('Stamp asset is missing or outside public: ' + entry['asset'])
-        # Pre-merge backfill: pilots remain untouched until origin/main lands.
-        # A supplied placement follows main's exact numeric validation rules.
-        if 'placement' in entry:
-            placement = entry.get('placement')
-            if not isinstance(placement, dict) or any(type(placement.get(k)) not in (int,float) or not math.isfinite(placement[k]) or not 0 < placement[k] <= 1 for k in ('diameterFraction','assetInkFraction')):
-                raise ValueError('Stamp placement needs full-disc diameter and asset ink fractions in (0, 1]')
-            if placement['diameterFraction'] > placement['assetInkFraction']:
-                raise ValueError('Stamp texture would exceed the full disc diameter')
+        placement = entry.get('placement')
+        if not isinstance(placement, dict) or any(type(placement.get(k)) not in (int,float) or not math.isfinite(placement[k]) or not 0 < placement[k] <= 1 for k in ('diameterFraction','assetInkFraction')):
+            raise ValueError('Stamp placement needs full-disc diameter and asset ink fractions in (0, 1]')
+        if placement['diameterFraction'] > placement['assetInkFraction']:
+            raise ValueError('Stamp texture would exceed the full disc diameter')
         assignments[entry['id']] = entry['asset']
     return assignments
 
 def validate_stamp_fields(entries, records, public):
     assignments = validate_stamp_manifest(entries, records, public)
-    placements = {e['id']: e.get('placement') for e in entries}
+    placements = {e['id']: e['placement'] for e in entries}
     for d in records:
         if d.get('stampPlacement') != placements.get(d['id']):
             raise ValueError('Catalog stamp placement differs from reviewed manifest: ' + d['id'])

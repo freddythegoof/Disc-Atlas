@@ -64,8 +64,28 @@ class StampManifestTests(unittest.TestCase):
         before=json.loads(subprocess.check_output(['git','show',base+':public/data.json'],cwd=ROOT))
         after=json.loads((ROOT/'public/data.json').read_text())
         self.assertEqual(before['meta'],after['meta'])
-        strip=lambda rows:[{k:v for k,v in d.items() if k not in ('stampAsset','stampPlacement')} for d in rows]
+        strip=lambda records:[{k:v for k,v in d.items() if k not in ('stampAsset','stampPlacement')} for d in records]
         self.assertEqual(strip(before['discs']),strip(after['discs']))
+
+    def test_invalid_or_unreviewed_placement_is_rejected(self):
+        for placement in [None,{},dict(diameterFraction=0,assetInkFraction=.9),dict(diameterFraction=float('nan'),assetInkFraction=.9),dict(diameterFraction=True,assetInkFraction=.9),dict(diameterFraction=.95,assetInkFraction=.8)]:
+            with self.subTest(placement=placement),self.assertRaisesRegex(ValueError,'placement|texture'):
+                self.module.validate_stamp_manifest([{**self.entries[0],'placement':placement}],self.records,ROOT/'public')
+        records=[dict(d) for d in self.records]
+        next(d for d in records if d['id']==self.entries[0]['id'])['stampPlacement']={'diameterFraction':.5,'assetInkFraction':.9}
+        with self.assertRaisesRegex(ValueError,'placement'):
+            self.module.validate_stamp_fields(self.entries,records,ROOT/'public')
+
+    def test_pilot_measurements_match_approved_assets_and_full_disc(self):
+        from PIL import Image
+        measurements=json.loads((ROOT/'docs/assets/stamp-scale-fix/measurements.json').read_text())
+        for e in self.entries:
+            if e['mold'].lower() not in {r['mold'] for r in measurements}:continue
+            row=next(r for r in measurements if r['mold']==e['mold'].lower())
+            mask=Image.open(ROOT/'public'/e['asset']);box=mask.getchannel('A').getbbox()
+            ink=max(box[2]-box[0],box[3]-box[1])
+            self.assertAlmostEqual(e['placement']['diameterFraction'],ink/row['sourceDiscDiameterPx'])
+            self.assertAlmostEqual(e['placement']['assetInkFraction'],ink/mask.width)
 
     def test_alpha_assets_cannot_bleed_outside_circular_stamp_mesh(self):
         from PIL import Image

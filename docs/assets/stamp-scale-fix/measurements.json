@@ -1,0 +1,146 @@
+[
+  {
+    "mold": "buzzz",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "sourceDiscBounds": [
+      0,
+      0,
+      1024,
+      1024
+    ],
+    "sourceDiscDiameterPx": 1024,
+    "sourceInkBounds": [
+      149,
+      195,
+      878,
+      769
+    ],
+    "stampDiameterPx": 729,
+    "assetSize": [
+      769,
+      769
+    ],
+    "assetInkBounds": [
+      20,
+      97,
+      749,
+      671
+    ],
+    "diameterFraction": 0.7119140625,
+    "assetInkFraction": 0.9479843953185956,
+    "textureDiameterFraction": 0.7509765625,
+    "sourceSHA256": "c0f845dcef77e6d3fc28b55333e12340e15dfb7b9d21c0a97a4c0ae81a35e911",
+    "assetSHA256": "8dc67cf66a770ef5a8191f231516b67a049aec54d92da5f4e2609518f32b8c2a"
+  },
+  {
+    "mold": "zone",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "sourceDiscBounds": [
+      0,
+      0,
+      1024,
+      1024
+    ],
+    "sourceDiscDiameterPx": 1024,
+    "sourceInkBounds": [
+      155,
+      154,
+      866,
+      864
+    ],
+    "stampDiameterPx": 711,
+    "assetSize": [
+      736,
+      736
+    ],
+    "assetInkBounds": [
+      12,
+      13,
+      723,
+      723
+    ],
+    "diameterFraction": 0.6943359375,
+    "assetInkFraction": 0.9660326086956522,
+    "textureDiameterFraction": 0.71875,
+    "sourceSHA256": "4d56fb616ae74cea4c61fbc5345a15f0198265d039cc18fbdb275730ac61b1a5",
+    "assetSHA256": "3a9085a18f2079e73afee071c361f22993bfafeddf38bba48246f9263c382740"
+  },
+  {
+    "mold": "luna",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "sourceDiscBounds": [
+      0,
+      0,
+      1024,
+      1024
+    ],
+    "sourceDiscDiameterPx": 1024,
+    "sourceInkBounds": [
+      171,
+      187,
+      850,
+      838
+    ],
+    "stampDiameterPx": 679,
+    "assetSize": [
+      706,
+      706
+    ],
+    "assetInkBounds": [
+      13,
+      27,
+      692,
+      678
+    ],
+    "diameterFraction": 0.6630859375,
+    "assetInkFraction": 0.9617563739376771,
+    "textureDiameterFraction": 0.689453125,
+    "sourceSHA256": "d3315d92e0dedb3362e4666be0fb1639698d6a447ac4db0091694a06b798f770",
+    "assetSHA256": "aac096d20865d17b0d3701bd4fdea4422a73a701596725cfba8be5975c04f6f4"
+  },
+  {
+    "mold": "hades",
+    "sourceSize": [
+      2970,
+      2970
+    ],
+    "sourceDiscBounds": [
+      148,
+      147,
+      2825,
+      2824
+    ],
+    "sourceDiscDiameterPx": 2677,
+    "sourceInkBounds": [
+      610,
+      595,
+      2406,
+      2338
+    ],
+    "stampDiameterPx": 1796,
+    "assetSize": [
+      2518,
+      2518
+    ],
+    "assetInkBounds": [
+      361,
+      387,
+      2157,
+      2130
+    ],
+    "diameterFraction": 0.6709002614867389,
+    "assetInkFraction": 0.7132644956314536,
+    "textureDiameterFraction": 0.9406051550242809,
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "assetSHA256": "525534d2d2b210fcde3de4aa80116a9b8b22967a553c5d0d2b5c475d96d52a50"
+  }
+]

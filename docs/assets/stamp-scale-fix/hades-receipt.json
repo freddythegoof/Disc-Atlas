@@ -1,0 +1,131 @@
+{
+  "commit": "b0686ac88b099c69742fed6bf8e0bf33f03d03d3",
+  "stampManifestEntry": {
+    "id": "68bc409ff25f",
+    "brand": "Discraft",
+    "mold": "Hades",
+    "asset": "stamps/discraft/hades.png",
+    "sourceURL": "https://infinitediscs.com/discraft-hades/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource"
+  },
+  "extraction": {
+    "mold": "Hades",
+    "sourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        610,
+        595,
+        2406,
+        2338
+      ],
+      "assetSize": [
+        2518,
+        2518
+      ],
+      "assetPasteOffset": [
+        361,
+        387
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "recipe": {
+      "channelTest": "blue-green",
+      "threshold": 0.12,
+      "ramp": 0.18,
+      "roi": [
+        0.19,
+        0.2,
+        0.81,
+        0.8
+      ]
+    },
+    "asset": "stamps/discraft/hades.png",
+    "assetKB": 199.236
+  },
+  "sourceManifestEntry": {
+    "mold": "Hades",
+    "inCatalog": true,
+    "esp": true,
+    "pageUrl": "https://infinitediscs.com/discraft-hades/esp",
+    "imageUrl": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "imageWidth": 2970,
+    "imageHeight": 2970,
+    "verdict": "extracted",
+    "notes": "Full face; magenta Hades panel, split rings, Discraft, McBeth emblem and flight box on pink/orange; strong usable contrast.",
+    "source": "infinite-discs",
+    "checkedAt": "2026-10-16",
+    "discSpanPxEstimate": 2640,
+    "flags": [],
+    "otherListedPlastics": [],
+    "catalogMatches": [
+      {
+        "id": "68bc409ff25f",
+        "name": "Hades",
+        "catalogName": null,
+        "productionStatus": "catalog_listed"
+      }
+    ],
+    "imageScope": "largest verified usable top-face product-gallery original; see recon scope",
+    "inventoryCheck": "Not individually audited; product-gallery verdict only.",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource; stamp design only; Infinite photography excluded",
+    "asset": "stamps/discraft/hades.png",
+    "extractionSourceURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "extractionRetailer": "Infinite Discs",
+    "inkCountVerified": 1,
+    "inkReview": "Single foil; reflective/patterned variations belong to that same foil. No independent second ink observed.",
+    "placement": {
+      "sourceSize": [
+        2970,
+        2970
+      ],
+      "sourceDiscCrop": [
+        0,
+        0,
+        2970,
+        2970
+      ],
+      "sourceInkBounds": [
+        610,
+        595,
+        2406,
+        2338
+      ],
+      "assetSize": [
+        2518,
+        2518
+      ],
+      "assetPasteOffset": [
+        361,
+        387
+      ],
+      "method": "pilot circular-fit padding, no renderer transform"
+    },
+    "assetKB": 199.236,
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "batch": 1,
+    "extractedAt": "2026-10-16",
+    "extractionNotes": "Complete source-only alpha, white RGB; no redraw or cross-mold elements. Pilot circular-fit placement encoded in transparent canvas padding."
+  },
+  "proposedPlacement": {
+    "diameterFraction": 0.6709002614867389,
+    "assetInkFraction": 0.7132644956314536
+  },
+  "predictedRenderedFraction": 0.6709002614867389
+}
