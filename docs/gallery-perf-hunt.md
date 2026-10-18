@@ -1,6 +1,6 @@
-# Gallery per-flip performance hunt — Phase 1
+# Gallery per-flip performance hunt — Phases 1–2
 
-October 17, 2026. **Attribution is partial; stop for Freddy’s review. No fix code.**
+October 17, 2026. **Phase 2 retained a one-file experiment; Gallery and Atlas phone perf gates remain red. Stop for Freddy.** See Phase 2 below for results, regressions and screenshots. Phase 1 attribution is retained as historical evidence.
 
 The built Gallery has real phone main-thread stalls outside the gate. The dominant reproducible task is the **shared owner-photo promise continuation / `reliefTexture()` CPU work**, repeated when returning to Destroyer. It is also present in the historical build. These PC captures do **not** establish a new >50 ms block on every flip, or explain the Mac’s 241-task result. A Gallery-specific extra style-flush boundary is visible, but it is not proven to explain that Mac signature. Do not turn this into a claimed universal diagnosis or a green perf gate.
 
@@ -8,7 +8,7 @@ The built Gallery has real phone main-thread stalls outside the gate. The domina
 
 - Worktree: `C:/Users/user/.codex/worktrees/gallery-perf-hunt/disc-atlas`; branch `codex/gallery-perf-hunt` from fetched `origin/codex/all-discs-gallery-fixes`, **`c3956cf1956af6863b415a2b1a5a1bcc4940c4f7`**.
 - Before: **`e59e67e10f263718a47ca4fd842a70db630d5987`**, replaying the exact four sources used by the existing test: `web/index.html`, `public/my-bag.js`, `public/my-bag.css`, `public/all-discs-gallery.js`. Authentication/fixture setup precedes replay; the checkout never changes revision.
-- Product code, shared viewer/photo code, Atlas code, tests, gates, limits, margins, repetitions, and quality settings are unchanged. Only this document and diagnostic evidence are committed. No push, PR, merge, or deployment.
+- In Phase 1, product code, shared viewer/photo code, Atlas code, tests, gates, limits, margins, repetitions, and quality settings were unchanged. Only this document and diagnostic evidence were committed. No push, PR, merge, or deployment.
 - Graphify located the Gallery, viewer, photo/stamp modules and existing harness before source inspection. No graph rebuild was needed for this documentation-only investigation.
 
 ## Method: exclude the harness, then compare it
@@ -94,7 +94,7 @@ The traced gate-style series has **38 Gallery/frame tasks + 58 photo tasks** aft
 
 The needed next evidence is a Mac trace with flip markers and renderer-main task/CPU stacks around one of the purported per-flip tasks, plus its before replay. Keep the full unchanged gate workload/default repetitions. Check whether tasks cluster on the photo returns, are scheduled viewer draws, or repeatedly contain the L60/L34 style boundaries. Matching the aggregate task count to the number of clicks is insufficient, especially when a single photo arrival can create multiple long tasks.
 
-## Smallest proposed experiment — requires attribution review first
+## Phase 1 proposed experiment — approved for Phase 2 on October 17
 
 **Gallery-only candidate:** in **`public/all-discs-gallery.js` only**, move the existing animation query/cancellation before the first visibility/DOM write. This tests the specifically observed added style-flush boundary with the smallest change. Keep synchronous hiding **before** `v.update()`, every readiness/failure/revision guard, and the separate paint-before-reveal rAF. Keep pose restoration and the dedicated Gallery section exactly as implemented. Cancelling the old animation before hiding still occurs in the same input task, while the previous copy is displayed, before changing viewer props.
 
@@ -124,4 +124,90 @@ In a second terminal, run the probe from the worktree. Use `--setup=true --setup
 
 Checked archive decompression/checksums, trace JSON, input counts/trust, before/after source replay, per-task source/phase rows, recorded page errors, and protected-file diffs against `c3956cf`. Product and gate hashes remain unchanged. The shared viewer/photo/albedo sources are also byte-identical between the historical and fixes revisions. No product regression suite or full performance acceptance rerun was needed to validate a documentation-only Phase 1; no new pass is claimed for either.
 
-**Stop here for Freddy’s attribution review.** The proven shared photo cost, observed Gallery flush delta, and still-unexplained Mac signature must remain separate findings. Phase 2 has not started.
+**Historical Phase 1 stopping point:** Freddy approved the bounded experiment on October 17. The shared photo cost, observed Gallery flush delta and unexplained Mac signature remain separate findings. Phase 2 follows.
+
+## Phase 2 — one-file style-flush experiment
+
+October 17, 2026. Freddy approved this bounded experiment on top of **`4e5930a`**. **Retained locally as `fb382fe`; promising movement, acceptance incomplete.** Phone long-task median fell **55 → 42**, near the fresh before-variant median **44**, but the unchanged Gallery gate still exits **1** on paired long tasks (**+1**). Atlas also exits **1** on phone long tasks. Neither gate is green. Historical PC performance and the Mac signature have not been recovered or explained.
+
+### Exact change and decision
+
+Only **`public/all-discs-gallery.js:59–60`** changes product behavior: the existing animation query/cancellation now runs before the first visibility write. Hiding still runs synchronously before `v.update()`. Pose restoration, readiness/failure/revision guards, and the separate paint-before-reveal rAF remain intact. Shared viewer, texture, Atlas, quality and data code are unchanged. **`reliefTexture()` is untouched.**
+
+The prewritten retain-and-regress rule is applied to the material movement toward the contemporaneous baseline: **55 → 42**, a **23.6%** median reduction, versus baseline **44**. This is a promising local improvement, **not a passed paired gate or demonstrated causal fix**. Two paired repetitions still exceed the allowance. Baseline drift and block-order measurement prevent claiming the reorder alone caused recovery. This is not a clean negative that exonerates the flush. Retain the isolated experiment for Freddy's judgment; no landing is asserted. Independent read-only review found no guard regression and agreed provisional retention under “roughly baseline” is defensible with these limits.
+
+### Method and drift
+
+Unchanged Gallery test defaults: **7 desktop / 3 phone warm repetitions**, one cold per device, **241 flips + 120 still draws per repetition**, same four owned fixture copies and historical source replay. Margins, limits, quality, independent-median and paired calculations are untouched. No repetition, evidence-only, executable or GPU overrides were set for a performance run. Once each, serially: pre-experiment after, fresh before replay, post-experiment after, then Atlas. No unchanged-implementation retry was selected for a better result. The later evidence-only screenshot driver contributes no measured perf rows.
+
+Runtime: bundled **Node 24.19.0**, **Playwright 1.62.1**, installed **Chromium revision 1234**, Windows, default ANGLE D3D11 / GPU-enabled arguments. Desktop **1440 × 900 / CPU 1×**; phone **390 × 844 / DPR 2 / CPU 4×**. Historical fixes/Phase 1 used Node 24.21.0; runtime parity with them is not claimed. This task ran no concurrent build, test or profile during measured loops. Machine-wide quietness was not independently certified.
+
+The fresh pre-experiment control already measured phone **56, 55, 49**, versus recorded **13, 8, 7**. Fresh before replay measured **39, 51, 44**, versus recorded **2, 2, 3**. This drift precedes the experiment and limits interpretation; all rows are retained.
+
+### Recorded PC comparison requested alongside the experiment
+
+The first two columns preserve the fixes write-up, including **phone 8 vs limit 3, desktop 0**. The post-experiment column is this run. Limits and post paired excesses here are recalculated against the **recorded** before rows using unchanged formulas. This is a **cross-session comparison**, not the fresh gate verdict or controlled causal attribution.
+
+| Device | Warm metric | Before variant | Pre-experiment after | Post-experiment after | Limit | Post median paired excess | Post result |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Desktop | Navigation/draw p95, ms | 2.8 | 2.8 | 4.2 | 4.72 | -0.52 | Pass |
+| Desktop | Still-draw p95, ms | 0.2 | 0.2 | 0.3 | 1.73 | -1.43 | Pass |
+| Desktop | Long tasks, count | 0 | 0 | 0 | 1 | -1 | Pass |
+| Phone | Navigation/draw p95, ms | 12.9 | 14.3 | 19.4 | 17.835 | 1.795 | **FAIL** |
+| Phone | Still-draw p95, ms | 1.2 | 1.4 | 1.4 | 4.38 | -2.88 | Pass |
+| Phone | Long tasks, count | 2 | 8 | 42 | 3 | 39 | **FAIL** |
+
+### Fresh same-session comparison — actual Gallery verdict
+
+The default before replay supplies the actual post-run baseline. Its long-task limit mechanically becomes **44 + 1 = 45** under the untouched gate, not a widened constant. The pre-experiment column below is the fresh control; the recorded 8 remains above.
+
+| Device | Warm metric | Before variant | Pre-experiment after | Post-experiment after | Limit | Post median paired excess | Post result |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Desktop | Navigation/draw p95, ms | 4 | 3.4 | 4.2 | 6.1 | -1.785 | Pass |
+| Desktop | Still-draw p95, ms | 0.3 | 0.2 | 0.3 | 1.845 | -1.545 | Pass |
+| Desktop | Long tasks, count | 0 | 0 | 0 | 1 | -1 | Pass |
+| Phone | Navigation/draw p95, ms | 18.7 | 22.4 | 19.4 | 24.505 | -4.745 | Pass |
+| Phone | Still-draw p95, ms | 1.3 | 1.5 | 1.4 | 4.495 | -3.095 | Pass |
+| Phone | Long tasks, count | 44 | 55 | 42 | 45 | 1 | **FAIL** |
+
+Phone pairs: **39 → 41, 51 → 42, 44 → 48**. Excesses after +1: **+1, −10, +3**; median **+1**, so the gate correctly **fails** despite independent medians **42 ≤ 45**. Desktop long-task medians stay **0 → 0 → 0**. Full cold/warm distributions: [before](assets/gallery-perf-hunt/phase2/before-variant-fresh.json), [pre-experiment](assets/gallery-perf-hunt/phase2/pre-experiment-fresh.json), [post-experiment](assets/gallery-perf-hunt/phase2/post-experiment.json). Historical fixes evidence remains unchanged in `docs/images/storage-all-discs-fixes/`.
+
+### Atlas collateral gate at defaults
+
+Unchanged gate, **7 desktop / 3 phone**, alternating 2D/3D, **241 flight + 120 still draws**, no `PERF_REPS*` overrides. Wall-clock **172.96 s**. The file is Gallery-specific, but the requested collateral gate ran regardless.
+
+| Device | Metric | 2D median | 3D median | Limit | Median paired excess | Result |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Desktop | flight p95 | 4.7 | 6 | 6.905 | -1.15 | Pass |
+| Desktop | 1x p95 | 1.1 | 1.9 | 2.765 | -0.765 | Pass |
+| Desktop | long tasks | 0 | 1 | 1 | -1 | Pass |
+| Phone | flight p95 | 12.2 | 16 | 17.03 | -1.78 | Pass |
+| Phone | 1x p95 | 2.7 | 3.7 | 6.105 | -2.35 | Pass |
+| Phone | long tasks | 7 | 11 | 8 | 2 | **FAIL** |
+
+Atlas exits **1** on phone long tasks: **11 vs 7**, limit **8**, paired **+2**. The older fixes run also had a red Atlas phone long-task gate (8 vs 3, limit 4). This run establishes neither a new collateral regression nor an Atlas pass. [All distributions/decisions](assets/gallery-perf-hunt/phase2/atlas-defaults.json). The unresolved Mac signature remains unresolved.
+
+### Full regression and functional acceptance
+
+**74 unit tests passed.** Unchanged **album, bag, Storage/Lost and demo** browser suites all exited **0**; demo passed all seven checks. Storage/Lost phone p90s: **17.8 / 18.0 ms**. The default post-experiment Gallery run passed all four functional assertions before failing perf. [Exit codes](assets/gallery-perf-hunt/phase2/regression-exits.json), individual logs in the same directory, and [functional samples](assets/gallery-perf-hunt/phase2/functional.json) are retained.
+
+A separate evidence-only driver repeats delayed-response checks, adds four Top flips, then uses real browser button input for **Destroyer → Stalker → Destroyer → Stalker**, with 25 ms waits between completed inputs. It measures no perf workload.
+
+- Gallery remains **Bag · My Map · Storage · Gallery · Lost**; Storage has its rack. [Navigation](images/gallery-perf-phase2/after-navigation.png), [rack](images/gallery-perf-phase2/after-storage-rack.png).
+- Top remains `top, top, top, top` across [Stalker](images/gallery-perf-phase2/after-top-flip-1.png), [Buzzz](images/gallery-perf-phase2/after-top-flip-2.png), [Luna](images/gallery-perf-phase2/after-top-flip-3.png), [Destroyer](images/gallery-perf-phase2/after-top-flip-4.png). Original Profile/angle/bottom persistence and neutral asset-failure checks also pass.
+- Delayed photo and Stalker stock art each record **zero visible-before-ready frames**. [Pending Stalker](images/gallery-perf-phase2/after-stamp-pending.png) stays neutral; [resolved Stalker](images/gallery-perf-phase2/after-stamp-ready.png) has its real stock stamp.
+- Rapid flips record **43 rAF samples / 22 compositor screenshots**, **zero visible-before-ready samples**. All compositor frames were inspected in the [contact sheet](images/gallery-perf-phase2/fast-stalker-contact-sheet.jpg); both first Stalker arrivals were also inspected at full size: [001](images/gallery-perf-phase2/fast-stalker-frame-001.jpg), [010](images/gallery-perf-phase2/fast-stalker-frame-010.jpg). The resolved stamp is present at both first captured arrivals; **no default-look flash was observed**. All frames are retained beside those files. This verifies this recorded PC sequence, not every device or inter-frame instant.
+
+![Rapid Stalker arrival shows the resolved stock stamp](images/gallery-perf-phase2/fast-stalker-frame-010.jpg)
+
+[Diagnostic driver source](assets/gallery-perf-hunt/phase2/functional-driver.mjs.txt) is retained as plain text, not a modified gate. To reproduce, copy it to an ignored `.mjs` path, create `outputs/gallery-perf-phase2/functional/after.json` from the post-experiment report, and run from the repo root with `GALLERY_FIXES_EVIDENCE_ONLY=1` and the same `PLAYWRIGHT_MODULE`. It uses the local Wrangler/auth/D1/R2 fixture on 8843; no session/secret state is included. Its perf rows are retained input, **not a second measurement**.
+
+### Reproduction, verification and stopping point
+
+Measured commands, in order: `node tests/gallery-fixes-browser.mjs`, `node tests/gallery-fixes-browser.mjs --before`, `node tests/gallery-fixes-browser.mjs`, `node tests/atlas-3d-perf.mjs`. Runtime prefix was `C:/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe`; `PLAYWRIGHT_MODULE=C:/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright`. No gate file changed.
+
+Unit command: `node --test tests/bag.mjs tests/bag-values.mjs tests/bag-3d-layout.mjs tests/bag-pulled-sizing.mjs tests/bag-demo.mjs tests/collection-layout.mjs tests/all-discs-order.mjs`. Then serially run `tests/all-discs-browser.mjs`, `tests/bag-browser.mjs`, `tests/bag-collections-browser.mjs`, `tests/bag-demo-browser.mjs` with that runtime. Every exit code and log is retained.
+
+Syntax, changed-file ESLint and whitespace checks passed. AST-only `graphify update .` ran with environment/credential/document exclusions verified; no topology change was detected, so committed graph outputs stayed untouched. Independent read-only review found no guard regression. Final diff/protected-file checks against `4e5930a` confirm only the named product file plus report/evidence changes. Historical generated fixes evidence was restored; Phase 2 results are separate. [SHA-256 manifest](assets/gallery-perf-hunt/phase2/sha256.json) covers committed Git blob bytes (`git show HEAD:<path>`), so text checksums remain portable across Git line-ending conversions.
+
+**STOP for Freddy.** Keep `fb382fe` as the separate local experiment and commit this report/evidence separately. Both perf gates remain red. No second experiment, `reliefTexture()` work, push, PR, merge or deploy. Freddy's quiet-Mac re-run remains the landing judge; this run makes no landing claim.
