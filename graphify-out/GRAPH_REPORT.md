@@ -1,9 +1,7 @@
 # Graph Report - disc-atlas  (2026-10-17)
 
 ## Corpus Check
-- 329 files · ~4,864,748 words
-- Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 66 file(s) not represented in the graph (top: .log 31, .css 15, .ttf 8)
+- cluster-only mode — file stats not available
 
 ## Summary
 - 2454 nodes · 4990 edges · 145 communities (117 shown, 28 thin omitted)
@@ -164,12 +162,12 @@
   public/disc3d/viewer.mjs → tests/slider-drag-browser.mjs
 - `update()` --indirect_call--> `photo()`  [INFERRED]
   public/disc3d/viewer.mjs → tests/photo-albedo.mjs
-- `createBag()` --calls--> `validateDiscDetails()`  [EXTRACTED]
-  workers/bag.mjs → public/bag-values.js
+- `validateUpload()` --calls--> `photoRoute()`  [EXTRACTED]
+  tests/photo-compression-browser.mjs → workers/textures.mjs
+- `fixture()` --calls--> `createBag()`  [EXTRACTED]
+  tests/photo-textures.mjs → workers/bag.mjs
 - `createBag()` --calls--> `validateBagSettings()`  [EXTRACTED]
   workers/bag.mjs → public/bag-values.js
-- `columns()` --calls--> `assignSides()`  [EXTRACTED]
-  tests/bag-3d-layout.mjs → public/bag3d/bag-layout.mjs
 
 ## Import Cycles
 - None detected.
@@ -645,7 +643,7 @@ Cohesion: 0.50
 Nodes (5): detailBlocks(), detailGhosts(), fadeDetail(), updateDetail(), sync()
 
 ## Knowledge Gaps
-- **53 isolated node(s):** `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react`, `class-variance-authority`, `clsx` (+48 more)
+- **53 isolated node(s):** `NPM_CONFIG_FETCH_RETRIES`, `NPM_CONFIG_FETCH_TIMEOUT`, `NPM_CONFIG_MAXSOCKETS`, `HOME`, `MINIFLARE_REGISTRY_PATH` (+48 more)
   These have ≤1 connection - possible missing edges. (Counts symbols only; 1141 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **28 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -653,16 +651,16 @@ Nodes (5): detailBlocks(), detailGhosts(), fadeDetail(), updateDetail(), sync()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `jose` connect `workers/auth.mjs` to `package.json`?**
-  _High betweenness centrality (0.099) - this node is a cross-community bridge._
-- **What connects `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react` to the rest of the system?**
+  _High betweenness centrality (0.114) - this node is a cross-community bridge._
+- **What connects `NPM_CONFIG_FETCH_RETRIES`, `NPM_CONFIG_FETCH_TIMEOUT`, `NPM_CONFIG_MAXSOCKETS` to the rest of the system?**
   _53 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `app.js` be split into smaller, more focused modules?**
   _Cohesion score 0.08666666666666667 - nodes in this community are weakly interconnected._
-- **Why does `inCollection()` connect `filter` to `app.js`, `bag-tweaks-browser.mjs`, `brandList`, `detail`, `activeLens`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+- **Why does `BagScene` connect `Bag scene` to `leaveBag`, `my-bag.js`?**
+  _High betweenness centrality (0.038) - this node is a cross-community bridge._
 - **Should `workers/auth.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.05189189189189189 - nodes in this community are weakly interconnected._
-- **Why does `scripts` connect `scripts` to `package.json`?**
-  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `SceneView` connect `SceneView` to `mountRacks`, `stage.mjs`, `.zoom`, `mountGraveyard`, `racks.mjs`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
 - **Should `Bag scene` be split into smaller, more focused modules?**
   _Cohesion score 0.10842844600526778 - nodes in this community are weakly interconnected._
