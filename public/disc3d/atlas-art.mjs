@@ -29,6 +29,8 @@ import {PLASTICS,discGeometry} from './mesh.mjs';
 import {photoSurface} from './photo.mjs';
 import {catalogStampAsset,catalogStampPlacement,stampTexture,stampGeometry,stampMaterial} from './stamp.mjs';
 import {LODS,ORDER,lodFor} from './lod.mjs';
+import {parseHalo} from './halo.mjs';
+import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
 // Levels of detail by size on screen (lod.mjs): the thresholds, and the hysteresis a moving camera needs.
 export {LODS,lodFor};
 
@@ -76,6 +78,8 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  };
  const material=color=>{const m=new THREE.MeshPhysicalMaterial({color,...PLASTICS.premium});m.onBeforeCompile=shadeSlopes;m.customProgramCacheKey=()=>'atlas-slope';return m;};
  const plateMaterial=material(0x888888),rimMaterial=material(0x444444);
+ // A Halo v2 band: the rim's own material and slope shading, plus the wash out to the dye front.
+ const haloRim=haloUniforms(),haloRimMaterial=patchHalo(material(0x444444),haloRim);
  const mesh=new THREE.Mesh(new THREE.BufferGeometry(),plateMaterial);scene.add(mesh);
 
  // Stock art is an explicit Atlas opt-in. Lists keep their existing overlay path.
@@ -125,19 +129,21 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   shapes.set(d.id,s);stats.shapes=shapes.size;return s;
  }
  // `split`: the lathe split at the rim seam into plate and rim groups (an overmold, or a Halo copy's band).
- function geometryOf(s,lod,stock=false,placement=null,split=s.overmold){
-  const key=s.key+'|'+lod+'|'+split+(stock?'|stamp|'+JSON.stringify(placement):'');
+ function geometryOf(s,lod,stock=false,placement=null,split=s.overmold,halo=false){
+  const key=s.key+'|'+lod+'|'+split+(halo?'|halo':'')+(stock?'|stamp|'+JSON.stringify(placement):'');
   let g=geometries.get(key);
   if(g){geometries.delete(key);geometries.set(key,g);return g;}
-  const L=LODS[lod];g=stock?stampGeometry(s.shape,{segments:L.segments,placement}):discGeometry(s.shape,{segments:L.segments,detail:L.detail,overmold:split}).geometry;
+  const L=LODS[lod];g=stock?stampGeometry(s.shape,{segments:L.segments,placement}):discGeometry(s.shape,{segments:L.segments,detail:L.detail,overmold:split,halo}).geometry;
   geometries.set(key,g);
   while(geometries.size>maxGeometries){const [k,old]=geometries.entries().next().value;geometries.delete(k);if(old!==mesh.geometry&&old!==stampMesh.geometry)old.dispose();}
   stats.geometries=geometries.size;return g;
  }
  // Resolve the theme default before every cache lookup so a theme switch cannot reuse the old rim.
  // A Halo copy (d.haloBand, disc3d/halo.mjs) on a one-piece mold: its photographed band, never a theme colour.
- const colorsOf=(s,color,rim,band)=>s.overmold?overmoldColors(color,{rim:rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):{plate:color,rim:band||''};
- const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+'|'+(d.photoURL||'')+
+ // Halo v2 (d.haloModel): the band's wash and dye front, only with a band.
+ const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):
+  {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
+ const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
   (asset?'|stamp:'+asset+'|'+JSON.stringify(catalogStampPlacement(d)):'');
  function touch(key){const e=images.get(key);if(e){images.delete(key);images.set(key,e);}return e||null;}
 
@@ -147,26 +153,26 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // have separate identities, so a low request can never borrow a decorated larger image.
  function get(d,color,size,rim,lod=lodFor(size),official=false){
   const s=shapeOf(d);if(!s)return null;
-  const asset=stampAssetOf(d,lod,official),c=colorsOf(s,color,rim,d.haloBand),want=lod,order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
+  const asset=stampAssetOf(d,lod,official),c=colorsOf(s,color,rim,d.haloBand,d.haloModel),want=lod,order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
   for(const level of order){const e=touch(keyOf(d,level,c,asset));if(e)return e;}
   if(d.photoURL||asset)for(const level of order){const e=touch(keyOf(d,level,c,asset)+'|pending');if(e)return e;}
   return null;
  }
  function has(d,color,size,rim,lod=lodFor(size),official=false){
   const s=shapeOf(d);if(!s)return true;
-  return images.has(keyOf(d,lod,colorsOf(s,color,rim,d.haloBand),stampAssetOf(d,lod,official)));
+  return images.has(keyOf(d,lod,colorsOf(s,color,rim,d.haloBand,d.haloModel),stampAssetOf(d,lod,official)));
  }
  // Draws the disc at the level `size` needs (or returns it from the cache). Null for a disc without a model.
  function render(d,color,size,rim,lod=lodFor(size),official=false){
   const s=shapeOf(d);if(!s)return null;
-  const asset=stampAssetOf(d,lod,official),c=colorsOf(s,color,rim,d.haloBand),finalKey=keyOf(d,lod,c,asset),done=touch(finalKey);if(done)return done;
+  const asset=stampAssetOf(d,lod,official),c=colorsOf(s,color,rim,d.haloBand,d.haloModel),finalKey=keyOf(d,lod,c,asset),done=touch(finalKey);if(done)return done;
   const photo=photoOf(d,s),ink=stampOf(d,c.plate,asset),ready=(!photo||photo.userData.photoReady)&&(!ink||ink.userData.stampAsset||ink.userData.stampFailed),key=finalKey+(ready?'':'|pending');
   const cached=touch(key);if(cached)return cached;
   const start=performance.now(),px=Math.max(8,Math.ceil(LODS[lod].css*dpr));
   // Two materials on an overmold or a Halo band; the photo's reach (photoOf) still follows the mold alone.
-  const split=!!c.rim;
-  mesh.geometry=geometryOf(s,lod,false,null,split);mesh.material=split?[plateMaterial,rimMaterial]:plateMaterial;
-  plateMaterial.color.set(c.plate);if(split)rimMaterial.color.set(c.rim);
+  const split=!!c.rim,band=split&&c.halo?haloRimMaterial:rimMaterial;
+  mesh.geometry=geometryOf(s,lod,false,null,split,!!c.halo);mesh.material=split?[plateMaterial,band]:plateMaterial;
+  plateMaterial.color.set(c.plate);if(split)band.color.set(c.rim);if(c.halo)setHalo(haloRim,c.halo);
   // The disc's own diameter spans the image, less a pixel at each edge.
   const half=s.shape.diameter/2*px/(px-2);
   camera.left=-half;camera.right=half;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();
@@ -204,7 +210,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   window.removeEventListener('atlas-photo-clear',clearPhotos);clearPhotos();
   for(const g of geometries.values())g.dispose();geometries.clear();images.clear();
   for(const ink of stamps.values())ink.dispose();stamps.clear();stampMesh.material.dispose();stampMesh.geometry.dispose();
-  plateMaterial.dispose();rimMaterial.dispose();envTexture.dispose();renderer.dispose();
+  plateMaterial.dispose();rimMaterial.dispose();haloRimMaterial.dispose();envTexture.dispose();renderer.dispose();
  }
  return {get,has,render,lodFor,stats,dispose,dpr,
   // For tests and tuning.

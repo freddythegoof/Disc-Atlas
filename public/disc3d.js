@@ -37,11 +37,11 @@
  }
  // `colors` {rim, plate} are optional overmold colours (bag colour choices later); without them the viewer
  // derives both from `color`. Whether a disc is an overmold is decided per record in disc3d/overmold.mjs.
- function sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,haloBand,poster,hand:nextHand}={}){
+ function sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,haloBand,haloModel,poster,hand:nextHand}={}){
   if(nextHand)hand=nextHand;
   const stage=panel?.querySelector('[data-disc3d] .disc3d-stage');
   if(!stage||!hasModel(d))return;
-  const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,photoURL,texture_key,photo_rim_color,haloBand:haloBand||null,model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
+  const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,photoURL,texture_key,photo_rim_color,haloBand:haloBand||null,haloModel:haloModel||null,model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
    manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
    colors:colors?{rim:colors.rim&&resolveColor(colors.rim),plate:colors.plate&&resolveColor(colors.plate)}:undefined};
   if(photoURL)panel.querySelector('.illustration-caption').textContent='Your photo · projected onto a representative 3D shape';
@@ -49,7 +49,7 @@
   // A hidden panel (the landing page warms it) waits until it is shown before loading anything.
   waiting?.disconnect();waiting=null;
   if(panel.hidden||!panel.isConnected){
-   waiting=new MutationObserver(()=>{if(!panel.hidden){waiting.disconnect();waiting=null;sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,haloBand,poster,hand});}});
+   waiting=new MutationObserver(()=>{if(!panel.hidden){waiting.disconnect();waiting=null;sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,haloBand,haloModel,poster,hand});}});
    waiting.observe(panel,{attributes:true,attributeFilter:['hidden']});return;
   }
   stage.dataset.disc=d.id;if(!stage.dataset.state)stage.dataset.state='loading';

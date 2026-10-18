@@ -3,6 +3,7 @@
 // two groups, the flight plate (material 0) and the rim (material 1).
 import * as THREE from 'three';
 import {discProfile,overmoldProfile} from './shape.mjs';
+import {haloCoord} from './halo-shader.mjs';
 
 // Finishes only (a picker is phase 3): premium is glossy, base is matte.
 export const PLASTICS={
@@ -29,9 +30,11 @@ export function lathePoints(shape,{detail=1,overmold=false}={}){
 
 // `segments` around the axis; `detail` scales the profile's sampling (shape.mjs, 1 is about 70 points).
 // Returns the geometry, the profile it was spun from and, for an overmold, the seam radius.
-export function discGeometry(shape,{segments=80,detail=1,overmold=false}={}){
+// `halo` (a Halo v2 band, with the split): each vertex also carries `haloCoord` (halo-shader.mjs).
+export function discGeometry(shape,{segments=80,detail=1,overmold=false,halo=false}={}){
  const profile=lathePoints(shape,{detail,overmold});
  const geometry=new THREE.LatheGeometry(profile.points.map(p=>new THREE.Vector2(p.x,p.y)),segments);
  if(overmold)groupRim(geometry,profile.points.length,profile.rim);
+ if(overmold&&halo)geometry.setAttribute('haloCoord',new THREE.BufferAttribute(haloCoord(geometry.attributes.position,geometry.attributes.normal,shape.diameter/2),4));
  return {geometry,seamRadius:profile.seamRadius,profile};
 }
