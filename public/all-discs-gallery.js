@@ -56,8 +56,8 @@ export class AllDiscsGallery{
  step(delta){if(!this.items.length)return;this.index=(this.index+delta+this.items.length)%this.items.length;this.render();}
  render(){
   const revision=++this.revision,item=this.items[this.index],d=item&&this.lookup(item.mold_id);
-  cancelAnimationFrame(this.appearanceFrame);this.host.style.visibility='hidden';
-  this.host.getAnimations().forEach(a=>a.cancel());this.root.dataset.appearance='loading';
+  cancelAnimationFrame(this.appearanceFrame);this.host.getAnimations().forEach(a=>a.cancel());
+  this.host.style.visibility='hidden';this.root.dataset.appearance='loading';
   for(const b of this.root.querySelectorAll('[data-album-filter]'))b.setAttribute('aria-pressed',String(b.dataset.albumFilter===this.filter));
   for(const b of this.root.querySelectorAll('[data-album-step]'))b.disabled=!item;
   this.root.querySelector('[data-album-counter]').textContent=`${item?this.index+1:0} / ${this.items.length}`;
