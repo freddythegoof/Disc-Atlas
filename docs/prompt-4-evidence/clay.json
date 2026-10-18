@@ -1,0 +1,343 @@
+{
+  "clay": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "original": {
+        "clay": false,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "247baf",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          },
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "ff0077",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          }
+        ],
+        "stamp": true,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 60% at 50% 55%, rgb(238, 241, 244), rgba(0, 0, 0, 0) 72%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": false,
+        "source": "pdga"
+      },
+      "clay": {
+        "clay": true,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "b3b3af"
+          },
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "6c6c6a"
+          }
+        ],
+        "stamp": false,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 62% at 50% 48%, rgb(42, 45, 51), rgb(22, 24, 28) 78%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": true,
+        "source": "pdga"
+      },
+      "dims": [
+        {
+          "key": "Rim width",
+          "panel": "1.1 cm",
+          "profile": "Rim width 1.1 cm"
+        },
+        {
+          "key": "Rim depth",
+          "panel": "1.4 cm",
+          "profile": "Rim depth 1.4 cm"
+        },
+        {
+          "key": "Height",
+          "panel": "1.8 cm",
+          "profile": "Height 1.8 cm"
+        },
+        {
+          "key": "Diameter",
+          "panel": "21.0 cm",
+          "profile": "Diameter 21.0 cm"
+        }
+      ],
+      "generic": "Generic shape fixture",
+      "gen": {
+        "clay": true,
+        "stamp": false,
+        "caption": "Cross-section · a generic shape from its flight numbers",
+        "panel": "3D illustration · a generic shape from the flight numbers, not a measured mold or stamp",
+        "labels": 0
+      }
+    },
+    {
+      "width": 1440,
+      "theme": "midnight",
+      "original": {
+        "clay": false,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "247baf",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          },
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "ff0077",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          }
+        ],
+        "stamp": true,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 60% at 50% 55%, rgb(17, 23, 34), rgba(0, 0, 0, 0) 72%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": false,
+        "source": "pdga"
+      },
+      "clay": {
+        "clay": true,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "b3b3af"
+          },
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "6c6c6a"
+          }
+        ],
+        "stamp": false,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 62% at 50% 48%, rgb(42, 45, 51), rgb(22, 24, 28) 78%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": true,
+        "source": "pdga"
+      },
+      "dims": [
+        {
+          "key": "Rim width",
+          "panel": "1.1 cm",
+          "profile": "Rim width 1.1 cm"
+        },
+        {
+          "key": "Rim depth",
+          "panel": "1.4 cm",
+          "profile": "Rim depth 1.4 cm"
+        },
+        {
+          "key": "Height",
+          "panel": "1.8 cm",
+          "profile": "Height 1.8 cm"
+        },
+        {
+          "key": "Diameter",
+          "panel": "21.0 cm",
+          "profile": "Diameter 21.0 cm"
+        }
+      ],
+      "generic": "Generic shape fixture",
+      "gen": {
+        "clay": true,
+        "stamp": false,
+        "caption": "Cross-section · a generic shape from its flight numbers",
+        "panel": "3D illustration · a generic shape from the flight numbers, not a measured mold or stamp",
+        "labels": 0
+      }
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "original": {
+        "clay": false,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "247baf",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          },
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "ff0077",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          }
+        ],
+        "stamp": true,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 60% at 50% 55%, rgb(238, 241, 244), rgba(0, 0, 0, 0) 72%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": false,
+        "source": "pdga"
+      },
+      "clay": {
+        "clay": true,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "b3b3af"
+          },
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "6c6c6a"
+          }
+        ],
+        "stamp": false,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 62% at 50% 48%, rgb(42, 45, 51), rgb(22, 24, 28) 78%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": true,
+        "source": "pdga"
+      },
+      "dims": [
+        {
+          "key": "Rim width",
+          "panel": "1.1 cm",
+          "profile": "Rim width 1.1 cm"
+        },
+        {
+          "key": "Rim depth",
+          "panel": "1.4 cm",
+          "profile": "Rim depth 1.4 cm"
+        },
+        {
+          "key": "Height",
+          "panel": "1.8 cm",
+          "profile": "Height 1.8 cm"
+        },
+        {
+          "key": "Diameter",
+          "panel": "21.0 cm",
+          "profile": "Diameter 21.0 cm"
+        }
+      ],
+      "generic": "Generic shape fixture",
+      "gen": {
+        "clay": true,
+        "stamp": false,
+        "caption": "Cross-section · a generic shape from its flight numbers",
+        "panel": "3D illustration · a generic shape from the flight numbers, not a measured mold or stamp",
+        "labels": 0
+      }
+    },
+    {
+      "width": 390,
+      "theme": "midnight",
+      "original": {
+        "clay": false,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "247baf",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          },
+          {
+            "type": "MeshPhysicalMaterial",
+            "color": "ff0077",
+            "roughness": 0.62,
+            "metalness": 0,
+            "clearcoat": 0.06
+          }
+        ],
+        "stamp": true,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 60% at 50% 55%, rgb(17, 23, 34), rgba(0, 0, 0, 0) 72%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": false,
+        "source": "pdga"
+      },
+      "clay": {
+        "clay": true,
+        "colors": {
+          "plate": "#247baf",
+          "rim": "#ff0077"
+        },
+        "plastic": "base",
+        "materials": [
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "b3b3af"
+          },
+          {
+            "type": "MeshMatcapMaterial",
+            "color": "6c6c6a"
+          }
+        ],
+        "stamp": false,
+        "backdrop": "rgba(0, 0, 0, 0) radial-gradient(70% 62% at 50% 48%, rgb(42, 45, 51), rgb(22, 24, 28) 78%) repeat scroll 0% 0% / auto padding-box border-box",
+        "profile": true,
+        "source": "pdga"
+      },
+      "dims": [
+        {
+          "key": "Rim width",
+          "panel": "1.1 cm",
+          "profile": "Rim width 1.1 cm"
+        },
+        {
+          "key": "Rim depth",
+          "panel": "1.4 cm",
+          "profile": "Rim depth 1.4 cm"
+        },
+        {
+          "key": "Height",
+          "panel": "1.8 cm",
+          "profile": "Height 1.8 cm"
+        },
+        {
+          "key": "Diameter",
+          "panel": "21.0 cm",
+          "profile": "Diameter 21.0 cm"
+        }
+      ],
+      "generic": "Generic shape fixture",
+      "gen": {
+        "clay": true,
+        "stamp": false,
+        "caption": "Cross-section · a generic shape from its flight numbers",
+        "panel": "3D illustration · a generic shape from the flight numbers, not a measured mold or stamp",
+        "labels": 0
+      }
+    }
+  ],
+  "matrix": [],
+  "clicks": [],
+  "pageErrors": []
+}
