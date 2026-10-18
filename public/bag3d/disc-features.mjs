@@ -7,18 +7,19 @@ import {DISC} from './bag-layout.mjs';
 // The canonical per-mold profile and overmold split, fitted to the bag's existing slot envelope.
 // The lathe's +Y plate becomes +X, matching the GLB discs and all pocket/slide poses.
 // `quality` ({segments, detail}) overrides the bag's own tessellation: a pulled disc drawn as large as the
-// 3D viewer draws it takes the viewer's (disc3d/quality.mjs).
-export function bagDiscGeometry(d,low=false,quality=null){
+// 3D viewer draws it takes the viewer's (disc3d/quality.mjs). `band`: a Halo copy on a one-piece mold, split at
+// the same rim seam for its dyed band (`overmold` stays false, so its photo still stops at the shoulder).
+export function bagDiscGeometry(d,low=false,quality=null,{band=false,halo=false}={}){
  const shape=shapeForDisc({model:d?.model3d||null,specs:d?.specs||null,flight:{speed:d?.speed,turn:d?.turn,fade:d?.fade}})?.shape||normalizeShape({});
  const overmold=!!d&&isOvermold({...d,record:d.name});
  const segments=quality?.segments??(low?20:40),detail=quality?.detail??(low ? .3 : .5);
- const {geometry}=discGeometry(shape,{segments,detail,overmold});
+ const {geometry}=discGeometry(shape,{segments,detail,overmold:overmold||!!band,halo:!overmold&&!!band&&!!halo});
  geometry.computeBoundingBox();
  const box=geometry.boundingBox,thickness=box.max.y-box.min.y,center=(box.min.y+box.max.y)/2;
  geometry.translate(0,-(box.min.y+box.max.y)/2,0);
  geometry.scale(DISC.radius*2/shape.diameter,DISC.thickness/thickness,DISC.radius*2/shape.diameter);
  geometry.rotateZ(-Math.PI/2);geometry.computeBoundingSphere();geometry.computeBoundingBox();geometry.userData.segments=segments;
- return {geometry,overmold,shape,center,thickness};
+ return {geometry,overmold,band:!overmold&&!!band,halo:!overmold&&!!band&&!!halo,shape,center,thickness};
 }
 
 /** Operates on the named GLB disc nodes; the shell and animation are untouched. */

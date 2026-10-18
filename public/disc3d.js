@@ -28,18 +28,20 @@
  // The stage is data-sync-keep: the panel's DOM diff leaves it to the viewer.
  function markup(d,poster){
   if(!hasModel(d))return null;
-  return `<div class="disc-photo illustration-detail disc3d" data-disc3d><div class="disc3d-stage" data-sync-keep><div class="disc3d-poster">${poster}</div></div><span class="illustration-caption">${d.model3d?'3D illustration · a modelled mold profile, not a scan; generic stamp':measured(d)?'3D illustration · built from the PDGA dimensions, to scale; not a scan of the mold, generic stamp':'3D illustration · a generic shape from the flight numbers, not a measured mold or stamp'}</span></div>`;
+  let caption=d.model3d?'3D illustration · a modelled mold profile, not a scan; generic stamp':measured(d)?'3D illustration · built from the PDGA dimensions, to scale; not a scan of the mold, generic stamp':'3D illustration · a generic shape from the flight numbers, not a measured mold or stamp';
+  if(d.brand==='Discraft'&&d.stampAsset)caption=caption.replace('generic stamp','official Discraft stock stamp').replace('not a measured mold or stamp','not a measured mold; official Discraft stock stamp');
+  return `<div class="disc-photo illustration-detail disc3d" data-disc3d><div class="disc3d-stage" data-sync-keep><div class="disc3d-poster">${poster}</div></div><span class="illustration-caption">${caption}</span></div>`;
  }
  function load(){
   return loading||=import('./disc3d/viewer.mjs').then(m=>{viewerModule=m;viewer=m.createDiscViewer({onExpand:openPopout,onClay:setClay,hint:`Drag to turn · Drag the rim to tilt · ${coarse()?'pinch':'scroll'} to zoom · ${coarse()?'tap':'click'} to enlarge`});return viewer;}).catch(err=>{failed=true;console.warn('3D disc viewer unavailable; keeping the illustration.',err);throw err;});
  }
  // `colors` {rim, plate} are optional overmold colours (bag colour choices later); without them the viewer
  // derives both from `color`. Whether a disc is an overmold is decided per record in disc3d/overmold.mjs.
- function sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,poster,hand:nextHand}={}){
+ function sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,haloBand,haloModel,poster,hand:nextHand}={}){
   if(nextHand)hand=nextHand;
   const stage=panel?.querySelector('[data-disc3d] .disc3d-stage');
   if(!stage||!hasModel(d))return;
-  const props={photoURL,texture_key,photo_rim_color,model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
+  const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,photoURL,texture_key,photo_rim_color,haloBand:haloBand||null,haloModel:haloModel||null,model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
    manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
    colors:colors?{rim:colors.rim&&resolveColor(colors.rim),plate:colors.plate&&resolveColor(colors.plate)}:undefined};
   if(photoURL)panel.querySelector('.illustration-caption').textContent='Your photo · projected onto a representative 3D shape';
@@ -47,7 +49,7 @@
   // A hidden panel (the landing page warms it) waits until it is shown before loading anything.
   waiting?.disconnect();waiting=null;
   if(panel.hidden||!panel.isConnected){
-   waiting=new MutationObserver(()=>{if(!panel.hidden){waiting.disconnect();waiting=null;sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,poster,hand});}});
+   waiting=new MutationObserver(()=>{if(!panel.hidden){waiting.disconnect();waiting=null;sync(panel,d,{color,colors,plastic,photoURL,texture_key,photo_rim_color,haloBand,haloModel,poster,hand});}});
    waiting.observe(panel,{attributes:true,attributeFilter:['hidden']});return;
   }
   stage.dataset.disc=d.id;if(!stage.dataset.state)stage.dataset.state='loading';

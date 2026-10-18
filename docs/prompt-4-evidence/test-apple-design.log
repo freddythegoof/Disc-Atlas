@@ -1,0 +1,35 @@
+
+> disc-atlas@0.1.0 test:apple-design
+> node --test tests/apple-camera.mjs && node tests/apple-design-browser.mjs
+
+✔ critical spring is time-based: 30, 60 and 120 Hz have the same trajectory (10.3722ms)
+✔ retarget and reversal preserve velocity and start at the live camera (3.3039ms)
+✔ release uses 0.99 projection, caps zoom travel and cannot leave data bounds (6.0365ms)
+✔ reduced motion also finishes an already running spring immediately (2.4404ms)
+✔ reusing the camera constraint output preserves its exact bounds and avoids allocations (2.0881ms)
+✔ progressive edge resistance stays continuous when a drag reverses (1.6084ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.427
+ok - Two parallel fingers pan 1:1 in touch emulation
+ok - Pinch release hands zoom momentum to the camera
+ok - Extra fingers are ignored; cancelled pinches do not throw or resume momentum
+ok - Wheel retargeting preserves velocity rather than restarting an ease
+ok - Spring motion preserves the existing LOD hold and 180ms settle
+ok - Flick projects a capped throw; catching on a marker stops without selecting
+ok - Reduced motion eases the camera over 150 ms: no spring travel, no overshoot
+ok - mouse: catch suppresses selection; next stationary tap selects
+ok - touch: catch suppresses selection; next stationary tap selects
+ok - /: all 12 theme pairs, rapid changes and reduced motion (native snapshots)
+ok - /: all 12 theme pairs, rapid changes and reduced motion (opacity fallback)
+ok - /about.html: all 12 theme pairs, rapid changes and reduced motion (native snapshots)
+ok - /about.html: all 12 theme pairs, rapid changes and reduced motion (opacity fallback)
+ok - /account-settings: all 12 theme pairs, rapid changes and reduced motion (native snapshots)
+ok - /account-settings: all 12 theme pairs, rapid changes and reduced motion (opacity fallback)
+ok - System follow transitions without saving; initial apply stays instant
+16 checks passed.

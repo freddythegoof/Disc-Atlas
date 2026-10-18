@@ -1,0 +1,396 @@
+{
+ "misaligned": {
+  "report": {
+   "edge": {
+    "x": -0.073,
+    "y": 0.0255,
+    "r": 0.9727,
+    "inliers": 92,
+    "visible": 93
+   },
+   "register": {
+    "x": -0.073,
+    "y": 0.0255,
+    "r": 0.9647
+   },
+   "foreign": {
+    "patches": [
+     {
+      "pixels": 627,
+      "core": 144,
+      "span": 71.8
+     }
+    ],
+    "pixels": 1490
+   },
+   "outside": {
+    "pixels": 1661,
+    "rare": 1,
+    "busy": 6.85
+   }
+  },
+  "changed": true,
+  "same": false,
+  "truth": {
+   "x": -0.07207207207207207,
+   "y": 0.02702702702702703,
+   "r": 0.972972972972973
+  },
+  "warm": {
+   "before": {
+    "0.8": 0,
+    "0.88": 17.4,
+    "0.94": 48.34
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   }
+  },
+  "planMs": 103.5,
+  "applyMs": 93.9
+ },
+ "generous": {
+  "report": {
+   "edge": {
+    "x": -0.0031,
+    "y": -0.0037,
+    "r": 0.9343,
+    "inliers": 152,
+    "visible": 180
+   },
+   "register": {
+    "x": -0.0031,
+    "y": -0.0037,
+    "r": 0.9263
+   },
+   "foreign": null,
+   "outside": {
+    "pixels": 2074,
+    "rare": 1,
+    "busy": 6.51
+   }
+  },
+  "changed": true,
+  "same": false,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 0.935064935064935
+  },
+  "warm": {
+   "before": {
+    "0.8": 0,
+    "0.88": 8.96,
+    "0.94": 100
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   }
+  },
+  "planMs": 117.8,
+  "applyMs": 89.7
+ },
+ "plainTable": {
+  "report": {
+   "edge": {
+    "x": -0.001,
+    "y": -0.0011,
+    "r": 0.9375,
+    "inliers": 180,
+    "visible": 180
+   },
+   "register": {
+    "x": -0.001,
+    "y": -0.0011,
+    "r": 0.9295
+   },
+   "foreign": null,
+   "outside": {
+    "pixels": 1748,
+    "rare": 1,
+    "busy": 5.66
+   }
+  },
+  "changed": true,
+  "same": false,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 0.935064935064935
+  },
+  "warm": {
+   "before": {
+    "0.8": 0,
+    "0.88": 0.15,
+    "0.94": 0
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   }
+  },
+  "planMs": 76.2,
+  "applyMs": 69.3
+ },
+ "fingers": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": {
+    "patches": [
+     {
+      "pixels": 362,
+      "core": 165,
+      "span": 10.8
+     },
+     {
+      "pixels": 197,
+      "core": 33,
+      "span": 21.2
+     },
+     {
+      "pixels": 348,
+      "core": 179,
+      "span": 12.9
+     }
+    ],
+    "pixels": 1661
+   }
+  },
+  "changed": true,
+  "same": false,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "warm": {
+   "before": {
+    "0.8": 0.29,
+    "0.88": 3.64,
+    "0.94": 4.62
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   }
+  },
+  "planMs": 170.3,
+  "applyMs": 152.2
+ },
+ "clean": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": null
+  },
+  "changed": false,
+  "same": true,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "warm": {
+   "before": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   }
+  },
+  "planMs": 42.1,
+  "applyMs": 0
+ },
+ "tanFingers": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": {
+    "patches": [
+     {
+      "pixels": 81,
+      "core": 59,
+      "span": 4.6
+     },
+     {
+      "pixels": 74,
+      "core": 65,
+      "span": 4.6
+     }
+    ],
+    "pixels": 379
+   }
+  },
+  "changed": true,
+  "same": false,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "warm": {
+   "before": {
+    "0.8": 92.16,
+    "0.88": 95.64,
+    "0.94": 82.39
+   },
+   "after": {
+    "0.8": 92.16,
+    "0.88": 96.53,
+    "0.94": 85.51
+   }
+  },
+  "planMs": 28.6,
+  "applyMs": 37.4
+ },
+ "faceHand": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": null
+  },
+  "changed": false,
+  "same": true,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "warm": {
+   "before": {
+    "0.8": 3.7,
+    "0.88": 3.43,
+    "0.94": 3.23
+   },
+   "after": {
+    "0.8": 3.7,
+    "0.88": 3.43,
+    "0.94": 3.23
+   }
+  },
+  "planMs": 15.4,
+  "applyMs": 0
+ },
+ "band": {
+  "report": {
+   "edge": {
+    "x": 0,
+    "y": 0,
+    "r": 0.8992,
+    "inliers": 180,
+    "visible": 180
+   },
+   "register": null,
+   "foreign": null,
+   "outside": {
+    "pixels": 5420,
+    "rare": 1,
+    "busy": 0.41
+   }
+  },
+  "changed": false,
+  "same": true,
+  "truth": {
+   "x": 0,
+   "y": 0,
+   "r": 1
+  },
+  "warm": {
+   "before": {
+    "0.8": 0,
+    "0.88": 6.02,
+    "0.94": 8.4
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 6.02,
+    "0.94": 8.4
+   }
+  },
+  "planMs": 64,
+  "applyMs": 0
+ },
+ "stamp": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": null
+  },
+  "changed": false,
+  "same": true,
+  "truth": null,
+  "warm": {
+   "before": {
+    "0.8": 49.87,
+    "0.88": 29.64,
+    "0.94": 36.03
+   },
+   "after": {
+    "0.8": 49.87,
+    "0.88": 29.64,
+    "0.94": 36.03
+   }
+  },
+  "planMs": 36,
+  "applyMs": 0
+ },
+ "halo": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": null
+  },
+  "changed": false,
+  "same": true,
+  "truth": null,
+  "warm": {
+   "before": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   },
+   "after": {
+    "0.8": 0,
+    "0.88": 0,
+    "0.94": 0
+   }
+  },
+  "planMs": 35.2,
+  "applyMs": 0
+ },
+ "pixel": {
+  "report": {
+   "edge": null,
+   "register": null,
+   "foreign": null
+  },
+  "changed": false,
+  "same": true,
+  "truth": null,
+  "warm": {
+   "before": {
+    "0.8": 100,
+    "0.88": 44.67,
+    "0.94": 0
+   },
+   "after": {
+    "0.8": 100,
+    "0.88": 44.67,
+    "0.94": 0
+   }
+  },
+  "planMs": 19.5,
+  "applyMs": 0
+ }
+}

@@ -408,6 +408,37 @@ body[data-view="bag"] main {display:none!important}
 .my-bag-views button {height:38px;padding:0 18px;border:0;border-radius:9px;background:none;color:var(--muted);font-size:13px;font-weight:500}
 .my-bag-views button:hover {color:var(--text)}
 .my-bag-views button[aria-checked="true"] {background:var(--selected);color:var(--text);box-shadow:inset 0 0 0 1px var(--lime)}
+/* Storage's alternate album: the disc has the space, chrome stays in the controls. */
+.storage-modes {margin:0 0 18px}
+.storage-modes button {min-height:44px}
+.all-discs-gallery {margin:0 0 36px}
+.album-filters {justify-content:center;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.album-filters button {min-height:44px;padding:0 14px}
+.album-stage {position:relative;max-width:860px;margin:0 auto}
+.album-viewer {max-width:720px;margin:auto}
+.album-viewer .disc3d-viewport {height:clamp(280px,40dvh,440px);background:radial-gradient(ellipse 65% 60% at 50% 55%,var(--accent-soft),transparent 78%)}
+.album-viewer :is(.disc3d-toolbar,.disc3d-tilt,.disc3d-profile) {max-width:520px;margin-inline:auto}
+.album-viewer .disc3d-toolbar button {min-height:44px}
+.album-bag {position:absolute;top:14px;left:16px;z-index:1;padding:5px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel);font-size:11px;pointer-events:none}
+.album-navigation {display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:16px;max-width:620px;margin:24px auto 0}
+.album-navigation>button {width:48px;height:48px;padding:0;border:1px solid var(--line);border-radius:50%;color:var(--text);background:var(--surface);font-size:23px;transition:background var(--dur-ui) var(--ease-out)}
+.album-navigation>button:hover {background:var(--selected)}
+.album-navigation>button:disabled {opacity:.3;cursor:default}
+.album-copy {min-width:0;text-align:center}
+.album-copy h2 {margin:0;font:500 clamp(24px,3vw,32px) 'Space Grotesk',sans-serif;letter-spacing:-.6px;overflow-wrap:anywhere}
+.album-copy p {margin:5px 0;color:var(--muted);font-size:12px}
+.album-copy .album-flight {font-size:16px;letter-spacing:1px;color:var(--text);font-variant-numeric:tabular-nums}
+.album-counter {display:block;margin-top:12px;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.album-empty {display:grid;place-items:center;min-height:280px;margin:0;text-align:center;color:var(--muted);font-size:15px}
+.album-hint {text-align:center;margin-top:20px}
+@media(max-width:700px){
+ .storage-modes {max-width:260px}
+ .all-discs-gallery .album-filters {flex-wrap:nowrap;gap:4px}
+ .all-discs-gallery .album-filters button {flex:1;padding:0 7px;font-size:11px}
+ .album-viewer .disc3d-viewport {height:clamp(240px,34dvh,340px)}
+ .album-navigation {gap:8px;margin-top:20px}
+ .album-bag {top:8px;left:6px}
+}
 .my-map {padding-top:8px}
 .my-map-heading {display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
 .my-map-heading h2 {font:500 28px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.6px;margin:6px 0}
@@ -575,6 +606,17 @@ body[data-view="bag"] main {display:none!important}
 .photo-aligner-view{touch-action:none;cursor:grab}.photo-aligner-view:active{cursor:grabbing}.photo-aligner-view:focus-visible{outline:2px solid var(--lime);outline-offset:-2px}
 .photo-aligner-guides{pointer-events:none}
 .photo-aligner-tip{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+/* Levelling: fine nudges either side of the angle readout, a snap to 0° and the level lines toggle. */
+.photo-aligner-level{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px}
+.photo-aligner-level button{min-width:44px;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--text);font:inherit;font-size:12px;font-variant-numeric:tabular-nums;cursor:pointer;touch-action:manipulation}
+.photo-aligner-level button{display:inline-flex;align-items:center;justify-content:center;gap:4px}.photo-aligner-level svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.photo-aligner-level button:hover{background:var(--selected)}.photo-aligner-level button:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.photo-aligner-level [aria-pressed="true"]{border-color:#e0a82e;background:color-mix(in srgb,#ffc440 22%,var(--surface))}
+.photo-aligner-angle{min-width:64px;text-align:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+/* A saved photo is levelled only: framing and tilt stay as they were saved. */
+.photo-aligner[data-mode="level"] .photo-aligner-sliders label:not(.photo-aligner-rotate){display:none}
+.photo-aligner[data-mode="level"] .photo-aligner-view{cursor:default}
+@media(max-width:700px){.photo-aligner-level{gap:4px}.photo-aligner-level button{min-width:40px;padding:6px 8px}}
 .photo-aligner-adjust summary{padding:8px 0;cursor:pointer;font-size:13px;color:var(--muted)}
 .photo-aligner-sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 28px}
 .photo-aligner-sliders label{display:flex;align-items:center;gap:12px;min-height:36px;font-size:12px;color:var(--muted)}.photo-aligner-sliders input{flex:1;min-width:0}

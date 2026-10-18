@@ -80,46 +80,6 @@ try {
   ctx.clearRect(0,0,100,100);ctx.fillStyle='rgba(255,0,0,.5)';ctx.fillRect(0,0,100,100);const sourceAlpha=photoCanvas(canvas,{},128).getContext('2d').getImageData(64,64,1,1).data[3];
   return {projection,rim,sourceAlpha,corner:c.getImageData(0,0,1,1).data[3],center:[...c.getImageData(64,64,1,1).data],dimensions};
  });assert.deepEqual(checks,{projection:true,rim:true,sourceAlpha:128,corner:0,center:[255,0,0,255],dimensions:[1024,1024]});
- // One-piece discs (Oct 16): the photo runs over the shoulder to the nose (`edge`), on top of the disc's own
- // profile, with the photo's outer annulus on the shoulder. Overmolds ignore `edge`: the same arrays as before,
- // stopping at the seam. Without `edge` (the atlas) a one-piece photo still stops at the shoulder.
- const edges=await page.evaluate(async()=>{
-  const {photoGeometry}=await import('/disc3d/photo.mjs'),{shapeForDisc,shapeFrame,topProfile}=await import('/disc3d/shape.mjs'),{isOvermold}=await import('/disc3d/overmold.mjs');
-  const out={};
-  for(const name of ['Wraith','Destroyer','Aviar','Pixel','Atlas']){
-   const d=discs.find(d=>d.name===name&&/Innova|Axiom/.test(d.manufacturer)),overmold=isOvermold({...d,record:d.name});
-   const {shape}=shapeForDisc({model:d.model3d,specs:d.specs,flight:{speed:d.speed,turn:d.turn,fade:d.fade}}),{R,Rs,Ri}=shapeFrame(shape);
-   const edge=photoGeometry(shape,{overmold,edge:true}),plain=photoGeometry(shape,{overmold}),reach=g=>{const p=g.attributes.position;let m=0;for(let i=0;i<p.count;i++)m=Math.max(m,Math.hypot(p.getX(i),p.getZ(i)));return m;};
-   const same=['position','uv','normal'].every(k=>edge.attributes[k].array.length===plain.attributes[k].array.length&&edge.attributes[k].array.every((v,i)=>v===plain.attributes[k].array[i]))&&edge.index.array.every((v,i)=>v===plain.index.array[i]);
-   const p=edge.attributes.position,n=edge.attributes.normal,uv=edge.attributes.uv;
-   // Every vertex stands on or just off the top profile (never under it), its UV is its own top-down spot,
-   // and every triangle faces the way its vertices' normals do (up and out).
-   const top=topProfile(shape).slice().reverse(),surface=r=>{for(let i=1;i<top.length;i++)if(top[i].x>=r){const a=top[i-1],b=top[i],t=(r-a.x)/((b.x-a.x)||1);return a.y+(b.y-a.y)*t;}return top.at(-1).y;};
-   let above=true,uvRadius=0,facing=true,normals=true;
-   for(let i=0;i<p.count;i++){
-    const r=Math.hypot(p.getX(i),p.getZ(i)),y=p.getY(i),u=uv.getX(i)-.5,v=uv.getY(i)-.5;uvRadius=Math.max(uvRadius,Math.hypot(u,v));
-    if(!overmold&&r<R-.05&&y<surface(r)-1e-4)above=false;
-    normals&&=Math.abs(Math.hypot(n.getX(i),n.getY(i),n.getZ(i))-1)<1e-4&&n.getY(i)>-1e-4;
-   }
-   const ix=edge.index.array;
-   for(let k=0;k<ix.length&&!overmold;k+=3){
-    const [a,b,c]=[ix[k],ix[k+1],ix[k+2]].map(i=>[p.getX(i),p.getY(i),p.getZ(i)]),e1=b.map((v,i)=>v-a[i]),e2=c.map((v,i)=>v-a[i]);
-    const f=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]],area=Math.hypot(...f);if(area<1e-9)continue;
-    const nv=[n.getX(ix[k]),n.getY(ix[k]),n.getZ(ix[k])];if(f[0]*nv[0]+f[1]*nv[1]+f[2]*nv[2]<=0)facing=false;
-   }
-   out[name]={overmold,edgeReach:+(reach(edge)/R).toFixed(4),plainReach:+(reach(plain)/R).toFixed(4),stop:+((overmold?Ri:Rs)/R).toFixed(4),same,above,facing,normals,uvRadius:+uvRadius.toFixed(4),triangles:ix.length/3};
-   edge.dispose();plain.dispose();
-  }
-  return out;
- });
- for(const [name,e] of Object.entries(edges)){
-  assert.equal(e.plainReach,e.stop,`${name}: without edge, the photo stops at the ${e.overmold?'seam':'shoulder'}`);
-  if(e.overmold){assert.ok(e.same,`${name}: an overmold's photo is the same geometry with or without edge`);assert.equal(e.edgeReach,e.stop);continue;}
-  assert.ok(e.edgeReach>=1&&e.edgeReach<1.003,`${name}: a one-piece photo reaches the nose (${e.edgeReach} R)`);
-  assert.ok(e.uvRadius>.4995&&e.uvRadius<=.5,`${name}: the shoulder takes the photo's own outer edge (uv radius ${e.uvRadius})`);
-  assert.ok(e.above&&e.facing&&e.normals,`${name}: on top of the profile, facing out (${JSON.stringify(e)})`);
- }
- fs.writeFileSync(dir+'/edge-geometry.json',JSON.stringify(edges,null,2));
 
 
  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);await page.locator('#detail').screenshot({path:dir+'/panel-after-phone.png'});
@@ -176,6 +136,33 @@ try {
  await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-remove').click();await save();await inspect();
  assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.stamp.visible),true);assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.photo),null);
  assert.equal((await page.request.get(base+'/api/bag/discs/'+disc.id+'/photo')).status(),404);
+ // Stamp levelling against the real Worker (docs/photo-stamp-orientation.md): a photo saved with its stamp 3°
+ // crooked is levelled from the sheet after saving, without the original photo, through the same upload
+ // route and checks; the stored texture comes back level and the disc keeps its colour.
+ const stampAngle=key=>page.evaluate(async url=>{
+  const image=await createImageBitmap(await (await fetch(url,{credentials:'same-origin',cache:'no-store'})).blob()),c=document.createElement('canvas');c.width=image.width;c.height=image.height;
+  const g=c.getContext('2d');g.drawImage(image,0,0);const d=g.getImageData(0,0,c.width,c.height).data,w=c.width,r=w/2;image.close();let n=0,sx=0,sy=0,sxx=0,syy=0,sxy=0;
+  for(let y=0;y<w;y++)for(let x=0;x<w;x++){const k=4*(y*w+x);if(Math.hypot(x+.5-r,y+.5-r)>r*.8||d[k+3]<200||(.2126*d[k]+.7152*d[k+1]+.0722*d[k+2])/255>.35)continue;n++;sx+=x;sy+=y;sxx+=x*x;syy+=y*y;sxy+=x*y;}
+  const mx=sx/n,my=sy/n;return .5*Math.atan2(2*(sxy/n-mx*my),(sxx/n-mx*mx)-(syy/n-my*my))*180/Math.PI;
+ },key);
+ await page.locator('#closeDetail').click();const knownIds=new Set(data.discs.map(d=>d.id));await open('Envy');
+ await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/crooked-stamp.jpg');await confirmPhoto();await save();
+ data=await (await page.request.get(base+'/api/bag')).json();let crookedDisc=data.discs.find(d=>!knownIds.has(d.id));
+ const crookedAngle=await stampAngle('/api/bag/discs/'+crookedDisc.id+'/photo?v='+crookedDisc.texture_key);assert.ok(Math.abs(crookedAngle+3)<.25,'saved crooked: '+crookedAngle);
+ await page.locator(`[data-bag-edit="${crookedDisc.id}"]`).click();await page.locator('.bag-photo-level').click();await page.locator('.photo-aligner[open]').waitFor();
+ assert.equal(await page.locator('#photoAlignerTitle').textContent(),'Level the stamp');
+ for(let i=0;i<3;i++)await page.locator('.photo-aligner [data-rotate="1"]').click();
+ await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();
+ const crookedKey=crookedDisc.texture_key;await save();assert.ok(upload.length<=512*1024&&upload.toString('ascii',0,4)==='RIFF');
+ data=await (await page.request.get(base+'/api/bag')).json();const levelledDisc=data.discs.find(d=>d.id===crookedDisc.id);
+ assert.notEqual(levelledDisc.texture_key,crookedKey);assert.equal(levelledDisc.color,crookedDisc.color,'levelling keeps the disc colour');
+ // The photo-matched overmold rim is measured again from the saved texture, not cleared by the re-upload.
+ assert.ok(crookedDisc.photo_rim_color&&levelledDisc.photo_rim_color,'rim colours: '+crookedDisc.photo_rim_color+' → '+levelledDisc.photo_rim_color);
+ for(const at of [1,3,5])assert.ok(Math.abs(parseInt(crookedDisc.photo_rim_color.slice(at,at+2),16)-parseInt(levelledDisc.photo_rim_color.slice(at,at+2),16))<=4,'levelling keeps the matched rim: '+crookedDisc.photo_rim_color+' → '+levelledDisc.photo_rim_color);
+ const levelledAngle=await stampAngle('/api/bag/discs/'+levelledDisc.id+'/photo?v='+levelledDisc.texture_key);assert.ok(Math.abs(levelledAngle)<.25,'levelled after saving: '+levelledAngle);
+ await page.locator(`[data-disc-id="${levelledDisc.id}"] [data-bag-inspect]`).click();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);await page.waitForTimeout(500);
+ await page.locator('#detail').screenshot({path:dir+'/relevel-after-save.png'});
+ console.log(`PASS: saved photo levelled after saving through the Worker: ${crookedAngle.toFixed(2)}° → ${levelledAngle.toFixed(2)}°, ${upload.length} bytes, colour ${levelledDisc.color} kept, rim ${crookedDisc.photo_rim_color} → ${levelledDisc.photo_rim_color}`);
  // HEIC takes the real Chromium converter rung through the actual bag editor,
  // then the unchanged private Worker route. No converter or upload is mocked.
  await page.locator('#closeDetail').click();await open('Envy');
@@ -198,6 +185,6 @@ try {
  await confirmPhoto();const oldHeicKey=heicDisc.texture_key;await save();
  data=await (await page.request.get(base+'/api/bag')).json();assert.notEqual(data.discs.find(d=>d.id===heicDisc.id).texture_key,oldHeicKey);
  console.log('PASS: real HEIC editor choose/use/save/reload/render/replace, color match, bounded WebP and EXIF/GPS stripping; HEIC upload bytes: '+heicUpload.length);
- assert.deepEqual(errors,[]);console.log('PASS: local D1/R2 photo save/remove, circular processing, planar UV, one-piece photos to the nose (overmolds unchanged), private route, fallback, panel/popout and clay. Compressed upload bytes: '+upload.length);
+ assert.deepEqual(errors,[]);console.log('PASS: local D1/R2 photo save/remove, circular processing, planar UV, private route, fallback, panel/popout and clay. Compressed upload bytes: '+upload.length);
 }catch(error){if(page)await page.screenshot({path:dir+'/failure.png',fullPage:true});throw error;}
 finally{await browser?.close();server.kill();}

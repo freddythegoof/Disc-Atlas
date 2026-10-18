@@ -5,8 +5,11 @@ import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
 import {PLASTICS} from '../disc3d/mesh.mjs';
+import {catalogStampAsset,stampTexture,stampGeometry,stampMaterial,catalogStampPlacement} from '../disc3d/stamp.mjs';
 import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../disc3d/quality.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
+import {parseHalo} from '../disc3d/halo.mjs';
+import {haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 import {desktopPulledLayout,phonePulledFit,phonePulledLayout,PHONE_PULLED_COUNT,PHONE_PULLED_MAX,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
 export { parseDiscParams } from './disc-state.mjs';
@@ -514,6 +517,8 @@ export async function mountBag(container, {
     return false;
   };
   const detailMaterial = color => new THREE.MeshPhysicalMaterial({ color, ...PLASTICS.premium, envMap: environment.texture, envMapIntensity: DETAIL.environment / renderer.toneMappingExposure });
+  // A Halo v2 band material: its own uniforms, so each copy draws its own wash and dye front.
+  const paintHalo = (material, model) => { const uniforms = haloUniforms(); setHalo(uniforms, model); return patchHalo(material, uniforms); };
   const setDetailRatio = () => {
     const on = [...records.values()].some(record => record.detail);
     if (on === detailRatio) return;
@@ -557,6 +562,22 @@ export async function mountBag(container, {
     renderer.compileAsync(group, camera, scene).catch(() => {}).finally(() => { plate.dispose(); photo.dispose(); pixel.dispose(); shape.dispose(); });
   };
   const syncLook = (record, now = performance.now()) => {
+    // Only a pulled stock disc asks for stamp art. Pocketed discs and user photos cost no stamp request.
+    const asset=record.placement.photoURL?null:catalogStampAsset(record.placement.mold);
+    if(asset&&record.parts&&record.slideTo===1&&!record.ink){
+      const parts=record.parts,m=stampMaterial(),placement=catalogStampPlacement(record.placement.mold);
+      const geometry=stock=>{
+        const g=stampGeometry(parts.shape,{placement:stock});
+        g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
+        g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);return g;
+      };
+      const ink=new THREE.Mesh(geometry(null),m);record.ink=ink;record.mesh.add(ink);
+      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,onChange:texture=>{
+        if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}invalidate();
+      }});
+      ink.userData.disposeStamp=()=>{ink.geometry.dispose();m.map.dispose();m.dispose();};
+    }
+    if(record.ink)record.ink.visible=record.slideTo===1;
     if (low || !record.parts) return;
     const holding = photosMoving(now);
     if (record.detail?.photoPending && !holding) finishDetailPhoto(record, record.detail.photos.findLast(photo => photo.userData.photoReady));
@@ -570,9 +591,10 @@ export async function mountBag(container, {
     // a middling one the smallest tier that still covers its device pixels.
     const { placement, mesh } = record, tier = record.shown > 2 * DETAIL_FROM ? null : photoTier(record.shown * devicePixelRatio);
     if (!record.detail) {
-      const key = JSON.stringify(placement.mold);
-      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }));
+      const band = !!placement.haloBand, halo = band && !!parseHalo(placement.haloModel), key = JSON.stringify(placement.mold) + (band ? '|band' : '') + (halo ? '|halo' : '');
+      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }, { band, halo }));
       const base = { geometry: mesh.geometry, material: mesh.material }, materials = [base.material].flat().map(material => detailMaterial(material.color));
+      if (halo && detailGeometries.get(key).halo && materials[1]) paintHalo(materials[1], placement.haloModel);
       record.detail = { base, materials, parts: detailGeometries.get(key), photos: [], tier: undefined };
       mesh.geometry = record.detail.parts.geometry; mesh.material = Array.isArray(base.material) ? materials : materials[0];
       paintDisc(record);
@@ -582,7 +604,7 @@ export async function mountBag(container, {
     const { detail } = record, rank = size => size ?? Infinity;
     if (!holding && placement.photoURL && (detail.tier === undefined || rank(tier) > rank(detail.tier))) {
       detail.tier = tier;
-      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, edge: true, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
+      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
         if (record.detail !== detail) return;
         // A decode started before a new click may finish during its glide. Keep
         // the current tier visible, and retain both handles until motion settles.
@@ -617,7 +639,7 @@ export async function mountBag(container, {
     for (const record of records.values()) {
       const kept = record.detail?.photos ?? [];
       held.push(...kept);
-      record.mesh.traverse(o => { if (!kept.includes(o)) o.userData.disposePhoto?.(); }); discGroup.remove(record.mesh);
+      record.mesh.traverse(o => {o.userData.disposeStamp?.(); if (!kept.includes(o)) o.userData.disposePhoto?.(); }); discGroup.remove(record.mesh);
       for (const material of [record.mesh.material, record.detail?.base.material ?? []].flat()) if (material !== ghostMaterial) material.dispose();
     }
     records.clear();
@@ -628,18 +650,21 @@ export async function mountBag(container, {
     for (const placement of result.placements) {
       // An empty go-to pocket shows the GLB's dashed outline instead of a ghost disc.
       if (placement.empty && placement.pocket === 'goTo') continue;
-      let geometry=discGeometry,overmold=false,parts=null;
+      let geometry=discGeometry,overmold=false,band=false,halo=false,parts=null;
       if(!placement.empty&&placement.mold){
-        const key=JSON.stringify(placement.mold);
-        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low));
-        parts=moldGeometries.get(key);({geometry,overmold}=parts);
+        // A Halo copy (disc3d/halo.mjs) splits at the rim seam for its band; overmold molds ignore it. Halo v2
+        // (a stored wash and dye front) also carries the band coordinate its shader reads.
+        const banded=!!placement.haloBand,twoTone=banded&&!!parseHalo(placement.haloModel),key=JSON.stringify(placement.mold)+(banded?'|band':'')+(twoTone?'|halo':'');
+        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low,null,{band:banded,halo:twoTone}));
+        parts=moldGeometries.get(key);({geometry,overmold,band,halo}=parts);
       }
       let material = placement.empty ? ghostMaterial : discTemplate.clone();
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
+      else if(band){const rim=discTemplate.clone();rim.color.set(placement.haloBand);if(halo)paintHalo(rim,placement.haloModel);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
       // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
-      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,edge:true,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
+      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
@@ -1555,7 +1580,7 @@ export async function mountBag(container, {
       return [...records.values()].map(record => ({ record, ...record })).map(({ record, key, placement, mesh }) => ({
         key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty,
         color: placement.empty ? null : '#' + [mesh.material].flat()[0].color.getHexString(),
-        overmold:Array.isArray(mesh.material),rimColor:Array.isArray(mesh.material)?'#'+mesh.material[1].color.getHexString():null,
+        overmold:!!record.parts?.overmold,haloTwoTone:!!record.parts?.halo&&!!(record.detail?.materials??[mesh.material].flat())[1]?.userData.halo,haloBand:record.parts?.band?'#'+[mesh.material].flat()[1].color.getHexString():null,rimColor:record.parts?.overmold?'#'+mesh.material[1].color.getHexString():null,
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
         pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : [mesh.material].flat()[0].emissiveIntensity,

@@ -1,0 +1,521 @@
+[
+  {
+    "id": "7446eb39abe5",
+    "brand": "Discraft",
+    "mold": "Buzzz",
+    "asset": "stamps/discraft/buzzz.png",
+    "sourceURL": "https://www.discraft.com/paul-mcbeth-6x-esp-buzzz-signature-series-pmebuzzz",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7119140625,
+      "assetInkFraction": 0.9479843953185956
+    }
+  },
+  {
+    "id": "850e9dc7104d",
+    "brand": "Discraft",
+    "mold": "Zone",
+    "asset": "stamps/discraft/zone.png",
+    "sourceURL": "https://www.discraft.com/z-line-zone-zzone",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6943359375,
+      "assetInkFraction": 0.9660326086956522
+    }
+  },
+  {
+    "id": "ff4bf9e7743c",
+    "brand": "Discraft",
+    "mold": "Luna",
+    "asset": "stamps/discraft/luna.png",
+    "sourceURL": "https://www.discraft.com/paul-mcbeth-luna-mcbethluna",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6630859375,
+      "assetInkFraction": 0.9617563739376771
+    }
+  },
+  {
+    "id": "fa5bf2ffb814",
+    "brand": "Discraft",
+    "mold": "Avenger",
+    "asset": "stamps/discraft/avenger.png",
+    "sourceURL": "https://infinitediscs.com/discraft-avenger/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/d3a50f3-4c91-430f-bb8b-a4a55037c5d3Avenger-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "fbde5313274d19bbb38e36eda655dfe8b4f462813642bd98e975a00ccbc6a7f4",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7218225419664268,
+      "assetInkFraction": 0.9662921348314607
+    }
+  },
+  {
+    "id": "dbc14745b731",
+    "brand": "Discraft",
+    "mold": "Avenger-SS",
+    "asset": "stamps/discraft/avenger-ss.png",
+    "sourceURL": "https://infinitediscs.com/discraft-avenger-ss/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0226-dbb6-4d5e-9296-5b7f2fcd08e3Avenger-SS-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "0ba8f7bfb7cb30f32b62bf7489849edf191abae1ceeee22a4b3b8863056d0d9d",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7225572979493365,
+      "assetInkFraction": 0.9708265802269044
+    }
+  },
+  {
+    "id": "07e4d9e1c005",
+    "brand": "Discraft",
+    "mold": "Comet",
+    "asset": "stamps/discraft/comet.png",
+    "sourceURL": "https://infinitediscs.com/discraft-comet/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Comet325.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "e10003decad6f31a4e8e1d8060e72c3721a7a858e745d5b7136f78c3844921ac",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.655786350148368,
+      "assetInkFraction": 0.8844422211105553
+    }
+  },
+  {
+    "id": "535643d0c347",
+    "brand": "Discraft",
+    "mold": "Drive",
+    "asset": "stamps/discraft/drive.png",
+    "sourceURL": "https://infinitediscs.com/discraft-drive/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/20240422100344898_unnamed20-e095becc97a4.webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "c4681c990994f8d58e7d64fb6a1700049f2315dc11abd60620caafbc57dfe2a7",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.734,
+      "assetInkFraction": 0.8686390532544379
+    }
+  },
+  {
+    "id": "36e871a923b2",
+    "brand": "Discraft",
+    "mold": "Flash",
+    "asset": "stamps/discraft/flash.png",
+    "sourceURL": "https://infinitediscs.com/discraft-flash/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/3c44a3c4-f742-46c0-9bcc-a67e3be2a021Flash-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "bf80b30a8a1d4f37feb662134113d41c7fe543931095610e60139a346f1118c3",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7289377289377289,
+      "assetInkFraction": 0.9691558441558441
+    }
+  },
+  {
+    "id": "0fcd1f2937b1",
+    "brand": "Discraft",
+    "mold": "Force",
+    "asset": "stamps/discraft/force.png",
+    "sourceURL": "https://infinitediscs.com/discraft-force/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Force431.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "81a3d4f64d28c2bddef9b611cdafc462aba28ff5a6cc8cb4b5c94088b09a375a",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.703380174705659,
+      "assetInkFraction": 0.9410569105691057
+    }
+  },
+  {
+    "id": "68bc409ff25f",
+    "brand": "Discraft",
+    "mold": "Hades",
+    "asset": "stamps/discraft/hades.png",
+    "sourceURL": "https://infinitediscs.com/discraft-hades/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Hadescf0.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "1537911373eafd77b4b946e4b3adaa1dc08244b48591269ff53afa4563462da7",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6709002614867389,
+      "assetInkFraction": 0.7132644956314536
+    }
+  },
+  {
+    "id": "2fd68923dd2b",
+    "brand": "Discraft",
+    "mold": "Heat",
+    "asset": "stamps/discraft/heat.png",
+    "sourceURL": "https://infinitediscs.com/discraft-heat/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Heatefb7.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "309008fdb499f00a85bcf40c861168da04551918866c54cbe476f120faa0af33",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6901300688599847,
+      "assetInkFraction": 0.8877952755905512
+    }
+  },
+  {
+    "id": "6693f1eff37c",
+    "brand": "Discraft",
+    "mold": "Meteor",
+    "asset": "stamps/discraft/meteor.png",
+    "sourceURL": "https://infinitediscs.com/discraft-meteor/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Meteor_4.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "88499fcd46590203ef0287176006e4f5389c89997b01d3e1e135fba1f98355f6",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7078173374613003,
+      "assetInkFraction": 0.8100088573959257
+    }
+  },
+  {
+    "id": "dfe6b11cb13e",
+    "brand": "Discraft",
+    "mold": "Predator",
+    "asset": "stamps/discraft/predator.png",
+    "sourceURL": "https://infinitediscs.com/discraft-predator/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/bc7844-6097-4cc5-8c7d-b12d00a600c5Predator-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "77ba38186f560f910064fb4dd62747e009691582bc7d9ca19b2da929f676f545",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7122473246135553,
+      "assetInkFraction": 0.9708265802269044
+    }
+  },
+  {
+    "id": "35007aee9bca",
+    "brand": "Discraft",
+    "mold": "Pulse",
+    "asset": "stamps/discraft/pulse.png",
+    "sourceURL": "https://infinitediscs.com/discraft-pulse/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Pulse0f0.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "652d719d9ad2e8232ffed16251246fb0cd178541e2724a5797490cdba8658879",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.726823708206687,
+      "assetInkFraction": 0.9896533885152613
+    }
+  },
+  {
+    "id": "7dfe3f9278d8",
+    "brand": "Discraft",
+    "mold": "Thrasher",
+    "asset": "stamps/discraft/thrasher.png",
+    "sourceURL": "https://infinitediscs.com/discraft-thrasher/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Thrasher_3.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "6b0ada473dd4a03c4a368eb69ff0cff41fb296254f8d3169ba8219a6620f2b72",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6994328922495274,
+      "assetInkFraction": 0.8928571428571429
+    }
+  },
+  {
+    "id": "e7246744eae5",
+    "brand": "Discraft",
+    "mold": "XL",
+    "asset": "stamps/discraft/xl.png",
+    "sourceURL": "https://infinitediscs.com/discraft-xl/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/0c9b55ab-7d23-4945-a03f-dc35179a6ab0XL-ESP.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "539637ccac6da7350624ea68956c66b3cae248331c4c302e3efb5ec4460364aa",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7320987654320987,
+      "assetInkFraction": 0.9721311475409836
+    }
+  },
+  {
+    "id": "da3c28085382",
+    "brand": "Discraft",
+    "mold": "Zeus",
+    "asset": "stamps/discraft/zeus.png",
+    "sourceURL": "https://infinitediscs.com/discraft-zeus/esp",
+    "sourceImageURL": "https://infinitediscs.com/Inf_Uploads/DiscProducts/Zeusa3be.Webp",
+    "sourceRetailer": "Infinite Discs",
+    "sourceSHA256": "12beeab8bd5662672e9e6b619041f826dc3faa7043730ed6871142329558aa30",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6506386175807664,
+      "assetInkFraction": 0.9611542730299667
+    }
+  },
+  {
+    "id": "79bc1496e337",
+    "brand": "Discraft",
+    "mold": "Anax",
+    "asset": "stamps/discraft/anax.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-anax-paul-mcbeth",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15093614/Anax_ESP_PM_00-scaled-1.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "135b0b9e929617a5003a38f468c3b81d045eac82c9c895674ed51d1dcdea2893",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6434108527131783,
+      "assetInkFraction": 0.9592457420924574
+    }
+  },
+  {
+    "id": "1b456425771e",
+    "brand": "Discraft",
+    "mold": "Ares",
+    "asset": "stamps/discraft/ares.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-ares-paul-mcbeth-first-run",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/02081530/Ares_First-Run_Paul-McBeth_00-scaled-7.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "90953a4da33542848782e5d889a681ef89e0595487a7f560a1928b86da6051a0",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6589765100671141,
+      "assetInkFraction": 0.9573430834856794
+    }
+  },
+  {
+    "id": "68d64ed1b6a3",
+    "brand": "Discraft",
+    "mold": "Athena",
+    "asset": "stamps/discraft/athena.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-athena-paul-mcbeth",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/02/16083535/Athena_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "1cf0efd59d37e488a48bfd37b0b77fe73d99cadab8da9b917c9a436f2e228e5d",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6481802426343154,
+      "assetInkFraction": 0.9626769626769627
+    }
+  },
+  {
+    "id": "acea1b7d9cc6",
+    "brand": "Discraft",
+    "mold": "Cicada",
+    "asset": "stamps/discraft/cicada.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-cicada",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21114638/Cicada_ESP_00-scaled.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "2df3626aeae914a9c7ede3b7a02150b762b0c07abf76331d9a5f56c0d25fd090",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7220863895680522,
+      "assetInkFraction": 0.9811738648947951
+    }
+  },
+  {
+    "id": "282d6483a722",
+    "brand": "Discraft",
+    "mold": "Crank",
+    "asset": "stamps/discraft/crank.png",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-crank",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-crank-V5745-default.jpg?v=1697956825",
+    "sourceRetailer": "Reaper Discs",
+    "sourceSHA256": "bb3f7a9f046cebb9e183b4567c5f0906e59362aa5b4d1ebea436f2c2d12c199e",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6745762711864407,
+      "assetInkFraction": 0.875366568914956
+    }
+  },
+  {
+    "id": "73f935d5fadb",
+    "brand": "Discraft",
+    "mold": "Flick",
+    "asset": "stamps/discraft/flick.png",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-flick",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/products/discraft-esp-flick-HI4499-default.jpg?v=1691812427",
+    "sourceRetailer": "Reaper Discs",
+    "sourceSHA256": "5ba9d731e1d6009eac914f87bcba3bba28347e14717380e2c77790a42a6c61e9",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6711259754738016,
+      "assetInkFraction": 0.8737300435413643
+    }
+  },
+  {
+    "id": "fd9301dc99ae",
+    "brand": "Discraft",
+    "mold": "Joy",
+    "asset": "stamps/discraft/joy.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-joy-paige-pierce-first-run",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20142705/Joy_ESP_Paige-Pierce_First-Run_00-scaled-3.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "eb6bbf4233fc0c03f2e264337b3f41b9e3898d3bd51bff22624369a0dd7c1058",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7199143468950749,
+      "assetInkFraction": 0.9649827784156142
+    }
+  },
+  {
+    "id": "d28c376c3a93",
+    "brand": "Discraft",
+    "mold": "Malita",
+    "asset": "stamps/discraft/malita.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-malita-paul-mcbeth",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/06152705/Malita_ESP_Paul-McBeth_00-scaled-1.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "d2097bc5eb23715c361f77fb93711180c2038439d057cdf42c461e9b4019e2b4",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6544991511035654,
+      "assetInkFraction": 0.957169459962756
+    }
+  },
+  {
+    "id": "e76b8f647d6d",
+    "brand": "Discraft",
+    "mold": "Nuke SS",
+    "asset": "stamps/discraft/nuke-ss.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/swirly-esp-nuke-ss",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115208/Nuke%20SS_ESP_00-scaled.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "862cbcebb04b127f2c05ef3b71343eaee15db31fe360cabdacce65129ba9e9b1",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7165188001689903,
+      "assetInkFraction": 0.9517396184062851
+    }
+  },
+  {
+    "id": "35a861477cf9",
+    "brand": "Discraft",
+    "mold": "Raptor",
+    "asset": "stamps/discraft/raptor.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-raptor-ricky-wysocki-2x",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2025/12/15095126/Raptor_ESP_Ricky-Wysocki-2X_00-scaled-1.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "3c7b7960b4a98cf1833ca6b54d882656fc1cd6b5b1694c494a77d5bba24c5320",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6705154639175258,
+      "assetInkFraction": 0.9475524475524476
+    }
+  },
+  {
+    "id": "819b7c057af8",
+    "brand": "Discraft",
+    "mold": "Scorch  ",
+    "asset": "stamps/discraft/scorch.png",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-scorch",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-scorch-E7143-default.jpg?v=1723518595",
+    "sourceRetailer": "Reaper Discs",
+    "sourceSHA256": "71533c517f76af944cf1cedd97fbe868d6faa843618d5ae6224c6d33fbfa03c3",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6737668161434978,
+      "assetInkFraction": 0.882525697503671
+    }
+  },
+  {
+    "id": "caaec70f020f",
+    "brand": "Discraft",
+    "mold": "Sled",
+    "asset": "stamps/discraft/sled.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-sled",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/07/20133151/Sled_ESP_00-scaled-9.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "7047f3e7f889583877f6d6b643d45987c1f3067000e676716f9fc3381aea1c04",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6625207296849088,
+      "assetInkFraction": 0.8927374301675978
+    }
+  },
+  {
+    "id": "8cc6c4a94762",
+    "brand": "Discraft",
+    "mold": "Stalker",
+    "asset": "stamps/discraft/stalker.png",
+    "sourceURL": "https://reaperdiscs.com/products/discraft-esp-stalker-paige-pierce-5x",
+    "sourceImageURL": "http://reaperdiscs.com/cdn/shop/files/discraft-esp-stalker-VV2018-default.jpg?v=1703830740",
+    "sourceRetailer": "Reaper Discs",
+    "sourceSHA256": "053165c0f9b8c1ae0422ee862d31903e1940d42cda22d6f9039bf49f9d7a9cfa",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6707865168539325,
+      "assetInkFraction": 0.9284603421461898
+    }
+  },
+  {
+    "id": "8769ec70b5ad",
+    "brand": "Discraft",
+    "mold": "Swarm",
+    "asset": "stamps/discraft/swarm.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-swarm",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2024/08/26135020/Swarm_ESP_00-scaled-1.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "177c98ce17778a9f0212c0c385be0ca45556a49ace84dff7bb48fdcb08736815",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.6569373942470389,
+      "assetInkFraction": 0.8823863636363637
+    }
+  },
+  {
+    "id": "6be51219c6db",
+    "brand": "Discraft",
+    "mold": "Undertaker",
+    "asset": "stamps/discraft/undertaker.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/swirly-esp-undertaker",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115047/Undertaker_ESP_00-scaled.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "8809329a07bb58c8956666d5ccc4d8114b3d4d80fe337503513a902c8dd582bc",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.7402597402597403,
+      "assetInkFraction": 0.9403938265034593
+    }
+  },
+  {
+    "id": "49d84f3e0be5",
+    "brand": "Discraft",
+    "mold": "Zone SS",
+    "asset": "stamps/discraft/zone-ss.png",
+    "sourceURL": "https://www.marshallstreetdiscgolf.com/product/esp-zone-ss",
+    "sourceImageURL": "https://s3.amazonaws.com/media.marshallstreetdiscgolf.com/wp-content/uploads/2026/09/21115500/Zone%20SS_ESP_00-scaled.webp",
+    "sourceRetailer": "Marshall Street",
+    "sourceSHA256": "2d9606dab677e568e76aa96063500b1f477f039f3fbe299407886df93b684b71",
+    "capturedAt": "2026-10-16",
+    "rightsBasis": "Discraft permission, 2026-10-15, free resource",
+    "placement": {
+      "diameterFraction": 0.712248322147651,
+      "assetInkFraction": 0.963677639046538
+    }
+  }
+]

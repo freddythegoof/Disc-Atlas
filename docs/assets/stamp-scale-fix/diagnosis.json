@@ -1,0 +1,91 @@
+{
+  "base": "d4a49442c0912c06a1831343a7267a416c339198",
+  "results": {
+    "before": {
+      "buzzz": {
+        "discBounds": [
+          55,
+          20,
+          245,
+          210
+        ],
+        "inkBounds": [
+          97,
+          75,
+          203,
+          157
+        ],
+        "discDiameterPx": 190,
+        "stampDiameterPx": 106,
+        "renderedFraction": 0.5578947368421052,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.85
+      },
+      "zone": {
+        "discBounds": [
+          57,
+          22,
+          243,
+          208
+        ],
+        "inkBounds": [
+          96,
+          61,
+          204,
+          169
+        ],
+        "discDiameterPx": 186,
+        "stampDiameterPx": 108,
+        "renderedFraction": 0.5806451612903226,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55
+      },
+      "luna": {
+        "discBounds": [
+          57,
+          22,
+          243,
+          208
+        ],
+        "inkBounds": [
+          96,
+          63,
+          204,
+          167
+        ],
+        "discDiameterPx": 186,
+        "stampDiameterPx": 108,
+        "renderedFraction": 0.5806451612903226,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.55
+      },
+      "hades": {
+        "discBounds": [
+          58,
+          23,
+          242,
+          207
+        ],
+        "inkBounds": [
+          110,
+          78,
+          189,
+          154
+        ],
+        "discDiameterPx": 184,
+        "stampDiameterPx": 79,
+        "renderedFraction": 0.42934782608695654,
+        "meshRadiusCm": 6.200000209225719,
+        "discRadiusCm": 10.5
+      },
+      "generatedFallback": {
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937",
+        "textureSHA256": "aab69b23c7507f4ad0d63d2d292645f34af92f696af25b8f77a597c8bf39353a"
+      },
+      "failedFallback": {
+        "geometrySHA256": "08e81b060e1878f07cbe7308dde3fe8a6a6be40686868a345b216b5838e3c937",
+        "textureSHA256": "aab69b23c7507f4ad0d63d2d292645f34af92f696af25b8f77a597c8bf39353a"
+      }
+    }
+  }
+}

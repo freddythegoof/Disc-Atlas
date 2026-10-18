@@ -1,0 +1,31 @@
+{
+  "base": "771e8da",
+  "identities": 2434,
+  "metadataUnchanged": true,
+  "allFieldsExceptStampAssetUnchanged": true,
+  "newStampAssignments": 15,
+  "changedIds": [
+    "4a6dfb045c65",
+    "535643d0c347",
+    "68bc409ff25f",
+    "da3c28085382",
+    "7dfe3f9278d8",
+    "2fd68923dd2b",
+    "dbc14745b731",
+    "0fcd1f2937b1",
+    "6693f1eff37c",
+    "35007aee9bca",
+    "fa5bf2ffb814",
+    "36e871a923b2",
+    "dfe6b11cb13e",
+    "e7246744eae5",
+    "07e4d9e1c005"
+  ],
+  "pilotAssetBytesUnchanged": [
+    "Buzzz",
+    "Zone",
+    "Luna"
+  ],
+  "ringerTopUnassigned": true,
+  "runtimeFilesUnchanged": true
+}

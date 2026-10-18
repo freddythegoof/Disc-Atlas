@@ -1,0 +1,349 @@
+npm notice run disc-atlas@0.1.0 test:accounts:browser
+npm notice run node tests/accounts-browser.mjs
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at C:\Users\user\.codex\worktrees\clay-leftovers\disc-atlas\dist\workers-public\
+
+ ⛅️ wrangler 4.92.0 (update available 4.151.1)
+──────────────────────────────────────────────
+Resource location: local 
+
+Use --remote if you want to access the remote instance.
+
+Migrations to be applied:
+┌──────────────────────────┐
+│ name                     │
+├──────────────────────────┤
+│ 0001_google_accounts.sql │
+├──────────────────────────┤
+│ 0002_atlas_coach.sql     │
+├──────────────────────────┤
+│ 0003_my_bag.sql          │
+├──────────────────────────┤
+│ 0004_bag_polish.sql      │
+├──────────────────────────┤
+│ 0005_bag_preferences.sql │
+├──────────────────────────┤
+│ 0006_bag_goto_pocket.sql │
+├──────────────────────────┤
+│ 0007_lost_discs.sql      │
+├──────────────────────────┤
+│ 0008_bag_rim_color.sql   │
+├──────────────────────────┤
+│ 0009_rack_style.sql      │
+├──────────────────────────┤
+│ 0010_bag_texture.sql     │
+├──────────────────────────┤
+│ 0011_photo_rim_color.sql │
+└──────────────────────────┘
+? About to apply 11 migration(s)
+Your database may not be available to serve requests during the migration, continue?
+🤖 Using fallback value in non-interactive context: yes
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 8 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 3 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 4 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 19 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 7 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 7 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 6 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 2 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ ✅     │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 2 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ ✅     │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ 🕒️    │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 6 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ ✅     │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ 🕒️    │
+└──────────────────────────┴────────┘
+🌀 Executing on local database disc-atlas-accounts (a30bc57c-7438-4e59-b5d2-732de1b0afb5) from ./work\auth-qa\state\v3\d1:
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+🚣 2 commands executed successfully.
+┌──────────────────────────┬────────┐
+│ name                     │ status │
+├──────────────────────────┼────────┤
+│ 0001_google_accounts.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0002_atlas_coach.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0003_my_bag.sql          │ ✅     │
+├──────────────────────────┼────────┤
+│ 0004_bag_polish.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0005_bag_preferences.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0006_bag_goto_pocket.sql │ ✅     │
+├──────────────────────────┼────────┤
+│ 0007_lost_discs.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0008_bag_rim_color.sql   │ ✅     │
+├──────────────────────────┼────────┤
+│ 0009_rack_style.sql      │ ✅     │
+├──────────────────────────┼────────┤
+│ 0010_bag_texture.sql     │ ✅     │
+├──────────────────────────┼────────┤
+│ 0011_photo_rim_color.sql │ ✅     │
+└──────────────────────────┴────────┘
+PASS: dev Worker + D1 + signed OAuth fixture; all menu states, 4 themes, desktop/360px, profile, settings, persistence, sign-out and confirmed deletion. Screenshots: outputs/plan-08a.

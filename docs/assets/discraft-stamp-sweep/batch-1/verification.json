@@ -1,0 +1,152 @@
+{
+  "base": "771e8da",
+  "screenshotDifferences": {
+    "Buzzz viewer": {
+      "maxChannelDelta": 1,
+      "changedPixels": 1,
+      "totalPixels": 95700
+    },
+    "Buzzz bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000
+    },
+    "Zone viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700
+    },
+    "Zone bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000
+    },
+    "Luna viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 95700
+    },
+    "Luna bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000
+    },
+    "Nuke viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 96000
+    },
+    "Nuke bag": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 1440000
+    },
+    "Destroyer viewer": {
+      "maxChannelDelta": 0,
+      "changedPixels": 0,
+      "totalPixels": 96000
+    }
+  },
+  "controlStampTexturesByteIdentical": true,
+  "batchAssets": [
+    {
+      "id": "fa5bf2ffb814",
+      "mold": "Avenger",
+      "asset": "stamps/discraft/avenger.png"
+    },
+    {
+      "id": "dbc14745b731",
+      "mold": "Avenger-SS",
+      "asset": "stamps/discraft/avenger-ss.png"
+    },
+    {
+      "id": "07e4d9e1c005",
+      "mold": "Comet",
+      "asset": "stamps/discraft/comet.png"
+    },
+    {
+      "id": "535643d0c347",
+      "mold": "Drive",
+      "asset": "stamps/discraft/drive.png"
+    },
+    {
+      "id": "36e871a923b2",
+      "mold": "Flash",
+      "asset": "stamps/discraft/flash.png"
+    },
+    {
+      "id": "0fcd1f2937b1",
+      "mold": "Force",
+      "asset": "stamps/discraft/force.png"
+    },
+    {
+      "id": "68bc409ff25f",
+      "mold": "Hades",
+      "asset": "stamps/discraft/hades.png"
+    },
+    {
+      "id": "2fd68923dd2b",
+      "mold": "Heat",
+      "asset": "stamps/discraft/heat.png"
+    },
+    {
+      "id": "6693f1eff37c",
+      "mold": "Meteor",
+      "asset": "stamps/discraft/meteor.png"
+    },
+    {
+      "id": "dfe6b11cb13e",
+      "mold": "Predator",
+      "asset": "stamps/discraft/predator.png"
+    },
+    {
+      "id": "35007aee9bca",
+      "mold": "Pulse",
+      "asset": "stamps/discraft/pulse.png"
+    },
+    {
+      "id": "7dfe3f9278d8",
+      "mold": "Thrasher",
+      "asset": "stamps/discraft/thrasher.png"
+    },
+    {
+      "id": "e7246744eae5",
+      "mold": "XL",
+      "asset": "stamps/discraft/xl.png"
+    },
+    {
+      "id": "da3c28085382",
+      "mold": "Zeus",
+      "asset": "stamps/discraft/zeus.png"
+    },
+    {
+      "id": "4a6dfb045c65",
+      "mold": "Zone GT (Banger Top)",
+      "asset": "stamps/discraft/zone-gt.png"
+    }
+  ],
+  "unchangedControls": [
+    "Buzzz",
+    "Zone",
+    "Luna",
+    "Nuke",
+    "Destroyer"
+  ],
+  "photoDecodedPixelsIdentical": true,
+  "clayIdentical": true,
+  "atlasStampRequests": 0,
+  "brandGate": true,
+  "bagControlsIdentical": [
+    "Buzzz",
+    "Zone",
+    "Luna",
+    "Nuke"
+  ],
+  "thumbnails": [
+    "40a8ecfb8ba27c825c737f1ded45cd1a1972e02b34c83d0a39eb28bede2419c2",
+    "44ff5af32660a1173797829b568e471fa19d8ec94516c47aa8f445cda6ac9066",
+    "1c5da1963d3c933452e426ace0c48656861c47dae8607ed8a8d5219916df0a07",
+    "4dac2b2efaef02a9742ab152c9c0a656c4f8af714c11032524561385140eae13",
+    "5d09ec525f302103a7d323d6fbdc1261100b065a8480907981e2b15eb7ca9c31"
+  ]
+}

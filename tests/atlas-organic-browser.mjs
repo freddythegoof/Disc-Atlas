@@ -190,6 +190,11 @@ try{
   const runs=[];
   for(let i=0;i<2;i++){
    const page=await open(viewport);await show(page,scenario,'midnight');
+   // Layout can settle before async model/stamp imagery. Compare finished images, not loading frames.
+   await page.waitForFunction(()=>mapArt.state!=='loading'&&(mapArt.state!=='ready'||mapArt.pending===0&&
+    mapClusters.every(g=>atlasArt.has(photoDisc(g.lead),discColor(g.lead),AtlasGroups.GAP.disc*AtlasGroups.artRoom(9),mapRimColor(g.lead),undefined,true))&&
+    mapGaps.every(g=>!g.drawn||g.three===1&&atlasArt.has(photoDisc(g.d),discColor(g.d),g.size,mapRimColor(g.d),g.want,true))&&
+    !document.querySelector('.disc-art-3d.is-arriving')));
    const view=await layout(page);
    runs.push({layout:view.items.map(d=>[d.key,d.transform,d.large]),shot:await page.screenshot({animations:'disabled'})});
    await page.context().close();

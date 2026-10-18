@@ -1,0 +1,146 @@
+[
+  {
+    "mold": "Anax",
+    "asset": "stamps/discraft/anax.png",
+    "target": 0.6434108527131783,
+    "fullDiscDiameterCm": 21.4,
+    "textureDiameterCm": 14.353978496988653,
+    "physicalInkFraction": 0.6434108764169653,
+    "error": 2.3703786933282345e-8
+  },
+  {
+    "mold": "Ares",
+    "asset": "stamps/discraft/ares.png",
+    "target": 0.6589765100671141,
+    "fullDiscDiameterCm": 21.1,
+    "textureDiameterCm": 14.523951710035947,
+    "physicalInkFraction": 0.658976526752745,
+    "error": 1.6685630876978053e-8
+  },
+  {
+    "mold": "Athena",
+    "asset": "stamps/discraft/athena.png",
+    "target": 0.6481802426343154,
+    "fullDiscDiameterCm": 21.3,
+    "textureDiameterCm": 14.341508424626037,
+    "physicalInkFraction": 0.6481802709119748,
+    "error": 2.8277659436248825e-8
+  },
+  {
+    "mold": "Cicada",
+    "asset": "stamps/discraft/cicada.png",
+    "target": 0.7220863895680522,
+    "fullDiscDiameterCm": 21.4,
+    "textureDiameterCm": 15.749144763431499,
+    "physicalInkFraction": 0.7220864129123228,
+    "error": 2.334427062766764e-8
+  },
+  {
+    "mold": "Crank",
+    "asset": "stamps/discraft/crank.png",
+    "target": 0.6745762711864407,
+    "fullDiscDiameterCm": 21.1,
+    "textureDiameterCm": 16.260113539286053,
+    "physicalInkFraction": 0.6745762937939551,
+    "error": 2.2607514416073116e-8
+  },
+  {
+    "mold": "Flick",
+    "asset": "stamps/discraft/flick.png",
+    "target": 0.6711259754738016,
+    "fullDiscDiameterCm": 21.1,
+    "textureDiameterCm": 16.207247305005982,
+    "physicalInkFraction": 0.6711260139094093,
+    "error": 3.843560769656307e-8
+  },
+  {
+    "mold": "Joy",
+    "asset": "stamps/discraft/joy.png",
+    "target": 0.7199143468950749,
+    "fullDiscDiameterCm": 21.3,
+    "textureDiameterCm": 15.890621573615345,
+    "physicalInkFraction": 0.7199143735614288,
+    "error": 2.6666353902804474e-8
+  },
+  {
+    "mold": "Malita",
+    "asset": "stamps/discraft/malita.png",
+    "target": 0.6544991511035654,
+    "fullDiscDiameterCm": 21.1,
+    "textureDiameterCm": 14.427886440586349,
+    "physicalInkFraction": 0.6544991598454978,
+    "error": 8.741932400191388e-9
+  },
+  {
+    "mold": "Nuke SS",
+    "asset": "stamps/discraft/nuke-ss.png",
+    "target": 0.7165188001689903,
+    "fullDiscDiameterCm": 21.2,
+    "textureDiameterCm": 15.960456546220222,
+    "physicalInkFraction": 0.7165188124004589,
+    "error": 1.223146861573099e-8
+  },
+  {
+    "mold": "Raptor",
+    "asset": "stamps/discraft/raptor.png",
+    "target": 0.6705154639175258,
+    "fullDiscDiameterCm": 21.3,
+    "textureDiameterCm": 15.072495273004069,
+    "physicalInkFraction": 0.6705154829416762,
+    "error": 1.9024150366142578e-8
+  },
+  {
+    "mold": "Scorch",
+    "asset": "stamps/discraft/scorch.png",
+    "target": 0.6737668161434978,
+    "fullDiscDiameterCm": 21.1,
+    "textureDiameterCm": 16.108856611867242,
+    "physicalInkFraction": 0.6737668207286617,
+    "error": 4.585163915216128e-9
+  },
+  {
+    "mold": "Sled",
+    "asset": "stamps/discraft/sled.png",
+    "target": 0.6625207296849088,
+    "fullDiscDiameterCm": 21.6,
+    "textureDiameterCm": 16.029851145921388,
+    "physicalInkFraction": 0.6625207462027306,
+    "error": 1.6517821777028985e-8
+  },
+  {
+    "mold": "Stalker",
+    "asset": "stamps/discraft/stalker.png",
+    "target": 0.6707865168539325,
+    "fullDiscDiameterCm": 21.6,
+    "textureDiameterCm": 15.605393409729004,
+    "physicalInkFraction": 0.670786523357541,
+    "error": 6.503608429575536e-9
+  },
+  {
+    "mold": "Swarm",
+    "asset": "stamps/discraft/swarm.png",
+    "target": 0.6569373942470389,
+    "fullDiscDiameterCm": 21.7,
+    "textureDiameterCm": 16.155668630634764,
+    "physicalInkFraction": 0.656937405304142,
+    "error": 1.1057103121991929e-8
+  },
+  {
+    "mold": "Undertaker",
+    "asset": "stamps/discraft/undertaker.png",
+    "target": 0.7402597402597403,
+    "fullDiscDiameterCm": 21.1,
+    "textureDiameterCm": 16.60951042175293,
+    "physicalInkFraction": 0.7402597659649915,
+    "error": 2.5705251260887962e-8
+  },
+  {
+    "mold": "Zone SS",
+    "asset": "stamps/discraft/zone-ss.png",
+    "target": 0.712248322147651,
+    "fullDiscDiameterCm": 21.2,
+    "textureDiameterCm": 15.66879199087554,
+    "physicalInkFraction": 0.7122483241735021,
+    "error": 2.0258511534976265e-9
+  }
+]

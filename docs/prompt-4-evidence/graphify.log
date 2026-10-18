@@ -1,0 +1,13 @@
+Re-extracting code files in . (no LLM needed)...
+[graphify watch] 82 file(s) not classified (no supported extension or shebang), skipped: .git, .gitignore, .graphifyignore, about-hero.css, account.css, accounts.log (+76 more)
+  AST extraction: 100/343 uncached files (29%) [12 workers]
+  AST extraction: 200/343 uncached files (58%) [12 workers]
+  AST extraction: 300/343 uncached files (87%) [12 workers]
+  AST extraction: 343/343 uncached files (100%) [12 workers]
+  warning: 16 code file(s) yielded no symbols (0.13 MB) — a data file, or source this extractor models no symbols for: drizzle.config.ts, public/affiliate-config.js, public/atlas-groups-worker.js, public/dropdown-indicator.js, public/featured.js (+11 more)
+[graphify watch] community set changed since labeling (112 saved labels, 136 communities now; renamed 7 community(ies) by their hub). Run `graphify label` to refresh names with the LLM.
+[graphify] backed up curated graph (4 files) -> 2026-10-18/
+[graphify watch] Rebuilt: 2525 nodes, 5147 edges, 136 communities
+[graphify watch] graph.json, graph.html and GRAPH_REPORT.md updated in graphify-out
+Code graph updated. For doc/paper/image changes run /graphify --update in your AI assistant.
+Tip: set GEMINI_API_KEY or GOOGLE_API_KEY to use Gemini for semantic extraction.

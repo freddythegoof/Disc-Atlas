@@ -1,0 +1,128 @@
+{
+ "no-glare": {
+  "color": "#2a828a",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 0,
+   "rejected": 0,
+   "pixels": 0
+  },
+  "changed": 0,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 132,
+  "highlight": null
+ },
+ "hotspot": {
+  "color": "#2b8384",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 1,
+   "rejected": 0,
+   "pixels": 18974
+  },
+  "changed": 18974,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 191,
+  "highlight": {
+   "pixels": 13518,
+   "baseline": 0.551,
+   "experiment": 0.3395,
+   "reduction": 0.3838,
+   "errorBaseline": 0.3621,
+   "errorExperiment": 0.1507
+  }
+ },
+ "hotspot-on-stamp": {
+  "color": "#298487",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 1,
+   "rejected": 0,
+   "pixels": 30359
+  },
+  "changed": 30359,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 232,
+  "highlight": {
+   "pixels": 20552,
+   "baseline": 0.6741,
+   "experiment": 0.3314,
+   "reduction": 0.5084,
+   "errorBaseline": 0.5205,
+   "errorExperiment": 0.1778
+  }
+ },
+ "tube-streak": {
+  "color": "#298487",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 1,
+   "rejected": 0,
+   "pixels": 45957
+  },
+  "changed": 45957,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 240,
+  "highlight": {
+   "pixels": 25577,
+   "baseline": 0.8025,
+   "experiment": 0.3501,
+   "reduction": 0.5638,
+   "errorBaseline": 0.6127,
+   "errorExperiment": 0.1603
+  }
+ },
+ "dark-disc": {
+  "color": "#27296a",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 1,
+   "rejected": 0,
+   "pixels": 29517
+  },
+  "changed": 29517,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 265,
+  "highlight": {
+   "pixels": 9540,
+   "baseline": 0.9542,
+   "experiment": 0.0547,
+   "reduction": 0.9427,
+   "errorBaseline": 0.9248,
+   "errorExperiment": 0.0253
+  }
+ },
+ "white-ink-clipped": {
+  "color": "#2b8381",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 0,
+   "rejected": 1,
+   "pixels": 0
+  },
+  "changed": 0,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 123,
+  "highlight": null
+ },
+ "fixture-stamped-disc": {
+  "color": "#de5852",
+  "sameColor": true,
+  "glare": {
+   "hotspots": 0,
+   "rejected": 0,
+   "pixels": 0
+  },
+  "changed": 0,
+  "outside": 0,
+  "brightened": 0,
+  "ms": 142,
+  "highlight": null
+ }
+}

@@ -1,0 +1,33 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at C:\Users\user\.codex\worktrees\clay-leftovers\disc-atlas\dist\workers-public\
+ok - Toolbar: Manufacturer chip and map view, closed and open, every theme and width
+ok - Directory: sort toggles and add buttons, every theme and width
+ok - Details: Add to and the disclosures, every theme and width
+ok - Filters drawer: collection, stability and manufacturer picker, every theme and width
+ok - My Bag: sort select, pocket selects, disc and bag sheets, every theme and width
+ok - Info pages: theme picker, every theme and width
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: atlas: no old arrow survives
++ actual - expected
+
++ [
++   'marker: <summary>Adjust photo</summary>'
++ ]
+- []
+
+    at audit (file:///C:/Users/user/.codex/worktrees/clay-leftovers/disc-atlas/tests/dropdown-indicator-browser.mjs:144:11)
+    at runNextTicks (node:internal/process/task_queues:65:5)
+    at process.processImmediate (node:internal/timers:541:9)
+    at async file:///C:/Users/user/.codex/worktrees/clay-leftovers/disc-atlas/tests/dropdown-indicator-browser.mjs:147:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ 'marker: <summary>Adjust photo</summary>' ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

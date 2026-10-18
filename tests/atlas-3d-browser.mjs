@@ -57,11 +57,12 @@ async function open(viewport,{flat=false,noWebGL=false}={}){
 async function settled(page){
  await page.waitForFunction(()=>!cameraTween&&groupCache&&groupCache.items===filtered&&groupCache.level===AtlasGroups.level(zoom,groupCache.level)&&
   !document.querySelector('#mapMarkers').classList.contains('is-regrouping')&&!document.querySelector('.marker-position.is-retiring,.marker-position.is-new'));
- await page.waitForTimeout(450);
+ // The camera and art have separate settle clocks; wait for both, not a wall-clock guess.
+ await page.waitForFunction(()=>zoom===artZoom&&performance.now()-artZoomAt>=ART_SETTLE);
  await page.evaluate(()=>draw());
  await page.waitForFunction(()=>mapGaps.every(g=>g.on&&g.art===1&&g.rest&&g.strength===(g.named?AtlasGroups.gapLabelAlpha(zoom,g.tier):0))&&mapArt.pending===0&&
-  mapGaps.every(g=>!g.drawn||mapArt.state!=='ready'||g.three===1)&&!document.querySelector('.disc-art-3d.is-arriving'));
- await page.waitForTimeout(250);
+  mapGaps.every(g=>!g.drawn||mapArt.state!=='ready'||g.three===1&&g.lod===g.want)&&!document.querySelector('.disc-art-3d.is-arriving'));
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 async function show(page,{zoom:z=1,at=[.55,.5],theme='midnight',filter}={}){
  await page.mouse.move(1,1);
@@ -230,8 +231,18 @@ try{
     const rgb=c=>{const v=parseInt(c.slice(1),16);return [(v>>16)&255,(v>>8)&255,v&255];};
     return {count:filtered.filter(d=>d.speed!=null).length,marks:marks.map(n=>{
      const g=mapClusters.find(g=>g.key===n.dataset.cluster),c=n.querySelector('.disc-art-3d');if(!c)return {name:g.lead.name,missing:true};
-     const px=c.width,k=((px>>1)*px+(px>>2))*4,p=c.getContext('2d').getImageData(0,0,px,px).data.slice(k,k+3),want=rgb(discColor(g.lead));
-     return {name:g.lead.name,type:typeOf(g.lead),brand:g.lead.brand,off:Math.max(...[0,1,2].map(i=>Math.abs(p[i]-want[i]*.88)))};
+     const px=c.width,data=c.getContext('2d').getImageData(0,0,px,px).data,want=rgb(discColor(g.lead));
+     const bare=atlasArt.render(photoDisc(g.lead),discColor(g.lead),94,mapRimColor(g.lead));
+     const plain=bare.canvas.getContext('2d').getImageData(0,0,px,px).data,p=[0,0,0];let samples=0;
+     // Official ink may cover the old sample. Measure exposed plate pixels inside the shoulder:
+     // unchanged pixels versus the bare reference locate plastic; the independent color token remains the expectation.
+     const radius=bare.fill*px*.5*.65;
+     for(let y=0;y<px;y++)for(let x=0;x<px;x++){
+      const k=(y*px+x)*4;
+      if(Math.hypot(x-px/2,y-px/2)>radius||data[k+3]<250||[0,1,2].some(i=>Math.abs(data[k+i]-plain[k+i])>2))continue;
+      for(let i=0;i<3;i++)p[i]+=data[k+i];samples++;
+     }
+     return {name:g.lead.name,type:typeOf(g.lead),brand:g.lead.brand,off:samples<32?Infinity:Math.max(...[0,1,2].map(i=>Math.abs(p[i]/samples-want[i]*.88)))};
     }),gaps:mapGaps.filter(g=>g.drawn).map(g=>({type:typeOf(g.d),brand:g.d.brand,lod:g.lod}))};
    });
    assert.ok(res.marks.length>0&&res.marks.every(m=>!m.missing),`${viewport} ${label}: every disc has its render`);
@@ -261,14 +272,15 @@ try{
   // separately: once settled, every disc must show its decided level.
   await page.evaluate(()=>{
    window.__wants=new WeakMap();window.__changes=[];window.__stand=0;
-   const tick=()=>{
-    for(const g of mapGaps){if(!g.drawn||!g.want)continue;const was=__wants.get(g);
+   const observe=()=>{
+    for(const g of mapGaps){if(!g.drawn||!g.want){__wants.delete(g);continue;}const was=__wants.get(g);
      if(was&&was!==g.want)__changes.push({key:g.id+'|'+g.tier,from:was,to:g.want,size:g.size,zoom});
      if(g.lod!==g.want)__stand++;
      __wants.set(g,g.want);}
-    requestAnimationFrame(tick);
    };
-   tick();
+   // Observe each completed paint, before a later frame or evaluation can race the sampler.
+   const paint=drawGaps;drawGaps=(...args)=>{const result=paint(...args);observe();return result;};
+   observe();
   });
   const at=await page.evaluate(()=>({x:mapViewport.left+mapViewport.width*.55,y:mapViewport.top+mapViewport.height*.5}));
   await page.mouse.move(at.x,at.y);

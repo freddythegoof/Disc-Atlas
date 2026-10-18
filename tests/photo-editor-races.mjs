@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import vm from 'node:vm';
+import {isHalo} from '../public/disc3d/halo.mjs';
 
 // Exercise the production handler with controlled async boundaries. The DOM and
 // network are doubles; neither save/retry logic nor thumbnail scheduling is copied.
@@ -37,7 +38,7 @@ function editorFixture({photoValue=async()=> 'processed-photo',upload=async()=>p
   editing:null,items:[],loading:false,active:false,plastics:{},rimCustomized:false,
   photoEditor:{changed:true,value:photoValue,reset(){}},
   colorHint:()=>({textContent:''}),colorBeforePhoto:null,photoColor:null,
-  mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),
+  mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),isHalo,
   render(){counts.renders++;},status(){},loadBag(){counts.refreshes++;},name:()=> 'Disc',
   async fetch(url,options){
    calls.push({url,...options});
@@ -79,6 +80,16 @@ test('photo attachment keeps the captured rim sample when photo controls change 
   f.context.photoEditor.photoRimColor=changedSample;wait.resolve();await saving;
   const upload=f.calls.find(c=>c.url.endsWith('/photo'));
   assert.equal(upload.headers['X-Atlas-Photo-Rim-Color'],'#101418','sample belongs to the captured blob');
+ }
+});
+
+test('a one-piece photo sends its band sample only for a Halo copy, and an overmold rim sample wins',async()=>{
+ for(const [plastic,rim,expected] of [['Halo Star',null,'#2f5fb8'],['Star',null,''],['Halo Star','#101418','#101418']]){
+  const f=editorFixture();
+  f.context.validateDiscDetails=()=>({mold_id:'mold',plastic,notes:''});
+  Object.assign(f.context.photoEditor,{photoRimColor:rim,bandColor:'#2f5fb8'});
+  await f.submit();
+  assert.equal(f.calls.find(c=>c.url.endsWith('/photo')).headers['X-Atlas-Photo-Rim-Color'],expected,plastic+' / '+rim);
  }
 });
 
@@ -166,9 +177,19 @@ test('account switch during photo upload does not reconcile into the new account
  assert.equal(f.counts.closes,0);
 });
 
+// thumbnails.mjs runs as a plain script here: drop every import and stand in for what they provided.
+const thumbnailsSource=()=>readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
+ .replace(/^import[^\n]*\n/gm,'').replace('export function','function');
+// No catalog stamp asset, so no stamp texture or shape lookup is needed.
+const stampStubs={
+ catalogStampAsset:()=>null,
+ stampTexture:()=>{throw new Error('stampTexture is not expected here');},
+ shapeForDisc:()=>{throw new Error('shapeForDisc is not expected here');},
+ shapeFrame:()=>{throw new Error('shapeFrame is not expected here');},
+};
+
 test('photo readiness redraws only intersecting thumbnails with the matching URL',async()=>{
- const source=readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
-  .replace(/^import[^\n]*\n/,'').replace('export function','function');
+ const source=thumbnailsSource();
  let observer,onPhoto,nextFrame=0;
  const frames=new Map(),rendered=[];
  const host=(id,url)=>({
@@ -176,7 +197,7 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
   checkVisibility:()=>true,getBoundingClientRect:()=>({width:64}),
  });
  const visible=host('visible-a','photo-a'),offscreen=host('offscreen-a','photo-a'),other=host('visible-b','photo-b');
- const context={
+ const context={...stampStubs,
   performance:{now:()=>0},
   document:{createElement:()=>({style:{},setAttribute(){},getContext:()=>({drawImage(){}})})},
   // Every photo here is still loading, so each render returns its placeholder.
@@ -206,14 +227,13 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
 });
 
 test('finished thumbnails stop being observed; only a loading photo stays watched',async()=>{
- const source=readFileSync(new URL('../public/disc3d/thumbnails.mjs',import.meta.url),'utf8')
-  .replace(/^import[^\n]*\n/,'').replace('export function','function');
+ const source=thumbnailsSource();
  let observer,onPhoto,nextFrame=0;const frames=new Map(),unobserved=[],rendered=[];
  const canvas=()=>({width:0,height:0,style:{},setAttribute(){},getContext:()=>({drawImage(){}})});
  const host=(id,url)=>({id,dataset:{discThumbnail:id,photoUrl:url,plateColor:'red'},isConnected:true,classList:{add(){}},replaceChildren(){},
   checkVisibility:()=>true,getBoundingClientRect:()=>({width:64})});
  const plain=host('plain',''),loading=host('loading','photo-a');let ready=false;
- const context={
+ const context={...stampStubs,
   performance:{now:()=>0},document:{createElement:canvas},
   getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return {canvas:canvas(),px:64,fill:.9,pending:!!disc.photoURL&&!ready};}}),
   window:{addEventListener:(_type,fn)=>onPhoto=fn,removeEventListener(){}},

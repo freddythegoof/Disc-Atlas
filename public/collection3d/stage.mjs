@@ -10,7 +10,9 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc,normalizeShape,discProfile,overmoldProfile} from '../disc3d/shape.mjs';
 import {isOvermold,overmoldColors} from '../disc3d/overmold.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
-import {stampTexture,stampGeometry,stampMaterial} from '../disc3d/stamp.mjs';
+import {parseHalo} from '../disc3d/halo.mjs';
+import {haloCoord,haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
+import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset,catalogStampPlacement} from '../disc3d/stamp.mjs';
 
 export const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -74,17 +76,21 @@ export function contactShadow(width,depth,opacity=1){
 // rack of 72 Destroyers builds one geometry. Overmold discs come as two geometries (plate, rim) that
 // share the lathe's vertices, so each can carry its own colour per instance.
 const parts=new Map();
-export function discParts(d,quality=stage().quality){
+// `band`: a Halo copy on a one-piece mold (disc3d/halo.mjs), split at the same rim seam for its dyed band;
+// `overmold` stays false, so its photo still stops at the shoulder. `twoTone`: a Halo v2 band (a stored wash and dye
+// front), whose vertices also carry the band coordinate its shader reads (disc3d/halo-shader.mjs).
+export function discParts(d,quality=stage().quality,band=false,twoTone=false){
  const flight={speed:d?.speed,turn:d?.turn,fade:d?.fade};
  const resolved=shapeForDisc({model:d?.model3d||null,specs:d?.specs||null,flight});
  const shape=resolved?.shape||normalizeShape({});
  const overmold=!!d&&isOvermold({manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined});
- const key=JSON.stringify([shape,overmold,quality]);
+ const halo=!overmold&&!!band,toned=halo&&!!twoTone,key=JSON.stringify([shape,overmold,quality,...halo?['band']:[],...toned?['halo']:[]]);
  if(parts.has(key))return parts.get(key);
  const radial=DISC_BUDGET.radial[quality],detail=DISC_BUDGET.detail[quality];
- const split=overmold?overmoldProfile(shape,{detail}):null;
+ const split=overmold||halo?overmoldProfile(shape,{detail}):null;
  const points=(split?split.points:discProfile(shape,{detail})).map(p=>new THREE.Vector2(p.x,p.y));
  const lathe=new THREE.LatheGeometry(points,radial);
+ if(toned)lathe.setAttribute('haloCoord',new THREE.BufferAttribute(haloCoord(lathe.attributes.position,lathe.attributes.normal,shape.diameter/2),4));
  lathe.computeBoundingBox();
  const centre=(lathe.boundingBox.min.y+lathe.boundingBox.max.y)/2,thickness=(lathe.boundingBox.max.y-lathe.boundingBox.min.y)/100;
  lathe.translate(0,-centre,0);lathe.scale(.01,.01,.01);
@@ -93,35 +99,44 @@ export function discParts(d,quality=stage().quality){
   // LatheGeometry writes six indices per (segment, profile edge), edges varying fastest (as viewer.mjs).
   const index=lathe.index.array,edges=points.length-1,[from,to]=split.rim,plateIdx=[],rimIdx=[];
   for(let k=0;k<index.length;k+=6){const e=(k/6)%edges,out=e>=from&&e<to?rimIdx:plateIdx;for(let i=k;i<k+6;i++)out.push(index[i]);}
-  const share=g=>{for(const name of ['position','normal','uv'])g.setAttribute(name,lathe.attributes[name]);return g;};
+  const share=g=>{for(const name of ['position','normal','uv','haloCoord'])if(lathe.attributes[name])g.setAttribute(name,lathe.attributes[name]);return g;};
   plate=share(new THREE.BufferGeometry());plate.setIndex(plateIdx);
   rim=share(new THREE.BufferGeometry());rim.setIndex(rimIdx);
  }
  for(const g of [plate,rim])if(g){g.computeBoundingSphere();g.computeBoundingBox();}
- const entry={key,shape,overmold,plate,rim,radius:shape.diameter/200,thickness,centre};
+ const entry={key,shape,overmold,band:halo,halo:toned,plate,rim,radius:shape.diameter/200,thickness,centre};
  parts.set(key,entry);return entry;
 }
-// Plate and rim colours for one copy: the bag's own colour, and its rim colour on overmold molds.
-export function discColors(entry,color,rimColor){
+// Plate and rim colours for one copy: the bag's own colour, and its rim colour on overmold molds or its
+// photographed band on a Halo copy (never a default).
+export function discColors(entry,color,rimColor,haloBand){
  const base=color||'#e6c668';
- return entry.overmold?overmoldColors(base,{rim:rimColor||undefined}):{plate:base,rim:base};
+ return entry.overmold?overmoldColors(base,{rim:rimColor||undefined}):{plate:base,rim:entry.band&&haloBand||base};
 }
 // The bag's premium finish (disc3d PLASTICS.premium); software rendering skips the clear coat.
 export function discMaterial(color='#ffffff'){
  return stage().low?new THREE.MeshStandardMaterial({color,roughness:.38}):new THREE.MeshPhysicalMaterial({color,roughness:.3,clearcoat:.6,clearcoatRoughness:.22});
 }
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
-export function discModel(d,{color,rimColor,name,photoURL,onChange=()=>{},stamp=true}={}){
- const entry=discParts(d),colors=discColors(entry,color,rimColor),group=new THREE.Group();
+export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,onChange=()=>{},stamp=true}={}){
+ const twoTone=!!haloBand&&!!parseHalo(haloModel);
+ const entry=discParts(d,undefined,!!haloBand,twoTone),colors=discColors(entry,color,rimColor,haloBand),group=new THREE.Group();
  const plate=new THREE.Mesh(entry.plate,discMaterial(colors.plate));group.add(plate);
- if(entry.rim)group.add(new THREE.Mesh(entry.rim,discMaterial(colors.rim)));
+ if(entry.rim){
+  const material=discMaterial(colors.rim);
+  if(entry.halo){const uniforms=haloUniforms();setHalo(uniforms,haloModel);patchHalo(material,uniforms);}
+  group.add(new THREE.Mesh(entry.rim,material));
+ }
  let ink=null;
  if(stamp){
-  const ring=stampGeometry(entry.shape,{segments:32,rings:5});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);
-  const material=stampMaterial();material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate);
-  ink=new THREE.Mesh(ring,material);group.add(ink);
+  const geometry=placement=>{const ring=stampGeometry(entry.shape,{segments:32,rings:5,placement});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);return ring;};
+  const material=stampMaterial(),placement=photoURL?null:catalogStampPlacement(d);
+  ink=new THREE.Mesh(geometry(null),material);group.add(ink);
+  material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:photoURL?null:catalogStampAsset(d),onChange:texture=>{
+   if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}onChange();
+  }});
  }
- if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,edge:true,size:512,like:plate.material,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
+ if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,like:plate.material,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
  group.userData.parts=entry;
  return group;

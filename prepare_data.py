@@ -1,4 +1,5 @@
 import json,csv,re,hashlib,os,unicodedata
+from stamp_manifest import validate_stamp_manifest
 ROOT=os.path.dirname(__file__)
 def norm(s):return re.sub('[^a-z0-9]','',unicodedata.normalize('NFKD',s.replace('+',' plus ')).encode('ascii','ignore').decode().lower())
 alias={'Innova Champion Discs':'Innova','MVP Disc Sports':'MVP','Axiom Discs':'Axiom','Disc Golf Association':'DGA','Gateway Disc Sports':'Gateway','Latitude 64':'Latitude 64','Westside Golf Discs':'Westside','Prodigy Disc':'Prodigy','Lightning Discs':'Lightning','Millennium Golf Discs':'Millennium','Lone Star Disc':'Lone Star','Kastaplast':'Kastaplast','RPM Discs/Disc Golf Aotearoa':'RPM','Streamline Discs':'Streamline','Mint Discs':'Mint','Thought Space Athletics':'Thought Space Athletics'}
@@ -53,6 +54,11 @@ for r in registry:
    d['production'].update(status='catalog_listed',source=reviewed['source'],checkedAt=reviewed['checkedAt'],note='Matched to a published disc catalog. Ongoing production is not independently verified.')
   if reviewed.get('retailerSource'):d['retailerSource']=reviewed['retailerSource']
  out.append(d)
+stamps=validate_stamp_manifest(json.load(open(ROOT+'/source-data/stamp-manifest.json')),out,ROOT+'/public')
+placements={e['id']:e['placement'] for e in json.load(open(ROOT+'/source-data/stamp-manifest.json'))}
+for d in out:
+ if d['id'] in stamps:
+  d['stampAsset']=stamps[d['id']];d['stampPlacement']=placements[d['id']]
 meta={'date':'September 24, 2026','catalogAuditDate':'September 24, 2026','registryCount':len(registry),'statusAsOf':status_data['checkedAt'],'retirementWindowMonths':24,'note':'All records from the PDGA approved-disc CSV export are included, including historical molds. Flight numbers are incomplete. Catalog imagery uses original generic illustrations. This is a dated snapshot, not a live feed.'}
 json.dump({'meta':meta,'discs':out},open(ROOT+'/public/data.json','w'),separators=(',',':'))
 print({'records':len(out),'rated':sum('speed'in x for x in out),'photos':sum('photo'in x for x in out),'brands':len(set(x['brand']for x in out))})

@@ -1,0 +1,75 @@
+npm notice run disc-atlas@0.1.0 test:atlas:3d:perf
+npm notice run node tests/atlas-3d-perf.mjs
+Atlas perf: desktop 7 / phone 3 warm repetitions per configuration; one cold flight per page; serial, alternating 2D/3D order
+measured - desktop repetition 1/7
+measured - desktop repetition 2/7
+measured - desktop repetition 3/7
+measured - desktop repetition 4/7
+measured - desktop repetition 5/7
+measured - desktop repetition 6/7
+measured - desktop repetition 7/7
+ok - desktop: median warm 3D vs 2D
+┌─────────┬───────────┬──────────────┬───────────┬───────────┬────────────────────┬────────────────────────────────────────────────────────────────────────────────────┬──────────────────────┬──────────────┬──────────────┬────────┐
+│ (index) │ device    │ metric       │ 2D median │ 3D median │ limit              │ paired excesses                                                                    │ paired median excess │ medianFailed │ pairedFailed │ failed │
+├─────────┼───────────┼──────────────┼───────────┼───────────┼────────────────────┼────────────────────────────────────────────────────────────────────────────────────┼──────────────────────┼──────────────┼──────────────┼────────┤
+│ 0       │ 'desktop' │ 'flight p95' │ 5.6       │ 6.5       │ 7.9399999999999995 │ [ -2.124999999999999, -0.8649999999999993, -2.7749999999999995, ... 4 more items ] │ -1.1500000000000004  │ false        │ false        │ false  │
+│ 1       │ 'desktop' │ '1x p95'     │ 1.1       │ 1.8       │ 2.7649999999999997 │ [ -1.655, -0.8649999999999998, -1.195, ... 4 more items ]                          │ -1.1649999999999996  │ false        │ false        │ false  │
+│ 2       │ 'desktop' │ 'long tasks' │ 0         │ 0         │ 1                  │ [ -1, -1, -1, ... 4 more items ]                                                   │ -1                   │ false        │ false        │ false  │
+└─────────┴───────────┴──────────────┴───────────┴───────────┴────────────────────┴────────────────────────────────────────────────────────────────────────────────────┴──────────────────────┴──────────────┴──────────────┴────────┘
+measured - phone repetition 1/3
+measured - phone repetition 2/3
+measured - phone repetition 3/3
+not ok - phone: median warm 3D vs 2D
+┌─────────┬─────────┬──────────────┬───────────┬───────────┬────────┬──────────────────────────────────────────────────────┬──────────────────────┬──────────────┬──────────────┬────────┐
+│ (index) │ device  │ metric       │ 2D median │ 3D median │ limit  │ paired excesses                                      │ paired median excess │ medianFailed │ pairedFailed │ failed │
+├─────────┼─────────┼──────────────┼───────────┼───────────┼────────┼──────────────────────────────────────────────────────┼──────────────────────┼──────────────┼──────────────┼────────┤
+│ 0       │ 'phone' │ 'flight p95' │ 26.1      │ 25.5      │ 33.015 │ [ -11.515, 3.6950000000000003, -10.734999999999992 ] │ -10.734999999999992  │ false        │ false        │ false  │
+│ 1       │ 'phone' │ '1x p95'     │ 3.6       │ 4.6       │ 7.14   │ [ -4.504999999999999, -2.54, -1.4399999999999995 ]   │ -2.54                │ false        │ false        │ false  │
+│ 2       │ 'phone' │ 'long tasks' │ 16        │ 22        │ 17     │ [ -5, 16, 8 ]                                        │ 8                    │ true         │ true         │ true   │
+└─────────┴─────────┴──────────────┴───────────┴───────────┴────────┴──────────────────────────────────────────────────────┴──────────────────────┴──────────────┴──────────────┴────────┘
+Full cold/warm repetition distribution (rep 0 is diagnostic only):
+┌─────────┬───────────┬───────┬─────┬────────┬───────────────┬────────────┬────────────┬───────────────┬───────────┬────────┬────────┬───────────┬────────────┬─────────┬───────┬─────────┬─────────┐
+│ (index) │ device    │ build │ rep │ run    │ flight median │ flight p95 │ flight max │ flight frames │ 1x median │ 1x p95 │ 1x max │ 1x frames │ long tasks │ longest │ discs │ renders │ state   │
+├─────────┼───────────┼───────┼─────┼────────┼───────────────┼────────────┼────────────┼───────────────┼───────────┼────────┼────────┼───────────┼────────────┼─────────┼───────┼─────────┼─────────┤
+│ 0       │ 'desktop' │ '2D'  │ 0   │ 'cold' │ 2.1           │ 4.8        │ 11.1       │ 241           │ 0.6       │ 1.1    │ 1.7    │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 1       │ 'desktop' │ '3D'  │ 0   │ 'cold' │ 3             │ 8.1        │ 27.7       │ 241           │ 1.4       │ 2.2    │ 4.5    │ 120       │ 0          │ 0       │ 77    │ 942     │ 'ready' │
+│ 2       │ 'desktop' │ '3D'  │ 1   │ 'warm' │ 3             │ 5.7        │ 10.5       │ 241           │ 1.1       │ 1.8    │ 3      │ 120       │ 0          │ 0       │ 77    │ 944     │ 'ready' │
+│ 3       │ 'desktop' │ '2D'  │ 1   │ 'warm' │ 2.4           │ 5.5        │ 15.4       │ 241           │ 1         │ 1.7    │ 2.2    │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 4       │ 'desktop' │ '2D'  │ 2   │ 'warm' │ 2.5           │ 5.1        │ 18.3       │ 241           │ 0.8       │ 1.1    │ 1.6    │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 5       │ 'desktop' │ '3D'  │ 2   │ 'warm' │ 3.1           │ 6.5        │ 15.3       │ 241           │ 1.1       │ 1.9    │ 3.3    │ 120       │ 0          │ 0       │ 77    │ 944     │ 'ready' │
+│ 6       │ 'desktop' │ '3D'  │ 3   │ 'warm' │ 3.4           │ 6.2        │ 14.1       │ 241           │ 1         │ 1.8    │ 2.9    │ 120       │ 0          │ 0       │ 77    │ 944     │ 'ready' │
+│ 7       │ 'desktop' │ '2D'  │ 3   │ 'warm' │ 2.6           │ 6.5        │ 19         │ 241           │ 1         │ 1.3    │ 2      │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 8       │ 'desktop' │ '2D'  │ 4   │ 'warm' │ 2.7           │ 6.1        │ 21.1       │ 241           │ 1.2       │ 1.9    │ 3      │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 9       │ 'desktop' │ '3D'  │ 4   │ 'warm' │ 4.2           │ 9.4        │ 19.2       │ 241           │ 1.9       │ 2.7    │ 4.2    │ 120       │ 1          │ 61      │ 77    │ 944     │ 'ready' │
+│ 10      │ 'desktop' │ '3D'  │ 5   │ 'warm' │ 3             │ 6.1        │ 16.3       │ 241           │ 1.1       │ 1.6    │ 2      │ 120       │ 0          │ 0       │ 77    │ 944     │ 'ready' │
+│ 11      │ 'desktop' │ '2D'  │ 5   │ 'warm' │ 2.3           │ 5          │ 15.7       │ 241           │ 0.8       │ 1.1    │ 1.4    │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 12      │ 'desktop' │ '2D'  │ 6   │ 'warm' │ 2.3           │ 5.7        │ 14.3       │ 241           │ 0.7       │ 1.1    │ 1.7    │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 13      │ 'desktop' │ '3D'  │ 6   │ 'warm' │ 3.4           │ 7.9        │ 18         │ 241           │ 1.5       │ 2.2    │ 2.7    │ 120       │ 0          │ 0       │ 77    │ 944     │ 'ready' │
+│ 14      │ 'desktop' │ '3D'  │ 7   │ 'warm' │ 3.1           │ 6.6        │ 21.1       │ 241           │ 0.9       │ 1.6    │ 2.2    │ 120       │ 0          │ 0       │ 77    │ 944     │ 'ready' │
+│ 15      │ 'desktop' │ '2D'  │ 7   │ 'warm' │ 2.2           │ 5.6        │ 28.9       │ 241           │ 0.8       │ 1.1    │ 1.2    │ 120       │ 0          │ 0       │ 77    │ 0       │ 'off'   │
+│ 16      │ 'phone'   │ '2D'  │ 0   │ 'cold' │ 6.7           │ 26.7       │ 49.1       │ 241           │ 2.2       │ 3.6    │ 7.2    │ 120       │ 16         │ 71      │ 17    │ 0       │ 'off'   │
+│ 17      │ 'phone'   │ '3D'  │ 0   │ 'cold' │ 8.8           │ 20.1       │ 46.1       │ 241           │ 3.2       │ 4.6    │ 5.1    │ 120       │ 20         │ 92      │ 17    │ 342     │ 'ready' │
+│ 18      │ 'phone'   │ '3D'  │ 1   │ 'warm' │ 8.2           │ 21.5       │ 41.5       │ 241           │ 2.8       │ 3.9    │ 8      │ 120       │ 14         │ 102     │ 17    │ 814     │ 'ready' │
+│ 19      │ 'phone'   │ '2D'  │ 1   │ 'warm' │ 8             │ 26.1       │ 96         │ 241           │ 2.5       │ 4.7    │ 7.3    │ 120       │ 18         │ 155     │ 17    │ 0       │ 'off'   │
+│ 20      │ 'phone'   │ '2D'  │ 2   │ 'warm' │ 6.5           │ 16.7       │ 36.3       │ 241           │ 2.2       │ 3.6    │ 8.1    │ 120       │ 5          │ 80      │ 17    │ 0       │ 'off'   │
+│ 21      │ 'phone'   │ '3D'  │ 2   │ 'warm' │ 8             │ 25.9       │ 52         │ 241           │ 3         │ 4.6    │ 7      │ 120       │ 22         │ 94      │ 17    │ 1197    │ 'ready' │
+│ 22      │ 'phone'   │ '3D'  │ 3   │ 'warm' │ 8.8           │ 25.5       │ 71.3       │ 241           │ 3.1       │ 5.7    │ 13.7   │ 120       │ 25         │ 125     │ 17    │ 1701    │ 'ready' │
+│ 23      │ 'phone'   │ '2D'  │ 3   │ 'warm' │ 8.1           │ 28.9       │ 46         │ 241           │ 2.2       │ 3.6    │ 5.4    │ 120       │ 16         │ 89      │ 17    │ 0       │ 'off'   │
+└─────────┴───────────┴───────┴─────┴────────┴───────────────┴────────────┴────────────┴───────────────┴───────────┴────────┴────────┴───────────┴────────────┴─────────┴───────┴─────────┴─────────┘
+Measurement wall-clock: 187.6 s
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: 3D median warm frames/long tasks exceed the 2D allowance (see every repetition below)
+    at main (file:///C:/Users/user/.codex/worktrees/clay-leftovers/disc-atlas/tests/atlas-3d-perf.mjs:154:10)
+    at async file:///C:/Users/user/.codex/worktrees/clay-leftovers/disc-atlas/tests/atlas-3d-perf.mjs:168:1 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

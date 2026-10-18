@@ -8,13 +8,17 @@
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
 // Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
-// overmold, colors, photoURL, texture_key, photo_rim_color}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
+// overmold, colors, photoURL, texture_key, photo_rim_color, haloBand}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
 // its shape (phase 2), and without them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
 // Overmold discs (Plan 12) draw the rim and the flight plate in two materials, split at the measured rim
 // width. `overmold` (boolean) is the record's own flag; without it the PDGA `manufacturer` and `record` name
 // are looked up in overmold.mjs. `colors` {rim, plate} are optional overrides of the two colours; the
 // plate defaults to `color`; the rim defaults to black in light theme, white in dark themes.
+// A Halo copy (`haloBand`, a '#rrggbb' from disc3d/halo.mjs haloBand) is not an overmold: it is one piece of
+// plastic dyed in two colours. On a one-piece mold its band uses the same seam split and the same plastic
+// material as an overmold's rim, only coloured with the band; its photo still stops at the shoulder, and clay
+// shows it as the one piece it is. An overmold mold ignores the band (its rim piece is already the second colour).
 // Every other disc is one material, as before.
 // Clay (Prompt 4) is a shape-only inspect view: the same mesh in matte studio clay on a dark ground, the stamp
 // hidden, and the mold's cross-section drawn from the lathe's own points (profile.mjs) under the stage. It only
@@ -26,9 +30,11 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc} from './shape.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
-import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial} from './stamp.mjs';
+import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial,catalogStampAsset,catalogStampPlacement} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
 import {isOvermold,overmoldColors,bagRimColor} from './overmold.mjs';
+import {parseHalo} from './halo.mjs';
+import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
 import {DETAIL,detailPixelRatio} from './quality.mjs';
 
 const DEG=Math.PI/180;
@@ -104,6 +110,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const stampMaterial=makeStampMaterial();
  // Overmold discs only: bodyMaterial becomes the flight plate and rimMaterial the rim.
  const rimMaterial=new THREE.MeshPhysicalMaterial({color:0x444444,side:THREE.FrontSide});
+ // A Halo v2 band (`haloModel`): the same plastic, wash on top out to the dye front (halo-shader.mjs).
+ const haloRim=haloUniforms(),haloRimMaterial=patchHalo(new THREE.MeshPhysicalMaterial({color:0x444444,side:THREE.FrontSide}),haloRim);
  // Clay: matte matcap materials (no lights, no environment, not tone mapped), one per part.
  const matcap=new THREE.CanvasTexture(clayMatcap());matcap.colorSpace=THREE.SRGBColorSpace;
  const clayMaterial=new THREE.MeshMatcapMaterial({matcap,color:CLAY_TONES.plate,toneMapped:false});
@@ -111,7 +119,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
+ const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,band:null,halo:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
  let photo=null;
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
 
@@ -214,16 +222,20 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   else{const radius=Math.min(controls.maxDistance,Math.max(controls.minDistance,pose.zoom*state.fit));placeCamera(new THREE.Spherical(radius,pose.phi,pose.theta));setPressedView(null);request();}
  }
 
- function build(shape,mold,color,overmold){
-  // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs).
-  const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold});
-  state.seamRadius=seamRadius;state.shape=shape;state.profile=profile;state.profileWidth=0;
-  applyMaterials(overmold);
+ function build(shape,mold,color,overmold,asset,placement,band=null,halo=null){
+  // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs). A Halo band splits at the
+  // same seam; its cross-section is still drawn as one piece.
+  const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold:overmold||!!band,halo:!!halo});
+  state.seamRadius=seamRadius;state.shape=shape;state.profile=overmold?profile:{...profile,rim:null,seamRadius:null};state.profileWidth=0;
+  applyMaterials(overmold,band,halo);
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
   stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
-  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color);stampMaterial.needsUpdate=true;
+  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,onChange:texture=>{
+   if(texture?.userData.stampAsset&&placement){stamp.geometry.dispose();stamp.geometry=stampGeometry(shape,{placement});}
+   request();
+  }});stampMaterial.needsUpdate=true;
   // Centre the disc on the orbit target.
   discGroup.position.y=-(box.min.y+box.max.y)/2;
   state.radius=shape.diameter/2;state.frameRadius=Math.max(state.radius,FRAME_DIAMETER/2);state.thickness=box.max.y-box.min.y;
@@ -235,21 +247,26 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const {shape,source}=resolved;
   const rim=bagRimColor({rim_color:props.colors?.rim,texture_key:props.texture_key,photo_rim_color:props.photo_rim_color},document.documentElement.dataset.theme==='light'?undefined:'#ffffff');
   const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim}):null;
+  const band=!overmold&&/^#[0-9a-f]{6}$/i.test(props.haloBand||'')?props.haloBand.toLowerCase():null;
+  // Halo v2: the band's wash and dye front, when the copy was saved with them; otherwise the v1 one-colour band.
+  const halo=band&&parseHalo(props.haloModel)?props.haloModel.toLowerCase():null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,props.photoURL]);
+  const asset=props.photoURL?null:catalogStampAsset(props),placement=asset?catalogStampPlacement(props):null;
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,props.photoURL,asset,placement]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
   const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
-  state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
+  state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;state.band=band;state.halo=halo;
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
-  build(shape,props.mold,color,overmold);
+  build(shape,props.mold,color,overmold,asset,placement,band,halo);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
-  if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,edge:true,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
-  if(overmold){rimMaterial.color.set(colors.rim);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
+  if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
+  if(overmold||band){rimMaterial.color.set(overmold?colors.rim:band);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
+  if(halo){setHalo(haloRim,halo);haloRimMaterial.color.set(band);Object.assign(haloRimMaterial,plastic);haloRimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){
    state.flipped=false;flipTween=null;flipGroup.rotation.x=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');
@@ -261,14 +278,14 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  }
 
  // Which materials the mesh wears: the plastic ones, or clay. Neither set is modified by the other.
- function applyMaterials(overmold=state.overmold){
-  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold?[bodyMaterial,rimMaterial]:bodyMaterial);
+ function applyMaterials(overmold=state.overmold,band=state.band,halo=state.halo){
+  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold||band?[bodyMaterial,halo?haloRimMaterial:rimMaterial]:bodyMaterial);
   stamp.visible=!state.clay&&!photo?.userData.photoReady;
   if(photo)photo.visible=!state.clay&&!!photo.userData.photoReady;
  }
  function label(){
   const props=state.props||{};
-  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag the rim to tilt. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
+  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':state.halo?', with its Halo band in two dye colours, a pale wash and the dye at the edge':state.band?', with its Halo band in a second dye colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag the rim to tilt. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
  }
  // The cross-section under the stage, while clay is on: static SVG, redrawn only for a new disc or width.
  function drawProfile(){
@@ -412,5 +429,5 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  setTilt(0);
  return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,setClay,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
-  debug:{get photo(){return photo;},renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
+  debug:{get photo(){return photo;},renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,haloRimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

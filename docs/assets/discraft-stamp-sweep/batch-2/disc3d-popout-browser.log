@@ -1,0 +1,28 @@
+ok - the panel viewer offers Enlarge and builds no dialog until asked
+ok - Enlarge opens a modal dialog titled with the disc
+ok - popout: rim direction, hands, clay, live slider, orbit, clamps, outside release and Top
+ok - popout: touch rim tilt, second-finger pinch handoff and cancellation
+ok - focus moves into the dialog and Tab never reaches the page behind
+ok - the pop-out is the same viewer and model, larger, with the whole disc in frame
+ok - drag turns and the wheel zooms in the pop-out
+ok - Top, Profile, Bottom and Flip work in the pop-out
+ok - tilt follows the throwing hand; arrows and + work from the keyboard
+ok - the panel viewer is untouched while the pop-out is open
+ok - Escape closes the pop-out, frees its context and returns focus to the Enlarge button
+ok - the pop-out hands its pose back, and the panel viewer keeps working
+ok - the close button closes and returns focus
+ok - clicking outside closes; a drag that ends outside does not
+ok - a click on the canvas pops it out; a drag only turns it
+ok - overmold two-tone and custom colours carry over; the pop-out follows the theme
+ok - clay carries into the pop-out with the same cross-section and numbers; toggling in either viewer turns both
+ok - repeated open and close reuses one dialog and leaves no viewer behind
+ok - phone: a fresh pop-out frames the whole disc
+ok - on a phone a tap opens the pop-out; a pinch or a drag only moves the disc
+ok - phone: the pop-out fits the screen (374x828) with touch-sized controls
+ok - phone: one finger rotates, two fingers pinch zoom
+ok - phone: presets and close by touch; focus returns to the opener
+ok - phone: the clay pop-out keeps the disc, its cross-section and the controls in order on screen
+ok - phone landscape: controls fit and the disc keeps 224px of height
+ok - phone landscape in clay: the cross-section folds away and the disc keeps its height
+ok - the pop-out buffer matches its laid-out size x pixel ratio on first open and reopen, in motion and reduced motion, desktop and phone
+ok - no page errors

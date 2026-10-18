@@ -93,12 +93,12 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
   plotsById.set(e.id,plot);return plot;
  }
  function dress(plot,e){
-  const key=JSON.stringify([e.lines,e.color,e.rimColor,e.photoURL,e.d?.id,plotsById.size>12]);if(plot.key===key)return;plot.key=key;
+  const key=JSON.stringify([e.lines,e.color,e.rimColor,e.haloBand,e.haloModel,e.photoURL,e.d?.id,plotsById.size>12]);if(plot.key===key)return;plot.key=key;
   plot.name=e.lines.name;
   const texture=engraving(e.lines,stoneVariant(plot),plotsById.size>12?320:512);texture.anisotropy=anisotropy;
   plot.face.material.map?.dispose();plot.face.material.map=texture;plot.face.material.needsUpdate=true;
   if(plot.disc){plot.group.remove(plot.disc);disposeObject(plot.disc);}
-  const disc=discModel(e.d,{color:e.color,rimColor:e.rimColor,name:e.name,photoURL:e.photoURL,onChange:()=>view.request()});
+  const disc=discModel(e.d,{color:e.color,rimColor:e.rimColor,haloBand:e.haloBand,haloModel:e.haloModel,name:e.name,photoURL:e.photoURL,onChange:()=>view.request()});
   const t=disc.userData.parts.thickness;disc.position.set(.01,.045+t/2-.004,.3);disc.rotation.set(-.12,THREE.MathUtils.degToRad((plot.x*97)%40-20),.06);
   plot.disc=disc;plot.group.add(disc);
  }

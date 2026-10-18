@@ -82,7 +82,7 @@ function loadTemplate(url){
  }).catch(error=>{template=null;throw error;});
 }
 
-/** Mount into a sized host. update(entries) places discs; entries are {id, d, color, rimColor, name} in rack order. */
+/** Mount into a sized host. update(entries) places discs; entries are {id, d, color, rimColor, haloBand, haloModel, name} in rack order. */
 export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=>{},onZoom=()=>{},theme=document.documentElement.dataset.theme,style=null}={}){
  const {pieces,slots}=await loadTemplate(new URL('./wooden-disc-rack.glb',import.meta.url).href);
  paint(theme,style);let finish=theme,chosen=rackStyle(style).key;
@@ -153,7 +153,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   const now=performance.now(),animate=!first&&!reduced(),seen=new Set();
   for(const batch of batches.values())batch.ids=[];
   const needs=new Map();
-  for(const e of entries){const entry=discParts(e.d);needs.set(entry.key,(needs.get(entry.key)||0)+1);e.parts=entry;}
+  for(const e of entries){const entry=discParts(e.d,undefined,!!e.haloBand);needs.set(entry.key,(needs.get(entry.key)||0)+1);e.parts=entry;}
   for(const [key,n] of needs)batchFor(entries.find(e=>e.parts.key===key).parts,n);
   entries.forEach((e,i)=>{
    const entry=e.parts,batch=batches.get(entry.key),place=restOf(i,entry);
@@ -162,7 +162,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
    // A new disc slides in from the front of its slot.
    if(!r){r={id:e.id,lift:0,liftGoal:0,current:animate?[target[0],target[1]+.03,target[2]+.36]:[...target]};records.set(e.id,r);r.fresh=animate;}
    const moved=r.to&&(r.to.some((v,k)=>Math.abs(v-target[k])>1e-6)||r.entry?.key!==entry.key);
-   Object.assign(r,{entry,name:e.name,d:e.d,photoURL:e.photoURL,index:batch.ids.length,rack:place.rack,slot:place.slot,bayX:place.bayX,to:target,colors:discColors(entry,e.color,e.rimColor)});
+   Object.assign(r,{entry,name:e.name,d:e.d,photoURL:e.photoURL,haloModel:e.haloModel||null,index:batch.ids.length,rack:place.rack,slot:place.slot,bayX:place.bayX,to:target,colors:discColors(entry,e.color,e.rimColor,e.haloBand)});
    if(r.fresh||(moved&&animate)){r.from=[...r.current];r.t0=now;r.fresh=false;}else if(!r.t0)r.current=[...target];
    batch.ids.push(e.id);seen.add(e.id);
    batch.plate.setColorAt(r.index,color.set(r.colors.plate));if(batch.rim)batch.rim.setColorAt(r.index,color.set(r.colors.rim));
@@ -186,8 +186,8 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  const pulledTarget=r=>{const s=pulledSpot(r.to,{bayX:r.bayX});return s;};
  function restyle(p,r){
   // A recolour or a new mold while out: rebuild the proxy in place.
-  const key=JSON.stringify([r.entry.key,r.colors,r.name,r.photoURL]);if(p.key===key)return;
-  const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,name:r.name,photoURL:r.photoURL,onChange:()=>view.request()});
+  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL]);if(p.key===key)return;
+  const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,onChange:()=>view.request()});
   if(p.proxy){next.position.copy(p.proxy.position);next.quaternion.copy(p.proxy.quaternion);discRoot.remove(p.proxy);disposeObject(p.proxy);}
   p.proxy=next;p.key=key;discRoot.add(next);
  }

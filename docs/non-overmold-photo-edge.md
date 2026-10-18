@@ -1,5 +1,7 @@
 # Non-overmold photo discs must not grow a rim
 
+> **Closed October 16, 2026.** PR #9 reverted on `codex/photo-edge-revert`; the full-edge project is dropped. See [photo-edge-revert.md](photo-edge-revert.md). This page stays as the record; its suites and code are gone from the tree.
+
 Branch `codex/non-overmold-photo-edge`, from `main` at `0dedf8a` (the PR #8 merge). October 16, 2026.
 Freddy's report, from the deployed PR #7 build: his 30-stamp Wraith reads as if a rim was added (the
 pattern changes near the edge instead of running to it), and his Halo Star Wraith in Storage renders its

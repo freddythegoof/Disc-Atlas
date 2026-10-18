@@ -74,5 +74,5 @@
 #sortBar button:has(>.dd-indicator) {padding-right:8px}
 
 /* Disclosures: the native triangle gives way to the indicator, in the same place. */
-:is(.specs,.disc-sources,.shop-searches)>summary {display:flex;align-items:center;gap:6px;list-style:none}
-:is(.specs,.disc-sources,.shop-searches)>summary::-webkit-details-marker {display:none}
+:is(.specs,.disc-sources,.shop-searches,.photo-aligner-adjust)>summary {display:flex;align-items:center;gap:6px;list-style:none}
+:is(.specs,.disc-sources,.shop-searches,.photo-aligner-adjust)>summary::-webkit-details-marker {display:none}

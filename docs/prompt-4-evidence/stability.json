@@ -1,0 +1,18 @@
+[
+  {
+    "exit": "pointer-leave",
+    "hidden": true
+  },
+  {
+    "exit": "focus-out",
+    "hidden": true
+  },
+  {
+    "exit": "Escape",
+    "hidden": true
+  },
+  {
+    "exit": "outside click",
+    "hidden": true
+  }
+]
