@@ -214,7 +214,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  }
  return {get,has,render,lodFor,stats,dispose,dpr,
   // For tests and tuning.
-  debug:{renderer,scene,camera,key,fill,slope,slopePower,plateMaterial,rimMaterial,shapeOf,images,geometries}};
+  debug:{renderer,scene,camera,key,fill,slope,slopePower,plateMaterial,rimMaterial,haloRim,shapeOf,images,geometries}};
 }
 
 // Atlas and lists share one offscreen context, geometry pool and color-aware image cache.

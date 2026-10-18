@@ -16,6 +16,8 @@
 //                    the previous sampler stored it, for the before/after
 // Each draws in the detail panel (top and 3/4), My Bag pulled and the bag list thumbnail.
 //
+// HALO_REFERENCE=v2: the reference is a v2 tree (the swirl-streak experiment's before/after): no '-main' copies,
+// each disc against itself across the two renderers.
 // EDGE_REFERENCE=<built checkout of main> draws every surface through that tree first. The renderers are the
 // same on both sides of the band-sampling fix, so every surface must match it pixel for pixel (GPU tolerance).
 // PR #23's own before/after (main without Halo) is recorded in docs/halo-plastic.md.
@@ -44,9 +46,8 @@ const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),dist=(a,b)=>Math.hypot(
 const lab=h=>{const lin=c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;},[r,g,b]=hex(h).map(lin),f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
  const fx=f((.4124*r+.3576*g+.1805*b)/.95047),fy=f(.2126*r+.7152*g+.0722*b),fz=f((.0193*r+.1192*g+.9505*b)/1.08883);return [116*fy-16,500*(fx-fy),200*(fy-fz)];};
 const dE=(a,b)=>{const p=lab(a),q=lab(b);return Math.hypot(p[0]-q[0],p[1]-q[1],p[2]-q[2]);},chroma=h=>Math.hypot(lab(h)[1],lab(h)[2]);
-// The swirl's dye as the pipeline itself de-lights it (the solid-dye control, tests/halo-band-sampling.mjs), and
-// the band the previous sampler stored for the swirl (the pastel median).
-const SWIRL_DYE='#5a267b',SWIRL_OLD='#8e709a';
+// The swirl's dye as the pipeline itself de-lights it (the solid-dye control, tests/halo-band-sampling.mjs).
+const SWIRL_DYE='#5a267b';
 // Halo v2 (docs/halo-band-v2.md): the asymmetric swirl's wash as the pipeline de-lights it (its wash-only control),
 // and the front tolerance: RMS 0.015 R and worst 0.035 R against the drawn front, both under its 0.045 R feather.
 const ASYM_WASH=(()=>{const d=swirlCrop(1024,{washOnly:true});delightPixels(d,1024,{});return bandColor(d,1024,SEAM);})(),FRONT_RMS=.015,FRONT_MAX=.035;
@@ -63,7 +64,7 @@ try{
  const deadline=Date.now()+45000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(output);await new Promise(r=>setTimeout(r,200));}
  browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.env.BAG3D_CHROMIUM_ARGS?.split(' ')||(process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu'])});
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),errors=[];
- const reference=await referenceTree(context,base);
+ const reference=await referenceTree(context,base),MAIN=!!reference&&process.env.HALO_REFERENCE!=='v2';
  page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{
   const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64');
@@ -108,11 +109,11 @@ try{
  const asym=variant('asym',{asym:true});
  for(const c of [asym,variant('fat',{front:.80}),variant('solid',{pure:true})])await addDisc(page,dir,c);
  // The before half: the same photos saved through the reference tree's own editor and sampler.
- if(reference){
+ if(MAIN){
   reference.on=true;await page.goto(base+'/?bag=1');await page.locator('[data-bag-edit]').first().waitFor();
   await addDisc(page,dir,swirl);await addDisc(page,dir,asym);reference.on=false;await page.goto(base+'/?bag=1');
  }
- const ALL=[...CASES.map(([k])=>k),'destroyer-bare','swirl','asym','fat','solid',...reference?['swirl-main','asym-main']:[]];
+ const ALL=[...CASES.map(([k])=>k),'destroyer-bare','swirl','asym','fat','solid',...MAIN?['swirl-main','asym-main']:[]];
  let data=await (await page.request.get(base+'/api/bag')).json();
  assert.equal(data.discs.length,ALL.length);
  const ids=Object.fromEntries(data.discs.map((d,i)=>[ALL[i],d.id]));
@@ -129,7 +130,8 @@ try{
  // The swirl stores its dye: within ΔE 6 of the de-lit dye, at least 85% of its chroma (not the pastel median).
  const swirlBand=S.swirl.photo_rim_color;
  assert.ok(swirlBand&&dE(swirlBand,SWIRL_DYE)<=6&&chroma(swirlBand)>=.85*chroma(SWIRL_DYE),`swirl band ${swirlBand} is the dye ${SWIRL_DYE} (ΔE ${swirlBand&&dE(swirlBand,SWIRL_DYE).toFixed(1)})`);
- if(reference)assert.ok(dE(S['swirl-main'].photo_rim_color,SWIRL_OLD)<=4,`the reference editor stores the old pastel band (${S['swirl-main'].photo_rim_color} vs ${SWIRL_OLD})`);
+ // v2 never moves the dye: the reference editor (main, PR #24's sampler) stores the same band for the same photo.
+ if(MAIN)for(const k of ['swirl','asym'])assert.equal(S[k+'-main'].photo_rim_color,S[k].photo_rim_color,`${k}: the same dye as main stores`);
  // v2: the asymmetric swirl stores its wash and a front that tracks the drawn one; the controls store none.
  const model=parseHalo(S.asym.photo_halo);assert.ok(model,`the asymmetric swirl stores a two-colour model (${S.asym.photo_halo})`);
  assert.ok(dE(model.wash,ASYM_WASH)<=4,`stored wash ${model.wash} ≈ the drawn wash ${ASYM_WASH} (ΔE ${dE(model.wash,ASYM_WASH).toFixed(1)})`);
@@ -140,7 +142,7 @@ try{
  assert.ok(metrics.front.rms<=FRONT_RMS&&metrics.front.max<=FRONT_MAX,`the stored front tracks the drawn front (${JSON.stringify(metrics.front)})`);
  for(const k of ['fat','solid','halo-star','destroyer-halo'])assert.equal(S[k].photo_halo,null,`${k}: one colour across the band, no two-colour model`);
  assert.ok(S.fat.photo_rim_color&&S.solid.photo_rim_color,'the controls still store their dye');
- if(reference)for(const k of ['swirl-main','asym-main'])assert.equal(S[k].photo_halo,null,`${k}: the reference editor stores no model`);
+ if(MAIN)for(const k of ['swirl-main','asym-main'])assert.equal(S[k].photo_halo,null,`${k}: the reference editor stores no model`);
 
  const rings=(png,{cx,cy,R})=>page.evaluate(async({b64,cx,cy,R})=>{
   const img=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=new OffscreenCanvas(img.width,img.height),g=c.getContext('2d');g.drawImage(img,0,0);
@@ -163,7 +165,7 @@ try{
    await page.waitForFunction(({photo,mold})=>{const v=Disc3D.viewer;return v&&v.state.props?.mold===mold&&(!photo||v.debug.photo?.userData.photoReady);},{photo,mold:k.startsWith('destroyer')?'Destroyer':k==='pixel'?'Pixel':'Wraith'},{timeout:20000});await page.waitForTimeout(400);
    await page.locator('#detail .disc3d-canvas').first().screenshot({path:`${dir}/${label}-${k}-panel-angle.png`});
    // The edge-on and underside views, for the before/after sheets of the two-colour band.
-   if(['asym','asym-main','fat'].includes(k))for(const view of ['profile','bottom']){
+   if(['asym','asym-main','fat','swirl'].includes(k))for(const view of ['profile','bottom']){
     await page.evaluate(view=>{const v=Disc3D.viewer;v.setView(view,{instant:true});v.debug.renderNow();},view);await page.waitForTimeout(150);
     await page.locator('#detail .disc3d-canvas').first().screenshot({path:`${dir}/${label}-${k}-panel-${view}.png`});
    }
@@ -217,7 +219,7 @@ try{
  const now=metrics.after=await surfaces(reference?'after':'current');
 
  // Halo copies: the band, as plastic, outside the photo; the photo reach is the shoulder, unchanged.
- for(const k of ['halo-star','destroyer-halo','swirl','asym','fat','solid',...reference?['swirl-main','asym-main']:[]]){
+ for(const k of ['halo-star','destroyer-halo','swirl','asym','fat','solid',...MAIN?['swirl-main','asym-main']:[]]){
   const p=now[k].panel,band=S[k].photo_rim_color;
   assert.equal(p.overmold,false,`${k}: never an overmold`);assert.equal(p.band,band);assert.equal(p.multi,true);assert.equal(p.rim,band);
   assert.equal(p.rimRoughness,p.plateRoughness,`${k}: the band wears the plate's plastic`);
@@ -241,6 +243,8 @@ try{
    // Linear tone mapping at low exposure keeps light proportional (no highlight roll-off, no clipping), so the share
    // reads the band's own albedo blend; the product's Neutral mapping is what a person sees.
    if(linear){art.debug.renderer.toneMapping=1;art.debug.renderer.toneMappingExposure=.3;}
+   // The experiment's wisps lighten the dye; measured without them, the blend is the front's alone.
+   if(art.debug.haloRim?.haloStreak)art.debug.haloRim.haloStreak.value=0;
    const d=discs.find(x=>x.id===mold),lin=c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;};
    const draw=(id,b,m)=>{const e=art.render({...d,id:'halo-ray-'+id,haloBand:b,...m&&{haloModel:m}},color,96,undefined,'full');
     return {px:e.px,R:(e.px-2)/2,data:e.canvas.getContext('2d').getImageData(0,0,e.px,e.px).data};};
@@ -285,10 +289,12 @@ try{
   }
   // The asymmetric swirl, v1 (main's editor and renderer) against v2, the same photo: inside the photo, the same;
   // at 0.88 R the v2 band is the wash's, and at the lip both are dye.
+  if(MAIN){
   const before=now['asym-main'].panel.rings,after=now.asym.panel.rings,wash=parseHalo(S.asym.photo_halo).wash;
   assert.ok(dE(after[.88],wash)+10<dE(before[.88],wash),`asym 0.88 R: the wash ring shows (${after[.88]} vs v1 ${before[.88]}, wash ${wash})`);
   assert.ok(dE(after[.97],before[.97])<=12,`asym 0.97 R: still the dye at the lip (${after[.97]} vs v1 ${before[.97]})`);
   for(const f of INNER)assert.ok(dist(before[f],after[f])<=6,`asym ${f} R: the photo is the same photo`);
+  }
  }
 
  // The photo_rim_color contract, Halo side: levelling re-samples, a plastic change hides a stale sample,
@@ -316,6 +322,7 @@ try{
  assert.deepEqual(errors,[]);
  const ring=k=>now[k].panel.rings[.94];
  console.log(`ok - halo plastic: Wraith band ${S['halo-star'].photo_rim_color} (drawn ${COLORS.band}), Destroyer band ${S['destroyer-halo'].photo_rim_color} (dyed ${BAND}); at 0.94 R Halo ${ring('halo-star')} vs Star ${ring('halo-plain')}; photo reach ${now['halo-star'].panel.photoReach} R both; level ${metrics.levelled}, replace ${metrics.replaced}, remove null`+
-  `; swirl band ${swirlBand} (dye ${SWIRL_DYE})`+(reference?`, before the fix ${S['swirl-main'].photo_rim_color}; vs main: every surface max ${Math.max(...Object.values(metrics.pixelDiff).map(d=>d.max))}`:''));
+  `; swirl band ${swirlBand} (dye ${SWIRL_DYE})`+`; v2 asym wash ${parseHalo(S.asym.photo_halo).wash} front rms ${metrics.front.rms} max ${metrics.front.max} R, on screen within ${Math.max(...metrics.rays.map(r=>Math.abs(r.rendered-r.drawn))).toFixed(3)} R, blend ${Math.min(...metrics.rays.map(r=>r.blend))}–${Math.max(...metrics.rays.map(r=>r.blend))} R`+
+  (reference?`; vs main: dye unchanged, unmodelled surfaces max ${Math.max(...Object.entries(metrics.pixelDiff).filter(([k])=>!S[ALL.find(n=>k.startsWith(n+'-panel')||k.startsWith(n+'-bag')||k.startsWith(n+'-thumb'))]?.photo_halo).map(([,d])=>d.max))}`:''));
 }catch(error){if(page)await page.screenshot({path:dir+'/failure.png',fullPage:true}).catch(()=>{});throw error;}
 finally{await browser?.close();server.kill();}
