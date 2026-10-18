@@ -15,7 +15,10 @@ const server=http.createServer((req,res)=>{
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:['--use-angle=d3d11','--enable-gpu']});
+// GPU flags as the 3D perf gate chooses them (BAG3D_CHROMIUM_ARGS overrides): ANGLE/D3D11 on Windows, the platform GPU
+// elsewhere. On macOS the D3D11 flags fall back to software WebGL, which leaves the atlas on its 2D discs.
+const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?process.env.BAG3D_CHROMIUM_ARGS.split(' ').filter(Boolean):process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu'];
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs});
 const errors=[],report=[],pixelFailures=[];
 const camera=()=>({zoom,x:pan.x,y:pan.y,selected:selected?.id,active:!!cameraTween,intro:!!atlasIntro});
 async function open(device,{reduced=false,freeze=false,baseline=false,seen=false}={}){
@@ -36,6 +39,7 @@ async function open(device,{reduced=false,freeze=false,baseline=false,seen=false
      ${freeze?"cancelAnimationFrame(mapFrame);mapFrame=0;window.resumeDraw=scheduleMapDraw;scheduleMapDraw=()=>{};":''}
     }
    };
+   const realSettle=settleAtlas;settleAtlas=function(){const done=realSettle();if(done)window.settles=(window.settles||0)+1;return done;};
    const realFocus=focusFeatured;focusFeatured=function(){window.presentationRequested??=performance.now();return realFocus();};
    const realStep=stepCamera;stepCamera=function(now){${freeze?"if(!window.manualIntroStep)return;":''}const intro=!!atlasIntro,first=atlasIntro?.at===null;realStep(now);if(first&&atlasIntro)window.introMeasurement.at=atlasIntro.at;if(intro&&!atlasIntro&&window.introMeasurement)window.introMeasurement.elapsed=now-window.introMeasurement.at;};
    const realDraw=draw;draw=function(){realDraw();if(typeof view!=='undefined'&&view==='map'&&mapClusters.length&&!window.firstAtlasQueued){window.firstAtlasQueued=true;requestAnimationFrame(()=>{window.firstAtlasFrame=performance.now();window.firstAtlasZoom=zoom;});}};
@@ -47,7 +51,8 @@ async function open(device,{reduced=false,freeze=false,baseline=false,seen=false
  await page.waitForFunction(()=>mapClusters.length>0);
  return page;
 }
-async function settle(page){await page.waitForFunction(()=>!cameraTween);await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(800);}
+// A presentation rests once its settle (settleAtlas) has drawn it from nothing.
+async function settle(page){await page.waitForFunction(()=>!cameraTween);await page.evaluate(()=>document.fonts.ready);await page.waitForFunction(()=>!atlasSettling);await page.waitForTimeout(800);}
 try{
  if(process.argv.includes('--load-bench')){
   const samples=[];
@@ -75,11 +80,15 @@ try{
    label:n.querySelector('.marker-name').getBoundingClientRect().toJSON(),art:n.art.getBoundingClientRect().toJSON(),transform:getComputedStyle(n.position).transform})).sort((a,b)=>a.id.localeCompare(b.id)),
    gaps:mapGaps.filter(g=>g.drawn).map(g=>({id:g.id,tier:g.tier,x:g.x,y:g.y,size:g.size,art:g.art,three:g.three,lod:g.lod,want:g.want,strength:g.strength})).sort((a,b)=>(a.id+a.tier).localeCompare(b.id+b.tier))});
   assert.deepEqual(await page.evaluate(resting),await direct.evaluate(resting),'Completed and direct no-animation camera, art, labels, tiers and pixel geometry match exactly');
-  const finishedPixels=await page.locator('#map').screenshot(),directPixels=await direct.locator('#map').screenshot();
-  const pixelEquivalent=finishedPixels.equals(directPixels);
-  if(!pixelEquivalent){
-   pixelFailures.push(device);fs.writeFileSync(`${out}/${device}-pixel-finished.png`,finishedPixels);fs.writeFileSync(`${out}/${device}-pixel-direct.png`,directPixels);
-  }
+  await calm.waitForFunction(()=>mapArt.pending===0);
+  // Each rest is drawn from nothing exactly once: the reveal's landing, the direct open and the reduced-motion open.
+  for(const p of [page,direct,calm])assert.equal(await p.evaluate(()=>window.settles),1,'One settle per presentation');
+  // Strict: raw PNG bytes of the map, reveal vs direct and reduced-motion vs direct. Saved either way as proof.
+  const finishedPixels=await page.locator('#map').screenshot(),directPixels=await direct.locator('#map').screenshot(),calmPixels=await calm.locator('#map').screenshot();
+  const pixelEquivalent=finishedPixels.equals(directPixels)&&calmPixels.equals(directPixels);
+  fs.mkdirSync(`${out}/takeover`,{recursive:true});
+  for(const [name,png] of [['reveal',finishedPixels],['direct',directPixels],['reduced',calmPixels]])fs.writeFileSync(`${out}/takeover/${device}-rest-${name}.png`,png);
+  if(!pixelEquivalent)pixelFailures.push(device);
   // Every fully rendered marker and readable label remains inside the map on both aspect ratios.
   const clipped=await page.evaluate(()=>{
    const b=canvas.getBoundingClientRect();
@@ -107,7 +116,7 @@ try{
   }
   const baseline=await open(device,{baseline:true});await settle(baseline);
   const firstFrameBaseline=await baseline.evaluate(()=>window.firstAtlasFrame);
-  report.push({device,timing,firstFrameBaseline,frames,clipped,pixelEquivalent});
+  report.push({device,gpuArgs,art:await page.evaluate(()=>mapArt.state),timing,firstFrameBaseline,frames,clipped,pixelEquivalent,pixelMethod:'Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct'});
   for(const p of [page,calm,direct,proof,baseline])await p.context().close();
   console.log('ok - '+device+': start / end, reduced motion, session return / reload, marker fit, proof frames');
  }
@@ -143,6 +152,6 @@ try{
  }
  assert.deepEqual(errors,[]);fs.writeFileSync(`${out}/measurements.json`,JSON.stringify(report,null,2));
  console.log(JSON.stringify(report,null,2));
- assert.deepEqual(pixelFailures,[],'Strict resting-frame PNG equality remains unmet for these devices');
+ assert.deepEqual(pixelFailures,[],'Strict resting-frame PNG equality');
  }
 }finally{await browser.close();await new Promise(r=>server.close(r));}

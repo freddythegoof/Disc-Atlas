@@ -113,3 +113,164 @@ Further fix attempts stopped under the Map QA skill's two-strikes rule. This com
 ## Feel check after a future deployment
 
 No deployment was performed. On a real phone and desktop, cold-open a new session, confirm the close-up and breath, then grab the atlas during the retreat. It should be the player's immediately. Phone must still open in Directory. This local browser proof does not replace Freddy's real-device feel check.
+
+## Takeover: resting-frame pixel equality (Opus)
+
+Opus continued on the same branch with new commits on top of Sol's `3c5613a`; Sol's write-up above is unchanged.
+
+The reveal itself is unchanged:
+
+- Same spring, timing and easing, re-measured at **1,583.2–1,583.3 ms** on desktop and phone.
+- Same tight Destroyer open, instant catch and once-per-session behavior.
+- Reduced motion still opens at the end framing.
+
+Zoom limits, the three tiers, label rules, marker persistence and all photo code are untouched.
+
+### Characterization: what differed
+
+**Method.** Each check takes a `#map` PNG screenshot, decodes it to raw RGBA and counts every pixel with any channel difference. The diff is split by layer:
+
+- the page as shown;
+- the canvas alone (`toDataURL`);
+- the DOM alone (canvas hidden);
+- everything except the marker layer.
+
+These numbers use Sol's original GPU flags, which on this Mac fall back to software WebGL and the 2D disc art. Full numbers are in [layer-diff.json](assets/atlas-intro-reveal/takeover/layer-diff.json).
+
+| Before the fix | Desktop 1440 × 900 | Phone 390 × 844 |
+| --- | ---: | ---: |
+| Whole map | 168,608–169,918 px, max Δ 214 | 16,356 px, max Δ 80 |
+| Canvas only | 9,015 px, max Δ 255 | 0 |
+| DOM only | 162,693–164,000 px, max Δ 159 | 16,339 px, max Δ 80 |
+| Two direct opens, same build | 0 | 0 |
+
+The following were ruled out, because they were identical between the completed reveal and the direct open:
+
+- the camera (`zoom 1, x 0, y 0` bit for bit);
+- the canvas buffer;
+- the sets of markers and small discs and their tier, LOD and strength records;
+- the group lists (`mapClusters` and `groupCache.gaps` order).
+
+No animation residual remained on the camera. The delta came from history kept in the layers under the camera.
+
+**1. Paint order is first-appearance order.** `renderMarkers` appends a marker's node when its group first appears, and the node persists. `drawGaps` iterates `gapFade`, a `Map` in insertion order.
+
+- A direct open builds both at the rest camera, so each order equals the group list's order, which was verified.
+- The reveal builds both at 2.8× or 4× and adds to them as it pulls back.
+  - Desktop: the same 24 markers and 53 small discs, in a different order.
+  - Phone: the same 6 markers, with two swapped.
+- Overlapping drop shadows and art therefore stack differently.
+
+As an experiment, the reveal's nodes and entries were moved into the direct order with nothing else changed. The desktop DOM delta fell to **0**. See the [desktop mask](assets/atlas-intro-reveal/takeover/before-desktop-diff-mask.png) and [phone mask](assets/atlas-intro-reveal/takeover/before-phone-diff-mask.png). This is the ordering Sol identified; it is necessary but not sufficient.
+
+**2. Small-name bitmaps are cached in whatever face had loaded.** After the reorder, the desktop canvas still differed by 9,015 px, all on canvas-drawn small-disc names. See the [mask](assets/atlas-intro-reveal/takeover/before-desktop-canvas-after-reorder-mask.png) and the [crop: reveal | direct | diff](assets/atlas-intro-reveal/takeover/before-desktop-stale-name-crop.png).
+
+`gapName()` caches each bitmap under its text, font string, width, theme and dpr. `remeasureLabels` re-measures footprints whenever a font finishes loading but never invalidated these bitmaps. Logging each bitmap's creation against `document.fonts.check()` showed:
+
+- Names drawn before DM Sans 600 finished loading were rasterized in the fallback face and kept for good. Up to 10 of 19 bitmaps differed under identical keys; one differed in width ("Insanity", 61 px vs 60 px).
+- Which names land in that window depends on camera history.
+- The direct open itself rested with **18 of 19** names in the fallback face. The static open's pixels depended on font timing, and Sol's direct proof frames show this.
+
+**3. The browser's raster keeps its first frames.** Once causes 1 and 2 were fixed, the reduced-motion open differed from the session-seen open.
+
+- With 2D art: 2 px at Δ 1, deterministic. Rebuilding that page's markers at rest cleared it. Under reduced motion, art arrives without the arrive-fade, so the first frames invalidate differently.
+- With GPU 3D art (`--enable-gpu`, the path the perf gate and real devices use):
+  - Settle without re-insert: 2 channel values at Δ 1 in reduced-motion opens in 6 of 6 fresh browsers, and once in 6 in reveal opens. A second direct open was 0 of 6.
+  - Every DOM- and CSS-observable state was identical: computed styles, markup, art bitmaps and the composited layer tree.
+  - Media flips, marker rebuilds and art-canvas replacement left the residue in place. A viewport resize cycle cleared it, and so did re-inserting `#map` in place.
+  - The residue lives in the map element's own composited raster. Evidence: [gpu-raster-residue.json](assets/atlas-intro-reveal/takeover/gpu-raster-residue.json).
+
+### Fix: every presentation's rest is drawn from nothing
+
+The working hypothesis held and was extended. The reveal already ends on the static open's camera, through the same fit computation. Exactness also needs the layers under the camera to keep nothing of how they got there.
+
+**`settleAtlas()`** (`public/atlas-map.js`) runs once for every shared-Atlas presentation:
+
+- the reveal's landing;
+- a session-seen or reduced-motion open;
+- a return to the map.
+
+It waits until the presentation is still and fully loaded:
+
+- art not loading, fonts loaded;
+- no regroup, retirement or pending art;
+- no small disc or name mid-fade;
+- no `.is-new`, `.is-retiring` or `.is-arriving` marker.
+
+Then, in one task, it:
+
+- drops the marker nodes, `gapFade`, the grouping (`groupCache`/`groupContext`) and the label-density hysteresis flag;
+- moves `#map` in place, so it is rasterized afresh (its canvas keeps its bitmap, and focus is restored);
+- draws the camera from nothing, which is exactly what an open's first frame does.
+
+Paint order, held LODs, grouping levels and raster state are then those of a first frame at that camera, by construction rather than by tuning. Nothing visibly changes except which of two overlapping shadows sits on top.
+
+**Limits on the settle:**
+
+- It never runs under the pointer, a pin or keyboard focus on a disc; the player is there, and `pointerleave` looks again.
+- Any input (the intro's capture handler) cancels it, and so does any later camera motion, programmatic or not. It is one-shot.
+- Cost, measured as a fresh rebuild at rest: 3–16 ms on desktop, 10–34 ms on a 4×-throttled phone. That is under the 50 ms long-task threshold and the same work a direct open does on its first frame.
+
+**Small names follow font loads.** `remeasureLabels` now advances `gapNameFonts`, and each cached name records the value it was drawn under.
+
+- A stale name stands in until it is redrawn within the existing per-frame budget, and the frame asks for another draw meanwhile, so names never blink.
+- This completes the existing re-measure-on-font-load contract. Which names show, and how strongly, is unchanged.
+- Visible consequence: canvas small names now rest in DM Sans in every open, not the fallback face.
+
+### Proof
+
+**Comparison method.** Sol's harness, `tests/atlas-intro-reveal-browser.mjs`, compares raw PNG bytes (`Buffer.equals`) of `#map` element screenshots at dpr 1. Byte equality implies pixel equality. Extensions:
+
+- `settle()` waits for the presentation's settle, and each of the three opens must settle exactly once.
+- The reduced-motion open's PNG must equal the session-seen open's, alongside the reveal's. All resting frames are saved.
+- GPU flags follow the perf gate's convention: D3D11 on Windows, `--enable-gpu` elsewhere, `BAG3D_CHROMIUM_ARGS` to override. On this Mac, Sol's hard-coded D3D11 flags never reached the 3D art. The report records the art state.
+
+The harness was run with both flag sets ([harness-runs.json](assets/atlas-intro-reveal/takeover/harness-runs.json)):
+
+| After the fix | Desktop | Phone |
+| --- | --- | --- |
+| Reveal vs session-seen open, 2D art (Sol's flags) | identical bytes | identical bytes |
+| Reduced motion vs session-seen open, 2D art | identical bytes | identical bytes |
+| Reveal vs session-seen open, GPU 3D art | identical bytes | identical bytes |
+| Reduced motion vs session-seen open, GPU 3D art | identical bytes | identical bytes |
+| Fresh-browser repeats, GPU 3D: reveal / reduced / direct vs direct | 0 / 0 / 0 in 6 rounds | 0 / 0 / 0 in 3 rounds |
+
+Before frames are Sol's failing pairs, retained:
+
+- [desktop completed](assets/atlas-intro-reveal/desktop-pixel-finished.png) / [desktop direct](assets/atlas-intro-reveal/desktop-pixel-direct.png)
+- [phone completed](assets/atlas-intro-reveal/phone-pixel-finished.png) / [phone direct](assets/atlas-intro-reveal/phone-pixel-direct.png)
+
+After frames, GPU 3D art, byte-identical across each row:
+
+| | Reveal, settled | Session-seen open | Reduced motion |
+| --- | --- | --- | --- |
+| Desktop | [reveal](assets/atlas-intro-reveal/takeover/desktop-rest-reveal.png) | [direct](assets/atlas-intro-reveal/takeover/desktop-rest-direct.png) | [reduced](assets/atlas-intro-reveal/takeover/desktop-rest-reduced.png) |
+| Phone | [reveal](assets/atlas-intro-reveal/takeover/phone-rest-reveal.png) | [direct](assets/atlas-intro-reveal/takeover/phone-rest-direct.png) | [reduced](assets/atlas-intro-reveal/takeover/phone-rest-reduced.png) |
+
+The start, mid and end proof frames above were regenerated by the same GPU run, so they now show the 3D art.
+
+### Other checks
+
+All runs below are on this branch's final code.
+
+**Unit tests.** All 252 non-browser tests pass: `node --test` over `tests/*.mjs`, excluding `*-browser`, the perf gate, and the three dev-server suites `motion`, `palette` and `redesign`. Sol's commit gives the same 252/252. Sol's 236 is this set minus 16 single-test script files, so all 236 are green. That includes the 7 intro camera tests and the 6 Apple camera tests.
+
+**Browser suites:**
+
+- **Reveal:** green under both GPU flag sets, three consecutive passes, including one under another agent's load.
+- **3D:** 11 checks passed.
+- **Readable/clickable persistence:** 13 checks passed.
+- **Speed band:** 991 drawn discs stay in their band.
+- **Depth:** 8 checks passed.
+- **Apple camera/design:** 16 checks passed. One run under heavy machine load failed its 30 ms theme-fallback backdrop timing check. That check involves no map code, and theme clicks cancel any pending settle. It passed 2/2 on immediate rerun, and also passed 2/2 on Sol's commit.
+- **Organic layout:** now **6/6**, including `desktop full: same pixels`, which Sol had open. Its determinism check opens two fresh pages and immediately sets `zoom=1` and filters programmatically. Under the reveal, that cut the intro at whatever point each page had reached, so the two pages started from different camera histories. `open()` now waits for the presentation's rest (`!atlasIntro&&!atlasSettling`) before acting. The strict PNG assertion is unchanged.
+
+**Perf gate: not rerun.** Throughout this session another agent's browser tests were running in a separate checkout (`tests/halo-plastic-browser.mjs` with a wrangler dev server), at load averages of 3–6. That is not the quiet window the gate needs, and nothing in it was loosened. The change adds one 3–34 ms task per presentation, at rest and below the long-task threshold. The gate compares 3D against 2D inside one build, so the opening affects both arms. Sol's finding stands as an environment result for Freddy's own quiet rerun, with the final build and the old opening side by side.
+
+**Graphify.** This branch predates the Graphify adoption (no `graphify-out/`, no CLI installed here), so there was no graph to refresh.
+
+### Review notes for Freddy
+
+- The settle covers every shared-Atlas presentation, not only the reveal. That is what makes the reduced-motion and session-seen opens equal to each other, not just to the reveal.
+- On desktop, with the mouse resting over the map, the settle waits for the pointer to leave. Until then the rest keeps the reveal's paint order, which differs only where shadows overlap. Moving or clicking takes the map as usual and cancels the settle.
+- Moving `#map` in place is the heaviest part of the settle. It happens once per presentation, at rest, with no pointer, pin or disc focus. Watch for it in the real-device feel check: when the reveal lands and about a beat later, nothing should visibly change.

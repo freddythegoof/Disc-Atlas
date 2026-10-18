@@ -1,0 +1,19 @@
+{
+ "method": "Each open in its own fresh headless Chromium (--enable-gpu, 3D art ready), desktop 1440x900 / phone 390x844 at dpr 1; #map PNG decoded to raw RGB; count of differing channel values against a session-seen direct open in the same round, with the largest delta.",
+ "settle_without_map_reinsert": {
+  "desktop": {"reveal": ["2ch Δ1", "0", "0", "0", "0", "0"], "reduced_motion": ["2ch Δ1", "2ch Δ1", "2ch Δ1", "2ch Δ1", "2ch Δ1", "2ch Δ1"], "direct_again": ["0", "0", "0", "0", "0", "0"]}
+ },
+ "ruled_out_while_present": [
+  "computed style of every element under #mapMarkers and of #mapMarkers' ancestors and #map's children (all properties but transition*/animation*): identical",
+  "#mapMarkers markup: identical (22,988 chars)",
+  "3D art bitmaps on markers and the whole art cache (77 entries): identical",
+  "composited layer tree (drawing layers, geometry, compositing reasons): identical, 65 layers each",
+  "flipping the media query, settling again, re-inserting #mapMarkers, replacing every art canvas: residue stays",
+  "closed popovers' reduced-motion transform override, detail-panel flight path: not it"
+ ],
+ "cleared_by": ["a viewport resize cycle then a settle", "re-inserting #map in place (3/3 runs)"],
+ "settle_with_map_reinsert": {
+  "desktop": {"reveal": ["0", "0", "0", "0", "0", "0"], "reduced_motion": ["0", "0", "0", "0", "0", "0"], "direct_again": ["0", "0", "0", "0", "0", "0"]},
+  "phone": {"reveal": ["0", "0", "0"], "reduced_motion": ["0", "0", "0"], "direct_again": ["0", "0", "0"]}
+ }
+}

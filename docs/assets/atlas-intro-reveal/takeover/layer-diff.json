@@ -1,0 +1,513 @@
+{
+ "method": "Layer-split diff of #map PNG screenshots (sharp raw RGBA, per-pixel max channel delta). full = page as shown; canvas = canvas.toDataURL; dom = canvas hidden; noDom = #mapMarkers hidden. reveal = completed reveal; direct/direct2 = two fresh session-seen opens; reduced = reduced-motion open; reordered = reveal after moving its marker nodes and gap entries into the direct open order (experiment).",
+ "before": {
+  "desktop": {
+   "camera": [
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "canvas": [
+    [
+     1440,
+     832
+    ],
+    [
+     1440,
+     832
+    ]
+   ],
+   "reveal-vs-direct:full": {
+    "pixels": 169918,
+    "maxChannelDelta": 214,
+    "bbox": [
+     23,
+     117,
+     1378,
+     715
+    ]
+   },
+   "direct-vs-direct2:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:canvas": {
+    "pixels": 9015,
+    "maxChannelDelta": 255,
+    "bbox": [
+     186,
+     143,
+     1100,
+     699
+    ]
+   },
+   "direct-vs-direct2:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:dom": {
+    "pixels": 164000,
+    "maxChannelDelta": 159,
+    "bbox": [
+     23,
+     117,
+     1378,
+     715
+    ]
+   },
+   "direct-vs-direct2:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:noDom": {
+    "pixels": 5899,
+    "maxChannelDelta": 214,
+    "bbox": [
+     187,
+     144,
+     1097,
+     697
+    ]
+   },
+   "direct-vs-direct2:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "domOrder": {
+    "sameSet": true,
+    "sameOrder": false,
+    "directDeterministic": true,
+    "reveal": 24,
+    "direct": 24,
+    "retiringReveal": 0
+   },
+   "gapOrder": {
+    "sameSet": true,
+    "sameOrder": false,
+    "directDeterministic": true,
+    "reveal": 53,
+    "direct": 53,
+    "drawnSameOrder": false,
+    "drawnSameSet": true,
+    "drawn": [
+     53,
+     53
+    ]
+   },
+   "directDomIsClusterOrder": true,
+   "directGapIsListOrder": true,
+   "revealClusterOrderSame": true,
+   "revealGapListSame": true,
+   "reordered-vs-direct:full": {
+    "pixels": 5899,
+    "maxChannelDelta": 214,
+    "bbox": [
+     187,
+     144,
+     1097,
+     697
+    ]
+   },
+   "reordered-vs-direct:canvas": {
+    "pixels": 9015,
+    "maxChannelDelta": 255,
+    "bbox": [
+     186,
+     143,
+     1100,
+     699
+    ]
+   },
+   "reordered-vs-direct:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   }
+  },
+  "phone": {
+   "camera": [
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "canvas": [
+    [
+     390,
+     732
+    ],
+    [
+     390,
+     732
+    ]
+   ],
+   "reveal-vs-direct:full": {
+    "pixels": 16356,
+    "maxChannelDelta": 80,
+    "bbox": [
+     120,
+     139,
+     344,
+     315
+    ]
+   },
+   "direct-vs-direct2:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:dom": {
+    "pixels": 16339,
+    "maxChannelDelta": 80,
+    "bbox": [
+     120,
+     139,
+     344,
+     315
+    ]
+   },
+   "direct-vs-direct2:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "domOrder": {
+    "sameSet": true,
+    "sameOrder": false,
+    "directDeterministic": true,
+    "reveal": 6,
+    "direct": 6,
+    "retiringReveal": 0
+   },
+   "gapOrder": {
+    "sameSet": true,
+    "sameOrder": true,
+    "directDeterministic": true,
+    "reveal": 11,
+    "direct": 11,
+    "drawnSameOrder": true,
+    "drawnSameSet": true,
+    "drawn": [
+     11,
+     11
+    ]
+   },
+   "directDomIsClusterOrder": true,
+   "directGapIsListOrder": true,
+   "revealClusterOrderSame": true,
+   "revealGapListSame": true,
+   "reordered-vs-direct:full": {
+    "pixels": 1,
+    "maxChannelDelta": 1,
+    "bbox": [
+     172,
+     379,
+     172,
+     379
+    ]
+   },
+   "reordered-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reordered-vs-direct:dom": {
+    "pixels": 1,
+    "maxChannelDelta": 1,
+    "bbox": [
+     172,
+     379,
+     172,
+     379
+    ]
+   }
+  }
+ },
+ "after": {
+  "desktop": {
+   "camera": [
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "canvas": [
+    [
+     1440,
+     832
+    ],
+    [
+     1440,
+     832
+    ]
+   ],
+   "reduced-vs-direct:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reduced-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reduced-vs-direct:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "domOrder": {
+    "sameSet": true,
+    "sameOrder": true,
+    "directDeterministic": true,
+    "reveal": 24,
+    "direct": 24,
+    "retiringReveal": 0
+   },
+   "gapOrder": {
+    "sameSet": true,
+    "sameOrder": true,
+    "directDeterministic": true,
+    "reveal": 53,
+    "direct": 53,
+    "drawnSameOrder": true,
+    "drawnSameSet": true,
+    "drawn": [
+     53,
+     53
+    ]
+   },
+   "directDomIsClusterOrder": true,
+   "directGapIsListOrder": true,
+   "revealClusterOrderSame": true,
+   "revealGapListSame": true,
+   "reordered-vs-direct:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reordered-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reordered-vs-direct:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   }
+  },
+  "phone": {
+   "camera": [
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "zoom": 1,
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "canvas": [
+    [
+     390,
+     732
+    ],
+    [
+     390,
+     732
+    ]
+   ],
+   "reduced-vs-direct:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reduced-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reduced-vs-direct:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:full": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:dom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reveal-vs-direct:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "direct-vs-direct2:noDom": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "domOrder": {
+    "sameSet": true,
+    "sameOrder": true,
+    "directDeterministic": true,
+    "reveal": 6,
+    "direct": 6,
+    "retiringReveal": 0
+   },
+   "gapOrder": {
+    "sameSet": true,
+    "sameOrder": true,
+    "directDeterministic": true,
+    "reveal": 11,
+    "direct": 11,
+    "drawnSameOrder": true,
+    "drawnSameSet": true,
+    "drawn": [
+     11,
+     11
+    ]
+   },
+   "directDomIsClusterOrder": true,
+   "directGapIsListOrder": true,
+   "revealClusterOrderSame": true,
+   "revealGapListSame": true,
+   "reordered-vs-direct:full": {
+    "pixels": 1,
+    "maxChannelDelta": 1,
+    "bbox": [
+     172,
+     379,
+     172,
+     379
+    ]
+   },
+   "reordered-vs-direct:canvas": {
+    "pixels": 0,
+    "maxChannelDelta": 0,
+    "bbox": null
+   },
+   "reordered-vs-direct:dom": {
+    "pixels": 1,
+    "maxChannelDelta": 1,
+    "bbox": [
+     172,
+     379,
+     172,
+     379
+    ]
+   }
+  }
+ }
+}

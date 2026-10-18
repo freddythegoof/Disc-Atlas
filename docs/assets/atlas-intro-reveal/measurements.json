@@ -1,18 +1,22 @@
 [
   {
     "device": "desktop",
+    "gpuArgs": [
+      "--enable-gpu"
+    ],
+    "art": "ready",
     "timing": {
-      "at": 542.9,
+      "at": 72.8,
       "expected": 1580,
       "initial": {
         "zoom": 2.8,
         "x": -2286.2748206656433,
         "y": 914.8660103760259
       },
-      "elapsed": 1583.2999999999997,
-      "firstFrame": 684
+      "elapsed": 1583.2,
+      "firstFrame": 127.39999999850988
     },
-    "firstFrameBaseline": 399,
+    "firstFrameBaseline": 127.89999999850988,
     "frames": [
       {
         "name": "start",
@@ -46,12 +50,17 @@
       }
     ],
     "clipped": [],
-    "pixelEquivalent": false
+    "pixelEquivalent": true,
+    "pixelMethod": "Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct"
   },
   {
     "device": "phone",
+    "gpuArgs": [
+      "--enable-gpu"
+    ],
+    "art": "ready",
     "timing": {
-      "at": 458.7,
+      "at": 186.6,
       "expected": 1580,
       "initial": {
         "zoom": 4,
@@ -59,9 +68,9 @@
         "y": 997.9443724737773
       },
       "elapsed": 1583.2,
-      "firstFrame": 632.1999999880791
+      "firstFrame": 268.3999999985099
     },
-    "firstFrameBaseline": 612.0999999940395,
+    "firstFrameBaseline": 282.5,
     "frames": [
       {
         "name": "start",
@@ -95,6 +104,7 @@
       }
     ],
     "clipped": [],
-    "pixelEquivalent": false
+    "pixelEquivalent": true,
+    "pixelMethod": "Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct"
   }
 ]

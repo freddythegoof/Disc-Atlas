@@ -67,8 +67,10 @@ function measureFullLabels(items){
  return new Map(items.map(d=>[d.id,fullLabelFootprints.get(keyPrefix+d.id)]));
 }
 // Label footprints must use the real fonts. A face first requested by these measurements loads
-// after fonts.ready, so measure again whenever any font finishes loading.
-const remeasureLabels=()=>{fullLabelFootprints.clear();gapTypes.clear();groupContext=null;scheduleMapDraw();};
+// after fonts.ready, so measure again whenever any font finishes loading. The canvas's small names
+// (gapName) were set in whatever face had loaded: `gapNameFonts` marks them for drawing again.
+let gapNameFonts=0;
+const remeasureLabels=()=>{fullLabelFootprints.clear();gapTypes.clear();groupContext=null;gapNameFonts++;scheduleMapDraw();};
 document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
 function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;}
 // The chrome over the map in map pixels. The organic overview keeps every disc and name clear of it at
@@ -303,7 +305,7 @@ function focusFeatured(){
  zoom=camera.zoom;pan={x:camera.x,y:camera.y};draw();
 }
 // Only a presentation of the shared Atlas consumes the intro (Directory is phone home).
-let atlasPresented=false,atlasIntro=null,atlasCaught=false;
+let atlasPresented=false,atlasIntro=null,atlasCaught=false,atlasSettling=false,settleTimer=0;
 try{atlasPresented=sessionStorage.getItem('atlas-intro-seen')==='1';}catch{}
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- app.js owns shared Atlas presentations.
 function presentAtlas(){
@@ -319,7 +321,7 @@ function presentAtlas(){
  const fit=AtlasLayout.fit(extent,width,height);
  const target=boundedCamera(fit.zoom===1?{zoom:1,x:0,y:0}:fit);
  if(!first||!window.AtlasMotion?.enabled()){
-  zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;
+  zoom=target.zoom;pan={x:target.x,y:target.y};atlasSettling=true;draw();return;
  }
  focusFeatured();
  tweenCamera(target);
@@ -327,10 +329,37 @@ function presentAtlas(){
  atlasIntro={at:null,breath:token('--dur-ui',.18),duration:token('--dur-surface',.28)*5};
 }
 function catchAtlasIntro(event){
+ // Input before the rest settles: the map is the player's, as it is after any open.
+ atlasSettling=false;
  if(event?.type==='pointerdown')atlasCaught=!!atlasIntro;
  if(!atlasIntro)return;
  // A tap catches even during the opening breath, as it does during a flick.
  mapCaught=true;stopCamera();scheduleMapDraw();
+}
+// A presentation's rest is one state, whatever led to it. The reveal lands on the static open's camera exactly,
+// but the layers under it remember the trip: markers and small discs paint in the order they first appeared
+// (overlapping shadows and art stack differently), small discs hold the levels of detail they passed through, and
+// the grouping keeps the levels it was prepared at. A direct open remembers its own first frames too: art and
+// fonts arriving over them leave the browser's raster a level apart in places. So every presentation, once still
+// and fully loaded, drops all of that and draws its camera from nothing, as an open's first frame does: the rest is
+// the same by construction. Never under the pointer, a pin or keyboard focus on a disc (the player is there; leaving
+// looks again) or mid-fade (it would pop); never once the camera moves on.
+function settleAtlas(){
+ if(!atlasSettling)return false;
+ // A camera moving again (a search's fly-to, a drag) is no longer the presentation's rest.
+ if(cameraTween||mapDrag){atlasSettling=false;return false;}
+ if(pointerAt.inside||pointerAt.pressed||markerPins.size||gapPins.size||$('#mapMarkers').contains(document.activeElement))return false;
+ if(artState==='loading'||document.fonts.status!=='loaded'||regrouping||retirementTimer||retirementFrame||gapsMoving||artPending||$('#mapMarkers').querySelector('.is-new,.is-retiring,.is-arriving')){
+  clearTimeout(settleTimer);settleTimer=setTimeout(scheduleMapDraw,ART_SETTLE);return false;
+ }
+ atlasSettling=false;
+ for(const node of markerNodes.values()){window.gsap?.killTweensOf([node,...node.children]);clearTimeout(node.artTimer);clearTimeout(node.fadeTimer);node.position.remove();}
+ markerNodes.clear();gapFade.clear();gapClock=0;groupCache=null;groupContext=null;satelliteLabelsSuppressed=false;
+ // The map's own composited raster keeps its first frames as well (a level apart, under GPU raster, where shadows
+ // thin out). Moved in place, it is rasterized afresh; its canvas keeps its bitmap and is drawn again at once.
+ const map=$('#map'),focused=map.contains(document.activeElement)?document.activeElement:null;
+ map.parentNode.insertBefore(map,map.nextSibling);focused?.focus({preventScroll:true});
+ return true;
 }
 function draw(){
  // Fonts/worker callbacks can schedule a frame before app.js has initialized.
@@ -373,6 +402,7 @@ function draw(){
  if(artPending)scheduleMapDraw();
  // Pins let go when the pointer has been away a while: look again.
  if(markerPins.size||gapPins.size){clearTimeout(pinTimer);pinTimer=setTimeout(scheduleMapDraw,120);}
+ if(atlasSettling&&settleAtlas())draw();
 }
 // A steady dashed outline identifies tray membership independently of hover/selection glow.
 // Paint in screen pixels outside the art, including small canvas discs and a stack's hidden members.
@@ -399,7 +429,7 @@ function drawCompareHighlights(){
 // curated disc's full size at the deepest zoom, where it draws as one does: the same art, the same
 // name and manufacturer. Their set follows the level; a disc or name that joins or leaves fades over
 // GAP_FADE ms instead of popping, and a name's strength follows its disc's size on screen.
-const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let gapClock=0,mapGaps=[];
+const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let gapClock=0,mapGaps=[],gapsMoving=false;
 // Plan 16: on the main Atlas every disc is its 3D model seen from straight above, lying on the ground
 // (disc3d/atlas-art.mjs): each mold's own shape, overmolds in two colours, rendered once per disc and size
 // and drawn where the 2D orb was. Curated discs and dots carry the render in their DOM art; small discs and
@@ -543,8 +573,9 @@ function gapName(d){
  const type=gapTypes.get((innerWidth<700?'mobile:':'desktop:')+'organic:');if(!type)return null;
  const text=d.catalogName||d.name,brand=type.upper?d.brand.toUpperCase():d.brand;
  const dpr=Math.min(devicePixelRatio||1,2),key=text+'|'+brand+'|'+type.name+type.width+'|'+themePalette.text+themePalette.muted+themePalette.background+dpr;
- let name=gapNames.get(key);if(name)return name;
- if(gapNameBudget<=0)return null;gapNameBudget--;
+ let name=gapNames.get(key);if(name?.fonts===gapNameFonts)return name;
+ // One set before a face finished loading stands in until it is drawn again in it.
+ if(gapNameBudget<=0)return name||null;gapNameBudget--;
  if(gapNames.size>600)gapNames.clear();
  const c=document.createElement('canvas'),g=c.getContext('2d');
  // Greedy wrap at spaces, as the label's normal white-space does; a long word stays whole.
@@ -562,7 +593,7 @@ function gapName(d){
  for(const l of names){g.font=l.font;g.letterSpacing=l.spacing;g.fillStyle=themePalette.text;g.fillText(l.line,w/2,y+type.line/2);y+=type.line;}
  y+=type.brandGap;
  for(const l of brands){g.font=l.font;g.letterSpacing=l.spacing;g.fillStyle=themePalette.muted;g.fillText(l.line,w/2,y+type.brandLine/2);y+=type.brandLine;}
- name={canvas:c,w,h};gapNames.set(key,name);return name;
+ name={canvas:c,w,h,fonts:gapNameFonts};gapNames.set(key,name);return name;
 }
 function drawGaps(area,w,h){
  mapGaps=[];
@@ -622,13 +653,13 @@ function drawGaps(area,w,h){
    // Below 1% a name is invisible; skip the blit.
    if(alpha>=.01){
     const name=gapName(e.d);
-    if(name){ctx.globalAlpha=alpha;ctx.drawImage(name.canvas,snap(e.box.x+e.box.w/2-name.w/2),snap(e.box.y+e.box.h/2-name.h/2),name.w,name.h);}
+    if(name){ctx.globalAlpha=alpha;ctx.drawImage(name.canvas,snap(e.box.x+e.box.w/2-name.w/2),snap(e.box.y+e.box.h/2-name.h/2),name.w,name.h);if(name.fonts!==gapNameFonts)waiting=true;}
     else waiting=true;
    }
   }
   e.drawn=true;
  }
- ctx.globalAlpha=1;
+ ctx.globalAlpha=1;gapsMoving=moving||waiting;
  if(moving||waiting)scheduleMapDraw();
 }
 // A small disc or mini with a readable name that a new set would fade out stays while the pointer is on or
@@ -892,7 +923,7 @@ function initAtlasMap(){
  map.addEventListener('pointerleave',()=>{
   pointerAt.inside=false;map.classList.remove('is-over-disc');
   // A regroup that waited on the pointer happens now.
-  if(swapDueAt||markerPins.size||gapPins.size)scheduleMapDraw();
+  if(swapDueAt||markerPins.size||gapPins.size||atlasSettling)scheduleMapDraw();
  });
  pop.addEventListener('pointerenter',()=>clearClusterTimers());pop.addEventListener('pointerleave',()=>scheduleClusterClose());
  pop.addEventListener('focusin',()=>{clusterPinned=true;clearClusterTimers();});
@@ -1007,7 +1038,7 @@ function stepCamera(now){
  if(!cameraTween)return;
  if(atlasIntro){
   if(!window.AtlasMotion?.enabled()||atlasIntro.at!==null&&now>=atlasIntro.at+atlasIntro.breath+atlasIntro.duration){
-   zoom=cameraDestination.zoom;pan.x=cameraDestination.x;pan.y=cameraDestination.y;stopCamera();return;
+   zoom=cameraDestination.zoom;pan.x=cameraDestination.x;pan.y=cameraDestination.y;stopCamera();atlasSettling=true;return;
   }
   // Start the clock on the first paint, so startup work cannot eat the close-up.
   if(atlasIntro.at===null){atlasIntro.at=now;cameraSpring.at=now+atlasIntro.breath;return;}

@@ -48,6 +48,8 @@ async function open(viewport){
  if(viewport==='phone')await page.locator('#mapTab').click();
  await page.waitForFunction(()=>filtered.length>0&&mapClusters.length>0);
  await page.evaluate(()=>document.fonts.ready);
+ // A fresh page opens with the timed reveal: start from its rest, not wherever the reveal has got to.
+ await page.waitForFunction(()=>!atlasIntro&&!atlasSettling);
  return page;
 }
 const settled=async page=>{
