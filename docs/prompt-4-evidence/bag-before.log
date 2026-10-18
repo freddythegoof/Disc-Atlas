@@ -1,0 +1,12 @@
+npm notice run disc-atlas@0.1.0 test:bag:popup
+npm notice run node tests/bag-popup-browser.mjs
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at C:\Users\user\.codex\worktrees\clay-leftovers\disc-atlas\dist\workers-public\
+ok - Cluster (1440): putter pocket, zoom and open/close in one row under the canvas; each still works
+ok - Popup (1440): a disc click slides it out without details; hovering its name shows the popup (name, speed/glide/turn/fade); leaving hides it; a click pins it and a second click hides it; one at a time; a press elsewhere or Escape dismisses it without moving the flap; clicking it opens that disc's details
+ok - Bagged disc (1440): hover shows its name, the name shows its popup and the popup holds under the pointer; its click opens the details with the disc left in its pocket; by keyboard, focus shows the popup, Tab reaches it, Enter opens the details
+ok - Cluster and popup (1440), 1–24 out: the cluster clears the bag, every disc, every name and the popup; each newest disc's popup clears every name and the cluster (pull 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.15, 1.14, 1.08, 1.12)
+ok - Popup (360, touch): a tap on a disc slides it out without details; a tap on its name toggles the popup; one at a time; a tap elsewhere dismisses it (the flap stays open); a tap on the popup opens the bottom sheet; a bagged disc's hover name shows its popup
+ok - Cluster and popup (360, touch), 1–24 out: the cluster clears the bag, every disc, every name and the popup; each newest disc's popup clears every shown name and the cluster (pull 1.14, 1.14, 1.52, 1.49, 1.52, 1.52, 1.64, 1.67, 2.15, 2.29, 2.35, 2.36, 2.43, 2.42, 2.77, 2.24, 2.29, 2.22, 2.43, 3.71, 3.05, 2.9, 3.18, 3.27; names stepped aside under the popup where no clear spot is near its name, count:names 10:3, 13:2, 14:5, 15:3, 17:2, 19:5, 20:5, 21:5, 22:3, 23:3, 24:4)
+ok - Cluster and popup (390, touch), 1–24 out: the cluster clears the bag, every disc, every name and the popup; each newest disc's popup clears every shown name and the cluster (pull 1.14, 1.14, 1.46, 1.46, 1.49, 1.53, 1.53, 1.53, 1.9, 2.01, 2.16, 2.17, 2.19, 2.28, 2.28, 2.28, 2.26, 2.2, 2.15, 2.15, 2.15, 2.15, 2.07, 2.07; names stepped aside under the popup where no clear spot is near its name, count:names 16:1, 17:4, 18:1)
+PASS bag popup: 7 checks, 18 screenshots in outputs/bag-popup
