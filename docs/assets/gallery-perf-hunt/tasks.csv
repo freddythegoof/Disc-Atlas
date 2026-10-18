@@ -1,0 +1,528 @@
+capture,ts_us,duration_ms,thread_cpu_ms,flip,from_mold,source,phase,callback,callback_ms,style_max_ms,layout_max_ms,paint_max_ms
+after-phone-gate-1-timeline.trace.json,121580174931,69.467,16.686,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.121,0,0,0
+after-phone-gate-241-cpu.trace.json,122186974823,115.249,30.277,5,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,103.266,0,0,0
+after-phone-gate-241-cpu.trace.json,122187370099,118.376,30.446,9,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,106.51,0,0,0
+after-phone-gate-241-cpu.trace.json,122187736990,57.709,15.089,13,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.115,0,0,0
+after-phone-gate-241-cpu.trace.json,122188095193,65.166,16.635,17,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.677,0,0,0
+after-phone-gate-241-cpu.trace.json,122188434059,58.107,14.966,21,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.862,0,0,0
+after-phone-gate-241-cpu.trace.json,122188746751,74.347,17.947,25,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,62.039,0,0,0
+after-phone-gate-241-cpu.trace.json,122189091745,60.684,15.151,29,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.227,0,0,0
+after-phone-gate-241-cpu.trace.json,122189337655,52.815,11.475,33,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,37.895,2.098,5.598,2.578
+after-phone-gate-241-cpu.trace.json,122189427331,62.821,16.622,33,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.043,0,0,0
+after-phone-gate-241-cpu.trace.json,122189708566,61.864,16.32,37,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.071,0,0,0
+after-phone-gate-241-cpu.trace.json,122190038917,65.375,16.172,41,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.91,0,0,0
+after-phone-gate-241-cpu.trace.json,122190364272,55.334,14.607,45,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.277,0,0,0
+after-phone-gate-241-cpu.trace.json,122190669738,56.596,14.633,49,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.29,0,0,0
+after-phone-gate-241-cpu.trace.json,122190978480,55.686,15.38,53,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.48,0,0,0
+after-phone-gate-241-cpu.trace.json,122191258606,53.303,13.68,57,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.7,0,0,0
+after-phone-gate-241-cpu.trace.json,122191536393,54.916,14.14,61,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.985,0,0,0
+after-phone-gate-241-cpu.trace.json,122191830554,58.222,14.934,65,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.444,0,0,0
+after-phone-gate-241-cpu.trace.json,122192134022,57.963,14.437,69,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.984,0,0,0
+after-phone-gate-241-cpu.trace.json,122192450419,55.343,14.271,73,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.831,0,0,0
+after-phone-gate-241-cpu.trace.json,122192728423,62.014,15.735,77,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.834,0,0,0
+after-phone-gate-241-cpu.trace.json,122193033703,57.201,14.569,81,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.197,0,0,0
+after-phone-gate-241-cpu.trace.json,122193352223,61.933,15.898,85,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.307,0,0,0
+after-phone-gate-241-cpu.trace.json,122193686136,58.875,15.188,89,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.93,0,0,0
+after-phone-gate-241-cpu.trace.json,122194003348,59.961,15.138,93,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.292,0,0,0
+after-phone-gate-241-cpu.trace.json,122194331086,60.472,15.527,97,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.835,0,0,0
+after-phone-gate-241-cpu.trace.json,122194683741,71.622,17.762,101,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.094,0,0,0
+after-phone-gate-241-cpu.trace.json,122194975423,60.2,16.51,105,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.895,0,0,0
+after-phone-gate-241-cpu.trace.json,122195302662,60.204,15.771,109,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.391,0,0,0
+after-phone-gate-241-cpu.trace.json,122195528818,50.28,8.501,113,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,46.349,1.566,0,0
+after-phone-gate-241-cpu.trace.json,122195833573,59.818,16.313,117,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,45.965,1.823,3.727,1.771
+after-phone-gate-241-cpu.trace.json,122195922877,57.673,14.65,117,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.179,0,0,0
+after-phone-gate-241-cpu.trace.json,122196239136,62.654,16.424,121,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.774,0,0,0
+after-phone-gate-241-cpu.trace.json,122196527347,61.533,15.809,125,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.031,0,0,0
+after-phone-gate-241-cpu.trace.json,122196859280,68.693,16.548,129,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.505,0,0,0
+after-phone-gate-241-cpu.trace.json,122197164642,55.162,14.199,133,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.872,0,0,0
+after-phone-gate-241-cpu.trace.json,122197412618,96.733,20.286,137,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,84.991,0,0,0
+after-phone-gate-241-cpu.trace.json,122197783534,64.565,16.734,141,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.513,0,0,0
+after-phone-gate-241-cpu.trace.json,122198088935,59.253,15.315,145,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.024,0,0,0
+after-phone-gate-241-cpu.trace.json,122198400230,60.603,14.927,149,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.242,0,0,0
+after-phone-gate-241-cpu.trace.json,122198705513,57.14,14.984,153,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.347,0,0,0
+after-phone-gate-241-cpu.trace.json,122198989252,55.32,15.704,157,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.093,0,0,0
+after-phone-gate-241-cpu.trace.json,122199247628,59.676,14.702,161,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.109,0,0,0
+after-phone-gate-241-cpu.trace.json,122199527689,55.578,14.062,165,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.565,0,0,0
+after-phone-gate-241-cpu.trace.json,122199798063,54.771,13.971,169,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.294,0,0,0
+after-phone-gate-241-cpu.trace.json,122200080299,56.742,14.301,173,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.661,0,0,0
+after-phone-gate-241-cpu.trace.json,122200346044,53.912,13.475,177,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.178,0,0,0
+after-phone-gate-241-cpu.trace.json,122200594765,55.364,13.871,181,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.597,0,0,0
+after-phone-gate-241-cpu.trace.json,122200906474,62.743,16.655,185,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.968,0,0,0
+after-phone-gate-241-cpu.trace.json,122201231238,61.558,15.539,189,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.268,0,0,0
+after-phone-gate-241-cpu.trace.json,122201546840,60.282,15.495,193,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.434,0,0,0
+after-phone-gate-241-cpu.trace.json,122201842019,57.032,14.205,197,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.367,0,0,0
+after-phone-gate-241-cpu.trace.json,122202156296,66.766,16.482,201,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.117,0,0,0
+after-phone-gate-241-cpu.trace.json,122202489421,62.203,17.083,205,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.655,0,0,0
+after-phone-gate-241-cpu.trace.json,122202801965,60.796,15.465,209,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.208,0,0,0
+after-phone-gate-241-cpu.trace.json,122203108809,61.148,15.475,213,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.562,0,0,0
+after-phone-gate-241-cpu.trace.json,122203445178,62.806,15.949,217,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.82,0,0,0
+after-phone-gate-241-cpu.trace.json,122203767200,59.893,15.802,221,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.359,0,0,0
+after-phone-gate-241-cpu.trace.json,122204006325,56.029,16.265,225,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,44.715,3.413,2.999,0
+after-phone-gate-241-cpu.trace.json,122204090596,63.199,18.556,225,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.034,0,0,0
+after-phone-gate-241-cpu.trace.json,122204423396,73.816,19.192,229,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.961,0,0,0
+after-phone-gate-241-cpu.trace.json,122204559162,55.107,10.817,230,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.585,4.919,6.951,1.74
+after-phone-gate-241-cpu.trace.json,122204821306,79.931,18.263,233,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,65.278,0,0,0
+after-phone-gate-241-cpu.trace.json,122204954290,62.161,12.063,234,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,44.052,5.277,4.426,4.805
+after-phone-gate-241-cpu.trace.json,122205162239,69.578,11.929,237,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,32.75,13.571,6.177,5.951
+after-phone-gate-241-cpu.trace.json,122205278957,110.319,20.943,237,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,90.447,0,0,0
+after-phone-gate-241-cpu.trace.json,122205456545,64.402,11.533,238,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,46.614,7.171,0,6.516
+after-phone-gate-241-cpu.trace.json,122205541766,56.166,10.568,239,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.015,5.654,0,0
+after-phone-gate-241-cpu.trace.json,122205736758,81.905,20.571,241,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.113,0,0,0
+after-phone-gate-241-timeline.trace.json,121581820421,59.669,10.373,2,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,47.687,2.216,2.53,2.905
+after-phone-gate-241-timeline.trace.json,121582031357,128.962,31.184,4,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,114.948,0,0,0
+after-phone-gate-241-timeline.trace.json,121582428006,150.364,35.333,8,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,138.376,0,0,0
+after-phone-gate-241-timeline.trace.json,121582783898,50.657,10.792,12,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,34.188,2.357,6.217,3.37
+after-phone-gate-241-timeline.trace.json,121582866862,60.699,15.291,12,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.656,0,0,0
+after-phone-gate-241-timeline.trace.json,121583194426,63.016,15.475,16,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.49,0,0,0
+after-phone-gate-241-timeline.trace.json,121583807729,60.883,14.75,24,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.286,0,0,0
+after-phone-gate-241-timeline.trace.json,121584142416,55.695,14.001,28,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.957,0,0,0
+after-phone-gate-241-timeline.trace.json,121584439778,68.699,18.326,32,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.076,0,0,0
+after-phone-gate-241-timeline.trace.json,121584562511,80.778,10.631,33,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,66.877,13.169,5.97,0
+after-phone-gate-241-timeline.trace.json,121584688797,58.888,8.161,34,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,36.805,5.077,4.182,0
+after-phone-gate-241-timeline.trace.json,121584789800,88.165,9.057,35,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,68.127,13.197,4.837,2.558
+after-phone-gate-241-timeline.trace.json,121584878290,55.797,5.789,35,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,19.657,13.751,0,7.533
+after-phone-gate-241-timeline.trace.json,121584934393,53.144,9.75,36,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,48.868,6.517,1.926,0
+after-phone-gate-241-timeline.trace.json,121585008748,75.512,18.396,36,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,59.996,0,0,0
+after-phone-gate-241-timeline.trace.json,121585339492,74.997,11.112,40,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,59.248,5.071,2.11,3.542
+after-phone-gate-241-timeline.trace.json,121585452135,89.464,19.173,40,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,72.691,0,0,0
+after-phone-gate-241-timeline.trace.json,121585864290,63.586,16.282,44,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.28,0,0,0
+after-phone-gate-241-timeline.trace.json,121586091974,73.325,14.441,48,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,57.798,2.967,4.685,3.244
+after-phone-gate-241-timeline.trace.json,121586202581,97.446,18.693,48,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,81.706,0,0,0
+after-phone-gate-241-timeline.trace.json,121586577757,58.648,16.108,52,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.741,0,0,0
+after-phone-gate-241-timeline.trace.json,121586920000,72.246,18.053,56,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.348,0,0,0
+after-phone-gate-241-timeline.trace.json,121587233641,55.232,13.924,60,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.669,0,0,0
+after-phone-gate-241-timeline.trace.json,121587534964,67.063,15.716,64,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.873,0,0,0
+after-phone-gate-241-timeline.trace.json,121587874880,83.242,18.681,68,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,66.399,0,0,0
+after-phone-gate-241-timeline.trace.json,121588182677,64.155,10.024,72,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,50.252,2.002,6.08,2.439
+after-phone-gate-241-timeline.trace.json,121588279334,60.36,14.665,72,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.709,0,0,0
+after-phone-gate-241-timeline.trace.json,121588528106,72.657,11.203,76,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,51.669,4.333,8.48,2.205
+after-phone-gate-241-timeline.trace.json,121588632322,70.015,16.772,76,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.79,0,0,0
+after-phone-gate-241-timeline.trace.json,121588891192,51.516,7.758,79,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,33.328,0,6.75,3.077
+after-phone-gate-241-timeline.trace.json,121589069758,86.138,18.568,80,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,70.799,0,0,0
+after-phone-gate-241-timeline.trace.json,121589209367,73.8,9.172,81,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,63.903,7.44,0,0
+after-phone-gate-241-timeline.trace.json,121589304372,67.371,9.952,82,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,52.322,5.921,2.679,3.028
+after-phone-gate-241-timeline.trace.json,121589427182,76.326,9.222,83,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,60.667,7.585,3.297,3.513
+after-phone-gate-241-timeline.trace.json,121589528191,88.739,11.548,84,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,61.099,5.616,5.388,6.583
+after-phone-gate-241-timeline.trace.json,121589649876,75.621,18.701,84,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,67.514,0,0,0
+after-phone-gate-241-timeline.trace.json,121589924702,61.708,11.413,88,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,35.838,8.51,4.584,1.785
+after-phone-gate-241-timeline.trace.json,121590019963,100.319,18.93,88,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,86.501,0,0,0
+after-phone-gate-241-timeline.trace.json,121590178684,86.213,10.577,89,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,70.501,9.856,0,4.694
+after-phone-gate-241-timeline.trace.json,121590482384,73.167,18.845,92,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,60.605,0,0,0
+after-phone-gate-241-timeline.trace.json,121590665744,57.409,8.814,94,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,28.097,3.381,5.81,2.51
+after-phone-gate-241-timeline.trace.json,121590814168,65.003,9.611,96,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,47.406,3.098,5.241,2.828
+after-phone-gate-241-timeline.trace.json,121590911436,72.497,18.115,96,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,61.172,0,0,0
+after-phone-gate-241-timeline.trace.json,121591190593,50.389,10.115,100,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,37.266,3.134,3.919,2.018
+after-phone-gate-241-timeline.trace.json,121591275670,56.166,13.797,100,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.337,0,0,0
+after-phone-gate-241-timeline.trace.json,121591368579,52.302,8.466,101,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,48.471,2.302,0,0
+after-phone-gate-241-timeline.trace.json,121591569571,57.043,14.453,104,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.477,0,0,0
+after-phone-gate-241-timeline.trace.json,121591899298,69.866,17.206,108,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.831,0,0,0
+after-phone-gate-241-timeline.trace.json,121592278742,86.455,15.837,112,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,75.061,0,0,0
+after-phone-gate-241-timeline.trace.json,121592642913,58.11,14.137,116,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.76,0,0,0
+after-phone-gate-241-timeline.trace.json,121592898057,58.694,10.547,120,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,52.187,7.977,0,1.205
+after-phone-gate-241-timeline.trace.json,121592992960,73.427,19.634,120,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,61.703,0,0,0
+after-phone-gate-241-timeline.trace.json,121593370189,140.618,18.755,124,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,128.046,0,0,0
+after-phone-gate-241-timeline.trace.json,121593578539,56.179,9.795,125,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.958,2.896,3.524,2.983
+after-phone-gate-241-timeline.trace.json,121593656897,63.648,9.592,126,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,39.354,3.827,9.296,6.15
+after-phone-gate-241-timeline.trace.json,121593752353,63.558,8.921,127,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,41.492,4.261,8.914,4.46
+after-phone-gate-241-timeline.trace.json,121593828266,93.08,10.809,128,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,64.654,4.969,1.996,16.929
+after-phone-gate-241-timeline.trace.json,121593961607,70.439,19.146,128,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.978,0,0,0
+after-phone-gate-241-timeline.trace.json,121594077244,109.724,9.758,129,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,61.228,3.136,36.837,0
+after-phone-gate-241-timeline.trace.json,121594203571,60.04,10.112,130,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.265,4.328,3.271,4.801
+after-phone-gate-241-timeline.trace.json,121594435164,62.045,15.601,132,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.524,0,0,0
+after-phone-gate-241-timeline.trace.json,121594662384,75.782,8.327,135,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,63.506,18.93,0,5.651
+after-phone-gate-241-timeline.trace.json,121594842386,63.873,15.978,136,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.357,0,0,0
+after-phone-gate-241-timeline.trace.json,121595159693,75.976,17.511,140,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,62.152,0,0,0
+after-phone-gate-241-timeline.trace.json,121595397216,54.188,8.075,143,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,36.875,2.037,3.002,6.062
+after-phone-gate-241-timeline.trace.json,121595491370,75.805,10.424,144,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,65.056,3.27,0,0
+after-phone-gate-241-timeline.trace.json,121595592585,63.687,15.426,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.861,0,0,0
+after-phone-gate-241-timeline.trace.json,121595907607,63.9,15.962,148,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.726,0,0,0
+after-phone-gate-241-timeline.trace.json,121596170591,51.412,9.457,152,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,34.687,2.248,5.141,3.448
+after-phone-gate-241-timeline.trace.json,121596256344,57.728,14.686,152,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.146,0,0,0
+after-phone-gate-241-timeline.trace.json,121596573823,61.481,15.072,156,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.999,0,0,0
+after-phone-gate-241-timeline.trace.json,121596899132,57.471,14.52,160,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.987,0,0,0
+after-phone-gate-241-timeline.trace.json,121597243779,57.273,14.075,164,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.684,0,0,0
+after-phone-gate-241-timeline.trace.json,121597550758,64.318,15.464,168,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.559,0,0,0
+after-phone-gate-241-timeline.trace.json,121597739767,54.952,11.447,171,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.311,2.89,3.524,2.159
+after-phone-gate-241-timeline.trace.json,121597901048,59.596,15.036,172,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.208,0,0,0
+after-phone-gate-241-timeline.trace.json,121598219113,56.612,13.967,176,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.737,0,0,0
+after-phone-gate-241-timeline.trace.json,121598767518,58.475,14.435,184,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.887,0,0,0
+after-phone-gate-241-timeline.trace.json,121599064457,56.064,13.93,188,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.993,0,0,0
+after-phone-gate-241-timeline.trace.json,121599252907,54.551,7.622,191,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,46.947,1.863,3.472,0
+after-phone-gate-241-timeline.trace.json,121599372063,53.546,13.335,192,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.0,0,0,0
+after-phone-gate-241-timeline.trace.json,121599660301,59.526,14.975,196,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.7,0,0,0
+after-phone-gate-241-timeline.trace.json,121600000734,67.19,17.429,200,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.473,0,0,0
+after-phone-gate-241-timeline.trace.json,121600359230,65.395,16.549,204,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.939,0,0,0
+after-phone-gate-241-timeline.trace.json,121600666064,93.797,18.423,208,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,74.843,0,0,0
+after-phone-gate-241-timeline.trace.json,121600959334,53.981,10.999,212,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.823,2.396,6.076,1.554
+after-phone-gate-241-timeline.trace.json,121601040867,67.218,16.921,212,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.953,0,0,0
+after-phone-gate-241-timeline.trace.json,121601320692,58.118,10.038,216,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,41.413,1.073,7.505,3.772
+after-phone-gate-241-timeline.trace.json,121601408725,58.449,14.562,216,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.568,0,0,0
+after-phone-gate-241-timeline.trace.json,121601695242,53.952,13.575,220,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.231,0,0,0
+after-phone-gate-241-timeline.trace.json,121601988277,52.947,14.69,224,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.235,0,0,0
+after-phone-gate-241-timeline.trace.json,121602263487,56.038,13.933,228,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.471,0,0,0
+after-phone-gate-241-timeline.trace.json,121602563117,65.234,16.224,232,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.677,0,0,0
+after-phone-gate-241-timeline.trace.json,121602828743,67.308,11.336,236,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,49.343,3.178,1.592,4.79
+after-phone-gate-241-timeline.trace.json,121602931157,71.987,18.372,236,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.623,0,0,0
+after-phone-gate-241-timeline.trace.json,121603285079,58.921,14.847,240,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.951,0,0,0
+after-phone-native-1-cpu.trace.json,121795328366,74.139,18.374,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,61.284,0,0,0
+after-phone-native-1-phases.trace.json,121962176481,63.441,15.783,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.248,0,0,0
+after-phone-native-1-timeline.trace.json,121643659691,80.238,12.579,1,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,29.987,3.161,4.998,0
+after-phone-native-1-timeline.trace.json,121643825446,199.5,21.304,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,182.525,0,0,0
+after-phone-native-1-timeline.trace.json,121644024964,57.552,6.618,1,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,50.262,0,0,0
+after-phone-native-241-timeline.trace.json,121646022692,68.395,17.381,4,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.384,0,0,0
+after-phone-native-241-timeline.trace.json,121646722465,128.773,31.81,8,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,117.709,0,0,0
+after-phone-native-241-timeline.trace.json,121647467046,135.011,34.924,12,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,124.894,0,0,0
+after-phone-native-241-timeline.trace.json,121648206392,91.395,27.02,16,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,82.119,0,0,0
+after-phone-native-241-timeline.trace.json,121648939749,142.986,36.069,20,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,129.889,0,0,0
+after-phone-native-241-timeline.trace.json,121649700530,147.564,36.549,24,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,133.623,0,0,0
+after-phone-native-241-timeline.trace.json,121650456396,96.266,25.158,28,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,84.788,0,0,0
+after-phone-native-241-timeline.trace.json,121651140152,137.82,34.847,32,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,126.412,0,0,0
+after-phone-native-241-timeline.trace.json,121651867019,136.881,34.0,36,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,127.317,0,0,0
+after-phone-native-241-timeline.trace.json,121652614366,92.342,22.906,40,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,82.991,0,0,0
+after-phone-native-241-timeline.trace.json,121653328333,142.541,35.428,44,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,131.706,0,0,0
+after-phone-native-241-timeline.trace.json,121654071475,164.527,38.762,48,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,151.05,0,0,0
+after-phone-native-241-timeline.trace.json,121654875695,137.443,31.402,52,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,123.957,0,0,0
+after-phone-native-241-timeline.trace.json,121655609474,144.372,35.808,56,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,130.345,0,0,0
+after-phone-native-241-timeline.trace.json,121656348140,144.288,36.577,60,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,133.379,0,0,0
+after-phone-native-241-timeline.trace.json,121657093387,102.044,26.898,64,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,90.566,0,0,0
+after-phone-native-241-timeline.trace.json,121657806464,149.829,37.092,68,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,136.38,0,0,0
+after-phone-native-241-timeline.trace.json,121658554713,138.727,35.004,72,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,127.522,0,0,0
+after-phone-native-241-timeline.trace.json,121659287507,107.239,26.912,76,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,96.693,0,0,0
+after-phone-native-241-timeline.trace.json,121660042920,140.477,35.19,80,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,126.957,0,0,0
+after-phone-native-241-timeline.trace.json,121660790945,148.209,37.157,84,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,134.898,0,0,0
+after-phone-native-241-timeline.trace.json,121661534627,112.884,26.645,88,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,99.653,0,0,0
+after-phone-native-241-timeline.trace.json,121662266129,151.559,36.977,92,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,138.131,0,0,0
+after-phone-native-241-timeline.trace.json,121663021019,133.643,33.186,96,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,122.746,0,0,0
+after-phone-native-241-timeline.trace.json,121663699683,50.033,9.182,100,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,31.692,4.017,5.644,0
+after-phone-native-241-timeline.trace.json,121663813407,153.667,30.169,100,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,118.535,0,0,0
+after-phone-native-241-timeline.trace.json,121664615152,118.959,29.839,104,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,108.956,0,0,0
+after-phone-native-241-timeline.trace.json,121665312204,121.907,30.213,108,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,110.753,0,0,0
+after-phone-native-241-timeline.trace.json,121666034953,96.677,24.278,112,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,83.158,0,0,0
+after-phone-native-241-timeline.trace.json,121666740697,135.942,34.151,116,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,124.327,0,0,0
+after-phone-native-241-timeline.trace.json,121667474282,129.388,33.013,120,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,117.242,0,0,0
+after-phone-native-241-timeline.trace.json,121668190521,102.317,25.383,124,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,88.968,0,0,0
+after-phone-native-241-timeline.trace.json,121668899630,115.003,38.841,128,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,104.72,0,0,0
+after-phone-native-241-timeline.trace.json,121669014665,90.774,11.548,129,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,26.393,3.884,8.136,2.419
+after-phone-native-241-timeline.trace.json,121669646733,136.703,31.356,132,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,118.808,0,0,0
+after-phone-native-241-timeline.trace.json,121670359558,86.045,20.764,136,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,75.084,0,0,0
+after-phone-native-241-timeline.trace.json,121671080127,138.42,32.815,140,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,127.308,0,0,0
+after-phone-native-241-timeline.trace.json,121671799703,108.564,27.182,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,98.444,0,0,0
+after-phone-native-241-timeline.trace.json,121672504151,91.642,23.687,148,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,79.621,0,0,0
+after-phone-native-241-timeline.trace.json,121673193782,126.061,31.093,152,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,114.664,0,0,0
+after-phone-native-241-timeline.trace.json,121673899856,114.22,27.695,156,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,102.371,0,0,0
+after-phone-native-241-timeline.trace.json,121674624832,94.905,23.646,160,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,83.52,0,0,0
+after-phone-native-241-timeline.trace.json,121675329308,114.932,28.571,164,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,104.923,0,0,0
+after-phone-native-241-timeline.trace.json,121676033881,110.113,27.94,168,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,100.542,0,0,0
+after-phone-native-241-timeline.trace.json,121676746188,92.853,23.287,172,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,82.363,0,0,0
+after-phone-native-241-timeline.trace.json,121677478007,143.928,37.835,176,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,130.732,0,0,0
+after-phone-native-241-timeline.trace.json,121678207372,126.934,31.745,180,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,114.908,0,0,0
+after-phone-native-241-timeline.trace.json,121678927367,93.598,24.27,184,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,80.529,0,0,0
+after-phone-native-241-timeline.trace.json,121679608251,168.865,42.148,188,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,156.457,0,0,0
+after-phone-native-241-timeline.trace.json,121680341234,52.01,13.058,192,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.884,0,0,0
+after-phone-native-241-timeline.trace.json,121682374255,56.675,14.248,204,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.708,0,0,0
+after-phone-native-241-timeline.trace.json,121683070085,59.846,15.048,208,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.292,0,0,0
+after-phone-native-241-timeline.trace.json,121683760708,70.494,17.344,212,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.59,0,0,0
+after-phone-native-241-timeline.trace.json,121684495131,64.356,17.101,216,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.958,0,0,0
+after-phone-native-241-timeline.trace.json,121685203577,68.348,17.273,220,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.044,0,0,0
+after-phone-native-241-timeline.trace.json,121685898019,50.527,12.612,224,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,39.819,0,0,0
+after-phone-native-241-timeline.trace.json,121686591134,54.304,13.726,228,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.717,0,0,0
+after-phone-native-241-timeline.trace.json,121687271703,51.741,13.405,232,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.393,0,0,0
+after-phone-native-241-timeline.trace.json,121687947144,50.875,12.869,236,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,40.568,0,0,0
+after-phone-native-241-timeline.trace.json,121688629673,51.86,13.017,240,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.84,0,0,0
+after-phone-native-ready-1-timeline.trace.json,122419093610,57.39,14.231,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.055,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122420919178,63.895,16.024,4,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.001,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122421265515,66.66,16.428,8,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.456,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122421604157,61.119,9.633,12,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,33.201,1.904,4.172,0
+after-phone-native-ready-241-timeline.trace.json,122421749334,179.631,36.319,12,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,166.372,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122421928979,56.007,6.498,12,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,49.779,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122421996485,116.975,5.715,12,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,27.523,19.411,3.416,18.782
+after-phone-native-ready-241-timeline.trace.json,122422152148,66.105,4.864,13,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,27.875,23.92,0,1.374
+after-phone-native-ready-241-timeline.trace.json,122422235539,55.097,8.038,14,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,39.068,7.406,2.937,0
+after-phone-native-ready-241-timeline.trace.json,122422426108,239.396,11.796,16,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,202.442,12.166,2.602,0
+after-phone-native-ready-241-timeline.trace.json,122422685053,118.381,3.716,16,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,6.115,0,0,5.737
+after-phone-native-ready-241-timeline.trace.json,122422895739,187.004,37.521,16,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,156.674,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122423382809,64.621,16.684,20,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.379,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122423762971,67.121,16.045,24,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.947,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122424190614,63.558,15.479,28,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.893,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122424548897,61.057,15.456,32,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.096,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122424935226,60.641,15.718,36,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.235,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122425310950,61.56,15.213,40,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.72,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122425698397,60.961,15.044,44,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.057,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122426044009,59.145,15.477,48,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.265,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122426415197,59.776,14.958,52,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.566,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122426757374,57.729,14.622,56,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.506,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122427107579,55.605,14.006,60,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.484,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122427297340,62.871,5.442,63,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,13.459,32.532,0,0
+after-phone-native-ready-241-timeline.trace.json,122427448737,54.038,13.674,64,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.448,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122427784702,63.762,15.92,68,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.467,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122428154956,82.075,16.973,72,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,64.662,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122428293934,80.054,13.892,73,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,33.682,4.203,4.295,0
+after-phone-native-ready-241-timeline.trace.json,122428641350,65.222,15.493,76,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.511,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122429058174,74.609,16.148,80,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,57.41,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122429398635,68.992,9.204,84,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,43.166,9.721,13.689,0
+after-phone-native-ready-241-timeline.trace.json,122429532853,68.571,16.515,84,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.809,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122429927345,62.218,16.2,88,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.496,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122430214346,82.183,9.231,92,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,67.776,2.057,3.254,0
+after-phone-native-ready-241-timeline.trace.json,122430346818,72.78,17.248,92,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,59.178,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122430690939,52.859,9.034,96,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,28.171,2.127,4.935,0
+after-phone-native-ready-241-timeline.trace.json,122430796769,65.73,15.561,96,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.1,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122431157658,82.396,17.52,100,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,65.977,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122431638007,74.978,17.005,104,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,61.32,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122431713035,55.811,12.357,104,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,52.462,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122432068612,56.193,13.998,108,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.314,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122432429349,55.886,14.07,112,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.725,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122432762817,61.385,15.053,116,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.62,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122432866183,52.865,11.527,117,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,21.397,2.262,1.431,0
+after-phone-native-ready-241-timeline.trace.json,122433151807,66.189,15.906,120,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.787,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122433541005,62.19,15.324,124,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.212,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122433906213,61.725,15.325,128,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.069,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122433968149,50.782,10.636,128,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,48.57,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122434208354,57.855,8.18,132,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,25.704,3.316,1.482,0
+after-phone-native-ready-241-timeline.trace.json,122434316274,66.96,16.387,132,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.643,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122434711508,63.973,15.9,136,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.085,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122435133010,72.002,17.212,140,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.47,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122435272327,52.504,8.707,141,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,23.461,3.243,11.727,0
+after-phone-native-ready-241-timeline.trace.json,122435383016,71.344,6.951,142,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,34.039,13.879,13.344,0
+after-phone-native-ready-241-timeline.trace.json,122435455798,69.124,3.851,142,Stalker,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,54.414,3.577,0,2.967
+after-phone-native-ready-241-timeline.trace.json,122435639036,68.875,9.585,144,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,40.406,7.103,3.03,0
+after-phone-native-ready-241-timeline.trace.json,122435772458,83.176,18.398,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,66.379,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122435913763,65.836,9.373,145,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,38.973,4.839,5.549,0
+after-phone-native-ready-241-timeline.trace.json,122436013640,50.422,8.022,146,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,32.748,4.373,2.713,0
+after-phone-native-ready-241-timeline.trace.json,122436124697,58.801,8.384,147,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,35.521,5.287,3.131,0
+after-phone-native-ready-241-timeline.trace.json,122436313597,68.28,16.313,148,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.915,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122436700149,62.09,14.819,152,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.416,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122437061345,56.989,14.267,156,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.816,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122437366968,52.367,13.23,160,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.408,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122437479485,72.361,10.894,161,Destroyer,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,42.255,4.879,3.399,0
+after-phone-native-ready-241-timeline.trace.json,122437675324,52.721,9.149,164,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,30.046,3.54,7.185,0
+after-phone-native-ready-241-timeline.trace.json,122437779948,61.582,14.969,164,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.669,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122438155472,60.719,14.991,168,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.367,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122438512438,82.889,17.475,172,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,69.507,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122438880925,57.463,14.174,176,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.0,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122439236461,63.583,15.189,180,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.87,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122439568944,61.535,14.918,184,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.481,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122439927530,52.829,12.871,188,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.031,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122440219693,51.222,12.821,192,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.424,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122440482545,53.435,15.486,196,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.962,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122440752268,53.759,13.152,200,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.416,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122441072966,60.02,16.093,204,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.42,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122441444665,63.391,15.39,208,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.709,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122441799510,56.563,14.109,212,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.069,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122442144794,67.104,16.594,216,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.715,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122442530968,73.203,16.446,220,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,59.689,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122442917179,57.785,14.683,224,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.4,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122442975144,50.258,11.071,224,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,48.583,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122443264556,52.762,15.603,228,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.967,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122443636289,63.982,15.927,232,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.753,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122444025191,61.114,15.415,236,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.018,0,0,0
+after-phone-native-ready-241-timeline.trace.json,122444384460,66.261,15.839,240,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.196,0,0,0
+before-desktop-native-241-timeline.trace.json,122103046933,55.288,44.441,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.369,0,0,0
+before-phone-gate-1-timeline.trace.json,121990195390,63.779,15.999,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.839,0,0,0
+before-phone-gate-241-timeline.trace.json,121991930421,64.414,15.829,4,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.447,0,0,0
+before-phone-gate-241-timeline.trace.json,121992189824,68.686,16.888,8,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,57.79,0,0,0
+before-phone-gate-241-timeline.trace.json,121992464789,65.842,17.772,12,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.541,0,0,0
+before-phone-gate-241-timeline.trace.json,121992725527,63.35,15.023,16,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.919,0,0,0
+before-phone-gate-241-timeline.trace.json,121993007252,61.461,15.138,20,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.754,0,0,0
+before-phone-gate-241-timeline.trace.json,121993271729,61.58,16.014,24,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.755,0,0,0
+before-phone-gate-241-timeline.trace.json,121993544855,68.088,16.05,28,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.388,0,0,0
+before-phone-gate-241-timeline.trace.json,121993802309,58.789,14.754,32,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.027,0,0,0
+before-phone-gate-241-timeline.trace.json,121994052903,63.02,15.437,36,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.093,0,0,0
+before-phone-gate-241-timeline.trace.json,121994339387,63.884,15.784,40,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.385,0,0,0
+before-phone-gate-241-timeline.trace.json,121994613238,67.757,16.912,44,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.322,0,0,0
+before-phone-gate-241-timeline.trace.json,121994889764,52.658,13.757,48,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.94,0,0,0
+before-phone-gate-241-timeline.trace.json,121995126349,56.961,14.289,52,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.01,0,0,0
+before-phone-gate-241-timeline.trace.json,121995367368,54.776,14.453,56,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.172,0,0,0
+before-phone-gate-241-timeline.trace.json,121995612334,55.657,14.082,60,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.732,0,0,0
+before-phone-gate-241-timeline.trace.json,121995833497,52.45,13.203,64,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.781,0,0,0
+before-phone-gate-241-timeline.trace.json,121996053018,51.112,13.771,68,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.135,0,0,0
+before-phone-gate-241-timeline.trace.json,121996277569,54.445,14.132,72,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.787,0,0,0
+before-phone-gate-241-timeline.trace.json,121996495182,56.569,16.563,76,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.191,0,0,0
+before-phone-gate-241-timeline.trace.json,121996742753,66.225,16.04,80,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.262,0,0,0
+before-phone-gate-241-timeline.trace.json,121997017638,58.331,14.507,84,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.248,0,0,0
+before-phone-gate-241-timeline.trace.json,121997273000,57.018,14.49,88,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.503,0,0,0
+before-phone-gate-241-timeline.trace.json,121997517721,63.377,15.515,92,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.022,0,0,0
+before-phone-gate-241-timeline.trace.json,121997756032,61.391,15.408,96,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.635,0,0,0
+before-phone-gate-241-timeline.trace.json,121998030457,58.989,15.463,100,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.55,0,0,0
+before-phone-gate-241-timeline.trace.json,121998305951,58.043,15.556,104,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.532,0,0,0
+before-phone-gate-241-timeline.trace.json,121998547582,55.183,14.128,108,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.32,0,0,0
+before-phone-gate-241-timeline.trace.json,121998780343,63.111,15.471,112,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.328,0,0,0
+before-phone-gate-241-timeline.trace.json,121999048844,67.152,15.565,116,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.848,0,0,0
+before-phone-gate-241-timeline.trace.json,121999304988,56.809,15.701,120,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.842,0,0,0
+before-phone-gate-241-timeline.trace.json,121999564681,56.609,14.674,124,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.152,0,0,0
+before-phone-gate-241-timeline.trace.json,121999820348,57.188,14.467,128,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.895,0,0,0
+before-phone-gate-241-timeline.trace.json,122000042381,61.244,14.832,132,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.804,0,0,0
+before-phone-gate-241-timeline.trace.json,122000300250,57.949,14.355,136,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.534,0,0,0
+before-phone-gate-241-timeline.trace.json,122000559686,61.813,15.454,140,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.491,0,0,0
+before-phone-gate-241-timeline.trace.json,122000823139,62.253,15.564,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.075,0,0,0
+before-phone-gate-241-timeline.trace.json,122001092861,60.672,15.3,148,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.781,0,0,0
+before-phone-gate-241-timeline.trace.json,122001368448,62.649,15.892,152,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.995,0,0,0
+before-phone-gate-241-timeline.trace.json,122001630009,57.656,15.514,156,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.275,0,0,0
+before-phone-gate-241-timeline.trace.json,122001890591,58.1,14.437,160,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.862,0,0,0
+before-phone-gate-241-timeline.trace.json,122002139312,54.284,14.334,164,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.063,0,0,0
+before-phone-gate-241-timeline.trace.json,122002368351,56.844,14.367,168,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.396,0,0,0
+before-phone-gate-241-timeline.trace.json,122002581482,54.531,13.327,172,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.282,0,0,0
+before-phone-gate-241-timeline.trace.json,122002809720,52.672,13.359,176,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.94,0,0,0
+before-phone-gate-241-timeline.trace.json,122003017140,52.479,13.183,180,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.255,0,0,0
+before-phone-gate-241-timeline.trace.json,122003228730,53.088,13.234,184,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.104,0,0,0
+before-phone-gate-241-timeline.trace.json,122003437817,53.139,13.666,188,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.532,0,0,0
+before-phone-gate-241-timeline.trace.json,122003642332,53.173,13.426,192,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.441,0,0,0
+before-phone-gate-241-timeline.trace.json,122003866813,55.126,13.929,196,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.519,0,0,0
+before-phone-gate-241-timeline.trace.json,122004112234,61.52,15.748,200,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.74,0,0,0
+before-phone-gate-241-timeline.trace.json,122004353945,58.668,14.423,204,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.008,0,0,0
+before-phone-gate-241-timeline.trace.json,122004590321,66.497,15.688,208,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.273,0,0,0
+before-phone-gate-241-timeline.trace.json,122004843905,59.77,15.599,212,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.514,0,0,0
+before-phone-gate-241-timeline.trace.json,122005117801,63.37,15.265,216,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.75,0,0,0
+before-phone-gate-241-timeline.trace.json,122005375717,55.806,15.466,220,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.406,0,0,0
+before-phone-gate-241-timeline.trace.json,122005632991,59.778,14.776,224,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.317,0,0,0
+before-phone-gate-241-timeline.trace.json,122005867723,60.92,15.67,228,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.367,0,0,0
+before-phone-gate-241-timeline.trace.json,122006128032,61.701,15.215,232,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.411,0,0,0
+before-phone-gate-241-timeline.trace.json,122006358869,62.728,15.06,236,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.505,0,0,0
+before-phone-gate-241-timeline.trace.json,122006603857,55.275,14.086,240,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.022,0,0,0
+before-phone-native-1-phases.trace.json,121976296273,51.047,11.789,1,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,29.365,1.424,1.322,0
+before-phone-native-1-phases.trace.json,121976421175,85.668,18.28,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,69.442,0,0,0
+before-phone-native-1-timeline.trace.json,121732107730,71.29,18.205,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,59.504,0,0,0
+before-phone-native-241-timeline.trace.json,121734302875,65.536,16.769,4,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.684,0,0,0
+before-phone-native-241-timeline.trace.json,121735005889,70.441,17.76,8,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.387,0,0,0
+before-phone-native-241-timeline.trace.json,121735714891,67.285,17.219,12,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.372,0,0,0
+before-phone-native-241-timeline.trace.json,121736418667,68.023,18.001,16,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.463,0,0,0
+before-phone-native-241-timeline.trace.json,121737138370,67.72,16.938,20,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.721,0,0,0
+before-phone-native-241-timeline.trace.json,121737836281,151.177,37.913,24,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,139.609,0,0,0
+before-phone-native-241-timeline.trace.json,121738558009,59.161,14.428,28,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.061,0,0,0
+before-phone-native-241-timeline.trace.json,121739231058,61.108,15.029,32,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.633,0,0,0
+before-phone-native-241-timeline.trace.json,121739928832,64.443,16.593,36,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.613,0,0,0
+before-phone-native-241-timeline.trace.json,121740624952,144.133,35.385,40,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,132.857,0,0,0
+before-phone-native-241-timeline.trace.json,121741360757,112.326,27.551,44,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,99.63,0,0,0
+before-phone-native-241-timeline.trace.json,121742062511,53.781,13.741,48,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.382,0,0,0
+before-phone-native-241-timeline.trace.json,121742756585,62.531,16.202,52,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.082,0,0,0
+before-phone-native-241-timeline.trace.json,121743451534,55.652,15.951,56,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.908,0,0,0
+before-phone-native-241-timeline.trace.json,121744145871,66.955,16.449,60,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.677,0,0,0
+before-phone-native-241-timeline.trace.json,121744831463,59.217,14.478,64,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.504,0,0,0
+before-phone-native-241-timeline.trace.json,121745517277,58.724,14.829,68,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.598,0,0,0
+before-phone-native-241-timeline.trace.json,121746200952,54.105,13.97,72,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,43.619,0,0,0
+before-phone-native-241-timeline.trace.json,121746906761,67.059,16.745,76,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.607,0,0,0
+before-phone-native-241-timeline.trace.json,121747630098,65.453,16.334,80,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.618,0,0,0
+before-phone-native-241-timeline.trace.json,121748333811,63.815,16.514,84,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.612,0,0,0
+before-phone-native-241-timeline.trace.json,121749018283,56.055,14.362,88,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.31,0,0,0
+before-phone-native-241-timeline.trace.json,121749713465,72.283,16.503,92,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.929,0,0,0
+before-phone-native-241-timeline.trace.json,121750397572,61.601,15.637,96,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.619,0,0,0
+before-phone-native-241-timeline.trace.json,121751113347,55.789,17.174,100,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.289,0,0,0
+before-phone-native-241-timeline.trace.json,121751801752,60.944,15.255,104,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.428,0,0,0
+before-phone-native-241-timeline.trace.json,121752480772,54.216,14.245,108,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.908,0,0,0
+before-phone-native-241-timeline.trace.json,121753162555,58.452,14.208,112,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.654,0,0,0
+before-phone-native-241-timeline.trace.json,121753844531,59.348,14.813,116,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.498,0,0,0
+before-phone-native-241-timeline.trace.json,121754541607,71.576,16.698,120,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.587,0,0,0
+before-phone-native-241-timeline.trace.json,121755293647,88.293,17.393,124,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,72.15,0,0,0
+before-phone-native-241-timeline.trace.json,121755990098,61.358,16.415,128,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.464,0,0,0
+before-phone-native-241-timeline.trace.json,121756692675,67.587,15.651,132,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.918,0,0,0
+before-phone-native-241-timeline.trace.json,121757399424,63.316,14.85,136,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.197,0,0,0
+before-phone-native-241-timeline.trace.json,121758101516,65.094,16.731,140,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.15,0,0,0
+before-phone-native-241-timeline.trace.json,121758781791,58.359,15.056,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.026,0,0,0
+before-phone-native-241-timeline.trace.json,121759468030,58.53,15.156,148,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.302,0,0,0
+before-phone-native-241-timeline.trace.json,121760144846,62.929,15.01,152,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.357,0,0,0
+before-phone-native-241-timeline.trace.json,121760862601,67.267,17.667,156,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.755,0,0,0
+before-phone-native-241-timeline.trace.json,121761571979,77.229,16.506,160,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,66.239,0,0,0
+before-phone-native-241-timeline.trace.json,121762220083,51.693,8.457,164,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,33.574,0,2.371,0
+before-phone-native-241-timeline.trace.json,121762317785,67.64,15.999,164,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.816,0,0,0
+before-phone-native-241-timeline.trace.json,121763033894,56.829,14.078,168,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.946,0,0,0
+before-phone-native-241-timeline.trace.json,121763721706,75.924,17.831,172,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,60.988,0,0,0
+before-phone-native-241-timeline.trace.json,121764444460,57.532,14.143,176,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.274,0,0,0
+before-phone-native-241-timeline.trace.json,121765121730,54.752,13.662,180,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.113,0,0,0
+before-phone-native-241-timeline.trace.json,121765837554,66.523,17.185,184,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.77,0,0,0
+before-phone-native-241-timeline.trace.json,121766539864,61.327,14.803,188,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.059,0,0,0
+before-phone-native-241-timeline.trace.json,121767248027,77.986,17.695,192,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,62.998,0,0,0
+before-phone-native-241-timeline.trace.json,121767976529,53.169,16.271,196,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.383,0,0,0
+before-phone-native-241-timeline.trace.json,121768660766,67.957,17.249,200,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,56.145,0,0,0
+before-phone-native-241-timeline.trace.json,121769368060,58.545,15.603,204,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.924,0,0,0
+before-phone-native-241-timeline.trace.json,121770071506,61.515,14.985,208,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.859,0,0,0
+before-phone-native-241-timeline.trace.json,121770782013,67.924,17.161,212,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.684,0,0,0
+before-phone-native-241-timeline.trace.json,121770918775,99.717,2.76,213,Destroyer,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,87.173,0,0,2.664
+before-phone-native-241-timeline.trace.json,121771480546,89.02,17.905,216,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,73.879,0,0,0
+before-phone-native-241-timeline.trace.json,121772232658,71.4,16.172,220,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.668,0,0,0
+before-phone-native-241-timeline.trace.json,121772928427,55.06,14.314,224,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.685,0,0,0
+before-phone-native-241-timeline.trace.json,121773605821,57.169,15.218,228,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.66,0,0,0
+before-phone-native-241-timeline.trace.json,121773883149,57.936,6.164,230,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,45.917,8.889,0,0
+before-phone-native-241-timeline.trace.json,121774335909,61.08,15.078,232,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.941,0,0,0
+before-phone-native-241-timeline.trace.json,121775027143,58.294,14.472,236,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.159,0,0,0
+before-phone-native-241-timeline.trace.json,121775726033,71.657,16.364,240,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.831,0,0,0
+before-phone-native-ready-1-timeline.trace.json,122464868016,77.142,17.901,1,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,64.197,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122466715593,80.295,18.279,4,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,65.847,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122467090219,75.794,17.564,8,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,62.134,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122467473942,91.607,19.582,12,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,74.885,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122467857662,90.713,19.137,16,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,77.182,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122468257247,86.274,19.565,20,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,70.775,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122468343717,54.725,11.469,20,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,50.418,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122468590934,50.109,9.248,24,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,41.447,1.004,2.563,0
+before-phone-native-ready-241-timeline.trace.json,122468728775,87.891,19.934,24,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,74.951,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122469065409,64.191,15.687,28,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.481,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122469129792,52.071,9.725,28,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,48.536,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122469432145,130.287,32.463,32,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,117.863,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122469812556,112.386,28.743,36,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,101.372,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122470154202,64.133,15.305,40,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.478,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122470468020,60.681,16.54,44,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.996,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122470765122,71.634,16.757,48,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,57.829,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122471090905,63.81,14.9,52,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.334,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122471366122,63.225,15.334,56,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.989,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122471429582,61.199,12.978,56,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,58.714,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122471737848,65.029,16.687,60,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.377,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122472074123,67.069,15.654,64,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.634,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122472454263,59.004,16.659,68,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.543,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122472762586,61.798,15.136,72,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.035,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122473043396,71.454,16.125,76,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,59.994,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122473362877,61.696,14.458,80,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.352,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122473690631,65.038,15.81,84,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,53.738,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122473755883,57.087,7.254,84,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,50.631,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122474072708,78.502,18.175,88,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,62.33,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122474485673,67.308,19.124,92,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.07,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122474553298,58.601,11.997,92,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,53.829,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122474940037,122.254,18.69,96,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,110.487,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122475302414,63.046,5.37,99,Buzzz,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,39.912,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122475432745,62.927,7.599,100,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,51.467,25.236,2.268,0
+before-phone-native-ready-241-timeline.trace.json,122475557398,147.174,19.159,100,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,121.743,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122475812688,54.412,7.406,102,Stalker,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,30.482,1.631,2.924,0
+before-phone-native-ready-241-timeline.trace.json,122476053628,102.439,18.4,104,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,98.607,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122476156100,50.836,9.592,104,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,48.132,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122476452919,60.525,18.249,108,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.193,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122476780550,74.564,16.495,112,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,57.933,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122477094072,60.934,14.995,116,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.696,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122477155185,59.731,11.067,116,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,56.772,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122477442901,120.044,20.525,120,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,100.203,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122477896789,74.696,16.896,124,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,60.483,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122478210969,61.104,15.095,128,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.78,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122478272476,52.041,9.77,128,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,47.8,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122478538277,58.451,14.629,132,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.807,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122478793262,52.003,12.928,136,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,42.294,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122479057940,61.786,14.838,140,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.659,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122479358251,62.136,14.86,144,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,49.825,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122479665347,77.45,8.411,148,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,63.901,3.086,8.488,0
+before-phone-native-ready-241-timeline.trace.json,122479744048,94.515,3.714,148,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,26.138,0,0,44.356
+before-phone-native-ready-241-timeline.trace.json,122479888745,60.304,17.097,148,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,55.216,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122480117227,79.831,0.902,150,Stalker,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,6.308,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122480415883,50.958,3.425,151,Buzzz,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,33.242,0,0,9.36
+before-phone-native-ready-241-timeline.trace.json,122480477502,52.188,8.846,152,Luna,public/all-discs-gallery.js,"Gallery click or rAF, plus style/layout/paint",Gallery click / harness rAF callback,37.921,0,1.762,0
+before-phone-native-ready-241-timeline.trace.json,122480600142,90.739,17.792,152,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,68.648,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122480691087,52.168,6.349,152,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,47.175,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122481015779,83.011,18.149,156,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,69.798,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122481361375,70.645,15.8,160,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.401,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122481432216,52.0,9.337,160,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,49.944,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122481715815,81.082,17.374,164,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,66.381,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122482060514,67.056,16.197,168,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.515,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122482391749,72.896,16.339,172,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.006,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122482464682,55.589,11.684,172,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,49.347,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122482758451,71.521,16.533,176,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,58.269,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122483107753,64.237,15.713,180,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.25,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122483413730,62.33,15.014,184,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.658,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122483727490,59.514,15.146,188,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.647,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122484004841,58.681,16.884,192,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,47.744,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122484263555,56.839,13.91,196,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.446,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122484566851,58.318,14.696,200,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,45.041,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122484849206,55.477,13.866,204,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,44.675,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122485108608,52.286,13.498,208,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,41.369,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122485368656,61.821,15.4,212,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,51.135,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122485683240,63.853,15.033,216,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,50.929,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122486021680,74.548,16.605,220,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,62.737,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122486096451,52.73,11.838,220,Luna,public/disc3d/viewer.mjs,viewer scheduled WebGL draw,render,48.854,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122486407897,60.083,14.795,224,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,46.586,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122486674513,60.585,14.79,228,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,48.815,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122486977906,66.678,17.577,232,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,52.597,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122487352555,130.204,17.145,236,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,118.734,0,0,0
+before-phone-native-ready-241-timeline.trace.json,122487739508,68.073,16.554,240,Luna,public/disc3d/photo.mjs,photo promise / JS relief processing,acquirePhoto async continuation,54.447,0,0,0
