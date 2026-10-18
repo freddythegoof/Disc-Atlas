@@ -57,11 +57,12 @@ async function open(viewport,{flat=false,noWebGL=false}={}){
 async function settled(page){
  await page.waitForFunction(()=>!cameraTween&&groupCache&&groupCache.items===filtered&&groupCache.level===AtlasGroups.level(zoom,groupCache.level)&&
   !document.querySelector('#mapMarkers').classList.contains('is-regrouping')&&!document.querySelector('.marker-position.is-retiring,.marker-position.is-new'));
- await page.waitForTimeout(450);
+ // The camera and art have separate settle clocks; wait for both, not a wall-clock guess.
+ await page.waitForFunction(()=>zoom===artZoom&&performance.now()-artZoomAt>=ART_SETTLE);
  await page.evaluate(()=>draw());
  await page.waitForFunction(()=>mapGaps.every(g=>g.on&&g.art===1&&g.rest&&g.strength===(g.named?AtlasGroups.gapLabelAlpha(zoom,g.tier):0))&&mapArt.pending===0&&
-  mapGaps.every(g=>!g.drawn||mapArt.state!=='ready'||g.three===1)&&!document.querySelector('.disc-art-3d.is-arriving'));
- await page.waitForTimeout(250);
+  mapGaps.every(g=>!g.drawn||mapArt.state!=='ready'||g.three===1&&g.lod===g.want)&&!document.querySelector('.disc-art-3d.is-arriving'));
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 async function show(page,{zoom:z=1,at=[.55,.5],theme='midnight',filter}={}){
  await page.mouse.move(1,1);
@@ -268,14 +269,15 @@ try{
   // separately: once settled, every disc must show its decided level.
   await page.evaluate(()=>{
    window.__wants=new WeakMap();window.__changes=[];window.__stand=0;
-   const tick=()=>{
-    for(const g of mapGaps){if(!g.drawn||!g.want)continue;const was=__wants.get(g);
+   const observe=()=>{
+    for(const g of mapGaps){if(!g.drawn||!g.want){__wants.delete(g);continue;}const was=__wants.get(g);
      if(was&&was!==g.want)__changes.push({key:g.id+'|'+g.tier,from:was,to:g.want,size:g.size,zoom});
      if(g.lod!==g.want)__stand++;
      __wants.set(g,g.want);}
-    requestAnimationFrame(tick);
    };
-   tick();
+   // Observe each completed paint, before a later frame or evaluation can race the sampler.
+   const paint=drawGaps;drawGaps=(...args)=>{const result=paint(...args);observe();return result;};
+   observe();
   });
   const at=await page.evaluate(()=>({x:mapViewport.left+mapViewport.width*.55,y:mapViewport.top+mapViewport.height*.5}));
   await page.mouse.move(at.x,at.y);
