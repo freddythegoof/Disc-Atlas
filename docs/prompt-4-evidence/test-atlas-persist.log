@@ -1,0 +1,33 @@
+
+> disc-atlas@0.1.0 test:atlas:persist
+> node --test tests/atlas-targets.mjs && node tests/atlas-persist-browser.mjs
+
+✔ a click on a disc lands on it, and on its name (1.624ms)
+✔ a curated disc is above a small disc, art above names, and the nearer centre wins (0.1913ms)
+✔ reach grows a target by the slack, circle and name alike (0.1484ms)
+✔ the pointer reads a disc only where it has a name (0.141ms)
+✔ a regroup due while the pointer moves waits until it has stopped (0.6438ms)
+✔ a regroup waits longer for a pointer resting on a readable disc, but not for ever (0.179ms)
+✔ a press holds the regroup for as long as it lasts, and a pointer outside the map holds nothing (0.1513ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 86.9
+ok - desktop 1x: 3 curated discs and 3 small discs land a click on their art and on their name
+ok - desktop 3x: 3 curated discs and 3 small discs land a click on their art and on their name
+ok - desktop 6.5x: 3 curated discs and 1 small discs land a click on their art and on their name
+ok - phone 1x: 3 curated discs and 1 small discs land a tap on their art and on their name
+ok - phone 3x: 3 curated discs and 0 small discs land a tap on their art and on their name
+ok - desktop: the pointer cursor shows over a small disc on the canvas and not over empty map
+ok - desktop: a regroup due while the pointer moves waits until the pointer has stopped, then happens
+ok - desktop: a regroup waits for a pointer resting on a readable disc (2029ms), and then happens
+ok - desktop: cursor anchoring and the 9x cap hold
+ok - desktop: a curated disc the new set drops stays under the pointer and lands its click, then fades once the pointer has gone
+ok - desktop: a small disc the new set drops stays under the pointer and lands its click, then fades once the pointer has gone
+ok - desktop: a disc merged into a stack stays reachable under the pointer, then its stack holds it
+ok - desktop: small zoom nudges across a level boundary never take a readable disc from under the pointer
+PASS: 13 checks.

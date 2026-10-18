@@ -1,0 +1,19 @@
+
+> disc-atlas@0.1.0 test:apple-design:3
+> node tests/apple-design-3-browser.mjs
+
+ok - full motion: choosing another disc cross-fades the text blocks over 120 ms, opacity only; not the stage, header row, same-disc re-renders or a fresh reveal
+ok - reduced motion: choosing another disc cross-fades the text blocks over 120 ms, opacity only; not the stage, header row, same-disc re-renders or a fresh reveal
+ok - Expand eases out (expo) and brings the sheet's corner radius with its height; collapse restores both cleanly
+ok - Context title: it did pop (old title hidden in one frame, new one rose in over 180 ms with 4 px of travel); now a 120 ms opacity-only cross-fade
+ok - Reduced motion keeps opacity and colour transitions, drops scale/transform ones, keeps display for menu exits, and fades (not slides) the detail panel
+ok - Reduced motion: the camera eases over ~150 ms without overshoot; the theme change is a 150 ms cross-fade
+ok - Full motion theme cross-fade is unchanged (240 ms)
+ok - The motion tokens exist on :root: 100 / 180 / 280 ms and the expo-out ease
+ok - Detail panel GSAP: reveal --dur-ui, dismiss --dur-press, expand --dur-surface
+ok - 1440 light: About, Privacy and Terms carry Account's theme control; all four headers share the token, the lockup and control positions and the surface
+ok - 1440 midnight: About, Privacy and Terms carry Account's theme control; all four headers share the token, the lockup and control positions and the surface
+ok - 390 light: About, Privacy and Terms carry Account's theme control; all four headers share the token, the lockup and control positions and the surface
+ok - 390 midnight: About, Privacy and Terms carry Account's theme control; all four headers share the token, the lockup and control positions and the surface
+ok - About <-> Account in light: same background, same lockup position
+14 checks passed.

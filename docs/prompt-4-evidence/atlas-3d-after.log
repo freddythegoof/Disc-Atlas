@@ -1,0 +1,13 @@
+ok - renders read as discs: 104 molds (91 overmolds) are round and solid, their plates at their palette colour and hue, plain rims shaded into a ring lit upper left, overmold rims dark from the measured seam out
+ok - levels of detail: minis 24 segments at 48px, small discs 48 at 128px, curated discs 96 at 192px; one geometry per shape and level, shared across colours
+ok - desktop: at 1x, 3x and 9x and in a complete Axiom view at 1x and 9x, in dark and light, 210 curated discs and 4 dots carry full renders and 52 small discs and 94 minis their level's render, with every disc, size and name exactly where the 2D build puts them
+ok - desktop: hover lifts a curated disc's render 6% and returns it
+ok - desktop: clicking Destroyer, Buzzz, Zone, TeeBird opens each one's detail panel with its 3D viewer
+ok - desktop: a putter filter and an Innova + Discraft brand view show only their discs, every render repainted in the view's colours
+ok - phone: at 1x, 3x and 9x and in a complete Axiom view at 1x and 9x, in dark and light, 82 curated discs and 0 dots carry full renders and 2 small discs and 36 minis their level's render, with every disc, size and name exactly where the 2D build puts them
+ok - phone: clicking Destroyer, Buzzz, Crank, Stingray opens each one's detail panel with its 3D viewer
+ok - phone: a putter filter and an Innova + Discraft brand view show only their discs, every render repainted in the view's colours
+ok - zoom: minis at their 24px threshold keep their render through 28 nudges, hold it through a zoom in progress and change level once when it settles
+ok - without WebGL the atlas keeps its 2D orbs
+
+11 checks passed. Screenshots: outputs/atlas-3d/

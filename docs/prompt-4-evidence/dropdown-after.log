@@ -1,0 +1,12 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at C:\Users\user\.codex\worktrees\clay-leftovers\disc-atlas\dist\workers-public\
+ok - Toolbar: Manufacturer chip and map view, closed and open, every theme and width
+ok - Directory: sort toggles and add buttons, every theme and width
+ok - Details: Add to and the disclosures, every theme and width
+ok - Filters drawer: collection, stability and manufacturer picker, every theme and width
+ok - My Bag: sort select, pocket selects, disc and bag sheets, every theme and width
+ok - Info pages: theme picker, every theme and width
+ok - Audit: no text, triangle, CSS or native arrow left; every select, menu button, sort toggle and disclosure carries .dd-indicator
+ok - States: small/medium/large boxes, glyphs and strokes match the spec; rest muted, hover lime + 1.1 + glow, open turned 180° on a lime tint, disabled 35%; 150 ms cubic-bezier(0.16, 1, 0.3, 1); sort direction turns the chevron — in all three themes
+ok - Layout: all 66 surfaces keep their size and place (pictures match the before set within 2 px), and all 1260 dropdown controls measured keep their size within 1 px
+PASS dropdown indicator (after): 9 checks, 66 screenshots in outputs/dropdown-indicator/after
