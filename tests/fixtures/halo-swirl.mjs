@@ -18,10 +18,49 @@ const smooth=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3
 const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const [dye,wash,plate,ink]=[DYE,WASH,PLATE,INK].map(rgb);
 
+// v2 (docs/halo-band-v2.md): the asymmetric swirl, closer to Freddy's zoomed photo. The plate and wash are
+// marbled (white clouds through pale pink), the dye front is lopsided (it advances on one side of the disc and
+// retreats on the other, wobbling as it goes), the purple feathers into the wash over a few hundredths of R,
+// and faint white wisps run tangentially through the dye. ASYM_FEATHER is that drawn feather (the 10–90%
+// width of the dye's take-over, as a share of R).
+export const ASYM_FEATHER=.045;
+const hash=(i,j)=>{const s=Math.sin(i*127.1+j*311.7)*43758.5453;return s-Math.floor(s);};
+function noise(x,y){
+ const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,s=q=>q*q*(3-2*q);
+ const a=hash(i,j),b=hash(i+1,j),c=hash(i,j+1),d=hash(i+1,j+1);
+ return a+(b-a)*s(u)+(c-a)*s(v)+(a-b-c+d)*s(u)*s(v);
+}
+const fbm=(x,y)=>.5*noise(x,y)+.3*noise(2.1*x+5.3,2.1*y+1.7)+.2*noise(4.3*x+9.1,4.3*y+3.3);
+// Where the asymmetric dye front sits at angle a (share of R): lopsided (the first harmonic), wobbling.
+export const asymFront=a=>.905+.035*Math.sin(a+1.3)+.018*Math.sin(2*a+.4)+.01*Math.sin(5*a+2.2);
+// The drawn front: the radius where the dye takes over from the wash (its share crosses one half). For the
+// asymmetric swirl this is the ground truth a sampled front is measured against.
+export function drawnFront(a,options={}){
+ for(let t=.80;t<=1;t+=.0005)if(dyeShare(t,a,options)>=.5)return t;
+ return 1;
+}
+function dyeShare(t,a,{front:f0=.88,asym=false}={}){
+ // smoothstep climbs from 10% to 90% over 0.608 of its span, so a span of ASYM_FEATHER/0.608 draws that width.
+ if(asym){const f=asymFront(a),h=ASYM_FEATHER/.608/2;return smooth(f-h,f+h,t);}
+ const front=f0+.025*Math.sin(3*a+.7)+.015*Math.sin(7*a+2.1);
+ const streak=Math.max(0,Math.cos(5*(a+2.6*t)+.4))**6;
+ return smooth(front-.03,front+.05,t)*(1-.75*streak*(1-smooth(.95,.99,t)));
+}
+
 // The paint at radius t (share of R) and angle a, before lighting. Returns linear RGB.
 // Variants: `front` moves the dye front (0.93: the dye only in the outermost tenth), `pure` paints the band
-// solid dye from the seam (the control: what the pipeline makes of the dye itself, with no wash).
-export function paint(t,a,{front:f0=.88,pure=false}={}){
+// solid dye from the seam (the control: what the pipeline makes of the dye itself, with no wash), `asym` is
+// the v2 asymmetric marbled swirl above, and `washOnly` paints that swirl's wash with no dye (its control).
+export function paint(t,a,{front:f0=.88,pure=false,asym=false,washOnly=false}={}){
+ if(asym||washOnly){
+  const x=t*Math.cos(a),y=t*Math.sin(a),cloud=smooth(.5,.8,fbm(6*x+11,6*y+7));
+  let c=mix(mix(plate,wash,smooth(.70,.80,t)),[1,1,1],(washOnly?0:.35)*cloud);
+  if(washOnly)return stamp(t,a,c);
+  // Tangential wisps: thin, broken streaks that run around the ring.
+  const wisp=Math.max(0,Math.sin(140*t+5*Math.sin(2*a+1)))**10*(.5+.5*Math.sin(3*a+2));
+  c=mix(c,mix(dye,[1,1,1],.3*wisp),dyeShare(t,a,{asym:true}));
+  return stamp(t,a,c);
+ }
  // Pale centre → wash ring (from 0.72 R, so the wash is already there at the seam, as on the real disc).
  let c=mix(plate,wash,smooth(.70,.80,t));
  if(pure)return stamp(t,a,mix(c,dye,smooth(.78,.80,t)));

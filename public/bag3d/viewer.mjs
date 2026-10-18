@@ -8,6 +8,8 @@ import {PLASTICS} from '../disc3d/mesh.mjs';
 import {catalogStampAsset,stampTexture,stampGeometry,stampMaterial,catalogStampPlacement} from '../disc3d/stamp.mjs';
 import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../disc3d/quality.mjs';
 import {overmoldColors} from '../disc3d/overmold.mjs';
+import {parseHalo} from '../disc3d/halo.mjs';
+import {haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 import {desktopPulledLayout,phonePulledFit,phonePulledLayout,PHONE_PULLED_COUNT,PHONE_PULLED_MAX,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
 export { parseDiscParams } from './disc-state.mjs';
@@ -515,6 +517,8 @@ export async function mountBag(container, {
     return false;
   };
   const detailMaterial = color => new THREE.MeshPhysicalMaterial({ color, ...PLASTICS.premium, envMap: environment.texture, envMapIntensity: DETAIL.environment / renderer.toneMappingExposure });
+  // A Halo v2 band material: its own uniforms, so each copy draws its own wash and dye front.
+  const paintHalo = (material, model) => { const uniforms = haloUniforms(); setHalo(uniforms, model); return patchHalo(material, uniforms); };
   const setDetailRatio = () => {
     const on = [...records.values()].some(record => record.detail);
     if (on === detailRatio) return;
@@ -587,9 +591,10 @@ export async function mountBag(container, {
     // a middling one the smallest tier that still covers its device pixels.
     const { placement, mesh } = record, tier = record.shown > 2 * DETAIL_FROM ? null : photoTier(record.shown * devicePixelRatio);
     if (!record.detail) {
-      const band = !!placement.haloBand, key = JSON.stringify(placement.mold) + (band ? '|band' : '');
-      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }, { band }));
+      const band = !!placement.haloBand, halo = band && !!parseHalo(placement.haloModel), key = JSON.stringify(placement.mold) + (band ? '|band' : '') + (halo ? '|halo' : '');
+      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }, { band, halo }));
       const base = { geometry: mesh.geometry, material: mesh.material }, materials = [base.material].flat().map(material => detailMaterial(material.color));
+      if (halo && detailGeometries.get(key).halo && materials[1]) paintHalo(materials[1], placement.haloModel);
       record.detail = { base, materials, parts: detailGeometries.get(key), photos: [], tier: undefined };
       mesh.geometry = record.detail.parts.geometry; mesh.material = Array.isArray(base.material) ? materials : materials[0];
       paintDisc(record);
@@ -645,17 +650,18 @@ export async function mountBag(container, {
     for (const placement of result.placements) {
       // An empty go-to pocket shows the GLB's dashed outline instead of a ghost disc.
       if (placement.empty && placement.pocket === 'goTo') continue;
-      let geometry=discGeometry,overmold=false,band=false,parts=null;
+      let geometry=discGeometry,overmold=false,band=false,halo=false,parts=null;
       if(!placement.empty&&placement.mold){
-        // A Halo copy (disc3d/halo.mjs) splits at the rim seam for its band; overmold molds ignore it.
-        const halo=!!placement.haloBand,key=JSON.stringify(placement.mold)+(halo?'|band':'');
-        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low,null,{band:halo}));
-        parts=moldGeometries.get(key);({geometry,overmold,band}=parts);
+        // A Halo copy (disc3d/halo.mjs) splits at the rim seam for its band; overmold molds ignore it. Halo v2
+        // (a stored wash and dye front) also carries the band coordinate its shader reads.
+        const banded=!!placement.haloBand,twoTone=banded&&!!parseHalo(placement.haloModel),key=JSON.stringify(placement.mold)+(banded?'|band':'')+(twoTone?'|halo':'');
+        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low,null,{band:banded,halo:twoTone}));
+        parts=moldGeometries.get(key);({geometry,overmold,band,halo}=parts);
       }
       let material = placement.empty ? ghostMaterial : discTemplate.clone();
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
-      else if(band){const rim=discTemplate.clone();rim.color.set(placement.haloBand);material=[material,rim];}
+      else if(band){const rim=discTemplate.clone();rim.color.set(placement.haloBand);if(halo)paintHalo(rim,placement.haloModel);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
       // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
       if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
@@ -1574,7 +1580,7 @@ export async function mountBag(container, {
       return [...records.values()].map(record => ({ record, ...record })).map(({ record, key, placement, mesh }) => ({
         key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty,
         color: placement.empty ? null : '#' + [mesh.material].flat()[0].color.getHexString(),
-        overmold:!!record.parts?.overmold,haloBand:record.parts?.band?'#'+[mesh.material].flat()[1].color.getHexString():null,rimColor:record.parts?.overmold?'#'+mesh.material[1].color.getHexString():null,
+        overmold:!!record.parts?.overmold,haloTwoTone:!!record.parts?.halo&&!!(record.detail?.materials??[mesh.material].flat())[1]?.userData.halo,haloBand:record.parts?.band?'#'+[mesh.material].flat()[1].color.getHexString():null,rimColor:record.parts?.overmold?'#'+mesh.material[1].color.getHexString():null,
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
         pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : [mesh.material].flat()[0].emissiveIntensity,

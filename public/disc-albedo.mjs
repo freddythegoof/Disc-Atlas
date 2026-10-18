@@ -69,24 +69,31 @@ const labOf=([r,g,b])=>{
  const fx=f((.4124*r+.3576*g+.1805*b)/.95047),fy=f(luma(r,g,b)),fz=f((.0193*r+.1192*g+.9505*b)/1.08883);
  return [116*fy-16,500*(fx-fy),200*(fy-fz)];
 };
-export function bandColor(data,size,inner){
+// The band annulus as rimColor reads it (`rings` × 128 angles, transparent pixels skipped, the glare ceiling
+// applied). Null when it is too thin or too sparse to read.
+function bandRead(data,size,inner,rings){
  if(!Number.isFinite(inner)||inner<=0||inner>=1)return null;
- const lo=inner+Math.max(2/size,(1-inner)*.08),hi=1-Math.max(2/size,.02),RINGS=8;
+ const lo=inner+Math.max(2/size,(1-inner)*.08),hi=1-Math.max(2/size,.02);
  if(lo>=hi)return null;
  const samples=[];
- for(let ring=0;ring<RINGS;ring++)for(let a=0;a<128;a++){
-  const radius=lo+(hi-lo)*(ring+.5)/RINGS,angle=(a+.5)*Math.PI*2/128;
+ for(let ring=0;ring<rings;ring++)for(let a=0;a<128;a++){
+  const radius=lo+(hi-lo)*(ring+.5)/rings,angle=(a+.5)*Math.PI*2/128;
   const x=Math.floor((1+radius*Math.cos(angle))*size/2),y=Math.floor((1+radius*Math.sin(angle))*size/2),k=(y*size+x)*4;
   if(data[k+3]<250)continue;
   const rgb=[toLinear[data[k]],toLinear[data[k+1]],toLinear[data[k+2]]];
-  samples.push({rgb,y:luma(...rgb),out:(ring+.5)/RINGS,lab:labOf(rgb)});
+  samples.push({rgb,y:luma(...rgb),out:(ring+.5)/rings,ring,angle:a,lab:labOf(rgb)});
  }
- if(samples.length<RINGS*64)return null;
+ if(samples.length<rings*64)return null;
  const levels=samples.map(s=>s.y).sort((a,b)=>a-b),m=median(levels);
  const mad=median(levels.map(v=>Math.abs(v-m)));
  const ceiling=Math.min(levels[Math.floor((levels.length-1)*.9)],m+3*Math.max(.005,1.4826*mad));
- const kept=samples.filter(s=>s.y<=ceiling);
- const dist=(p,q)=>Math.hypot(.5*(p[0]-q[0]),p[1]-q[1],p[2]-q[2]);
+ return {lo,hi,kept:samples.filter(s=>s.y<=ceiling)};
+}
+const bandDistance=(p,q)=>Math.hypot(.5*(p[0]-q[0]),p[1]-q[1],p[2]-q[2]);
+// The colour groups of a band read: [{list, centre, share, out}], `out` the group's mean place across the band
+// (0 at the inner ring, 1 at the outer).
+function bandGroups(kept){
+ const dist=bandDistance;
  const mean=list=>[0,1,2].map(i=>list.reduce((sum,s)=>sum+s.lab[i],0)/list.length);
  // Deterministic farthest-point seeds from the median colour, then Lloyd iterations.
  let centres=[[0,1,2].map(i=>median(kept.map(s=>s.lab[i])))];
@@ -106,12 +113,50 @@ export function bandColor(data,size,inner){
   for(let i=0;i<groups.length&&!merged;i++)for(let j=i+1;j<groups.length&&!merged;j++)
    if(dist(centres[i],centres[j])<12){groups[i]=[...groups[i],...groups[j]];groups.splice(j,1);centres=groups.map(mean);merged=true;}
  }
- let band=null,reach=-1;
- for(const g of groups){
-  if(g.length<.15*kept.length)continue;
-  const out=g.reduce((sum,s)=>sum+s.out,0)/g.length;if(out>reach){reach=out;band=g;}
+ return groups.map((list,i)=>({list,centre:centres[i],share:list.length/kept.length,out:list.reduce((sum,s)=>sum+s.out,0)/list.length}));
+}
+const groupHex=list=>'#'+[0,1,2].map(c=>encode(median(list.map(s=>s.rgb[c]))).toString(16).padStart(2,'0')).join('');
+// The dye group: the furthest out of the groups holding at least 15% of the samples.
+const dyeGroup=groups=>{let band=null;for(const g of groups)if(g.share>=.15&&(!band||g.out>band.out))band=g;return band;};
+export function bandColor(data,size,inner){
+ const read=bandRead(data,size,inner,8);if(!read)return null;
+ return groupHex(dyeGroup(bandGroups(read.kept)).list);
+}
+
+// Halo v2 (docs/halo-band-v2.md): the band's two colours. On top, a Halo band is mostly a pale wash ring and the
+// dye owns the outer lip; where the dye takes over wobbles around the circle. bandModel finds:
+// - the wash: the innermost colour group (again at least 15% of the samples) that sits inward of the dye;
+//   its colour is the per-channel median of the samples nearer the wash than the dye;
+// - the dye front: at each of 128 angles, the radius where the dye takes over. Every sample on 16 finer rings
+//   gets its dye share by projection onto the wash→dye line in linear light (a 50/50 mix in light, not in
+//   Lab, which would push the front outward); the front is the seam side of the band plus the wash's share of
+//   it. Smoothed around the circle (a Gaussian, σ = 3 of the 128 angles, 8.4°) and kept at FRONT_RING angles.
+// No wash (one colour, or a wash under 15% of the band) is null: the disc stays the v1 one-colour band.
+export const FRONT_RING=16;
+export function bandModel(data,size,inner){
+ const read=bandRead(data,size,inner,8);if(!read)return null;
+ const groups=bandGroups(read.kept),dye=dyeGroup(groups);
+ let wash=null;for(const g of groups)if(g!==dye&&g.share>=.15&&g.out<dye.out&&(!wash||g.out<wash.out))wash=g;
+ if(!wash)return null;
+ const fine=bandRead(data,size,inner,16);if(!fine)return null;
+ const D=[0,1,2].map(c=>median(dye.list.map(s=>s.rgb[c]))),Wc=[0,1,2].map(c=>median(wash.list.map(s=>s.rgb[c])));
+ const axis=D.map((v,i)=>v-Wc[i]),len2=axis.reduce((sum,v)=>sum+v*v,0);if(!(len2>0))return null;
+ const share=new Float64Array(128),count=new Float64Array(128),washed=[];
+ for(const s of fine.kept){
+  const p=Math.min(1,Math.max(0,s.rgb.reduce((sum,v,i)=>sum+(v-Wc[i])*axis[i],0)/len2));
+  share[s.angle]+=1-p;count[s.angle]++;
+  if(bandDistance(s.lab,wash.centre)<bandDistance(s.lab,dye.centre))washed.push(s);
  }
- return '#'+[0,1,2].map(c=>encode(median(band.map(s=>s.rgb[c]))).toString(16).padStart(2,'0')).join('');
+ const raw=new Float64Array(128),known=[...count.keys()].filter(i=>count[i]);if(!known.length||!washed.length)return null;
+ for(let i=0;i<128;i++){
+  // An angle with no readable sample (all glare) takes its nearest readable neighbour.
+  let j=i;if(!count[j])j=known.reduce((best,k)=>Math.min(Math.abs(k-i),128-Math.abs(k-i))<Math.min(Math.abs(best-i),128-Math.abs(best-i))?k:best,known[0]);
+  raw[i]=fine.lo+(fine.hi-fine.lo)*share[j]/count[j];
+ }
+ const SIGMA=3,smooth=i=>{let sum=0,w=0;for(let k=-3*SIGMA;k<=3*SIGMA;k++){const g=Math.exp(-k*k/(2*SIGMA*SIGMA));sum+=g*raw[(i+k+128)%128];w+=g;}return sum/w;};
+ const step=128/FRONT_RING;
+ const front=Array.from({length:FRONT_RING},(_,j)=>{const at=j*step-.5,i=Math.floor(at),f=at-i;return smooth((i+128)%128)*(1-f)+smooth((i+1)%128)*f;});
+ return {dye:groupHex(dye.list),wash:groupHex(washed),front};
 }
 
 // Weighted least squares for the six quadratic terms (normal equations, Gaussian elimination).
@@ -188,9 +233,11 @@ export function delightPixels(data,size,{plate=.78,rimInner=null,bandInner=null,
   data[k]=encode(r);data[k+1]=encode(gg);data[k+2]=encode(b);
  }
  // The plate colour (and the rim or Halo band) is measured before the experiment, so the disc's matched colour never depends on it.
- const color=plateColor(data,size,plate),rim=rimInner?rimColor(data,size,rimInner):null,band=bandInner?bandColor(data,size,bandInner):null;
+ const color=plateColor(data,size,plate),rim=rimInner?rimColor(data,size,rimInner):null;
+ // A Halo band: its dye (bandColor) and, when it has a wash, the two-colour model (the same dye group).
+ const halo=bandInner?bandModel(data,size,bandInner):null,band=bandInner?(halo?halo.dye:bandColor(data,size,bandInner)):null;
  const glare=soften?softenGlare(data,input,size,(x,y)=>Math.exp(evaluate(c,x,y))):null;
- return {color,gradient:Math.exp(hi-lo),corrected:true,...rimInner&&{rim},...bandInner&&{band},...glare&&{glare}};
+ return {color,gradient:Math.exp(hi-lo),corrected:true,...rimInner&&{rim},...bandInner&&{band,halo},...glare&&{glare}};
 }
 
 // Glare softening, the experiment (docs/photo-glare-experiment.md). It runs after the baseline has written

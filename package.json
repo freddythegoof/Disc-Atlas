@@ -60,7 +60,7 @@
     "test:photo-level": "node tests/photo-stamp-level-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",
     "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs",
-    "test:halo": "node --test tests/halo-plastic.mjs tests/halo-band-sampling.mjs && node tests/halo-plastic-browser.mjs"
+    "test:halo": "node --test tests/halo-plastic.mjs tests/halo-band-sampling.mjs tests/halo-band-v2.mjs && node tests/halo-plastic-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

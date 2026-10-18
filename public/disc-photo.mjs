@@ -1,5 +1,6 @@
 // Photos never leave the browser until reduced to a bounded, metadata-free circular WebP.
-import {delightPixels,rimColor,bandColor} from './disc-albedo.mjs';
+import {delightPixels,rimColor,bandColor,bandModel} from './disc-albedo.mjs';
+import {encodeHalo} from './disc3d/halo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
@@ -123,14 +124,15 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
  // The rim, like the plate colour, is measured before the glare pass: matched colours never depend on it.
- const {color,rim=null,band=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null,bandInner:options.bandInner||null});ctx.putImageData(pixels,0,0);
- return {canvas,color,photoRimColor:rim,bandColor:band};
+ const {color,rim=null,band=null,halo=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null,bandInner:options.bandInner||null});ctx.putImageData(pixels,0,0);
+ return {canvas,color,photoRimColor:rim,bandColor:band,haloModel:encodeHalo(halo)};
 }
 // A saved texture turned for levelling: resampled only, and its rim measured again as on its first save.
 function levelCanvas(image,options,size){
  const canvas=photoCanvas(image,options,size);
  const data=options.rimInner||options.bandInner?canvas.getContext('2d').getImageData(0,0,size,size).data:null;
- return {canvas,color:null,photoRimColor:options.rimInner?rimColor(data,size,options.rimInner):null,bandColor:options.bandInner?bandColor(data,size,options.bandInner):null};
+ const halo=options.bandInner?bandModel(data,size,options.bandInner):null;
+ return {canvas,color:null,photoRimColor:options.rimInner?rimColor(data,size,options.rimInner):null,bandColor:options.bandInner?(halo?halo.dye:bandColor(data,size,options.bandInner)):null,haloModel:encodeHalo(halo)};
 }
 let canvasWebP,webpModule;
 const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
@@ -148,26 +150,27 @@ async function fallbackWebP(canvas,quality){
  // Only the already cropped, de-lit pixels reach the encoder. Never original bytes or metadata.
  return codec.encodeWebP(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),quality);
 }
-// Resolves to {blob, color, photoRimColor, bandColor}. Sample the rim (an overmold, `rimInner`) or the Halo band
-// (a one-piece mold, `bandInner`) once from the first (1024px) processed pixels,
+// Resolves to {blob, color, photoRimColor, bandColor, haloModel}. Sample the rim (an overmold, `rimInner`) or the
+// Halo band (a one-piece mold, `bandInner`: its dye and, v2, its wash and dye front) once from the first (1024px)
+// processed pixels,
 // retaining that value even if upload compression needs a smaller image.
 // {albedo:false} is for re-levelling a saved photo: its pixels are already the albedo, so they are only
 // resampled (no second delighting) and no plate colour is measured. Its rim is sampled again, as it was when
 // first saved, so levelling keeps the matched rim. It never encodes larger than the source.
 export async function preparePhoto(image,options={},{albedo=true}={}){
- let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null,band=null;
+ let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null,band=null,halo=null;
  const sizes=albedo?[1024,768,512]:[1024,768,512].filter(size=>size<=Math.max(512,image.width));
  for(const size of sizes){
   const first=size===sizes[0],crop=first?options:{...options,rimInner:null,bandInner:null};
-  const {canvas,color,photoRimColor:sample,bandColor:bandSample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
-  if(first){photoRimColor=sample;band=bandSample;}
+  const {canvas,color,photoRimColor:sample,bandColor:bandSample,haloModel:haloSample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
+  if(first){photoRimColor=sample;band=bandSample;halo=haloSample;}
   try{
    for(const quality of [.86,.72,.56,.4]){
     let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
     // A null result is an encode failure, not evidence that WebP is unsupported.
     if(blob&&blob.type!=='image/webp'){native=false;blob=await fallbackWebP(canvas,quality);}
     if(!blob){empty++;continue;}
-    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor,bandColor:band};
+    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor,bandColor:band,haloModel:halo};
    }
   }finally{canvas.width=canvas.height=0;}
  }
@@ -290,7 +293,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  root.closest('dialog')?.addEventListener('scroll',e=>{if(!sources.contains(e.target))closeSources();},{capture:true,passive:true});
  if(matchMedia('(pointer:coarse)').matches){choose.popoverTargetElement=sources;choose.setAttribute('aria-expanded','false');}
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
- // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,mode,url}.
+ // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,haloModel,mode,url}.
  // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
  let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false;
  const pointers=new Map();
@@ -365,8 +368,8 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    // Levelling only resamples the saved texture; it keeps the disc's colour as it is.
    // An overmold's rim piece (rimColor) or, on a one-piece mold, the outer band a Halo copy would show
    // (bandColor, kept apart so only a Halo copy ever stores it; see the bandColor getter).
-   const level=mode==='level',{blob,color,photoRimColor,bandColor}=await preparePhoto(bitmap,{...options,rimInner,bandInner},{albedo:!level});if(id!==serial)return;
-   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,mode,url:URL.createObjectURL(blob)};
+   const level=mode==='level',{blob,color,photoRimColor,bandColor,haloModel}=await preparePhoto(bitmap,{...options,rimInner,bandInner},{albedo:!level});if(id!==serial)return;
+   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,haloModel,mode,url:URL.createObjectURL(blob)};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();if(!level)onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
@@ -443,6 +446,8 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   // The prepared photo's outer band (one-piece molds only). The sheet stores it as photo_rim_color only for a
   // Halo copy (disc3d/halo.mjs), since only the sheet knows the plastic at save time.
   get bandColor(){return used?.bandColor??null;},
+  // The band's two-colour model (disc3d/halo.mjs encodeHalo), stored with bandColor for a Halo copy only.
+  get haloModel(){return used?.haloModel??null;},
   async value(){if(busy)throw Error('Wait for the photo to finish.');return used?used.blob:null;},
   // For tests: the aligner and what it is working on.
   debug:{dialog,get draft(){return draft;},get used(){return used;}}};
