@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {delightPixels,plateColor} from '../public/disc-albedo.mjs';
+import {delightPixels,plateColor,SOFTEN_GLARE} from '../public/disc-albedo.mjs';
+import {glarePhoto,GLARE_CASES} from './photo-glare-cases.mjs';
 import * as albedo from '../public/disc-albedo.mjs';
 
 test('annulus median keeps dark and light rims despite glare across different seam radii',()=>{
@@ -85,4 +86,74 @@ test('too little plate to measure leaves the pixels alone',()=>{
  const data=new Uint8ClampedArray(16*16*4).fill(200),copy=data.slice();
  assert.deepEqual(delightPixels(data,16),{color:null,gradient:1,corrected:false});
  assert.deepEqual(data,copy);
+});
+
+// The glare experiment (docs/photo-glare-experiment.md): baseline = softenGlare:false, the exact pre-experiment
+// output. Every assertion compares the two on the same input.
+const ab=name=>{
+ const photo=glarePhoto(GLARE_CASES[name]),baseline=photo.data.slice(),experiment=photo.data.slice();
+ const a=delightPixels(baseline,photo.size,{softenGlare:false}),b=delightPixels(experiment,photo.size,{softenGlare:true});
+ const changed=[];for(let p=0;p<photo.size*photo.size;p++){const k=4*p;if(baseline[k]!==experiment[k]||baseline[k+1]!==experiment[k+1]||baseline[k+2]!==experiment[k+2]||baseline[k+3]!==experiment[k+3])changed.push(p);}
+ return {photo,baseline,experiment,a,b,changed};
+};
+const lumAt=(d,p)=>luma(d[4*p],d[4*p+1],d[4*p+2]);
+
+test('glare experiment: the kill switch restores the baseline byte for byte',()=>{
+ assert.equal(SOFTEN_GLARE,true,'the experiment is on in this branch; false turns it off');
+ const photo=glarePhoto(GLARE_CASES.hotspot),off=photo.data.slice(),defaults=photo.data.slice(),on=photo.data.slice();
+ const result=delightPixels(off,photo.size,{softenGlare:false});delightPixels(defaults,photo.size);delightPixels(on,photo.size,{softenGlare:true});
+ assert.equal('glare' in result,false,'off: the pass never runs');
+ assert.deepEqual(defaults,on,'the default follows SOFTEN_GLARE');
+ assert.notDeepEqual(off,on);
+});
+
+test('glare experiment: no glare, or crisp white ink, renders identical to the baseline',()=>{
+ for(const name of ['no-glare','white-ink-clipped']){
+  const {baseline,experiment,a,b,changed}=ab(name);
+  assert.equal(changed.length,0,name+': no pixel changed');assert.deepEqual(experiment,baseline);assert.equal(a.color,b.color);
+  assert.equal(b.glare.hotspots,0,name);
+ }
+ // The clipped white ink block is seen and refused (its halo is a pixel or two wide), not missed.
+ assert.equal(ab('white-ink-clipped').b.glare.rejected,1);
+});
+
+test('glare experiment: only glare pixels change, each one darker, and the hotspot loses most of its excess',()=>{
+ for(const name of ['hotspot','hotspot-on-stamp','tube-streak','dark-disc']){
+  const {photo,baseline,experiment,a,b,changed}=ab(name),n=photo.size*photo.size;
+  // Bounded: a pixel changes only where the fixture added glare; everywhere else the bytes are the baseline's.
+  assert.ok(changed.length>500,name+': the hotspot was softened ('+changed.length+' px)');
+  for(const p of changed){
+   assert.ok(photo.added[p]>=.005,`${name}: pixel ${p} changed without glare`);
+   assert.ok(lumAt(experiment,p)<lumAt(baseline,p),`${name}: pixel ${p} brightened`);
+  }
+  assert.equal(b.color,a.color,name+': the matched plate colour is the baseline\'s');
+  // Measured: mean luminance over the glare (added light ≥ 0.3) and its distance from the same photo shot
+  // without glare (the truth the softening aims for), baseline vs experiment.
+  const reference=glarePhoto({...GLARE_CASES[name],glare:[]}).data;delightPixels(reference,photo.size,{softenGlare:false});
+  let count=0,before=0,after=0,errBefore=0,errAfter=0;
+  for(let p=0;p<n;p++){if(photo.added[p]<.3||photo.data[4*p+3]<255)continue;count++;const r=lumAt(reference,p);before+=lumAt(baseline,p);after+=lumAt(experiment,p);errBefore+=Math.abs(lumAt(baseline,p)-r);errAfter+=Math.abs(lumAt(experiment,p)-r);}
+  assert.ok(count>1000,name);
+  assert.ok(after<before*.65,`${name}: highlight luminance ${(before/count).toFixed(3)} → ${(after/count).toFixed(3)}`);
+  assert.ok(errAfter<errBefore*.45,`${name}: error vs no-glare ${(errBefore/count).toFixed(3)} → ${(errAfter/count).toFixed(3)}`);
+ }
+});
+
+test('glare experiment: coloured ink beside a hotspot keeps its colour',()=>{
+ const {photo,baseline,experiment}=ab('hotspot-on-stamp');let count=0;
+ for(let j=0;j<photo.size;j++)for(let i=0;i<photo.size;i++){
+  const x=(i+.5)/photo.size*2-1,y=(j+.5)/photo.size*2-1,k=4*(j*photo.size+i);
+  if(x>-.5&&x<-.3&&y>.3&&y<.42){count++;for(let c=0;c<3;c++)assert.equal(experiment[k+c],baseline[k+c],'yellow ink pixel changed');}
+ }
+ assert.ok(count>500);
+});
+
+test('glare experiment: the photo-matched rim is measured before the pass, so it never depends on it',()=>{
+ // A near-white overmold rim with a white glare wedge lying across it: one bright patch to the glare pass.
+ const size=256,inner=.86,data=new Uint8ClampedArray(size*size*4);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){
+  const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1,r=Math.hypot(x,y),a=Math.atan2(y,x),k=(j*size+i)*4;
+  data.set([...(r<inner?[180,90,40]:a>-1.1&&a<-.8?[255,255,255]:[228,232,236]),r>.99?0:255],k);
+ }
+ const off=delightPixels(data.slice(),size,{rimInner:inner,softenGlare:false}),on=delightPixels(data.slice(),size,{rimInner:inner,softenGlare:true});
+ assert.ok(off.rim);assert.equal(on.rim,off.rim);assert.equal(on.color,off.color);
 });

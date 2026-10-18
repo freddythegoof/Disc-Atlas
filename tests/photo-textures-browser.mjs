@@ -136,6 +136,33 @@ try {
  await page.locator('#closeDetail').click();await page.locator(`[data-bag-edit="${disc.id}"]`).click();await page.locator('.bag-photo-remove').click();await save();await inspect();
  assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.stamp.visible),true);assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.photo),null);
  assert.equal((await page.request.get(base+'/api/bag/discs/'+disc.id+'/photo')).status(),404);
+ // Stamp levelling against the real Worker (docs/photo-stamp-orientation.md): a photo saved with its stamp 3°
+ // crooked is levelled from the sheet after saving, without the original photo, through the same upload
+ // route and checks; the stored texture comes back level and the disc keeps its colour.
+ const stampAngle=key=>page.evaluate(async url=>{
+  const image=await createImageBitmap(await (await fetch(url,{credentials:'same-origin',cache:'no-store'})).blob()),c=document.createElement('canvas');c.width=image.width;c.height=image.height;
+  const g=c.getContext('2d');g.drawImage(image,0,0);const d=g.getImageData(0,0,c.width,c.height).data,w=c.width,r=w/2;image.close();let n=0,sx=0,sy=0,sxx=0,syy=0,sxy=0;
+  for(let y=0;y<w;y++)for(let x=0;x<w;x++){const k=4*(y*w+x);if(Math.hypot(x+.5-r,y+.5-r)>r*.8||d[k+3]<200||(.2126*d[k]+.7152*d[k+1]+.0722*d[k+2])/255>.35)continue;n++;sx+=x;sy+=y;sxx+=x*x;syy+=y*y;sxy+=x*y;}
+  const mx=sx/n,my=sy/n;return .5*Math.atan2(2*(sxy/n-mx*my),(sxx/n-mx*mx)-(syy/n-my*my))*180/Math.PI;
+ },key);
+ await page.locator('#closeDetail').click();const knownIds=new Set(data.discs.map(d=>d.id));await open('Envy');
+ await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/crooked-stamp.jpg');await confirmPhoto();await save();
+ data=await (await page.request.get(base+'/api/bag')).json();let crookedDisc=data.discs.find(d=>!knownIds.has(d.id));
+ const crookedAngle=await stampAngle('/api/bag/discs/'+crookedDisc.id+'/photo?v='+crookedDisc.texture_key);assert.ok(Math.abs(crookedAngle+3)<.25,'saved crooked: '+crookedAngle);
+ await page.locator(`[data-bag-edit="${crookedDisc.id}"]`).click();await page.locator('.bag-photo-level').click();await page.locator('.photo-aligner[open]').waitFor();
+ assert.equal(await page.locator('#photoAlignerTitle').textContent(),'Level the stamp');
+ for(let i=0;i<3;i++)await page.locator('.photo-aligner [data-rotate="1"]').click();
+ await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();
+ const crookedKey=crookedDisc.texture_key;await save();assert.ok(upload.length<=512*1024&&upload.toString('ascii',0,4)==='RIFF');
+ data=await (await page.request.get(base+'/api/bag')).json();const levelledDisc=data.discs.find(d=>d.id===crookedDisc.id);
+ assert.notEqual(levelledDisc.texture_key,crookedKey);assert.equal(levelledDisc.color,crookedDisc.color,'levelling keeps the disc colour');
+ // The photo-matched overmold rim is measured again from the saved texture, not cleared by the re-upload.
+ assert.ok(crookedDisc.photo_rim_color&&levelledDisc.photo_rim_color,'rim colours: '+crookedDisc.photo_rim_color+' → '+levelledDisc.photo_rim_color);
+ for(const at of [1,3,5])assert.ok(Math.abs(parseInt(crookedDisc.photo_rim_color.slice(at,at+2),16)-parseInt(levelledDisc.photo_rim_color.slice(at,at+2),16))<=4,'levelling keeps the matched rim: '+crookedDisc.photo_rim_color+' → '+levelledDisc.photo_rim_color);
+ const levelledAngle=await stampAngle('/api/bag/discs/'+levelledDisc.id+'/photo?v='+levelledDisc.texture_key);assert.ok(Math.abs(levelledAngle)<.25,'levelled after saving: '+levelledAngle);
+ await page.locator(`[data-disc-id="${levelledDisc.id}"] [data-bag-inspect]`).click();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);await page.waitForTimeout(500);
+ await page.locator('#detail').screenshot({path:dir+'/relevel-after-save.png'});
+ console.log(`PASS: saved photo levelled after saving through the Worker: ${crookedAngle.toFixed(2)}° → ${levelledAngle.toFixed(2)}°, ${upload.length} bytes, colour ${levelledDisc.color} kept, rim ${crookedDisc.photo_rim_color} → ${levelledDisc.photo_rim_color}`);
  // HEIC takes the real Chromium converter rung through the actual bag editor,
  // then the unchanged private Worker route. No converter or upload is mocked.
  await page.locator('#closeDetail').click();await open('Envy');

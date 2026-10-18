@@ -5,9 +5,14 @@ import {isOvermold} from './disc3d/overmold.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
-export function photoPoint(x,y,{width,height,scale=.94,aspect=1,perspective=0,angle=0,cx=.5,cy=.5}){
+// `angle` only orients that tilt correction (with aspect 1 and no perspective it moves nothing). `rotate`
+// levels the stamp: the crop turns by that many degrees, clockwise as seen in the aligner. At 0 it is skipped
+// outright, so an unrotated crop is the same arithmetic, and the same bytes, as before it existed.
+export function photoPoint(x,y,{width,height,scale=.94,aspect=1,perspective=0,angle=0,cx=.5,cy=.5,rotate=0}){
+ const inside=x*x+y*y<=1;
+ if(rotate){const t=rotate*Math.PI/180,c=Math.cos(t),s=Math.sin(t);[x,y]=[x*c+y*s,y*c-x*s];}
  const r=Math.min(width,height)*scale/2,a=angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a),u=x*c+y*s,v=-x*s+y*c,k=1+perspective*v;
- return {x:cx*width+(u*c-v*aspect*s)*r/k,y:cy*height+(u*s+v*aspect*c)*r/k,inside:x*x+y*y<=1};
+ return {x:cx*width+(u*c-v*aspect*s)*r/k,y:cy*height+(u*s+v*aspect*c)*r/k,inside};
 }
 // Labels from phone pickers may be empty or wrong. Only recognized raster bytes get decoded.
 export function sniffPhotoFormat(bytes){
@@ -117,9 +122,15 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
 // The crop with the photo's lighting removed (disc-albedo.mjs), and the plate colour it measured.
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
- const {color}=delightPixels(pixels.data,size);ctx.putImageData(pixels,0,0);
- const photoRimColor=options.rimInner?rimColor(pixels.data,size,options.rimInner):null;
- return {canvas,color,photoRimColor};
+ // The rim, like the plate colour, is measured before the glare pass: matched colours never depend on it.
+ const {color,rim=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null});ctx.putImageData(pixels,0,0);
+ return {canvas,color,photoRimColor:rim};
+}
+// A saved texture turned for levelling: resampled only, and its rim measured again as on its first save.
+function levelCanvas(image,options,size){
+ const canvas=photoCanvas(image,options,size);
+ const photoRimColor=options.rimInner?rimColor(canvas.getContext('2d').getImageData(0,0,size,size).data,size,options.rimInner):null;
+ return {canvas,color:null,photoRimColor};
 }
 let canvasWebP,webpModule;
 const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
@@ -137,13 +148,18 @@ async function fallbackWebP(canvas,quality){
  // Only the already cropped, de-lit pixels reach the encoder. Never original bytes or metadata.
  return codec.encodeWebP(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),quality);
 }
-// Resolves to {blob, color, photoRimColor}. Sample the rim once from the 1024px
-// processed pixels, retaining that value even if upload compression needs a smaller image.
-export async function preparePhoto(image,options={}){
+// Resolves to {blob, color, photoRimColor}. Sample the rim once from the first (1024px) processed pixels,
+// retaining that value even if upload compression needs a smaller image.
+// {albedo:false} is for re-levelling a saved photo: its pixels are already the albedo, so they are only
+// resampled (no second delighting) and no plate colour is measured. Its rim is sampled again, as it was when
+// first saved, so levelling keeps the matched rim. It never encodes larger than the source.
+export async function preparePhoto(image,options={},{albedo=true}={}){
  let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null;
- for(const size of [1024,768,512]){
-  const {canvas,color,photoRimColor:sample}=albedoCanvas(image,size===1024?options:{...options,rimInner:null},size);
-  if(size===1024)photoRimColor=sample;
+ const sizes=albedo?[1024,768,512]:[1024,768,512].filter(size=>size<=Math.max(512,image.width));
+ for(const size of sizes){
+  const first=size===sizes[0],crop=first?options:{...options,rimInner:null};
+  const {canvas,color,photoRimColor:sample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
+  if(first)photoRimColor=sample;
   try{
    for(const quality of [.86,.72,.56,.4]){
     let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
@@ -186,7 +202,9 @@ function previewInto(canvas,image,options,size){
 }
 // Guides, on their own canvas over the view: a light grid, a crosshair with a centre point, the rim
 // circle (the crop's edge) and the flight-plate circle. Outside the rim is dimmed: that part is cut off.
-function drawGuides(canvas,size,plate){
+// `level` adds level lines: amber horizontals edge to edge (past the rim, so a long stamp edge or a line of
+// text can be laid along one), denser than the grid so one always sits near the stamp.
+function drawGuides(canvas,size,plate,level=false){
  if(canvas.width!==size)canvas.width=canvas.height=size;
  const g=canvas.getContext('2d'),c=size/2,R=c/VIEW,u=size/400,TAU=Math.PI*2;
  g.clearRect(0,0,size,size);
@@ -212,10 +230,24 @@ function drawGuides(canvas,size,plate){
  for(const [label,r,angle,offset] of [['RIM',R,-55,13],['FLIGHT PLATE',R*plate,-125,-14]]){
   const a=angle*Math.PI/180,x=c+(r+offset*u)*Math.cos(a),y=c+(r+offset*u)*Math.sin(a);g.strokeText(label,x,y);g.fillText(label,x,y);
  }
+ if(level)for(let k=-7;k<=7;k++){
+  const v=c+k*R/8,width=k?1.25:2;g.setLineDash([]);
+  g.lineWidth=(width+2)*u;g.strokeStyle='rgba(0,0,0,.5)';g.beginPath();g.moveTo(0,v);g.lineTo(size,v);g.stroke();
+  g.lineWidth=width*u;g.strokeStyle=k?'rgba(255,196,64,.85)':'rgb(255,196,64)';g.beginPath();g.moveTo(0,v);g.lineTo(size,v);g.stroke();
+ }
 }
 
-const DEFAULTS={scale:.94,aspect:1,perspective:0,angle:0,cx:.5,cy:.5};
-const SLIDERS='<label>Framing<input type="range" data-photo="scale" min="0.3" max="1" step="0.01"></label><label>Tilt correction<input type="range" data-photo="aspect" min="0.8" max="1.2" step="0.01"></label><label>Tilt direction<input type="range" data-photo="angle" min="0" max="180" step="5"></label><label>Perspective<input type="range" data-photo="perspective" min="-0.12" max="0.12" step="0.01"></label>';
+const DEFAULTS={scale:.94,aspect:1,perspective:0,angle:0,cx:.5,cy:.5,rotate:0};
+const SLIDERS='<label>Framing<input type="range" data-photo="scale" min="0.3" max="1" step="0.01"></label><label>Tilt correction<input type="range" data-photo="aspect" min="0.8" max="1.2" step="0.01"></label><label>Tilt direction<input type="range" data-photo="angle" min="0" max="180" step="5"></label><label>Perspective<input type="range" data-photo="perspective" min="-0.12" max="0.12" step="0.01"></label><label class="photo-aligner-rotate">Rotate<input type="range" data-photo="rotate" min="-180" max="180" step="0.1"></label>';
+// Levelling a photo already saved: its stored crop, sampled pixel for pixel (pixel centres on pixel centres,
+// so 0° is an exact copy), turning only.
+const levelOptions=image=>({...DEFAULTS,scale:1,cx:.5-.5/image.width,cy:.5-.5/image.height});
+// Rotation readout: one decimal, a true minus sign, clockwise positive.
+const degrees=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'°';
+// Lucide's rotate-ccw and rotate-cw.
+const TURN={ccw:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',cw:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'};
+const LEVEL='<div class="photo-aligner-level" role="group" aria-label="Level the stamp"><button type="button" data-rotate="-1" aria-label="Rotate 1 degree counterclockwise">'+TURN.ccw+'1°</button><button type="button" data-rotate="-0.1" aria-label="Rotate 0.1 degree counterclockwise">'+TURN.ccw+'0.1°</button><output class="photo-aligner-angle" aria-label="Rotation">0.0°</output><button type="button" data-rotate="0.1" aria-label="Rotate 0.1 degree clockwise">0.1°'+TURN.cw+'</button><button type="button" data-rotate="1" aria-label="Rotate 1 degree clockwise">1°'+TURN.cw+'</button><button type="button" data-rotate-zero aria-label="Reset rotation to 0 degrees">0°</button><button type="button" data-level-lines aria-pressed="false">Level lines</button></div>';
+const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the outer ring and its center on the crosshair.'],level:['Level the stamp','Turn the photo until the stamp runs along a level line. Only the angle changes.']};
 
 // The sheet shows the photo and its actions; choosing a photo opens the aligner, a large pop-out with
 // guides. Use photo prepares the upload there (lighting removed, plate colour measured) and returns to
@@ -223,11 +255,11 @@ const SLIDERS='<label>Framing<input type="range" data-photo="scale" min="0.3" ma
 // onColor(color) reports the plate colour of a newly used photo, onColor(null) its removal.
 let sourceChooserId=0;
 export function createPhotoEditor(root,{onColor=()=>{}}={}){
- root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden><p class="bag-photo-status" role="status"></p>';
+ root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden><p class="bag-photo-status" role="status"></p>';
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
- dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div><p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><details class="photo-aligner-adjust"><summary>Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
+ dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div>'+LEVEL+'<p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><details class="photo-aligner-adjust"><summary>Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
  document.body.append(dialog);
  const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame'),stage=dq('.photo-aligner-stage');
  const choose=q('.bag-photo-choose'),sources=q('.bag-photo-source-menu');
@@ -248,9 +280,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  root.closest('dialog')?.addEventListener('scroll',e=>{if(!sources.contains(e.target))closeSources();},{capture:true,passive:true});
  if(matchMedia('(pointer:coarse)').matches){choose.popoverTargetElement=sources;choose.setAttribute('aria-expanded','false');}
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
- // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,url}.
- // draft: what the aligner is working on {bitmap,options}.
- let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,frameId=0,settle=0,gesture=null;
+ // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,mode,url}.
+ // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
+ let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,frameId=0,settle=0,gesture=null,levelLines=false;
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -263,17 +295,22 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   q('.bag-photo-thumb').hidden=!src;if(src&&q('.bag-photo-thumb img').getAttribute('src')!==src)q('.bag-photo-thumb img').src=src;if(!src)q('.bag-photo-thumb img').removeAttribute('src');
   q('.bag-photo-choose span').textContent=src?'Replace photo':'Add photo';
   q('.bag-photo-adjust').hidden=!used;q('.bag-photo-remove').hidden=!src;
+  // A saved photo can be levelled again without the original (it was never uploaded): its own texture.
+  q('.bag-photo-level').hidden=!(current&&!used&&!removed);
  };
  const size=low=>Math.max(64,Math.min(low?360:720,Math.round(frame.clientWidth*Math.min(devicePixelRatio||1,2))));
  const paint=(low=false)=>{
   cancelAnimationFrame(frameId);frameId=requestAnimationFrame(()=>{
-   if(!draft)return;const n=size(low);previewInto(view,draft.bitmap,draft.options,n);drawGuides(guides,n,plate);
+   if(!draft)return;const n=size(low);previewInto(view,draft.bitmap,draft.options,n);drawGuides(guides,n,plate,levelLines);
    clearTimeout(settle);if(low)settle=setTimeout(()=>paint(false),140);
   });
  };
- const sync=()=>{for(const el of dialog.querySelectorAll('[data-photo]'))el.value=draft.options[el.dataset.photo];};
- const openAligner=(bitmap,options)=>{
-  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options}};sync();
+ const showAngle=()=>{dq('.photo-aligner-angle').value=degrees(draft.options.rotate);};
+ const sync=()=>{for(const el of dialog.querySelectorAll('[data-photo]'))el.value=draft.options[el.dataset.photo];showAngle();};
+ // mode 'frame' (a new photo: everything adjustable) or 'level' (a saved photo: the angle only).
+ const openAligner=(bitmap,options,mode='frame')=>{
+  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options},mode};sync();
+  dialog.dataset.mode=mode;[dq('h2').textContent,dq('.photo-aligner-tip').textContent]=TEXT[mode];
   dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;
   if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();
  };
@@ -291,7 +328,17 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   if(source){closeSources(true);q('[data-photo-input="'+source.dataset.photoSource+'"]').click();}
   else if(e.target.closest('[data-photo-source-cancel]'))closeSources(true);
  };
- q('.bag-photo-adjust').onclick=()=>{if(used)openAligner(used.bitmap,used.options);};
+ q('.bag-photo-adjust').onclick=()=>{if(used)openAligner(used.bitmap,used.options,used.mode);};
+ q('.bag-photo-level').onclick=async()=>{
+  if(!current||busy)return;const id=++serial;busy=true;q('.bag-photo-status').textContent='Opening your photo…';
+  try{
+   const response=await fetch(current,{credentials:'same-origin',cache:'no-store'}).catch(()=>null);
+   if(!response?.ok)throw Error('Your saved photo could not open. Check your connection and try again.');
+   const image=await decodePhoto(await response.blob());if(id!==serial){image.close();return;}
+   q('.bag-photo-status').textContent='';openAligner(image,levelOptions(image),'level');
+  }catch(e){if(id===serial)q('.bag-photo-status').textContent=e.message.startsWith('Choose')?'Your saved photo could not open. Try again.':e.message;}
+  finally{if(id===serial)busy=false;}
+ };
  q('.bag-photo-remove').onclick=()=>{serial++;busy=false;releaseUsed();removed=true;changed=true;q('.bag-photo-status').textContent='';renderSheet();onColor(null);};
  for(const input of root.querySelectorAll('input[type="file"]'))input.onchange=async()=>{
   const chosen=input.files[0];input.value='';if(!chosen)return;const id=++serial;busy=true;
@@ -301,25 +348,36 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  };
  for(const el of dialog.querySelectorAll('[data-aligner-cancel]'))el.onclick=closeAligner;
  dq('[data-aligner-confirm]').onclick=async()=>{
-  if(!draft||busy)return;const id=++serial,{bitmap}=draft,options={...draft.options};clearGesture();busy=true;
+  if(!draft||busy)return;const id=++serial,{bitmap,mode}=draft,options={...draft.options};clearGesture();busy=true;
   dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent='Preparing your photo…';
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-   const {blob,color,photoRimColor}=await preparePhoto(bitmap,{...options,rimInner});if(id!==serial)return;
-   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,url:URL.createObjectURL(blob)};
+   // Levelling only resamples the saved texture; it keeps the disc's colour as it is.
+   const level=mode==='level',{blob,color,photoRimColor}=await preparePhoto(bitmap,{...options,rimInner},{albedo:!level});if(id!==serial)return;
+   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,mode,url:URL.createObjectURL(blob)};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
-   draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();onColor(color);
+   draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();if(!level)onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
  };
- dialog.addEventListener('input',e=>{if(draft&&!busy&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;reanchor();paint(true);}});
+ dialog.addEventListener('input',e=>{if(draft&&!busy&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;showAngle();reanchor();paint(true);}});
+ // Levelling: nudges of 0.1° and 1°, a snap back to exactly 0°, and the level lines (chrome only).
+ const turn=v=>{if(!draft||busy)return;draft.options.rotate=Math.max(-180,Math.min(180,Math.round(v*10)/10))||0;sync();reanchor();paint(true);};
+ dq('.photo-aligner-level').onclick=e=>{
+  const button=e.target.closest('button');if(!button||!draft)return;
+  if(button.dataset.rotate)turn(draft.options.rotate+ +button.dataset.rotate);
+  else if('rotateZero' in button.dataset)turn(0);
+  else if('levelLines' in button.dataset){levelLines=!levelLines;button.setAttribute('aria-pressed',String(levelLines));paint();}
+ };
  const clamp=v=>Math.max(0,Math.min(1,v));
  view.onkeydown=e=>{
   if(!draft||busy)return;const o=draft.options,step=e.shiftKey?.05:.01;
+  if(e.code==='BracketLeft'||e.code==='BracketRight'){e.preventDefault();turn(o.rotate+(e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:.1));return;}
+  if(draft.mode==='level')return;
   const delta={ArrowLeft:[step,0],ArrowRight:[-step,0],ArrowUp:[0,step],ArrowDown:[0,-step]}[e.key];
   if(delta){e.preventDefault();o.cx=clamp(o.cx+delta[0]);o.cy=clamp(o.cy+delta[1]);reanchor();paint(true);return;}
   if(e.key==='+'||e.key==='='||e.key==='-'){e.preventDefault();o.scale=Math.max(.3,Math.min(1,o.scale+(e.key==='-'?.01:-.01)));reanchor();sync();paint(true);}
  };
- view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy)return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);},{passive:false});
+ view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy||draft.mode==='level')return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);},{passive:false});
  const midpoint=points=>points.length===1?points[0]:{x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};
  const distance=points=>points.length<2?0:Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y);
  const atMidpoint=(point,options,rect,w,h)=>photoPoint(((point.x-rect.left)/rect.width*2-1)*VIEW,((point.y-rect.top)/rect.height*2-1)*VIEW,{...options,width:w,height:h});
@@ -330,7 +388,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  };
  // Gesture state belongs to this editor, never to its preview/guide canvases' pixels.
  view.onpointerdown=e=>{
-  if(!draft||busy||e.button!==0)return;e.preventDefault();
+  if(!draft||busy||e.button!==0)return;e.preventDefault();if(draft.mode==='level')return;
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});view.setPointerCapture(e.pointerId);reanchor();
  };
  view.onpointermove=e=>{
