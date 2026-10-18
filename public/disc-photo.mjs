@@ -1,5 +1,5 @@
 // Photos never leave the browser until reduced to a bounded, metadata-free circular WebP.
-import {delightPixels,rimColor} from './disc-albedo.mjs';
+import {delightPixels,rimColor,bandColor} from './disc-albedo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
@@ -123,14 +123,14 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE){
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
  // The rim, like the plate colour, is measured before the glare pass: matched colours never depend on it.
- const {color,rim=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null});ctx.putImageData(pixels,0,0);
- return {canvas,color,photoRimColor:rim};
+ const {color,rim=null,band=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null,bandInner:options.bandInner||null});ctx.putImageData(pixels,0,0);
+ return {canvas,color,photoRimColor:rim,bandColor:band};
 }
 // A saved texture turned for levelling: resampled only, and its rim measured again as on its first save.
 function levelCanvas(image,options,size){
  const canvas=photoCanvas(image,options,size);
- const photoRimColor=options.rimInner?rimColor(canvas.getContext('2d').getImageData(0,0,size,size).data,size,options.rimInner):null;
- return {canvas,color:null,photoRimColor};
+ const data=options.rimInner||options.bandInner?canvas.getContext('2d').getImageData(0,0,size,size).data:null;
+ return {canvas,color:null,photoRimColor:options.rimInner?rimColor(data,size,options.rimInner):null,bandColor:options.bandInner?bandColor(data,size,options.bandInner):null};
 }
 let canvasWebP,webpModule;
 const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
@@ -148,25 +148,26 @@ async function fallbackWebP(canvas,quality){
  // Only the already cropped, de-lit pixels reach the encoder. Never original bytes or metadata.
  return codec.encodeWebP(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),quality);
 }
-// Resolves to {blob, color, photoRimColor}. Sample the rim once from the first (1024px) processed pixels,
+// Resolves to {blob, color, photoRimColor, bandColor}. Sample the rim (an overmold, `rimInner`) or the Halo band
+// (a one-piece mold, `bandInner`) once from the first (1024px) processed pixels,
 // retaining that value even if upload compression needs a smaller image.
 // {albedo:false} is for re-levelling a saved photo: its pixels are already the albedo, so they are only
 // resampled (no second delighting) and no plate colour is measured. Its rim is sampled again, as it was when
 // first saved, so levelling keeps the matched rim. It never encodes larger than the source.
 export async function preparePhoto(image,options={},{albedo=true}={}){
- let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null;
+ let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null,band=null;
  const sizes=albedo?[1024,768,512]:[1024,768,512].filter(size=>size<=Math.max(512,image.width));
  for(const size of sizes){
-  const first=size===sizes[0],crop=first?options:{...options,rimInner:null};
-  const {canvas,color,photoRimColor:sample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
-  if(first)photoRimColor=sample;
+  const first=size===sizes[0],crop=first?options:{...options,rimInner:null,bandInner:null};
+  const {canvas,color,photoRimColor:sample,bandColor:bandSample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
+  if(first){photoRimColor=sample;band=bandSample;}
   try{
    for(const quality of [.86,.72,.56,.4]){
     let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
     // A null result is an encode failure, not evidence that WebP is unsupported.
     if(blob&&blob.type!=='image/webp'){native=false;blob=await fallbackWebP(canvas,quality);}
     if(!blob){empty++;continue;}
-    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor};
+    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor,bandColor:band};
    }
   }finally{canvas.width=canvas.height=0;}
  }
@@ -362,10 +363,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
    // Levelling only resamples the saved texture; it keeps the disc's colour as it is.
-   const level=mode==='level',{blob,color,photoRimColor:sample}=await preparePhoto(bitmap,{...options,rimInner:rimInner??bandInner},{albedo:!level});if(id!==serial)return;
-   // One rim sample: an overmold's rim piece, or else the outer band a Halo copy would show (kept apart, so
-   // only a Halo copy ever stores it; see bandColor).
-   const photoRimColor=rimInner?sample:null,bandColor=rimInner?null:sample;
+   // An overmold's rim piece (rimColor) or, on a one-piece mold, the outer band a Halo copy would show
+   // (bandColor, kept apart so only a Halo copy ever stores it; see the bandColor getter).
+   const level=mode==='level',{blob,color,photoRimColor,bandColor}=await preparePhoto(bitmap,{...options,rimInner,bandInner},{albedo:!level});if(id!==serial)return;
    const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,mode,url:URL.createObjectURL(blob)};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();if(!level)onColor(color);
