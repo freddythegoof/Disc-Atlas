@@ -274,3 +274,51 @@ All runs below are on this branch's final code.
 - The settle covers every shared-Atlas presentation, not only the reveal. That is what makes the reduced-motion and session-seen opens equal to each other, not just to the reveal.
 - On desktop, with the mouse resting over the map, the settle waits for the pointer to leave. Until then the rest keeps the reveal's paint order, which differs only where shadows overlap. Moving or clicking takes the map as usual and cancels the settle.
 - Moving `#map` in place is the heaviest part of the settle. It happens once per presentation, at rest, with no pointer, pin or disc focus. Watch for it in the real-device feel check: when the reveal lands and about a beat later, nothing should visibly change.
+
+## Merge with main (`f271f00`) and its repair audit
+
+The branch forked at `38a8c4a`, before PR #10. Main (`f271f00`, 58 commits) was merged in at `13a2c17`. Graphify was refreshed on the merged tree as its own commit, `c04e6eb` (`graphify update .`, AST-only, 0.9.91; 2,627 nodes, 5,482 edges). Nothing was pushed.
+
+### Resolution
+
+- **`package.json`** was the only textual conflict: two new scripts on adjacent lines. Both are kept (`test:atlas:intro` from this branch, `test:atlas:stamps` from main).
+- **`graphify-out/`** takes main's files as they were, before the refresh.
+- **`public/atlas-map.js`** auto-merged. To check that resolution, the file was rebuilt as main's `f271f00` file with this branch's whole diff (`38a8c4a..d784a17`, i.e. `3c5613a` and `d784a17`) re-applied. All 14 hunks applied cleanly (two at a 6-line offset). The rebuild is **byte-identical** to the merge result (SHA-1 `4ec931e5…`). It carries the presentation layer (`presentAtlas`, `catchAtlasIntro`, `settleAtlas`, `featuredDisc`) and the font-load label-cache invalidation (`gapNameFonts`, `gapsMoving`), together with all of main's changes. There was nothing to repair.
+- In `tests/atlas-3d-browser.mjs` and `tests/atlas-organic-browser.mjs`, every line either side changed is present in the merged file. The repo has no conflict markers anywhere.
+
+### Cross-file audit
+
+These are the couplings this branch adds across files. All of them are satisfied in the merged tree:
+
+| Caller | Uses | Defined in |
+| --- | --- | --- |
+| `app.js` `load()`, `setView()` | `presentAtlas()` | `atlas-map.js` |
+| `app.js` `filter()` | `atlasIntro` (global read) | `atlas-map.js` |
+| `atlas-map.js` `presentAtlas()` | `AtlasLayout.fit`, `AtlasLayout.extent` | `atlas-layout.js` |
+| `atlas-map.js` `presentAtlas()` | `AtlasMotion.token` | `atlas-motion.js` |
+
+The other 18 `app.js` calls into `atlas-map.js` already existed before the branch and are still defined. The branch removes or renames nothing that main's callers use. Note that a call-only scan misses `atlasIntro`, which is a variable read, not a call.
+
+### The stamps canary: a test baseline, not the merge
+
+`test:atlas:stamps` passes on main and fails on the merged tree. Its "before" phase serves `atlas-map.js` and `disc3d/atlas-art.mjs` from `6e53bc8` together with the **current** `app.js`. On the merged tree that `app.js` calls `presentAtlas()` and reads `atlasIntro`, and the old file defines neither. The page throws `presentAtlas is not defined`, the catalog never loads, and `waitForFunction(mapArt.state==='ready'&&discs.length>0)` times out after 30 s. A scratch copy of the test was run with only its baseline file extended by `let atlasIntro=null;function presentAtlas(){focusFeatured();}`, which reproduces main's old `load()` behaviour. That copy **passed 2/2**. The fix belongs in the test's baseline (that shim, or serving `6e53bc8`'s `app.js` alongside); product code does not need to change. **Not applied yet.**
+
+### Gates on the merged tree
+
+| Gate | Result |
+| --- | --- |
+| Unit set (`node --test` over non-browser `tests/*.mjs`, excluding perf, `motion`, `palette`, `redesign`) | 286/286. `prompt-4-stability-fixture.mjs` needs its gitignored `outputs/prompt-4/` folder to exist. |
+| Organic (strict `desktop full: same pixels`) | Pass, 6/6, twice |
+| Depth | 8/8; the process then hangs in teardown (test file unchanged by either side) |
+| 3D / persist / speed band | 11/11 / 13/13 / 991 discs in band |
+| Apple design | 16/16 on the merged tree; also timed out once on main |
+| Photo-edge atlas | Fails identically on main on this Mac (WebGL context creation) |
+| Stamps | Fails on the merged tree only (baseline above) |
+| **Intro strict (0 px)** | **Fails 0/7.** See below. |
+
+**Intro strict, before and after the merge**, measured interleaved on the same quiet Mac with `--enable-gpu`:
+
+- Pre-merge `d784a17`: **3/7** pass. Every failure is desktop reveal vs session-seen open, **8 px at Δ1**, in the same bounding box (402,533–1080,705). Phone was 0 px in all runs. The flake predates the merge.
+- Merged: **0/7**. The same desktop 8 px appears in 4 of 6 measured runs. In addition there is a **new phone diff in every run: 1 px at Δ1, at (110,560)**. It falls on bare background beside a grid line (G 243 vs 244), not on any disc art or label. It shows in reduced motion vs session-seen every time, and in reveal vs session-seen once. It belongs to the same class as the raster residue described above; something in main's changes triggers it on phone. **Not investigated, and the assertion is unchanged.**
+
+**Perf gate: not run.** It needs a genuinely quiet window on the merged tree before this branch goes toward a PR.
