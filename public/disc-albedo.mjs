@@ -55,6 +55,65 @@ export function rimColor(data,size,inner){
  return '#'+[0,1,2].map(c=>encode(median(kept.map(s=>s.rgb[c]))).toString(16).padStart(2,'0')).join('');
 }
 
+// A Halo copy's dyed band (docs/halo-band-sampling.md): the colour a person names when they look at the band,
+// not an area average. Halo dye swirls: a pale wash from the plate side bleeds into the band and the dye
+// concentrates toward the outer edge, so a per-channel median over the annulus lands on a pastel between them.
+// Same annulus and glare ceiling as rimColor (8 rings here, for a finer radial read), then the samples are
+// grouped by colour (k-means, k = 3, in Lab with lightness down-weighted so shading on one dye stays one group;
+// groups closer than ΔE 12 merge) and the band is the group, holding at least 15% of the samples, that sits
+// furthest out: the dye, which runs to the edge, rather than the wash, which bleeds in from the plate. Its
+// colour is the group's per-channel median. A uniform band is one group, so it reads exactly as rimColor does.
+// Overmold rims keep rimColor, unchanged.
+const labOf=([r,g,b])=>{
+ const f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+ const fx=f((.4124*r+.3576*g+.1805*b)/.95047),fy=f(luma(r,g,b)),fz=f((.0193*r+.1192*g+.9505*b)/1.08883);
+ return [116*fy-16,500*(fx-fy),200*(fy-fz)];
+};
+export function bandColor(data,size,inner){
+ if(!Number.isFinite(inner)||inner<=0||inner>=1)return null;
+ const lo=inner+Math.max(2/size,(1-inner)*.08),hi=1-Math.max(2/size,.02),RINGS=8;
+ if(lo>=hi)return null;
+ const samples=[];
+ for(let ring=0;ring<RINGS;ring++)for(let a=0;a<128;a++){
+  const radius=lo+(hi-lo)*(ring+.5)/RINGS,angle=(a+.5)*Math.PI*2/128;
+  const x=Math.floor((1+radius*Math.cos(angle))*size/2),y=Math.floor((1+radius*Math.sin(angle))*size/2),k=(y*size+x)*4;
+  if(data[k+3]<250)continue;
+  const rgb=[toLinear[data[k]],toLinear[data[k+1]],toLinear[data[k+2]]];
+  samples.push({rgb,y:luma(...rgb),out:(ring+.5)/RINGS,lab:labOf(rgb)});
+ }
+ if(samples.length<RINGS*64)return null;
+ const levels=samples.map(s=>s.y).sort((a,b)=>a-b),m=median(levels);
+ const mad=median(levels.map(v=>Math.abs(v-m)));
+ const ceiling=Math.min(levels[Math.floor((levels.length-1)*.9)],m+3*Math.max(.005,1.4826*mad));
+ const kept=samples.filter(s=>s.y<=ceiling);
+ const dist=(p,q)=>Math.hypot(.5*(p[0]-q[0]),p[1]-q[1],p[2]-q[2]);
+ const mean=list=>[0,1,2].map(i=>list.reduce((sum,s)=>sum+s.lab[i],0)/list.length);
+ // Deterministic farthest-point seeds from the median colour, then Lloyd iterations.
+ let centres=[[0,1,2].map(i=>median(kept.map(s=>s.lab[i])))];
+ while(centres.length<3){
+  let far=null,best=-1;
+  for(const s of kept){const d=Math.min(...centres.map(c=>dist(s.lab,c)));if(d>best){best=d;far=s.lab;}}
+  if(best<=0)break;centres.push([...far]);
+ }
+ let groups=[];
+ for(let pass=0;pass<20;pass++){
+  groups=centres.map(()=>[]);
+  for(const s of kept){let g=0;for(let c=1;c<centres.length;c++)if(dist(s.lab,centres[c])<dist(s.lab,centres[g]))g=c;groups[g].push(s);}
+  groups=groups.filter(g=>g.length);centres=groups.map(mean);
+ }
+ for(let merged=true;merged;){
+  merged=false;
+  for(let i=0;i<groups.length&&!merged;i++)for(let j=i+1;j<groups.length&&!merged;j++)
+   if(dist(centres[i],centres[j])<12){groups[i]=[...groups[i],...groups[j]];groups.splice(j,1);centres=groups.map(mean);merged=true;}
+ }
+ let band=null,reach=-1;
+ for(const g of groups){
+  if(g.length<.15*kept.length)continue;
+  const out=g.reduce((sum,s)=>sum+s.out,0)/g.length;if(out>reach){reach=out;band=g;}
+ }
+ return '#'+[0,1,2].map(c=>encode(median(band.map(s=>s.rgb[c]))).toString(16).padStart(2,'0')).join('');
+}
+
 // Weighted least squares for the six quadratic terms (normal equations, Gaussian elimination).
 function fitQuadratic(xs,ys,zs,ws){
  const n=6,A=Array.from({length:n},()=>new Float64Array(n+1));
@@ -79,7 +138,7 @@ const evaluate=(c,x,y)=>{const b=basis(x,y);let v=0;for(let i=0;i<6;i++)v+=c[i]*
  * Returns {color:'#rrggbb'|null, gradient, corrected} — gradient is the light field's brightest/darkest
  * ratio over the plate before correction (for tests and diagnostics).
  */
-export function delightPixels(data,size,{plate=.78,rimInner=null,softenGlare:soften=SOFTEN_GLARE}={}){
+export function delightPixels(data,size,{plate=.78,rimInner=null,bandInner=null,softenGlare:soften=SOFTEN_GLARE}={}){
  const step=Math.max(1,Math.floor(size/160)),xs=[],ys=[],zs=[],rgb=[];
  for(let j=step>>1;j<size;j+=step)for(let i=step>>1;i<size;i+=step){
   const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1;if(x*x+y*y>plate*plate)continue;
@@ -128,10 +187,10 @@ export function delightPixels(data,size,{plate=.78,rimInner=null,softenGlare:sof
   }
   data[k]=encode(r);data[k+1]=encode(gg);data[k+2]=encode(b);
  }
- // The plate colour is measured before the experiment, so the disc's matched colour never depends on it.
- const color=plateColor(data,size,plate),rim=rimInner?rimColor(data,size,rimInner):null;
+ // The plate colour (and the rim or Halo band) is measured before the experiment, so the disc's matched colour never depends on it.
+ const color=plateColor(data,size,plate),rim=rimInner?rimColor(data,size,rimInner):null,band=bandInner?bandColor(data,size,bandInner):null;
  const glare=soften?softenGlare(data,input,size,(x,y)=>Math.exp(evaluate(c,x,y))):null;
- return {color,gradient:Math.exp(hi-lo),corrected:true,...rimInner&&{rim},...glare&&{glare}};
+ return {color,gradient:Math.exp(hi-lo),corrected:true,...rimInner&&{rim},...bandInner&&{band},...glare&&{glare}};
 }
 
 // Glare softening, the experiment (docs/photo-glare-experiment.md). It runs after the baseline has written

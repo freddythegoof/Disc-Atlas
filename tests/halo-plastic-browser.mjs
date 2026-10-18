@@ -10,17 +10,23 @@
 //                    dyed band from 0.76 R, on Halo Star
 //   pixel            the Pixel overmold control (its rim piece, its own sample)
 //   destroyer-bare   Destroyer on Halo Star with no photo: no band (no default band colour exists)
+//   swirl            Wraith on Halo Star, the swirled-dye stand-in for Freddy's disc (tests/fixtures/halo-swirl.mjs,
+//                    docs/halo-band-sampling.md): its band must store the dye, not the wash
+//   swirl-main       (reference runs only) the same photo saved through the reference tree's editor: the band as
+//                    the previous sampler stored it, for the before/after
 // Each draws in the detail panel (top and 3/4), My Bag pulled and the bag list thumbnail.
 //
-// EDGE_REFERENCE=<built checkout of main> draws every surface through that tree first: the before half. Then
-// every control must match it pixel for pixel (GPU tolerance), and the Halo copies must differ only outside
-// the photo, toward the band.
+// EDGE_REFERENCE=<built checkout of main> draws every surface through that tree first. The renderers are the
+// same on both sides of the band-sampling fix, so every surface must match it pixel for pixel (GPU tolerance).
+// PR #23's own before/after (main without Halo) is recorded in docs/halo-plastic.md.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
+import zlib from 'node:zlib';
 import {caseList,addDisc,referenceTree,pixelDiff,COLORS} from './photo-edge-shared.mjs';
+import {swirlPhoto} from './fixtures/halo-swirl.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 const config='tests/auth.wrangler.jsonc',state='work/halo-plastic/local',base='https://localhost:8851',dir='outputs/halo-plastic';
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js',BAND='#2f5fb8';
@@ -33,6 +39,20 @@ const server=spawn(process.execPath,[wrangler,'dev','--config',config,'--local',
 let output='',browser,page;for(const stream of [server.stdout,server.stderr])stream.on('data',d=>output+=d);
 const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
 const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),dist=(a,b)=>Math.hypot(...hex(a).map((v,i)=>v-hex(b)[i]));
+const lab=h=>{const lin=c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;},[r,g,b]=hex(h).map(lin),f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+ const fx=f((.4124*r+.3576*g+.1805*b)/.95047),fy=f(.2126*r+.7152*g+.0722*b),fz=f((.0193*r+.1192*g+.9505*b)/1.08883);return [116*fy-16,500*(fx-fy),200*(fy-fz)];};
+const dE=(a,b)=>{const p=lab(a),q=lab(b);return Math.hypot(p[0]-q[0],p[1]-q[1],p[2]-q[2]);},chroma=h=>Math.hypot(lab(h)[1],lab(h)[2]);
+// The swirl's dye as the pipeline itself de-lights it (the solid-dye control, tests/halo-band-sampling.mjs), and
+// the band the previous sampler stored for the swirl (the pastel median).
+const SWIRL_DYE='#5a267b',SWIRL_OLD='#8e709a';
+// A minimal RGBA PNG (one IDAT, filter 0) for the fixture photo.
+const png=(rgba,n)=>{
+ const crc=b=>{let c=~0;for(const x of b){c^=x;for(let k=0;k<8;k++)c=c>>>1^(c&1?0xedb88320:0);}return ~c>>>0;};
+ const chunk=(type,body)=>{const t=Buffer.from(type),len=Buffer.alloc(4),sum=Buffer.alloc(4);len.writeUInt32BE(body.length);sum.writeUInt32BE(crc(Buffer.concat([t,body])));return Buffer.concat([len,t,body,sum]);};
+ const head=Buffer.alloc(13);head.writeUInt32BE(n,0);head.writeUInt32BE(n,4);head[8]=8;head[9]=6;
+ const raw=Buffer.alloc(n*(4*n+1));for(let y=0;y<n;y++)Buffer.from(rgba.buffer,y*n*4,n*4).copy(raw,y*(4*n+1)+1);
+ return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',head),chunk('IDAT',zlib.deflateSync(raw)),chunk('IEND',Buffer.alloc(0))]);
+};
 const metrics={};
 try{
  const deadline=Date.now()+45000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(output);await new Promise(r=>setTimeout(r,200));}
@@ -75,7 +95,14 @@ try{
  ];
  for(const [,c] of CASES)await addDisc(page,dir,c);
  await api('/discs','POST',{mold_id:destroyer.id,plastic:'Halo Star',weight_g:175,wear:10,color:'#cf7d9e',pocket:'main',in_bag:true});
- const ALL=[...CASES.map(([k])=>k),'destroyer-bare'];
+ const swirl={mold:input.halo.mold,photo:png(swirlPhoto(1024),1024),plastic:'Halo Star'};fs.writeFileSync(dir+'/input-swirl.png',swirl.photo);
+ await addDisc(page,dir,swirl);
+ // The before half of the fix: the same photo saved through the reference tree's own editor and sampler.
+ if(reference){
+  reference.on=true;await page.goto(base+'/?bag=1');await page.locator('[data-bag-edit]').first().waitFor();
+  await addDisc(page,dir,swirl);reference.on=false;await page.goto(base+'/?bag=1');
+ }
+ const ALL=[...CASES.map(([k])=>k),'destroyer-bare','swirl',...reference?['swirl-main']:[]];
  let data=await (await page.request.get(base+'/api/bag')).json();
  assert.equal(data.discs.length,ALL.length);
  const ids=Object.fromEntries(data.discs.map((d,i)=>[ALL[i],d.id]));
@@ -89,6 +116,10 @@ try{
  assert.ok(S.pixel.photo_rim_color,'the Pixel still samples its rim piece');
  assert.equal(S['destroyer-bare'].photo_rim_color,null);
  for(const k of ALL)assert.equal(S[k].rim_color,null,`${k}: no explicit rim colour`);
+ // The swirl stores its dye: within ΔE 6 of the de-lit dye, at least 85% of its chroma (not the pastel median).
+ const swirlBand=S.swirl.photo_rim_color;
+ assert.ok(swirlBand&&dE(swirlBand,SWIRL_DYE)<=6&&chroma(swirlBand)>=.85*chroma(SWIRL_DYE),`swirl band ${swirlBand} is the dye ${SWIRL_DYE} (ΔE ${swirlBand&&dE(swirlBand,SWIRL_DYE).toFixed(1)})`);
+ if(reference)assert.ok(dE(S['swirl-main'].photo_rim_color,SWIRL_OLD)<=4,`the reference editor stores the old pastel band (${S['swirl-main'].photo_rim_color} vs ${SWIRL_OLD})`);
 
  const rings=(png,{cx,cy,R})=>page.evaluate(async({b64,cx,cy,R})=>{
   const img=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=new OffscreenCanvas(img.width,img.height),g=c.getContext('2d');g.drawImage(img,0,0);
@@ -158,10 +189,9 @@ try{
   assert.ok(reference.served>0,'the reference tree answered the asset requests');
  }
  const now=metrics.after=await surfaces(reference?'after':'current');
- const label=reference?'after':'current';
 
  // Halo copies: the band, as plastic, outside the photo; the photo reach is the shoulder, unchanged.
- for(const k of ['halo-star','destroyer-halo']){
+ for(const k of ['halo-star','destroyer-halo','swirl',...reference?['swirl-main']:[]]){
   const p=now[k].panel,band=S[k].photo_rim_color;
   assert.equal(p.overmold,false,`${k}: never an overmold`);assert.equal(p.band,band);assert.equal(p.multi,true);assert.equal(p.rim,band);
   assert.equal(p.rimRoughness,p.plateRoughness,`${k}: the band wears the plate's plastic`);
@@ -187,17 +217,15 @@ try{
  if(reference){
   metrics.pixelDiff={};
   for(const k of ALL)for(const s of ['panel-angle','panel-top','bag-pulled','thumbnail'])metrics.pixelDiff[k+'-'+s]=await pixelDiff(page,`${dir}/before-${k}-${s}.png`,`${dir}/after-${k}-${s}.png`);
-  // Controls: the same as main, pixel for pixel (a hair of GPU tolerance, as the photo-edge suite allows).
-  for(const k of ['halo-plain','pixel','destroyer-bare'])for(const s of ['panel-angle','panel-top','bag-pulled','thumbnail']){
+  // Every disc draws as main draws it, pixel for pixel (a hair of GPU tolerance, as the photo-edge suite allows):
+  // the fix changes what is stored, never how anything renders.
+  for(const k of ALL)for(const s of ['panel-angle','panel-top','bag-pulled','thumbnail']){
    const d=metrics.pixelDiff[k+'-'+s];assert.ok(!d.size&&d.over8<=d.pixels*.002,`${k} ${s}: unchanged from main (${JSON.stringify(d)})`);
   }
-  // Halo copies: on main they drew the plate colour outside the photo; now the band. Inside, unchanged.
-  for(const k of ['halo-star','destroyer-halo']){
-   const a=metrics.reference[k].panel.rings,b=now[k].panel.rings,band=S[k].photo_rim_color;
-   for(const f of OUTER.slice(1))assert.ok(dist(b[f],band)+20<dist(a[f],band),`${k} ${f} R: nearer the band than on main (${b[f]} vs ${a[f]})`);
-   for(const f of INNER)assert.ok(dist(a[f],b[f])<=6,`${k} ${f} R: the photo unchanged from main`);
-   assert.equal(metrics.reference[k].panel.multi,false,'main drew a Halo copy in one colour');
-  }
+  // The swirl before and after the fix, side by side on screen: outside the photo the fixed band is the dye's.
+  const before=now['swirl-main'].panel.rings,after=now.swirl.panel.rings;
+  for(const f of OUTER.slice(1))assert.ok(dE(after[f],SWIRL_DYE)+10<dE(before[f],SWIRL_DYE),`swirl ${f} R: nearer the dye after the fix (${after[f]} vs ${before[f]})`);
+  for(const f of INNER)assert.ok(dist(before[f],after[f])<=6,`swirl ${f} R: the photo is the same photo`);
  }
 
  // The photo_rim_color contract, Halo side: levelling re-samples, a plastic change hides a stale sample,
@@ -225,6 +253,6 @@ try{
  assert.deepEqual(errors,[]);
  const ring=k=>now[k].panel.rings[.94];
  console.log(`ok - halo plastic: Wraith band ${S['halo-star'].photo_rim_color} (drawn ${COLORS.band}), Destroyer band ${S['destroyer-halo'].photo_rim_color} (dyed ${BAND}); at 0.94 R Halo ${ring('halo-star')} vs Star ${ring('halo-plain')}; photo reach ${now['halo-star'].panel.photoReach} R both; level ${metrics.levelled}, replace ${metrics.replaced}, remove null`+
-  (reference?`; vs main: controls max ${Math.max(...['halo-plain','pixel','destroyer-bare'].flatMap(k=>['panel-angle','panel-top','bag-pulled','thumbnail'].map(s=>metrics.pixelDiff[k+'-'+s].max)))}`:''));
+  `; swirl band ${swirlBand} (dye ${SWIRL_DYE})`+(reference?`, before the fix ${S['swirl-main'].photo_rim_color}; vs main: every surface max ${Math.max(...Object.values(metrics.pixelDiff).map(d=>d.max))}`:''));
 }catch(error){if(page)await page.screenshot({path:dir+'/failure.png',fullPage:true}).catch(()=>{});throw error;}
 finally{await browser?.close();server.kill();}

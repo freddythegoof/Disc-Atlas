@@ -4,7 +4,6 @@
   "2": "Bag scene",
   "3": "bag.js",
   "5": "scripts",
-  "6": "Photo editing and albedo",
   "7": "sampling-audit-draw.mjs",
   "8": "package.json",
   "9": "disc3d-popout-browser.mjs",
@@ -32,7 +31,6 @@
   "50": "atlas-persist-browser.mjs",
   "51": "atlas-organic-browser.mjs",
   "52": "Catalog generation and stamp validation",
-  "53": "about-hero.js",
   "54": ".zoom",
   "57": "sites-env.sh",
   "58": "atlas-depth.mjs",
@@ -98,7 +96,6 @@
   "140": "renderList",
   "142": "compose-discraft-fraction-proofs.py",
   "143": "filter",
-  "144": "atlas-3d-perf.mjs",
   "146": "brandList",
   "147": "updateDetail"
 }
