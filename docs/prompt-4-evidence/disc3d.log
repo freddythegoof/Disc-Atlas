@@ -1,0 +1,102 @@
+npm notice run disc-atlas@0.1.0 test:disc3d
+npm notice run node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs tests/disc3d-profile.mjs tests/halo-plastic.mjs && node tests/disc3d-browser.mjs && node tests/disc3d-popout-browser.mjs
+✔ Destroyer, Buzzz and Aviar are three distinct molds that match their PDGA numbers (71.2626ms)
+✔ every catalog record builds a valid hollow disc as tall and wide as PDGA measured it (225.6789ms)
+✔ ten random molds stay within sane bounds (1.7242ms)
+✔ records without usable PDGA dimensions fall back to the Phase 1 generic shape (0.6725ms)
+✔ stability keeps its small Phase 1 cues on a measured mold (0.4667ms)
+✔ saved rim intent precedes the surface fallback and requires an attached photo (1.645ms)
+✔ every listed overmold is a real catalog record (12.9076ms)
+✔ MVP and Axiom GYRO discs and the Innova Atlas are overmolds (38.0938ms)
+✔ detection is per disc, not per brand (28.2371ms)
+✔ a record's own overmold flag wins over the list (0.2769ms)
+✔ the rim/plate seam sits at the measured rim width (7.423ms)
+✔ color API: plate follows the disc colour, rim defaults to black, overrides win (0.9593ms)
+✔ the outline is the lathe profile, right half then the mirrored left half, at the drawing scale (15.7157ms)
+✔ true scale: a fixed frame, so drawn widths follow the PDGA diameters (3.4458ms)
+✔ PDGA-shaped discs carry the panel's own spec strings; nothing is invented (3.0182ms)
+✔ a generic flight-number shape is drawn unannotated and labelled as generic (0.9263ms)
+✔ overmold discs draw the rim piece in its own clay tone, both sides (1.5856ms)
+✔ discs without flight numbers have no model (2.2019ms)
+✔ the profile is a closed outline from the axis back to the axis (2.7128ms)
+✔ the outline winds counter-clockwise, so lathe normals face outward (1.131ms)
+✔ the underside is hollow: a thin plate over a deep cavity, never a puck (1.4786ms)
+✔ speed drives the rim: wider, shallower, sharper, more concave underneath (0.9324ms)
+✔ more stable discs get flatter tops; the cue stays small and speed still rules the rim (0.3873ms)
+✔ tunable parameters are clamped to shapes that stay valid (2.2047ms)
+✔ the Halo list is exactly the Halo options the bag editor offers (9.6316ms)
+✔ Halo is the plastic name, not a word in it, and not a mold (2.0225ms)
+✔ the band comes only from a Halo copy's own photo: no photo, no band, no default (0.5486ms)
+✔ Halo never changes overmold classification or the overmold rim resolution (0.7808ms)
+✔ the band splits at the rim seam, R − PDGA rim width: the same profile, only marked (8.6904ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 444.227
+ok - the viewer stays unloaded until a disc is shown
+ok - viewer: rim direction, hands, clay, live slider, orbit, clamps, outside release and Top
+ok - viewer: touch rim tilt, second-finger pinch handoff and cancellation
+ok - selecting a rated disc lazy-loads three.js and the viewer
+ok - the toolbar fits Clay without clipping a preset at 1440, 1100 and 800 px
+ok - default 3/4 camera frames the whole disc (36% of the canvas)
+ok - one disc, 11488 triangles per frame
+ok - the canvas survives a detail re-render
+ok - profile and bottom presets move the camera
+ok - top preset looks straight down
+ok - flip turns the disc over and back
+ok - hyzer/anhyzer tilt follows the throwing hand
+ok - arrow keys turn and + zooms
+ok - drag turns and the wheel zooms
+ok - a putter replaces the driver in the same viewer
+ok - rim close-ups written
+ok - molds draw at true scale (Buzzz 1.031x, Aviar 1.005x the Destroyer)
+ok - ten random molds draw at their PDGA diameter and height: Magnolia, Zone GT (Banger Top), Alpaca, Delirium, Bigfoot, Outer Core, River Pro, Stag, Realm, Tui
+ok - review boards written
+ok - Envy (Axiom), Volt (MVP) and Atlas (Innova) draw two materials split at the measured rim width: Envy #0a0a0a/#bc719b, Volt #0a0a0a/#0072b2, Atlas #0a0a0a/#008c67
+ok - Streamline Drift, Innova Destroyer and Discraft Buzzz stay one material
+ok - rim/plate colours override the defaults and fall back without them (default rim #0a0a0a for #d94f2b)
+ok - overmold review board written
+ok - clay: matte grey on a dark ground, stamp hidden, plastic untouched; cross-section below the stage from the lathe's 68 points with the panel's Height 1.4 cm, Rim width 2.2 cm, Rim depth 1.2 cm, Diameter 21.1 cm
+ok - clay stays on from disc to disc, each drawn and annotated for itself
+ok - the clay ground is dark in light, midnight, charcoal and black
+ok - turning clay off restores the plastic material, finish, colour, stamp and backdrop exactly
+ok - overmold in clay: plate #b3b3af and rim #6c6c6a split at the seam on screen and in the cross-section; a chosen rim colour waits underneath
+ok - a rated disc without PDGA dimensions keeps the Phase 1 generic shape
+ok - discs without model data fall back to the illustration
+ok - phone bottom sheet draws the disc and fits its controls
+ok - phone frames: 11488 triangles, 0.10 ms per mold vs 0.10 ms generic
+ok - phone draws the Envy overmold in two materials (11488 triangles)
+ok - phone: clay keeps its cross-section under the stage and the controls inside the sheet
+ok - no page errors
+ok - the panel viewer offers Enlarge and builds no dialog until asked
+ok - Enlarge opens a modal dialog titled with the disc
+ok - popout: rim direction, hands, clay, live slider, orbit, clamps, outside release and Top
+ok - popout: touch rim tilt, second-finger pinch handoff and cancellation
+ok - focus moves into the dialog and Tab never reaches the page behind
+ok - the pop-out is the same viewer and model, larger, with the whole disc in frame
+ok - drag turns and the wheel zooms in the pop-out
+ok - Top, Profile, Bottom and Flip work in the pop-out
+ok - tilt follows the throwing hand; arrows and + work from the keyboard
+ok - the panel viewer is untouched while the pop-out is open
+ok - Escape closes the pop-out, frees its context and returns focus to the Enlarge button
+ok - the pop-out hands its pose back, and the panel viewer keeps working
+ok - the close button closes and returns focus
+ok - clicking outside closes; a drag that ends outside does not
+ok - a click on the canvas pops it out; a drag only turns it
+ok - overmold two-tone and custom colours carry over; the pop-out follows the theme
+ok - clay carries into the pop-out with the same cross-section and numbers; toggling in either viewer turns both
+ok - repeated open and close reuses one dialog and leaves no viewer behind
+ok - phone: a fresh pop-out frames the whole disc
+ok - on a phone a tap opens the pop-out; a pinch or a drag only moves the disc
+ok - phone: the pop-out fits the screen (374x828) with touch-sized controls
+ok - phone: one finger rotates, two fingers pinch zoom
+ok - phone: presets and close by touch; focus returns to the opener
+ok - phone: the clay pop-out keeps the disc, its cross-section and the controls in order on screen
+ok - phone landscape: controls fit and the disc keeps 224px of height
+ok - phone landscape in clay: the cross-section folds away and the disc keeps its height
+ok - the pop-out buffer matches its laid-out size x pixel ratio on first open and reopen, in motion and reduced motion, desktop and phone
+ok - no page errors

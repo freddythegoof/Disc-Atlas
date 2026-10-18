@@ -1,0 +1,27 @@
+[
+  {
+    "suite": "test:apple-design",
+    "status": 0,
+    "file": "outputs/prompt-4/test-apple-design.log"
+  },
+  {
+    "suite": "test:apple-design:2",
+    "status": 0,
+    "file": "outputs/prompt-4/test-apple-design-2.log"
+  },
+  {
+    "suite": "test:apple-design:3",
+    "status": 0,
+    "file": "outputs/prompt-4/test-apple-design-3.log"
+  },
+  {
+    "suite": "test:atlas:persist",
+    "status": 0,
+    "file": "outputs/prompt-4/test-atlas-persist.log"
+  },
+  {
+    "suite": "test:add-menu",
+    "status": 0,
+    "file": "outputs/prompt-4/test-add-menu.log"
+  }
+]

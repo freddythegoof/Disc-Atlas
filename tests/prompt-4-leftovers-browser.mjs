@@ -93,7 +93,3 @@ try{
  }
  fs.writeFileSync(`${out}/${mode}.json`,JSON.stringify(report,null,2));assert.deepEqual(report.pageErrors,[]);console.log(`PASS Prompt 4 ${mode}: ${report.clay.length} clay viewports, ${report.matrix.length} browser rows`);
 }finally{server.close();fs.writeFileSync(`${out}/${mode}.json`,JSON.stringify(report,null,2));}
-
-
-
-

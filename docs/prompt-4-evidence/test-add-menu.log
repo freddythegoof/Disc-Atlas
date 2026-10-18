@@ -1,0 +1,14 @@
+
+> disc-atlas@0.1.0 test:add-menu
+> node tests/add-menu-dismiss-browser.mjs
+
+ok - 1440 light: toggle, outside press, Escape (focus in and out), one menu across rows, other dropdowns, mouse/keyboard/script/bag view changes, click spam
+ok - 390 light: toggle, outside press, Escape (focus in and out), one menu across rows, other dropdowns, mouse/keyboard/script/bag view changes, click spam
+ok - 1440 midnight: toggle, outside press, Escape (focus in and out), one menu across rows, other dropdowns, mouse/keyboard/script/bag view changes, click spam
+ok - 390 midnight: toggle, outside press, Escape (focus in and out), one menu across rows, other dropdowns, mouse/keyboard/script/bag view changes, click spam
+ok - 1440 charcoal: toggle, outside press, Escape (focus in and out), one menu across rows, other dropdowns, mouse/keyboard/script/bag view changes, click spam
+ok - 390 charcoal: toggle, outside press, Escape (focus in and out), one menu across rows, other dropdowns, mouse/keyboard/script/bag view changes, click spam
+ok - 1440 signed in: a bag loading under an open menu, repeated saves, bag changes, scrolling at once and open/close flurries
+ok - 390 signed in: a bag loading under an open menu, repeated saves, bag changes, scrolling at once and open/close flurries
+ok - No page or console errors
+PASS add menu dismissal: 9 checks, 18 screenshots in outputs/add-menu-dismiss

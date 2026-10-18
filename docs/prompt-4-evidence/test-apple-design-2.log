@@ -1,0 +1,34 @@
+
+> disc-atlas@0.1.0 test:apple-design:2
+> node tests/apple-design-2-browser.mjs
+
+ok - Manufacturer panel: enters from the trigger's corner and leaves in ~100 ms
+ok - Map menu: enters from the trigger's corner and leaves in ~100 ms
+ok - Site menu: enters from the trigger's corner and leaves in ~100 ms
+ok - A menu reopened mid-exit reverses from where it is
+ok - Add menu: popover enter and exit, from its trigger corner (below and above)
+ok - Dialogs fade in and out with their backdrop
+ok - Cluster popover grows from its marker and leaves in ~120 ms
+ok - Phone: the cluster sheet rises from its bottom edge and leaves quickly
+ok - Reduced motion: menus, the Add popover and dialogs fade in and out with no scale or travel
+ok - Header, toolbar, Add and map buttons dip to .97 on pointerdown and return; directory rows tint
+ok - Detail panel controls, 3D toolbar and Enlarge dip on press
+ok - Site, map and Add menu items and the dialog close button dip on press
+ok - Cluster buttons and the compare tray dip on press
+ok - Markers: the art dips on pointerdown, lets go when the map pans, and returns on release
+ok - Touch emulation: a finger down on a marker dips its art on pointerdown
+ok - Reduced motion: press feedback is instant
+ok - The compare tray enters with a 12px rise and fade
+ok - Adding a disc inserts one card and leaves the others untouched
+ok - Removing a card fades it out in place while the others glide into the gap
+ok - An emptied tray exits holding its cards; the next add starts clean
+ok - A tray reopened mid-exit reverses cleanly
+ok - Reduced motion: compare cards fade in and out, with no scale or glide
+ok - Phone: removing a wrapped card leaves no ghost
+ok - Pop-out opens as a FLIP from the panel stage, after the large renderer has drawn
+ok - Pop-out close reverses the open animation, fades the backdrop and turns the panel disc to the dialog's pose
+ok - Pop-out: interrupting an open from the API, Escape, the backdrop or the close button reverses it; a flurry of opens and closes leaves no state
+ok - Reduced motion: the pop-out fades in and out without morphing
+ok - Phone: a header swipe dismisses (a short one springs back), the canvas never does, and the panel disc follows
+ok - Phone: a tap on the close button reverses the open morph and closes
+29 checks passed.
