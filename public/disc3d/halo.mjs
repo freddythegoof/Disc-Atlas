@@ -33,6 +33,9 @@ export const HALO_RING=16;
 // The blend across the front: its 10–90% width as a share of R (tests/halo-band-v2.mjs measures the swirl
 // fixture's own feather from the photo).
 export const HALO_FEATHER=.045;
+// EXPERIMENT (Freddy keep-or-kill, docs/halo-band-v2.md): faint white wisps running around the ring through the
+// dye, as on the real underside. Their peak lightening toward white; 0 turns them off.
+export const HALO_STREAKS=.22;
 export function encodeHalo(model){
  if(!model||!/^#[0-9a-f]{6}$/i.test(model.wash||'')||model.front?.length!==HALO_RING)return null;
  return model.wash.toLowerCase()+model.front.map(r=>Math.round(Math.min(255,Math.max(0,(r-.5)*510))).toString(16).padStart(2,'0')).join('');

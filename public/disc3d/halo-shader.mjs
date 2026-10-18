@@ -8,7 +8,7 @@
 // cosine and sine of its angle in the photo's frame, and how much it faces up (the top face, 1; walls and
 // underside, 0). Computed before a renderer moves or scales its geometry, so it survives every transform.
 // Pure JS: three.js reaches it only through the material and geometry objects the renderers pass in.
-import {HALO_RING,HALO_FEATHER,parseHalo} from './halo.mjs';
+import {HALO_RING,HALO_FEATHER,HALO_STREAKS,parseHalo} from './halo.mjs';
 
 const toLinear=c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4;};
 const linear=hex=>[1,3,5].map(i=>toLinear(parseInt(hex.slice(i,i+2),16)));
@@ -28,7 +28,7 @@ export function haloCoord(position,normal,R){
 
 // Uniforms for one band: set them per disc (setHalo), share them with the material they patch.
 export function haloUniforms(){
- return {haloWash:{value:[1,1,1]},haloFront:{value:new Float32Array(HALO_RING).fill(.9)},haloFeather:{value:HALO_FEATHER}};
+ return {haloWash:{value:[1,1,1]},haloFront:{value:new Float32Array(HALO_RING).fill(.9)},haloFeather:{value:HALO_FEATHER},haloStreak:{value:HALO_STREAKS}};
 }
 // The stored model ('#rrggbb…', halo.mjs) into the uniforms. False when it does not parse.
 export function setHalo(uniforms,value){
@@ -41,6 +41,7 @@ const FRAGMENT=`varying vec4 vHalo;
 uniform vec3 haloWash;
 uniform float haloFront[${HALO_RING}];
 uniform float haloFeather;
+uniform float haloStreak;
 `;
 const MIX=`
 {
@@ -51,7 +52,17 @@ const MIX=`
  // smoothstep climbs from 10% to 90% over 0.608 of its span: this span draws the front's blend at haloFeather.
  float haloHalf=haloFeather/1.216;
  float haloDye=smoothstep(haloAt-haloHalf,haloAt+haloHalf,vHalo.x);
- diffuseColor.rgb=mix(diffuseColor.rgb,haloWash,(1.0-haloDye)*clamp(vHalo.w,0.0,1.0));
+ float haloTop=clamp(vHalo.w,0.0,1.0);
+ // EXPERIMENT: wisps. Thin light streaks that run around the ring (radius sets the streak, the angle bends it and
+ // breaks it into lengths), only where the dye shows. Faded out where they would be finer than a couple of
+ // pixels (fwidth), so a small disc never shimmers.
+ if(haloStreak>0.0){
+  float hA=atan(vHalo.z,vHalo.y),hPhase=vHalo.x*120.0+2.2*sin(2.0*hA+1.3)+1.1*sin(5.0*hA+0.4)+0.6*sin(9.0*hA+2.0);
+  float hWisp=pow(max(0.0,sin(hPhase)),10.0)*smoothstep(0.35,0.85,0.5+0.5*sin(3.0*hA+9.0*vHalo.x+1.7*sin(7.0*hA)));
+  hWisp*=clamp(1.6-fwidth(hPhase)*1.2,0.0,1.0);
+  diffuseColor.rgb=mix(diffuseColor.rgb,vec3(1.0),haloStreak*hWisp*(1.0-(1.0-haloDye)*haloTop));
+ }
+ diffuseColor.rgb=mix(diffuseColor.rgb,haloWash,(1.0-haloDye)*haloTop);
 }
 `;
 // Patch a band material (MeshStandard/MeshPhysical) in place, after whatever patch it already has (the atlas's
