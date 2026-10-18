@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import vm from 'node:vm';
+import {isHalo} from '../public/disc3d/halo.mjs';
 
 // Exercise the production handler with controlled async boundaries. The DOM and
 // network are doubles; neither save/retry logic nor thumbnail scheduling is copied.
@@ -37,7 +38,7 @@ function editorFixture({photoValue=async()=> 'processed-photo',upload=async()=>p
   editing:null,items:[],loading:false,active:false,plastics:{},rimCustomized:false,
   photoEditor:{changed:true,value:photoValue,reset(){}},
   colorHint:()=>({textContent:''}),colorBeforePhoto:null,photoColor:null,
-  mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),
+  mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),isHalo,
   render(){counts.renders++;},status(){},loadBag(){counts.refreshes++;},name:()=> 'Disc',
   async fetch(url,options){
    calls.push({url,...options});
@@ -79,6 +80,16 @@ test('photo attachment keeps the captured rim sample when photo controls change 
   f.context.photoEditor.photoRimColor=changedSample;wait.resolve();await saving;
   const upload=f.calls.find(c=>c.url.endsWith('/photo'));
   assert.equal(upload.headers['X-Atlas-Photo-Rim-Color'],'#101418','sample belongs to the captured blob');
+ }
+});
+
+test('a one-piece photo sends its band sample only for a Halo copy, and an overmold rim sample wins',async()=>{
+ for(const [plastic,rim,expected] of [['Halo Star',null,'#2f5fb8'],['Star',null,''],['Halo Star','#101418','#101418']]){
+  const f=editorFixture();
+  f.context.validateDiscDetails=()=>({mold_id:'mold',plastic,notes:''});
+  Object.assign(f.context.photoEditor,{photoRimColor:rim,bandColor:'#2f5fb8'});
+  await f.submit();
+  assert.equal(f.calls.find(c=>c.url.endsWith('/photo')).headers['X-Atlas-Photo-Rim-Color'],expected,plastic+' / '+rim);
  }
 });
 

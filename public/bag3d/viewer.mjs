@@ -587,8 +587,8 @@ export async function mountBag(container, {
     // a middling one the smallest tier that still covers its device pixels.
     const { placement, mesh } = record, tier = record.shown > 2 * DETAIL_FROM ? null : photoTier(record.shown * devicePixelRatio);
     if (!record.detail) {
-      const key = JSON.stringify(placement.mold);
-      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }));
+      const band = !!placement.haloBand, key = JSON.stringify(placement.mold) + (band ? '|band' : '');
+      if (!detailGeometries.has(key)) detailGeometries.set(key, bagDiscGeometry(placement.mold, false, { segments: detailSegments(), detail: DETAIL.detail }, { band }));
       const base = { geometry: mesh.geometry, material: mesh.material }, materials = [base.material].flat().map(material => detailMaterial(material.color));
       record.detail = { base, materials, parts: detailGeometries.get(key), photos: [], tier: undefined };
       mesh.geometry = record.detail.parts.geometry; mesh.material = Array.isArray(base.material) ? materials : materials[0];
@@ -645,15 +645,17 @@ export async function mountBag(container, {
     for (const placement of result.placements) {
       // An empty go-to pocket shows the GLB's dashed outline instead of a ghost disc.
       if (placement.empty && placement.pocket === 'goTo') continue;
-      let geometry=discGeometry,overmold=false,parts=null;
+      let geometry=discGeometry,overmold=false,band=false,parts=null;
       if(!placement.empty&&placement.mold){
-        const key=JSON.stringify(placement.mold);
-        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low));
-        parts=moldGeometries.get(key);({geometry,overmold}=parts);
+        // A Halo copy (disc3d/halo.mjs) splits at the rim seam for its band; overmold molds ignore it.
+        const halo=!!placement.haloBand,key=JSON.stringify(placement.mold)+(halo?'|band':'');
+        if(!moldGeometries.has(key))moldGeometries.set(key,bagDiscGeometry(placement.mold,low,null,{band:halo}));
+        parts=moldGeometries.get(key);({geometry,overmold,band}=parts);
       }
       let material = placement.empty ? ghostMaterial : discTemplate.clone();
       if (!placement.empty && placement.color) material.color.set(placement.color);
       if(overmold){const colors=overmoldColors(placement.color,{rim:placement.rimColor});material.color.set(colors.plate);const rim=discTemplate.clone();rim.color.set(colors.rim);material=[material,rim];}
+      else if(band){const rim=discTemplate.clone();rim.color.set(placement.haloBand);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
       // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
       if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
@@ -1572,7 +1574,7 @@ export async function mountBag(container, {
       return [...records.values()].map(record => ({ record, ...record })).map(({ record, key, placement, mesh }) => ({
         key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty,
         color: placement.empty ? null : '#' + [mesh.material].flat()[0].color.getHexString(),
-        overmold:Array.isArray(mesh.material),rimColor:Array.isArray(mesh.material)?'#'+mesh.material[1].color.getHexString():null,
+        overmold:!!record.parts?.overmold,haloBand:record.parts?.band?'#'+[mesh.material].flat()[1].color.getHexString():null,rimColor:record.parts?.overmold?'#'+mesh.material[1].color.getHexString():null,
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
         pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : [mesh.material].flat()[0].emissiveIntensity,

@@ -185,6 +185,15 @@ function plateRatio(d){
   return (isOvermold({overmold:typeof d.overmold==='boolean'?d.overmold:undefined,manufacturer:d.manufacturer,record:d.name})?Ri:Rs)/R;
  }catch{return .8;}
 }
+// Where a Halo copy's dyed band begins, as a share of the radius: the rim seam (R − PDGA rim width), the
+// same seam the model splits the band at. The photo itself still stops at the shoulder.
+function bandRatio(d){
+ try{
+  const resolved=d&&shapeForDisc({model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade}});
+  if(!resolved)return null;
+  const {R,Ri}=shapeFrame(resolved.shape);return Ri/R;
+ }catch{return null;}
+}
 
 // The aligner's live view, in the crop's own coordinates but reaching a little past the circle so an
 // off-centre disc shows what is being cut off. Editor chrome only: processing never reads it.
@@ -280,9 +289,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  root.closest('dialog')?.addEventListener('scroll',e=>{if(!sources.contains(e.target))closeSources();},{capture:true,passive:true});
  if(matchMedia('(pointer:coarse)').matches){choose.popoverTargetElement=sources;choose.setAttribute('aria-expanded','false');}
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
- // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,mode,url}.
+ // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,mode,url}.
  // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
- let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,frameId=0,settle=0,gesture=null,levelLines=false;
+ let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false;
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -353,8 +362,11 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
    // Levelling only resamples the saved texture; it keeps the disc's colour as it is.
-   const level=mode==='level',{blob,color,photoRimColor}=await preparePhoto(bitmap,{...options,rimInner},{albedo:!level});if(id!==serial)return;
-   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,mode,url:URL.createObjectURL(blob)};
+   const level=mode==='level',{blob,color,photoRimColor:sample}=await preparePhoto(bitmap,{...options,rimInner:rimInner??bandInner},{albedo:!level});if(id!==serial)return;
+   // One rim sample: an overmold's rim piece, or else the outer band a Halo copy would show (kept apart, so
+   // only a Halo copy ever stores it; see bandColor).
+   const photoRimColor=rimInner?sample:null,bandColor=rimInner?null:sample;
+   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,mode,url:URL.createObjectURL(blob)};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();if(!level)onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
@@ -422,12 +434,15 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  const reset=(item,mold)=>{
   closeSources();serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();
   current=photoURL(item);removed=false;changed=false;plate=plateRatio(mold);
-  rimInner=mold&&isOvermold({...mold,record:mold.name})?plate:null;
+  rimInner=mold&&isOvermold({...mold,record:mold.name})?plate:null;bandInner=rimInner?null:bandRatio(mold);
   q('.bag-photo-status').textContent='';renderSheet();
  };
  reset(null);
  return {reset,get changed(){return changed||busy;},
   get photoRimColor(){return used?.photoRimColor??null;},
+  // The prepared photo's outer band (one-piece molds only). The sheet stores it as photo_rim_color only for a
+  // Halo copy (disc3d/halo.mjs), since only the sheet knows the plastic at save time.
+  get bandColor(){return used?.bandColor??null;},
   async value(){if(busy)throw Error('Wait for the photo to finish.');return used?used.blob:null;},
   // For tests: the aligner and what it is working on.
   debug:{dialog,get draft(){return draft;},get used(){return used;}}};

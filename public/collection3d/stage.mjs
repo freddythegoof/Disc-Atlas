@@ -74,15 +74,17 @@ export function contactShadow(width,depth,opacity=1){
 // rack of 72 Destroyers builds one geometry. Overmold discs come as two geometries (plate, rim) that
 // share the lathe's vertices, so each can carry its own colour per instance.
 const parts=new Map();
-export function discParts(d,quality=stage().quality){
+// `band`: a Halo copy on a one-piece mold (disc3d/halo.mjs), split at the same rim seam for its dyed band;
+// `overmold` stays false, so its photo still stops at the shoulder.
+export function discParts(d,quality=stage().quality,band=false){
  const flight={speed:d?.speed,turn:d?.turn,fade:d?.fade};
  const resolved=shapeForDisc({model:d?.model3d||null,specs:d?.specs||null,flight});
  const shape=resolved?.shape||normalizeShape({});
  const overmold=!!d&&isOvermold({manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined});
- const key=JSON.stringify([shape,overmold,quality]);
+ const halo=!overmold&&!!band,key=JSON.stringify([shape,overmold,quality,...halo?['band']:[]]);
  if(parts.has(key))return parts.get(key);
  const radial=DISC_BUDGET.radial[quality],detail=DISC_BUDGET.detail[quality];
- const split=overmold?overmoldProfile(shape,{detail}):null;
+ const split=overmold||halo?overmoldProfile(shape,{detail}):null;
  const points=(split?split.points:discProfile(shape,{detail})).map(p=>new THREE.Vector2(p.x,p.y));
  const lathe=new THREE.LatheGeometry(points,radial);
  lathe.computeBoundingBox();
@@ -98,21 +100,22 @@ export function discParts(d,quality=stage().quality){
   rim=share(new THREE.BufferGeometry());rim.setIndex(rimIdx);
  }
  for(const g of [plate,rim])if(g){g.computeBoundingSphere();g.computeBoundingBox();}
- const entry={key,shape,overmold,plate,rim,radius:shape.diameter/200,thickness,centre};
+ const entry={key,shape,overmold,band:halo,plate,rim,radius:shape.diameter/200,thickness,centre};
  parts.set(key,entry);return entry;
 }
-// Plate and rim colours for one copy: the bag's own colour, and its rim colour on overmold molds.
-export function discColors(entry,color,rimColor){
+// Plate and rim colours for one copy: the bag's own colour, and its rim colour on overmold molds or its
+// photographed band on a Halo copy (never a default).
+export function discColors(entry,color,rimColor,haloBand){
  const base=color||'#e6c668';
- return entry.overmold?overmoldColors(base,{rim:rimColor||undefined}):{plate:base,rim:base};
+ return entry.overmold?overmoldColors(base,{rim:rimColor||undefined}):{plate:base,rim:entry.band&&haloBand||base};
 }
 // The bag's premium finish (disc3d PLASTICS.premium); software rendering skips the clear coat.
 export function discMaterial(color='#ffffff'){
  return stage().low?new THREE.MeshStandardMaterial({color,roughness:.38}):new THREE.MeshPhysicalMaterial({color,roughness:.3,clearcoat:.6,clearcoatRoughness:.22});
 }
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
-export function discModel(d,{color,rimColor,name,photoURL,onChange=()=>{},stamp=true}={}){
- const entry=discParts(d),colors=discColors(entry,color,rimColor),group=new THREE.Group();
+export function discModel(d,{color,rimColor,haloBand,name,photoURL,onChange=()=>{},stamp=true}={}){
+ const entry=discParts(d,undefined,!!haloBand),colors=discColors(entry,color,rimColor,haloBand),group=new THREE.Group();
  const plate=new THREE.Mesh(entry.plate,discMaterial(colors.plate));group.add(plate);
  if(entry.rim)group.add(new THREE.Mesh(entry.rim,discMaterial(colors.rim)));
  let ink=null;

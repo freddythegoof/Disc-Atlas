@@ -8,13 +8,17 @@
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
 // Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
-// overmold, colors, photoURL, texture_key, photo_rim_color}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
+// overmold, colors, photoURL, texture_key, photo_rim_color, haloBand}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
 // its shape (phase 2), and without them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
 // Overmold discs (Plan 12) draw the rim and the flight plate in two materials, split at the measured rim
 // width. `overmold` (boolean) is the record's own flag; without it the PDGA `manufacturer` and `record` name
 // are looked up in overmold.mjs. `colors` {rim, plate} are optional overrides of the two colours; the
 // plate defaults to `color`; the rim defaults to black in light theme, white in dark themes.
+// A Halo copy (`haloBand`, a '#rrggbb' from disc3d/halo.mjs haloBand) is not an overmold: it is one piece of
+// plastic dyed in two colours. On a one-piece mold its band uses the same seam split and the same plastic
+// material as an overmold's rim, only coloured with the band; its photo still stops at the shoulder, and clay
+// shows it as the one piece it is. An overmold mold ignores the band (its rim piece is already the second colour).
 // Every other disc is one material, as before.
 // Clay (Prompt 4) is a shape-only inspect view: the same mesh in matte studio clay on a dark ground, the stamp
 // hidden, and the mold's cross-section drawn from the lathe's own points (profile.mjs) under the stage. It only
@@ -111,7 +115,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
+ const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,band:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
  let photo=null;
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
 
@@ -214,11 +218,12 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   else{const radius=Math.min(controls.maxDistance,Math.max(controls.minDistance,pose.zoom*state.fit));placeCamera(new THREE.Spherical(radius,pose.phi,pose.theta));setPressedView(null);request();}
  }
 
- function build(shape,mold,color,overmold,asset,placement){
-  // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs).
-  const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold});
-  state.seamRadius=seamRadius;state.shape=shape;state.profile=profile;state.profileWidth=0;
-  applyMaterials(overmold);
+ function build(shape,mold,color,overmold,asset,placement,band=null){
+  // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs). A Halo band splits at the
+  // same seam; its cross-section is still drawn as one piece.
+  const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold:overmold||!!band});
+  state.seamRadius=seamRadius;state.shape=shape;state.profile=overmold?profile:{...profile,rim:null,seamRadius:null};state.profileWidth=0;
+  applyMaterials(overmold,band);
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
@@ -238,22 +243,23 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const {shape,source}=resolved;
   const rim=bagRimColor({rim_color:props.colors?.rim,texture_key:props.texture_key,photo_rim_color:props.photo_rim_color},document.documentElement.dataset.theme==='light'?undefined:'#ffffff');
   const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim}):null;
+  const band=!overmold&&/^#[0-9a-f]{6}$/i.test(props.haloBand||'')?props.haloBand.toLowerCase():null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
   const asset=props.photoURL?null:catalogStampAsset(props),placement=asset?catalogStampPlacement(props):null;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,props.photoURL,asset,placement]);
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,props.photoURL,asset,placement]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
   const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
-  state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;
+  state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;state.band=band;
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
-  build(shape,props.mold,color,overmold,asset,placement);
+  build(shape,props.mold,color,overmold,asset,placement,band);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
   if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
-  if(overmold){rimMaterial.color.set(colors.rim);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
+  if(overmold||band){rimMaterial.color.set(overmold?colors.rim:band);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){
    state.flipped=false;flipTween=null;flipGroup.rotation.x=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');
@@ -265,14 +271,14 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  }
 
  // Which materials the mesh wears: the plastic ones, or clay. Neither set is modified by the other.
- function applyMaterials(overmold=state.overmold){
-  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold?[bodyMaterial,rimMaterial]:bodyMaterial);
+ function applyMaterials(overmold=state.overmold,band=state.band){
+  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold||band?[bodyMaterial,rimMaterial]:bodyMaterial);
   stamp.visible=!state.clay&&!photo?.userData.photoReady;
   if(photo)photo.visible=!state.clay&&!!photo.userData.photoReady;
  }
  function label(){
   const props=state.props||{};
-  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag the rim to tilt. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
+  canvas.setAttribute('aria-label',`3D model of the ${props.mold||'disc'}, built from ${SOURCE_TEXT[state.source]}${state.overmold?', with its overmold rim in a second colour':state.band?', with its Halo band in a second dye colour':''}${state.clay?', shown in plain clay with its cross-section below':''}. Drag the rim to tilt. Drag or use the arrow keys to turn it, scroll or use + and − to zoom.`);
  }
  // The cross-section under the stage, while clay is on: static SVG, redrawn only for a new disc or width.
  function drawProfile(){

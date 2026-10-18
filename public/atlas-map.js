@@ -11,9 +11,10 @@ function photoMarkup(d,extra=''){
  const label=d.catalogName||d.name;
  return `<span class="disc-art clean-disc ${extra}" style="--disc-color:${discColor(d)}" role="img" aria-label="${esc(d.brand+' '+label)} — representative disc illustration"></span>`;
 }
-function thumbnailMarkup(d,color,rim,photoURL){
+// `band`: a Halo copy's photographed band colour (disc3d/halo.mjs haloBand), or nothing.
+function thumbnailMarkup(d,color,rim,photoURL,band){
  const label=d?d.brand+' '+(d.catalogName||d.name):'Saved disc';
- return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}" style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
+ return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}"${band?` data-halo-band="${esc(band)}"`:''} style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
 }
 function observeDiscThumbnails(root,lookup){
  if(window.ATLAS_3D_OFF)return;
@@ -420,7 +421,11 @@ function discArt(d,color,size,lod){
  }
  return atlasArt.get(d,color,size,rim,lod,true);
 }
-function photoDisc(d){const photoURL=myMap||activeLens()!=='default'?window.BagApp?.mapPhotos?.().get(d.id):null;return photoURL?{...d,photoURL}:d;}
+function photoDisc(d){
+ if(!(myMap||activeLens()!=='default'))return d;
+ const photoURL=window.BagApp?.mapPhotos?.().get(d.id),haloBand=photoURL?window.BagApp?.mapHaloBands?.().get(d.id):null;
+ return photoURL?{...d,photoURL,...haloBand&&{haloBand}}:d;
+}
 function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}
 // Idle time draws a neighbouring level's discs before the camera gets there: its curated discs and dots at
 // full size, its small discs and minis at the size they reach at the level's top.

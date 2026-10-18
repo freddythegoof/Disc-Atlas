@@ -49,7 +49,7 @@
     "test:apple-design:3": "node tests/apple-design-3-browser.mjs",
     "test:directory:layout": "node tests/directory-layout-browser.mjs",
     "test:add-menu": "node tests/add-menu-dismiss-browser.mjs",
-    "test:disc3d": "node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs tests/disc3d-profile.mjs && node tests/disc3d-browser.mjs && node tests/disc3d-popout-browser.mjs",
+    "test:disc3d": "node --test tests/disc3d-shape.mjs tests/disc3d-molds.mjs tests/disc3d-overmold.mjs tests/disc3d-profile.mjs tests/halo-plastic.mjs && node tests/disc3d-browser.mjs && node tests/disc3d-popout-browser.mjs",
     "test:disc3d:popout": "node tests/disc3d-popout-browser.mjs",
     "test:3d:polish": "node --test tests/compare-viewer-polish-browser.mjs",
     "test:sliders": "node tests/slider-drag-browser.mjs",
@@ -59,7 +59,8 @@
     "test:photo-rim": "node tests/photo-rim-color-browser.mjs",
     "test:photo-level": "node tests/photo-stamp-level-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",
-    "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs"
+    "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs",
+    "test:halo": "node --test tests/halo-plastic.mjs && node tests/halo-plastic-browser.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
