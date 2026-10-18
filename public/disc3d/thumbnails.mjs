@@ -21,7 +21,7 @@ export function observeThumbnails(root,lookup){
     if(!host.isConnected||!host.checkVisibility())continue;
     const d=lookup(host.dataset.discThumbnail);if(!d)continue;
     const size=host.getBoundingClientRect().width,plate=host.dataset.plateColor,rim=host.dataset.rimColor||undefined;
-    const entry=art.render({...d,photoURL:host.dataset.photoUrl||null},plate,size,rim);
+    const entry=art.render({...d,photoURL:host.dataset.photoUrl||null,haloBand:host.dataset.haloBand||null},plate,size,rim);
     const asset=host.dataset.photoUrl?null:catalogStampAsset(d);
     let ink=state.stamps.get(host);
     if(asset&&!ink){ink=stampTexture(d.catalogName||d.name,plate,{asset,onChange:()=>{if(lists.get(root)===state&&state.visible.has(host)&&state.stamps.has(host)){state.pending.add(host);schedule();}}});state.stamps.set(host,ink);}

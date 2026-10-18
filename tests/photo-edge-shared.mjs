@@ -47,9 +47,11 @@ export async function caseList(page,names){
  return {cases:names.map(k=>[k,all[k]]),seam:drawn.seam};
 }
 // The real editor: choose the photo, frame it with the aligner's own controls, use it, save.
-export async function addDisc(page,dir,{mold,photo,framing,type='image/png'},destination='bag'){
+// `plastic`: one of the editor's plastic options (default: the editor's own default for the brand).
+export async function addDisc(page,dir,{mold,photo,framing,type='image/png',plastic},destination='bag'){
  await page.evaluate(({mold,destination})=>{const d=discs.find(d=>d.id===mold);if(!d)throw Error('Missing mold '+mold);return BagApp.add(d,null,destination);},{mold,destination});
  await page.locator('#addDiscDialog').waitFor();
+ if(plastic)await page.locator('#bagPlastic').selectOption(plastic);
  await page.locator('.bag-photo-file').setInputFiles({name:'photo.'+type.split('/')[1],mimeType:type,buffer:photo});await page.locator('.photo-aligner[open]').waitFor();
  if(framing){
   await page.evaluate(scale=>{const el=document.querySelector('.photo-aligner [data-photo="scale"]');el.value=scale;el.dispatchEvent(new Event('input',{bubbles:true}));},framing.scale);

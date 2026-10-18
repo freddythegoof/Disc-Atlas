@@ -2,6 +2,7 @@
 import {bagClass} from './bag-values.js';
 import {rackOrder} from './collection3d/rack-layout.mjs';
 import {photoURL} from './disc-photo.mjs';
+import {haloBand} from './disc3d/halo.mjs';
 import {shapeForDisc} from './disc3d/shape.mjs';
 const title=d=>d?.catalogName||d?.name||'Catalog mold unavailable';
 const CLASSES={distance:'Distance driver',fairway:'Fairway driver',mid:'Midrange',putter:'Putter',unknown:'Unclassified'};
@@ -76,7 +77,7 @@ export class AllDiscsGallery{
     model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:title(d),
     manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
     color:item.color,colors:{plate:item.color,rim:item.rim_color||undefined},plastic:item.plastic||'premium',
-    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color});
+    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,haloBand:haloBand(item)});
    v.setClay(this.clay);this.stage.setAttribute('aria-busy','false');this.message.hidden=true;
    this.host.getAnimations().forEach(a=>a.cancel());
    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
