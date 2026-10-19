@@ -9,6 +9,9 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
 const dir='docs/assets/atlas-stamps',baseSHA='6e53bc8b629c63ac04777fe8400609cfc23cb2f3';
 fs.mkdirSync(dir,{recursive:true});
 const originals=new Map(['disc3d/atlas-art.mjs','atlas-map.js'].map(p=>['/'+p,execFileSync('git',['show',baseSHA+':public/'+p],{maxBuffer:8e6})]));
+// The baseline is this file at 6e53bc8, but app.js is today's: it calls presentAtlas() and reads atlasIntro (the
+// whole-Atlas reveal). Give the old file those two names, as the old opening (load() focused the featured disc).
+originals.set('/atlas-map.js',Buffer.concat([originals.get('/atlas-map.js'),Buffer.from('\nlet atlasIntro=null;function presentAtlas(){focusFeatured();}\n')]));
 let baseline=false,missing=false;const requests=[];
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://local'),p=url.pathname;
