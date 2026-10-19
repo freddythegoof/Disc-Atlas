@@ -322,3 +322,51 @@ The other 18 `app.js` calls into `atlas-map.js` already existed before the branc
 - Merged: **0/7**. The same desktop 8 px appears in 4 of 6 measured runs. In addition there is a **new phone diff in every run: 1 px at Δ1, at (110,560)**. It falls on bare background beside a grid line (G 243 vs 244), not on any disc art or label. It shows in reduced motion vs session-seen every time, and in reveal vs session-seen once. It belongs to the same class as the raster residue described above; something in main's changes triggers it on phone. **Not investigated, and the assertion is unchanged.**
 
 **Perf gate: not run.** It needs a genuinely quiet window on the merged tree before this branch goes toward a PR.
+
+## After the merge: the two strict residues, a settle patch tried and reverted, and the perf gate
+
+All measurements are on the merged tree, with `--enable-gpu`, a fresh browser per run, and the strict assertion unchanged. "Reveal", "reduced" and "direct" are the three resting `#map` frames the harness compares. The direct frame is the session-seen open.
+
+### Phone: 1 px, reproduces exactly
+
+- **Every merged run shows it, and no pre-merge run does.** It is the same pixel, (110,560), every time, at Δ1 (green 243 vs 244). It appeared in 17 of 17 unpatched harness runs, always reduced vs direct and in some runs also reveal vs direct. It appeared in 0 of 7 runs on `d784a17`.
+- **It belongs to `#map`'s own radial-gradient background**, which can end up drawn as either of two values. The map canvas is transparent at that point. Hiding the markers changes nothing, and every computed style on every covering layer is identical between the opens.
+  - The direct open rests on 244. Any repaint of `#map` (an injected style) turns it into 243.
+  - Forcing `#map` onto its own layer (`will-change: transform`) gives 244 in every open.
+  - Re-inserting `#map`, which is what the settle does, does not reliably change it.
+- **The tab transitions trigger it.** Disabling only the CSS transitions on `#mapTab`, `#listTab` and `#coachButton` removes the pixel (0 of 3 runs, against 3 of 3 for the control). None of those buttons overlaps the pixel.
+- **Main's stamp path is what exposes it.** Serving the pre-merge version of main's `atlas-map.js` changes, or of the disc3d/art modules, removes the pixel in 0 of 6 runs each. The pre-merge `data.json` reduces it to 2 of 6. Stamp-ready events fire 30–60 ms *before* the settle, and blocking the stamp PNGs does not help.
+- **The phone settle now happens later.** Pre-merge it ran about 82–100 ms after the map-tab tap, before those transitions had started. Merged, it runs about 150–180 ms after the tap, while they are running.
+
+**Patch tried and reverted.** `settleAtlas()` was made to also wait until no `CSSTransition` was running, keeping every existing guard. It worked as written: the settle moved to about 350 ms after the tap, with nothing running. **The pixel stayed in 3 of 3 runs.** So the difference is laid down while the tab transitions run, and a later re-insert does not clear it. Waiting for the transitions is the wrong lever. The patch was not kept; nothing in the product changed.
+
+### Desktop: 8 px, comes and goes
+
+- **When present, it is always the same 8 isolated single pixels** (8 clusters of size 1, every one Δ1) at the same coordinates with the same values, scattered across x 402–1080, y 533–705. That is the isolated Δ1 raster-residue signature, not a coherent region.
+- **Only the reveal frame changes.** The direct and reduced desktop frames are byte-identical in every run of each tree, and the reveal frame is either that same frame or one stable alternative.
+- **Distribution:**
+
+| Tree | Runs with the 8 px |
+| --- | --- |
+| Pre-merge `d784a17`, morning | 4 of 7 |
+| Merged, morning | 4 of 6 |
+| Merged, evening | 0 of 11 |
+
+The frequency moves with the session, not the code, and the merge doesn't change it. It is **the residue class, so no fix was attempted.**
+
+### Stamps canary
+
+The shim in [the merge section](#the-stamps-canary-a-test-baseline-not-the-merge) is still pending approval and **not applied**.
+
+### Perf gate: qualifying pass on `801eda3`
+
+The gate ran on 2026-10-18 at 22:00. The lid was open, the Mac was on AC, and the run was wrapped in `caffeinate -dims` because system sleep is set to 1 minute. Before the start there were 5 consecutive quiet samples, with Spotlight/Photos at 0% and total CPU at 19–44%. During the run, samples arrived every 30 s with no gaps, and Spotlight/Photos stayed at 0–0.1%. Measuring took 156 s. The earlier 42-minute attempt was mostly the Mac sleeping and does not count.
+
+Defaults: 7 desktop / 3 phone repetitions. Times are p95 frame times in ms.
+
+| Device | Flight p95, 2D → 3D (limit) | Still-view p95, 2D → 3D (limit) | Long tasks, 2D / 3D |
+| --- | --- | --- | --- |
+| Desktop | 1.6 → 2.2 (3.34) | 1.8 → 1.9 (3.57) | 0 / 0 |
+| Phone | 2.9 → 4.2 (6.33) | 0.6 → 0.6 (3.69) | 0 / 0 |
+
+Every paired median excess is negative. The settle patch was reverted, so this pass stands for the current tree.
