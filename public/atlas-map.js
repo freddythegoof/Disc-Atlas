@@ -361,6 +361,10 @@ function settleAtlas(){
  // thin out). Moved in place, it is rasterized afresh; its canvas keeps its bitmap and is drawn again at once.
  const map=$('#map'),focused=map.contains(document.activeElement)?document.activeElement:null;
  map.parentNode.insertBefore(map,map.nextSibling);focused?.focus({preventScroll:true});
+ // A move paints the same, so the browser may keep its background's tiles from a rest drawn under other paint (the tab
+ // buttons' transitions on phone: a level apart in places). Its background clip, flipped between two that draw alike
+ // (the map has no border), paints it again for real.
+ map.style.backgroundClip=map.style.backgroundClip?'':'padding-box';
  return true;
 }
 function draw(){
