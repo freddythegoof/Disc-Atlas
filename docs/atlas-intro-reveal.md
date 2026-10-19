@@ -370,3 +370,38 @@ Defaults: 7 desktop / 3 phone repetitions. Times are p95 frame times in ms.
 | Phone | 2.9 → 4.2 (6.33) | 0.6 → 0.6 (3.69) | 0 / 0 |
 
 Every paired median excess is negative. The settle patch was reverted, so this pass stands for the current tree.
+
+## Stamps shim applied; the settle repaints the map's background
+
+### Stamps canary: green
+
+The shim from [the merge section](#the-stamps-canary-a-test-baseline-not-the-merge) was approved and applied as shown, in `fd1b999`. The applied file is byte-identical to the scratch copy that passed 2/2. `npm run test:atlas:stamps` now passes (2/2 unit, browser PASS, 7–8 s). The "after" phase still tests the merged code; only the "before" phase's old `atlas-map.js` gains `atlasIntro` and `presentAtlas()`.
+
+### Phone 1 px: fixed by a real repaint in `settleAtlas()`
+
+**Why the re-insert was not enough.** Moving `#map` in place produces the same paint. In a probe, it re-rasterized the background in some runs and not in others. That fits the browser keeping the existing background tiles when the paint output is unchanged. A real computed-style change on `#map` did repaint it every time.
+
+**The change** (`6c5824e`). Right after the re-insert, `settleAtlas()` flips `#map`'s `background-clip` between its default (`border-box`) and `padding-box`. The two draw identically because `#map` has no border (computed 0px on every side). The flip is a real style change, so the background is painted afresh. Every earlier guard is unchanged and still runs before it: the cancel on input or camera motion; never under a resting pointer, a pin, keyboard focus or a fade; and the wait for art, fonts and regroups. In a probe on the session-seen phone open, the flip turned the frame byte-identical to the reduced open's (0 px), and so was every frame captured after it.
+
+**Proof on the fixed tree:**
+
+| Check | Result |
+| --- | --- |
+| Intro strict, 3 fresh browsers: desktop reveal/reduced vs direct | 0 / 0 px in every run |
+| Intro strict, 3 fresh browsers: phone reveal/reduced vs direct | 0 / 0 px in every run |
+| Organic strict | 6/6, including the determinism pixel check |
+| ESLint, changed files | 0 errors; the same 3 warnings as before |
+
+**No flicker or flash from the change.** A probe held each presentation's settle until the map was otherwise at rest, captured that frame, released the settle, and captured the next 4 frames. It covered reveal, session-seen and reduced opens on phone and desktop. In every case the 4 frames after the settle were identical to each other, so there was no transient frame. With the repaint, the settled frame differs from the held frame by 0–6 px at Δ1 for session-seen and reduced. Those are the residue pixels being corrected.
+
+**Existing landing nudge, unchanged by this fix.** On the reveal opens, the settle changes 3,252 px (phone, max Δ62) and about 69,000 px (desktop, max Δ196). The diff mask shows marker-label glyph edges, moved by about a pixel as the labels are redrawn at rest, plus the faint shadow rings around the discs. Side by side the frames look the same. The unpatched settle gives the same numbers (3,252 / 69,012 px), so this is the existing "rest drawn from nothing" rebuild, not the repaint. It is the moment the review notes above already flag for the real-device feel check.
+
+### Final batch on `6c5824e`
+
+| Gate | Result |
+| --- | --- |
+| `test:atlas:intro` (strict) | 7/7 unit; browser suite green; pixel-equal on desktop and phone |
+| `test:atlas:organic` (strict) | 6/6 |
+| Unit set (non-browser `tests/*.mjs`, excluding perf, `motion`, `palette`, `redesign`) | 286/286 |
+| `test:atlas:stamps` | Pass |
+| Perf gate | **Pending.** The settle changed, so the gate has to pass again on this tree. At the time of the batch the Mac was on battery, not the AC power the 22:00 qualifying run used, so the run waits for AC power, lid open and idle indexing. |
