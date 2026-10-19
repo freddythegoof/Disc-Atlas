@@ -404,4 +404,15 @@ The shim from [the merge section](#the-stamps-canary-a-test-baseline-not-the-mer
 | `test:atlas:organic` (strict) | 6/6 |
 | Unit set (non-browser `tests/*.mjs`, excluding perf, `motion`, `palette`, `redesign`) | 286/286 |
 | `test:atlas:stamps` | Pass |
-| Perf gate | **Pending.** The settle changed, so the gate has to pass again on this tree. At the time of the batch the Mac was on battery, not the AC power the 22:00 qualifying run used, so the run waits for AC power, lid open and idle indexing. |
+| Perf gate | **Pass**, in a qualifying window. Details below. |
+
+### Perf gate on the fixed tree: qualifying pass
+
+Run on 2026-10-19 at 09:37, on `c589f19` (same code as `6c5824e`), with the lid open, on AC power, wrapped in `caffeinate -dims`. Before the start there were 5 consecutive quiet samples, with Spotlight/Photos at 0–3% and total CPU at 16–41%. During the run, samples arrived every 30 s with no gaps and Spotlight/Photos stayed at 0%; the total CPU peak of 219% is the gate's own browser. Measuring took 155 s. Defaults: 7 desktop / 3 phone repetitions. Times are p95 frame times in ms.
+
+| Device | Flight p95, 2D → 3D (limit) | Still-view p95, 2D → 3D (limit) | Long tasks, 2D / 3D |
+| --- | --- | --- | --- |
+| Desktop | 1.6 → 2.3 (3.34) | 1.7 → 2.0 (3.46) | 0 / 0 |
+| Phone | 3.0 → 4.3 (6.45) | 0.3 → 0.8 (3.34) | 0 / 0 |
+
+Every paired median excess is negative, and the gate passes on both devices.
