@@ -113,5 +113,5 @@ window.AtlasMotion = (() => {
     for(const tween of window.gsap?.globalTimeline.getChildren()||[])tween.progress(1);
   });
   // `reduced`: the player asked for less motion (travel gives way to fades); `busy`: a reveal or dismiss is running.
-  return {enabled,reduced:()=>reduced.matches,busy:node=>panels.has(node),reveal,dismiss,expand,selected,enter};
+  return {enabled,token,reduced:()=>reduced.matches,busy:node=>panels.has(node),reveal,dismiss,expand,selected,enter};
 })();

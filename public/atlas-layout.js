@@ -67,6 +67,17 @@ window.AtlasLayout = (() => {
     return {minX:Math.min(...values.map(p=>p.x)),maxX:Math.max(...values.map(p=>p.x)),
       minY:Math.min(...values.map(p=>p.y)),maxY:Math.max(...values.map(p=>p.y))};
   }
+  // Fit actual displayed coordinates with room for art. The existing 1x floor's
+  // curated overview handles footprints when the catalog fills the entire frame.
+  function fit(extent, width, height, padding = 36) {
+    if (!extent) return {zoom:1,x:0,y:0};
+    const area=bounds(width,height),v=area.view;
+    const zoom=Math.max(1,Math.min(9,
+      (v.right-v.left-padding*2)/Math.max(1,(extent.maxX-extent.minX)*area.width),
+      (v.bottom-v.top-padding*2)/Math.max(1,(extent.maxY-extent.minY)*area.height)));
+    return {zoom,x:(v.left+v.right)/2-area.left-(extent.minX+extent.maxX)/2*area.width*zoom,
+      y:(v.top+v.bottom)/2-area.bottom+(extent.minY+extent.maxY)/2*area.height*zoom};
+  }
   // The camera may not pan the data more than `padding` inside the visible box (bounds'
   // `view`; by default the area's own 0–1 box). Data smaller than the box is centered.
   const boundAxis = (value, low, high) => low > high ? (low + high) / 2 : Math.max(low, Math.min(high, value));
@@ -184,5 +195,5 @@ window.AtlasLayout = (() => {
     memo = {items, base, width, height, immersive, result};
     return result;
   }
-  return {positions, camera, bounds, extent, constrain, spread, adapt, adaptStrength, seed, FRAME, ADAPT, BAND, CEIL};
+  return {positions, camera, bounds, extent, fit, constrain, spread, adapt, adaptStrength, seed, FRAME, ADAPT, BAND, CEIL};
 })();

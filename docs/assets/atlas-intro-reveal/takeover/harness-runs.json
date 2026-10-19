@@ -1,0 +1,43 @@
+{
+ "method": "tests/atlas-intro-reveal-browser.mjs strict PNG Buffer.equals (reveal vs session-seen direct, reduced motion vs session-seen direct), once per GPU flag set",
+ "runs": [
+  {
+   "device": "desktop",
+   "gpuArgs": [
+    "--use-angle=d3d11",
+    "--enable-gpu"
+   ],
+   "art": "failed",
+   "elapsed": 1583.3,
+   "pixelEquivalent": true
+  },
+  {
+   "device": "phone",
+   "gpuArgs": [
+    "--use-angle=d3d11",
+    "--enable-gpu"
+   ],
+   "art": "failed",
+   "elapsed": 1583.2,
+   "pixelEquivalent": true
+  },
+  {
+   "device": "desktop",
+   "gpuArgs": [
+    "--enable-gpu"
+   ],
+   "art": "ready",
+   "elapsed": 1583.2,
+   "pixelEquivalent": true
+  },
+  {
+   "device": "phone",
+   "gpuArgs": [
+    "--enable-gpu"
+   ],
+   "art": "ready",
+   "elapsed": 1583.2,
+   "pixelEquivalent": true
+  }
+ ]
+}
