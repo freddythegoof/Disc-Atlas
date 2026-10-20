@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" role="img" aria-labelledby="da-submark-title da-submark-desc" style="--da-ink:#2b2520;--da-accent:#4d7c0f;--da-plate:#efe9de;--da-axis:#76695a">
+  <title id="da-submark-title">Disc Atlas — Sub-mark / Paper</title>
+  <desc id="da-submark-desc">Native 16px obsidian badge with the tilted four-dot disc, white rim and kinetic lime target.</desc>
+
+  <!-- Native 16px redraw. The supplied obsidian tile stays constant in every site theme. -->
+  <rect width="16" height="16" rx="3.5" fill="#0c0e11"/>
+  <g transform="translate(8 8) rotate(-22)" data-brand-disc="tilted">
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="5.3" ry="3.15" fill="#13161c" stroke="var(--da-badge-ink, #f1f5f9)" stroke-width="1"/>
+    <g fill="var(--da-badge-ink, #f8fafc)">
+      <ellipse data-brand-node="waypoint" cx="-2.15" cy="-.9" rx=".75" ry=".55"/>
+      <ellipse data-brand-node="waypoint" cx="2" cy="-.85" rx=".75" ry=".55"/>
+      <ellipse data-brand-node="waypoint" cx="-1.9" cy=".9" rx=".75" ry=".55"/>
+    </g>
+    <ellipse data-brand-node="target" cx="2.05" cy=".8" rx="1.12" ry=".8" fill="var(--da-badge-accent, #b8ff00)"/>
+  </g>
+</svg>

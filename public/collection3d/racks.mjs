@@ -12,7 +12,7 @@
 // A tapped disc lifts, clears the front rail and turns face out in front of its bay (rack-motion.mjs, the
 // bag's timing), wearing its generic name stamp; tapping it again, or empty space, puts it back. The pulled
 // disc and the hovered one carry a billboard name tag that stays readable while the racks turn.
-import {THREE,SceneView,discParts,discColors,discMaterial,discModel,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
+import {THREE,SceneView,discParts,discColors,discMaterial,discModel,stampStyleKey,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {discPose,TOTAL_MS} from './rack-motion.mjs';
@@ -36,6 +36,9 @@ export const RACK_FINISHES={
  midnight:{frame:'#2e3746',trim:'#b25e3f',screws:'#7d8798',feet:'#07090d'},
  charcoal:{frame:'#383b41',trim:'#b25e3f',screws:'#868a92',feet:'#0b0c0e'},
  black:{frame:'#2c2c2e',trim:'#ad5a3c',screws:'#7c7c80',feet:'#040404'},
+ // Paper and Dusk: the same steel, warmed a step toward their umber pages.
+ paper:{frame:'#423d38',trim:'#a2523a',screws:'#a39b92',feet:'#1a1714'},
+ dusk:{frame:'#3b342e',trim:'#b25e3f',screws:'#8c8278',feet:'#0c0a09'},
 };
 // A finish from the palette (bag-values.js RACK_STYLES) keeps its frame and trim on every theme; Match
 // theme (auto) uses the theme's own. Screws and feet stay steel and black.
@@ -186,7 +189,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  const pulledTarget=r=>{const s=pulledSpot(r.to,{bayX:r.bayX});return s;};
  function restyle(p,r){
   // A recolour or a new mold while out: rebuild the proxy in place.
-  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL]);if(p.key===key)return;
+  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL,stampStyleKey()]);if(p.key===key)return;
   const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,onChange:()=>view.request()});
   if(p.proxy){next.position.copy(p.proxy.position);next.quaternion.copy(p.proxy.quaternion);discRoot.remove(p.proxy);disposeObject(p.proxy);}
   p.proxy=next;p.key=key;discRoot.add(next);
@@ -260,7 +263,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   focusRack(rack){focus=rack==null||rack>=count?null:rack;view.frame(box());onCamera();},
   zoomBy(f){view.setZoom(view.zoom*f);},zoomTo(z){view.setZoom(z);},get zoom(){return view.zoom;},
   turnBy(rad){view.turnBy(rad);},
-  // Repaint the rack for a site theme (light, midnight, charcoal or black); the discs keep their colours.
+  // Repaint the rack for a site theme (any of theme.js's six); the discs keep their colours.
   setTheme(theme){if(theme===finish)return;finish=theme;paint(finish,chosen);view.request();},
   // The player's finish from the palette (a RACK_STYLES key; null or auto follows the theme).
   setStyle(style){const key=rackStyle(style).key;if(key===chosen)return;chosen=key;paint(finish,chosen);view.request();},

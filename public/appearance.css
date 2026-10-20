@@ -1,0 +1,76 @@
+/* The Appearance sheet (appearance.js). Paint from the existing tokens only; the swatches are the only color. */
+.appearance-sheet {width:min(560px,calc(100vw - 32px))}
+.appearance-sheet h2 {margin-bottom:18px}
+
+/* Live preview: one disc per class, and a slice of the bag wearing the accent. Both read the live tokens. */
+.appearance-preview {display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 22px}
+.appearance-strip,.appearance-bag {position:relative;min-height:112px;border:1px solid var(--hairline,var(--line));border-radius:14px;background:var(--surface);overflow:hidden}
+.appearance-strip {display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:14px 8px}
+.appearance-strip > span {display:grid;justify-items:center;gap:8px;font:500 10px/1.2 var(--mono,ui-monospace,monospace);letter-spacing:.04em;color:var(--muted)}
+.appearance-strip .clean-disc {width:clamp(34px,8vw,48px);height:clamp(34px,8vw,48px)}
+.appearance-bag {display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr auto;align-items:end;gap:8px 10px;padding:12px 14px}
+.appearance-bag::before {content:"";position:absolute;inset:auto 8% -30% 8%;height:80%;border-radius:50%;background:radial-gradient(ellipse,var(--accent-soft),transparent 70%);pointer-events:none}
+.appearance-bag > * {position:relative}
+.appearance-bag-pocket {grid-column:1/-1;justify-self:center;width:min(120px,80%);height:auto;fill:none;stroke:var(--lime);stroke-width:1.6;stroke-dasharray:5 4;stroke-linecap:round}
+.appearance-bag-add {padding:7px 12px;border-radius:999px;background:var(--accent-fill);color:var(--accent-ink);box-shadow:var(--accent-glow);font-size:12px;font-weight:500;white-space:nowrap}
+.appearance-bag-meter {display:grid;gap:5px;font:500 11px/1 var(--mono,ui-monospace,monospace);color:var(--text)}
+.appearance-bag-meter > i {display:block;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.appearance-bag-meter > i > i {display:block;width:30%;height:100%;background:var(--lime)}
+.appearance-bag-chip {position:absolute!important;top:12px;right:12px;padding:5px 10px;border-radius:999px;font-size:11px;color:var(--text);background:var(--selected,var(--accent-soft));box-shadow:inset 0 0 0 1px var(--accent-edge,var(--lime))}
+
+/* One row per class and one for the accent: a label, the chosen name, and the curated swatches. */
+.appearance-row {border:0;margin:0 0 18px;padding:0;min-width:0}
+.appearance-row legend {display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%;margin-bottom:10px;padding:0;font-size:14px}
+.appearance-row-title {display:inline-flex;align-items:center;gap:8px}
+.appearance-row output {font:400 11px/1.2 var(--mono,ui-monospace,monospace);color:var(--muted);letter-spacing:.02em}
+.appearance-dot {display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid var(--marker-edge)}
+.appearance-dot-accent {background:var(--accent-fill);border-color:transparent}
+.appearance-swatches {display:grid;grid-template-columns:repeat(var(--count),minmax(0,34px));justify-content:space-between;gap:8px}
+.appearance-swatches button {width:100%;aspect-ratio:1;min-height:0;padding:0;border:0;border-radius:50%;background:var(--swatch);box-shadow:inset 0 0 0 1px #ffffff26,0 0 0 1px var(--line);cursor:pointer;transition:box-shadow var(--dur-ui) var(--ease-out)}
+.appearance-swatches button[aria-checked="true"] {box-shadow:inset 0 0 0 1px #ffffff26,0 0 0 2px var(--panel),0 0 0 4px var(--text)}
+.appearance-swatches button:focus-visible {outline:2px solid var(--lime);outline-offset:5px}
+
+/* Packs: five quiet cards, each its four class colors and its accent. */
+.appearance-pack-list {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.appearance-pack-list button {display:grid;justify-items:center;align-content:start;gap:6px;min-height:84px;padding:12px 4px 10px;border:1px solid var(--hairline,var(--line));border-radius:12px;background:var(--surface);color:var(--text);cursor:pointer;transition:border-color var(--dur-ui) var(--ease-out),background var(--dur-ui) var(--ease-out)}
+.appearance-pack-list button:hover {background:var(--selected)}
+.appearance-pack-list button[aria-checked="true"] {border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text)}
+.appearance-pack-list button:focus-visible {outline:2px solid var(--lime);outline-offset:3px}
+.appearance-pack-dots {display:flex;align-items:center}
+.appearance-pack-dots i {width:14px;height:14px;margin-left:-3px;border-radius:50%;box-shadow:0 0 0 1.5px var(--surface)}
+.appearance-pack-dots i:first-child {margin-left:0}
+.appearance-pack-dots .appearance-pack-accent {width:8px;height:8px;margin-left:5px;box-shadow:none}
+.appearance-pack-name {font-size:13px;font-weight:500}
+.appearance-pack-tag {font:400 9px/1.2 var(--mono,ui-monospace,monospace);letter-spacing:.02em;color:var(--muted);text-align:center}
+
+/* Stamps: a live 3D preview beside the ink and finish choices. */
+.appearance-stamp {margin:26px 0 0;padding:20px 0 0;border-top:1px solid var(--hairline,var(--line));display:grid;grid-template-columns:150px 1fr;gap:4px 18px}
+.appearance-stamp-head {grid-column:1/-1;margin-bottom:12px}
+.appearance-stamp-head h3 {margin:0 0 4px;font:500 18px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.3px}
+.appearance-stamp-head p {margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.appearance-stamp-preview {align-self:start;aspect-ratio:1;border:1px solid var(--hairline,var(--line));border-radius:14px;background:radial-gradient(circle at 50% 40%,var(--surface),var(--bg))}
+.appearance-stamp-preview canvas {display:block;width:100%;height:100%}
+.appearance-stamp-preview[data-state="fallback"] {display:none}
+.appearance-stamp .appearance-swatches {grid-template-columns:repeat(6,minmax(0,30px));justify-content:start;gap:8px 10px}
+.appearance-finishes {display:flex;flex-wrap:wrap;gap:6px}
+.appearance-finishes button {min-height:34px;padding:0 12px;border:1px solid var(--hairline,var(--line));border-radius:999px;background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer}
+.appearance-finishes button[aria-checked="true"] {color:var(--text);border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text)}
+.appearance-finishes button:focus-visible {outline:2px solid var(--lime);outline-offset:3px}
+
+/* Theme: a quiet segmented control. */
+.appearance-themes {display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:4px;border:1px solid var(--hairline,var(--line));border-radius:999px;background:var(--bg)}
+.appearance-themes button {min-height:36px;padding:0 8px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
+.appearance-themes button[aria-checked="true"] {background:var(--surface);color:var(--text);box-shadow:inset 0 0 0 1px var(--accent-edge,var(--line))}
+.appearance-sheet .sheet-note {margin:6px 0 0}
+.appearance-sheet .sheet-actions button[disabled] {opacity:.45;cursor:default}
+
+@media(max-width:560px){
+ .appearance-themes {grid-template-columns:repeat(3,1fr);border-radius:18px}
+ .appearance-stamp {grid-template-columns:1fr}
+ .appearance-stamp-preview {width:min(200px,60%);justify-self:center;margin-bottom:12px}
+ .appearance-pack-list {grid-template-columns:repeat(3,minmax(0,1fr))}
+ .appearance-preview {grid-template-columns:1fr}
+ .appearance-strip,.appearance-bag {min-height:96px}
+ .appearance-swatches {gap:6px}
+ .appearance-themes button {font-size:12px;padding:0 4px}
+}

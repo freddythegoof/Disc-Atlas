@@ -47,6 +47,27 @@
   --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
   --marker-edge:#c1c1bc;--unknown:#a4a9b3;
 }
+/* Paper: a warm off-white light theme, ink-brown text, for daylight reading without Light's cool glare.
+   It wears the light swatch values (display-palette.js) and Light's Okabe-Ito set. */
+:root[data-theme="paper"] {
+  color-scheme:light;
+  --bg:#f6f2ea;--panel:#fffdf8;--surface:#efe9de;--selected:#e7e0d2;
+  --line:#e3dccd;--muted:#76695a;--text:#2b2520;--lime:#395fba;
+  --accent-soft:#f1ebdf;--on-accent:#fff;--map-bg:#f6f2ea;--grid:#c6bba8;
+  --center-line:#9c8b74;--shadow:#3a2a1418;--ambient:#c8956a14;
+  --marker-edge:#625b50;--unknown:#7a6f62;
+}
+/* Dusk: a warm dark theme, umber and soft charcoal rather than Midnight's blue. It wears the dark values. */
+:root[data-theme="dusk"] {
+  color-scheme:dark;
+  --bg:#14110f;--panel:#1c1815;--surface:#26211d;--selected:#352d27;
+  --line:#3a322b;--muted:#b3a597;--text:#f3ece4;--lime:#d9c3a5;
+  --accent-soft:#2c2620;--on-accent:#1a1511;--map-bg:#14110f;--grid:#4a4038;
+  --center-line:#7d6e60;--shadow:#0007;--ambient:#ffb38a08;
+  --palette-blue:#0072b2;--palette-orange:#e6a139;--palette-green:#009e73;
+  --palette-purple:#cc79a7;--palette-sky:#56b4e9;--palette-yellow:#e8da78;--palette-vermillion:#d55e00;
+  --marker-edge:#c1c1bc;--unknown:#a89c90;
+}
 [hidden]{display:none!important}
 /* Set before the catalog loads so mobile never paints the map on entry. */
 body[data-view="list"] #mapWrap{display:none}
@@ -263,7 +284,7 @@ header>nav button.active{background:var(--panel);box-shadow:0 1px 4px var(--shad
 .theme-toggle,.site-menu-button{width:38px;height:38px;min-height:38px;display:grid;place-items:center;padding:8px;border:0;border-radius:50%;background:none;color:var(--muted);cursor:pointer}
 .theme-toggle:hover,.site-menu-button:hover{background:var(--surface);color:var(--text)}
 .theme-toggle svg,.site-menu-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.theme-toggle .theme-sun{display:none}:root:not([data-theme="light"]) .theme-toggle .theme-sun{display:block}:root:not([data-theme="light"]) .theme-toggle .theme-moon{display:none}
+.theme-toggle .theme-sun{display:none}:root[data-tone="dark"] .theme-toggle .theme-sun{display:block}:root[data-tone="dark"] .theme-toggle .theme-moon{display:none}
 .atlas-info{position:relative}.site-menu-button{list-style:none}.site-menu-button::-webkit-details-marker{display:none}
 .atlas-info-panel{position:absolute;right:0;top:calc(100% + 14px);width:min(340px,calc(100vw - 32px));max-height:calc(100dvh - 100px);overflow:auto;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 16px 60px var(--shadow);color:var(--muted);font-size:12px;line-height:1.7}
 .atlas-info-panel h2{font-size:21px;font-weight:600;letter-spacing:-.6px;color:var(--text);margin:0 0 12px}.atlas-info-panel h3{font-size:13px;color:var(--text);margin:18px 0 6px}.atlas-info-panel p{margin:8px 0}.atlas-info-panel hr{border:0;border-top:1px solid var(--line);margin:18px 0}
@@ -290,7 +311,7 @@ body[data-view="list"] .graph-dock{background:none}
 .coach-launch{bottom:88px;right:24px;padding:9px 13px;box-shadow:none;font-size:11px;background:var(--bg)}
 .clean-disc{background:radial-gradient(ellipse at 30% 18%,#ffffff70,transparent 46%),radial-gradient(circle at 42% 32%,color-mix(in srgb,var(--disc-color) 86%,white) 10%,var(--disc-color) 48%,color-mix(in srgb,var(--disc-color) 64%,black) 85%);border:1px solid color-mix(in srgb,var(--disc-color) 70%,white);box-shadow:inset 0 1px 2px #ffffff80,inset 0 -3px 6px #0003,0 5px 9px #1523401c,0 13px 23px #15234016}
 .clean-disc::after{inset:8%;border:1px solid #ffffff35;box-shadow:0 1px 2px #0002,inset 0 1px 3px #ffffff15}
-:root:not([data-theme="light"]) .clean-disc{box-shadow:inset 0 1px 3px #ffffff65,inset 0 -4px 8px #0005,0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
+:root[data-tone="dark"] .clean-disc{box-shadow:inset 0 1px 3px #ffffff65,inset 0 -4px 8px #0005,0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
 .atlas-marker .stack-0{scale:1;transition:scale var(--dur-ui) ease}
 .atlas-marker.is-selected .stack-0{scale:1.09}
 .atlas-marker .marker-halo{inset:-15px;border:0;background:radial-gradient(circle,color-mix(in srgb,var(--disc-color) 24%,transparent),transparent 70%);box-shadow:none;transition:opacity var(--dur-ui) ease}
@@ -361,7 +382,7 @@ body[data-view="list"] .graph-dock{background:none}
    shadows stay, on the same round box. The render overhangs the box by its antialiasing margin, so the disc
    itself spans the box exactly. A render that arrives after the orb has shown fades in over it. */
 #mapMarkers .clean-disc.has-3d{background:none;border-color:transparent;box-shadow:0 5px 9px #1523401c,0 13px 23px #15234016}
-:root:not([data-theme="light"]) #mapMarkers .clean-disc.has-3d{box-shadow:0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
+:root[data-tone="dark"] #mapMarkers .clean-disc.has-3d{box-shadow:0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
 #mapMarkers .clean-disc.has-3d::after{display:none}
 #mapMarkers .disc-art-3d{position:absolute;display:block;pointer-events:none}
 #mapMarkers .disc-art-3d.is-arriving{animation:disc-3d-arrive .18s ease-out}

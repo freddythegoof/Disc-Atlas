@@ -2,21 +2,40 @@
 (() => {
   const media = matchMedia('(prefers-color-scheme: dark)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const valid = value => ['light', 'midnight', 'charcoal', 'black'].includes(value);
+  // Every theme, in menu order, with its tone (which light or dark treatment it takes) and browser chrome color.
+  // The one list: CSS keys light-or-dark treatments off data-tone, and other scripts read DiscAtlasThemes.
+  const THEMES = Object.freeze({
+    light: Object.freeze({label: 'Light', tone: 'light', meta: '#f7f8fa'}),
+    paper: Object.freeze({label: 'Paper', tone: 'light', meta: '#f6f2ea'}),
+    midnight: Object.freeze({label: 'Midnight', tone: 'dark', meta: '#080b10'}),
+    charcoal: Object.freeze({label: 'Charcoal', tone: 'dark', meta: '#101113'}),
+    dusk: Object.freeze({label: 'Dusk', tone: 'dark', meta: '#14110f'}),
+    black: Object.freeze({label: 'Black', tone: 'dark', meta: '#000000'})
+  });
+  window.DiscAtlasThemes = THEMES;
+  // A theme's tone, read from its name at the moment of asking (a legacy or unknown name is dark, as before).
+  window.discAtlasTone = theme => THEMES[theme]?.tone || (theme === 'light' ? 'light' : 'dark');
+  // Whoever sets data-theme (theme.js, app.js's applyTheme, a test), data-tone follows it for the CSS.
+  new MutationObserver(() => {
+    const root = document.documentElement, tone = window.discAtlasTone(root.dataset.theme);
+    if (root.dataset.tone !== tone) root.dataset.tone = tone;
+  }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+  const valid = value => Object.hasOwn(THEMES, value || '');
   let saved;
   try { saved = localStorage.getItem('disc-atlas-theme'); } catch { /* Storage may be disabled. */ }
   if (saved === 'dark') saved = 'midnight';
   const apply = value => {
     document.documentElement.dataset.theme = value;
+    document.documentElement.dataset.tone = THEMES[value].tone;
     document.querySelectorAll('[data-theme-select]').forEach(select => { select.value = value; });
     document.querySelectorAll('[data-theme-choice]').forEach(button => {
       button.setAttribute('aria-checked', String(button.dataset.themeChoice === value));
     });
     document.querySelectorAll('[data-theme-toggle]').forEach(button => {
-      button.setAttribute('aria-label', value === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      button.setAttribute('aria-label', THEMES[value].tone === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
     });
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = value === 'light' ? '#f7f8fa' : value === 'charcoal' ? '#101113' : value === 'black' ? '#000000' : '#080b10';
+    if (meta) meta.content = THEMES[value].meta;
     const favicon = `/brand/${value}/submark.svg?v=tilted-disc`;
     document.querySelectorAll('link[rel="icon"]').forEach(link => {
       if (link.getAttribute('href') !== favicon) link.setAttribute('href', favicon);
@@ -76,7 +95,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-theme-toggle]').forEach(button => {
       button.addEventListener('click', () => {
-        choose(requested === 'light' ? 'midnight' : 'light');
+        choose(THEMES[requested].tone === 'light' ? 'midnight' : 'light');
       });
     });
     document.querySelectorAll('[data-theme-choice]').forEach(button => {

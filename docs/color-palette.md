@@ -33,6 +33,8 @@ With the local site running, use `node tests/palette.mjs`. Set `PLAYWRIGHT_MODUL
 
 The test reads the rendered theme tokens and checks all pairs under normal vision and full-severity Machado protanopia/deuteranopia simulations. The minimum OKLab distance is 0.076 across the final palettes (regression floor: 0.065). The threshold is a project regression guard, not a medical or accessibility certification. Dot fill or edge contrast is at least 3:1 against the map background; the test also verifies the edge renders. Chromium vision-deficiency screenshots provide a separate visual review of the actual gradients and labels. Individual perception can vary.
 
+Display customization ([its write-up](display-customization.md)) keeps this set as the default and the Classic pack. The same test now also checks every preset pack labeled colorblind-safe, from rendered tokens, in all six themes; untouched visitors see this set exactly.
+
 Review screenshots and simulation variants are in `outputs/palette/` (ignored by git): `types-light.png`, `types-dark.png`, `brands-light.png`, and `brands-dark.png`. The type view includes all four types; the brand view includes six brands. `validation.json` contains the numeric results.
 
 Existing motion, theme/premium, filter-regroup, context-header, desktop/mobile redesign, layout, shopping, and Worker checks passed. The About shader performance test fails on this machine at roughly 19 FPS against its >25 FPS requirement, including with the original CSS. Repository lint has 20 errors in unchanged files.

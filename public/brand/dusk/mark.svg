@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="da-mark-title da-mark-desc" style="--da-ink:#f3ece4;--da-accent:#b8ff00;--da-plate:#13161c;--da-axis:#b3a597">
+  <title id="da-mark-title">Disc Atlas — Simplified / Dusk</title>
+  <desc id="da-mark-desc">Flat oblong disc tilted minus 22 degrees with three waypoints and a larger highlighted target; no axes.</desc>
+
+  <g transform="translate(32 32) scale(.0794117647)"><g transform="rotate(-22)" data-brand-disc="tilted">
+    <!-- Master disc proportions and 44-unit flat rim; no glow or shadow. -->
+    <ellipse data-brand-rim="true" cx="0" cy="0" rx="340" ry="196" fill="var(--da-plate, #eef0f3)" stroke="var(--da-ink, #202731)" stroke-width="44"/>
+    <!-- Calibration axes removed for small sizes. -->
+    <g fill="var(--da-ink, #202731)">
+      <ellipse data-brand-node="waypoint" cx="-135" cy="-56" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="125" cy="-52" rx="38" ry="24"/>
+      <ellipse data-brand-node="waypoint" cx="-120" cy="56" rx="38" ry="24"/>
+    </g>
+    <ellipse data-brand-node="target" cx="130" cy="50" rx="58" ry="38" fill="var(--da-accent, #4d7c0f)"/>
+  </g></g>
+</svg>

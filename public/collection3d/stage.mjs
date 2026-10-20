@@ -117,6 +117,10 @@ export function discColors(entry,color,rimColor,haloBand){
 export function discMaterial(color='#ffffff'){
  return stage().low?new THREE.MeshStandardMaterial({color,roughness:.38}):new THREE.MeshPhysicalMaterial({color,roughness:.3,clearcoat:.6,clearcoatRoughness:.22});
 }
+// Storage and the graveyard hold only the player's own discs, so their stamps wear the player's stamp
+// appearance (display customization). The key lets a rebuilt disc notice a change of style.
+export const personalStampStyle=()=>window.DisplayPalette?.stampStyle?.()||null;
+export const stampStyleKey=()=>{const s=personalStampStyle();return s?s.inkId+'/'+s.finish.id:'';};
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
 export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,onChange=()=>{},stamp=true}={}){
  const twoTone=!!haloBand&&!!parseHalo(haloModel);
@@ -130,9 +134,10 @@ export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,onC
  let ink=null;
  if(stamp){
   const geometry=placement=>{const ring=stampGeometry(entry.shape,{segments:32,rings:5,placement});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);return ring;};
-  const material=stampMaterial(),placement=photoURL?null:catalogStampPlacement(d);
+  // Storage's room (.75) is a little dimmer than the viewer's; a foil keeps the viewer's look.
+  const style=photoURL?null:personalStampStyle(),material=stampMaterial(style,{envMap:stage().env}),placement=photoURL?null:catalogStampPlacement(d);
   ink=new THREE.Mesh(geometry(null),material);group.add(ink);
-  material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:photoURL?null:catalogStampAsset(d),onChange:texture=>{
+  material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:photoURL?null:catalogStampAsset(d),style,onChange:texture=>{
    if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}onChange();
   }});
  }

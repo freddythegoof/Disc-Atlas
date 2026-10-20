@@ -45,6 +45,8 @@ Each folder contains `primary.svg`, `secondary.svg`, `mark.svg`, and `submark.sv
 | [light](light/primary.svg) | `#F7F8FA` | `#202731` | `#4D7C0F` | `#EEF0F3` |
 | [midnight](midnight/primary.svg) | `#080B10` | `#EDF2FC` | `#B8FF00` | `#13161C` |
 | [charcoal](charcoal/primary.svg) | `#101113` | `#F1F2F5` | `#B8FF00` | `#13161C` |
+| [paper](paper/primary.svg) | `#F6F2EA` | `#2B2520` | `#4D7C0F` | `#EFE9DE` |
+| [dusk](dusk/primary.svg) | `#14110F` | `#F3ECE4` | `#B8FF00` | `#13161C` |
 | [black](black/primary.svg) | `#000000` | `#F4F4F4` | `#B8FF00` | `#13161C` |
 | [dark](dark/primary.svg), legacy | `#0C1014` | `#F4F7FA` | `#B8FF00` | `#13161C` |
 

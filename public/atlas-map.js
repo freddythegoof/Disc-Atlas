@@ -17,9 +17,9 @@ function thumbnailMarkup(d,color,rim,photoURL,band,model){
  const label=d?d.brand+' '+(d.catalogName||d.name):'Saved disc';
  return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}"${band?` data-halo-band="${esc(band)}"`:''}${model?` data-halo-model="${esc(model)}"`:''} style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
 }
-function observeDiscThumbnails(root,lookup){
+function observeDiscThumbnails(root,lookup,options){
  if(window.ATLAS_3D_OFF)return;
- import('./disc3d/thumbnails.mjs').then(m=>m.observeThumbnails(root,lookup)).catch(()=>{});
+ import('./disc3d/thumbnails.mjs').then(m=>m.observeThumbnails(root,lookup,options)).catch(()=>{});
 }
 window.DiscThumbnails={markup:thumbnailMarkup,observe:observeDiscThumbnails};
 let atlasPositions = new Map();
@@ -491,7 +491,10 @@ function discArt(d,color,size,lod){
 function photoDisc(d){
  if(!(myMap||activeLens()!=='default'))return d;
  const photoURL=window.BagApp?.mapPhotos?.().get(d.id),haloBand=photoURL?window.BagApp?.mapHaloBands?.().get(d.id):null,haloModel=haloBand?window.BagApp?.mapHaloModels?.().get(d.id):null;
- return photoURL?{...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel}}:d;
+ if(photoURL)return {...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel}};
+ // The player's own disc on their map wears their stamp appearance; a photo already carries its own stamp.
+ const stampStyle=myColor(d)?window.DisplayPalette?.stampStyle?.():null;
+ return stampStyle?{...d,stampStyle}:d;
 }
 function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}
 // Idle time draws a neighbouring level's discs before the camera gets there: its curated discs and dots at
@@ -543,7 +546,7 @@ function dropMarkerArt(node){
 const SPRITE_SCALE=2,SPRITE_PAD=.5;
 // `shadowOnly`: just the drop shadows, for under a 3D render.
 function gapSprite(color,shadowOnly=false){
- const light=document.documentElement.dataset.theme==='light',key=color+(light?'|light':'|dark')+(shadowOnly?'|shadow':'');
+ const theme=document.documentElement.dataset.theme,light=(window.discAtlasTone?.(theme)??(theme==='light'?'light':'dark'))==='light',key=color+(light?'|light':'|dark')+(shadowOnly?'|shadow':'');
  let sprite=gapSprites.get(key);if(sprite)return sprite;
  if(gapSprites.size>48)gapSprites.clear();
  const k=SPRITE_SCALE,D=AtlasGroups.GAP.disc*k,n=Math.ceil(D*(1+SPRITE_PAD*2)),c=document.createElement('canvas');c.width=c.height=n;
