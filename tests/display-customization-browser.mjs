@@ -1,5 +1,5 @@
 // Display customization in the real site (docs/display-customization.md): the Appearance sheet, every
-// class-color consumer agreeing with the palette module, the bag-scoped accent, persistence like the
+// class-color consumer agreeing with the palette module, the accent in the bag and the top bar, persistence like the
 // theme, and the default left exactly as it was. Run with `node tests/display-customization-browser.mjs`.
 import assert from 'node:assert/strict';
 import {startHarness} from './display-harness.mjs';
@@ -77,10 +77,13 @@ try {
   assert.equal(preview.fill, 'rgb(206, 192, 255)', 'the bag-glow preview wears the violet accent');
   await page.keyboard.press('Escape');await settle(1200);
   await agree('mixed');
-  // The accent stays in the bag: the header and atlas keep the Disc Atlas lime.
+  // The accent reaches the bag and the top bar (docs/accent-follows-appearance.md); the atlas keeps the Disc Atlas lime.
   const accent = await page.evaluate(() => ({bag: getComputedStyle(document.getElementById('myBagView')).getPropertyValue('--lime').trim(),
-    root: getComputedStyle(document.documentElement).getPropertyValue('--lime').trim(), sheet: getComputedStyle(document.getElementById('bagModelDialog')).getPropertyValue('--accent-fill').trim()}));
-  assert.deepEqual(accent, {bag: '#61489b', root: '#3f6212', sheet: '#cec0ff'});
+    header: getComputedStyle(document.querySelector('body>header')).getPropertyValue('--lime').trim(),
+    nav: getComputedStyle(document.querySelector('header nav button.active')).backgroundColor,
+    root: getComputedStyle(document.documentElement).getPropertyValue('--lime').trim(), toolbar: getComputedStyle(document.getElementById('filtersToggle')).getPropertyValue('--lime').trim(),
+    sheet: getComputedStyle(document.getElementById('bagModelDialog')).getPropertyValue('--accent-fill').trim()}));
+  assert.deepEqual(accent, {bag: '#61489b', header: '#61489b', nav: 'rgb(206, 192, 255)', root: '#3f6212', toolbar: '#3f6212', sheet: '#cec0ff'});
 
   // The detail viewer: a catalog disc takes its class color, and follows a change while open.
   await page.evaluate(() => { window.syncs = []; const sync = Disc3D.sync; Disc3D.sync = (panel, d, props) => { syncs.push({id: d.id, color: props.color}); return sync(panel, d, props); }; });
@@ -130,6 +133,7 @@ try {
   t = await tokens();
   assert.equal(t.style, null);assert.equal(t.stored, null);
   assert.deepEqual(t.root, CLASSIC.dark);
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('body>header')).getPropertyValue('--lime').trim()), '#a3e635', 'the top bar is lime again');
   assert.equal(await page.locator('[data-appearance-reset]').isDisabled(), true);
   await page.locator('#appearanceDialog [data-appearance-close].primary').click();
   await agree('reset');

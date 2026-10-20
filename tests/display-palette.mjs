@@ -157,7 +157,9 @@ test('Choices persist like the theme: one key, applied before paint, unknown val
   assert.match(css, /html:root\[data-theme="light"\],html:root\[data-theme="paper"\]\{--distance:#cc5824\}/);
   assert.match(css, /html:root\[data-theme="midnight"\],html:root\[data-theme="charcoal"\],html:root\[data-theme="dusk"\],html:root\[data-theme="black"\]\{--distance:#e06b39\}/);
   for (const scope of catalog.scope) assert.ok(css.includes(`html:root[data-theme="light"] ${scope}`), `accent reaches ${scope}`);
-  assert.ok(!/html:root\[data-theme="light"\]\{[^}]*--lime/.test(css), 'the accent never lands on the root, so the site chrome keeps its lime');
+  assert.ok(!/html:root\[data-theme="light"\]\{[^}]*--lime/.test(css), 'the accent never lands on the root, so the atlas and directory keep their lime');
+  // The top bar follows the accent (docs/accent-follows-appearance.md): the page's own header only, not a dialog's or a sheet's.
+  assert.ok(catalog.scope.includes('body>header') && !catalog.scope.includes('header'), 'the top bar is in scope by its exact place');
 
   const edited = loadPalette({stored: JSON.stringify({classes: {distance: 'neon', mid: 'jade'}, accent: '#ff00ff'})});
   assert.deepEqual(edited.palette.get(), {classes: {distance: 'classic', fairway: 'classic', mid: 'jade', putter: 'classic'}, accent: 'lime', stamp: {ink: 'auto', finish: 'flat'}});
