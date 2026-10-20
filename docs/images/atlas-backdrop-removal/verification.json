@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-20",
+  "base": "8e91dc71a19a3308f67d23e201f8fe5f572cd5e8",
+  "units": {
+    "passed": 59,
+    "failed": 0
+  },
+  "intro": {
+    "exit": 0,
+    "desktopChangedPixels": 0,
+    "phoneChangedPixels": 0,
+    "method": "Unchanged strict PNG Buffer.equals checks"
+  },
+  "browser": [
+    {
+      "suite": "atlas-organic-browser",
+      "exit": 0
+    },
+    {
+      "suite": "atlas-depth-browser",
+      "exit": 0
+    },
+    {
+      "suite": "atlas-3d-browser",
+      "exit": 0
+    },
+    {
+      "suite": "atlas-persist-browser",
+      "exit": 0
+    },
+    {
+      "suite": "atlas-stamps-browser",
+      "exit": 0
+    },
+    {
+      "suite": "atlas-speed-band-browser",
+      "exit": 0
+    },
+    {
+      "suite": "my-map-browser",
+      "exit": 0,
+      "setupRetry": "Initial run lacked worktree Wrangler; rerun passed using existing installed dependencies"
+    }
+  ],
+  "perf": {
+    "exit": 0,
+    "desktopWarmReps": 7,
+    "phoneWarmReps": 3,
+    "report": "perf.json"
+  },
+  "review": "Approved after resolving the exposed body-strip wash"
+}
