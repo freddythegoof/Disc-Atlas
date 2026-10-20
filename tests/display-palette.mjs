@@ -81,7 +81,8 @@ test('Rows are curated: 8 to 12 designed swatches each, valid and unique', () =>
 
 test('Shared lightness and chroma discipline, and the 06C dark-theme lift, per swatch', () => {
   const sectors = {distance: [25, 95], fairway: [205, 270], mid: [120, 185], putter: [295, 360]};
-  for (const c of catalog.classes) for (const s of c.swatches) {
+  // The neutral grays have no hue to keep; they are held to their own discipline below.
+  for (const c of catalog.classes) for (const s of c.swatches.filter(s => !s.neutral)) {
     const light = oklch(s.light), dark = oklch(s.dark), name = `${c.key}/${s.id}`;
     assert.ok(light.L >= .43 && light.L <= .77, `${name}: light L ${light.L.toFixed(3)}`);
     assert.ok(light.C >= .045 && light.C <= .21, `${name}: light C ${light.C.toFixed(3)}`);
@@ -93,7 +94,24 @@ test('Shared lightness and chroma discipline, and the 06C dark-theme lift, per s
   }
 });
 
-test('Any combination keeps the four classes tellable apart (normal vision, light and dark)', () => {
+test('Neutral grays: one per row, last, a lightness ladder at the same L range and dark lift', () => {
+  const ladder = catalog.classes.map(c => {
+    const neutrals = c.swatches.filter(s => s.neutral);
+    assert.equal(neutrals.length, 1, `${c.key}: one neutral`);
+    assert.equal(c.swatches.at(-1), neutrals[0], `${c.key}: the neutral comes after the hued swatches`);
+    const s = neutrals[0], light = oklch(s.light), dark = oklch(s.dark);
+    for (const v of [s.light, s.dark]) assert.match(v, /^#([0-9a-f]{2})\1\1$/, `${c.key}/${s.id}: a true gray`);
+    assert.ok(light.C < .001 && dark.C < .001, `${c.key}/${s.id}: no hue at all`);
+    assert.ok(light.L >= .43 && light.L <= .77, `${c.key}/${s.id}: light L ${light.L.toFixed(3)}`);
+    assert.ok(dark.L - light.L >= -.001 && dark.L - light.L <= .08, `${c.key}/${s.id}: dark lift ${(dark.L - light.L).toFixed(3)}`);
+    return {light: light.L, dark: dark.L};
+  });
+  // Driver darkest to Putter lightest, in the sheet's row order, at least .1 L apart in both tones.
+  for (let i = 1; i < ladder.length; i++) for (const tone of ['light', 'dark'])
+    assert.ok(ladder[i][tone] - ladder[i - 1][tone] >= .1, `${catalog.classes[i].key} ${tone}: a full step above ${catalog.classes[i - 1].key}`);
+});
+
+test('Any combination keeps the four classes tellable apart (normal vision, light and dark)', t => {
   // 06C's own floor, applied to every mix-and-match combination, not only the packs.
   let worst = {d: Infinity}, count = 0;
   for (const a of row('distance')) for (const b of row('fairway')) for (const c of row('mid')) for (const d of row('putter')) {
@@ -105,6 +123,7 @@ test('Any combination keeps the four classes tellable apart (normal vision, ligh
   }
   assert.equal(count, row('distance').length * row('fairway').length * row('mid').length * row('putter').length);
   assert.ok(worst.d >= .065, `closest combination ${worst.ids} (${worst.tone}) at ${worst.d.toFixed(3)}`);
+  t.diagnostic(`${count} combinations; closest ${worst.ids} (${worst.tone}) at ${worst.d.toFixed(3)}`);
 });
 
 test('Within a row, every swatch is its own color', () => {
@@ -165,7 +184,9 @@ test('Storage disabled still applies the choice for the session', () => {
 });
 
 test('Packs: four or five designed starting points, Classic first and equal to the defaults', () => {
-  assert.ok(catalog.packs.length >= 4 && catalog.packs.length <= 5);
+  const first = catalog.packs.filter(p => p.row === 1);
+  assert.ok(first.length >= 4 && first.length <= 5);
+  assert.deepEqual(catalog.packs.slice(0, first.length), first, 'the first row comes first');
   assert.equal(new Set(catalog.packs.map(p => p.id)).size, catalog.packs.length);
   assert.equal(new Set(catalog.packs.map(p => p.label)).size, catalog.packs.length);
   assert.deepEqual({id: catalog.packs[0].id, classes: {...catalog.packs[0].classes}, accent: catalog.packs[0].accent, safe: catalog.packs[0].colorblindSafe},
@@ -176,13 +197,71 @@ test('Packs: four or five designed starting points, Classic first and equal to t
   }
 });
 
-test('A pack is labeled colorblind-safe if, and only if, it clears the 06C simulation floor', () => {
+test('The original five packs are exactly as they shipped', () => {
+  // docs/display-customization.md, Part 2. The variety row is additive: none of these may move.
+  assert.deepEqual(JSON.parse(JSON.stringify(catalog.packs.filter(p => p.row === 1).map(p => [p.id, p.label, p.classes, p.accent, p.colorblindSafe]))), [
+    ['classic', 'Classic', {distance: 'classic', fairway: 'classic', mid: 'classic', putter: 'classic'}, 'lime', true],
+    ['harbor', 'Harbor', {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, 'aqua', true],
+    ['sunset', 'Sunset', {distance: 'marigold', fairway: 'cobalt', mid: 'jade', putter: 'raspberry'}, 'coral', true],
+    ['field', 'Field', {distance: 'rust', fairway: 'steel', mid: 'moss', putter: 'mauve'}, 'gold', false],
+    ['floodlight', 'Floodlight', {distance: 'ember', fairway: 'glacier', mid: 'lime', putter: 'violet'}, 'violet', true]
+  ]);
+});
+
+test('The variety row: a full row of five, each its own look, and Grayscale is lightness alone', () => {
+  const more = catalog.packs.filter(p => p.row === 2);
+  assert.equal(more.map(p => p.id).join(), 'grayscale,neon,pastel,vintage,jewel');
+  assert.deepEqual(catalog.packs.slice(-more.length), more, 'the second row follows the first');
+  assert.equal(new Set(catalog.packs.map(p => JSON.stringify([p.classes, p.accent]))).size, catalog.packs.length, 'no two packs are the same mix');
+  // Only Grayscale reaches for the neutrals, and it takes all four.
   for (const p of catalog.packs) {
-    let min = Infinity;
-    for (const tone of ['light', 'dark']) for (const vision of ['protanopia', 'deuteranopia'])
-      min = Math.min(min, minDistance(catalog.classes.map(c => c.swatches.find(s => s.id === p.classes[c.key])[tone]), MATRICES[vision]));
-    assert.equal(p.colorblindSafe, min >= .065, `${p.id}: closest simulated pair ${min.toFixed(3)}, labeled ${p.colorblindSafe}`);
+    const neutral = catalog.classes.filter(c => c.swatches.find(s => s.id === p.classes[c.key]).neutral).length;
+    assert.equal(neutral, p.id === 'grayscale' ? 4 : 0, `${p.id}: ${neutral} neutral classes`);
   }
+  assert.equal(more.find(p => p.id === 'grayscale').accent, 'silver');
+});
+
+test('Every pack resolves on all six themes, light and dark values in their places', () => {
+  for (const p of catalog.packs) {
+    const {palette, head} = loadPalette();
+    palette.applyPack(p.id);
+    assert.equal(palette.pack(), p.id, `${p.id}: applied, and recognized as itself`);
+    const css = head[0]?.textContent ?? '';
+    for (const [theme, tone] of Object.entries(catalog.tones)) for (const c of catalog.classes) {
+      const swatch = c.swatches.find(s => s.id === p.classes[c.key]);
+      assert.equal(palette.classColor(c.key, theme), swatch[tone], `${p.id}: ${c.key} on ${theme}`);
+      // Classic swatches write nothing (cosmic.css already holds them); every other value is written per tone.
+      if (swatch.id !== 'classic') assert.match(css, new RegExp(`html:root\\[data-theme="${theme}"\\][^{]*\\{[^}]*--${c.key}:${swatch[tone]}`), `${p.id}: ${c.key} written for ${theme}`);
+    }
+    if (p.accent !== 'lime') for (const theme of Object.keys(catalog.tones)) assert.ok(css.includes(`html:root[data-theme="${theme}"] #myBagView`), `${p.id}: accent on ${theme}`);
+  }
+});
+
+test('A pack is labeled colorblind-safe if, and only if, it clears the 06C simulation floor', t => {
+  for (const p of catalog.packs) {
+    let min = Infinity, normal = Infinity;
+    for (const tone of ['light', 'dark']) {
+      const hexes = catalog.classes.map(c => c.swatches.find(s => s.id === p.classes[c.key])[tone]);
+      for (const vision of ['protanopia', 'deuteranopia']) min = Math.min(min, minDistance(hexes, MATRICES[vision]));
+      normal = Math.min(normal, minDistance(hexes));
+    }
+    assert.equal(p.colorblindSafe, min >= .065, `${p.id}: closest simulated pair ${min.toFixed(3)}, labeled ${p.colorblindSafe}`);
+    t.diagnostic(`${p.id}: row ${p.row}, normal ${normal.toFixed(3)}, protan/deutan ${min.toFixed(3)}, ${p.colorblindSafe ? 'labeled' : 'unlabeled'}`);
+  }
+});
+
+test('A mix saved before the variety row loads, and paints, exactly as it did', () => {
+  // Saved by the October 20 build (a Harbor tweak, gold foil stamps); the CSS is what that build wrote for it.
+  const saved = '{"classes":{"distance":"coral","fairway":"navy","mid":"leaf","putter":"lavender"},"accent":"aqua","stamp":{"ink":"gold","finish":"foil"}}';
+  const {palette, head} = loadPalette({stored: saved});
+  assert.equal(JSON.stringify(palette.get()), saved);
+  assert.equal(palette.pack(), null, 'still your own mix');
+  assert.equal(head[0].textContent.split('\n')[0], 'html:root[data-theme="light"],html:root[data-theme="paper"]{--distance:#e2856c;--fairway:#1c548d;--mid:#4a9c42;--putter:#ae96da}');
+  assert.equal(head[0].textContent.split('\n')[2], 'html:root[data-theme="midnight"],html:root[data-theme="charcoal"],html:root[data-theme="dusk"],html:root[data-theme="black"]{--distance:#f6987e;--fairway:#255d96;--mid:#5caf54;--putter:#c1a9ee}');
+  // The stored shape is unchanged: a variety pack saves the same four ids and an accent.
+  const next = loadPalette();
+  next.palette.applyPack('grayscale');
+  assert.deepEqual(JSON.parse(next.store.get('disc-atlas-display')), {classes: {distance: 'graphite', fairway: 'pewter', mid: 'ash', putter: 'pearl'}, accent: 'silver', stamp: {ink: 'auto', finish: 'flat'}});
 });
 
 test('One tap applies a pack; a tweak afterwards leaves it as your own mix', () => {

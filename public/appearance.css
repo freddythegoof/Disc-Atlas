@@ -30,8 +30,10 @@
 .appearance-swatches button[aria-checked="true"] {box-shadow:inset 0 0 0 1px #ffffff26,0 0 0 2px var(--panel),0 0 0 4px var(--text)}
 .appearance-swatches button:focus-visible {outline:2px solid var(--lime);outline-offset:5px}
 
-/* Packs: five quiet cards, each its four class colors and its accent. */
+/* Packs: two rows of five quiet cards, each its four class colors and its accent. The second row's caption
+   spans the grid between them. */
 .appearance-pack-list {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.appearance-pack-more {grid-column:1/-1;margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
 .appearance-pack-list button {display:grid;justify-items:center;align-content:start;gap:6px;min-height:84px;padding:12px 4px 10px;border:1px solid var(--hairline,var(--line));border-radius:12px;background:var(--surface);color:var(--text);cursor:pointer;transition:border-color var(--dur-ui) var(--ease-out),background var(--dur-ui) var(--ease-out)}
 .appearance-pack-list button:hover {background:var(--selected)}
 .appearance-pack-list button[aria-checked="true"] {border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text)}
