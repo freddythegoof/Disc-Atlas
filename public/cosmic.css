@@ -116,7 +116,8 @@ body[data-view="map"]:not(.my-bag-mode) .workspace-head{position:absolute;top:28
 body[data-view="map"]:not(.my-bag-mode) .workspace-head>div:first-child{display:none}
 .count{padding:8px 0;background:none;font-size:12px;color:var(--muted)}
 body[data-view="map"]:not(.my-bag-mode) #mapWrap{position:absolute;inset:0}
-body[data-view="map"]:not(.my-bag-mode) #map{height:100%;width:100%;border:0;border-radius:0;box-shadow:none}
+/* Share the header/page color; the ambient map wash belongs only to embedded maps. */
+body[data-view="map"]:not(.my-bag-mode) #map{height:100%;width:100%;border:0;border-radius:0;box-shadow:none;background:var(--bg)}
 #map{background:radial-gradient(ellipse at 55% 35%,var(--ambient),transparent 60%),var(--map-bg);overflow:hidden;overflow:clip}
 body[data-view="map"]:not(.my-bag-mode) .axis-top{position:absolute;left:60px;right:28px;top:90px;z-index:3;padding:0;font-size:10px;letter-spacing:1.4px;pointer-events:none}
 body[data-view="map"]:not(.my-bag-mode) .axis-bottom{position:absolute;bottom:78px;left:60px;right:28px;z-index:8;padding:0;font-size:10px;pointer-events:none}
