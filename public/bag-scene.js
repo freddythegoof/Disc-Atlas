@@ -167,7 +167,7 @@ export class BagScene {
     this.stage.addEventListener('bagzoom',event=>this.showZoom(event.detail.zoom));
     this.ready=true;this.status.textContent='';this.root.dataset.engine='ready';this.showZoom(viewer.zoom);
     // The map's frame follows the canvas size.
-    new ResizeObserver(()=>{if(this.out.length)void this.stageOut({keepPopup:true});}).observe(this.canvas);
+    new ResizeObserver(()=>{if(this.out.length || this.stageDeferred)void this.stageOut({keepPopup:true});}).observe(this.canvas);
     if(this.data)this.draw();
    }catch{
     this.root.dataset.engine='error';this.status.textContent='The 3D bag could not load. Your discs are listed below.';this.toggle.disabled=true;
@@ -389,6 +389,9 @@ export class BagScene {
  // A restage for the room alone (a resize, the details panel) keeps the popup, which follows its name.
  stageOut({instant=reduced(),keepPopup=false}={}){
   if(!this.ready || !this.items)return Promise.resolve(false);
+  // A hidden bag (another My Bag view) has no room to lay out: the canvas's ResizeObserver stages once it shows.
+  this.stageDeferred=!this.canvas.clientWidth || !this.canvas.clientHeight;
+  if(this.stageDeferred)return Promise.resolve(false);
   if(!keepPopup)this.hidePopup();this.showReturnAll();
   const token=++this.stageToken,atlas=new Map();
   for(const id of this.out){
