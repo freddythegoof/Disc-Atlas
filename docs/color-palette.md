@@ -14,7 +14,16 @@ The default data palette uses the seven [Okabe-Ito hue families](https://jfly.un
 | 6 / yellow | `#e8d66a` | `#e8da78` |
 | 7 / vermillion | `#bd5019` | `#d55e00` |
 
-Small map dots and legend swatches have a neutral contrasting edge. Brand names remain on large markers and on hover/focus labels for small markers. Marker accessible names include the brand and disc type. Map position continues to encode speed and stability. Comparison lines retain their solid/dashed/dotted encoding.
+Small map dots and legend swatches have a neutral contrasting edge. Curated markers carry disc
+and brand names. On the main Atlas, smalls that earn name room carry names at 1x and remain named
+at every zoom; minis earn names as they grow. This is the standing tier/label law (D1 — KEEP,
+Freddy, Oct 19, 2026; see [Organic Atlas](atlas-organic.md#names)). DOM marker buttons have
+accessible names including the brand and disc type; canvas smalls/minis are pointer-only, not
+keyboard-focusable or screen-reader reachable, as recorded in [the canvas rule](atlas-organic.md#how-they-look).
+Map position continues to encode speed and stability. The score-ordering law is **per-cohort**:
+the seeded scatter may invert neighbours within ~12 index points; whole cohorts stay ordered,
+and the named guarantees (Wraith never more stable than Destroyer) hold absolutely (D2 — COHORT,
+Freddy, Oct 19, 2026). Comparison lines retain their solid/dashed/dotted encoding.
 
 As before, brand slots follow selection order and repeat after seven brands. Labels remain the definitive identifier; a finite palette cannot uniquely identify unlimited brands.
 
