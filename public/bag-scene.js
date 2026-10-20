@@ -4,7 +4,8 @@ export const BAG_SPRING='cubic-bezier(.2,1.35,.35,1)';
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // three.js and the bag model (~2.6 MB) load only when the bag is first shown.
 const loadViewer=()=>import('./bag3d/viewer.mjs');
-const accent=()=>getComputedStyle(document.documentElement).getPropertyValue('--lime').trim()||null;
+// The bag accent is scoped to My Bag (display-palette.js), so it is read where the bag lives.
+const accent=node=>getComputedStyle(node||document.documentElement).getPropertyValue('--lime').trim()||null;
 const DEFAULT_BAG='#343c49';
 // Each zoom button step (the viewer allows 1× to its maxZoom).
 const ZOOM_STEP=1.4;
@@ -129,7 +130,7 @@ export class BagScene {
    .observe(detail,{attributes:true,attributeFilter:['hidden','class','inert']});
   let resizing=0;
   addEventListener('resize',()=>{clearTimeout(resizing);resizing=setTimeout(()=>{if(staged())void this.stageOut({instant:true,keepPopup:true});},150);});
-  addEventListener('atlas-theme-change',()=>this.viewer?.setAccentColor(accent()));
+  for(const event of ['atlas-theme-change','atlas-palette-change'])addEventListener(event,()=>this.viewer?.setAccentColor(accent(this.root)));
   matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>this.viewer?.setAnimated(!reduced()));
  }
  load(){
@@ -139,7 +140,7 @@ export class BagScene {
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
     // The putter pocket state is independent: putters are initially out if pocketOpen is true.
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
+     animated:!reduced(),accentColor:accent(this.root),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
     // The hit layer and the list carry the content; the canvas itself is decorative.

@@ -17,7 +17,8 @@ export const BAG=[
  {mold_id:'761c90d342f5',plastic:'Electron',wear:6,weight_g:175,color:'#e6c668'}   // Envy · putter · overmold
 ];
 
-export async function startHarness({port=8799,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light'}={}){
+// The local site alone: the public Worker with the auth fixture on a fresh local D1.
+export async function startServer({port=8799,state='work/display-customization/d1'}={}){
  const config='tests/auth.wrangler.jsonc',base=`https://localhost:${port}`,wrangler='node_modules/wrangler/wrangler-dist/cli.js';
  const command=args=>execFileSync(process.execPath,[wrangler,...args,'--config',config,'--persist-to',state],{windowsHide:true,stdio:'pipe'});
  if(!process.env.DISPLAY_SKIP_BUILD)execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
@@ -28,6 +29,11 @@ export async function startHarness({port=8799,state='work/display-customization/
  const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
  const deadline=Date.now()+60000;
  while(!await ready()){if(Date.now()>deadline||server.exitCode!==null){server.kill();throw Error(logs);}await new Promise(r=>setTimeout(r,250));}
+ return {base,stop:()=>server.kill(),logs:()=>logs};
+}
+
+export async function startHarness({port=8799,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light'}={}){
+ const site=await startServer({port,state}),{base}=site;
  const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.platform==='win32'?['--use-angle=d3d11']:[]});
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme});
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{
@@ -52,6 +58,12 @@ export async function startHarness({port=8799,state='work/display-customization/
    for(const disc of discs){const r=await fetch('/api/bag/discs',{method:'POST',headers,body:JSON.stringify(disc)});if(!r.ok)throw Error(await r.text());}
   },discs);
  };
- const stop=async()=>{await browser?.close().catch(()=>{});server.kill();};
- return {base,browser,context,page,errors,signIn,seedBag,stop,logs:()=>logs};
+ const stop=async()=>{await browser?.close().catch(()=>{});site.stop();};
+ return {base,browser,context,page,errors,signIn,seedBag,stop,logs:site.logs};
+}
+
+// `node tests/display-harness.mjs` keeps the site up for suites that take ATLAS_URL (tests/palette.mjs).
+if(import.meta.url===`file://${process.argv[1]}`){
+ const site=await startServer();console.log(`Serving ${site.base} (Ctrl-C to stop)`);
+ for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>{site.stop();process.exit(0);});
 }

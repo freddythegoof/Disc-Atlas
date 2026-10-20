@@ -37,6 +37,12 @@ function applyTheme(theme){
  draw();if(selected&&selected.speed!=null)flight();renderCompare();renderLegend();renderContextTitle();if(activeCluster)renderCluster();if(stackDiscs.length&&!$('#detail').hidden)renderStackDetail();
 }
 window.addEventListener('atlas-theme-change',e=>applyTheme(e.detail));
+// Display customization (display-palette.js) rewrites the class tokens: read them again, and redraw the
+// directory rows, which bake their thumbnail color in when they render.
+window.addEventListener('atlas-palette-change',()=>{
+ applyTheme(document.documentElement.dataset.theme||'light');if($('#rows')?.children.length)renderList();
+ if(selected&&!$('#detail').hidden)window.Disc3D?.sync($('#detail'),selected,{color:discColor(selected),...window.BagApp?.detailAppearance?.(selected)});
+});
 applyTheme(document.documentElement.dataset.theme||'light');
 // Keep source loading separate so an unavailable catalog has an explicit recovery state.
 async function load(){try{const response=await fetch('data.json');if(!response.ok)throw new Error('Catalog unavailable');const data=await response.json();discs=data.discs;sharedPositions=window.AtlasLayout.positions(discs);if(!myMap)atlasPositions=sharedPositions;meta=data.meta;manufacturers=[...new Set(discs.map(d=>d.brand))].sort();renderBrands();const rated=discs.filter(d=>d.speed!=null).length,photos=discs.length;$('#coverage').innerHTML=`<strong>${discs.length.toLocaleString()} discs</strong> in the registry<br>${rated.toLocaleString()} with flight ratings · original disc illustrations`;$('#snapshot').textContent=`Registry snapshot · ${meta.date}`;$('#dataSummary').innerHTML=`Snapshot: ${esc(meta.date)}<br>${discs.length.toLocaleString()} approval records · ${rated.toLocaleString()} matched flight ratings · original labeled illustrations for every record.<br>${esc(meta.note||'')}`;filter();if(view==='map')presentAtlas();window.BagApp?.catalogReady();if(window.requestIdleCallback)requestIdleCallback(prepareFeaturedDetails);else setTimeout(prepareFeaturedDetails,200);}catch(e){$('#coverage').textContent='The catalog could not load. Refresh to try again.';$('#count').textContent='Catalog unavailable';$('#empty').hidden=false;$('#empty').firstChild.textContent='Unable to load the catalog. Please reload.';}}

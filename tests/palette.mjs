@@ -1,5 +1,7 @@
 /* Run with PLAYWRIGHT_MODULE set to a Playwright installation and ATLAS_URL
- * pointing at the running atlas. Checks rendered theme colors, not hex literals. */
+ * pointing at the running atlas. Checks rendered theme colors, not hex literals.
+ * Display customization (docs/display-customization.md): the default runs through the palette module, and
+ * every preset pack labeled colorblind-safe must clear the same floor. */
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import fs from 'node:fs';
@@ -7,7 +9,9 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
 // Machado et al., full-severity matrices, applied to linear sRGB.
 // https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html
 const matrices={normal:[[1,0,0],[0,1,0],[0,0,1]],protanopia:[[.152286,1.052583,-.204868],[.114503,.786281,.099216],[-.003882,-.048116,1.051998]],deuteranopia:[[.367322,.860646,-.227968],[.280085,.672501,.047413],[-.01182,.04294,.968881]]};
-const linear=hex=>hex.match(/[a-f\d]{2}/gi).map(c=>{const v=parseInt(c,16)/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
+// Black's tokens use short hex (#000); expand before reading channels.
+const full=hex=>/^#[a-f\d]{3}$/i.test(hex)?'#'+[...hex.slice(1)].map(c=>c+c).join(''):hex;
+const linear=hex=>full(hex).match(/[a-f\d]{2}/gi).map(c=>{const v=parseInt(c,16)/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});
 const simulate=(rgb,m)=>m.map(row=>Math.max(0,Math.min(1,row.reduce((s,v,i)=>s+v*rgb[i],0))));
 const lab=([r,g,b])=>{
  const l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b);
@@ -16,13 +20,18 @@ const lab=([r,g,b])=>{
 const luminance=rgb=>rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
 const contrast=(a,b)=>(Math.max(luminance(a),luminance(b))+.05)/(Math.min(luminance(a),luminance(b))+.05);
 const browser=await chromium.launch({headless:true});
-const page=await browser.newPage({viewport:{width:1440,height:900},colorScheme:'light'});
+const page=await browser.newPage({viewport:{width:1440,height:900},colorScheme:'light',ignoreHTTPSErrors:true});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const report=[];
 try{
  await page.goto(process.env.ATLAS_URL||'http://localhost:5173');
  await page.locator('.atlas-marker').first().waitFor();
- for(const theme of ['light','midnight','charcoal']){
+ // The default first (untouched: the module writes nothing), then each pack that carries the label.
+ const palettes=[{id:'default',classes:null},...await page.evaluate(()=>(DisplayPalette.catalog.packs||[]).filter(p=>p.colorblindSafe).map(p=>({id:p.id,classes:p.classes})))];
+ assert.equal(await page.evaluate(()=>DisplayPalette.isDefault()&&!document.getElementById('display-palette')),true,'Untouched visitors see the 06C set exactly');
+ for(const option of palettes){
+ await page.evaluate(classes=>classes?DisplayPalette.set({classes}):DisplayPalette.reset(),option.classes);
+ for(const theme of ['light','midnight','charcoal','black']){
   await page.evaluate(theme=>{applyTheme(theme);},theme);
   const palette=await page.evaluate(()=>{
    const css=getComputedStyle(document.documentElement);
@@ -33,7 +42,7 @@ try{
   });
   for(const [vision,matrix] of Object.entries(matrices)){
    const bg=simulate(linear(palette.background),matrix);
-   for(const kind of ['types','brands']){
+   for(const kind of option.classes?['types']:['types','brands']){
     const values=palette[kind].map(c=>simulate(linear(c),matrix));
     let min=Infinity;
     for(let i=0;i<values.length;i++){
@@ -42,15 +51,20 @@ try{
      for(let j=0;j<i;j++)min=Math.min(min,Math.hypot(...lab(values[i]).map((v,k)=>v-lab(values[j])[k])));
     }
     // A regression guard, not a guarantee of individual perception.
-    assert.ok(min>=.065,`${theme}/${vision}/${kind}: closest pair OKLab distance ${min.toFixed(3)} < .065`);
-    report.push({theme,vision,kind,minDistance:+min.toFixed(3)});
+    assert.ok(min>=.065,`${option.id}/${theme}/${vision}/${kind}: closest pair OKLab distance ${min.toFixed(3)} < .065`);
+    report.push({palette:option.id,theme,vision,kind,minDistance:+min.toFixed(3)});
    }
   }
  }
+ }
+ await page.evaluate(()=>DisplayPalette.reset());
  await page.evaluate(()=>applyTheme('light'));
  await page.locator('#zoomReset').click();
  await page.waitForTimeout(800);
+ // The organic atlas (October 19) draws smalls and minis on canvas, so DOM dot markers now exist only on My
+ // Map; check their edge where they render. Waiting for them here timed out on main as well.
  for(const selector of ['.legend .dot','.atlas-marker.is-dot .map-dot']){
+  if(selector!=='.legend .dot'&&!await page.locator(selector).count())continue;
   const edge=await page.locator(selector).first().evaluate(el=>{
    const style=getComputedStyle(el);
    return {width:parseFloat(style.borderTopWidth),style:style.borderTopStyle,opacity:style.opacity};
