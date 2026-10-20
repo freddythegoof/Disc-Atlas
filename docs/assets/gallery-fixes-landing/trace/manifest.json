@@ -1,0 +1,9 @@
+[
+  {
+    "file": "after-phone-metal-241.trace.json.gz",
+    "raw_bytes": 107610528,
+    "gzip_bytes": 10890975,
+    "raw_sha256": "7139387ba955839aeda058d44caac228f9b33611bfe1bc62bc7835c62179714f",
+    "gzip_sha256": "7d0f6d89198176009e4042b19384fd379917b73e3b0f8c991f9f32f3db5afe57"
+  }
+]

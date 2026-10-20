@@ -1,0 +1,20 @@
+  desktop: far 24 curated, 19 small (19 named), 34 mini (0 named), 43 names; landing 22 curated, 7 small (7 named), 16 mini (0 named), 26 names; mid 40 curated, 7 small (7 named), 13 mini (0 named), 37 names; deep 24 curated, 5 small (5 named), 0 mini (0 named), 23 names; max 23 curated, 0 small (0 named), 0 mini (0 named), 22 names; max-edge 4 curated, 0 small (0 named), 0 mini (0 named), 4 names […]
+ok - desktop: at 1x, landing, mid, 6.5x and 9x in three themes, curated discs draw at full size with their names, small discs are named at every zoom and minis are not named at 1x or 3x, nothing touches, and a redraw is identical
+ok - desktop: hover lifts a curated disc 6% and returns it to exactly its size, at 1x and 9x
+  desktop 1x→9x: 120 frames, 7954 small-disc steps, largest name step 0.372, 2645 names checked, small names from 1.02x, mini names from 3.23x
+  desktop 9x→1x: 120 frames, 7867 small-disc steps, largest name step 0.370, 3216 names checked
+ok - desktop: flying 1x→9x and 9x→1x, curated discs grow and shrink smoothly, small discs, minis and names fade without popping, small discs are named before minis, and nothing touches on any frame
+  desktop: flying onto the small Arachnid, its name from 2.83x; at 9x a curated disc
+  desktop: flying onto the mini Lotus, its name from 4.52x; at 9x a curated disc
+ok - desktop: flying onto a small disc and a mini from 1x to 9x, each name fades in from nothing as its disc grows, the small disc's first, with no pop and no overlap, and at 9x lands full size with its name wherever the view has room for it
+  phone: far 6 curated, 1 small (1 named), 10 mini (0 named), 7 names; landing 9 curated, 1 small (1 named), 3 mini (0 named), 8 names; mid 15 curated, 0 small (0 named), 4 mini (0 named), 10 names; deep 11 curated, 0 small (0 named), 0 mini (0 named), 9 names; max 13 curated, 0 small (0 named), 0 mini (0 named), 10 names; max-edge 1 curated, 0 small (0 named), 0 mini (0 named), 1 names
+ok - phone: at 1x, landing, mid, 6.5x and 9x in three themes, curated discs draw at full size with their names, small discs are named at every zoom and minis are not named at 1x or 3x, nothing touches, and a redraw is identical
+  phone 1x→9x: 120 frames, 1805 small-disc steps, largest name step 0.376, 943 names checked, small names from 1.02x, mini names from 3.23x
+  phone 9x→1x: 120 frames, 1809 small-disc steps, largest name step 0.375, 1076 names checked
+ok - phone: flying 1x→9x and 9x→1x, curated discs grow and shrink smoothly, small discs, minis and names fade without popping, small discs are named before minis, and nothing touches on any frame
+  phone: flying onto the small Sasquatch, its name from 2.83x; at 9x a curated disc
+  phone: flying onto the mini Ahti, its name from 4.52x; at 9x a curated disc
+ok - phone: flying onto a small disc and a mini from 1x to 9x, each name fades in from nothing as its disc grows, the small disc's first, with no pop and no overlap, and at 9x lands full size with its name wherever the view has room for it
+ok - Determinism: fresh pages at 1x, 3x, 6.5x and 9x render the same curated discs, small discs, minis, names and canvas pixels, desktop and phone
+
+8 checks passed. Screenshots: outputs/atlas-depth/

@@ -1,0 +1,33 @@
+UNIT 32 suites start 23:42:41
+EXIT unit 0 23:42:50
+EXIT atlas-organic-browser 0 51s 23:43:41
+EXIT atlas-depth-browser 0 128s 23:45:49
+EXIT atlas-3d-browser 0 37s 23:46:26
+EXIT atlas-persist-browser 0 132s 23:48:38
+EXIT atlas-intro-reveal-browser 0 34s 23:49:12
+EXIT atlas-stamps-browser 0 7s 23:49:19
+EXIT atlas-speed-band-browser 0 48s 23:50:07
+EXIT my-map-browser 0 36s 23:50:43
+EXIT all-discs-browser 0 31s 23:51:14
+EXIT bag-collections-browser 0 26s 23:51:40
+EXIT bag-browser 0 32s 23:52:12
+EXIT bag-demo-browser 0 11s 23:52:23
+EXIT bag-memorial-browser 0 13s 23:52:36
+EXIT bag-3d-browser 0 65s 23:53:41
+EXIT bag-overmold-browser 0 9s 23:53:50
+EXIT bag-scene-browser 0 70s 23:55:00
+EXIT bag-v13-browser 0 67s 23:56:07
+EXIT bag-staging-browser 0 250s 00:00:17
+EXIT bag-spin-pocket-browser 0 79s 00:01:36
+EXIT bag-map-controls-browser 0 68s 00:02:44
+EXIT bag-popup-browser 0 117s 00:04:41
+EXIT bag-tips-browser 0 24s 00:05:05
+EXIT bag-pulled-sizing-browser 0 145s 00:07:30
+EXIT bag-pulled-quality-browser 1 19s 00:07:49
+EXIT halo-plastic-browser 0 67s 00:08:56
+EXIT disc-appearance-browser 0 10s 00:09:06
+EXIT non-overmold-photo-edge-browser 1 60s 00:10:06
+EXIT photo-stamp-level-browser 0 24s 00:10:30
+EXIT disc3d-browser 0 39s 00:11:09
+EXIT disc3d-popout-browser 0 49s 00:11:58
+DONE 00:11:58

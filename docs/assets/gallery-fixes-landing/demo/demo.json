@@ -1,0 +1,220 @@
+{
+  "tree": "629dd74b3a9381bfcac94b3c6960d35058f27862",
+  "dirty": "",
+  "platform": "darwin",
+  "args": [
+    "--enable-gpu"
+  ],
+  "devices": {
+    "desktop": {
+      "sections": [
+        "Bag",
+        "My Map",
+        "Storage",
+        "Gallery",
+        "Lost"
+      ],
+      "sectionValues": [
+        "bag",
+        "map",
+        "storage",
+        "gallery",
+        "lost"
+      ],
+      "storage": {
+        "modeToggles": 0,
+        "galleryHidden": true,
+        "title": "Storage"
+      },
+      "fix1": true,
+      "title": "Gallery",
+      "opened": {
+        "mold": "Destroyer",
+        "view": "top",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "flips": [
+        {
+          "mold": "Destroyer",
+          "view": "profile",
+          "photo": true,
+          "counter": "1 / 4"
+        },
+        {
+          "mold": "Stalker",
+          "view": "profile",
+          "photo": false,
+          "counter": "2 / 4"
+        },
+        {
+          "mold": "Buzzz",
+          "view": "profile",
+          "photo": false,
+          "counter": "3 / 4"
+        },
+        {
+          "mold": "Luna",
+          "view": "profile",
+          "photo": false,
+          "counter": "4 / 4"
+        },
+        {
+          "mold": "Destroyer",
+          "view": "profile",
+          "photo": true,
+          "counter": "1 / 4"
+        },
+        {
+          "mold": "Stalker",
+          "view": "profile",
+          "photo": false,
+          "counter": "2 / 4"
+        }
+      ],
+      "bottomOn": {
+        "mold": "Destroyer",
+        "view": "bottom",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "bottomAfter": {
+        "mold": "Stalker",
+        "view": "bottom",
+        "photo": false,
+        "counter": "2 / 4"
+      },
+      "bottomBack": {
+        "mold": "Destroyer",
+        "view": "bottom",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "fix2": true,
+      "stalkerFrom": {
+        "mold": "Destroyer",
+        "view": "top",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "stalkerPending": {
+        "mold": "Stalker",
+        "appearance": "loading",
+        "visibility": "hidden"
+      },
+      "stalkerFrames": {
+        "sampled": 47,
+        "hiddenNotReady": 30,
+        "visibleReady": 15,
+        "wrongFrames": 0
+      },
+      "fix3": true
+    },
+    "phone": {
+      "sections": [
+        "Bag",
+        "My Map",
+        "Storage",
+        "Gallery",
+        "Lost"
+      ],
+      "sectionValues": [
+        "bag",
+        "map",
+        "storage",
+        "gallery",
+        "lost"
+      ],
+      "storage": {
+        "modeToggles": 0,
+        "galleryHidden": true,
+        "title": "Storage"
+      },
+      "fix1": true,
+      "title": "Gallery",
+      "opened": {
+        "mold": "Destroyer",
+        "view": "top",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "flips": [
+        {
+          "mold": "Destroyer",
+          "view": "profile",
+          "photo": true,
+          "counter": "1 / 4"
+        },
+        {
+          "mold": "Stalker",
+          "view": "profile",
+          "photo": false,
+          "counter": "2 / 4"
+        },
+        {
+          "mold": "Buzzz",
+          "view": "profile",
+          "photo": false,
+          "counter": "3 / 4"
+        },
+        {
+          "mold": "Luna",
+          "view": "profile",
+          "photo": false,
+          "counter": "4 / 4"
+        },
+        {
+          "mold": "Destroyer",
+          "view": "profile",
+          "photo": true,
+          "counter": "1 / 4"
+        },
+        {
+          "mold": "Stalker",
+          "view": "profile",
+          "photo": false,
+          "counter": "2 / 4"
+        }
+      ],
+      "bottomOn": {
+        "mold": "Destroyer",
+        "view": "bottom",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "bottomAfter": {
+        "mold": "Stalker",
+        "view": "bottom",
+        "photo": false,
+        "counter": "2 / 4"
+      },
+      "bottomBack": {
+        "mold": "Destroyer",
+        "view": "bottom",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "fix2": true,
+      "stalkerFrom": {
+        "mold": "Destroyer",
+        "view": "top",
+        "photo": true,
+        "counter": "1 / 4"
+      },
+      "stalkerPending": {
+        "mold": "Stalker",
+        "appearance": "loading",
+        "visibility": "hidden"
+      },
+      "stalkerFrames": {
+        "sampled": 47,
+        "hiddenNotReady": 30,
+        "visibleReady": 15,
+        "wrongFrames": 0
+      },
+      "fix3": true
+    }
+  },
+  "errors": [],
+  "passed": true
+}

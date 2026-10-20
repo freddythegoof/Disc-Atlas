@@ -1,0 +1,120 @@
+ok - desktop: start / end, reduced motion, session return / reload, marker fit, proof frames
+ok - phone: start / end, reduced motion, session return / reload, marker fit, proof frames
+ok - mid-intro tap hands control to normal handlers
+ok - mid-intro drag hands control to normal handlers
+ok - mid-intro wheel hands control to normal handlers
+ok - mid-intro pinch hands control to normal handlers
+ok - mid-intro key hands control to normal handlers
+ok - mid-intro unhandled-key hands control to normal handlers
+ok - mid-intro control hands control to normal handlers
+ok - mid-intro breath hands control to normal handlers
+[
+  {
+    "device": "desktop",
+    "gpuArgs": [
+      "--enable-gpu"
+    ],
+    "art": "ready",
+    "timing": {
+      "at": 90.9,
+      "expected": 1580,
+      "initial": {
+        "zoom": 2.8,
+        "x": -2286.2748206656433,
+        "y": 914.8660103760259
+      },
+      "elapsed": 1583.3,
+      "firstFrame": 134.6000000089407
+    },
+    "firstFrameBaseline": 127.40000000596046,
+    "frames": [
+      {
+        "name": "start",
+        "ms": 0,
+        "zoom": 2.8,
+        "x": -2286.2748206656433,
+        "y": 914.8660103760259,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "mid",
+        "ms": 400,
+        "zoom": 1.7880803987484,
+        "x": -1000.9824290658929,
+        "y": 400.54887236583136,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "end",
+        "ms": 1580,
+        "zoom": 1,
+        "x": 0,
+        "y": 0,
+        "selected": "3d60892b6812",
+        "active": false,
+        "intro": false
+      }
+    ],
+    "clipped": [],
+    "pixelEquivalent": true,
+    "pixelMethod": "Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct"
+  },
+  {
+    "device": "phone",
+    "gpuArgs": [
+      "--enable-gpu"
+    ],
+    "art": "ready",
+    "timing": {
+      "at": 169.9,
+      "expected": 1580,
+      "initial": {
+        "zoom": 4,
+        "x": -849.5393646070704,
+        "y": 997.9443724737773
+      },
+      "elapsed": 1583.3,
+      "firstFrame": 252.40000000596046
+    },
+    "firstFrameBaseline": 267.69999998807907,
+    "frames": [
+      {
+        "name": "start",
+        "ms": 0,
+        "zoom": 4,
+        "x": -849.5393646070704,
+        "y": 997.9443724737773,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "mid",
+        "ms": 400,
+        "zoom": 2.3134673312473337,
+        "x": -371.94740067333476,
+        "y": 436.92244388214243,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "end",
+        "ms": 1580,
+        "zoom": 1,
+        "x": 0,
+        "y": 0,
+        "selected": "3d60892b6812",
+        "active": false,
+        "intro": false
+      }
+    ],
+    "clipped": [],
+    "pixelEquivalent": true,
+    "pixelMethod": "Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct"
+  }
+]

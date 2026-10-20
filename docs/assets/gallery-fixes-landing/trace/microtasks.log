@@ -1,0 +1,3 @@
+composed-after microtask-dominated tasks in flip block: 60 with canvas readback: 60
+composed-after wall ms min/p25/median/p75/p95/max: 23.2 23.8 24.2 24.5 25.2 27.6 | >=50 ms: 0 | 40-50 ms: 0
+composed-after histogram (10 ms bins): {20: 60}

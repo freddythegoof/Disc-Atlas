@@ -1,0 +1,11 @@
+#!/bin/zsh
+S=/private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing
+L=$S/suites/classify.log; : > $L
+cd /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing
+for t in bag-pulled-quality-browser non-overmold-photo-edge-browser; do
+  BAG3D_CHROMIUM_ARGS=--enable-gpu node tests/$t.mjs > $S/suites/$t.composed-metal.log 2>&1; echo "composed --enable-gpu $t EXIT $?" >> $L
+done
+cd $S/mainwt
+for t in bag-pulled-quality-browser non-overmold-photo-edge-browser; do
+  node tests/$t.mjs > $S/suites/$t.main-default.log 2>&1; echo "origin/main default-flags $t EXIT $?" >> $L
+done
