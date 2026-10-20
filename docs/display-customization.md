@@ -8,6 +8,20 @@ Freddy's decision (October 15, 2026): personalization limited to curated palette
 are never off. Mix-and-match from designed swatches, with preset packs as starting points. Stamp
 appearance was added on October 16.
 
+## What landed
+
+| Commit | Part | Lands alone? |
+| --- | --- | --- |
+| `479bde3` | Characterization (this document's first section) and the shared test harness | Yes |
+| `4fbed93` | Part 1: class colors and the bag accent, mix-and-match | Yes |
+| `7741f3a` | Part 2: preset packs | Needs Part 1 |
+| `7086eed`, `6105e8c` | Stamp appearance: ink and foil finishes on your own discs | Needs Part 1 |
+| `f616c68` | Part 3: two new themes, Paper and Dusk | Needs Part 1; droppable |
+
+Freddy's feel check works as asked: open Appearance from the site menu, tap a pack, swap one class
+color, and the atlas, the bag's class chips and the viewer agree at once, while the bag's glow,
+buttons and 3D outline wear the accent. The bag's own discs keep their own colors; see below.
+
 ## Characterization (written before building)
 
 ### Where class color lives today
@@ -150,3 +164,203 @@ viewer, bag and storage scenes, that is enough for:
 
 Both are built only from the existing tokens. Paper takes the light swatch values and Dusk the dark
 ones.
+
+## Part 1: class colors and the bag accent
+
+**One source of truth.** `public/display-palette.js` holds every curated swatch and runs before first
+paint, right after `theme.js`. It writes one `<style id="display-palette">` with the four class tokens
+per theme and the accent family scoped to the bag. The 2D surfaces read those tokens directly. The
+WebGL surfaces read them back through `applyTheme()`, which runs again on every palette change, so
+the atlas markers, the Plan 16 models, the viewer, the directory rows and the legend all take the
+same values. There is no second hand-copied table. Untouched, the module writes nothing at all, so
+signed-out visitors and untouched accounts see exactly the 06C set and today's lime.
+
+**Swatch design.** Eight swatches per class row, nine accents. Each class row keeps to its own hue
+sector (drivers warm, fairways blue, midranges green, putters purple and pink) at 06C's lightness and
+chroma: light values at OKLCH L .44–.76 and C .05–.20, dark values lifted by up to .06 L at the same
+chroma, deep blues by .03, exactly as today's set adapts. Classic leads each row and is today's value
+to the digit. Because the sectors do not overlap, every one of the 4,096 combinations keeps its four
+classes at least 0.076 apart in OKLab under normal vision, in light and dark. That is above the 06C
+floor of 0.065, and a test checks every combination. Accent swatches carry a whole token family per
+tone (ink, fill, tint, edge, glow, the dropdown's copies). Light-theme accent ink is at least 6.4:1 on
+white, and button ink on its fill at least 10:1.
+
+| Row | Swatches |
+| --- | --- |
+| Driver | Orange (Classic), Ember, Brick, Tangerine, Marigold, Coral, Sand, Rust |
+| Fairway | Blue (Classic), Sky, Cobalt, Ocean, Glacier, Navy, Steel, Cornflower |
+| Midrange | Bluish green (Classic), Leaf, Moss, Jade, Teal, Pine, Sage, Lime |
+| Putter | Reddish purple (Classic), Plum, Violet, Lavender, Orchid, Raspberry, Mauve, Magenta |
+| Bag accent | Lime (today), Mint, Aqua, Sky, Violet, Pink, Coral, Gold, Silver |
+
+**Controls.** Appearance sits in the site menu directly under the theme radios. The sheet holds the
+theme too, so it is the one Appearance home. It has a live preview (one disc per class, and a slice
+of the bag wearing the accent: its glow, Add discs button, meter, a selected chip and the dashed go-to
+outline), one swatch row per class, one for the accent, and Reset to defaults. Tapping a swatch
+applies and saves it at once, like the theme radios. Rows are radio groups with arrow-key movement.
+There is no text input, no picker and no hex anywhere.
+
+**Persistence.** `localStorage` key `disc-atlas-display`, beside `disc-atlas-theme`, removed again
+when everything is back at the defaults. No account storage and no migration. A choice is per
+browser, as the theme is.
+
+## Part 2: preset packs
+
+| Pack | Driver | Fairway | Midrange | Putter | Accent | Colorblind-safe |
+| --- | --- | --- | --- | --- | --- | --- |
+| Classic | Orange | Blue | Bluish green | Reddish purple | Lime | Yes, 0.076 |
+| Harbor | Coral | Navy | Teal | Lavender | Aqua | Yes, 0.077 |
+| Sunset | Marigold | Cobalt | Jade | Raspberry | Coral | Yes, 0.100 |
+| Field | Rust | Steel | Moss | Mauve | Gold | No, 0.012 |
+| Floodlight | Ember | Glacier | Lime | Violet | Violet | Yes, 0.131 |
+
+The number is the closest pair of class colors under full-severity protanopia or deuteranopia, OKLab,
+across light and dark. A pack carries the label only if it clears 06C's 0.065 floor, and a test holds
+the label to the floor in both directions. Field is a deliberately muted, earthy pack; it does not
+clear the floor, so it is offered without the label. One tap sets all four classes and the accent.
+Any swatch can be changed after, and the sheet then says "Your mix". Packs never touch stamps.
+
+## Stamp appearance
+
+**What it covers.** The player's own discs in personal contexts: the viewer for a disc in their bag
+(on the personalized map or opened from My Bag), the bag's pulled stock discs, storage racks and the
+graveyard, their discs' marker art on the personalized map, and the bag list's thumbnails. Official
+stock stamps (recolor your own Buzzz's ink) and generated stamps both take it.
+
+**What keeps the official stamp.** The Standard map, every catalog disc the player does not own, the
+directory, and photo discs (the photo's stamp is in the photo). Neutral surfaces pass no style at
+all, so they run exactly today's code path.
+
+**Ink.** Eleven curated inks: Auto (today's near-black or white by the plastic), Black, White, Gold,
+Silver, Copper, Red, Blue, Green, Violet, Pink. Official art still contributes only its alpha, so the
+design never changes.
+
+**Finishes, honestly.**
+
+| Finish | What it is | Viewer, bag, storage | Atlas markers | Bag list thumbnails |
+| --- | --- | --- | --- | --- |
+| Flat ink | Today's material | Real | Real | Real |
+| Foil | Full metal tinted by the ink, satin polish | Real: reflects the room, brightens and darkens as the disc turns | Frozen: one still from above, lit once | Ink color only |
+| Rainbow foil | Foil plus thin-film iridescence with a smooth film-thickness sweep | Real: colors run in bands that slide with the view | Frozen | Ink color only |
+| Shatter foil | Iridescent foil whose film thickness and sheen vary by shard (seeded cracked-ice map) | Real: each shard catches light on its own | Frozen | Ink color only |
+| Spin foil | Iridescent foil in a pinwheel of film bands | Real | Frozen | Ink color only |
+
+"Real" means three.js r180's `MeshPhysicalMaterial` (metalness, roughness and iridescence maps)
+responding to the scene's own lights and environment. Each scene hands the stamp its environment so
+one foil reads the same in the viewer, the bag and storage, whose rooms are lit at different
+strengths. A flat thumbnail cannot reflect anything, so it shows the ink and does not imitate foil.
+Finishes change only the stamp's light response, never the design or the plastic.
+
+The Appearance sheet has a Stamps section with ink and finish rows and a live 3D preview: a Buzzz built
+from the viewer's own pieces, rocking slowly so a foil can be seen catching the light. It holds still
+under reduced motion and draws only while the sheet is open.
+
+Per-disc stamp finishes would need account storage and are not built; the proposed shape is in the
+characterization above.
+
+## Part 3: Paper and Dusk
+
+Both are built only from the existing tokens. Paper is a warm off-white light theme with ink-brown
+text; Dusk is a warm umber dark theme. `theme.js` now owns the list of themes with each one's tone
+and browser chrome color, and sets `data-tone` on the root before first paint. The light-or-dark
+rules that used to list theme names now key off the tone, so Paper is never treated as dark: dark
+menus and sheets in My Bag, the dropdown indicator, the logo accent, the page backdrop, the About
+hero and the theme toggle's icon. The three JS light checks (map shadows, and the overmold rim
+default in the atlas art and the viewer) ask the tone too. Storage racks have warm finishes for both,
+and both have brand exports, which back the favicon swap. Every theme menu lists six themes.
+
+Verified in both themes, desktop and phone: the atlas with 3D marker art, the directory, the viewer
+and clay, My Bag with the 3D bag, My Map, Storage, the Gallery, Lost, the Appearance sheet, About,
+Privacy, Terms and Account settings, and a mid-cross-fade frame. The 06C colorblind test now runs in
+all six themes. Part 3 is droppable: reverting `f616c68` alone removes it.
+
+## Proof
+
+Suites were run on the commits named, in a separate worktree so the code under test could not change
+mid-run. On a Mac, Chromium is launched with `--enable-gpu` (ANGLE on Metal), as the gallery gate is.
+
+| Suite | Result |
+| --- | --- |
+| `tests/display-palette.mjs` (new: catalog, discipline, all combinations, packs, stamps, persistence, theme tones) | Pass, 16 tests |
+| `tests/display-customization-browser.mjs` (new: the sheet, every consumer agreeing, accent scope, persistence before paint, keyboard, reset, packs, stamps in personal and neutral contexts) | Pass |
+| `tests/palette.mjs`, extended: the default and each labeled pack, rendered tokens, six themes | Pass (minimum 0.076) |
+| Bag unit suites, disc3d unit suites, `tests/brand-assets.mjs` | Pass |
+| Viewer: `disc3d-browser`, `disc3d-popout-browser`, `compare-viewer-polish-browser` | Pass |
+| Bag: `bag-scene`, `bag-3d`, `bag-browser`, `bag-pulled-quality`, `bag-pulled-sizing`, `bag-popup`, `bag-collections`, `bag-overmold`, `bag-demo`, `my-map` | Pass |
+| Atlas and photos: `atlas-3d-browser`, `photo-textures`, `all-discs` | Pass |
+| Theme and chrome: `apple-design-browser`, `apple-design-3-browser`, `brand-browser`, `dropdown-indicator-browser`, `disc-appearance-browser` | Pass |
+| `tests/atlas-stamp-cache.mjs` | Failed on `7086eed` (a helper sat outside the block the test runs); fixed in `6105e8c` |
+| `tests/discraft-stamps-browser.mjs` | Fails on `origin/main` too, at the same step: its baseline swap loads an old `stamp.mjs` that lacks `catalogStampAsset`. One earlier run on this branch failed sooner on a cold-start timing check; two reruns reached the same pre-existing failure as main. |
+
+`tests/palette.mjs` needed two repairs that are not about this work: Black's map background is the
+short hex `#000`, which its parser could not read, and its last step waited for DOM dot markers that
+the organic atlas (October 19) now draws on canvas. That step now checks DOM dots only where they
+render, and main's copy times out at the same step against the same site.
+
+Screenshots, all from `tests/display-customization-evidence.mjs`, signed in with a seeded bag. In
+each row: the personalized atlas, My Bag, and the viewer on a Wraith that is not in the bag.
+
+**(a) Defaults**
+
+![Defaults, Light](images/display-customization/palette-defaults-light.jpg)
+![Defaults, Midnight](images/display-customization/palette-defaults-midnight.jpg)
+
+**(b) A hand-mixed combination: Tangerine, Navy, Leaf, Orchid, Pink accent**
+
+![Mixed, Light](images/display-customization/palette-mixed-light.jpg)
+![Mixed, Midnight](images/display-customization/palette-mixed-midnight.jpg)
+
+**(c) Each pack** (Classic is the defaults above)
+
+![Harbor, Light](images/display-customization/palette-harbor-light.jpg)
+![Harbor, Midnight](images/display-customization/palette-harbor-midnight.jpg)
+![Sunset, Light](images/display-customization/palette-sunset-light.jpg)
+![Sunset, Midnight](images/display-customization/palette-sunset-midnight.jpg)
+![Field, Light](images/display-customization/palette-field-light.jpg)
+![Field, Midnight](images/display-customization/palette-field-midnight.jpg)
+![Floodlight, Light](images/display-customization/palette-floodlight-light.jpg)
+![Floodlight, Midnight](images/display-customization/palette-floodlight-midnight.jpg)
+
+**The Appearance sheet**
+
+![Sheet, Light](images/display-customization/sheet-light-1440.jpg)
+![Sheet, Midnight](images/display-customization/sheet-midnight-1440.jpg)
+![Sheet, phone](images/display-customization/sheet-midnight-390.jpg)
+
+**Stamps**
+
+![Neutral and personal](images/display-customization/stamps-neutral-personal.jpg)
+![Viewer finishes 1](images/display-customization/stamps-viewer-1.jpg)
+![Viewer finishes 2](images/display-customization/stamps-viewer-2.jpg)
+![Viewer finishes 3](images/display-customization/stamps-viewer-3.jpg)
+![In the bag](images/display-customization/stamps-bag.jpg)
+![Map stills](images/display-customization/stamps-map-stills.jpg)
+
+**Paper and Dusk**
+
+![Paper app](images/display-customization/theme-paper-app.jpg)
+![Paper detail](images/display-customization/theme-paper-detail.jpg)
+![Paper pages](images/display-customization/theme-paper-pages.jpg)
+![Dusk app](images/display-customization/theme-dusk-app.jpg)
+![Dusk detail](images/display-customization/theme-dusk-detail.jpg)
+![Dusk pages](images/display-customization/theme-dusk-pages.jpg)
+
+## Summary for the record
+
+- **Consumer map:** every class-color consumer reads the four tokens, through CSS or `applyTheme()`;
+  see the characterization. Bag discs are not consumers: they wear their own stored colors.
+- **What the accent covers:** My Bag (with its docked My Map), the bag's sheets and menus, and the 3D
+  go-to outline. Not the header, atlas, directory, site menu, coach, logo or semantic colors.
+- **Where the settings persist:** `localStorage` key `disc-atlas-display`, per browser, beside the
+  theme's key. No account storage, no migration.
+
+**Deliberately left undone**
+
+- Repainting bag discs with class colors. Every bag disc stores a physical color, and the data cannot
+  tell a plastic default from a hand pick without a migration.
+- Per-disc stamp finishes, which would need account storage (proposed shape above; not applied).
+- Foil on flat thumbnails. They show the ink color only rather than imitate a reflection.
+- The accent beyond My Bag. Widening it is a one-line change to the scope list if Freddy wants it.
+- The About hero's clay disc, which stays a brand illustration on an information page.
+- Syncing choices across devices, sharing, importing or exporting palettes (out of scope).
+- `public/data.json` and every flight number are untouched.
