@@ -83,7 +83,7 @@ try{
  await page.waitForFunction(id=>document.querySelector('[data-bag-canvas]').bagViewer.stampLayers.some(l=>l.key===id&&/^photo-stamp\//.test(l.asset||'')&&l.finish==='foil'),disc.id,{timeout:20000});
 
  // Gallery: the same, through the shared viewer, and it reveals. (From a fresh bag page: switching views with a disc
- // pulled and its details open throws in the bag's staging on origin/main too, docs/photo-stamp-assets.md.)
+ // pulled and its details open threw in the bag's staging until PR #36, docs/photo-stamp-assets.md.)
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=2);
  await page.evaluate(()=>document.querySelector('#myBagViews [data-bag-view="gallery"]').click());
  for(let i=0;i<4;i++){const id=await page.evaluate(()=>document.querySelector('[data-album-stage]')?.dataset.discId);if(id===disc.id)break;await page.locator('[data-album-step="1"]').first().click();await wait(400);}

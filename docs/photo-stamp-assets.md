@@ -234,9 +234,9 @@ is owed before landing.
   upload time, while the original is in hand.
 - **All of Freddy's photo discs** are a separate prompt if he green-lights this. Full-front prints (the stripe
   Wraith) still need photo mode, as the spike found.
-- **An unrelated bag bug, found while testing:** switching My Bag's view while a disc is pulled with its details
-  open throws `Cannot read properties of null (reading 'left')` in `stageDiscs`. It reproduces on `origin/main`
-  `8e91dc7` with no photo stamps involved. The browser test steps around it.
+- **An unrelated bag bug, found while testing:** switching My Bag's view while a disc was pulled with its details
+  open threw `Cannot read properties of null (reading 'left')` in `stageDiscs`, on `origin/main` `8e91dc7` with no
+  photo stamps involved. PR #36 fixed it on main, and this branch has that fix since its merge of `5fb9801`.
 
 ## Graphify
 
