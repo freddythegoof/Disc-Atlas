@@ -1,0 +1,49 @@
+import json,sys,csv,bisect
+from collections import Counter
+trace,tasks_csv,label=sys.argv[1],sys.argv[2],sys.argv[3]
+d=json.load(open(trace));ev=d['traceEvents']
+rows=list(csv.DictReader(open(tasks_csv)))
+tn={(e['pid'],e['tid']):e['args']['name'] for e in ev if e.get('ph')=='M' and e['name']=='thread_name'}
+main_pid,main_tid=[(e['pid'],e['tid']) for e in ev if e.get('cat')=='blink.user_timing' and e['name']=='hunt:start'][0]
+main=sorted([e for e in ev if e['pid']==main_pid and e['tid']==main_tid and e.get('ph')=='X' and 'dur' in e],key=lambda e:(e['ts'],-e['dur']))
+mts=[e['ts'] for e in main]
+def dump(ts,dur,maxdepth=12,mindur=300):
+    lo,hi=ts,ts+dur;i=bisect.bisect_left(mts,lo);stack=[]
+    while i<len(main) and main[i]['ts']<hi:
+        e=main[i];i+=1
+        while stack and e['ts']>=stack[-1]['ts']+stack[-1]['dur']:stack.pop()
+        if e['dur']>=mindur and len(stack)<=maxdepth:
+            data=(e.get('args') or {}).get('data') or {}
+            extra=' '.join(f'{k}={str(v)[:60]}' for k,v in data.items() if k in('type','functionName','url','lineNumber','frame'))
+            print('  '*len(stack)+f"{e['name']} {e['dur']/1000:.1f}ms {extra}")
+        stack.append(e)
+sel={r['task']:r for r in rows}
+by=sorted(rows,key=lambda r:-float(r['wall_ms']))
+import statistics
+med=sorted([r for r in rows if r['class']=='reveal frame'],key=lambda r:float(r['wall_ms']))
+picks=[by[0]]+([med[len(med)//2]] if med else [])
+for r in picks:
+    t=[e for e in main if e['name']=='RunTask' and e['ts']==int(r['ts_us'])][0]
+    print(f"\n### {label} task {r['task']} {r['class']} flip {r['flip']} {r['from']}->{r['to']} wall {r['wall_ms']} cpu {r['cpu_ms']}")
+    dump(t['ts'],t['dur'])
+# also: the click frame that contains flip mark for the longest task's flip, and its duration; and all tasks between flip mark and the long task
+marks=sorted([e for e in ev if e.get('cat')=='blink.user_timing' and e['name'].startswith('hunt:flip:')],key=lambda e:e['ts'])
+r=by[0];n=int(r['flip']);m=[e for e in marks if e['name']==f'hunt:flip:{n}'][0]
+nxt=[e for e in marks if e['name']==f'hunt:flip:{n+1}']
+hi=nxt[0]['ts'] if nxt else m['ts']+2_000_000
+print(f"\n### {label} all RunTasks in flip {n} window ({(hi-m['ts'])/1000:.1f} ms):")
+for e in main:
+    if e['name']=='RunTask' and e['ts']+e['dur']>=m['ts']-1000 and e['ts']<hi and e['dur']>=2000:
+        print(f"  ts+{(e['ts']-m['ts'])/1000:.1f}ms RunTask {e['dur']/1000:.1f}ms");dump(e['ts'],e['dur'],maxdepth=6,mindur=1500)
+# max click-frame task (contains a mark) duration
+cf=[]
+for mk in marks:
+    i=bisect.bisect_right(mts,mk['ts'])-1
+    while i>=0:
+        e=main[i]
+        if e['name']=='RunTask' and e['ts']<=mk['ts']<=e['ts']+e['dur']:cf.append(e['dur']/1000);break
+        i-=1
+cf.sort();print(f"\n### {label} click-frame tasks (contain hunt:flip mark): n={len(cf)} median {cf[len(cf)//2]:.1f} p95 {cf[int(len(cf)*.95)]:.1f} max {cf[-1]:.1f} ms")
+rp=[e['dur']/1000 for e in main if e['name']=='GLES2::ReadPixels']
+rp.sort();print(f"### {label} GLES2::ReadPixels on main: n={len(rp)} median {rp[len(rp)//2] if rp else 0:.1f} p95 {rp[int(len(rp)*.95)] if rp else 0:.1f} max {rp[-1] if rp else 0:.1f} ms; count>=50ms {sum(1 for x in rp if x>=50)}")
+names=Counter(e['name'] for e in main if 'gpu' in e.get('cat',''));print('### gpu-cat names on main:',names.most_common(12))

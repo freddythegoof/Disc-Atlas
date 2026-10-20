@@ -1,0 +1,19 @@
+{
+  "hash_basis": "SHA-256 of committed Git blob bytes. Verify using git show HEAD:<path>; Git normalizes text line endings. Traces are listed in manifest.json.",
+  "files": {
+    "docs/assets/gallery-perf-hunt/phase4/analyze.py.txt": "996998a44777930b2f95ac69403eb3240e9d195401effd6f89af2289011804be",
+    "docs/assets/gallery-perf-hunt/phase4/chain.py.txt": "8b2ecbefcd28ab09691d42259dc301995e4af26645091bde3d80e9524066e64c",
+    "docs/assets/gallery-perf-hunt/phase4/desktop-gate-241.loop.json": "0ee32a09e1b14f8bc9d0ff56daffdf27eae264237a9484a71ba4122211ff3ce4",
+    "docs/assets/gallery-perf-hunt/phase4/desktop-summary.json": "f109e02f1d7478d2262f9682430583258cb2afc81e3b1e2094ad39b92e035623",
+    "docs/assets/gallery-perf-hunt/phase4/desktop-tasks.csv": "f0f52cde5bdee3d36431f0e9fb00cb5ac483c6a498215321e7fe6eaa3774f03a",
+    "docs/assets/gallery-perf-hunt/phase4/gpuside.py.txt": "42a4e4d3aab235264087202ba975e2096a621c2685e5bd53db9b62a4b9536b62",
+    "docs/assets/gallery-perf-hunt/phase4/manifest.json": "382093687c20e18f264879f6f7f421014885710b725967c6cd99567a9468dc3b",
+    "docs/assets/gallery-perf-hunt/phase4/phone-gate-241.loop.json": "78d843bf928b07d9bb8c80644c3e551f585cae717afced45eb878ab1801bc770",
+    "docs/assets/gallery-perf-hunt/phase4/phone-summary.json": "026216e75ecb96d6fcb709d40b70759c78f8a682c504c1ca157da258d84ce531",
+    "docs/assets/gallery-perf-hunt/phase4/phone-tasks.csv": "2212801cc64c80296208b7eb2e7be08e285fd7decb3afb14ee1919d5ad24e23b",
+    "docs/assets/gallery-perf-hunt/phase4/probe.log": "c64fda776915b3281d30e3e1d2a2f12238a327b64910212074c557661946f1cc",
+    "docs/assets/gallery-perf-hunt/phase4/probe.mjs.txt": "538d016b293d9dfb5c61a1c324cd7c542643b97eb989d7a5d9bd06101b1521bb",
+    "docs/assets/gallery-perf-hunt/phase4/renderer-atlas.json": "4d8b26a79f1e475d4d02220d1fb45482dc4b399d3440c4c9b576a08a6eb73755",
+    "docs/assets/gallery-perf-hunt/phase4/renderer-gate.json": "340a3f7143e5c06597f87cf3db030caa28ef3ccd08dd6beb74a597c80584b6cd"
+  }
+}

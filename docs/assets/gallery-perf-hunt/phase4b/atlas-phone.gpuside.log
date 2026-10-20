@@ -1,0 +1,17 @@
+
+atlas-phone flip 223 Luna->Destroyer (median long task 72.037 ms of 16): CrGpuMain self-time top in flip window 117 ms:
+        6.3 ms x  25  CommandBufferService:PutChanged
+        5.0 ms x   2  CompileEvent::wait
+        3.2 ms x   5  IOSurfaceImageBacking::WaitForCommandsToBeScheduled::Dawn
+        0.6 ms x  34  Scheduler::RunTask
+        0.6 ms x  11  RasterDecoderImpl::DoEndRasterCHROMIUM::Flush
+        0.2 ms x  11  RasterDecoderImpl::DoRasterCHROMIUM::Deserializing
+        0.2 ms x   3  CommitPresentedFrameToCA
+        0.1 ms x  11  RasterDecoderImpl::DoBeginRasterCHROMIUM
+        0.1 ms x  29  GPUTask
+        0.1 ms x   1  GLES2DecoderPassthroughImpl::DoLinkProgram
+        0.1 ms x  80  ThreadControllerImpl::RunTask
+        0.1 ms x   3  CARendererLayerTree::CommitScheduledCALayers
+        0.1 ms x   1  SharedImageStub::OnCreateSharedImage
+        0.0 ms x  11  RasterDecoderImpl::DoEndRasterCHROMIUM
+   keyword events: CompileEvent::wait 5.0, GLES2DecoderPassthroughImpl::DoLinkProgram 0.1, Program::MainLinkLoadEvent::wait 0.0, ProgramMtl::compileMslShaderLibs 0.0, Scheduler::FinishTask 0.0

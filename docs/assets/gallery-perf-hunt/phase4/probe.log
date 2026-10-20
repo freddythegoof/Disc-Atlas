@@ -1,0 +1,31 @@
+[2026-10-20T00:07:43.263Z] fixture ready at https://localhost:8951 stage setup
+[2026-10-20T00:07:43.456Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:07:49.138Z] owned copies [{"id":"bfe2329b-2692-48d9-ad49-f4ebe7248e6d","mold_id":"3d60892b6812","plastic":"Star","photo":false},{"id":"c0503db2-cacc-4f2a-9fe1-59151eb0b4a5","mold_id":"8cc6c4a94762","plastic":"ESP","photo":false},{"id":"3b841f81-59e6-48ba-a77e-d971afa96b26","mold_id":"7446eb39abe5","plastic":"ESP","photo":false},{"id":"7e75d3f8-1089-4108-b6db-ecfb48e209d4","mold_id":"ff4bf9e7743c","plastic":"Putter Line Hard","photo":false}]
+[2026-10-20T00:07:50.400Z] session saved (ignored, never evidence)
+[2026-10-20T00:07:50.401Z] stage setup done
+[2026-10-20T00:08:05.939Z] fixture ready at https://localhost:8951 stage renderer
+[2026-10-20T00:08:06.018Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:08:08.346Z] gate gate-setup UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver) | RENDERER = WebKit WebGL
+[2026-10-20T00:08:11.283Z] gate phone UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver) | RENDERER = WebKit WebGL
+[2026-10-20T00:08:14.269Z] gate desktop UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver) | RENDERER = WebKit WebGL
+[2026-10-20T00:08:14.273Z] stage renderer done
+[2026-10-20T00:08:15.144Z] fixture ready at https://localhost:8951 stage renderer
+[2026-10-20T00:08:15.238Z] launched atlas ["--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:08:15.911Z] atlas gate-setup UNMASKED_RENDERER_WEBGL = ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version) | RENDERER = WebKit WebGL
+[2026-10-20T00:08:17.187Z] atlas phone UNMASKED_RENDERER_WEBGL = ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version) | RENDERER = WebKit WebGL
+[2026-10-20T00:08:17.723Z] atlas desktop UNMASKED_RENDERER_WEBGL = ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version) | RENDERER = WebKit WebGL
+[2026-10-20T00:08:17.727Z] stage renderer done
+[2026-10-20T00:18:14.502Z] fixture ready at https://localhost:8951 stage trace
+[2026-10-20T00:18:14.655Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:18:18.502Z] phone UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)
+[2026-10-20T00:18:19.370Z] phone warm-up 4 flips {"start":"Destroyer","to":["Stalker","Buzzz","Luna","Destroyer"],"longTasks":4,"longest":335}
+[2026-10-20T00:19:07.847Z] phone gate loop 241+120 {"fly":{"median":10.900000005960464,"p95":16.299999997019768,"max":19.599999994039536,"frames":241},"still":{"median":0.09999999403953552,"p95":0.7000000029802322,"max":0.9000000059604645,"frames":120},"reveal":{"median":15.799999997019768,"p95":59,"max":106,"frames":241},"longTasks":242,"longest":413,"calls":2,"triangles":8272,"pixelRatio":2,"canvases":1}
+[2026-10-20T00:19:09.121Z] trace {"file":"phone-gate-241.trace.json.gz","raw_bytes":104601873,"gzip_bytes":9974026,"raw_sha256":"7968d5480d8d8bf761fd2c8ff279a513594abdcf7330d6c47e272b6b971a87f5","gzip_sha256":"7fff34d9d14cc163e5ed2242345321e16bb272445af8d6775de8bdc36c2b42aa"}
+[2026-10-20T00:19:09.135Z] stage trace done
+[2026-10-20T00:19:21.524Z] fixture ready at https://localhost:8951 stage trace
+[2026-10-20T00:19:21.602Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:19:25.007Z] desktop UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)
+[2026-10-20T00:19:25.577Z] desktop warm-up 4 flips {"start":"Destroyer","to":["Stalker","Buzzz","Luna","Destroyer"],"longTasks":2,"longest":271}
+[2026-10-20T00:19:59.443Z] desktop gate loop 241+120 {"fly":{"median":2.7000000029802322,"p95":3.2000000029802322,"max":6.100000008940697,"frames":241},"still":{"median":0.09999999403953552,"p95":0.20000000298023224,"max":0.20000000298023224,"frames":120},"reveal":{"median":9.100000008940697,"p95":40.5,"max":49.20000000298023,"frames":241},"longTasks":64,"longest":311,"calls":2,"triangles":11488,"pixelRatio":1,"canvases":1}
+[2026-10-20T00:20:00.715Z] trace {"file":"desktop-gate-241.trace.json.gz","raw_bytes":116500174,"gzip_bytes":10528037,"raw_sha256":"8512a6773321ff070c772c1e482c886d8b4ec7af8b77a4a23b1f90a1c3b611f3","gzip_sha256":"6cf03bc9a71028866964e90eb744cda305a29457ce71c847dcbe5724c2fce9fb"}
+[2026-10-20T00:20:00.728Z] stage trace done

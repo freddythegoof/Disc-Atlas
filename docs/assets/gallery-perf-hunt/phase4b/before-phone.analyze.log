@@ -1,0 +1,100 @@
+== before-phone: {'pid': 63694, 'tid': 1898201, 'thread': 'CrRendererMain', 'process': 'Renderer'} | GPU threads ['ANGLE-GC', 'CrGpuMain', 'VizCompositorThread']
+RunTasks 7940, long tasks 244 by phase {'flips': 243, 'stills': 1}; observer 244 longest 302; trace longest 302.007
+ratio table:
+   {'class': 'click frame', 'n': 180, 'wall_median': 89.255, 'wall_max': 96.254, 'cpu_median': 70.992, 'ratio_min': 1.23, 'ratio_p25': 1.26, 'ratio_median': 1.26, 'ratio_p75': 1.26, 'ratio_max': 1.27, 'js_self_median': 10.006, 'style_max_max': 0.89, 'layout_max_max': 1.154, 'paint_max_max': 83.277}
+   {'class': 'viewer scheduled draw', 'n': 63, 'wall_median': 260.148, 'wall_max': 302.007, 'cpu_median': 199.214, 'ratio_min': 1.27, 'ratio_p25': 1.3, 'ratio_median': 1.31, 'ratio_p75': 1.31, 'ratio_max': 1.33, 'js_self_median': 5.843, 'style_max_max': 0.842, 'layout_max_max': 0.733, 'paint_max_max': 294.656}
+   {'class': 'photo continuation (Destroyer arrival)', 'n': 1, 'wall_median': 71.534, 'wall_max': 71.534, 'cpu_median': 72.595, 'ratio_min': 0.99, 'ratio_p25': 0.99, 'ratio_median': 0.99, 'ratio_p75': 0.99, 'ratio_max': 0.99, 'js_self_median': 60.837, 'style_max_max': 0.0, 'layout_max_max': 0.0, 'paint_max_max': 0.0}
+per flip: {'flips_with_long_task': 240, 'flips_with_two_or_more': 3, 'class_mix_per_flip': [('click frame', 180), ('viewer scheduled draw', 57), ('viewer scheduled draw + viewer scheduled draw', 2), ('photo continuation (Destroyer arrival) + viewer scheduled draw', 1)]}
+by from mold: {'Destroyer': 60, 'Stalker': 60, 'Buzzz': 60, 'Luna': 63} | by to mold: {'Stalker': 60, 'Buzzz': 60, 'Luna': 60, 'Destroyer': 63}
+by class and to mold: [{'class': 'viewer scheduled draw', 'to': 'Destroyer', 'n': 62}, {'class': 'click frame', 'to': 'Stalker', 'n': 60}, {'class': 'click frame', 'to': 'Buzzz', 'n': 60}, {'class': 'click frame', 'to': 'Luna', 'n': 60}, {'class': 'photo continuation (Destroyer arrival)', 'to': 'Destroyer', 'n': 1}]
+child urls by class: {'click frame': [('viewer.mjsx4', 180), ('all-discs-gallery.jsx2', 180), ('three.module.min.jsx1', 180), ('account.jsx1', 180), ('my-bag.jsx1', 120), ('photox1', 60)], 'viewer scheduled draw': [('three.module.min.jsx1', 63), ('viewer.mjsx1', 60), ('viewer.mjsx2', 3)], 'photo continuation (Destroyer arrival)': []}
+flip block gpu busy ms: {'VizCompositorThread': 1001.56, 'CrGpuMain': 32938.008, 'ANGLE-GC': 11.806} of wall 39370.5
+longest five:
+   {'task': 25, 'wall_ms': 302.007, 'cpu_ms': 226.771, 'ratio': 1.33, 'flip': 23, 'from': 'Luna', 'to': 'Destroyer', 'class': 'viewer scheduled draw', 'callback': 'viewer.mjs:render:134 7.1ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms', 'top_self': 'CommandBufferProxyImpl::WaitForGetOffset 293.5; FunctionCall@viewer.mjs 6.1; CommandBufferProxyImpl::WaitForGetOffset 0.8; CommandBufferProxyImpl::Flush 0.6; LayerTreeHost::DoUpdateLayers 0.4; CommandBufferProxyImpl::WaitForGetOffset 0.1', 'gpu_main': 'GLES2::ReadPixels 294.2; ImplementationBase::WaitForCmd 294.1; CommandBufferHelper::Finish 294.1; CommandBufferProxyImpl::WaitForGetOffset 293.5', 'gpu_busy_ms': {'CrGpuMain': 294.247, 'VizCompositorThread': 6.316, 'ANGLE-GC': 0.018}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 37, 'clipped_ms': 294.247, 'max_ms': 293.087}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 37, 'clipped_ms': 294.232, 'max_ms': 293.085}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 18, 'clipped_ms': 294.165, 'max_ms': 293.082}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 18, 'clipped_ms': 294.146, 'max_ms': 293.08}
+      gpu {'thread': 'CrGpuMain', 'name': 'GPUTask', 'count': 12, 'clipped_ms': 294.125, 'max_ms': 293.078}
+      gpu {'thread': 'CrGpuMain', 'name': 'WebGL', 'count': 7, 'clipped_ms': 294.084, 'max_ms': 293.073}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBuffer::Flush', 'count': 7, 'clipped_ms': 294.081, 'max_ms': 293.073}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBufferStub::OnAsyncFlush', 'count': 7, 'clipped_ms': 294.078, 'max_ms': 293.073}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'FramebufferVk::readPixelsImpl', 'count': 1, 'clipped_ms': 255.934, 'max_ms': 255.934}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixels', 'count': 1, 'clipped_ms': 255.933, 'max_ms': 255.933}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl', 'count': 1, 'clipped_ms': 255.932, 'max_ms': 255.932}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl - CPU Readback', 'count': 1, 'clipped_ms': 255.93, 'max_ms': 255.93}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ContextVk::finishImpl', 'count': 1, 'clipped_ms': 255.771, 'max_ms': 255.771}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'GLES2DecoderPassthroughImpl::DoLinkProgram', 'count': 1, 'clipped_ms': 0.075, 'max_ms': 0.075}
+   {'task': 29, 'wall_ms': 270.974, 'cpu_ms': 206.652, 'ratio': 1.31, 'flip': 27, 'from': 'Luna', 'to': 'Destroyer', 'class': 'viewer scheduled draw', 'callback': 'viewer.mjs:render:134 3.2ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms', 'top_self': 'CommandBufferProxyImpl::WaitForGetOffset 266.9; FunctionCall@viewer.mjs 2.2; CommandBufferProxyImpl::WaitForGetOffset 0.7; LayerTreeHost::DoUpdateLayers 0.4; CommandBufferProxyImpl::WaitForGetOffset 0.1; CommandBufferProxyImpl::WaitForGetOffset 0.1', 'gpu_main': 'GLES2::ReadPixels 267.0; ImplementationBase::WaitForCmd 267.0; CommandBufferHelper::Finish 267.0; CommandBufferProxyImpl::WaitForGetOffset 266.9', 'gpu_busy_ms': {'CrGpuMain': 267.35, 'VizCompositorThread': 6.678, 'ANGLE-GC': 0.041}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 21, 'clipped_ms': 267.35, 'max_ms': 266.664}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 21, 'clipped_ms': 267.337, 'max_ms': 266.661}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 6, 'clipped_ms': 267.282, 'max_ms': 266.657}
+      gpu {'thread': 'CrGpuMain', 'name': 'GPUTask', 'count': 10, 'clipped_ms': 267.281, 'max_ms': 266.652}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 6, 'clipped_ms': 267.275, 'max_ms': 266.655}
+      gpu {'thread': 'CrGpuMain', 'name': 'WebGL', 'count': 5, 'clipped_ms': 267.238, 'max_ms': 266.644}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBuffer::Flush', 'count': 5, 'clipped_ms': 267.234, 'max_ms': 266.643}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBufferStub::OnAsyncFlush', 'count': 5, 'clipped_ms': 267.231, 'max_ms': 266.642}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'FramebufferVk::readPixelsImpl', 'count': 1, 'clipped_ms': 226.136, 'max_ms': 226.136}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixels', 'count': 1, 'clipped_ms': 226.136, 'max_ms': 226.136}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl', 'count': 1, 'clipped_ms': 226.135, 'max_ms': 226.135}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl - CPU Readback', 'count': 1, 'clipped_ms': 226.134, 'max_ms': 226.134}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ContextVk::finishImpl', 'count': 1, 'clipped_ms': 225.977, 'max_ms': 225.977}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'GLES2DecoderPassthroughImpl::DoLinkProgram', 'count': 1, 'clipped_ms': 0.08, 'max_ms': 0.08}
+   {'task': 37, 'wall_ms': 263.928, 'cpu_ms': 201.744, 'ratio': 1.31, 'flip': 35, 'from': 'Luna', 'to': 'Destroyer', 'class': 'viewer scheduled draw', 'callback': 'viewer.mjs:render:134 7.3ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms', 'top_self': 'CommandBufferProxyImpl::WaitForGetOffset 254.1; FunctionCall@viewer.mjs 5.3; CommandBufferProxyImpl::WaitForGetOffset 0.9; Document::recalcStyle 0.8; IntersectionObserverController::computeIntersections 0.6; RunMicrotasks 0.6', 'gpu_main': 'GLES2::ReadPixels 254.2; ImplementationBase::WaitForCmd 254.1; CommandBufferHelper::Finish 254.1; CommandBufferProxyImpl::WaitForGetOffset 254.1', 'gpu_busy_ms': {'CrGpuMain': 254.34, 'VizCompositorThread': 4.349, 'ANGLE-GC': 0.02}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 24, 'clipped_ms': 254.34, 'max_ms': 253.657}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 23, 'clipped_ms': 254.323, 'max_ms': 253.656}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 7, 'clipped_ms': 254.273, 'max_ms': 253.654}
+      gpu {'thread': 'CrGpuMain', 'name': 'GPUTask', 'count': 11, 'clipped_ms': 254.266, 'max_ms': 253.651}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 7, 'clipped_ms': 254.261, 'max_ms': 253.652}
+      gpu {'thread': 'CrGpuMain', 'name': 'WebGL', 'count': 6, 'clipped_ms': 254.227, 'max_ms': 253.646}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBuffer::Flush', 'count': 6, 'clipped_ms': 254.226, 'max_ms': 253.646}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBufferStub::OnAsyncFlush', 'count': 6, 'clipped_ms': 254.223, 'max_ms': 253.646}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'FramebufferVk::readPixelsImpl', 'count': 1, 'clipped_ms': 216.255, 'max_ms': 216.255}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixels', 'count': 1, 'clipped_ms': 216.253, 'max_ms': 216.253}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl', 'count': 1, 'clipped_ms': 216.253, 'max_ms': 216.253}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl - CPU Readback', 'count': 1, 'clipped_ms': 216.251, 'max_ms': 216.251}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ContextVk::finishImpl', 'count': 1, 'clipped_ms': 216.097, 'max_ms': 216.097}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'GLES2DecoderPassthroughImpl::DoLinkProgram', 'count': 1, 'clipped_ms': 0.076, 'max_ms': 0.076}
+   {'task': 81, 'wall_ms': 262.985, 'cpu_ms': 202.573, 'ratio': 1.3, 'flip': 79, 'from': 'Luna', 'to': 'Destroyer', 'class': 'viewer scheduled draw', 'callback': 'viewer.mjs:render:134 8.5ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms', 'top_self': 'CommandBufferProxyImpl::WaitForGetOffset 252.9; FunctionCall@viewer.mjs 6.5; CommandBufferProxyImpl::WaitForGetOffset 1.0; LayerTreeHost::DoUpdateLayers 0.7; GLES2Implementation::GetProgramiv 0.7; v8.callFunction 0.5', 'gpu_main': 'GLES2::ReadPixels 253.0; ImplementationBase::WaitForCmd 252.9; CommandBufferHelper::Finish 252.9; CommandBufferProxyImpl::WaitForGetOffset 252.9', 'gpu_busy_ms': {'CrGpuMain': 253.619, 'VizCompositorThread': 3.974, 'ANGLE-GC': 0.037}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 36, 'clipped_ms': 253.619, 'max_ms': 252.512}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 36, 'clipped_ms': 253.6, 'max_ms': 252.512}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 17, 'clipped_ms': 253.525, 'max_ms': 252.504}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 17, 'clipped_ms': 253.509, 'max_ms': 252.502}
+      gpu {'thread': 'CrGpuMain', 'name': 'GPUTask', 'count': 12, 'clipped_ms': 253.485, 'max_ms': 252.501}
+      gpu {'thread': 'CrGpuMain', 'name': 'WebGL', 'count': 7, 'clipped_ms': 253.442, 'max_ms': 252.497}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBuffer::Flush', 'count': 7, 'clipped_ms': 253.438, 'max_ms': 252.497}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBufferStub::OnAsyncFlush', 'count': 7, 'clipped_ms': 253.436, 'max_ms': 252.497}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'FramebufferVk::readPixelsImpl', 'count': 1, 'clipped_ms': 215.664, 'max_ms': 215.664}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixels', 'count': 1, 'clipped_ms': 215.663, 'max_ms': 215.663}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl', 'count': 1, 'clipped_ms': 215.663, 'max_ms': 215.663}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl - CPU Readback', 'count': 1, 'clipped_ms': 215.661, 'max_ms': 215.661}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ContextVk::finishImpl', 'count': 1, 'clipped_ms': 215.506, 'max_ms': 215.506}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'GLES2DecoderPassthroughImpl::DoLinkProgram', 'count': 1, 'clipped_ms': 0.072, 'max_ms': 0.072}
+   {'task': 202, 'wall_ms': 262.826, 'cpu_ms': 200.83, 'ratio': 1.31, 'flip': 199, 'from': 'Luna', 'to': 'Destroyer', 'class': 'viewer scheduled draw', 'callback': 'viewer.mjs:render:134 7.0ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms', 'top_self': 'CommandBufferProxyImpl::WaitForGetOffset 253.5; FunctionCall@viewer.mjs 5.4; CommandBufferProxyImpl::WaitForGetOffset 0.7; CommandBufferProxyImpl::WaitForGetOffset 0.7; WebFrameWidgetImpl::UpdateLifecycle 0.6; AnimationTimeline::serviceAnimations 0.5', 'gpu_main': 'GLES2::ReadPixels 253.5; ImplementationBase::WaitForCmd 253.5; CommandBufferHelper::Finish 253.5; CommandBufferProxyImpl::WaitForGetOffset 253.5', 'gpu_busy_ms': {'CrGpuMain': 253.917, 'VizCompositorThread': 4.225, 'ANGLE-GC': 0.061}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 17, 'clipped_ms': 253.917, 'max_ms': 216.142}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 17, 'clipped_ms': 253.898, 'max_ms': 216.141}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 8, 'clipped_ms': 253.859, 'max_ms': 216.139}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 8, 'clipped_ms': 253.849, 'max_ms': 216.137}
+      gpu {'thread': 'CrGpuMain', 'name': 'GPUTask', 'count': 12, 'clipped_ms': 253.846, 'max_ms': 216.136}
+      gpu {'thread': 'CrGpuMain', 'name': 'WebGL', 'count': 7, 'clipped_ms': 253.799, 'max_ms': 216.128}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBuffer::Flush', 'count': 7, 'clipped_ms': 253.797, 'max_ms': 216.128}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'CommandBufferStub::OnAsyncFlush', 'count': 7, 'clipped_ms': 253.793, 'max_ms': 216.128}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'FramebufferVk::readPixelsImpl', 'count': 1, 'clipped_ms': 216.053, 'max_ms': 216.053}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixels', 'count': 1, 'clipped_ms': 216.052, 'max_ms': 216.052}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl', 'count': 1, 'clipped_ms': 216.051, 'max_ms': 216.051}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl - CPU Readback', 'count': 1, 'clipped_ms': 216.049, 'max_ms': 216.049}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'ContextVk::finishImpl', 'count': 1, 'clipped_ms': 215.893, 'max_ms': 215.893}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'GLES2DecoderPassthroughImpl::DoLinkProgram', 'count': 1, 'clipped_ms': 0.075, 'max_ms': 0.075}
+gpu over all long windows:
+   {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 3531, 'clipped_ms': 28711.0}
+   {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 3510, 'clipped_ms': 28708.9}
+   {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 1402, 'clipped_ms': 28700.6}
+   {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 1402, 'clipped_ms': 28698.8}
+   {'thread': 'CrGpuMain', 'name': 'GPUTask', 'count': 1342, 'clipped_ms': 28697.6}
+   {'thread': 'CrGpuMain', 'name': 'WebGL', 'count': 861, 'clipped_ms': 28691.8}
+   {'thread': 'CrGpuMain', 'name': 'CommandBuffer::Flush', 'count': 861, 'clipped_ms': 28691.4}
+   {'thread': 'CrGpuMain', 'name': 'CommandBufferStub::OnAsyncFlush', 'count': 861, 'clipped_ms': 28691.0}
+   {'thread': 'CrGpuMain', 'name': 'CommandBufferService:PutChanged', 'count': 861, 'clipped_ms': 28689.5}
+   {'thread': 'CrGpuMain', 'name': 'FramebufferVk::readPixelsImpl', 'count': 243, 'clipped_ms': 26422.6}
+   {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixels', 'count': 243, 'clipped_ms': 26422.5}
+   {'thread': 'CrGpuMain', 'name': 'ImageHelper::readPixelsImpl', 'count': 243, 'clipped_ms': 26422.3}

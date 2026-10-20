@@ -1,0 +1,128 @@
+// Phase 4 Mac probe (ignored diagnostic, never a gate). Mirrors the setup of tests/gallery-fixes-browser.mjs:
+// build workers, local Wrangler auth/D1/R2 fixture on its own port/state, routed Google callback sign-in, the same
+// four owned copies with the stamped-disc.webp owner photo on Destroyer, then Gallery.
+// Stages: --stage=setup  (fixture + session)   --stage=renderer --flags=gate|atlas   --stage=trace --device=phone|desktop
+// Run from the worktree root: node outputs/gallery-perf-hunt-mac/probe.mjs --stage=...
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import https from 'node:https';
+import zlib from 'node:zlib';
+import crypto from 'node:crypto';
+import {createRequire} from 'node:module';
+import {spawn,execFileSync} from 'node:child_process';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
+const args=Object.fromEntries(process.argv.slice(2).map(a=>{const m=/^--([^=]+)=(.*)$/.exec(a);return m?[m[1],m[2]]:[a.replace(/^--/,''),'true'];}));
+const stage=args.stage||'setup',device=args.device||'phone',flagsName=args.flags||'gate';
+// The gate's launch line (tests/gallery-fixes-browser.mjs:24) and the Atlas control's non-Windows branch (tests/atlas-3d-perf.mjs:125).
+const FLAGS={gate:['--use-angle=d3d11','--enable-gpu'],atlas:['--enable-gpu']};
+const config='tests/auth.wrangler.jsonc',out='outputs/gallery-perf-hunt-mac',state=out+'/state',base='https://localhost:8951';
+const evidence='docs/assets/gallery-perf-hunt/phase4';
+const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
+fs.mkdirSync(out,{recursive:true});fs.mkdirSync(evidence,{recursive:true});
+const log=(...a)=>{const line=`[${new Date().toISOString()}] ${a.join(' ')}`;console.log(line);fs.appendFileSync(`${out}/probe.log`,line+'\n');};
+const command=a=>execFileSync(process.execPath,[wrangler,...a,'--config',config,'--persist-to',state],{windowsHide:true,stdio:'pipe'});
+const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
+const sha=buf=>crypto.createHash('sha256').update(buf).digest('hex');
+
+if(stage==='setup'){
+ execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
+ command(['d1','migrations','apply','disc-atlas-accounts','--local']);command(['d1','execute','disc-atlas-accounts','--local','--command','DELETE FROM auth_users;']);
+}
+const server=spawn(process.execPath,[wrangler,'dev','--config',config,'--local','--port','8951','--ip','127.0.0.1','--local-protocol','https','--inspector-port','0','--persist-to',state],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+let logs='',browser;for(const stream of [server.stdout,server.stderr])stream.on('data',d=>logs+=d);
+const errors=[];
+// Same helpers as the gate, verbatim in substance.
+const enter=async p=>{await p.goto(base+'/?bag=1');await p.waitForFunction(()=>window.AtlasAccount?.current?.user&&discs.length>0);await p.locator('#myBagLoadState').waitFor({state:'hidden'});await p.locator('[data-bag-view="gallery"]').click();await p.waitForFunction(()=>!!BagApp.scenes.album);};
+const appearanceReady=()=>{const v=BagApp.scenes.album;if(!v)return false;const p=v.state.props,photo=v.debug.photo,stamp=v.debug.stamp.material.map;return !!p&&(!p.photoURL||photo?.userData.photoReady)&&(!p.stampAsset||p.photoURL||stamp?.userData.stampAsset);};
+const glInfo=()=>{const v=BagApp.scenes.album,r=v.debug.renderer,gl=r.getContext(),ext=gl.getExtension('WEBGL_debug_renderer_info');
+ return {unmaskedRenderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):null,unmaskedVendor:ext?gl.getParameter(ext.UNMASKED_VENDOR_WEBGL):null,renderer:gl.getParameter(gl.RENDERER),vendor:gl.getParameter(gl.VENDOR),version:gl.getParameter(gl.VERSION),glsl:gl.getParameter(gl.SHADING_LANGUAGE_VERSION),webgl2:typeof WebGL2RenderingContext!=='undefined'&&gl instanceof WebGL2RenderingContext,contextAttributes:gl.getContextAttributes(),samples:gl.getParameter(gl.SAMPLES),maxTextureSize:gl.getParameter(gl.MAX_TEXTURE_SIZE),pixelRatio:r.getPixelRatio(),drawingBuffer:[gl.drawingBufferWidth,gl.drawingBufferHeight],devicePixelRatio:devicePixelRatio,viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,hardwareConcurrency:navigator.hardwareConcurrency,mold:document.querySelector('[data-album-name]').textContent};};
+const processInfo=async b=>{const s=await b.newBrowserCDPSession();const sys=await s.send('SystemInfo.getInfo').catch(e=>({error:e.message}));const procs=await s.send('SystemInfo.getProcessInfo').catch(e=>({error:e.message}));await s.detach();
+ const ps=id=>{try{return execFileSync('ps',['-p',String(id),'-o','command='],{encoding:'utf8'}).trim();}catch{return null;}};
+ const rows=(procs.processInfo||[]).map(p=>({type:p.type,id:p.id,command:ps(p.id)}));
+ return {version:b.version(),defaultExecutable:chromium.executablePath(),processes:rows,gpu:sys.gpu?{devices:sys.gpu.devices,auxAttributes:sys.gpu.auxAttributes,featureStatus:sys.gpu.featureStatus,driverBugWorkarounds:sys.gpu.driverBugWorkarounds}:sys,modelName:sys.modelName,modelVersion:sys.modelVersion,commandLine:sys.commandLine};};
+const launch=async name=>{const b=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:FLAGS[name]});log('launched',name,JSON.stringify(FLAGS[name]),b.version());return b;};
+const contextFor=async(b,dev,session)=>b.newContext({ignoreHTTPSErrors:true,...(session?{storageState:session}:{}),...(dev==='desktop'?{viewport:{width:1440,height:900}}:dev==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true}:{viewport:{width:1440,height:1000}})});
+
+// The gate's warm repetition loop (tests/gallery-fixes-browser.mjs:74-86) with hunt marks and per-flip bookkeeping added; nothing removed.
+const LOOP=async({flips,stills,tag})=>{
+ const stats=a=>{const s=[...a].sort((a,b)=>a-b),q=p=>s[Math.min(s.length-1,Math.floor(s.length*p))];return {median:q(.5),p95:q(.95),max:s.at(-1),frames:s.length};};
+ const longs=[],o=new PerformanceObserver(l=>{for(const e of l.getEntries())longs.push({start:e.startTime,duration:e.duration,attribution:e.attribution?.map(a=>a.containerType+':'+a.containerName)});});o.observe({type:'longtask'});
+ const frame=()=>new Promise(r=>requestAnimationFrame(r)),fly=[],still=[],reveal=[],flipsLog=[];
+ const name=()=>document.querySelector('[data-album-name]').textContent;
+ performance.mark(tag+':start');const t0=performance.now(),startMold=name();
+ for(let i=0;i<flips;i++){
+  await frame();performance.mark(tag+':flip:'+i);const from=name();const start=performance.now();document.querySelector('[data-album-step="1"]').click();BagApp.scenes.album.debug.renderNow();fly.push(performance.now()-start);
+  let limit=performance.now()+10000,frames=0;while(true){const v=BagApp.scenes.album,p=v.state.props,ready=(!p.photoURL||v.debug.photo?.userData.photoReady)&&(!p.stampAsset||p.photoURL||v.debug.stamp.material.map?.userData.stampAsset);if(ready&&document.querySelector('#allDiscsGallery').dataset.appearance!=='loading')break;if(performance.now()>limit)throw Error('Appearance timed out');await frame();frames++;}
+  reveal.push(performance.now()-start);flipsLog.push({i,from,to:name(),start,fly:fly.at(-1),reveal:reveal.at(-1),frames});
+ }
+ performance.mark(tag+':stills');const stillStart=performance.now();
+ for(let i=0;i<stills;i++){await frame();const start=performance.now();BagApp.scenes.album.debug.renderNow();still.push(performance.now()-start);}
+ await new Promise(r=>setTimeout(r,100));o.disconnect();performance.mark(tag+':end');
+ const v=BagApp.scenes.album;return {startMold,t0,stillStart,tEnd:performance.now(),fly:fly.length?stats(fly):null,still:still.length?stats(still):null,reveal:reveal.length?stats(reveal):null,longTasks:longs.length,longest:Math.max(0,...longs.map(l=>l.duration)),longs,flips:flipsLog,calls:v.debug.renderer.info.render.calls,triangles:v.debug.renderer.info.render.triangles,pixelRatio:v.debug.renderer.getPixelRatio(),segments:v.debug.body.geometry.parameters?.radialSegments,canvases:document.querySelectorAll('#allDiscsGallery canvas').length,errors:[]};
+};
+
+// Trace categories: the six named in Phase 3, plus user timing (so the hunt marks land in the trace), callback stacks and
+// the GPU-process service/decoder/ANGLE detail needed to read what the GPU side was doing. Probe-only; the gate records nothing.
+const CATEGORIES=['devtools.timeline','disabled-by-default-devtools.timeline','blink','cc','gpu','v8.execute','blink.user_timing','disabled-by-default-devtools.timeline.stack','disabled-by-default-devtools.timeline.frame','toplevel','gpu.angle','disabled-by-default-gpu.service','disabled-by-default-gpu.decoder','disabled-by-default-gpu.angle','v8'];
+const captureTrace=async(cdp,run)=>{
+ const done=new Promise(resolve=>cdp.once('Tracing.tracingComplete',resolve));
+ await cdp.send('Tracing.start',{traceConfig:{includedCategories:CATEGORIES,recordMode:'recordUntilFull',traceBufferSizeInKb:1024*1024},transferMode:'ReturnAsStream',streamFormat:'json'});
+ let result,error;try{result=await run();}catch(e){error=e;}
+ await cdp.send('Tracing.end');const {stream}=await done;
+ const chunks=[];while(true){const r=await cdp.send('IO.read',{handle:stream,size:1<<22});chunks.push(r.base64Encoded?Buffer.from(r.data,'base64'):Buffer.from(r.data,'utf8'));if(r.eof)break;}
+ await cdp.send('IO.close',{handle:stream});
+ if(error)throw error;return {result,trace:Buffer.concat(chunks)};
+};
+
+try{
+ const deadline=Date.now()+60000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(logs);await new Promise(r=>setTimeout(r,200));}
+ log('fixture ready at',base,'stage',stage);
+ if(stage==='setup'){
+  browser=await launch('gate');
+  const context=await contextFor(browser),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64'),cb=new URL(u.searchParams.get('redirect_uri'));cb.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});});
+  await page.goto(base+'/?bag=1');await page.locator('#myBagSignIn').click();const link=page.getByRole('link',{name:'Continue with Google',exact:true});await link.waitFor();const redirect=await page.request.get(base+await link.getAttribute('href'),{maxRedirects:0});await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
+  const api=async(path='',method='GET',body)=>{const r=await page.request.fetch(base+'/api/bag'+path,{method,headers:await page.evaluate(()=>({'Content-Type':'application/json',Origin:location.origin,'X-Atlas-CSRF':AtlasAccount.current.csrfToken})),...(body?{data:body}:{})});assert.ok(r.ok(),await r.text());return r.json();};
+  const owned=[];for(const [mold_id,plastic,in_bag] of [['3d60892b6812','Star',true],['8cc6c4a94762','ESP',false],['7446eb39abe5','ESP',false],['ff4bf9e7743c','Putter Line Hard',false]])owned.push((await api('/discs','POST',{mold_id,plastic,in_bag,wear:8,weight_g:173,color:'#e6c668'})).disc);
+  const bytes=await page.evaluate(async bytes=>{const {preparePhoto}=await import('/disc-photo.mjs');const bitmap=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/webp'}));const {blob}=await preparePhoto(bitmap,{});bitmap.close();return [...new Uint8Array(await blob.arrayBuffer())];},[...fs.readFileSync('tests/fixtures/stamped-disc.webp')]);
+  const upload=await page.request.put(base+'/api/bag/discs/'+owned[0].id+'/photo',{headers:await page.evaluate(()=>({'Content-Type':'image/webp',Origin:location.origin,'X-Atlas-CSRF':AtlasAccount.current.csrfToken})),data:Buffer.from(bytes)});assert.ok(upload.ok(),await upload.text());
+  await enter(page);await page.waitForFunction(appearanceReady);
+  const molds=await page.evaluate(()=>discs.map(d=>d.name||d.mold_id));
+  log('owned copies',JSON.stringify(owned.map(o=>({id:o.id,mold_id:o.mold_id,plastic:o.plastic,photo:!!o.texture_key}))),'molds',JSON.stringify(molds));
+  await context.storageState({path:`${out}/session.json`});await context.close();
+  log('session saved (ignored, never evidence)');
+ }
+ if(stage==='renderer'){
+  browser=await launch(flagsName);
+  const report={flags:flagsName,args:FLAGS[flagsName],process:await processInfo(browser),contexts:{}};
+  for(const dev of ['gate-setup','phone','desktop']){
+   const c=await contextFor(browser,dev,`${out}/session.json`),p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));
+   const cdp=await c.newCDPSession(p);if(dev==='phone')await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+   await enter(p);await p.waitForFunction(appearanceReady);
+   report.contexts[dev]=await p.evaluate(glInfo);log(flagsName,dev,'UNMASKED_RENDERER_WEBGL =',report.contexts[dev].unmaskedRenderer,'| RENDERER =',report.contexts[dev].renderer);
+   await c.close();
+  }
+  report.errors=errors;fs.writeFileSync(`${out}/renderer-${flagsName}.json`,JSON.stringify(report,null,1)+'\n');
+  fs.writeFileSync(`${evidence}/renderer-${flagsName}.json`,JSON.stringify(report,null,1)+'\n');
+ }
+ if(stage==='trace'){
+  browser=await launch('gate');
+  const c=await contextFor(browser,device,`${out}/session.json`),p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));
+  const cdp=await c.newCDPSession(p);await cdp.send('Emulation.setCPUThrottlingRate',{rate:device==='phone'?4:1});await enter(p);await p.waitForFunction(appearanceReady);await p.locator('#allDiscsGallery').scrollIntoViewIfNeeded();
+  const gl=await p.evaluate(glInfo);log(device,'UNMASKED_RENDERER_WEBGL =',gl.unmaskedRenderer);
+  const warm=await p.evaluate(LOOP,{flips:4,stills:0,tag:'warm'});log(device,'warm-up 4 flips',JSON.stringify({start:warm.startMold,to:warm.flips.map(f=>f.to),longTasks:warm.longTasks,longest:warm.longest}));
+  await p.waitForTimeout(500);
+  const {result,trace}=await captureTrace(cdp,()=>p.evaluate(LOOP,{flips:241,stills:120,tag:'hunt'}));
+  const summary={fly:result.fly,still:result.still,reveal:result.reveal,longTasks:result.longTasks,longest:result.longest,calls:result.calls,triangles:result.triangles,pixelRatio:result.pixelRatio,segments:result.segments,canvases:result.canvases};
+  log(device,'gate loop 241+120',JSON.stringify(summary));
+  const name=`${device}-gate-241`,raw=`${out}/${name}.trace.json`;fs.writeFileSync(raw,trace);
+  const gz=zlib.gzipSync(trace,{level:9});fs.writeFileSync(`${evidence}/${name}.trace.json.gz`,gz);
+  const entry={file:`${name}.trace.json.gz`,raw_bytes:trace.length,gzip_bytes:gz.length,raw_sha256:sha(trace),gzip_sha256:sha(gz)};
+  const manifestPath=`${evidence}/manifest.json`,manifest=fs.existsSync(manifestPath)?JSON.parse(fs.readFileSync(manifestPath,'utf8')).filter(e=>e.file!==entry.file):[];manifest.push(entry);fs.writeFileSync(manifestPath,JSON.stringify(manifest,null,2)+'\n');
+  log('trace',JSON.stringify(entry));
+  const loop={device,flags:FLAGS.gate,cpuThrottle:device==='phone'?4:1,gl,process:await processInfo(browser),warmup:{startMold:warm.startMold,flips:warm.flips,longTasks:warm.longTasks,longest:warm.longest},...result,errors};
+  fs.writeFileSync(`${out}/${name}.loop.json`,JSON.stringify(loop,null,1)+'\n');fs.writeFileSync(`${evidence}/${name}.loop.json`,JSON.stringify(loop,null,1)+'\n');
+  await c.close();
+ }
+ assert.deepEqual(errors,[]);log('stage',stage,'done');
+}finally{await browser?.close();server.kill();}

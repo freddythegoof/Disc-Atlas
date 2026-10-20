@@ -1,0 +1,32 @@
+#!/usr/bin/env python3 -I
+"""For each microtask-dominated task in the flip block: flip index, mold arrived at, wall, and the named JS / canvas
+events inside it, so the long and short members of the class can be compared. usage: microtasks2.py <trace> <loop.json> <label>"""
+import json, sys, bisect
+from collections import Counter
+trace, loop_path, label = sys.argv[1:4]
+ev = json.load(open(trace))['traceEvents']; loop = json.load(open(loop_path))
+marks = sorted([e for e in ev if e.get('cat') == 'blink.user_timing' and e['name'].startswith('hunt:')], key=lambda e: e['ts'])
+pid, tid = marks[0]['pid'], marks[0]['tid']
+flips = [(e['ts'], int(e['name'].split(':')[2])) for e in marks if e['name'].startswith('hunt:flip:')]
+start = next(e['ts'] for e in marks if e['name'] == 'hunt:start'); stills = next(e['ts'] for e in marks if e['name'] == 'hunt:stills')
+fl = {f['i']: f for f in loop['flips']}
+main = sorted([e for e in ev if e['pid'] == pid and e['tid'] == tid and e.get('ph') == 'X' and 'dur' in e], key=lambda e: (e['ts'], -e['dur']))
+ts = [e['ts'] for e in main]; fts = [f[0] for f in flips]
+def flip_of(t):
+    i = bisect.bisect_right(fts, t) - 1; return flips[i][1] if i >= 0 else None
+rows = []
+for t in [e for e in main if e['name'] in ('RunTask', 'ThreadControllerImpl::RunTask') and start <= e['ts'] < stills]:
+    lo, hi = t['ts'], t['ts'] + t['dur']; i = bisect.bisect_left(ts, lo); names = Counter(); micro = 0; fns = Counter()
+    while i < len(main) and main[i]['ts'] < hi:
+        e = main[i]; i += 1
+        if e is t: continue
+        names[e['name']] += e['dur']
+        if e['name'] == 'RunMicrotasks': micro = max(micro, e['dur'])
+        a = e.get('args', {}).get('data', {}) or {}
+        if e['name'] in ('FunctionCall', 'v8.callFunction', 'v8.run') and (a.get('functionName') or a.get('url')): fns[(a.get('functionName'), (a.get('url') or '').split('/')[-1], a.get('lineNumber'))] += e['dur']
+    if micro >= 5000 and 'FireAnimationFrame' not in names and 'EventDispatch' not in names:
+        f = flip_of(lo); rows.append((f, fl.get(f, {}).get('to'), t['dur'] / 1000, micro / 1000, names, fns))
+print(label, 'n', len(rows))
+for f, to, wall, micro, names, fns in rows:
+    top = sorted(((k, v / 1000) for k, v in names.items() if k != 'RunMicrotasks'), key=lambda x: -x[1])[:5]
+    print(f'{label} flip {f} -> {to} wall {wall:.1f} micro {micro:.1f} | ' + ', '.join(f'{k} {v:.1f}' for k, v in top) + (' | fns: ' + ', '.join(f'{k[0]}@{k[1]}:{k[2]} {v/1000:.1f}' for k, v in fns.most_common(4)) if fns else ''))

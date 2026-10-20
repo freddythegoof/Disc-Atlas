@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/freddy/Disc-Atlas/.claude/worktrees/interesting-bun-3677b7/outputs/gallery-perf-hunt-mac/chain.py", line 24, in <module>
+    picks=[by[0]]+([med[len(med)//2]] if med else [])
+IndexError: list index out of range

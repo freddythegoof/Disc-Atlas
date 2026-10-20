@@ -1,0 +1,712 @@
+{
+ "label": "after-phone-metal",
+ "trace": "after-phone-metal-241.trace.json",
+ "events": 550548,
+ "main": {
+  "pid": 67767,
+  "tid": 2031430,
+  "thread": "CrRendererMain",
+  "process": "Renderer"
+ },
+ "gpu_processes": [
+  [
+   67765,
+   "GPU Process"
+  ]
+ ],
+ "gpu_threads": [
+  "CrGpuMain",
+  "ThreadPoolForegroundWorker",
+  "VizCompositorThread"
+ ],
+ "marks": {
+  "start": 107469851862,
+  "stills": 107480604775,
+  "end": 107482703213,
+  "flips": 241
+ },
+ "run_tasks": 7911,
+ "long_tasks_total": 15,
+ "long_tasks_by_phase": {
+  "flips": 15
+ },
+ "long_tasks_flips_block": 15,
+ "long_tasks_stills_block": 0,
+ "observer_long_tasks": 15,
+ "observer_longest_ms": 71,
+ "longest_ms": 71.915,
+ "ratio_table": [
+  {
+   "class": "photo continuation (Destroyer arrival)",
+   "n": 15,
+   "wall_median": 69.405,
+   "wall_max": 71.915,
+   "cpu_median": 69.329,
+   "ratio_min": 0.94,
+   "ratio_p25": 1.0,
+   "ratio_median": 1.0,
+   "ratio_p75": 1.0,
+   "ratio_max": 1.0,
+   "js_self_median": 59.5,
+   "style_max_max": 0.0,
+   "layout_max_max": 0.0,
+   "paint_max_max": 0.0
+  }
+ ],
+ "per_flip": {
+  "flips_with_long_task": 15,
+  "flips_with_two_or_more": 0,
+  "class_mix_per_flip": [
+   [
+    "photo continuation (Destroyer arrival)",
+    15
+   ]
+  ]
+ },
+ "by_from_mold": {
+  "Luna": 15
+ },
+ "by_to_mold": {
+  "Destroyer": 15
+ },
+ "by_class_and_to_mold": [
+  {
+   "class": "photo continuation (Destroyer arrival)",
+   "to": "Destroyer",
+   "n": 15
+  }
+ ],
+ "child_names_by_class": {
+  "photo continuation (Destroyer arrival)": []
+ },
+ "longest_five": [
+  {
+   "task": 13,
+   "wall_ms": 71.915,
+   "cpu_ms": 71.705,
+   "ratio": 1.0,
+   "flip": 231,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "photo continuation (Destroyer arrival)",
+   "callback": "",
+   "top_self": "RunMicrotasks 61.3; ThreadControllerImpl::RunTask 4.7; CanvasRenderingContext2D::FinalizeFrame 3.1; GetImageData 0.9; V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.6; V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.6",
+   "gpu_main": "",
+   "gpu_busy_ms": {
+    "CrGpuMain": 0.037,
+    "VizCompositorThread": 0.086
+   },
+   "gpu_top": [
+    {
+     "thread": "VizCompositorThread",
+     "name": "RunTask",
+     "count": 9,
+     "clipped_ms": 0.086,
+     "max_ms": 0.024
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 9,
+     "clipped_ms": 0.079,
+     "max_ms": 0.021
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 2,
+     "clipped_ms": 0.037,
+     "max_ms": 0.027
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 2,
+     "clipped_ms": 0.036,
+     "max_ms": 0.027
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 2,
+     "clipped_ms": 0.034,
+     "max_ms": 0.026
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 2,
+     "clipped_ms": 0.03,
+     "max_ms": 0.025
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImageWithBuffer",
+     "count": 1,
+     "clipped_ms": 0.024,
+     "max_ms": 0.024
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::CreateSharedImage",
+     "count": 1,
+     "clipped_ms": 0.022,
+     "max_ms": 0.022
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "SimpleWatcher::OnHandleReady",
+     "count": 3,
+     "clipped_ms": 0.02,
+     "max_ms": 0.008
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "Receive mojo message",
+     "count": 3,
+     "clipped_ms": 0.007,
+     "max_ms": 0.003
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GLContextEGL::MakeCurrent",
+     "count": 1,
+     "clipped_ms": 0.005,
+     "max_ms": 0.005
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImagePool",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::FinishTask",
+     "count": 1,
+     "clipped_ms": 0.001,
+     "max_ms": 0.001
+    }
+   ]
+  },
+  {
+   "task": 12,
+   "wall_ms": 70.254,
+   "cpu_ms": 70.006,
+   "ratio": 1.0,
+   "flip": 223,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "photo continuation (Destroyer arrival)",
+   "callback": "",
+   "top_self": "RunMicrotasks 60.6; ThreadControllerImpl::RunTask 4.4; CanvasRenderingContext2D::FinalizeFrame 2.6; V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS 0.7; V8.HandleInterrupts 0.6; GetImageData 0.5",
+   "gpu_main": "",
+   "gpu_busy_ms": {
+    "CrGpuMain": 0.036,
+    "VizCompositorThread": 0.051
+   },
+   "gpu_top": [
+    {
+     "thread": "VizCompositorThread",
+     "name": "RunTask",
+     "count": 9,
+     "clipped_ms": 0.051,
+     "max_ms": 0.009
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 8,
+     "clipped_ms": 0.047,
+     "max_ms": 0.009
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 2,
+     "clipped_ms": 0.036,
+     "max_ms": 0.025
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 2,
+     "clipped_ms": 0.033,
+     "max_ms": 0.024
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 2,
+     "clipped_ms": 0.031,
+     "max_ms": 0.024
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 2,
+     "clipped_ms": 0.028,
+     "max_ms": 0.022
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImageWithBuffer",
+     "count": 1,
+     "clipped_ms": 0.021,
+     "max_ms": 0.021
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::CreateSharedImage",
+     "count": 1,
+     "clipped_ms": 0.019,
+     "max_ms": 0.019
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "SimpleWatcher::OnHandleReady",
+     "count": 3,
+     "clipped_ms": 0.018,
+     "max_ms": 0.008
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "Receive mojo message",
+     "count": 3,
+     "clipped_ms": 0.005,
+     "max_ms": 0.002
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImagePool",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GLContextEGL::MakeCurrent",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    }
+   ],
+   "gpu_keyword_events": []
+  },
+  {
+   "task": 10,
+   "wall_ms": 70.057,
+   "cpu_ms": 74.219,
+   "ratio": 0.94,
+   "flip": 207,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "photo continuation (Destroyer arrival)",
+   "callback": "",
+   "top_self": "RunMicrotasks 59.5; ThreadControllerImpl::RunTask 4.6; CanvasRenderingContext2D::FinalizeFrame 2.2; MinorGC 0.6; V8.StackGuard 0.6; V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.6",
+   "gpu_main": "",
+   "gpu_busy_ms": {
+    "CrGpuMain": 0.16,
+    "VizCompositorThread": 0.065
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 2,
+     "clipped_ms": 0.16,
+     "max_ms": 0.151
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 2,
+     "clipped_ms": 0.159,
+     "max_ms": 0.151
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 2,
+     "clipped_ms": 0.157,
+     "max_ms": 0.15
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 2,
+     "clipped_ms": 0.154,
+     "max_ms": 0.149
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImageWithBuffer",
+     "count": 1,
+     "clipped_ms": 0.148,
+     "max_ms": 0.148
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::CreateSharedImage",
+     "count": 1,
+     "clipped_ms": 0.147,
+     "max_ms": 0.147
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GLContextEGL::MakeCurrent",
+     "count": 1,
+     "clipped_ms": 0.134,
+     "max_ms": 0.134
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "RunTask",
+     "count": 9,
+     "clipped_ms": 0.065,
+     "max_ms": 0.014
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 8,
+     "clipped_ms": 0.054,
+     "max_ms": 0.012
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "SimpleWatcher::OnHandleReady",
+     "count": 3,
+     "clipped_ms": 0.016,
+     "max_ms": 0.007
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "Receive mojo message",
+     "count": 3,
+     "clipped_ms": 0.006,
+     "max_ms": 0.003
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImagePool",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    }
+   ],
+   "gpu_keyword_events": []
+  },
+  {
+   "task": 2,
+   "wall_ms": 69.888,
+   "cpu_ms": 69.675,
+   "ratio": 1.0,
+   "flip": 143,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "photo continuation (Destroyer arrival)",
+   "callback": "",
+   "top_self": "RunMicrotasks 58.9; ThreadControllerImpl::RunTask 5.1; CanvasRenderingContext2D::FinalizeFrame 2.6; GetImageData 1.3; V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE 0.8; ComputeWeaknessProcessor start 0.5",
+   "gpu_main": "",
+   "gpu_busy_ms": {
+    "CrGpuMain": 0.036,
+    "VizCompositorThread": 0.063
+   },
+   "gpu_top": [
+    {
+     "thread": "VizCompositorThread",
+     "name": "RunTask",
+     "count": 10,
+     "clipped_ms": 0.063,
+     "max_ms": 0.014
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 10,
+     "clipped_ms": 0.06,
+     "max_ms": 0.013
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 2,
+     "clipped_ms": 0.036,
+     "max_ms": 0.026
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 2,
+     "clipped_ms": 0.034,
+     "max_ms": 0.025
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 2,
+     "clipped_ms": 0.033,
+     "max_ms": 0.025
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 2,
+     "clipped_ms": 0.03,
+     "max_ms": 0.024
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImageWithBuffer",
+     "count": 1,
+     "clipped_ms": 0.023,
+     "max_ms": 0.023
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "SimpleWatcher::OnHandleReady",
+     "count": 3,
+     "clipped_ms": 0.022,
+     "max_ms": 0.011
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::CreateSharedImage",
+     "count": 1,
+     "clipped_ms": 0.022,
+     "max_ms": 0.022
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "Receive mojo message",
+     "count": 3,
+     "clipped_ms": 0.005,
+     "max_ms": 0.002
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImagePool",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GLContextEGL::MakeCurrent",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::FinishTask",
+     "count": 1,
+     "clipped_ms": 0.001,
+     "max_ms": 0.001
+    }
+   ]
+  },
+  {
+   "task": 14,
+   "wall_ms": 69.601,
+   "cpu_ms": 74.124,
+   "ratio": 0.94,
+   "flip": 239,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "photo continuation (Destroyer arrival)",
+   "callback": "",
+   "top_self": "RunMicrotasks 58.8; ThreadControllerImpl::RunTask 4.8; CanvasRenderingContext2D::FinalizeFrame 2.6; GetImageData 0.8; V8.GC_SCAVENGER_SCAVENGE_ROOTS 0.7; V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS 0.6",
+   "gpu_main": "",
+   "gpu_busy_ms": {
+    "CrGpuMain": 0.166,
+    "VizCompositorThread": 0.064
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 2,
+     "clipped_ms": 0.166,
+     "max_ms": 0.156
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 2,
+     "clipped_ms": 0.165,
+     "max_ms": 0.156
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 2,
+     "clipped_ms": 0.163,
+     "max_ms": 0.155
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 2,
+     "clipped_ms": 0.16,
+     "max_ms": 0.154
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImageWithBuffer",
+     "count": 1,
+     "clipped_ms": 0.153,
+     "max_ms": 0.153
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::CreateSharedImage",
+     "count": 1,
+     "clipped_ms": 0.152,
+     "max_ms": 0.152
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GLContextEGL::MakeCurrent",
+     "count": 1,
+     "clipped_ms": 0.135,
+     "max_ms": 0.135
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "RunTask",
+     "count": 9,
+     "clipped_ms": 0.064,
+     "max_ms": 0.021
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 9,
+     "clipped_ms": 0.051,
+     "max_ms": 0.014
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "SimpleWatcher::OnHandleReady",
+     "count": 3,
+     "clipped_ms": 0.014,
+     "max_ms": 0.006
+    },
+    {
+     "thread": "VizCompositorThread",
+     "name": "Receive mojo message",
+     "count": 3,
+     "clipped_ms": 0.005,
+     "max_ms": 0.002
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "SharedImageStub::OnCreateSharedImagePool",
+     "count": 1,
+     "clipped_ms": 0.004,
+     "max_ms": 0.004
+    }
+   ],
+   "gpu_keyword_events": []
+  }
+ ],
+ "gpu_over_all_long_windows": [
+  {
+   "thread": "CrGpuMain",
+   "name": "RunTask",
+   "count": 34,
+   "clipped_ms": 1.3
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "ThreadControllerImpl::RunTask",
+   "count": 34,
+   "clipped_ms": 1.2
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "Scheduler::RunTask",
+   "count": 30,
+   "clipped_ms": 1.2
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "GpuChannel::ExecuteDeferredRequest",
+   "count": 30,
+   "clipped_ms": 1.2
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "SharedImageStub::OnCreateSharedImageWithBuffer",
+   "count": 15,
+   "clipped_ms": 1.1
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "SharedImageStub::CreateSharedImage",
+   "count": 15,
+   "clipped_ms": 1.0
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "RunTask",
+   "count": 136,
+   "clipped_ms": 0.9
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "GLContextEGL::MakeCurrent",
+   "count": 14,
+   "clipped_ms": 0.8
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "ThreadControllerImpl::RunTask",
+   "count": 130,
+   "clipped_ms": 0.8
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "SimpleWatcher::OnHandleReady",
+   "count": 45,
+   "clipped_ms": 0.2
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "Receive mojo message",
+   "count": 43,
+   "clipped_ms": 0.1
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "SharedImageStub::OnCreateSharedImagePool",
+   "count": 15,
+   "clipped_ms": 0.1
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "Scheduler::FinishTask",
+   "count": 6,
+   "clipped_ms": 0.0
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "CommandBufferStub::PerformWork",
+   "count": 2,
+   "clipped_ms": 0.0
+  }
+ ],
+ "flip_block_gpu_busy_ms": {
+  "VizCompositorThread": 53.674,
+  "CrGpuMain": 1738.617,
+  "ThreadPoolForegroundWorker": 321.8
+ },
+ "flip_block_wall_ms": 10752.9
+}

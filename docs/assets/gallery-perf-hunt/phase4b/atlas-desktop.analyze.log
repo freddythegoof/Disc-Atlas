@@ -1,0 +1,10 @@
+== atlas-desktop: {'pid': 63835, 'tid': 1900601, 'thread': 'CrRendererMain', 'process': 'Renderer'} | GPU threads ['CrGpuMain', 'ThreadPoolForegroundWorker', 'VizCompositorThread']
+RunTasks 18775, long tasks 0 by phase {}; observer 0 longest 0; trace longest 0
+ratio table:
+per flip: {'flips_with_long_task': 0, 'flips_with_two_or_more': 0, 'class_mix_per_flip': []}
+by from mold: {} | by to mold: {}
+by class and to mold: []
+child urls by class: {}
+flip block gpu busy ms: {'VizCompositorThread': 70.343, 'CrGpuMain': 1695.078, 'ThreadPoolForegroundWorker': 383.126} of wall 9991.6
+longest five:
+gpu over all long windows:

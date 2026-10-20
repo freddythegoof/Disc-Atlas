@@ -1,0 +1,4100 @@
+{
+ "device": "phone",
+ "phase": "before",
+ "flagsName": "gate",
+ "flags": [
+  "--use-angle=d3d11",
+  "--enable-gpu"
+ ],
+ "baselineRoutes": [
+  "/",
+  "/my-bag.css",
+  "/my-bag.js",
+  "/all-discs-gallery.js"
+ ],
+ "baselineBase": "e59e67e10f263718a47ca4fd842a70db630d5987",
+ "cpuThrottle": 4,
+ "gl": {
+  "unmaskedRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+  "unmaskedVendor": "Google Inc. (Google)",
+  "renderer": "WebKit WebGL",
+  "vendor": "WebKit",
+  "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+  "glsl": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+  "webgl2": true,
+  "contextAttributes": {
+   "alpha": true,
+   "antialias": true,
+   "depth": true,
+   "desynchronized": false,
+   "failIfMajorPerformanceCaveat": false,
+   "powerPreference": "low-power",
+   "premultipliedAlpha": true,
+   "preserveDrawingBuffer": false,
+   "stencil": false,
+   "xrCompatible": false
+  },
+  "samples": 4,
+  "maxTextureSize": 8192,
+  "pixelRatio": 2,
+  "drawingBuffer": [
+   708,
+   574
+  ],
+  "devicePixelRatio": 2,
+  "viewport": [
+   390,
+   844
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "hardwareConcurrency": 10,
+  "mold": "Destroyer"
+ },
+ "process": {
+  "version": "156.0.8078.4",
+  "defaultExecutable": "/Users/freddy/Library/Caches/ms-playwright/chromium-1248/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "processes": [
+   {
+    "type": "browser",
+    "id": 63691,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-angle=d3d11 --enable-gpu --user-data-dir=/var/folders/c3/n3tnpr8x46x9th508tnyh1880000gn/T/playwright_chromiumdev_profile-L4S4PL --remote-debugging-pipe --no-startup-window"
+   },
+   {
+    "type": "renderer",
+    "id": 63694,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=old --no-sandbox --disable-back-forward-cache --disable-background-timer-throttling --disable-breakpad --force-color-profile=srgb --remote-debugging-pipe --allow-pre-commit-input --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=4 --launch-time-ticks=97492288061 --shared-files --field-trial-handle=1718379636,r,81843114144959789,1783458435583950750,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1441254104128266630,10109525220818312797,4 --trace-process-track-uuid=3190708990060038890"
+   },
+   {
+    "type": "network.mojom.NetworkService",
+    "id": 63693,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --no-sandbox --use-angle=d3d11 --mute-audio --headless=old --shared-files --field-trial-handle=1718379636,r,81843114144959789,1783458435583950750,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1441254104128266630,10109525220818312797,4 --trace-process-track-uuid=3190708989122997041"
+   },
+   {
+    "type": "GPU",
+    "id": 63695,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --gpu-recent-crash-count=0 --no-sandbox --disable-breakpad --headless --enable-unsafe-swiftshader --enable-gpu --gpu-preferences=WAAAAAAAAAAgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAAAAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAADAAAAAEAAAAAAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --use-gl=angle --use-angle=swiftshader-webgl --shared-files --field-trial-handle=1718379636,r,81843114144959789,1783458435583950750,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1441254104128266630,10109525220818312797,4 --trace-process-track-uuid=3190708990997080739"
+   },
+   {
+    "type": "tracing.mojom.TracingService",
+    "id": 63698,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub-type=tracing.mojom.TracingService --lang=en-US --service-sandbox-type=service --no-sandbox --use-angle=d3d11 --mute-audio --headless=old --shared-files --field-trial-handle=1718379636,r,81843114144959789,1783458435583950750,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1441254104128266630,10109525220818312797,4 --trace-process-track-uuid=3190708991934122588"
+   }
+  ],
+  "gpu": {
+   "devices": [
+    {
+     "vendorId": 65535,
+     "deviceId": 65535,
+     "vendorString": "Google Inc. (Google)",
+     "deviceString": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+     "driverVendor": "SwANGLE",
+     "driverVersion": "5.0.0"
+    }
+   ],
+   "auxAttributes": {
+    "amdSwitchable": false,
+    "canSupportThreadedTextureMailbox": false,
+    "directRenderingVersion": "",
+    "displayType": "ANGLE_SWIFTSHADER",
+    "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_compressed_texture_etc GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_robust_resource_initialization GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_APPLE_clip_distance GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_debug GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_texture_lod_bias ",
+    "glImplementationParts": "(gl=egl-angle,angle=swiftshader)",
+    "glRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+    "glResetNotificationStrategy": 33362,
+    "glVendor": "Google Inc. (Google)",
+    "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28967 git hash: dfeede58b618)",
+    "glWsExtensions": "",
+    "glWsVendor": "",
+    "glWsVersion": "",
+    "inProcessGpu": false,
+    "initializationTime": 0.011978,
+    "isAsan": false,
+    "isClangCoverage": false,
+    "jpegDecodeAcceleratorSupported": false,
+    "maxMsaaSamples": "4",
+    "optimus": false,
+    "passthroughCmdDecoder": true,
+    "pixelShaderVersion": "3.00",
+    "processCrashCount": 0,
+    "sandboxed": false,
+    "skiaBackendType": "None",
+    "subpixelFontRendering": true,
+    "targetCpuBits": 64,
+    "vertexShaderVersion": "3.00",
+    "visibilityCallbackCallCount": 0
+   },
+   "featureStatus": {
+    "2d_canvas": "unavailable_software",
+    "direct_rendering_display_compositor": "disabled_off_ok",
+    "gpu_compositing": "disabled_software",
+    "multiple_raster_threads": "enabled_on",
+    "opengl": "disabled_off",
+    "rasterization": "disabled_software",
+    "raw_draw": "disabled_off_ok",
+    "skia_graphite": "disabled_off",
+    "trees_in_viz": "disabled_off",
+    "video_decode": "disabled_software",
+    "video_encode": "disabled_software",
+    "webgl": "unavailable_software",
+    "webgpu": "unavailable_software",
+    "webnn": "unavailable_software"
+   },
+   "driverBugWorkarounds": []
+  },
+  "modelName": "Mac",
+  "modelVersion": "16.12",
+  "commandLine": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-angle=d3d11 --enable-gpu --user-data-dir=/var/folders/c3/n3tnpr8x46x9th508tnyh1880000gn/T/playwright_chromiumdev_profile-L4S4PL --remote-debugging-pipe --no-startup-window --use-mock-keychain --allow-pre-commit-input"
+ },
+ "warmup": {
+  "startMold": "Destroyer",
+  "flips": [
+   {
+    "i": 0,
+    "from": "Destroyer",
+    "to": "Stalker",
+    "start": 4810.20000000298,
+    "fly": 13.199999988079071,
+    "reveal": 123.69999998807907,
+    "frames": 3
+   },
+   {
+    "i": 1,
+    "from": "Stalker",
+    "to": "Buzzz",
+    "start": 4965,
+    "fly": 11.5,
+    "reveal": 99.3999999910593,
+    "frames": 3
+   },
+   {
+    "i": 2,
+    "from": "Buzzz",
+    "to": "Luna",
+    "start": 5098.20000000298,
+    "fly": 8.799999997019768,
+    "reveal": 95.09999999403954,
+    "frames": 3
+   },
+   {
+    "i": 3,
+    "from": "Luna",
+    "to": "Destroyer",
+    "start": 5225.0999999940395,
+    "fly": 12.400000005960464,
+    "reveal": 127.29999999701977,
+    "frames": 3
+   }
+  ],
+  "longTasks": 2,
+  "longest": 257
+ },
+ "startMold": "Destroyer",
+ "t0": 6130.29999999702,
+ "stillStart": 45500.79999999702,
+ "tEnd": 48825.89999999106,
+ "fly": {
+  "median": 10.900000005960464,
+  "p95": 12.700000002980232,
+  "max": 16,
+  "frames": 241
+ },
+ "still": {
+  "median": 0.10000000894069672,
+  "p95": 0.8999999910593033,
+  "max": 0.9000000059604645,
+  "frames": 120
+ },
+ "reveal": {
+  "median": 11.700000002980232,
+  "p95": 170,
+  "max": 217.20000000298023,
+  "frames": 241
+ },
+ "longTasks": 244,
+ "longest": 302,
+ "longs": [
+  {
+   "start": 6183.29999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 6273.0999999940395,
+   "duration": 92,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 6365.0999999940395,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 6539.29999999702,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 6844.399999991059,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 6934.0999999940395,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7025.29999999702,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7171.399999991059,
+   "duration": 71,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7242.899999991059,
+   "duration": 242,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7531.0999999940395,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7620.0999999940395,
+   "duration": 92,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7712.70000000298,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 7884.20000000298,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8187.899999991059,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8278.70000000298,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8370.5,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8460.29999999702,
+   "duration": 53,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8555.39999999106,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8860.79999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 8950.79999999702,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 9041.89999999106,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 9213.5,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 9518.20000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 9608.5,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 9697.5,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 9871.79999999702,
+   "duration": 302,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 10219.20000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 10309.39999999106,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 10400.5,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 10572.89999999106,
+   "duration": 271,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 10888.09999999404,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 10977,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 11067.5,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 11236.20000000298,
+   "duration": 258,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 11538.70000000298,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 11626.70000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 11717.20000000298,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 11886.70000000298,
+   "duration": 263,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 12194.59999999404,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 12284.89999999106,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 12375.79999999702,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 12544.09999999404,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 12849.09999999404,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 12939.20000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 13029.79999999702,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 13199,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 13505,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 13594.79999999702,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 13685.09999999404,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 13855.09999999404,
+   "duration": 257,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14157,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14245.09999999404,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14334.79999999702,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14500.5,
+   "duration": 258,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14802.70000000298,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14891.5,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 14982.5,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 15151.70000000298,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 15458.70000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 15548.09999999404,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 15638.89999999106,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 15808.79999999702,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16112.59999999404,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16202.5,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16293.5,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16464.5,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16773,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16862.79999999702,
+   "duration": 92,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 16956.20000000298,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 17122.20000000298,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 17424.89999999106,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 17514.5,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 17604.29999999702,
+   "duration": 83,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 17771.09999999404,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18076.79999999702,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18166.09999999404,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18257,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18424,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18727.5,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18817.70000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 18909,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 19083.70000000298,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 19392.70000000298,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 19482.09999999404,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 19573.59999999404,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 19742.20000000298,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20047.29999999702,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20136.09999999404,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20226,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20394.70000000298,
+   "duration": 256,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20701.70000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20791.79999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 20881,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 21049.09999999404,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 21354.59999999404,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 21444.79999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 21534.79999999702,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 21702.5,
+   "duration": 258,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22006.70000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22096.89999999106,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22186.59999999404,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22353.20000000298,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22656.5,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22748.29999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 22838.79999999702,
+   "duration": 95,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 23019.20000000298,
+   "duration": 257,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 23321.5,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 23410.59999999404,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 23501.09999999404,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 23667.79999999702,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 23970.89999999106,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24060.79999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24149.89999999106,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24319.09999999404,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24624,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24713.89999999106,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24803.70000000298,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 24971.39999999106,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 25274,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 25364.79999999702,
+   "duration": 92,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 25456.89999999106,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 25627,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 25933,
+   "duration": 95,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26029.39999999106,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26117.79999999702,
+   "duration": 83,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26283.89999999106,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26586.5,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26675.59999999404,
+   "duration": 95,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26771.39999999106,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 26941.09999999404,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 27245.20000000298,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 27333.29999999702,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 27424.5,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 27592.89999999106,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 27899.20000000298,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 27988.20000000298,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 28077.09999999404,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 28245.70000000298,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 28550.20000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 28640.20000000298,
+   "duration": 93,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 28733.79999999702,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 28902.29999999702,
+   "duration": 258,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 29204,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 29293.70000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 29383.59999999404,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 29548.5,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 29854,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 29943.20000000298,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 30032.39999999106,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 30201.59999999404,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 30505.5,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 30594.20000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 30685.20000000298,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 30853,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31154.70000000298,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31246.20000000298,
+   "duration": 95,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31342.5,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31510.20000000298,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31815.20000000298,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31903.09999999404,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 31993.5,
+   "duration": 82,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 32157.5,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 32460.59999999404,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 32549.39999999106,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 32637.59999999404,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 32805.89999999106,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33112.20000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33201.89999999106,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33293.09999999404,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33462.39999999106,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33768.20000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33859.29999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 33949.09999999404,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 34119.59999999404,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 34425.79999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 34515.5,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 34605.89999999106,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 34772.29999999702,
+   "duration": 257,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35073.39999999106,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35163,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35252.09999999404,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35420.09999999404,
+   "duration": 256,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35722,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35813.70000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 35903.20000000298,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 36070.5,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 36375,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 36465.89999999106,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 36557.29999999702,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 36645.5,
+   "duration": 52,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 36735.29999999702,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37040.29999999702,
+   "duration": 87,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37128.89999999106,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37218.20000000298,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37386.20000000298,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37690.70000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37781,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 37869.89999999106,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 38044.09999999404,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 38347.5,
+   "duration": 93,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 38441,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 38531.79999999702,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 38697.20000000298,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39003.5,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39094.09999999404,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39183.79999999702,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39354.09999999404,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39663.09999999404,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39752.59999999404,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 39843.20000000298,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 40012,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 40314.20000000298,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 40405.29999999702,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 40496.29999999702,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 40666.59999999404,
+   "duration": 259,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 40970.20000000298,
+   "duration": 86,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41058,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41146.89999999106,
+   "duration": 83,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41313.79999999702,
+   "duration": 257,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41614.29999999702,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41703,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41792.89999999106,
+   "duration": 85,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 41961.59999999404,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 42267.29999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 42357.29999999702,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 42447.59999999404,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 42615.29999999702,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 42920.70000000298,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43010.79999999702,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43100.89999999106,
+   "duration": 84,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43270.39999999106,
+   "duration": 262,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43578.20000000298,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43667.5,
+   "duration": 89,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43758,
+   "duration": 83,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 43924.39999999106,
+   "duration": 258,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 44226.5,
+   "duration": 90,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 44317.20000000298,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 44405.59999999404,
+   "duration": 82,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 44572.5,
+   "duration": 261,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 44879.89999999106,
+   "duration": 88,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 44968.79999999702,
+   "duration": 91,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 45060.89999999106,
+   "duration": 83,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 45227.79999999702,
+   "duration": 260,
+   "attribution": [
+    "window:"
+   ]
+  },
+  {
+   "start": 45532.09999999404,
+   "duration": 73,
+   "attribution": [
+    "window:"
+   ]
+  }
+ ],
+ "flips": [
+  {
+   "i": 0,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6142.79999999702,
+   "fly": 16,
+   "reveal": 16,
+   "frames": 0
+  },
+  {
+   "i": 1,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6185,
+   "fly": 11.399999991059303,
+   "reveal": 11.399999991059303,
+   "frames": 0
+  },
+  {
+   "i": 2,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6274.79999999702,
+   "fly": 12,
+   "reveal": 12,
+   "frames": 0
+  },
+  {
+   "i": 3,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6367,
+   "fly": 12.5,
+   "reveal": 172.5,
+   "frames": 4
+  },
+  {
+   "i": 4,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6800.399999991059,
+   "fly": 12.700000002980232,
+   "reveal": 12.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 5,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6845.399999991059,
+   "fly": 11.700000002980232,
+   "reveal": 11.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 6,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6935.20000000298,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 7,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7026.5,
+   "fly": 10.399999991059303,
+   "reveal": 217.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 8,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7485.5,
+   "fly": 13.599999994039536,
+   "reveal": 13.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 9,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7531.899999991059,
+   "fly": 11.600000008940697,
+   "reveal": 11.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 10,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7621.79999999702,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 11,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7713.399999991059,
+   "fly": 10.800000011920929,
+   "reveal": 170.80000001192093,
+   "frames": 3
+  },
+  {
+   "i": 12,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8144.5,
+   "fly": 11.899999991059303,
+   "reveal": 11.899999991059303,
+   "frames": 0
+  },
+  {
+   "i": 13,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8189.5999999940395,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 14,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8280.20000000298,
+   "fly": 10.699999988079071,
+   "reveal": 10.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 15,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8371.09999999404,
+   "fly": 11.200000002980232,
+   "reveal": 184.5,
+   "frames": 3
+  },
+  {
+   "i": 16,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8816.79999999702,
+   "fly": 12.700000002980232,
+   "reveal": 12.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 17,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8861.89999999106,
+   "fly": 10.400000005960464,
+   "reveal": 10.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 18,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8951.89999999106,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 19,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9042.89999999106,
+   "fly": 10.100000008940697,
+   "reveal": 171,
+   "frames": 3
+  },
+  {
+   "i": 20,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9474.89999999106,
+   "fly": 12,
+   "reveal": 12,
+   "frames": 0
+  },
+  {
+   "i": 21,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9520.09999999404,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 22,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9609.39999999106,
+   "fly": 10.600000008940697,
+   "reveal": 10.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 23,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9698.79999999702,
+   "fly": 10.200000002980232,
+   "reveal": 173,
+   "frames": 4
+  },
+  {
+   "i": 24,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10174.79999999702,
+   "fly": 12.5,
+   "reveal": 12.5,
+   "frames": 0
+  },
+  {
+   "i": 25,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10220.70000000298,
+   "fly": 10.899999991059303,
+   "reveal": 10.899999991059303,
+   "frames": 0
+  },
+  {
+   "i": 26,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10310.59999999404,
+   "fly": 11.100000008940697,
+   "reveal": 11.100000008940697,
+   "frames": 0
+  },
+  {
+   "i": 27,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10401.5,
+   "fly": 10.599999994039536,
+   "reveal": 171.3999999910593,
+   "frames": 4
+  },
+  {
+   "i": 28,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10844.5,
+   "fly": 12.299999997019768,
+   "reveal": 12.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 29,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10889.89999999106,
+   "fly": 11.300000011920929,
+   "reveal": 11.300000011920929,
+   "frames": 0
+  },
+  {
+   "i": 30,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10978.29999999702,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 31,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 11068.79999999702,
+   "fly": 10.099999994039536,
+   "reveal": 167.5,
+   "frames": 4
+  },
+  {
+   "i": 32,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 11494.89999999106,
+   "fly": 13.300000011920929,
+   "reveal": 13.300000011920929,
+   "frames": 0
+  },
+  {
+   "i": 33,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 11539.59999999404,
+   "fly": 9.900000005960464,
+   "reveal": 9.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 34,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 11627.70000000298,
+   "fly": 10.399999991059303,
+   "reveal": 10.399999991059303,
+   "frames": 0
+  },
+  {
+   "i": 35,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 11717.79999999702,
+   "fly": 11.700000002980232,
+   "reveal": 169.5,
+   "frames": 4
+  },
+  {
+   "i": 36,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 12151.29999999702,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 37,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 12196,
+   "fly": 11.700000002980232,
+   "reveal": 11.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 38,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 12286.20000000298,
+   "fly": 10.599999994039536,
+   "reveal": 10.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 39,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 12376.89999999106,
+   "fly": 9.700000002980232,
+   "reveal": 167.30000001192093,
+   "frames": 3
+  },
+  {
+   "i": 40,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 12804,
+   "fly": 13.200000002980232,
+   "reveal": 13.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 41,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 12850.09999999404,
+   "fly": 11.299999997019768,
+   "reveal": 11.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 42,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 12940.70000000298,
+   "fly": 11.299999997019768,
+   "reveal": 11.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 43,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 13031.09999999404,
+   "fly": 10.5,
+   "reveal": 168.40000000596046,
+   "frames": 3
+  },
+  {
+   "i": 44,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 13461.59999999404,
+   "fly": 12.299999997019768,
+   "reveal": 12.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 45,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 13505.89999999106,
+   "fly": 11.400000005960464,
+   "reveal": 11.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 46,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 13595.89999999106,
+   "fly": 11.400000005960464,
+   "reveal": 11.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 47,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 13686.39999999106,
+   "fly": 10,
+   "reveal": 168.70000000298023,
+   "frames": 4
+  },
+  {
+   "i": 48,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 14113.20000000298,
+   "fly": 12.599999994039536,
+   "reveal": 12.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 49,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 14158.09999999404,
+   "fly": 10.400000005960464,
+   "reveal": 10.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 50,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 14246.09999999404,
+   "fly": 10.400000005960464,
+   "reveal": 10.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 51,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 14336.09999999404,
+   "fly": 10.400000005960464,
+   "reveal": 164.5,
+   "frames": 4
+  },
+  {
+   "i": 52,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 14759.70000000298,
+   "fly": 11.699999988079071,
+   "reveal": 11.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 53,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 14804,
+   "fly": 11.399999991059303,
+   "reveal": 11.399999991059303,
+   "frames": 0
+  },
+  {
+   "i": 54,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 14893,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 55,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 14983.79999999702,
+   "fly": 9.299999997019768,
+   "reveal": 168,
+   "frames": 4
+  },
+  {
+   "i": 56,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 15414.39999999106,
+   "fly": 12.700000002980232,
+   "reveal": 12.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 57,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 15459.39999999106,
+   "fly": 11.200000002980232,
+   "reveal": 11.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 58,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 15549.5,
+   "fly": 10.299999997019768,
+   "reveal": 10.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 59,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 15639.79999999702,
+   "fly": 10.799999997019768,
+   "reveal": 169.70000000298023,
+   "frames": 3
+  },
+  {
+   "i": 60,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 16069.09999999404,
+   "fly": 11.799999997019768,
+   "reveal": 11.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 61,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 16114,
+   "fly": 11.599999994039536,
+   "reveal": 11.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 62,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 16203.79999999702,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 63,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 16294.59999999404,
+   "fly": 9.600000008940697,
+   "reveal": 170,
+   "frames": 3
+  },
+  {
+   "i": 64,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 16727.20000000298,
+   "fly": 13,
+   "reveal": 13,
+   "frames": 0
+  },
+  {
+   "i": 65,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 16774.09999999404,
+   "fly": 10.700000002980232,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 66,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 16864,
+   "fly": 11.200000002980232,
+   "reveal": 11.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 67,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 16957.29999999702,
+   "fly": 10.200000002980232,
+   "reveal": 164.90000000596046,
+   "frames": 4
+  },
+  {
+   "i": 68,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 17382.09999999404,
+   "fly": 11.900000005960464,
+   "reveal": 11.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 69,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 17425.39999999106,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 70,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 17515.5,
+   "fly": 10.700000002980232,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 71,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 17605.59999999404,
+   "fly": 9.700000002980232,
+   "reveal": 166.1000000089407,
+   "frames": 4
+  },
+  {
+   "i": 72,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 18031.20000000298,
+   "fly": 13.199999988079071,
+   "reveal": 13.199999988079071,
+   "frames": 0
+  },
+  {
+   "i": 73,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 18077.70000000298,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 74,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 18167.20000000298,
+   "fly": 10.799999997019768,
+   "reveal": 10.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 75,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 18258.20000000298,
+   "fly": 10.399999991059303,
+   "reveal": 165.8999999910593,
+   "frames": 4
+  },
+  {
+   "i": 76,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 18684.59999999404,
+   "fly": 11.700000002980232,
+   "reveal": 11.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 77,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 18728.89999999106,
+   "fly": 11.900000005960464,
+   "reveal": 11.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 78,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 18818.79999999702,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 79,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 18910.09999999404,
+   "fly": 12.299999997019768,
+   "reveal": 173.70000000298023,
+   "frames": 4
+  },
+  {
+   "i": 80,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 19347.5,
+   "fly": 12.599999994039536,
+   "reveal": 12.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 81,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 19394,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 82,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 19483.5,
+   "fly": 10.599999994039536,
+   "reveal": 10.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 83,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 19574.5,
+   "fly": 10.399999991059303,
+   "reveal": 168,
+   "frames": 3
+  },
+  {
+   "i": 84,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 20003.5,
+   "fly": 12.099999994039536,
+   "reveal": 12.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 85,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 20048.79999999702,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 86,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 20137.59999999404,
+   "fly": 10.100000008940697,
+   "reveal": 10.100000008940697,
+   "frames": 0
+  },
+  {
+   "i": 87,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 20227.39999999106,
+   "fly": 9.700000002980232,
+   "reveal": 167.6000000089407,
+   "frames": 3
+  },
+  {
+   "i": 88,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 20652.5,
+   "fly": 12.599999994039536,
+   "reveal": 12.899999991059303,
+   "frames": 0
+  },
+  {
+   "i": 89,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 20702.59999999404,
+   "fly": 10.600000008940697,
+   "reveal": 10.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 90,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 20792.79999999702,
+   "fly": 9.799999997019768,
+   "reveal": 9.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 91,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 20882.5,
+   "fly": 9.5,
+   "reveal": 167.09999999403954,
+   "frames": 3
+  },
+  {
+   "i": 92,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 21311.5,
+   "fly": 11.700000002980232,
+   "reveal": 11.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 93,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 21355.79999999702,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 94,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 21445.59999999404,
+   "fly": 11.100000008940697,
+   "reveal": 11.100000008940697,
+   "frames": 0
+  },
+  {
+   "i": 95,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 21535.59999999404,
+   "fly": 9.400000005960464,
+   "reveal": 167,
+   "frames": 4
+  },
+  {
+   "i": 96,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 21961.79999999702,
+   "fly": 12.599999994039536,
+   "reveal": 12.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 97,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 22007.70000000298,
+   "fly": 10.799999997019768,
+   "reveal": 10.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 98,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 22097.70000000298,
+   "fly": 10.199999988079071,
+   "reveal": 10.199999988079071,
+   "frames": 0
+  },
+  {
+   "i": 99,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 22187.70000000298,
+   "fly": 9.099999994039536,
+   "reveal": 165.59999999403954,
+   "frames": 4
+  },
+  {
+   "i": 100,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 22613.59999999404,
+   "fly": 12.600000008940697,
+   "reveal": 12.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 101,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 22657.5,
+   "fly": 11.700000002980232,
+   "reveal": 11.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 102,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 22749.20000000298,
+   "fly": 10.699999988079071,
+   "reveal": 10.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 103,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 22839.39999999106,
+   "fly": 10.100000008940697,
+   "reveal": 179.80000001192093,
+   "frames": 4
+  },
+  {
+   "i": 104,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 23277.79999999702,
+   "fly": 12.400000005960464,
+   "reveal": 12.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 105,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 23322.29999999702,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 106,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 23412,
+   "fly": 10.399999991059303,
+   "reveal": 10.399999991059303,
+   "frames": 0
+  },
+  {
+   "i": 107,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 23501.89999999106,
+   "fly": 10.100000008940697,
+   "reveal": 165.90000000596046,
+   "frames": 4
+  },
+  {
+   "i": 108,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 23928.20000000298,
+   "fly": 11.199999988079071,
+   "reveal": 11.199999988079071,
+   "frames": 0
+  },
+  {
+   "i": 109,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 23972.20000000298,
+   "fly": 11.399999991059303,
+   "reveal": 11.399999991059303,
+   "frames": 0
+  },
+  {
+   "i": 110,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 24062.20000000298,
+   "fly": 10.699999988079071,
+   "reveal": 10.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 111,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 24151.79999999702,
+   "fly": 9.5,
+   "reveal": 167.40000000596046,
+   "frames": 4
+  },
+  {
+   "i": 112,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 24579.70000000298,
+   "fly": 12.399999991059303,
+   "reveal": 12.399999991059303,
+   "frames": 0
+  },
+  {
+   "i": 113,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 24625.20000000298,
+   "fly": 10.099999994039536,
+   "reveal": 10.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 114,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 24715.09999999404,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 115,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 24804.5,
+   "fly": 9.700000002980232,
+   "reveal": 167.59999999403954,
+   "frames": 4
+  },
+  {
+   "i": 116,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 25231.09999999404,
+   "fly": 12,
+   "reveal": 12.100000008940697,
+   "frames": 0
+  },
+  {
+   "i": 117,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 25275.79999999702,
+   "fly": 12,
+   "reveal": 12,
+   "frames": 0
+  },
+  {
+   "i": 118,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 25365.79999999702,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 119,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 25458,
+   "fly": 10.399999991059303,
+   "reveal": 169.59999999403954,
+   "frames": 3
+  },
+  {
+   "i": 120,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 25890.20000000298,
+   "fly": 12.099999994039536,
+   "reveal": 12.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 121,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 25934.59999999404,
+   "fly": 9.900000005960464,
+   "reveal": 9.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 122,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 26030.59999999404,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 123,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 26119.09999999404,
+   "fly": 9,
+   "reveal": 164.90000000596046,
+   "frames": 4
+  },
+  {
+   "i": 124,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 26543.89999999106,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 125,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 26587.29999999702,
+   "fly": 11.599999994039536,
+   "reveal": 11.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 126,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 26676.59999999404,
+   "fly": 15.700000002980232,
+   "reveal": 15.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 127,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 26773,
+   "fly": 9.799999997019768,
+   "reveal": 168.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 128,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 27201.70000000298,
+   "fly": 12.299999997019768,
+   "reveal": 12.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 129,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 27246,
+   "fly": 10.899999991059303,
+   "reveal": 10.899999991059303,
+   "frames": 0
+  },
+  {
+   "i": 130,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 27334.09999999404,
+   "fly": 10.700000002980232,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 131,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 27425.20000000298,
+   "fly": 9.299999997019768,
+   "reveal": 167.79999999701977,
+   "frames": 4
+  },
+  {
+   "i": 132,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 27853.20000000298,
+   "fly": 13.099999994039536,
+   "reveal": 13.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 133,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 27900.20000000298,
+   "fly": 10.799999997019768,
+   "reveal": 10.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 134,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 27988.70000000298,
+   "fly": 10.199999988079071,
+   "reveal": 10.199999988079071,
+   "frames": 0
+  },
+  {
+   "i": 135,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 28078.70000000298,
+   "fly": 9.599999994039536,
+   "reveal": 167.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 136,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 28506.79999999702,
+   "fly": 12,
+   "reveal": 12.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 137,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 28551.29999999702,
+   "fly": 12.200000002980232,
+   "reveal": 12.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 138,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 28641,
+   "fly": 10.599999994039536,
+   "reveal": 10.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 139,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 28734.5,
+   "fly": 9.899999991059303,
+   "reveal": 167.79999999701977,
+   "frames": 4
+  },
+  {
+   "i": 140,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 29161,
+   "fly": 12.700000002980232,
+   "reveal": 12.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 141,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 29205.39999999106,
+   "fly": 10.400000005960464,
+   "reveal": 10.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 142,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 29294.89999999106,
+   "fly": 10.100000008940697,
+   "reveal": 10.100000008940697,
+   "frames": 0
+  },
+  {
+   "i": 143,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 29384.59999999404,
+   "fly": 9.600000008940697,
+   "reveal": 164.6000000089407,
+   "frames": 3
+  },
+  {
+   "i": 144,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 29810.70000000298,
+   "fly": 11.899999991059303,
+   "reveal": 11.899999991059303,
+   "frames": 0
+  },
+  {
+   "i": 145,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 29854.79999999702,
+   "fly": 11.200000002980232,
+   "reveal": 11.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 146,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 29944.09999999404,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 147,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 30033.59999999404,
+   "fly": 9.700000002980232,
+   "reveal": 168.29999999701977,
+   "frames": 4
+  },
+  {
+   "i": 148,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 30461.29999999702,
+   "fly": 12.799999997019768,
+   "reveal": 12.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 149,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 30507,
+   "fly": 10.599999994039536,
+   "reveal": 10.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 150,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 30595.39999999106,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 151,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 30685.70000000298,
+   "fly": 9.799999997019768,
+   "reveal": 167.3999999910593,
+   "frames": 4
+  },
+  {
+   "i": 152,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 31112.39999999106,
+   "fly": 11.900000005960464,
+   "reveal": 11.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 153,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 31156.29999999702,
+   "fly": 11.799999997019768,
+   "reveal": 11.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 154,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 31246.89999999106,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 155,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 31343.39999999106,
+   "fly": 9.300000011920929,
+   "reveal": 166.90000000596046,
+   "frames": 3
+  },
+  {
+   "i": 156,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 31771.09999999404,
+   "fly": 12.400000005960464,
+   "reveal": 12.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 157,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 31816.20000000298,
+   "fly": 10.699999988079071,
+   "reveal": 10.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 158,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 31904.59999999404,
+   "fly": 10.600000008940697,
+   "reveal": 10.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 159,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 31994.39999999106,
+   "fly": 9,
+   "reveal": 163.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 160,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 32417.89999999106,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 161,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 32461.39999999106,
+   "fly": 11.200000002980232,
+   "reveal": 11.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 162,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 32550.20000000298,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 163,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 32639,
+   "fly": 9.200000002980232,
+   "reveal": 166.8999999910593,
+   "frames": 4
+  },
+  {
+   "i": 164,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 33067.20000000298,
+   "fly": 12.5,
+   "reveal": 12.5,
+   "frames": 0
+  },
+  {
+   "i": 165,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 33113.20000000298,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 166,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 33203.20000000298,
+   "fly": 10.699999988079071,
+   "reveal": 10.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 167,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 33293.89999999106,
+   "fly": 10.200000002980232,
+   "reveal": 168.70000000298023,
+   "frames": 3
+  },
+  {
+   "i": 168,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 33724.89999999106,
+   "fly": 12.200000002980232,
+   "reveal": 12.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 169,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 33768.79999999702,
+   "fly": 11.799999997019768,
+   "reveal": 11.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 170,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 33860.09999999404,
+   "fly": 10.600000008940697,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 171,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 33950.09999999404,
+   "fly": 10.600000008940697,
+   "reveal": 169.5,
+   "frames": 4
+  },
+  {
+   "i": 172,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 34381.29999999702,
+   "fly": 13.099999994039536,
+   "reveal": 13.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 173,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 34426.70000000298,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 174,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 34516.09999999404,
+   "fly": 10.200000002980232,
+   "reveal": 10.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 175,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 34606.70000000298,
+   "fly": 9.699999988079071,
+   "reveal": 165.59999999403954,
+   "frames": 4
+  },
+  {
+   "i": 176,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 35030.70000000298,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 177,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 35074.39999999106,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 178,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 35163.70000000298,
+   "fly": 10.799999997019768,
+   "reveal": 10.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 179,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 35253.09999999404,
+   "fly": 10.100000008940697,
+   "reveal": 167,
+   "frames": 4
+  },
+  {
+   "i": 180,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 35677.09999999404,
+   "fly": 12.600000008940697,
+   "reveal": 12.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 181,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 35723.5,
+   "fly": 10.700000002980232,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 182,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 35814.5,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 183,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 35904.59999999404,
+   "fly": 9.5,
+   "reveal": 166.20000000298023,
+   "frames": 4
+  },
+  {
+   "i": 184,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 36331.20000000298,
+   "fly": 11.399999991059303,
+   "reveal": 12.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 185,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 36375.79999999702,
+   "fly": 11.599999994039536,
+   "reveal": 12,
+   "frames": 0
+  },
+  {
+   "i": 186,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 36467.09999999404,
+   "fly": 10.900000005960464,
+   "reveal": 10.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 187,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 36558.09999999404,
+   "fly": 10.299999997019768,
+   "reveal": 177.29999999701977,
+   "frames": 4
+  },
+  {
+   "i": 188,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 36996.09999999404,
+   "fly": 12.5,
+   "reveal": 12.5,
+   "frames": 0
+  },
+  {
+   "i": 189,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 37041.09999999404,
+   "fly": 10.400000005960464,
+   "reveal": 10.400000005960464,
+   "frames": 0
+  },
+  {
+   "i": 190,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 37129.70000000298,
+   "fly": 10,
+   "reveal": 10,
+   "frames": 0
+  },
+  {
+   "i": 191,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 37219.29999999702,
+   "fly": 9.700000002980232,
+   "reveal": 167,
+   "frames": 4
+  },
+  {
+   "i": 192,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 37647.39999999106,
+   "fly": 12,
+   "reveal": 12,
+   "frames": 0
+  },
+  {
+   "i": 193,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 37692.20000000298,
+   "fly": 11.699999988079071,
+   "reveal": 11.699999988079071,
+   "frames": 0
+  },
+  {
+   "i": 194,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 37781.79999999702,
+   "fly": 10.599999994039536,
+   "reveal": 10.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 195,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 37870.70000000298,
+   "fly": 10,
+   "reveal": 173.8999999910593,
+   "frames": 3
+  },
+  {
+   "i": 196,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 38304,
+   "fly": 12,
+   "reveal": 12,
+   "frames": 0
+  },
+  {
+   "i": 197,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 38348.79999999702,
+   "fly": 10.200000002980232,
+   "reveal": 10.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 198,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 38442.20000000298,
+   "fly": 10.299999997019768,
+   "reveal": 10.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 199,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 38532.89999999106,
+   "fly": 9.200000002980232,
+   "reveal": 164.90000000596046,
+   "frames": 3
+  },
+  {
+   "i": 200,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 38960.39999999106,
+   "fly": 12.100000008940697,
+   "reveal": 12.100000008940697,
+   "frames": 0
+  },
+  {
+   "i": 201,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 39004.29999999702,
+   "fly": 11.599999994039536,
+   "reveal": 11.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 202,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 39095.09999999404,
+   "fly": 10.600000008940697,
+   "reveal": 10.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 203,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 39184.89999999106,
+   "fly": 10,
+   "reveal": 169.20000000298023,
+   "frames": 4
+  },
+  {
+   "i": 204,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 39616.29999999702,
+   "fly": 12.299999997019768,
+   "reveal": 12.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 205,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 39664.09999999404,
+   "fly": 10.700000002980232,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 206,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 39753.5,
+   "fly": 10.700000002980232,
+   "reveal": 10.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 207,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 39843.70000000298,
+   "fly": 9.899999991059303,
+   "reveal": 168.3999999910593,
+   "frames": 3
+  },
+  {
+   "i": 208,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 40271.59999999404,
+   "fly": 11.299999997019768,
+   "reveal": 11.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 209,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 40315,
+   "fly": 11.799999997019768,
+   "reveal": 11.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 210,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 40406.89999999106,
+   "fly": 10.200000002980232,
+   "reveal": 10.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 211,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 40496.79999999702,
+   "fly": 10.299999997019768,
+   "reveal": 170.40000000596046,
+   "frames": 4
+  },
+  {
+   "i": 212,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 40927.29999999702,
+   "fly": 11.799999997019768,
+   "reveal": 11.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 213,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 40971.29999999702,
+   "fly": 9.799999997019768,
+   "reveal": 9.799999997019768,
+   "frames": 0
+  },
+  {
+   "i": 214,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 41058.5,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 215,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 41147.79999999702,
+   "fly": 9.200000002980232,
+   "reveal": 166.40000000596046,
+   "frames": 3
+  },
+  {
+   "i": 216,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 41572,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  },
+  {
+   "i": 217,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 41615.20000000298,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 218,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 41703.89999999106,
+   "fly": 10.600000008940697,
+   "reveal": 10.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 219,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 41794.20000000298,
+   "fly": 9.899999991059303,
+   "reveal": 168,
+   "frames": 3
+  },
+  {
+   "i": 220,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 42223.70000000298,
+   "fly": 11.599999994039536,
+   "reveal": 11.599999994039536,
+   "frames": 0
+  },
+  {
+   "i": 221,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 42268.70000000298,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 222,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 42358.29999999702,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 223,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 42448.5,
+   "fly": 9.700000002980232,
+   "reveal": 167.29999999701977,
+   "frames": 4
+  },
+  {
+   "i": 224,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 42876.79999999702,
+   "fly": 12.200000002980232,
+   "reveal": 12.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 225,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 42922.20000000298,
+   "fly": 11.099999994039536,
+   "reveal": 11.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 226,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 43011.59999999404,
+   "fly": 10.5,
+   "reveal": 10.5,
+   "frames": 0
+  },
+  {
+   "i": 227,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 43102.20000000298,
+   "fly": 9.5,
+   "reveal": 168.69999998807907,
+   "frames": 4
+  },
+  {
+   "i": 228,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 43533.5,
+   "fly": 12.299999997019768,
+   "reveal": 12.299999997019768,
+   "frames": 0
+  },
+  {
+   "i": 229,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 43579.39999999106,
+   "fly": 10.300000011920929,
+   "reveal": 10.300000011920929,
+   "frames": 0
+  },
+  {
+   "i": 230,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 43668.70000000298,
+   "fly": 10.099999994039536,
+   "reveal": 10.099999994039536,
+   "frames": 0
+  },
+  {
+   "i": 231,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 43759,
+   "fly": 9.599999994039536,
+   "reveal": 165.3999999910593,
+   "frames": 4
+  },
+  {
+   "i": 232,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 44183.29999999702,
+   "fly": 11.900000005960464,
+   "reveal": 11.900000005960464,
+   "frames": 0
+  },
+  {
+   "i": 233,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 44227.79999999702,
+   "fly": 11.700000002980232,
+   "reveal": 11.700000002980232,
+   "frames": 0
+  },
+  {
+   "i": 234,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 44318.5,
+   "fly": 10,
+   "reveal": 10,
+   "frames": 0
+  },
+  {
+   "i": 235,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 44406.59999999404,
+   "fly": 9.400000005960464,
+   "reveal": 166,
+   "frames": 4
+  },
+  {
+   "i": 236,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 44834.29999999702,
+   "fly": 12.200000002980232,
+   "reveal": 12.200000002980232,
+   "frames": 0
+  },
+  {
+   "i": 237,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 44880.59999999404,
+   "fly": 10.600000008940697,
+   "reveal": 10.600000008940697,
+   "frames": 0
+  },
+  {
+   "i": 238,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 44969.79999999702,
+   "fly": 11,
+   "reveal": 11,
+   "frames": 0
+  },
+  {
+   "i": 239,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 45061.09999999404,
+   "fly": 9.600000008940697,
+   "reveal": 166.70000000298023,
+   "frames": 3
+  },
+  {
+   "i": 240,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 45488.70000000298,
+   "fly": 11.5,
+   "reveal": 11.5,
+   "frames": 0
+  }
+ ],
+ "calls": 2,
+ "triangles": 8272,
+ "pixelRatio": 2,
+ "canvases": 1,
+ "errors": []
+}

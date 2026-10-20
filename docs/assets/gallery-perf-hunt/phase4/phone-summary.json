@@ -1,0 +1,1082 @@
+{
+ "label": "phone",
+ "trace": "phone-gate-241.trace.json",
+ "events": 522592,
+ "main": {
+  "pid": 62327,
+  "tid": 1877844,
+  "thread": "CrRendererMain",
+  "process": "Renderer"
+ },
+ "gpu_processes": [
+  [
+   62329,
+   "GPU Process"
+  ]
+ ],
+ "gpu_threads": [
+  "ANGLE-GC",
+  "CrGpuMain",
+  "VizCompositorThread"
+ ],
+ "marks": {
+  "start": 96257716365,
+  "stills": 96299287281,
+  "end": 96302937589,
+  "flips": 241
+ },
+ "run_tasks": 7265,
+ "long_tasks_total": 242,
+ "long_tasks_by_phase": {
+  "flips": 242
+ },
+ "long_tasks_flips_block": 242,
+ "long_tasks_stills_block": 0,
+ "observer_long_tasks": 242,
+ "observer_longest_ms": 413,
+ "longest_ms": 413.435,
+ "ratio_table": [
+  {
+   "class": "reveal frame",
+   "n": 241,
+   "wall_median": 86.03,
+   "wall_max": 413.435,
+   "cpu_median": 66.206,
+   "ratio_min": 1.28,
+   "ratio_p25": 1.3,
+   "ratio_median": 1.31,
+   "ratio_p75": 1.31,
+   "ratio_max": 1.32,
+   "js_self_median": 0.629,
+   "style_max_max": 2.321,
+   "layout_max_max": 2.443,
+   "paint_max_max": 409.102
+  },
+  {
+   "class": "photo continuation (Destroyer arrival)",
+   "n": 1,
+   "wall_median": 70.587,
+   "wall_max": 70.587,
+   "cpu_median": 70.416,
+   "ratio_min": 1.0,
+   "ratio_p25": 1.0,
+   "ratio_median": 1.0,
+   "ratio_p75": 1.0,
+   "ratio_max": 1.0,
+   "js_self_median": 61.471,
+   "style_max_max": 0.0,
+   "layout_max_max": 0.0,
+   "paint_max_max": 0.0
+  }
+ ],
+ "per_flip": {
+  "flips_with_long_task": 241,
+  "flips_with_two_or_more": 1,
+  "class_mix_per_flip": [
+   [
+    "reveal frame",
+    240
+   ],
+   [
+    "photo continuation (Destroyer arrival) + reveal frame",
+    1
+   ]
+  ]
+ },
+ "by_from_mold": {
+  "Destroyer": 61,
+  "Stalker": 60,
+  "Buzzz": 60,
+  "Luna": 61
+ },
+ "by_to_mold": {
+  "Stalker": 61,
+  "Buzzz": 60,
+  "Luna": 60,
+  "Destroyer": 61
+ },
+ "by_class_and_to_mold": [
+  {
+   "class": "reveal frame",
+   "to": "Stalker",
+   "n": 61
+  },
+  {
+   "class": "reveal frame",
+   "to": "Buzzz",
+   "n": 60
+  },
+  {
+   "class": "reveal frame",
+   "to": "Luna",
+   "n": 60
+  },
+  {
+   "class": "reveal frame",
+   "to": "Destroyer",
+   "n": 60
+  },
+  {
+   "class": "photo continuation (Destroyer arrival)",
+   "to": "Destroyer",
+   "n": 1
+  }
+ ],
+ "child_names_by_class": {
+  "reveal frame": [
+   [
+    "all-discs-gallery.jsx2",
+    241
+   ],
+   [
+    "three.module.min.jsx1",
+    241
+   ],
+   [
+    "viewer.mjsx2",
+    181
+   ]
+  ],
+  "photo continuation (Destroyer arrival)": []
+ },
+ "longest_five": [
+  {
+   "task": 136,
+   "wall_ms": 413.435,
+   "cpu_ms": 316.306,
+   "ratio": 1.31,
+   "flip": 135,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "reveal frame",
+   "callback": "all-discs-gallery.js:?:102 1.5ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms",
+   "top_self": "CommandBufferProxyImpl::WaitForGetOffset 407.1; LocalFrameView::UpdateStyleAndLayout 1.6; FunctionCall@all-discs-gallery.js 1.3; UpdateLayer 0.7; Paint 0.6; LayerTreeHost::DoUpdateLayers 0.6",
+   "gpu_main": "GLES2::ReadPixels 407.4; ImplementationBase::WaitForCmd 407.3; CommandBufferHelper::Finish 407.2; CommandBufferProxyImpl::WaitForGetOffset 407.1",
+   "gpu_busy_ms": {
+    "VizCompositorThread": 0.612,
+    "CrGpuMain": 406.626,
+    "ANGLE-GC": 0.062
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 4,
+     "clipped_ms": 406.626,
+     "max_ms": 366.563
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 4,
+     "clipped_ms": 406.622,
+     "max_ms": 366.563
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 2,
+     "clipped_ms": 406.605,
+     "max_ms": 366.56
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 2,
+     "clipped_ms": 406.601,
+     "max_ms": 366.557
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GPUTask",
+     "count": 3,
+     "clipped_ms": 406.599,
+     "max_ms": 366.556
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "WebGL",
+     "count": 2,
+     "clipped_ms": 406.572,
+     "max_ms": 366.546
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 2,
+     "clipped_ms": 406.571,
+     "max_ms": 366.546
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 2,
+     "clipped_ms": 406.571,
+     "max_ms": 366.546
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferService:PutChanged",
+     "count": 2,
+     "clipped_ms": 406.563,
+     "max_ms": 366.542
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 366.524,
+     "max_ms": 366.524
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 366.522,
+     "max_ms": 366.522
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 366.522,
+     "max_ms": 366.522
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 2,
+     "clipped_ms": 406.571,
+     "max_ms": 366.546
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 2,
+     "clipped_ms": 406.571,
+     "max_ms": 366.546
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 366.524,
+     "max_ms": 366.524
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 366.522,
+     "max_ms": 366.522
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 366.522,
+     "max_ms": 366.522
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl - CPU Readback",
+     "count": 1,
+     "clipped_ms": 366.52,
+     "max_ms": 366.52
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ContextVk::finishImpl",
+     "count": 1,
+     "clipped_ms": 366.37,
+     "max_ms": 366.37
+    },
+    {
+     "thread": "ANGLE-GC",
+     "name": "releaseFinishedCommandsLocked",
+     "count": 1,
+     "clipped_ms": 0.062,
+     "max_ms": 0.062
+    }
+   ]
+  },
+  {
+   "task": 28,
+   "wall_ms": 386.398,
+   "cpu_ms": 295.242,
+   "ratio": 1.31,
+   "flip": 27,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "reveal frame",
+   "callback": "all-discs-gallery.js:?:102 0.8ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms",
+   "top_self": "CommandBufferProxyImpl::WaitForGetOffset 382.2; HitTest 0.7; Document::recalcStyle 0.7; LocalFrameView::performLayout 0.6; PaintArtifactCompositor::Update 0.5; Blink.Paint.UpdateTime 0.4",
+   "gpu_main": "GLES2::ReadPixels 382.6; ImplementationBase::WaitForCmd 382.5; CommandBufferHelper::Finish 382.5; CommandBufferProxyImpl::WaitForGetOffset 382.2",
+   "gpu_busy_ms": {
+    "CrGpuMain": 382.285,
+    "VizCompositorThread": 0.663,
+    "ANGLE-GC": 0.054
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 7,
+     "clipped_ms": 382.285,
+     "max_ms": 382.201
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 7,
+     "clipped_ms": 382.281,
+     "max_ms": 382.199
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 4,
+     "clipped_ms": 382.253,
+     "max_ms": 382.197
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 4,
+     "clipped_ms": 382.247,
+     "max_ms": 382.194
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GPUTask",
+     "count": 2,
+     "clipped_ms": 382.2,
+     "max_ms": 382.193
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "WebGL",
+     "count": 1,
+     "clipped_ms": 382.188,
+     "max_ms": 382.188
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 382.187,
+     "max_ms": 382.187
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 382.187,
+     "max_ms": 382.187
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferService:PutChanged",
+     "count": 1,
+     "clipped_ms": 382.184,
+     "max_ms": 382.184
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 346.202,
+     "max_ms": 346.202
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 346.201,
+     "max_ms": 346.201
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 346.201,
+     "max_ms": 346.201
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 382.187,
+     "max_ms": 382.187
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 382.187,
+     "max_ms": 382.187
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 346.202,
+     "max_ms": 346.202
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 346.201,
+     "max_ms": 346.201
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 346.201,
+     "max_ms": 346.201
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl - CPU Readback",
+     "count": 1,
+     "clipped_ms": 346.199,
+     "max_ms": 346.199
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ContextVk::finishImpl",
+     "count": 1,
+     "clipped_ms": 346.031,
+     "max_ms": 346.031
+    },
+    {
+     "thread": "ANGLE-GC",
+     "name": "releaseFinishedCommandsLocked",
+     "count": 1,
+     "clipped_ms": 0.054,
+     "max_ms": 0.054
+    }
+   ]
+  },
+  {
+   "task": 184,
+   "wall_ms": 367.149,
+   "cpu_ms": 280.173,
+   "ratio": 1.31,
+   "flip": 183,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "reveal frame",
+   "callback": "all-discs-gallery.js:?:102 1.1ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms",
+   "top_self": "CommandBufferProxyImpl::WaitForGetOffset 363.2; Document::recalcStyle 0.9; Paint 0.7; HitTest 0.7; PaintArtifactCompositor::Update 0.5; Document::recalcStyle 0.3",
+   "gpu_main": "GLES2::ReadPixels 363.3; ImplementationBase::WaitForCmd 363.2; CommandBufferHelper::Finish 363.2; CommandBufferProxyImpl::WaitForGetOffset 363.2",
+   "gpu_busy_ms": {
+    "CrGpuMain": 363.081,
+    "VizCompositorThread": 0.436,
+    "ANGLE-GC": 0.072
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 4,
+     "clipped_ms": 363.081,
+     "max_ms": 363.061
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 4,
+     "clipped_ms": 363.078,
+     "max_ms": 363.059
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GPUTask",
+     "count": 2,
+     "clipped_ms": 363.06,
+     "max_ms": 363.053
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 1,
+     "clipped_ms": 363.056,
+     "max_ms": 363.056
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 1,
+     "clipped_ms": 363.054,
+     "max_ms": 363.054
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "WebGL",
+     "count": 1,
+     "clipped_ms": 363.049,
+     "max_ms": 363.049
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 363.048,
+     "max_ms": 363.048
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 363.048,
+     "max_ms": 363.048
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferService:PutChanged",
+     "count": 1,
+     "clipped_ms": 363.046,
+     "max_ms": 363.046
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 327.134,
+     "max_ms": 327.134
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 327.133,
+     "max_ms": 327.133
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 327.133,
+     "max_ms": 327.133
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 363.048,
+     "max_ms": 363.048
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 363.048,
+     "max_ms": 363.048
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 327.134,
+     "max_ms": 327.134
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 327.133,
+     "max_ms": 327.133
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 327.133,
+     "max_ms": 327.133
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl - CPU Readback",
+     "count": 1,
+     "clipped_ms": 327.131,
+     "max_ms": 327.131
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ContextVk::finishImpl",
+     "count": 1,
+     "clipped_ms": 326.969,
+     "max_ms": 326.969
+    },
+    {
+     "thread": "ANGLE-GC",
+     "name": "releaseFinishedCommandsLocked",
+     "count": 1,
+     "clipped_ms": 0.072,
+     "max_ms": 0.072
+    }
+   ]
+  },
+  {
+   "task": 11,
+   "wall_ms": 366.434,
+   "cpu_ms": 278.744,
+   "ratio": 1.31,
+   "flip": 11,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "reveal frame",
+   "callback": "all-discs-gallery.js:?:102 1.5ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms",
+   "top_self": "CommandBufferProxyImpl::WaitForGetOffset 361.8; Paint 0.8; FunctionCall@all-discs-gallery.js 0.8; Document::recalcStyle 0.7; ProxyMain::BeginMainFrame::commit 0.6; Document::recalcStyle 0.5",
+   "gpu_main": "GLES2::ReadPixels 361.9; ImplementationBase::WaitForCmd 361.8; CommandBufferHelper::Finish 361.8; CommandBufferProxyImpl::WaitForGetOffset 361.8",
+   "gpu_busy_ms": {
+    "VizCompositorThread": 0.567,
+    "CrGpuMain": 361.52,
+    "ANGLE-GC": 0.048
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 4,
+     "clipped_ms": 361.52,
+     "max_ms": 361.5
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 4,
+     "clipped_ms": 361.516,
+     "max_ms": 361.498
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GPUTask",
+     "count": 2,
+     "clipped_ms": 361.496,
+     "max_ms": 361.489
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 1,
+     "clipped_ms": 361.494,
+     "max_ms": 361.494
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 1,
+     "clipped_ms": 361.492,
+     "max_ms": 361.492
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "WebGL",
+     "count": 1,
+     "clipped_ms": 361.482,
+     "max_ms": 361.482
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 361.481,
+     "max_ms": 361.481
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 361.481,
+     "max_ms": 361.481
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferService:PutChanged",
+     "count": 1,
+     "clipped_ms": 361.478,
+     "max_ms": 361.478
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 324.737,
+     "max_ms": 324.737
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 324.736,
+     "max_ms": 324.736
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 324.735,
+     "max_ms": 324.735
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 361.481,
+     "max_ms": 361.481
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 361.481,
+     "max_ms": 361.481
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 324.737,
+     "max_ms": 324.737
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 324.736,
+     "max_ms": 324.736
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 324.735,
+     "max_ms": 324.735
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl - CPU Readback",
+     "count": 1,
+     "clipped_ms": 324.734,
+     "max_ms": 324.734
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ContextVk::finishImpl",
+     "count": 1,
+     "clipped_ms": 324.569,
+     "max_ms": 324.569
+    },
+    {
+     "thread": "ANGLE-GC",
+     "name": "releaseFinishedCommandsLocked",
+     "count": 1,
+     "clipped_ms": 0.048,
+     "max_ms": 0.048
+    }
+   ]
+  },
+  {
+   "task": 228,
+   "wall_ms": 351.921,
+   "cpu_ms": 269.369,
+   "ratio": 1.31,
+   "flip": 227,
+   "from": "Luna",
+   "to": "Destroyer",
+   "class": "reveal frame",
+   "callback": "all-discs-gallery.js:?:102 1.0ms; three.module.min.js:i:6 0.0ms; :?:0 0.0ms",
+   "top_self": "CommandBufferProxyImpl::WaitForGetOffset 347.6; WebFrameWidgetImpl::UpdateLifecycle 1.2; LocalFrameView::RunAccessibilitySteps 0.7; Blink.Paint.UpdateTime 0.6; FunctionCall@all-discs-gallery.js 0.5; Document::recalcStyle 0.5",
+   "gpu_main": "GLES2::ReadPixels 347.7; ImplementationBase::WaitForCmd 347.7; CommandBufferHelper::Finish 347.7; CommandBufferProxyImpl::WaitForGetOffset 347.6",
+   "gpu_busy_ms": {
+    "CrGpuMain": 347.392,
+    "VizCompositorThread": 0.495,
+    "ANGLE-GC": 0.052
+   },
+   "gpu_top": [
+    {
+     "thread": "CrGpuMain",
+     "name": "RunTask",
+     "count": 4,
+     "clipped_ms": 347.392,
+     "max_ms": 347.372
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ThreadControllerImpl::RunTask",
+     "count": 4,
+     "clipped_ms": 347.386,
+     "max_ms": 347.37
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "Scheduler::RunTask",
+     "count": 1,
+     "clipped_ms": 347.367,
+     "max_ms": 347.367
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GPUTask",
+     "count": 2,
+     "clipped_ms": 347.367,
+     "max_ms": 347.361
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "GpuChannel::ExecuteDeferredRequest",
+     "count": 1,
+     "clipped_ms": 347.364,
+     "max_ms": 347.364
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "WebGL",
+     "count": 1,
+     "clipped_ms": 347.355,
+     "max_ms": 347.355
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 347.353,
+     "max_ms": 347.353
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 347.353,
+     "max_ms": 347.353
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferService:PutChanged",
+     "count": 1,
+     "clipped_ms": 347.351,
+     "max_ms": 347.351
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 308.648,
+     "max_ms": 308.648
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 308.648,
+     "max_ms": 308.648
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 308.648,
+     "max_ms": 308.648
+    }
+   ],
+   "gpu_keyword_events": [
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBuffer::Flush",
+     "count": 1,
+     "clipped_ms": 347.353,
+     "max_ms": 347.353
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "CommandBufferStub::OnAsyncFlush",
+     "count": 1,
+     "clipped_ms": 347.353,
+     "max_ms": 347.353
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "FramebufferVk::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 308.648,
+     "max_ms": 308.648
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixels",
+     "count": 1,
+     "clipped_ms": 308.648,
+     "max_ms": 308.648
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl",
+     "count": 1,
+     "clipped_ms": 308.648,
+     "max_ms": 308.648
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ImageHelper::readPixelsImpl - CPU Readback",
+     "count": 1,
+     "clipped_ms": 308.646,
+     "max_ms": 308.646
+    },
+    {
+     "thread": "CrGpuMain",
+     "name": "ContextVk::finishImpl",
+     "count": 1,
+     "clipped_ms": 308.497,
+     "max_ms": 308.497
+    },
+    {
+     "thread": "ANGLE-GC",
+     "name": "releaseFinishedCommandsLocked",
+     "count": 1,
+     "clipped_ms": 0.052,
+     "max_ms": 0.052
+    }
+   ]
+  }
+ ],
+ "gpu_over_all_long_windows": [
+  {
+   "thread": "CrGpuMain",
+   "name": "RunTask",
+   "count": 1203,
+   "clipped_ms": 34477.6
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "ThreadControllerImpl::RunTask",
+   "count": 1198,
+   "clipped_ms": 34476.8
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "GPUTask",
+   "count": 582,
+   "clipped_ms": 34472.1
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "Scheduler::RunTask",
+   "count": 344,
+   "clipped_ms": 34471.9
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "GpuChannel::ExecuteDeferredRequest",
+   "count": 344,
+   "clipped_ms": 34471.2
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "WebGL",
+   "count": 341,
+   "clipped_ms": 34468.8
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "CommandBuffer::Flush",
+   "count": 341,
+   "clipped_ms": 34468.6
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "CommandBufferStub::OnAsyncFlush",
+   "count": 341,
+   "clipped_ms": 34468.5
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "CommandBufferService:PutChanged",
+   "count": 341,
+   "clipped_ms": 34467.8
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "FramebufferVk::readPixelsImpl",
+   "count": 241,
+   "clipped_ms": 32256.8
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "ImageHelper::readPixels",
+   "count": 241,
+   "clipped_ms": 32256.7
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "ImageHelper::readPixelsImpl",
+   "count": 241,
+   "clipped_ms": 32256.5
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "ImageHelper::readPixelsImpl - CPU Readback",
+   "count": 241,
+   "clipped_ms": 32256.1
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "ContextVk::finishImpl",
+   "count": 241,
+   "clipped_ms": 32218.2
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "RunTask",
+   "count": 4838,
+   "clipped_ms": 61.4
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "ThreadControllerImpl::RunTask",
+   "count": 4711,
+   "clipped_ms": 57.3
+  },
+  {
+   "thread": "CrGpuMain",
+   "name": "Upload image data on host",
+   "count": 214,
+   "clipped_ms": 12.6
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "SimpleWatcher::OnHandleReady",
+   "count": 2050,
+   "clipped_ms": 12.1
+  },
+  {
+   "thread": "ANGLE-GC",
+   "name": "releaseFinishedCommandsLocked",
+   "count": 241,
+   "clipped_ms": 10.0
+  },
+  {
+   "thread": "VizCompositorThread",
+   "name": "Receive mojo message",
+   "count": 1765,
+   "clipped_ms": 4.4
+  }
+ ],
+ "flip_block_gpu_busy_ms": {
+  "VizCompositorThread": 250.493,
+  "CrGpuMain": 34498.693,
+  "ANGLE-GC": 9.95
+ },
+ "flip_block_wall_ms": 41570.9
+}

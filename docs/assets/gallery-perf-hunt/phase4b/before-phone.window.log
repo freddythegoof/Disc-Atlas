@@ -1,0 +1,135 @@
+
+### flip 16 Destroyer->Stalker window 45.1 ms
+  ts-261.3ms RunTask 260.4ms
+      RunTask 260.4ms 
+        ThreadControllerImpl::RunTask 260.4ms 
+          ProxyMain::BeginMainFrame 260.4ms 
+            WebFrameWidgetImpl::BeginMainFrame 7.8ms 
+              Blink.Animate.UpdateTime 7.8ms 
+                PageAnimator::serviceScriptedAnimations 7.8ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 7.8ms 
+                    FireAnimationFrame 7.7ms 
+            Commit 252.0ms 
+              LayerTreeHost::DoUpdateLayers 252.0ms 
+                GLES2::ReadPixels 251.2ms 
+                  ImplementationBase::WaitForCmd 251.2ms 
+                    CommandBufferHelper::Finish 251.2ms 
+  ts-0.4ms RunTask 43.7ms
+      RunTask 43.7ms 
+        ThreadControllerImpl::RunTask 43.7ms 
+          ProxyMain::BeginMainFrame 43.7ms 
+            WebFrameWidgetImpl::BeginMainFrame 13.3ms 
+              Blink.Animate.UpdateTime 13.3ms 
+                PageAnimator::serviceScriptedAnimations 13.3ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 13.2ms 
+                    FireAnimationFrame 12.8ms 
+            Commit 28.9ms 
+              LayerTreeHost::DoUpdateLayers 28.9ms 
+                GLES2::ReadPixels 28.4ms 
+                  ImplementationBase::WaitForCmd 28.4ms 
+                    CommandBufferHelper::Finish 28.4ms 
+  ts+44.0ms RunTask 89.7ms
+      RunTask 89.7ms 
+        ThreadControllerImpl::RunTask 89.7ms 
+          ProxyMain::BeginMainFrame 89.7ms 
+            WebFrameWidgetImpl::BeginMainFrame 11.5ms 
+              Blink.Animate.UpdateTime 11.4ms 
+                PageAnimator::serviceScriptedAnimations 11.4ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 11.4ms 
+                    FireAnimationFrame 10.4ms 
+            WebFrameWidgetImpl::UpdateLifecycle 1.6ms 
+            Commit 76.5ms 
+              LayerTreeHost::DoUpdateLayers 76.1ms 
+                GLES2::ReadPixels 75.9ms 
+                  ImplementationBase::WaitForCmd 75.8ms 
+                    CommandBufferHelper::Finish 75.8ms 
+
+### flip 17 Stalker->Buzzz window 90.0 ms
+  ts-45.6ms RunTask 43.7ms
+      RunTask 43.7ms 
+        ThreadControllerImpl::RunTask 43.7ms 
+          ProxyMain::BeginMainFrame 43.7ms 
+            WebFrameWidgetImpl::BeginMainFrame 13.3ms 
+              Blink.Animate.UpdateTime 13.3ms 
+                PageAnimator::serviceScriptedAnimations 13.3ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 13.2ms 
+                    FireAnimationFrame 12.8ms 
+            Commit 28.9ms 
+              LayerTreeHost::DoUpdateLayers 28.9ms 
+                GLES2::ReadPixels 28.4ms 
+                  ImplementationBase::WaitForCmd 28.4ms 
+                    CommandBufferHelper::Finish 28.4ms 
+  ts-1.1ms RunTask 89.7ms
+      RunTask 89.7ms 
+        ThreadControllerImpl::RunTask 89.7ms 
+          ProxyMain::BeginMainFrame 89.7ms 
+            WebFrameWidgetImpl::BeginMainFrame 11.5ms 
+              Blink.Animate.UpdateTime 11.4ms 
+                PageAnimator::serviceScriptedAnimations 11.4ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 11.4ms 
+                    FireAnimationFrame 10.4ms 
+            WebFrameWidgetImpl::UpdateLifecycle 1.6ms 
+            Commit 76.5ms 
+              LayerTreeHost::DoUpdateLayers 76.1ms 
+                GLES2::ReadPixels 75.9ms 
+                  ImplementationBase::WaitForCmd 75.8ms 
+                    CommandBufferHelper::Finish 75.8ms 
+  ts+88.9ms RunTask 90.5ms
+      RunTask 90.5ms 
+        ThreadControllerImpl::RunTask 90.4ms 
+          ProxyMain::BeginMainFrame 90.4ms 
+            WebFrameWidgetImpl::BeginMainFrame 12.0ms 
+              Blink.Animate.UpdateTime 12.0ms 
+                PageAnimator::serviceScriptedAnimations 12.0ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 12.0ms 
+                    FireAnimationFrame 11.0ms 
+            Commit 77.3ms 
+              LayerTreeHost::DoUpdateLayers 77.3ms 
+                GLES2::ReadPixels 76.6ms 
+                  ImplementationBase::WaitForCmd 76.6ms 
+                    CommandBufferHelper::Finish 76.6ms 
+
+### flip 20 Destroyer->Stalker window 45.2 ms
+  ts-261.4ms RunTask 260.6ms
+      RunTask 260.6ms 
+        ThreadControllerImpl::RunTask 260.5ms 
+          ProxyMain::BeginMainFrame 260.5ms 
+            WebFrameWidgetImpl::BeginMainFrame 7.3ms 
+              Blink.Animate.UpdateTime 7.3ms 
+                PageAnimator::serviceScriptedAnimations 7.3ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 7.3ms 
+                    FireAnimationFrame 6.8ms 
+            Commit 252.3ms 
+              LayerTreeHost::DoUpdateLayers 252.2ms 
+                GLES2::ReadPixels 251.7ms 
+                  ImplementationBase::WaitForCmd 251.7ms 
+                    CommandBufferHelper::Finish 251.7ms 
+  ts-0.4ms RunTask 43.0ms
+      RunTask 43.0ms 
+        ThreadControllerImpl::RunTask 42.9ms 
+          ProxyMain::BeginMainFrame 42.9ms 
+            WebFrameWidgetImpl::BeginMainFrame 12.4ms 
+              Blink.Animate.UpdateTime 12.4ms 
+                PageAnimator::serviceScriptedAnimations 12.4ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 12.3ms 
+                    FireAnimationFrame 12.1ms 
+            WebFrameWidgetImpl::UpdateLifecycle 1.7ms 
+            Commit 28.9ms 
+              LayerTreeHost::DoUpdateLayers 28.8ms 
+                GLES2::ReadPixels 28.3ms 
+                  ImplementationBase::WaitForCmd 28.2ms 
+                    CommandBufferHelper::Finish 28.2ms 
+  ts+43.3ms RunTask 90.0ms
+      RunTask 90.0ms 
+        ThreadControllerImpl::RunTask 89.5ms 
+          ProxyMain::BeginMainFrame 89.5ms 
+            WebFrameWidgetImpl::BeginMainFrame 12.7ms 
+              Blink.Animate.UpdateTime 12.4ms 
+                PageAnimator::serviceScriptedAnimations 12.4ms 
+                  FrameRequestCallbackCollection::ExecuteFrameCallbacks 12.4ms 
+                    FireAnimationFrame 10.9ms 
+            Commit 75.7ms 
+              LayerTreeHost::DoUpdateLayers 75.7ms 
+                GLES2::ReadPixels 75.2ms 
+                  ImplementationBase::WaitForCmd 75.1ms 
+                    CommandBufferHelper::Finish 75.1ms 

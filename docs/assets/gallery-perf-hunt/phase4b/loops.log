@@ -1,0 +1,33 @@
+=== --phase=before --device=phone --flags=gate 2026-10-20T00:38:53Z
+[2026-10-20T00:38:54.453Z] fixture ready at https://localhost:8951 stage trace
+[2026-10-20T00:38:54.528Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:38:59.361Z] phone before gate UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver) | baseline routes ["/","/my-bag.css","/my-bag.js","/all-discs-gallery.js"]
+[2026-10-20T00:39:00.180Z] phone warm-up 4 flips {"start":"Destroyer","to":["Stalker","Buzzz","Luna","Destroyer"],"longTasks":2,"longest":257}
+[2026-10-20T00:39:46.346Z] phone gate loop 241+120 {"fly":{"median":10.900000005960464,"p95":12.700000002980232,"max":16,"frames":241},"still":{"median":0.10000000894069672,"p95":0.8999999910593033,"max":0.9000000059604645,"frames":120},"reveal":{"median":11.700000002980232,"p95":170,"max":217.20000000298023,"frames":241},"longTasks":244,"longest":302,"calls":2,"triangles":8272,"pixelRatio":2,"canvases":1}
+[2026-10-20T00:39:47.644Z] trace {"file":"before-phone-gate-241.trace.json.gz","raw_bytes":114452343,"gzip_bytes":9889574,"raw_sha256":"100717a09127f77125dbabde971c021cf7aee38a8b13b49681f071bf3c719a1c","gzip_sha256":"d9068d3adf97175d96d16625b0413fcbbd5ede993794bac9424ec52cbdede37b"}
+[2026-10-20T00:39:47.659Z] stage trace done
+=== --phase=before --device=desktop --flags=gate 2026-10-20T00:39:52Z
+[2026-10-20T00:39:53.510Z] fixture ready at https://localhost:8951 stage trace
+[2026-10-20T00:39:53.594Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:39:57.541Z] desktop before gate UNMASKED_RENDERER_WEBGL = ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver) | baseline routes ["/","/my-bag.css","/my-bag.js","/all-discs-gallery.js"]
+[2026-10-20T00:39:58.142Z] desktop warm-up 4 flips {"start":"Destroyer","to":["Stalker","Buzzz","Luna","Destroyer"],"longTasks":2,"longest":234}
+[2026-10-20T00:40:31.209Z] desktop gate loop 241+120 {"fly":{"median":2.7000000029802322,"p95":3.2999999970197678,"max":6.299999997019768,"frames":241},"still":{"median":0.09999999403953552,"p95":0.10000000894069672,"max":0.20000000298023224,"frames":120},"reveal":{"median":3,"p95":103.6000000089407,"max":106.40000000596046,"frames":241},"longTasks":195,"longest":240,"calls":2,"triangles":11488,"pixelRatio":1,"canvases":1}
+[2026-10-20T00:40:32.415Z] trace {"file":"before-desktop-gate-241.trace.json.gz","raw_bytes":109085932,"gzip_bytes":9369300,"raw_sha256":"848ff7d9db6fb8fb46b8fd4e0be1d06688d8548d7a5b76bd306ab1e2e400bb9c","gzip_sha256":"02a075c4b1d0ebb58df8021db96f9722efe8565603fa714d038e63085aab106b"}
+[2026-10-20T00:40:32.427Z] stage trace done
+=== --phase=after --device=phone --flags=atlas 2026-10-20T00:40:37Z
+[2026-10-20T00:40:38.197Z] fixture ready at https://localhost:8951 stage trace
+[2026-10-20T00:40:38.274Z] launched atlas ["--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:40:39.468Z] phone after atlas UNMASKED_RENDERER_WEBGL = ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version) | baseline routes []
+[2026-10-20T00:40:39.799Z] phone warm-up 4 flips {"start":"Destroyer","to":["Stalker","Buzzz","Luna","Destroyer"],"longTasks":0,"longest":0}
+[2026-10-20T00:40:55.898Z] phone gate loop 241+120 {"fly":{"median":6.200000002980232,"p95":8.099999994039536,"max":11.699999988079071,"frames":241},"still":{"median":0,"p95":0.20000000298023224,"max":0.7000000029802322,"frames":120},"reveal":{"median":18,"p95":104.29999999701977,"max":106.59999999403954,"frames":241},"longTasks":16,"longest":73,"calls":2,"triangles":8272,"pixelRatio":2,"canvases":1}
+[2026-10-20T00:40:57.277Z] trace {"file":"atlas-phone-gate-241.trace.json.gz","raw_bytes":109978746,"gzip_bytes":11118648,"raw_sha256":"4917981df7ffa77fa02246312930729971920af24d93f907b05d28f6393fca19","gzip_sha256":"a28619edfeb08060cf06e1ddbe68f099e429622d739efd6fa8f5ec52ac23c626"}
+[2026-10-20T00:40:57.293Z] stage trace done
+=== --phase=after --device=desktop --flags=atlas 2026-10-20T00:41:03Z
+[2026-10-20T00:41:03.705Z] fixture ready at https://localhost:8951 stage trace
+[2026-10-20T00:41:03.783Z] launched atlas ["--enable-gpu"] 156.0.8078.4
+[2026-10-20T00:41:04.567Z] desktop after atlas UNMASKED_RENDERER_WEBGL = ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version) | baseline routes []
+[2026-10-20T00:41:04.855Z] desktop warm-up 4 flips {"start":"Destroyer","to":["Stalker","Buzzz","Luna","Destroyer"],"longTasks":0,"longest":0}
+[2026-10-20T00:41:20.364Z] desktop gate loop 241+120 {"fly":{"median":1.9000000059604645,"p95":2.800000011920929,"max":4,"frames":241},"still":{"median":0.3999999910593033,"p95":0.5,"max":0.5,"frames":120},"reveal":{"median":17.099999994039536,"p95":50.20000000298023,"max":52.20000000298023,"frames":241},"longTasks":0,"longest":0,"calls":2,"triangles":11488,"pixelRatio":1,"canvases":1}
+[2026-10-20T00:41:21.755Z] trace {"file":"atlas-desktop-gate-241.trace.json.gz","raw_bytes":119931195,"gzip_bytes":11651054,"raw_sha256":"292b2c259a44caa7f7ad1830384499a92e27cc71d7d2849cb011965441f61fb3","gzip_sha256":"a256eccfe2698ea43a2da229deb8068710c7864dbb6925f5a2cbd6eb34ccb7aa"}
+[2026-10-20T00:41:21.767Z] stage trace done
+=== all done 2026-10-20T00:41:26Z

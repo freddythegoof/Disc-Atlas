@@ -68,7 +68,7 @@ try {
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
 
  // --- Tabs and the one-at-a-time list -----------------------------------------------------------------
- assert.deepEqual(await page.locator('#myBagViews [data-bag-view]').allInnerTexts(),['Bag','My Map','Storage','Lost']);
+ assert.deepEqual(await page.locator('#myBagViews [data-bag-view]').allInnerTexts(),['Bag','My Map','Storage','Gallery','Lost']);
  assert.deepEqual((await counts()).shown,['bagLineup'],'Only the Bag list shows at first');
  await list('storage').click();assert.deepEqual((await counts()).shown,['bagStorage']);assert.ok(await page.locator('#bagScene').isVisible(),'The picker swaps the list, not the scene');
  await list('storage').press('ArrowRight');assert.deepEqual((await counts()).shown,['bagMemorial']);assert.ok(await list('lost').evaluate(n=>n===document.activeElement));

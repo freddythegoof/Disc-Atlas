@@ -1,0 +1,57 @@
+{
+ "label": "atlas-phone",
+ "click_frame_by_to": {
+  "Stalker": {
+   "n": 61,
+   "median": 9.5,
+   "p95": 11.6,
+   "max": 14.2,
+   "ge50": 0
+  },
+  "Buzzz": {
+   "n": 60,
+   "median": 7.4,
+   "p95": 8.9,
+   "max": 9.7,
+   "ge50": 0
+  },
+  "Luna": {
+   "n": 60,
+   "median": 7.2,
+   "p95": 8.2,
+   "max": 8.9,
+   "ge50": 0
+  },
+  "Destroyer": {
+   "n": 60,
+   "median": 9.6,
+   "p95": 11.3,
+   "max": 12.0,
+   "ge50": 0
+  }
+ },
+ "click_frame_all": {
+  "n": 241,
+  "median": 8.5,
+  "p95": 10.9,
+  "max": 14.2,
+  "ge50": 0
+ },
+ "readpixels_by_phase": {},
+ "readpixels_per_flip_by_to": {},
+ "readpixels_per_flip_count": {
+  "0": 241
+ },
+ "long_tasks_by_to_and_kind": {
+  "Destroyer": {
+   "later task": 16
+  }
+ },
+ "flip_block_wall_ms": 10817.6,
+ "gpu_main_busy_ms": 1750.8,
+ "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+ "flags": [
+  "--enable-gpu"
+ ],
+ "phase": "after"
+}
