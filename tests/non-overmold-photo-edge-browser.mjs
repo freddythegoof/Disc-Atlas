@@ -30,7 +30,7 @@ const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized
 const metrics={};
 try{
  const deadline=Date.now()+45000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(output);await new Promise(r=>setTimeout(r,200));}
- browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.env.BAG3D_CHROMIUM_ARGS?.split(' ')||['--use-angle=d3d11','--enable-gpu']});
+ browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.env.BAG3D_CHROMIUM_ARGS?.split(' ')||(process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu'])});
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),errors=[],requests=[];
  const reference=await referenceTree(context,base);
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.stack));
