@@ -1,0 +1,70 @@
+before-phone ReadPixels flips: n=360 median 74.0 p95 251.9 max 294.2 ms, >=50ms 241
+before-phone ReadPixels stills: n=121 median 25.1 p95 25.8 max 71.4 ms, >=50ms 1
+
+before-phone flip 16 Destroyer->Stalker (median long task 89.684 ms of 60): CrGpuMain self-time top in flip window 45 ms:
+       27.9 ms x   1  ContextVk::finishImpl
+        0.4 ms x   3  CommandBufferService:PutChanged
+        0.2 ms x   1  ImageHelper::readPixelsImpl - CPU Readback
+        0.1 ms x   7  GarbageObject::destroy
+        0.0 ms x   1  Upload image data on host
+        0.0 ms x  11  ThreadControllerImpl::RunTask
+        0.0 ms x   4  GPUTask
+        0.0 ms x   6  CommandBufferStub::PerformWork
+        0.0 ms x   5  FramebufferVk::clear
+        0.0 ms x   3  SecondaryCommandBuffer::executeCommands
+        0.0 ms x   4  GpuChannel::ExecuteDeferredRequest
+        0.0 ms x  11  RunTask
+        0.0 ms x   4  Scheduler::RunTask
+        0.0 ms x   1  CommandQueue::queueSubmitLocked
+   keyword events: ContextVk::finishImpl 27.9, ImageHelper::readPixelsImpl - CPU Readback 0.2, ImageHelper::readPixelsImpl 0.0, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixels 0.0
+
+before-phone flip 225 Stalker->Buzzz (median long task 90.042 ms of 60): CrGpuMain self-time top in flip window 89 ms:
+       75.1 ms x   1  ContextVk::finishImpl
+        0.2 ms x   2  CommandBufferService:PutChanged
+        0.1 ms x   1  ImageHelper::readPixelsImpl - CPU Readback
+        0.0 ms x   1  Upload image data on host
+        0.0 ms x   4  SecondaryCommandBuffer::executeCommands
+        0.0 ms x   3  GPUTask
+        0.0 ms x   8  ThreadControllerImpl::RunTask
+        0.0 ms x   4  CommandBufferStub::PerformWork
+        0.0 ms x   3  GpuChannel::ExecuteDeferredRequest
+        0.0 ms x   1  CommandQueue::queueSubmitLocked
+        0.0 ms x   1  ContextVk::clearAllGarbage
+        0.0 ms x   4  GarbageObject::destroy
+        0.0 ms x   8  RunTask
+        0.0 ms x   2  CommandBufferStub::OnAsyncFlush
+   keyword events: ContextVk::finishImpl 75.1, ImageHelper::readPixelsImpl - CPU Readback 0.1, ImageHelper::readPixelsImpl 0.0, Scheduler::FinishTask 0.0, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixels 0.0
+
+before-phone flip 166 Buzzz->Luna (median long task 85.335 ms of 60): CrGpuMain self-time top in flip window 91 ms:
+       76.1 ms x   1  ContextVk::finishImpl
+        0.2 ms x   2  CommandBufferService:PutChanged
+        0.2 ms x   1  ImageHelper::readPixelsImpl - CPU Readback
+        0.0 ms x   1  Upload image data on host
+        0.0 ms x   5  SecondaryCommandBuffer::executeCommands
+        0.0 ms x   3  GPUTask
+        0.0 ms x   8  ThreadControllerImpl::RunTask
+        0.0 ms x   2  CommandBuffer::Flush
+        0.0 ms x   4  CommandBufferStub::PerformWork
+        0.0 ms x   4  FramebufferVk::clear
+        0.0 ms x   3  Scheduler::RunTask
+        0.0 ms x   1  CommandQueue::queueSubmitLocked
+        0.0 ms x   5  GarbageObject::destroy
+        0.0 ms x   1  SharedImageStub::OnCreateSharedImagePool
+   keyword events: ContextVk::finishImpl 76.1, ImageHelper::readPixelsImpl - CPU Readback 0.2, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixels 0.0, ImageHelper::readPixelsImpl 0.0
+
+before-phone flip 155 Luna->Destroyer (median long task 260.148 ms of 63): CrGpuMain self-time top in flip window 428 ms:
+      330.5 ms x   3  ContextVk::finishImpl
+       36.7 ms x  11  CommandBufferService:PutChanged
+        0.5 ms x   3  ImageHelper::readPixelsImpl - CPU Readback
+        0.3 ms x   3  Upload image data on host
+        0.1 ms x   1  GLES2DecoderPassthroughImpl::DoLinkProgram
+        0.1 ms x  62  ThreadControllerImpl::RunTask
+        0.1 ms x  18  GPUTask
+        0.0 ms x  11  SecondaryCommandBuffer::executeCommands
+        0.0 ms x  62  RunTask
+        0.0 ms x  20  CommandBufferStub::PerformWork
+        0.0 ms x  23  Scheduler::RunTask
+        0.0 ms x  23  GpuChannel::ExecuteDeferredRequest
+        0.0 ms x  10  SharedImageStub::OnDestroySharedImagePool
+        0.0 ms x   9  FramebufferVk::clear
+   keyword events: ContextVk::finishImpl 330.5, ImageHelper::readPixelsImpl - CPU Readback 0.5, GLES2DecoderPassthroughImpl::DoLinkProgram 0.1, ImageHelper::readPixelsImpl 0.0, Compile/Link (unlocked) 0.0, CompileEvent::wait 0.0, Scheduler::FinishTask 0.0, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixels 0.0

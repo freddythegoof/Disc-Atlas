@@ -1,0 +1,53 @@
+{
+ "label": "atlas-desktop",
+ "click_frame_by_to": {
+  "Stalker": {
+   "n": 61,
+   "median": 2.7,
+   "p95": 3.1,
+   "max": 5.1,
+   "ge50": 0
+  },
+  "Buzzz": {
+   "n": 60,
+   "median": 2.5,
+   "p95": 2.9,
+   "max": 3.2,
+   "ge50": 0
+  },
+  "Luna": {
+   "n": 60,
+   "median": 2.6,
+   "p95": 3.0,
+   "max": 3.3,
+   "ge50": 0
+  },
+  "Destroyer": {
+   "n": 60,
+   "median": 3.6,
+   "p95": 4.1,
+   "max": 4.6,
+   "ge50": 0
+  }
+ },
+ "click_frame_all": {
+  "n": 241,
+  "median": 2.7,
+  "p95": 3.8,
+  "max": 5.1,
+  "ge50": 0
+ },
+ "readpixels_by_phase": {},
+ "readpixels_per_flip_by_to": {},
+ "readpixels_per_flip_count": {
+  "0": 241
+ },
+ "long_tasks_by_to_and_kind": {},
+ "flip_block_wall_ms": 9991.6,
+ "gpu_main_busy_ms": 1695.1,
+ "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+ "flags": [
+  "--enable-gpu"
+ ],
+ "phase": "after"
+}

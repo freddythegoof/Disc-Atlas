@@ -1,0 +1,54 @@
+{
+ "label": "atlas-desktop",
+ "trace": "atlas-desktop-gate-241.trace.json",
+ "events": 592441,
+ "main": {
+  "pid": 63835,
+  "tid": 1900601,
+  "thread": "CrRendererMain",
+  "process": "Renderer"
+ },
+ "gpu_processes": [
+  [
+   63833,
+   "GPU Process"
+  ]
+ ],
+ "gpu_threads": [
+  "CrGpuMain",
+  "ThreadPoolForegroundWorker",
+  "VizCompositorThread"
+ ],
+ "marks": {
+  "start": 97623142771,
+  "stills": 97633134407,
+  "end": 97635234825,
+  "flips": 241
+ },
+ "run_tasks": 18775,
+ "long_tasks_total": 0,
+ "long_tasks_by_phase": {},
+ "long_tasks_flips_block": 0,
+ "long_tasks_stills_block": 0,
+ "observer_long_tasks": 0,
+ "observer_longest_ms": 0,
+ "longest_ms": 0,
+ "ratio_table": [],
+ "per_flip": {
+  "flips_with_long_task": 0,
+  "flips_with_two_or_more": 0,
+  "class_mix_per_flip": []
+ },
+ "by_from_mold": {},
+ "by_to_mold": {},
+ "by_class_and_to_mold": [],
+ "child_names_by_class": {},
+ "longest_five": [],
+ "gpu_over_all_long_windows": [],
+ "flip_block_gpu_busy_ms": {
+  "VizCompositorThread": 70.343,
+  "CrGpuMain": 1695.078,
+  "ThreadPoolForegroundWorker": 383.126
+ },
+ "flip_block_wall_ms": 9991.6
+}

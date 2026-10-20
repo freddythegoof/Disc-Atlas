@@ -1,4 +1,4 @@
-# Gallery per-flip performance hunt — Phases 1–4
+# Gallery per-flip performance hunt — Phases 1–4b
 
 October 17, 2026. **Phase 2 retained a one-file experiment; Gallery and Atlas phone perf gates remain red. Stop for Freddy.** See Phase 2 below for results, regressions and screenshots. Phase 1 attribution is retained as historical evidence.
 
@@ -375,3 +375,87 @@ What this does not settle: the before build's reported quiet-Mac counts (phone 2
 ### Fences held
 
 No product code, gate, limit, margin, rep or workload changed; `tests/gallery-fixes-browser.mjs` is byte-identical to `12b939f`. `reliefTexture()` was neither touched nor re-profiled. Chromium categories and the four-flip warm-up are probe-only choices. No push, PR, merge or deploy; this section and its evidence are a local commit on this worktree's branch for Freddy's review.
+
+## Phase 4b — the two control captures Phase 4 left open
+
+October 19, 2026. Fable, Freddy's Mac (Apple M4, 10 cores, 16 GB, macOS 15.7.3), the same `chrome-headless-shell` 156.0.8078.4 under Playwright 1.64.1 as Phase 4. **Measurement only: no product code, no gate, limit, rep or workload edit, `reliefTexture()` untouched, no push.** Phase 4 ended on one open point: the before build's reported quiet-Mac counts (phone 2, desktop 0) did not fit a readback that runs on every commit after a draw. This phase ran the two captures Phase 4 named to close it, with the same ignored probe extended by two options ([probe.mjs.txt](assets/gallery-perf-hunt/phase4b/probe.mjs.txt)):
+
+- `--phase=before` installs the gate's own baseline replay, in substance verbatim from `tests/gallery-fixes-browser.mjs:20-21`: a context route that serves `/`, `/my-bag.js`, `/my-bag.css` and `/all-discs-gallery.js` from `git show e59e67e:<file>` (`web/index.html`, `public/my-bag.js`, `public/my-bag.css`, `public/all-discs-gallery.js`), installed only after sign-in, with the gate's before-phase entry (Storage › All, since the shipped build has no Gallery view). Everything else, the fixture, the four owned copies, the owner photo on Destroyer, the warm-up and the measured loop, is unchanged from Phase 4. The gate's loop needs no `data-appearance` on the shipped build: `dataset.appearance !== 'loading'` is simply true there, as it is in the gate.
+- `--flags=atlas` launches the trace stage with the Atlas control's `['--enable-gpu']` instead of the gate's `['--use-angle=d3d11','--enable-gpu']`.
+
+Before any measured loop, the before route was smoke-tested through the renderer stage only (Gallery entry, no loop): all three contexts received the four replayed files, entered Storage › All with Destroyer up, zero page errors, and the renderer string under the gate flags was SwiftShader exactly as in Phase 4 ([renderer-before-gate.json](assets/gallery-perf-hunt/phase4b/renderer-before-gate.json)). Freddy then gave the go-ahead in words; the four loops ran serially on the otherwise idle Mac in this order: before phone, before desktop (gate flags), after phone, after desktop (Atlas flags). Each is the Phase 4 loop: a 4-flip warm-up, then one copy of the gate's warm repetition (241 flips + 120 stills) under CDP tracing with the hunt marks. Zero page errors in all four ([loops.log](assets/gallery-perf-hunt/phase4b/loops.log)). A first attempt at the batch stopped on the probe's argument check before any browser launched (a shell word-splitting slip in the wrapper, not the probe); nothing was measured by it.
+
+### Readout — the four captures
+
+| Capture | Build | Launch args | `UNMASKED_RENDERER_WEBGL` | Long tasks (observer / trace) | Longest | fly / still / reveal p95 (ms) | `GLES2::ReadPixels` on the renderer main, flip block (≥ 50 ms / all) |
+| --- | --- | --- | --- | ---: | ---: | --- | ---: |
+| before-phone | e59e67e replay | gate | SwiftShader | **244 / 244** (243 in the flips, 1 in the stills) | 302.0 ms | 12.7 / 0.9 / 170.0 | 241 / 360 |
+| before-desktop | e59e67e replay | gate | SwiftShader | **195 / 195** | 240.0 ms | 3.3 / 0.1 / 103.6 | 62 / 360 |
+| atlas-phone | after (this tree) | atlas | ANGLE Metal, Apple M4 | **16 / 16** | 73.1 ms | 8.1 / 0.2 / 104.3 | 0 / 0 |
+| atlas-desktop | after (this tree) | atlas | ANGLE Metal, Apple M4 | **0 / 0** | — | 2.8 / 0.5 / 50.2 | 0 / 0 |
+
+Phase 4's after-build captures under the gate flags, for reference: phone 242 / 242, desktop 64 / 64.
+
+### The before build under the gate flags: the same readback, inside the click frame
+
+The before build does block in the compositor readback on every flip. Its long tasks fall in two classes, and the nesting is the Phase 4 chain with the readback moved into the click frame, because the shipped build has no hide/reveal frame:
+
+```text
+RunTask 89.7 ms  (before-phone, flip 17, Stalker → Buzzz: the click frame)
+  ProxyMain::BeginMainFrame
+    FireAnimationFrame → loop click → render():53 → v.update() → renderNow()   10.4 ms
+    WebFrameWidgetImpl::UpdateLifecycle                                         1.6 ms
+    Commit → LayerTreeHost::DoUpdateLayers                                     76.5 ms
+      GLES2::ReadPixels → WaitForCmd → CommandBufferHelper::Finish              75.9 ms
+
+RunTask 302.0 ms  (before-phone, flip 23, Luna → Destroyer: the viewer's own scheduled draw)
+  ProxyMain::BeginMainFrame
+    FireAnimationFrame → FunctionCall viewer.mjs:134 render                     7.1 ms
+    Commit → LayerTreeHost::DoUpdateLayers                                    294.7 ms
+      GLES2::ReadPixels → WaitForCmd → Finish → WaitForGetOffset              294.2 ms
+```
+
+| Capture | Class | n | Wall median / max (ms) | Thread CPU median (ms) | Ratio min / median / max | JS self median | Style max | Layout max | Commit max |
+| --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| before-phone 4× | click frame | 180 | 89.3 / 96.3 | 71.0 | 1.23 / 1.26 / 1.27 (not usable at 4×, as in Phase 4) | 10.0 | 0.9 | 1.2 | 83.3 |
+| before-phone 4× | viewer scheduled draw (Destroyer arrivals) | 63 | 260.1 / 302.0 | 199.2 | 1.27 / 1.31 / 1.33 | 5.8 | 0.8 | 0.7 | 294.7 |
+| before-phone 4× | photo continuation | 1 | 71.5 | 72.6 | 0.99 | 60.8 | 0 | 0 | 0 |
+| before-desktop 1× | click frame | 135 | 51.5 / 57.5 | 3.4 | 9.3 / 15.2 / 17.0 | 2.6 | 0.08 | 0.14 | 54.2 |
+| before-desktop 1× | viewer scheduled draw (Destroyer arrivals) | 60 | 236.0 / 240.0 | 1.9 | 55.6 / 125.6 / 148.5 | 1.4 | 0.05 | 0.05 | 237.5 |
+
+On a Destroyer arrival the click frame draws the Destroyer with its stock stamp while the photo loads (one readback, 72 ms median on the phone), the photo's `onChange` requests the viewer's own animation frame (`request()` in `public/disc3d/viewer.mjs`), and that frame's commit waits 236–302 ms behind the photo upload, its mipmaps and the program link: `GLES2DecoderPassthroughImpl::DoLinkProgram` appears in every Destroyer window, `ContextVk::finishImpl` carries 330 ms (phone) / 272 ms (desktop) of GPU-thread self time in the median Destroyer window ([before-phone.gpuside.log](assets/gallery-perf-hunt/phase4b/before-phone.gpuside.log), [before-desktop.gpuside.log](assets/gallery-perf-hunt/phase4b/before-desktop.gpuside.log)). Destroyer flips carry three readbacks each (180 over 60 flips), the other transitions one.
+
+Per transition, keyed by each mark's own flip ([extra.py.txt](assets/gallery-perf-hunt/phase4b/extra.py.txt); the Phase 4 analyser's per-flip columns attribute a click frame to the previous flip, because that task starts about a millisecond before the mark it contains, so the `-tasks.csv` `flip`/`from`/`to` columns are shifted by one transition for the click-frame rows of these two captures and are correct for the later tasks):
+
+| Arriving at | Phone click frame median (max) | ≥ 50 ms | Phone readback in the flip, median | Desktop click frame median (max) | ≥ 50 ms | Desktop readback, median |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Stalker (from Destroyer) | 43.7 (48.9) | 0 of 61 | 28.6 | 22.8 (31.3) | 0 of 61 | 19.0 |
+| Buzzz | 89.7 (96.3) | 60 of 60 | 75.3 | 51.7 (57.5) | 60 of 60 | 48.3 |
+| Luna | 90.0 (95.8) | 60 of 60 | 76.2 | 51.4 (53.9) | 59 of 60 | 47.9 |
+| Destroyer, click frame (stock stamp, photo pending) | 85.3 (95.9) | 60 of 60 | 71.8 (p95 252.7 over the flip's three) | 49.6 (52.3) | 16 of 60 | 46.1 (p95 235.2) |
+| Destroyer, viewer scheduled photo draw | 260.1 (302.0) | 63 | — | 236.0 (240.0) | 60 | — |
+
+So the before build's cycle is three long click frames plus one long photo draw per four flips, which is where 244 comes from (180 + 63 + the one photo continuation), the same one-per-flip rate as the after build's 242. The Stalker arrival is the one transition that stays under the line: its readback sits at the stills' level (stills median 25.1 ms phone, 15.8 desktop; [before-phone.window.log](assets/gallery-perf-hunt/phase4b/before-phone.window.log)), so that click frame's draw does not carry the 45–50 ms (phone) the other stock arrivals pay. Its GL call mix on the main thread is the same as theirs (one canvas snapshot, one readback, the same host-side upload count), and the cause was not chased: it changes no count here and is a property of the shipped build on a software GL path. The desktop count, 195 against the after build's 64, is line placement on the same mechanism: the shipped build's stock click frames sit at 51–52 ms (readback 48 plus about 3 ms of script), the after build's stock reveal frames sat just under (readback 46 plus about 1 ms).
+
+GPU-thread occupancy over the flip block: before-phone `CrGpuMain` busy 32.9 s of 39.4 s, before-desktop 25.6 s of 27.7 s; the same loop on the Metal path runs in 10.8 s (phone) and 10.0 s (desktop) with `CrGpuMain` busy 1.75 s and 1.70 s.
+
+### The after build on the Metal path: no readback, 16 and 0
+
+Under the Atlas control's flags WebGL and GPU compositing are enabled (Phase 4, readout 1) and the renderer main thread performs **no `GLES2::ReadPixels` at all** in either capture (481 per capture on SwiftShader). The click frame is 8.5 ms median, 14.2 ms max on the phone at 4×, 2.7 / 5.1 ms on desktop. Desktop: **0 long tasks** over 241 flips and 120 stills. Phone: **16 long tasks, all one class**, the photo continuation on a Destroyer arrival (the microtask that finishes the owner photo: `RunMicrotasks` 60–63 ms self time, `GetImageData` / `CanvasRenderingContext2D::FinalizeFrame` under it, no frame, no commit), 72.0 ms median, 73.1 ms max, wall/CPU ratio 1.0, in 16 of the 60 Destroyer arrivals ([atlas-phone.chain.log](assets/gallery-perf-hunt/phase4b/atlas-phone.chain.log)). That is Phase 1's dominant real task on the PC (58–60 photo returns per block there, at 4×), here crossing the line in about a quarter of the returns on the M4. In the median Destroyer window the GPU thread spends 6.3 ms in command processing, 5.0 ms in `CompileEvent::wait` (the photo material's program link, `ProgramMtl::compileMslShaderLibs`) and 3.2 ms in IOSurface waits, and is otherwise idle ([atlas-phone.gpuside.log](assets/gallery-perf-hunt/phase4b/atlas-phone.gpuside.log)).
+
+### Verdict on the open point
+
+- **The before build blocks in the compositor readback per flip too, under the gate's flags on this Mac.** Same `GLES2::ReadPixels` in `LayerTreeHost::DoUpdateLayers`, same `WaitForGetOffset` wait on SwiftShader, inside the shipped build's click frame and the viewer's photo draw instead of a reveal frame. Its count lands at **244 on the phone and 195 on desktop**, against the after build's 242 and 64 under the same flags (Phase 4).
+- **The reported "phone 2, desktop 0" are not a Mac measurement of the before build.** They are the committed PC rows in `docs/images/storage-all-discs-fixes/before.json` (`c3956cf`, October 17, Windows, RTX 3070, ANGLE D3D11 per the Phase 1 header), which `tests/gallery-fixes-browser.mjs:90` reads from disk whenever the after phase runs. A Mac after run is therefore limited against the PC baseline (limit 3 phone, 1 desktop), and the quiet-Mac rows Phase 3 quoted ("desktop 61 vs limit 1, phone 241 vs limit 3") carry exactly those PC limits. The open point was a cross-machine comparison, not a mechanism the readback failed to explain. As arithmetic only, from single repetitions and no gate run: a before baseline replayed on this Mac under the gate flags would put the limits at 245 (phone) and 196 (desktop), above Phase 4's 242 and 64.
+- **On the Metal path the after build has no readback: phone 16, desktop 0.** The 16 are the owner-photo continuation on Destroyer returns at 72–73 ms, CPU-bound at 4×, the task class the PC gate already counts (its after rows: phone 7–13 warm, desktop 0). Against the committed PC baseline (2 + 1) a Metal phone run would still read 16 over the limit by that class; against a Mac-recorded baseline the question is open, because the before build was not captured under the Atlas flags here (not in the brief).
+- **Not decided here, for Freddy:** whether the gate's launch line should request D3D11 only on Windows, as `tests/atlas-3d-perf.mjs:125` does, and whether `before.json` should be recorded per machine. Both are gate edits; nothing in this phase changes them.
+
+### Evidence and reproduction
+
+- [Trace manifest](assets/gallery-perf-hunt/phase4b/manifest.json): `before-phone-gate-241.trace.json.gz` (raw 114,452,343 B, sha256 `100717a0…719a1c`; gzip 9,889,574 B, `d9068d3a…dede37b`), `before-desktop-gate-241.trace.json.gz` (raw 109,085,932 B, `848ff7d9…400bb9c`; gzip 9,369,300 B, `02a075c4…aab106b`), `atlas-phone-gate-241.trace.json.gz` (raw 109,978,746 B, `4917981d…93fca19`; gzip 11,118,648 B, `a28619ed…c23c626`), `atlas-desktop-gate-241.trace.json.gz` (raw 119,931,195 B, `292b2c25…1f61fb3`; gzip 11,651,054 B, `a256eccf…ccb7aa`). Full digests in the manifest. `hunt:start`, `hunt:flip:N`, `hunt:stills`, `hunt:end` delimit the measured window.
+- Per capture: `<label>-tasks.csv`, `<label>-summary.json` (Phase 4 analyser; see the attribution note above), `<label>.extra.json` (per-transition click-frame, readback and GPU-busy figures), `<label>.analyze.log`, `<label>.gpuside.log`, `<label>.chain.log` (the desktop Metal capture has no long task, so its chain and GPU-side logs are empty or stop at the empty pick), `<label>-gate-241.loop.json` (loop result, per-flip log, observer entries, served baseline routes, renderer record), [before-phone.window.log](assets/gallery-perf-hunt/phase4b/before-phone.window.log) (task sequence of flips 16, 17 and 20). [renderer-before-gate.json](assets/gallery-perf-hunt/phase4b/renderer-before-gate.json) is the smoke test. [probe.log](assets/gallery-perf-hunt/phase4b/probe.log) (the setup line's 2,434 mold names trimmed), [loops.log](assets/gallery-perf-hunt/phase4b/loops.log). Scripts as text: [probe.mjs.txt](assets/gallery-perf-hunt/phase4b/probe.mjs.txt) (Phase 4's probe plus the two options), [extra.py.txt](assets/gallery-perf-hunt/phase4b/extra.py.txt), [window.py.txt](assets/gallery-perf-hunt/phase4b/window.py.txt); `analyze.py`, `gpuside.py` and `chain.py` are byte-identical to the Phase 4 copies and are not duplicated. [sha256.json](assets/gallery-perf-hunt/phase4b/sha256.json) lists every other file in the folder. No auth storage state or database is included.
+- Reproduction from this worktree, serially, after `--stage=setup`: `node outputs/gallery-perf-hunt-mac/probe.mjs --stage=trace --phase=before --device=phone --flags=gate`, the same with `--device=desktop`, then `--phase=after --device=phone --flags=atlas` and `--device=desktop --flags=atlas`; `python3 -I outputs/gallery-perf-hunt-mac/analyze.py <trace> <out_dir> <label> <loop.json>`, `gpuside.py <trace> <tasks.csv> <label>`, `extra.py <trace> <loop.json> <label>`. The scripts live in ignored `outputs/gallery-perf-hunt-mac/`, recreated from the committed `.txt` copies.
+
+### Fences held
+
+No product code, gate, limit, margin, rep or workload changed; `tests/gallery-fixes-browser.mjs` is byte-identical to `12b939f`. `reliefTexture()` was neither touched nor re-profiled. The baseline route, the Storage › All entry and the Atlas launch args are probe-only choices that mirror the gate and the Atlas control. No push, PR, merge or deploy; this section and its evidence are a local commit on this session's branch, which was pointed at Phase 4's commit `4c853e9` so that 4b stacks on 4, for Freddy's review.
