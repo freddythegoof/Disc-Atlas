@@ -32,7 +32,7 @@ import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial,catalogStampAsset,catalogStampPlacement} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
-import {isOvermold,overmoldColors,bagRimColor} from './overmold.mjs';
+import {isOvermold,overmoldColors,bagRimColor,lightTheme} from './overmold.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
 import {DETAIL,detailPixelRatio} from './quality.mjs';
@@ -248,7 +248,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const resolved=shapeForDisc(props);
   if(!resolved)return false;
   const {shape,source}=resolved;
-  const rim=bagRimColor({rim_color:props.colors?.rim,texture_key:props.texture_key,photo_rim_color:props.photo_rim_color},document.documentElement.dataset.tone!=='dark'?undefined:'#ffffff');
+  const rim=bagRimColor({rim_color:props.colors?.rim,texture_key:props.texture_key,photo_rim_color:props.photo_rim_color},lightTheme()?undefined:'#ffffff');
   const overmold=isOvermold(props),colors=overmold?overmoldColors(props.color,{...props.colors,rim}):null;
   const band=!overmold&&/^#[0-9a-f]{6}$/i.test(props.haloBand||'')?props.haloBand.toLowerCase():null;
   // Halo v2: the band's wash and dye front, when the copy was saved with them; otherwise the v1 one-colour band.

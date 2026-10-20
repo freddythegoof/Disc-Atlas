@@ -13,6 +13,13 @@
     black: Object.freeze({label: 'Black', tone: 'dark', meta: '#000000'})
   });
   window.DiscAtlasThemes = THEMES;
+  // A theme's tone, read from its name at the moment of asking (a legacy or unknown name is dark, as before).
+  window.discAtlasTone = theme => THEMES[theme]?.tone || (theme === 'light' ? 'light' : 'dark');
+  // Whoever sets data-theme (theme.js, app.js's applyTheme, a test), data-tone follows it for the CSS.
+  new MutationObserver(() => {
+    const root = document.documentElement, tone = window.discAtlasTone(root.dataset.theme);
+    if (root.dataset.tone !== tone) root.dataset.tone = tone;
+  }).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
   const valid = value => Object.hasOwn(THEMES, value || '');
   let saved;
   try { saved = localStorage.getItem('disc-atlas-theme'); } catch { /* Storage may be disabled. */ }

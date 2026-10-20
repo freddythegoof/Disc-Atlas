@@ -546,7 +546,7 @@ function dropMarkerArt(node){
 const SPRITE_SCALE=2,SPRITE_PAD=.5;
 // `shadowOnly`: just the drop shadows, for under a 3D render.
 function gapSprite(color,shadowOnly=false){
- const light=document.documentElement.dataset.tone!=='dark',key=color+(light?'|light':'|dark')+(shadowOnly?'|shadow':'');
+ const theme=document.documentElement.dataset.theme,light=(window.discAtlasTone?.(theme)??(theme==='light'?'light':'dark'))==='light',key=color+(light?'|light':'|dark')+(shadowOnly?'|shadow':'');
  let sprite=gapSprites.get(key);if(sprite)return sprite;
  if(gapSprites.size>48)gapSprites.clear();
  const k=SPRITE_SCALE,D=AtlasGroups.GAP.disc*k,n=Math.ceil(D*(1+SPRITE_PAD*2)),c=document.createElement('canvas');c.width=c.height=n;

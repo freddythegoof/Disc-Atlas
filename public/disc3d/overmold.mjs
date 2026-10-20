@@ -33,6 +33,11 @@ export function isOvermold({overmold,manufacturer,record}={}){
 // rim_color) and a chosen rim always wins. Anything unreadable falls back to the default.
 export const DEFAULT_DISC_COLOR='#8a8f98';
 export const DEFAULT_RIM_COLOR='#0a0a0a';
+// Whether the page wears a light theme (Light or Paper), from the theme's name as it stands now (theme.js).
+export function lightTheme(){
+ const theme=globalThis.document?.documentElement.dataset.theme;
+ return (globalThis.discAtlasTone?.(theme)??(theme==='light'?'light':'dark'))==='light';
+}
 // Resolve saved intent before handing colors to any renderer. A removed photo
 // cannot keep an automatic rim alive; callers may supply their existing surface fallback.
 export function bagRimColor(item,fallback=null){
