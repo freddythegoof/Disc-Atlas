@@ -1,0 +1,30 @@
+[
+  {
+    "file": "before-phone-gate-241.trace.json.gz",
+    "raw_bytes": 114452343,
+    "gzip_bytes": 9889574,
+    "raw_sha256": "100717a09127f77125dbabde971c021cf7aee38a8b13b49681f071bf3c719a1c",
+    "gzip_sha256": "d9068d3adf97175d96d16625b0413fcbbd5ede993794bac9424ec52cbdede37b"
+  },
+  {
+    "file": "before-desktop-gate-241.trace.json.gz",
+    "raw_bytes": 109085932,
+    "gzip_bytes": 9369300,
+    "raw_sha256": "848ff7d9db6fb8fb46b8fd4e0be1d06688d8548d7a5b76bd306ab1e2e400bb9c",
+    "gzip_sha256": "02a075c4b1d0ebb58df8021db96f9722efe8565603fa714d038e63085aab106b"
+  },
+  {
+    "file": "atlas-phone-gate-241.trace.json.gz",
+    "raw_bytes": 109978746,
+    "gzip_bytes": 11118648,
+    "raw_sha256": "4917981df7ffa77fa02246312930729971920af24d93f907b05d28f6393fca19",
+    "gzip_sha256": "a28619edfeb08060cf06e1ddbe68f099e429622d739efd6fa8f5ec52ac23c626"
+  },
+  {
+    "file": "atlas-desktop-gate-241.trace.json.gz",
+    "raw_bytes": 119931195,
+    "gzip_bytes": 11651054,
+    "raw_sha256": "292b2c259a44caa7f7ad1830384499a92e27cc71d7d2849cb011965441f61fb3",
+    "gzip_sha256": "a256eccfe2698ea43a2da229deb8068710c7864dbb6925f5a2cbd6eb34ccb7aa"
+  }
+]

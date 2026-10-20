@@ -1,0 +1,55 @@
+import json,sys,csv,bisect
+from collections import Counter,defaultdict
+trace,tasks_csv,label=sys.argv[1],sys.argv[2],sys.argv[3]
+d=json.load(open(trace));ev=d['traceEvents']
+rows=list(csv.DictReader(open(tasks_csv)))
+tn={(e['pid'],e['tid']):e['args']['name'] for e in ev if e.get('ph')=='M' and e['name']=='thread_name'}
+marks={e['name']:e['ts'] for e in ev if e.get('cat')=='blink.user_timing' and e['name'].startswith('hunt:')}
+main_pid,main_tid=[(e['pid'],e['tid']) for e in ev if e.get('cat')=='blink.user_timing' and e['name']=='hunt:start'][0]
+rp=[e for e in ev if e['pid']==main_pid and e['tid']==main_tid and e['name']=='GLES2::ReadPixels']
+def phase(ts):
+    if ts<marks['hunt:start']:return 'pre'
+    if ts<marks['hunt:stills']:return 'flips'
+    if ts<marks['hunt:end']:return 'stills'
+    return 'post'
+by=defaultdict(list)
+for e in rp:by[phase(e['ts'])].append(e['dur']/1000)
+for k,v in by.items():
+    v.sort();print(f"{label} ReadPixels {k}: n={len(v)} median {v[len(v)//2]:.1f} p95 {v[int(len(v)*.95)]:.1f} max {v[-1]:.1f} ms, >=50ms {sum(1 for x in v if x>=50)}")
+gpu=[(pid,tid) for (pid,tid),n in tn.items() if n=='CrGpuMain'][0]
+g=sorted([e for e in ev if (e['pid'],e['tid'])==gpu and e.get('ph')=='X' and 'dur' in e],key=lambda e:(e['ts'],-e['dur']))
+gts=[e['ts'] for e in g]
+def selfs(lo,hi):
+    i=bisect.bisect_left(gts,lo-2_000_000);stack=[];cs={};out=Counter();cnt=Counter()
+    while i<len(g) and g[i]['ts']<hi:
+        e=g[i];i+=1
+        if e['ts']+e['dur']<=lo:continue
+        while stack and e['ts']>=stack[-1]['ts']+stack[-1]['dur']:stack.pop()
+        if stack:cs[id(stack[-1])]=cs.get(id(stack[-1]),0)+e['dur']
+        stack.append(e)
+        out[e['name']]+=0;cnt[e['name']]+=1
+    # second pass for self time
+    i=bisect.bisect_left(gts,lo-2_000_000)
+    while i<len(g) and g[i]['ts']<hi:
+        e=g[i];i+=1
+        if e['ts']+e['dur']<=lo:continue
+        out[e['name']]+=(e['dur']-cs.get(id(e),0))/1000
+    return out,cnt
+def flipwin(n):
+    lo=marks[f'hunt:flip:{n}'];hi=marks.get(f'hunt:flip:{n+1}',lo+2_000_000);return lo,hi
+sel={}
+for r in rows:
+    if r['phase']!='flips':continue
+    key=r['to'];
+    if key not in sel or abs(float(r['wall_ms'])-float(sel[key]['wall_ms']))>0 and float(r['wall_ms'])<float(sel[key]['wall_ms']):sel[key]=r
+# pick median-wall task per 'to' mold
+per=defaultdict(list)
+for r in rows:
+    if r['phase']=='flips':per[r['to']].append(r)
+for mold,rs in per.items():
+    rs.sort(key=lambda r:float(r['wall_ms']));r=rs[len(rs)//2];n=int(r['flip']);lo,hi=flipwin(n)
+    s,c=selfs(lo,hi)
+    print(f"\n{label} flip {n} {r['from']}->{r['to']} (median long task {r['wall_ms']} ms of {len(rs)}): CrGpuMain self-time top in flip window {(hi-lo)/1000:.0f} ms:")
+    for name,ms in s.most_common(14):print(f"   {ms:8.1f} ms x{c[name]:4d}  {name}")
+    kw=[(name,ms) for name,ms in s.items() if any(k in name for k in('TexImage','TexSubImage','Mipmap','mipmap','Compile','compile','Link','link','Shader','Program','ReadPixels','readPixels','finish','Finish','Draw','draw','Clear','Blit','blit','Resolve','resolve'))]
+    kw.sort(key=lambda x:-x[1]);print('   keyword events:',', '.join(f'{n} {ms:.1f}' for n,ms in kw[:14]))

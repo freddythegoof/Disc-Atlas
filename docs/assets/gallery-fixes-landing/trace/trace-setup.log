@@ -1,0 +1,7 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing/dist/workers-public/
+[2026-10-20T04:28:30.905Z] fixture ready at https://localhost:8951 stage setup
+[2026-10-20T04:28:30.987Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T04:28:36.445Z] owned copies [{"id":"273453de-875b-455a-a8e7-2a3a9adbb6f2","mold_id":"3d60892b6812","plastic":"Star","photo":false},{"id":"217ccc5b-55c8-463a-b855-64bc4c4bdcb4","mold_id":"8cc6c4a94762","plastic":"ESP","photo":false},{"id":"9387b85a-74bb-449d-b4d1-99ff7243d416","mold_id":"7446eb39abe5","plastic":"ESP","photo":false},{"id":"fbc6538d-90c8-4780-b535-f44c5d2a113e","mold_id": […]
+[2026-10-20T04:28:36.479Z] session saved (ignored, never evidence)
+[2026-10-20T04:28:36.480Z] stage setup done

@@ -1,0 +1,13 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing/dist/workers-public/
+ok - Signed out: sign-in teaser, no My Map switch, the map stays on the atlas
+ok - Signed in, empty bag: empty state with a Directory link, no map docked
+ok - Populated: only bagged rated molds, consensus ± stability notes (speed unchanged), summary and unrated note
+ok - DD1/DD3: My Map renders personal coordinates directly; both DD3 speeds and regular DD3 stability preserve their ordering
+ok - Details: docked on My Bag, with the copy, its note and its personal stability
+ok - A saved stability note moves its disc on My Map
+ok - Test-only Less stable DD1: DD3 is more stable than DD1, and Destroyer farther to the stable side
+ok - Populated, including Premier DD1 and both DD3 approvals, in all three themes at 1440 and 360
+ok - Leaving: the neutral atlas has its map, consensus positions, full catalog and immersive frame back
+ok - Returning to My Bag reopens My Map; atlas ⇄ My Map hand-offs repeat cleanly
+PASS my map: 10 checks, 18 screenshots in outputs/my-map

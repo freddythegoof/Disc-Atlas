@@ -1,0 +1,54 @@
+{
+ "label": "before-phone-metal",
+ "trace": "before-phone-metal-241.trace.json",
+ "events": 426276,
+ "main": {
+  "pid": 67727,
+  "tid": 2030997,
+  "thread": "CrRendererMain",
+  "process": "Renderer"
+ },
+ "gpu_processes": [
+  [
+   67725,
+   "GPU Process"
+  ]
+ ],
+ "gpu_threads": [
+  "CrGpuMain",
+  "ThreadPoolForegroundWorker",
+  "VizCompositorThread"
+ ],
+ "marks": {
+  "start": 107455399627,
+  "stills": 107461495327,
+  "end": 107463578160,
+  "flips": 241
+ },
+ "run_tasks": 6152,
+ "long_tasks_total": 0,
+ "long_tasks_by_phase": {},
+ "long_tasks_flips_block": 0,
+ "long_tasks_stills_block": 0,
+ "observer_long_tasks": 0,
+ "observer_longest_ms": 0,
+ "longest_ms": 0,
+ "ratio_table": [],
+ "per_flip": {
+  "flips_with_long_task": 0,
+  "flips_with_two_or_more": 0,
+  "class_mix_per_flip": []
+ },
+ "by_from_mold": {},
+ "by_to_mold": {},
+ "by_class_and_to_mold": [],
+ "child_names_by_class": {},
+ "longest_five": [],
+ "gpu_over_all_long_windows": [],
+ "flip_block_gpu_busy_ms": {
+  "VizCompositorThread": 50.399,
+  "CrGpuMain": 1144.929,
+  "ThreadPoolForegroundWorker": 323.428
+ },
+ "flip_block_wall_ms": 6095.7
+}

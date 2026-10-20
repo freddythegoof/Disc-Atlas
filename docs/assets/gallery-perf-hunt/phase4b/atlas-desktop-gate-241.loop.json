@@ -1,0 +1,2390 @@
+{
+ "device": "desktop",
+ "phase": "after",
+ "flagsName": "atlas",
+ "flags": [
+  "--enable-gpu"
+ ],
+ "baselineRoutes": [],
+ "baselineBase": null,
+ "cpuThrottle": 1,
+ "gl": {
+  "unmaskedRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+  "unmaskedVendor": "Google Inc. (Apple)",
+  "renderer": "WebKit WebGL",
+  "vendor": "WebKit",
+  "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+  "glsl": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+  "webgl2": true,
+  "contextAttributes": {
+   "alpha": true,
+   "antialias": true,
+   "depth": true,
+   "desynchronized": false,
+   "failIfMajorPerformanceCaveat": false,
+   "powerPreference": "low-power",
+   "premultipliedAlpha": true,
+   "preserveDrawingBuffer": false,
+   "stencil": false,
+   "xrCompatible": false
+  },
+  "samples": 4,
+  "maxTextureSize": 16384,
+  "pixelRatio": 1,
+  "drawingBuffer": [
+   720,
+   360
+  ],
+  "devicePixelRatio": 1,
+  "viewport": [
+   1440,
+   900
+  ],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "hardwareConcurrency": 10,
+  "mold": "Destroyer"
+ },
+ "process": {
+  "version": "156.0.8078.4",
+  "defaultExecutable": "/Users/freddy/Library/Caches/ms-playwright/chromium-1248/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "processes": [
+   {
+    "type": "browser",
+    "id": 63832,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --enable-gpu --user-data-dir=/var/folders/c3/n3tnpr8x46x9th508tnyh1880000gn/T/playwright_chromiumdev_profile-u4lN1X --remote-debugging-pipe --no-startup-window"
+   },
+   {
+    "type": "renderer",
+    "id": 63835,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=old --no-sandbox --disable-back-forward-cache --disable-background-timer-throttling --disable-breakpad --force-color-profile=srgb --remote-debugging-pipe --allow-pre-commit-input --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --lang=en-US --num-raster-threads=4 --enable-zero-copy --enable-gpu-memory-buffer-compositor-resources --enable-main-frame-before-activation --renderer-client-id=4 --launch-time-ticks=97621540934 --shared-files --field-trial-handle=1718379636,r,4181484246308624300,17021008242514735116,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1875084065954333451,17275420983705866967,4 --trace-process-track-uuid=3190708990060038890"
+   },
+   {
+    "type": "GPU",
+    "id": 63833,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --gpu-recent-crash-count=0 --no-sandbox --disable-breakpad --headless --enable-unsafe-swiftshader --enable-gpu --gpu-preferences=WAAAAAAAAAAgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAADAAAAAEAAAAAAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --shared-files --field-trial-handle=1718379636,r,4181484246308624300,17021008242514735116,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1875084065954333451,17275420983705866967,4 --trace-process-track-uuid=3190708988185955192"
+   },
+   {
+    "type": "network.mojom.NetworkService",
+    "id": 63834,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --no-sandbox --mute-audio --headless=old --shared-files --field-trial-handle=1718379636,r,4181484246308624300,17021008242514735116,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1875084065954333451,17275420983705866967,4 --trace-process-track-uuid=3190708989122997041"
+   },
+   {
+    "type": "tracing.mojom.TracingService",
+    "id": 63836,
+    "command": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub-type=tracing.mojom.TracingService --lang=en-US --service-sandbox-type=service --no-sandbox --mute-audio --headless=old --shared-files --field-trial-handle=1718379636,r,4181484246308624300,17021008242514735116,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AimEnabled,AutoDeElevate,AvoidCorsURLLoaderRestartOnRedirect,AvoidUnnecessaryBeforeUnloadCheckSync,BlockOriginHeaderModificationOnRedirect,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,NetworkTimeServiceQuerying,OptimizationHints,PaintHolding,ThirdPartyStoragePartitioning,Translate,msEdgeUpdateLaunchServicesPreferredVersion,msForceBrowserSignIn --variations-seed-version --pseudonymization-salt-handle=1935764596,r,1875084065954333451,17275420983705866967,4 --trace-process-track-uuid=3190708990997080739"
+   }
+  ],
+  "gpu": {
+   "devices": [
+    {
+     "vendorId": 4203,
+     "deviceId": 0,
+     "vendorString": "Google Inc. (Apple)",
+     "deviceString": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Version 15.7.3 (Build 24G419))",
+     "driverVendor": "Apple",
+     "driverVersion": "15.7.3"
+    }
+   ],
+   "auxAttributes": {
+    "amdSwitchable": false,
+    "canSupportThreadedTextureMailbox": false,
+    "directRenderingVersion": "",
+    "displayType": "ANGLE_METAL",
+    "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_compressed_texture_etc GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_multisampled_render_to_texture GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_pvrtc_sRGB GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_IMG_texture_compression_pvrtc GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_KHR_texture_compression_astc_hdr GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_MESA_framebuffer_flip_y GL_NV_fence GL_NV_framebuffer_blit GL_NV_pixel_buffer_object GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_vertex_array_object GL_QCOM_render_shared_exponent ",
+    "glImplementationParts": "(gl=egl-angle,angle=metal)",
+    "glRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Version 15.7.3 (Build 24G419))",
+    "glResetNotificationStrategy": 33362,
+    "glVendor": "Google Inc. (Apple)",
+    "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28967 git hash: dfeede58b618)",
+    "glWsExtensions": "",
+    "glWsVendor": "",
+    "glWsVersion": "",
+    "inProcessGpu": false,
+    "initializationTime": 0.016119,
+    "isAsan": false,
+    "isClangCoverage": false,
+    "jpegDecodeAcceleratorSupported": false,
+    "maxMsaaSamples": "4",
+    "optimus": false,
+    "passthroughCmdDecoder": true,
+    "pixelShaderVersion": "3.00",
+    "processCrashCount": 0,
+    "sandboxed": false,
+    "skiaBackendType": "GraphiteDawnMetal",
+    "subpixelFontRendering": true,
+    "targetCpuBits": 64,
+    "vertexShaderVersion": "3.00",
+    "visibilityCallbackCallCount": 0
+   },
+   "featureStatus": {
+    "2d_canvas": "enabled",
+    "direct_rendering_display_compositor": "disabled_off_ok",
+    "gpu_compositing": "enabled",
+    "multiple_raster_threads": "enabled_on",
+    "opengl": "enabled_on",
+    "rasterization": "enabled",
+    "raw_draw": "disabled_off_ok",
+    "skia_graphite": "enabled_on",
+    "trees_in_viz": "disabled_off",
+    "video_decode": "enabled",
+    "video_encode": "enabled",
+    "webgl": "enabled",
+    "webgpu": "enabled",
+    "webnn": "disabled_off"
+   },
+   "driverBugWorkarounds": [
+    "disable_2d_canvas_auto_flush",
+    "enable_webgl_timer_query_extensions",
+    "disabled_extension_GL_KHR_blend_equation_advanced",
+    "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+   ]
+  },
+  "modelName": "Mac",
+  "modelVersion": "16.12",
+  "commandLine": "/Users/freddy/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --enable-gpu --user-data-dir=/var/folders/c3/n3tnpr8x46x9th508tnyh1880000gn/T/playwright_chromiumdev_profile-u4lN1X --remote-debugging-pipe --no-startup-window --use-mock-keychain --allow-pre-commit-input"
+ },
+ "warmup": {
+  "startMold": "Destroyer",
+  "flips": [
+   {
+    "i": 0,
+    "from": "Destroyer",
+    "to": "Stalker",
+    "start": 750.9000000059605,
+    "fly": 2.0999999940395355,
+    "reveal": 33.5,
+    "frames": 2
+   },
+   {
+    "i": 1,
+    "from": "Stalker",
+    "to": "Buzzz",
+    "start": 801,
+    "fly": 1.7000000029802322,
+    "reveal": 17,
+    "frames": 1
+   },
+   {
+    "i": 2,
+    "from": "Buzzz",
+    "to": "Luna",
+    "start": 834.2999999970198,
+    "fly": 1.800000011920929,
+    "reveal": 33.5,
+    "frames": 2
+   },
+   {
+    "i": 3,
+    "from": "Luna",
+    "to": "Destroyer",
+    "start": 884.2999999970198,
+    "fly": 2.800000011920929,
+    "reveal": 50.1000000089407,
+    "frames": 3
+   }
+  ],
+  "longTasks": 0,
+  "longest": 0
+ },
+ "startMold": "Destroyer",
+ "t0": 1576.5,
+ "stillStart": 11568.10000000894,
+ "tEnd": 13668.60000000894,
+ "fly": {
+  "median": 1.9000000059604645,
+  "p95": 2.800000011920929,
+  "max": 4,
+  "frames": 241
+ },
+ "still": {
+  "median": 0.3999999910593033,
+  "p95": 0.5,
+  "max": 0.5,
+  "frames": 120
+ },
+ "reveal": {
+  "median": 17.099999994039536,
+  "p95": 50.20000000298023,
+  "max": 52.20000000298023,
+  "frames": 241
+ },
+ "longTasks": 0,
+ "longest": 0,
+ "longs": [],
+ "flips": [
+  {
+   "i": 0,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 1576.9000000059605,
+   "fly": 4,
+   "reveal": 8,
+   "frames": 1
+  },
+  {
+   "i": 1,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 1601,
+   "fly": 2.4000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 2,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 1634.9000000059605,
+   "fly": 2.2000000029802322,
+   "reveal": 16.599999994039536,
+   "frames": 1
+  },
+  {
+   "i": 3,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 1667.7000000029802,
+   "fly": 3.5999999940395355,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 4,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 1734.9000000059605,
+   "fly": 2.2000000029802322,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 5,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 1768.2000000029802,
+   "fly": 1.9000000059604645,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 6,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 1801.6000000089407,
+   "fly": 2.199999988079071,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 7,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 1835,
+   "fly": 2.9000000059604645,
+   "reveal": 50,
+   "frames": 3
+  },
+  {
+   "i": 8,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 1902.9000000059605,
+   "fly": 2,
+   "reveal": 15.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 9,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 1934.7999999970198,
+   "fly": 1.7000000029802322,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 10,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 1968.2999999970198,
+   "fly": 1.6000000089406967,
+   "reveal": 16.400000005960464,
+   "frames": 1
+  },
+  {
+   "i": 11,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 2001.5,
+   "fly": 2.5,
+   "reveal": 49.6000000089407,
+   "frames": 3
+  },
+  {
+   "i": 12,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 2067.7000000029802,
+   "fly": 1.9000000059604645,
+   "reveal": 16.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 13,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 2101,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 14,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 2134.2999999970198,
+   "fly": 1.800000011920929,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 15,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 2167.6000000089407,
+   "fly": 2.699999988079071,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 16,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 2234.4000000059605,
+   "fly": 1.7999999970197678,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 17,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 2268.2000000029802,
+   "fly": 1.7999999970197678,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 18,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 2301.5,
+   "fly": 1.9000000059604645,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 19,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 2334.9000000059605,
+   "fly": 3.2000000029802322,
+   "reveal": 49.70000000298023,
+   "frames": 3
+  },
+  {
+   "i": 20,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 2401.6000000089407,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 21,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 2434.9000000059605,
+   "fly": 1.8999999910593033,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 22,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 2467.7000000029802,
+   "fly": 2.0999999940395355,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 23,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 2500.9000000059605,
+   "fly": 3,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 24,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 2567.7000000029802,
+   "fly": 2.0999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 25,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 2601,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 26,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 2634.2999999970198,
+   "fly": 2.1000000089406967,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 27,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 2667.6000000089407,
+   "fly": 3,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 28,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 2734.4000000059605,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 29,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 2767.7000000029802,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 30,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 2800.9000000059605,
+   "fly": 2,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 31,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 2834.2999999970198,
+   "fly": 2.7000000029802322,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 32,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 2901.1000000089407,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 33,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 2934.2999999970198,
+   "fly": 2,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 34,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 2967.6000000089407,
+   "fly": 2,
+   "reveal": 17.19999998807907,
+   "frames": 1
+  },
+  {
+   "i": 35,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 3001,
+   "fly": 2.6000000089406967,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 36,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 3067.7000000029802,
+   "fly": 2.2999999970197678,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 37,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 3101,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 38,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 3134.2999999970198,
+   "fly": 1.9000000059604645,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 39,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 3167.6000000089407,
+   "fly": 2.7999999970197678,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 40,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 3234.2999999970198,
+   "fly": 2.1000000089406967,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 41,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 3267.6000000089407,
+   "fly": 2.0999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 42,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 3301,
+   "fly": 1.7999999970197678,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 43,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 3334.2999999970198,
+   "fly": 2.7000000029802322,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 44,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 3401.1000000089407,
+   "fly": 2.2999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 45,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 3434.2999999970198,
+   "fly": 1.9000000059604645,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 46,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 3467.7000000029802,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 47,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 3501,
+   "fly": 2.5,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 48,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 3567.7000000029802,
+   "fly": 2,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 49,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 3601,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 50,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 3634.4000000059605,
+   "fly": 1.8999999910593033,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 51,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 3667.6000000089407,
+   "fly": 2.5999999940395355,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 52,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 3734.4000000059605,
+   "fly": 2.2000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 53,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 3767.6000000089407,
+   "fly": 1.5999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 54,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 3801,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 55,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 3834.2999999970198,
+   "fly": 2.6000000089406967,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 56,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 3901.1000000089407,
+   "fly": 1.7999999970197678,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 57,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 3934.2999999970198,
+   "fly": 1.800000011920929,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 58,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 3967.7000000029802,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 59,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 4001,
+   "fly": 2.6000000089406967,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 60,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 4067.7000000029802,
+   "fly": 2,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 61,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 4101,
+   "fly": 1.7000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 62,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 4134.4000000059605,
+   "fly": 2,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 63,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 4167.600000008941,
+   "fly": 2.7999999970197678,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 64,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 4234.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 65,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 4267.600000008941,
+   "fly": 1.699999988079071,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 66,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 4301,
+   "fly": 2.1000000089406967,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 67,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 4334.29999999702,
+   "fly": 2.7000000029802322,
+   "reveal": 50,
+   "frames": 3
+  },
+  {
+   "i": 68,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 4400.9000000059605,
+   "fly": 2.0999999940395355,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 69,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 4434.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 70,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 4467.600000008941,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 71,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 4501,
+   "fly": 2.7000000029802322,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 72,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 4567.70000000298,
+   "fly": 2.2000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 73,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 4600.9000000059605,
+   "fly": 1.5999999940395355,
+   "reveal": 17.299999997019768,
+   "frames": 1
+  },
+  {
+   "i": 74,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 4634.79999999702,
+   "fly": 2,
+   "reveal": 16.80000001192093,
+   "frames": 1
+  },
+  {
+   "i": 75,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 4667.100000008941,
+   "fly": 2.7999999970197678,
+   "reveal": 51.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 76,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 4734.4000000059605,
+   "fly": 1.7999999970197678,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 77,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 4767.600000008941,
+   "fly": 1.699999988079071,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 78,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 4800.9000000059605,
+   "fly": 1.8999999910593033,
+   "reveal": 17.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 79,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 4834.79999999702,
+   "fly": 3.300000011920929,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 80,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 4901.600000008941,
+   "fly": 1.699999988079071,
+   "reveal": 16.399999991059303,
+   "frames": 1
+  },
+  {
+   "i": 81,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 4933.79999999702,
+   "fly": 1.6000000089406967,
+   "reveal": 18.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 82,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 4967.70000000298,
+   "fly": 1.9000000059604645,
+   "reveal": 17.599999994039536,
+   "frames": 1
+  },
+  {
+   "i": 83,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 5001.5,
+   "fly": 2.6000000089406967,
+   "reveal": 49.6000000089407,
+   "frames": 3
+  },
+  {
+   "i": 84,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 5067.70000000298,
+   "fly": 2.2999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 85,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 5101,
+   "fly": 1.6000000089406967,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 86,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 5134.79999999702,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 87,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 5168.100000008941,
+   "fly": 2.7999999970197678,
+   "reveal": 49.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 88,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 5234.79999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 16.30000001192093,
+   "frames": 1
+  },
+  {
+   "i": 89,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 5268.20000000298,
+   "fly": 1.5999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 90,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 5301.4000000059605,
+   "fly": 2.0999999940395355,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 91,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 5334.79999999702,
+   "fly": 2.7000000029802322,
+   "reveal": 49.6000000089407,
+   "frames": 3
+  },
+  {
+   "i": 92,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 5401,
+   "fly": 1.7999999970197678,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 93,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 5434.29999999702,
+   "fly": 1.7000000029802322,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 94,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 5467.70000000298,
+   "fly": 1.9000000059604645,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 95,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 5500.9000000059605,
+   "fly": 2.7000000029802322,
+   "reveal": 50.29999999701977,
+   "frames": 3
+  },
+  {
+   "i": 96,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 5567.79999999702,
+   "fly": 2.2000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 97,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 5600.9000000059605,
+   "fly": 1.7999999970197678,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 98,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 5634.4000000059605,
+   "fly": 1.7999999970197678,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 99,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 5667.600000008941,
+   "fly": 2.8999999910593033,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 100,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 5734.4000000059605,
+   "fly": 2.2000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 101,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 5767.600000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 102,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 5800.9000000059605,
+   "fly": 1.8999999910593033,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 103,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 5834.29999999702,
+   "fly": 2.800000011920929,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 104,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 5901.100000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 105,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 5934.4000000059605,
+   "fly": 1.7999999970197678,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 106,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 5967.70000000298,
+   "fly": 2.0999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 107,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6001,
+   "fly": 2.6000000089406967,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 108,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6067.600000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 109,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6100.9000000059605,
+   "fly": 1.7000000029802322,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 110,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6134.29999999702,
+   "fly": 2,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 111,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6167.70000000298,
+   "fly": 3,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 112,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6234.4000000059605,
+   "fly": 1.8999999910593033,
+   "reveal": 16.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 113,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6267.600000008941,
+   "fly": 1.7999999970197678,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 114,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6301,
+   "fly": 1.7999999970197678,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 115,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6334.29999999702,
+   "fly": 2.9000000059604645,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 116,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6401,
+   "fly": 2.1000000089406967,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 117,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6434.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 118,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6467.600000008941,
+   "fly": 1.699999988079071,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 119,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6501,
+   "fly": 2.9000000059604645,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 120,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6567.70000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 121,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6600.9000000059605,
+   "fly": 1.7999999970197678,
+   "reveal": 17.299999997019768,
+   "frames": 1
+  },
+  {
+   "i": 122,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6634.4000000059605,
+   "fly": 2.3999999910593033,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 123,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6667.70000000298,
+   "fly": 2.4000000059604645,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 124,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6734.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 125,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6767.70000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 126,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6801,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 127,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 6834.4000000059605,
+   "fly": 2.7000000029802322,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 128,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 6901.100000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 129,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 6934.29999999702,
+   "fly": 1.7000000029802322,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 130,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 6967.600000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 131,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7001,
+   "fly": 2.7999999970197678,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 132,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7067.79999999702,
+   "fly": 1.800000011920929,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 133,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7101.100000008941,
+   "fly": 1.699999988079071,
+   "reveal": 16.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 134,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7134.29999999702,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 135,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7167.600000008941,
+   "fly": 2.5999999940395355,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 136,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7234.4000000059605,
+   "fly": 2,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 137,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7267.70000000298,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 138,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7301,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 139,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7334.4000000059605,
+   "fly": 2.7000000029802322,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 140,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7401.100000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 141,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7434.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 142,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7467.79999999702,
+   "fly": 2,
+   "reveal": 16.80000001192093,
+   "frames": 1
+  },
+  {
+   "i": 143,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7500.9000000059605,
+   "fly": 2.7999999970197678,
+   "reveal": 52.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 144,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7567.70000000298,
+   "fly": 1.5999999940395355,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 145,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7600.9000000059605,
+   "fly": 1.3999999910593033,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 146,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7634.20000000298,
+   "fly": 1.5999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 147,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7667.70000000298,
+   "fly": 2.2999999970197678,
+   "reveal": 50.29999999701977,
+   "frames": 3
+  },
+  {
+   "i": 148,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7733.70000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 18,
+   "frames": 1
+  },
+  {
+   "i": 149,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7767.100000008941,
+   "fly": 1.5999999940395355,
+   "reveal": 17.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 150,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7801.29999999702,
+   "fly": 1.800000011920929,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 151,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 7834.70000000298,
+   "fly": 2.5999999940395355,
+   "reveal": 50,
+   "frames": 3
+  },
+  {
+   "i": 152,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 7901.4000000059605,
+   "fly": 1.8999999910593033,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 153,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 7934.600000008941,
+   "fly": 1.7999999970197678,
+   "reveal": 17.299999997019768,
+   "frames": 1
+  },
+  {
+   "i": 154,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 7968.100000008941,
+   "fly": 1.8999999910593033,
+   "reveal": 16.69999998807907,
+   "frames": 1
+  },
+  {
+   "i": 155,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8000.70000000298,
+   "fly": 2.5999999940395355,
+   "reveal": 50.5,
+   "frames": 3
+  },
+  {
+   "i": 156,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8067.70000000298,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 157,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8101,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 158,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8133.79999999702,
+   "fly": 1.800000011920929,
+   "reveal": 18.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 159,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8167.79999999702,
+   "fly": 2.7000000029802322,
+   "reveal": 50.400000005960464,
+   "frames": 3
+  },
+  {
+   "i": 160,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8234.70000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 16.700000002980232,
+   "frames": 1
+  },
+  {
+   "i": 161,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8268,
+   "fly": 1.6000000089406967,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 162,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8301.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 163,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8334.70000000298,
+   "fly": 2.7999999970197678,
+   "reveal": 49.900000005960464,
+   "frames": 3
+  },
+  {
+   "i": 164,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8400.5,
+   "fly": 1.7000000029802322,
+   "reveal": 17.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 165,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8434.60000000894,
+   "fly": 1.5999999940395355,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 166,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8467.60000000894,
+   "fly": 1.7999999970197678,
+   "reveal": 17.19999998807907,
+   "frames": 1
+  },
+  {
+   "i": 167,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8501,
+   "fly": 3,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 168,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8567.79999999702,
+   "fly": 1.800000011920929,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 169,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8600.90000000596,
+   "fly": 2,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 170,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8634.40000000596,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 171,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8667.70000000298,
+   "fly": 2.7999999970197678,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 172,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8734.40000000596,
+   "fly": 1.8999999910593033,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 173,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8767.70000000298,
+   "fly": 1.9000000059604645,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 174,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8800.90000000596,
+   "fly": 2,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 175,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 8834.29999999702,
+   "fly": 2.7000000029802322,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 176,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 8901.10000000894,
+   "fly": 1.8999999910593033,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 177,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 8934.29999999702,
+   "fly": 1.800000011920929,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 178,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 8967.5,
+   "fly": 1.7999999970197678,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 179,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9001,
+   "fly": 2.4000000059604645,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 180,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9067.70000000298,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 181,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9100.90000000596,
+   "fly": 1.8999999910593033,
+   "reveal": 17.299999997019768,
+   "frames": 1
+  },
+  {
+   "i": 182,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9134.29999999702,
+   "fly": 1.800000011920929,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 183,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9167.60000000894,
+   "fly": 2.699999988079071,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 184,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9234.29999999702,
+   "fly": 1.800000011920929,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 185,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9267.60000000894,
+   "fly": 1.5,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 186,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9301,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 187,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9334.20000000298,
+   "fly": 2.7000000029802322,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 188,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9401,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 189,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9434.29999999702,
+   "fly": 1.6000000089406967,
+   "reveal": 17.200000002980232,
+   "frames": 1
+  },
+  {
+   "i": 190,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9467.60000000894,
+   "fly": 1.5999999940395355,
+   "reveal": 17.19999998807907,
+   "frames": 1
+  },
+  {
+   "i": 191,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9501,
+   "fly": 2.6000000089406967,
+   "reveal": 50,
+   "frames": 3
+  },
+  {
+   "i": 192,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9567.70000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 193,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9601,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 194,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9634.29999999702,
+   "fly": 1.6000000089406967,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 195,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9667.60000000894,
+   "fly": 2.699999988079071,
+   "reveal": 50.29999999701977,
+   "frames": 3
+  },
+  {
+   "i": 196,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9734.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  },
+  {
+   "i": 197,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9767.70000000298,
+   "fly": 1.7000000029802322,
+   "reveal": 16.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 198,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9801,
+   "fly": 2,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 199,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 9834.40000000596,
+   "fly": 2.5,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 200,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 9901,
+   "fly": 1.9000000059604645,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 201,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 9934.40000000596,
+   "fly": 1.7000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 202,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 9967.60000000894,
+   "fly": 1.8999999910593033,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 203,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10001,
+   "fly": 2.7000000029802322,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 204,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10067.70000000298,
+   "fly": 1.9000000059604645,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 205,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10101,
+   "fly": 1.6000000089406967,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 206,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10134.40000000596,
+   "fly": 1.7999999970197678,
+   "reveal": 16.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 207,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10167.60000000894,
+   "fly": 2.5999999940395355,
+   "reveal": 50.19999998807907,
+   "frames": 3
+  },
+  {
+   "i": 208,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10234.29999999702,
+   "fly": 1.800000011920929,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 209,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10267.60000000894,
+   "fly": 1.8999999910593033,
+   "reveal": 17.19999998807907,
+   "frames": 1
+  },
+  {
+   "i": 210,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10301,
+   "fly": 1.9000000059604645,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 211,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10334.29999999702,
+   "fly": 2.6000000089406967,
+   "reveal": 50.20000000298023,
+   "frames": 3
+  },
+  {
+   "i": 212,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10400.90000000596,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 213,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10434.20000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 17.099999994039536,
+   "frames": 1
+  },
+  {
+   "i": 214,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10467.60000000894,
+   "fly": 1.699999988079071,
+   "reveal": 17.19999998807907,
+   "frames": 1
+  },
+  {
+   "i": 215,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10501,
+   "fly": 2.7999999970197678,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 216,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10567.70000000298,
+   "fly": 1.7999999970197678,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 217,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10601,
+   "fly": 1.4000000059604645,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 218,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10633.79999999702,
+   "fly": 1.7000000029802322,
+   "reveal": 17.80000001192093,
+   "frames": 1
+  },
+  {
+   "i": 219,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10667.10000000894,
+   "fly": 2.5999999940395355,
+   "reveal": 50.69999998807907,
+   "frames": 3
+  },
+  {
+   "i": 220,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10734.29999999702,
+   "fly": 1.9000000059604645,
+   "reveal": 17.400000005960464,
+   "frames": 1
+  },
+  {
+   "i": 221,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10768,
+   "fly": 1.7999999970197678,
+   "reveal": 16.799999997019768,
+   "frames": 1
+  },
+  {
+   "i": 222,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10800.5,
+   "fly": 1.7999999970197678,
+   "reveal": 17.700000002980232,
+   "frames": 1
+  },
+  {
+   "i": 223,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 10834.60000000894,
+   "fly": 2.5,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 224,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 10901.20000000298,
+   "fly": 1.9000000059604645,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 225,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 10933.79999999702,
+   "fly": 1.7000000029802322,
+   "reveal": 17.700000002980232,
+   "frames": 1
+  },
+  {
+   "i": 226,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 10967.90000000596,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 227,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 11001.20000000298,
+   "fly": 2.5,
+   "reveal": 49.900000005960464,
+   "frames": 3
+  },
+  {
+   "i": 228,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 11067.60000000894,
+   "fly": 1.7999999970197678,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 229,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 11100.90000000596,
+   "fly": 1.7000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 230,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 11134.60000000894,
+   "fly": 1.5999999940395355,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 231,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 11167.90000000596,
+   "fly": 2.5,
+   "reveal": 50.099999994039536,
+   "frames": 3
+  },
+  {
+   "i": 232,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 11234.60000000894,
+   "fly": 1.7999999970197678,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 233,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 11267.79999999702,
+   "fly": 1.7000000029802322,
+   "reveal": 17,
+   "frames": 1
+  },
+  {
+   "i": 234,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 11301.20000000298,
+   "fly": 1.7000000029802322,
+   "reveal": 16.900000005960464,
+   "frames": 1
+  },
+  {
+   "i": 235,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 11333.70000000298,
+   "fly": 2.2999999970197678,
+   "reveal": 34,
+   "frames": 2
+  },
+  {
+   "i": 236,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 11384.60000000894,
+   "fly": 1.699999988079071,
+   "reveal": 16.899999991059303,
+   "frames": 1
+  },
+  {
+   "i": 237,
+   "from": "Stalker",
+   "to": "Buzzz",
+   "start": 11418,
+   "fly": 1.6000000089406967,
+   "reveal": 16.700000002980232,
+   "frames": 1
+  },
+  {
+   "i": 238,
+   "from": "Buzzz",
+   "to": "Luna",
+   "start": 11451.20000000298,
+   "fly": 1.5,
+   "reveal": 16.599999994039536,
+   "frames": 1
+  },
+  {
+   "i": 239,
+   "from": "Luna",
+   "to": "Destroyer",
+   "start": 11484.29999999702,
+   "fly": 2.6000000089406967,
+   "reveal": 50.1000000089407,
+   "frames": 3
+  },
+  {
+   "i": 240,
+   "from": "Destroyer",
+   "to": "Stalker",
+   "start": 11551,
+   "fly": 1.9000000059604645,
+   "reveal": 17.100000008940697,
+   "frames": 1
+  }
+ ],
+ "calls": 2,
+ "triangles": 11488,
+ "pixelRatio": 1,
+ "canvases": 1,
+ "errors": []
+}

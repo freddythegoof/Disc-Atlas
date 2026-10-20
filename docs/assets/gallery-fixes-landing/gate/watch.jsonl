@@ -1,0 +1,20 @@
+{"t": "2026-10-20T00:17:21", "epoch": 1792469841.011765, "power": "AC", "load": "3.15 3.29 3.38", "idle": 78.95, "daemons": 89.6, "daemonTop": {"photoanalysisd": 57.6, "photolibraryd": 27.1, "cloudphotod": 4.8}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}
+{"t": "2026-10-20T00:17:52", "epoch": 1792469872.344643, "power": "AC", "load": "2.63 3.15 3.33", "idle": 89.94, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}
+{"t": "2026-10-20T00:18:23", "epoch": 1792469903.689482, "power": "AC", "load": "2.54 3.07 3.29", "idle": 91.74, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}
+{"t": "2026-10-20T00:18:55", "epoch": 1792469935.0361018, "power": "AC", "load": "2.22 2.95 3.24", "idle": 94.78, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}
+{"t": "2026-10-20T00:19:26", "epoch": 1792469966.377912, "power": "AC", "load": "1.95 2.81 3.18", "idle": 93.97, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}
+{"t": "2026-10-20T00:19:57", "epoch": 1792469997.722219, "power": "AC", "load": "1.61 2.65 3.11", "idle": 89.37, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}
+{"t": "2026-10-20T00:20:29", "epoch": 1792470029.025173, "power": "AC", "load": "1.74 2.59 3.07", "idle": 89.24, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 72.2}
+{"t": "2026-10-20T00:21:00", "epoch": 1792470060.338548, "power": "AC", "load": "1.56 2.46 3.01", "idle": 89.36, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 57.2}
+{"t": "2026-10-20T00:21:31", "epoch": 1792470091.643252, "power": "AC", "load": "1.79 2.43 2.98", "idle": 87.83, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 64.7}
+{"t": "2026-10-20T00:22:02", "epoch": 1792470122.942591, "power": "AC", "load": "2.63 2.56 3.00", "idle": 83.3, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 118.1}
+{"t": "2026-10-20T00:22:34", "epoch": 1792470154.2406669, "power": "AC", "load": "1.97 2.41 2.93", "idle": 84.97, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 122.8}
+{"t": "2026-10-20T00:23:05", "epoch": 1792470185.545409, "power": "AC", "load": "2.52 2.52 2.95", "idle": 86.95, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 76.9}
+{"t": "2026-10-20T00:23:36", "epoch": 1792470216.9135108, "power": "AC", "load": "2.13 2.44 2.90", "idle": 88.48, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 21.5}
+{"t": "2026-10-20T00:24:08", "epoch": 1792470248.213084, "power": "AC", "load": "2.24 2.43 2.88", "idle": 84.16, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 95.3}
+{"t": "2026-10-20T00:24:39", "epoch": 1792470279.564678, "power": "AC", "load": "2.32 2.43 2.86", "idle": 90.32, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 43.4}
+{"t": "2026-10-20T00:25:10", "epoch": 1792470310.9279501, "power": "AC", "load": "1.68 2.26 2.79", "idle": 89.48, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 45.4}
+{"t": "2026-10-20T00:25:42", "epoch": 1792470342.260976, "power": "AC", "load": "1.77 2.21 2.75", "idle": 85.33, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 86.5}
+{"t": "2026-10-20T00:26:13", "epoch": 1792470373.612731, "power": "AC", "load": "1.91 2.20 2.73", "idle": 74.69, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 215.7}
+{"t": "2026-10-20T00:26:44", "epoch": 1792470404.953779, "power": "AC", "load": "2.06 2.21 2.71", "idle": 73.1, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 225.8}
+{"t": "2026-10-20T00:27:16", "epoch": 1792470436.297997, "power": "AC", "load": "1.95 2.18 2.68", "idle": 95.7, "daemons": 0.0, "daemonTop": {}, "foreignMeasuring": 0.0, "gateBrowser": 0.0}

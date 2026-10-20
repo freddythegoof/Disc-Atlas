@@ -1,0 +1,17 @@
+#!/bin/zsh
+# Quiet-window watcher, modelled on the intro-reveal qualifying runs: one sample every 30 s with
+# timestamp (gaps reveal sleep), power source, load average, total CPU, the indexers that wake on this
+# Mac (Spotlight, Photos, mediaanalysisd), and any measuring processes from other sessions
+# (chromium / chrome-headless-shell / workerd / wrangler not started by this watcher's run).
+out=${1:?log path}
+while true; do
+  ts=$(date '+%Y-%m-%dT%H:%M:%S')
+  power=$(pmset -g batt | head -1 | sed "s/Now drawing from //; s/'//g")
+  load=$(sysctl -n vm.loadavg | tr -d '{}' | awk '{print $1","$2","$3}')
+  cpu=$(top -l 2 -n 0 -s 1 | grep 'CPU usage' | tail -1 | sed 's/CPU usage: //')
+  idx=$(ps -axo %cpu,comm | awk '/mds_stores|mds$|mdworker|mediaanalysisd|photoanalysisd|photolibraryd|Spotlight|backupd|softwareupdated/ {n=split($2,a,"/"); s[a[n]]+=$1} END {for (k in s) printf "%s=%.1f ", k, s[k]}')
+  heads=$(ps -axo %cpu,comm | awk '/chrome-headless-shell|Chromium|workerd|wrangler/ {c++; t+=$1} END {printf "n=%d cpu=%.1f", c, t}')
+  claude=$(ps -axo %cpu,comm | awk '/Claude Helper \(Renderer\)/ {t+=$1} END {printf "%.1f", t}')
+  echo "$ts | $power | load $load | cpu $cpu | indexers: ${idx:-none} | headless/workerd: $heads | claude-ui $claude" >> "$out"
+  sleep 30
+done

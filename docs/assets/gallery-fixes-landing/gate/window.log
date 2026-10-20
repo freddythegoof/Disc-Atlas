@@ -1,0 +1,9 @@
+2026-10-20T00:17:19 waiting for five consecutive quiet samples
+2026-10-20T00:19:59 quiet: 00:17:52 idle 89.94 daemons 0.0 load 2.63 3.15 3.33 | 00:18:23 idle 91.74 daemons 0.0 load 2.54 3.07 3.29 | 00:18:55 idle 94.78 daemons 0.0 load 2.22 2.95 3.24 | 00:19:26 idle 93.97 daemons 0.0 load 1.95 2.81 3.18 | 00:19:57 idle 89.37 daemons 0.0 load 1.61 2.65 3.11
+2026-10-20T00:19:59 START gate-after: node tests/gallery-fixes-browser.mjs
+2026-10-20T00:22:38 EXIT gate-after 0
+2026-10-20T00:22:38 START diagnostic-before-replay: node tests/gallery-fixes-browser.mjs --before
+2026-10-20T00:24:19 EXIT diagnostic-before-replay 0
+2026-10-20T00:24:19 START atlas-perf-gate: node tests/atlas-3d-perf.mjs
+2026-10-20T00:26:54 EXIT atlas-perf-gate 0
+2026-10-20T00:27:25 IN-RUN samples 14 max gap 31s max daemons 0.0 min idle 73.1 -> QUALIFIES

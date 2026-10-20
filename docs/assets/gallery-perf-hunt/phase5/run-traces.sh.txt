@@ -1,0 +1,18 @@
+#!/bin/zsh
+S=/private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad
+cd /Users/freddy/Disc-Atlas/.claude/worktrees/interesting-bun-3677b7
+O=outputs/gallery-perf-hunt-mac; A=$O/phase5/analysis; mkdir -p $A
+echo "START setup $(date '+%Y-%m-%dT%H:%M:%S')" > $S/traces.log
+node $O/probe5.mjs --stage=setup > $S/trace-setup.log 2>&1; echo "EXIT setup $? $(date '+%Y-%m-%dT%H:%M:%S')" >> $S/traces.log
+for ph in before after; do
+  echo "START trace $ph $(date '+%Y-%m-%dT%H:%M:%S')" >> $S/traces.log
+  node $O/probe5.mjs --stage=trace --device=phone --flags=atlas --phase=$ph > $S/trace-$ph.log 2>&1; echo "EXIT trace $ph $? $(date '+%Y-%m-%dT%H:%M:%S')" >> $S/traces.log
+done
+echo "START analysis $(date '+%Y-%m-%dT%H:%M:%S')" >> $S/traces.log
+for ph in before after; do
+  n=$ph-phone-metal-241; t=$O/phase5/$n.trace.json; l=$O/phase5/$n.loop.json; lab=$ph-phone-metal
+  python3 -I $O/analyze.py $t $A $lab $l > $A/$lab.analyze.txt 2>&1
+  python3 -I $O/chain.py $t $A/$lab-tasks.csv $lab > $A/$lab.chain.txt 2>&1
+  python3 -I $O/extra.py $t $l $lab > $A/$lab.extra.txt 2>&1
+done
+echo "EXIT analysis $(date '+%Y-%m-%dT%H:%M:%S')" >> $S/traces.log

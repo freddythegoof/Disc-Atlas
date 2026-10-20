@@ -1,0 +1,4 @@
+composed --enable-gpu bag-pulled-quality-browser EXIT 0
+composed --enable-gpu non-overmold-photo-edge-browser EXIT 0
+origin/main default-flags bag-pulled-quality-browser EXIT 1
+origin/main default-flags non-overmold-photo-edge-browser EXIT 1

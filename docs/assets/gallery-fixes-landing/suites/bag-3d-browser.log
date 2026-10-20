@@ -1,0 +1,11 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing/dist/workers-public/
+✓ Lazy load: no Bag assets on the atlas (signed out or in); Bag tab loads its viewer + model (2.10 MB including shared three.js) and opens in 963 ms
+✓ Parity: 19 main + 4 putter slots, putters in the top pocket, go-to in the front pocket above main, per-disc colors, meter and Storage
+✓ Live sync without reloads: inline pocket moves, two go-to copies, go-to clear/assign, disc color, Storage round trip, bag color and capacities
+✓ Slid-out disc color #f8897b vs saved #ed7868 (max channel drift 19)
+✓ Open/close: flap progress 0↔1, main discs unreachable when closed, go-to/putters still reachable; hover/focus name pill, click slide-out (stays out through Escape, back on a second click), drag-to-turn, page scroll preserved
+✓ Size: 680px at 1440×1000 (one size), rendered at full resolution; zoom scales hit targets 228→321px
+✓ Phone profile (4× CPU, DPR 2.625): idle p95 16.8 ms, close+open p95 16.7 ms, lift sweep p95 16.7 ms; longest task while loading 61 ms
+✓ Screenshots: 38 across 3 themes at 1440px and 360px (open with go-to, closed, mid-fold, named main, named go-to, list), plus bag color and zoom
+PASS: 8 checks, 38 screenshots; renderer ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version) (high); no page errors.

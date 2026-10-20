@@ -1,0 +1,70 @@
+before-desktop ReadPixels flips: n=360 median 47.1 p95 234.1 max 237.3 ms, >=50ms 62
+before-desktop ReadPixels stills: n=121 median 15.8 p95 16.9 max 45.1 ms, >=50ms 0
+
+before-desktop flip 144 Destroyer->Stalker (median long task 51.706 ms of 60): CrGpuMain self-time top in flip window 23 ms:
+       18.5 ms x   1  ContextVk::finishImpl
+        0.3 ms x   3  CommandBufferService:PutChanged
+        0.1 ms x  13  GarbageObject::destroy
+        0.1 ms x   1  ImageHelper::readPixelsImpl - CPU Readback
+        0.0 ms x   1  Upload image data on host
+        0.0 ms x   4  GPUTask
+        0.0 ms x   8  RunTask
+        0.0 ms x   4  SecondaryCommandBuffer::executeCommands
+        0.0 ms x   4  Scheduler::RunTask
+        0.0 ms x   3  CommandBufferStub::OnAsyncFlush
+        0.0 ms x   1  SharedImageStub::OnCreateSharedImagePool
+        0.0 ms x   2  FramebufferVk::clear
+        0.0 ms x   1  CommandQueue::queueSubmitLocked
+        0.0 ms x   7  ThreadControllerImpl::RunTask
+   keyword events: ContextVk::finishImpl 18.5, ImageHelper::readPixelsImpl - CPU Readback 0.1, Scheduler::FinishTask 0.0, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixelsImpl 0.0, ImageHelper::readPixels 0.0
+
+before-desktop flip 194 Buzzz->Luna (median long task 50.567 ms of 16): CrGpuMain self-time top in flip window 52 ms:
+       47.1 ms x   1  ContextVk::finishImpl
+        0.2 ms x   2  CommandBufferService:PutChanged
+        0.1 ms x   1  ImageHelper::readPixelsImpl - CPU Readback
+        0.0 ms x   1  Upload image data on host
+        0.0 ms x   4  SecondaryCommandBuffer::executeCommands
+        0.0 ms x   3  GPUTask
+        0.0 ms x   8  ThreadControllerImpl::RunTask
+        0.0 ms x   4  FramebufferVk::clear
+        0.0 ms x   4  CommandBufferStub::PerformWork
+        0.0 ms x   1  CommandQueue::queueSubmitLocked
+        0.0 ms x   1  ContextVk::clearAllGarbage
+        0.0 ms x   3  GpuChannel::ExecuteDeferredRequest
+        0.0 ms x   3  GarbageObject::destroy
+        0.0 ms x   8  RunTask
+   keyword events: ContextVk::finishImpl 47.1, ImageHelper::readPixelsImpl - CPU Readback 0.1, ImageHelper::readPixels 0.0, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixelsImpl 0.0
+
+before-desktop flip 207 Luna->Destroyer (median long task 236.038 ms of 60): CrGpuMain self-time top in flip window 337 ms:
+      272.2 ms x   3  ContextVk::finishImpl
+       37.4 ms x  11  CommandBufferService:PutChanged
+        0.3 ms x   3  ImageHelper::readPixelsImpl - CPU Readback
+        0.3 ms x   3  Upload image data on host
+        0.1 ms x   1  GLES2DecoderPassthroughImpl::DoLinkProgram
+        0.1 ms x  18  GPUTask
+        0.0 ms x  49  ThreadControllerImpl::RunTask
+        0.0 ms x  11  SecondaryCommandBuffer::executeCommands
+        0.0 ms x  49  RunTask
+        0.0 ms x  16  CommandBufferStub::PerformWork
+        0.0 ms x  19  GpuChannel::ExecuteDeferredRequest
+        0.0 ms x  19  Scheduler::RunTask
+        0.0 ms x  11  CommandBufferStub::OnAsyncFlush
+        0.0 ms x   9  FramebufferVk::clear
+   keyword events: ContextVk::finishImpl 272.2, ImageHelper::readPixelsImpl - CPU Readback 0.3, GLES2DecoderPassthroughImpl::DoLinkProgram 0.1, Scheduler::FinishTask 0.0, ImageHelper::readPixelsImpl 0.0, ImageHelper::readPixels 0.0, FramebufferVk::readPixelsImpl 0.0, Compile/Link (unlocked) 0.0, CompileEvent::wait 0.0
+
+before-desktop flip 77 Stalker->Buzzz (median long task 51.396 ms of 59): CrGpuMain self-time top in flip window 51 ms:
+       47.0 ms x   1  ContextVk::finishImpl
+        0.2 ms x   2  CommandBufferService:PutChanged
+        0.1 ms x   1  ImageHelper::readPixelsImpl - CPU Readback
+        0.0 ms x   1  Upload image data on host
+        0.0 ms x   3  SecondaryCommandBuffer::executeCommands
+        0.0 ms x   3  GPUTask
+        0.0 ms x   8  ThreadControllerImpl::RunTask
+        0.0 ms x   4  FramebufferVk::clear
+        0.0 ms x   8  RunTask
+        0.0 ms x   1  CommandQueue::queueSubmitLocked
+        0.0 ms x   6  GarbageObject::destroy
+        0.0 ms x   3  GpuChannel::ExecuteDeferredRequest
+        0.0 ms x   4  CommandBufferStub::PerformWork
+        0.0 ms x   2  CommandBufferStub::OnAsyncFlush
+   keyword events: ContextVk::finishImpl 47.0, ImageHelper::readPixelsImpl - CPU Readback 0.1, Scheduler::FinishTask 0.0, FramebufferVk::readPixelsImpl 0.0, ImageHelper::readPixels 0.0, ImageHelper::readPixelsImpl 0.0

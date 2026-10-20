@@ -1,0 +1,116 @@
+{
+ "label": "before-phone",
+ "click_frame_by_to": {
+  "Stalker": {
+   "n": 61,
+   "median": 43.7,
+   "p95": 45.6,
+   "max": 48.9,
+   "ge50": 0
+  },
+  "Buzzz": {
+   "n": 60,
+   "median": 89.7,
+   "p95": 91.5,
+   "max": 96.3,
+   "ge50": 60
+  },
+  "Luna": {
+   "n": 60,
+   "median": 90.0,
+   "p95": 93.0,
+   "max": 95.8,
+   "ge50": 60
+  },
+  "Destroyer": {
+   "n": 60,
+   "median": 85.3,
+   "p95": 89.7,
+   "max": 95.9,
+   "ge50": 60
+  }
+ },
+ "click_frame_all": {
+  "n": 241,
+  "median": 88.0,
+  "p95": 91.4,
+  "max": 96.3,
+  "ge50": 180
+ },
+ "readpixels_by_phase": {
+  "flips": {
+   "n": 360,
+   "median": 74.0,
+   "p95": 251.9,
+   "max": 294.2,
+   "ge50": 241
+  },
+  "stills": {
+   "n": 121,
+   "median": 25.1,
+   "p95": 25.8,
+   "max": 71.4,
+   "ge50": 1
+  }
+ },
+ "readpixels_per_flip_by_to": {
+  "Stalker": {
+   "n": 60,
+   "median": 28.6,
+   "p95": 29.7,
+   "max": 33.1,
+   "ge50": 0
+  },
+  "Buzzz": {
+   "n": 60,
+   "median": 75.3,
+   "p95": 77.0,
+   "max": 82.4,
+   "ge50": 60
+  },
+  "Luna": {
+   "n": 60,
+   "median": 76.2,
+   "p95": 79.2,
+   "max": 81.9,
+   "ge50": 60
+  },
+  "Destroyer": {
+   "n": 180,
+   "median": 71.8,
+   "p95": 252.7,
+   "max": 294.2,
+   "ge50": 121
+  }
+ },
+ "readpixels_per_flip_count": {
+  "1": 180,
+  "3": 60,
+  "0": 1
+ },
+ "long_tasks_by_to_and_kind": {
+  "Stalker": {
+   "later task": 60
+  },
+  "Buzzz": {
+   "click frame": 60,
+   "later task": 60
+  },
+  "Luna": {
+   "click frame": 60,
+   "later task": 60
+  },
+  "Destroyer": {
+   "click frame": 60,
+   "later task": 63
+  }
+ },
+ "flip_block_wall_ms": 39370.5,
+ "gpu_main_busy_ms": 32938.0,
+ "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+ "flags": [
+  "--use-angle=d3d11",
+  "--enable-gpu"
+ ],
+ "phase": "before"
+}

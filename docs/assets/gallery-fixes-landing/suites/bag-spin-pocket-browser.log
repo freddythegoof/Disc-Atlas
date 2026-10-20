@@ -1,0 +1,21 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing/dist/workers-public/
+ok - Tap vs drag: a 4 px press on a disc still toggles it (and opens its details); a drag starting on the disc spins the bag 0.96 rad and leaves the disc, its details and the flap alone
+ok - Flick: the drag turns the bag 1.68 rad, then it coasts 4.051 rad more over 87 frames (1433 ms, from 11.41 rad/s), never reversing or speeding up, and holds the angle where it stops
+ok - Hold then release: no momentum; the bag stays exactly at the release angle
+ok - Catch: pressing a coasting bag stops it on the spot; the press is not a tap
+ok - Angle persists (6.788 rad) through a type pull-out, Return all, closing and opening the bag, the pocket and a theme change; an out disc holds still while the bag coasts
+ok - Reduced motion: no momentum
+ok - Control: "Putter pocket" (aria-expanded) in the control cluster under the canvas, 44 px tall
+ok - Collapse: all four putters slide 0.077+ m down into the pocket over 44 frames, each one way with no jumps; the flap stays fully open and the main discs never move
+ok - Collapsed: main discs still toggle with the bag open
+ok - Expand: the putters rise back into their row (to the same spots) over 44 frames
+ok - Out putter: collapsing first slides the out putter home (closing its details), then lowers the row (0 ms later); the out main disc stays out
+ok - Persistence: the collapsed pocket stays collapsed through closing and opening the bag; putters still come out of it and go back into it
+ok - Keyboard: Enter collapses, Space expands, focus stays on the control
+ok - Four-state independence: all four combinations reachable in both orders, each control independent
+ok - Top-section click: toggles the putter pocket (bag open or closed) without touching the flap; a click elsewhere on the canvas still toggles the flap
+ok - Reduced motion: the pocket collapses and expands instantly
+ok - Touch: a flick that starts on a disc spins the bag 1.08 rad and coasts 1.04 rad more, then holds; a vertical swipe never turns it; a tap still toggles the disc
+ok - Phone: the pocket control fits the row with no sideways scroll; a tap collapses it (an out putter goes home first) with the bag open
+PASS bag spin + pocket: 18 checks, 18 screenshots in outputs/bag-spin-pocket {"dragOnDisc":0.96,"flick":{"release":1.68,"coast":4.051,"frames":87,"ms":1433,"startVelocity":11.41},"persist":6.788,"collapseFrames":44,"collapseDrop":0.077,"expandFrames":44,"outPutter":{"homeToLowerMs":0},"touch":{"release":1.08,"coast":1.04}}

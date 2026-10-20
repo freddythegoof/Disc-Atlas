@@ -1,0 +1,14 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing/mainwt/dist/workers-public/
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForFunction: Timeout 20000ms exceeded.
+    at surfaces (/private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing/mainwt/tests/non-overmold-photo-edge-browser.mjs:149:15)
+    at async file:///private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing/mainwt/tests/non-overmold-photo-edge-browser.mjs:184:65 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v24.21.0

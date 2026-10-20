@@ -1,0 +1,10 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at C:\Users\user\.codex\worktrees\gallery-perf-hunt\disc-atlas\dist\workers-public\
+ok - Signed out: demo bag (20 sample discs, 18 in the 3D bag, all four types) with the sign-in call to action
+ok - Read-only: no add/edit/remove/move/pocket/sort/settings controls, no My Map switch, no bag API calls
+ok - Viewing: 3D slide-out and list both open sample details (Sample disc, Show on Atlas, no Edit)
+ok - Add from the atlas signed out opens the demo and points at sign-in, never an editor
+ok - Phone: banner, CTA and demo bag fit 390px without horizontal scroll
+ok - Signed in: own empty bag, full controls and the My Map switch; no demo discs
+ok - Signing out in place brings the demo bag back
+PASS bag demo: 7 checks, 6 screenshots in outputs/bag-demo

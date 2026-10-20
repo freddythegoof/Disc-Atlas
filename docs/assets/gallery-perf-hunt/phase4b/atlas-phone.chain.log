@@ -1,0 +1,79 @@
+
+### atlas-phone task 11 photo continuation (Destroyer arrival) flip 207 Luna->Destroyer wall 73.142 cpu 72.858
+RunTask 73.1ms 
+  ThreadControllerImpl::RunTask 5.1ms 
+  BlinkScheduler_PerformMicrotaskCheckpoint 68.0ms 
+    RunMicrotasks 68.0ms 
+      GetImageData 3.5ms 
+        CanvasRenderingContext2D::FinalizeFrame 3.0ms 
+      MinorGC 1.3ms 
+        V8.GCScavenger 1.3ms 
+          V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED 0.7ms 
+          V8.GC_SCAVENGER 0.6ms 
+            V8.GC_SCAVENGER_SCAVENGE 0.6ms 
+              V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.5ms 
+      V8.BytecodeBudgetInterruptWithStackCheck 0.8ms 
+      MinorGC 0.7ms 
+        V8.GCScavenger 0.7ms 
+          V8.GC_SCAVENGER 0.7ms 
+            V8.GC_SCAVENGER_SCAVENGE 0.7ms 
+      MinorGC 0.6ms 
+        V8.GCScavenger 0.6ms 
+          V8.GC_SCAVENGER 0.6ms 
+            V8.GC_SCAVENGER_SCAVENGE 0.6ms 
+              V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.6ms 
+      V8.StackGuard 0.6ms 
+        V8.HandleInterrupts 0.6ms 
+
+### atlas-phone all RunTasks in flip 207 window (117.0 ms):
+  ts+-0.1ms RunTask 9.2ms
+RunTask 9.2ms 
+  ThreadControllerImpl::RunTask 9.1ms 
+    ProxyMain::BeginMainFrame 9.1ms 
+      WebFrameWidgetImpl::BeginMainFrame 6.7ms 
+        Blink.Animate.UpdateTime 6.6ms 
+          PageAnimator::serviceScriptedAnimations 6.6ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 6.6ms 
+      WebFrameWidgetImpl::UpdateLifecycle 2.4ms 
+  ts+19.0ms RunTask 73.1ms
+RunTask 73.1ms 
+  ThreadControllerImpl::RunTask 5.1ms 
+  BlinkScheduler_PerformMicrotaskCheckpoint 68.0ms 
+    RunMicrotasks 68.0ms 
+      GetImageData 3.5ms 
+        CanvasRenderingContext2D::FinalizeFrame 3.0ms 
+  ts+92.1ms RunTask 13.5ms
+RunTask 13.5ms 
+  ThreadControllerImpl::RunTask 13.5ms 
+    ProxyMain::BeginMainFrame 13.5ms 
+      WebFrameWidgetImpl::BeginMainFrame 12.8ms 
+        Blink.Animate.UpdateTime 12.8ms 
+          PageAnimator::serviceScriptedAnimations 12.8ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 12.8ms 
+  ts+105.7ms RunTask 2.8ms
+RunTask 2.8ms 
+  ThreadControllerImpl::RunTask 2.8ms 
+    ProxyMain::BeginMainFrame 2.8ms 
+      WebFrameWidgetImpl::UpdateLifecycle 1.7ms 
+  ts+109.4ms RunTask 6.1ms
+RunTask 6.1ms 
+  ThreadControllerImpl::RunTask 6.0ms 
+    MajorGC 6.0ms 
+      V8.GCFinalizeMC 5.6ms 
+        V8.GC_MARK_COMPACTOR 5.6ms 
+          V8.GC_MC_MARK 2.4ms 
+            V8.GC_MC_MARK_FULL_CLOSURE_PARALLEL 2.4ms 
+          V8.GC_MC_EVACUATE 1.7ms 
+  ts+116.9ms RunTask 9.3ms
+RunTask 9.3ms 
+  ThreadControllerImpl::RunTask 9.3ms 
+    ProxyMain::BeginMainFrame 9.3ms 
+      WebFrameWidgetImpl::BeginMainFrame 7.5ms 
+        Blink.Animate.UpdateTime 7.4ms 
+          PageAnimator::serviceScriptedAnimations 7.4ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 7.4ms 
+      WebFrameWidgetImpl::UpdateLifecycle 1.8ms 
+
+### atlas-phone click-frame tasks (contain hunt:flip mark): n=241 median 8.5 p95 10.9 max 14.2 ms
+### atlas-phone GLES2::ReadPixels on main: n=0 median 0.0 p95 0.0 max 0.0 ms; count>=50ms 0
+### gpu-cat names on main: [('CommandBuffer::OrderingBarrier', 1152), ('CommandBufferProxyImpl::OrderingBarrier', 1114), ('CommandBufferHelper::Flush', 815), ('CommandBufferProxyImpl::Flush', 813), ('GLES2Implementation::GetProgramiv', 608), ('GLES2::GetUniformLocation', 534), ('WidgetBase::WillBeginMainFrame', 515), ('RasterImplementation::RasterCHROMIUM', 482), ('GLES2::GetActiveUniform', 406), ('GpuChannel::Flush', 279), ('ImplementationBase::WaitForCmd', 240), ('CommandBufferHelper::Finish', 240)]

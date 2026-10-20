@@ -1,0 +1,292 @@
+#!/usr/bin/env python3 -I
+"""Phase 4 trace analysis (ignored diagnostic). Reads a CDP trace (json or json.gz) captured by probe.mjs.
+
+For every renderer-main RunTask over 50 ms: wall duration, thread CPU (tdur), the flip it falls in, from/to mold,
+the representative callback, per-task style/layout/paint maxima, and the GPU-process activity in the same window.
+
+usage: python3 -I analyze.py <trace.json[.gz]> <out_dir> <label> [loop.json]
+"""
+import csv, gzip, json, os, statistics, sys
+from collections import defaultdict, Counter
+
+LONG_US = 50_000
+trace_path, out_dir, label = sys.argv[1], sys.argv[2], sys.argv[3]
+loop_path = sys.argv[4] if len(sys.argv) > 4 else None
+os.makedirs(out_dir, exist_ok=True)
+
+opener = gzip.open if trace_path.endswith('.gz') else open
+with opener(trace_path, 'rt', encoding='utf8') as f:
+    data = json.load(f)
+events = data['traceEvents'] if isinstance(data, dict) else data
+
+# --- process / thread names -------------------------------------------------------------------------------------
+proc_name, thread_name = {}, {}
+for e in events:
+    if e.get('ph') == 'M':
+        if e['name'] == 'process_name':
+            proc_name[e['pid']] = e['args']['name']
+        elif e['name'] == 'thread_name':
+            thread_name[(e['pid'], e['tid'])] = e['args']['name']
+
+# --- hunt marks locate the measured renderer main thread -------------------------------------------------------
+marks = [e for e in events if 'blink.user_timing' in e.get('cat', '') and e['name'].startswith('hunt:')]
+marks.sort(key=lambda e: e['ts'])
+if marks:
+    main_pid, main_tid = marks[0]['pid'], marks[0]['tid']
+else:
+    counts = Counter((e['pid'], e['tid']) for e in events if e.get('name') == 'RunTask')
+    (main_pid, main_tid), _ = counts.most_common(1)[0]
+start_ts = next((m['ts'] for m in marks if m['name'] == 'hunt:start'), None)
+stills_ts = next((m['ts'] for m in marks if m['name'] == 'hunt:stills'), None)
+end_ts = next((m['ts'] for m in marks if m['name'] == 'hunt:end'), None)
+flip_marks = sorted(((int(m['name'].split(':')[2]), m['ts']) for m in marks if m['name'].startswith('hunt:flip:')), key=lambda x: x[1])
+
+loop = json.load(open(loop_path)) if loop_path else None
+flip_log = {f['i']: f for f in loop['flips']} if loop else {}
+
+# --- main-thread events ------------------------------------------------------------------------------------------
+main = [e for e in events if e['pid'] == main_pid and e['tid'] == main_tid and e.get('ph') == 'X' and 'dur' in e]
+main.sort(key=lambda e: (e['ts'], -e['dur']))
+run_tasks = [e for e in main if e['name'] == 'RunTask']
+if not run_tasks:
+    run_tasks = [e for e in main if e['name'] == 'ThreadControllerImpl::RunTask']
+long_tasks = [e for e in run_tasks if e['dur'] >= LONG_US]
+
+def phase_of(ts):
+    if start_ts is None: return 'unmarked'
+    if ts < start_ts: return 'pre'
+    if stills_ts is not None and ts >= stills_ts and (end_ts is None or ts < end_ts): return 'stills'
+    if end_ts is not None and ts >= end_ts: return 'post'
+    return 'flips'
+
+def flip_of(ts):
+    idx = None
+    for n, mts in flip_marks:
+        if mts <= ts: idx = n
+        else: break
+    return idx
+
+def data_of(e):
+    a = e.get('args') or {}
+    return a.get('data') or a.get('beginData') or a
+
+SCRIPT_NAMES = {'FunctionCall', 'EventDispatch', 'FireAnimationFrame', 'TimerFire', 'RunMicrotasks', 'v8.run', 'v8.callFunction', 'v8.compile', 'V8.Execute', 'v8.evaluateModule', 'XHRReadyStateChange', 'FireIdleCallback', 'v8.callModuleMethod', 'ResourceReceivedData'}
+STYLE = {'UpdateLayoutTree', 'RecalculateStyles', 'ScheduleStyleRecalculation', 'StyleRecalcInvalidationTracking'}
+LAYOUT = {'Layout', 'PrePaint', 'Layerize', 'UpdateLayerTree', 'ComputeIntersections'}
+PAINT = {'Paint', 'PaintImage', 'RasterTask', 'CompositeLayers', 'Commit', 'ProxyMain::BeginMainFrame::commit', 'ProxyMain::SendCommit'}
+
+def url_of(e):
+    d = data_of(e)
+    for k in ('url', 'fileName', 'scriptName', 'sourceURL'):
+        if isinstance(d, dict) and d.get(k): return d[k]
+    st = d.get('stackTrace') if isinstance(d, dict) else None
+    if st:
+        return st[0].get('url')
+    return None
+
+def short(url):
+    if not url: return ''
+    return url.split('?')[0].rsplit('/', 1)[-1]
+
+# Index main events by ts for window lookups.
+import bisect
+main_ts = [e['ts'] for e in main]
+
+def window(evts, ts_list, lo, hi):
+    i = bisect.bisect_left(ts_list, lo)
+    out = []
+    while i < len(evts) and evts[i]['ts'] < hi:
+        out.append(evts[i]); i += 1
+    return out
+
+def self_times(evts):
+    """Return [(event, self_us)] using a containment stack over events sorted by (ts, -dur)."""
+    res, stack = [], []
+    child_sum = {}
+    for e in evts:
+        while stack and e['ts'] >= stack[-1]['ts'] + stack[-1]['dur']:
+            p = stack.pop(); res.append((p, p['dur'] - child_sum.get(id(p), 0)))
+        if stack:
+            child_sum[id(stack[-1])] = child_sum.get(id(stack[-1]), 0) + e['dur']
+        stack.append(e)
+    while stack:
+        p = stack.pop(); res.append((p, p['dur'] - child_sum.get(id(p), 0)))
+    return res
+
+gpu_pids = sorted({pid for (pid, tid), n in thread_name.items() if n in ('CrGpuMain', 'VizCompositorThread')} | {pid for pid, n in proc_name.items() if 'GPU' in n})
+IGNORE_THREADS = {'GpuVSyncThread', 'StackSamplingProfiler', 'PerfettoTrace', 'GpuWatchdog', 'MemoryInfra', 'Chrome_ChildIOThread', 'ThreadPoolServiceThread'}
+gpu_events = [e for e in events if e['pid'] in gpu_pids and e.get('ph') == 'X' and 'dur' in e and thread_name.get((e['pid'], e['tid']), '') not in IGNORE_THREADS]
+gpu_events.sort(key=lambda e: e['ts'])
+gpu_ts = [e['ts'] for e in gpu_events]
+
+def gpu_window(lo, hi, top=12):
+    """GPU-process events overlapping [lo,hi): by thread/name, count and clipped total."""
+    i = bisect.bisect_left(gpu_ts, lo - 5_000_000)
+    agg = defaultdict(lambda: [0, 0.0, 0.0])
+    while i < len(gpu_events) and gpu_events[i]['ts'] < hi:
+        e = gpu_events[i]; i += 1
+        s, t = e['ts'], e['ts'] + e['dur']
+        if t <= lo: continue
+        clipped = min(t, hi) - max(s, lo)
+        key = (thread_name.get((e['pid'], e['tid']), str(e['tid'])), e['name'])
+        agg[key][0] += 1; agg[key][1] += clipped / 1000; agg[key][2] = max(agg[key][2], e['dur'] / 1000)
+    rows = sorted(agg.items(), key=lambda kv: -kv[1][1])[:top]
+    return [{'thread': k[0], 'name': k[1], 'count': v[0], 'clipped_ms': round(v[1], 3), 'max_ms': round(v[2], 3)} for k, v in rows]
+
+def gpu_busy(lo, hi):
+    """Union of busy time per GPU thread inside [lo,hi), in ms (top-level events only)."""
+    i = bisect.bisect_left(gpu_ts, lo - 5_000_000)
+    per = defaultdict(list)
+    while i < len(gpu_events) and gpu_events[i]['ts'] < hi:
+        e = gpu_events[i]; i += 1
+        s, t = max(e['ts'], lo), min(e['ts'] + e['dur'], hi)
+        if t > s: per[thread_name.get((e['pid'], e['tid']), str(e['tid']))].append((s, t))
+    out = {}
+    for th, iv in per.items():
+        iv.sort(); total = 0; cs, ce = iv[0]
+        for s, t in iv[1:]:
+            if s > ce: total += ce - cs; cs, ce = s, t
+            else: ce = max(ce, t)
+        total += ce - cs
+        out[th] = round(total / 1000, 3)
+    return out
+
+GPU_KEYWORDS = ('TexImage', 'TexSubImage', 'Mipmap', 'Compile', 'Link', 'ReadPixels', 'Finish', 'Flush', 'SwapBuffers', 'Shader', 'Program', 'Copy', 'glDraw', 'Draw')
+
+rows, flips_hit = [], defaultdict(list)
+for k, t in enumerate(long_tasks):
+    lo, hi = t['ts'], t['ts'] + t['dur']
+    wall = t['dur'] / 1000
+    cpu = t.get('tdur', None)
+    cpu = cpu / 1000 if cpu is not None else None
+    inner = [e for e in window(main, main_ts, lo, hi + 1) if e is not t and e['ts'] + e['dur'] <= hi + 1000]
+    names = Counter(e['name'] for e in inner)
+    urls = Counter(short(url_of(e)) for e in inner if url_of(e))
+    has_mark = any(lo <= mts <= hi for _, mts in flip_marks)
+    click = any(e['name'] == 'EventDispatch' and data_of(e).get('type') == 'click' for e in inner)
+    raf = 'FireAnimationFrame' in names
+    gallery = urls.get('all-discs-gallery.js', 0)
+    viewer = urls.get('viewer.mjs', 0)
+    photo = urls.get('photo.mjs', 0)
+    stamp = urls.get('stamp.mjs', 0)
+    fn_calls = [(short(url_of(e)), data_of(e).get('functionName', ''), data_of(e).get('lineNumber'), e['dur'] / 1000) for e in inner if e['name'] == 'FunctionCall']
+    fn_calls.sort(key=lambda x: -x[3])
+    if has_mark or click:
+        cls = 'click frame'
+    elif raf and gallery and not click:
+        cls = 'reveal frame'
+    elif photo and not raf:
+        cls = 'photo continuation'
+    elif raf and (viewer or stamp) and not gallery:
+        cls = 'viewer scheduled draw'
+    elif photo:
+        cls = 'photo continuation'
+    elif 'TimerFire' in names:
+        cls = 'timer'
+    elif 'RunMicrotasks' in names:
+        cls = 'microtask continuation'
+    else:
+        cls = 'other'
+    ph0 = phase_of(lo)
+    fl0 = flip_log.get(flip_of(lo)) if ph0 == 'flips' else None
+    if cls in ('other', 'microtask continuation') and fl0 and loop and fl0['to'] == loop.get('photoMold', 'Destroyer'):
+        cls = 'photo continuation (Destroyer arrival)'
+    selfs = self_times(sorted(inner + [t], key=lambda e: (e['ts'], -e['dur'])))
+    top_self = sorted(((e['name'] + ('@' + short(url_of(e)) if url_of(e) else ''), s / 1000) for e, s in selfs), key=lambda x: -x[1])[:6]
+    style_max = max([e['dur'] for e in inner if e['name'] in STYLE] or [0]) / 1000
+    layout_max = max([e['dur'] for e in inner if e['name'] in LAYOUT] or [0]) / 1000
+    paint_max = max([e['dur'] for e in inner if e['name'] in PAINT] or [0]) / 1000
+    gpu_main = [(e['name'], e['dur'] / 1000) for e in inner if 'gpu' in e.get('cat', '')]
+    gpu_main.sort(key=lambda x: -x[1])
+    js_top = sum(s for e, s in selfs if e['name'] in SCRIPT_NAMES or e['name'].startswith('v8')) / 1000
+    task_self = next((s for e, s in selfs if e is t), 0) / 1000
+    ph = phase_of(lo)
+    flip = flip_of(lo) if ph == 'flips' else None
+    fl = flip_log.get(flip) if flip is not None else None
+    row = {
+        'label': label, 'task': k, 'ts_us': lo, 'wall_ms': round(wall, 3), 'cpu_ms': round(cpu, 3) if cpu is not None else '',
+        'ratio': round(wall / cpu, 2) if cpu else '', 'phase': ph, 'flip': flip if flip is not None else '',
+        'from': fl['from'] if fl else '', 'to': fl['to'] if fl else '', 'class': cls,
+        'callback': '; '.join(f'{u}:{fn or "?"}:{ln} {d:.1f}ms' for u, fn, ln, d in fn_calls[:3]),
+        'has_mark': has_mark, 'click': click, 'raf': raf, 'urls': ' '.join(f'{u}x{n}' for u, n in urls.most_common(5)),
+        'js_self_ms': round(js_top, 3), 'task_self_ms': round(task_self, 3), 'style_max_ms': round(style_max, 3), 'layout_max_ms': round(layout_max, 3), 'paint_max_ms': round(paint_max, 3),
+        'gpu_main': '; '.join(f'{n} {d:.1f}' for n, d in gpu_main[:4]),
+        'top_self': '; '.join(f'{n} {s:.1f}' for n, s in top_self),
+        'gpu_busy': json.dumps(gpu_busy(lo, hi)),
+    }
+    rows.append(row)
+    if flip is not None: flips_hit[flip].append(cls)
+
+# --- summaries ---------------------------------------------------------------------------------------------------
+def q(vals, p):
+    s = sorted(vals); return s[min(len(s) - 1, int(len(s) * p))] if s else None
+
+classes = defaultdict(list)
+for r in rows:
+    if r['phase'] in ('flips', 'stills'): classes[r['class']].append(r)
+ratio_table = []
+for cls, rs in sorted(classes.items(), key=lambda kv: -len(kv[1])):
+    ratios = [r['ratio'] for r in rs if r['ratio'] != '']
+    ratio_table.append({'class': cls, 'n': len(rs), 'wall_median': q([r['wall_ms'] for r in rs], .5), 'wall_max': max(r['wall_ms'] for r in rs),
+                        'cpu_median': q([r['cpu_ms'] for r in rs if r['cpu_ms'] != ''], .5), 'ratio_min': min(ratios) if ratios else None, 'ratio_p25': q(ratios, .25), 'ratio_median': q(ratios, .5), 'ratio_p75': q(ratios, .75), 'ratio_max': max(ratios) if ratios else None,
+                        'js_self_median': q([r['js_self_ms'] for r in rs], .5), 'style_max_max': max(r['style_max_ms'] for r in rs), 'layout_max_max': max(r['layout_max_ms'] for r in rs), 'paint_max_max': max(r['paint_max_ms'] for r in rs)})
+
+per_flip = {'flips_with_long_task': len(flips_hit), 'flips_with_two_or_more': sum(1 for v in flips_hit.values() if len(v) >= 2),
+            'class_mix_per_flip': Counter(' + '.join(sorted(v)) for v in flips_hit.values()).most_common(8)}
+by_from = Counter(r['from'] for r in rows if r['phase'] == 'flips')
+by_to = Counter(r['to'] for r in rows if r['phase'] == 'flips')
+by_class_to = Counter((r['class'], r['to']) for r in rows if r['phase'] == 'flips')
+
+longest = sorted([r for r in rows if r['phase'] in ('flips', 'stills')], key=lambda r: -r['wall_ms'])[:5]
+longest_detail = []
+for r in longest:
+    t = long_tasks[r['task']]; lo, hi = t['ts'], t['ts'] + t['dur']
+    gw = gpu_window(lo, hi)
+    kw = [g for g in gpu_window(lo, hi, top=60) if any(k.lower() in g['name'].lower() for k in GPU_KEYWORDS)][:8]
+    longest_detail.append({'task': r['task'], 'wall_ms': r['wall_ms'], 'cpu_ms': r['cpu_ms'], 'ratio': r['ratio'], 'flip': r['flip'], 'from': r['from'], 'to': r['to'], 'class': r['class'], 'callback': r['callback'], 'top_self': r['top_self'], 'gpu_main': r['gpu_main'], 'gpu_busy_ms': json.loads(r['gpu_busy']), 'gpu_top': gw, 'gpu_keyword_events': kw})
+
+# GPU activity aggregated over every long-task window, and over the whole flip block for comparison.
+agg_all = defaultdict(lambda: [0, 0.0])
+for r in rows:
+    if r['phase'] not in ('flips', 'stills'): continue
+    t = long_tasks[r['task']]
+    for g in gpu_window(t['ts'], t['ts'] + t['dur'], top=200):
+        agg_all[(g['thread'], g['name'])][0] += g['count']; agg_all[(g['thread'], g['name'])][1] += g['clipped_ms']
+gpu_all = [{'thread': k[0], 'name': k[1], 'count': v[0], 'clipped_ms': round(v[1], 1)} for k, v in sorted(agg_all.items(), key=lambda kv: -kv[1][1])[:20]]
+
+summary = {
+    'label': label, 'trace': os.path.basename(trace_path), 'events': len(events), 'main': {'pid': main_pid, 'tid': main_tid, 'thread': thread_name.get((main_pid, main_tid)), 'process': proc_name.get(main_pid)},
+    'gpu_processes': [(p, proc_name.get(p)) for p in gpu_pids], 'gpu_threads': sorted({thread_name.get((e['pid'], e['tid']), str(e['tid'])) for e in gpu_events}),
+    'marks': {'start': start_ts, 'stills': stills_ts, 'end': end_ts, 'flips': len(flip_marks)},
+    'run_tasks': len(run_tasks), 'long_tasks_total': len(long_tasks),
+    'long_tasks_by_phase': dict(Counter(r['phase'] for r in rows)),
+    'long_tasks_flips_block': sum(1 for r in rows if r['phase'] == 'flips'), 'long_tasks_stills_block': sum(1 for r in rows if r['phase'] == 'stills'),
+    'observer_long_tasks': loop['longTasks'] if loop else None, 'observer_longest_ms': loop['longest'] if loop else None,
+    'longest_ms': max((r['wall_ms'] for r in rows), default=0),
+    'ratio_table': ratio_table, 'per_flip': per_flip, 'by_from_mold': dict(by_from), 'by_to_mold': dict(by_to), 'by_class_and_to_mold': [{'class': c, 'to': t, 'n': n} for (c, t), n in by_class_to.most_common()],
+    'child_names_by_class': {cls: Counter(n for r in rs for n in r['urls'].split()).most_common(6) for cls, rs in classes.items()},
+    'longest_five': longest_detail, 'gpu_over_all_long_windows': gpu_all,
+    'flip_block_gpu_busy_ms': gpu_busy(start_ts, stills_ts) if start_ts and stills_ts else None,
+    'flip_block_wall_ms': round((stills_ts - start_ts) / 1000, 1) if start_ts and stills_ts else None,
+}
+with open(os.path.join(out_dir, f'{label}-tasks.csv'), 'w', newline='') as f:
+    w = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else ['label']); w.writeheader(); w.writerows(rows)
+with open(os.path.join(out_dir, f'{label}-summary.json'), 'w') as f:
+    json.dump(summary, f, indent=1)
+
+print(f"== {label}: {summary['main']} | GPU threads {summary['gpu_threads']}")
+print(f"RunTasks {len(run_tasks)}, long tasks {len(long_tasks)} by phase {summary['long_tasks_by_phase']}; observer {summary['observer_long_tasks']} longest {summary['observer_longest_ms']}; trace longest {summary['longest_ms']}")
+print('ratio table:')
+for r in ratio_table: print('  ', r)
+print('per flip:', per_flip)
+print('by from mold:', dict(by_from), '| by to mold:', dict(by_to))
+print('by class and to mold:', summary['by_class_and_to_mold'])
+print('child urls by class:', summary['child_names_by_class'])
+print('flip block gpu busy ms:', summary['flip_block_gpu_busy_ms'], 'of wall', summary['flip_block_wall_ms'])
+print('longest five:')
+for d in longest_detail:
+    print('  ', {k: d[k] for k in ('task', 'wall_ms', 'cpu_ms', 'ratio', 'flip', 'from', 'to', 'class', 'callback', 'top_self', 'gpu_main', 'gpu_busy_ms')})
+    for g in d['gpu_top'][:6]: print('      gpu', g)
+    for g in d['gpu_keyword_events']: print('      gpu-kw', g)
+print('gpu over all long windows:')
+for g in gpu_all[:12]: print('  ', g)

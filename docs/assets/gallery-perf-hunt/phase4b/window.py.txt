@@ -1,0 +1,23 @@
+#!/usr/bin/env python3 -I
+"""Dump every renderer-main RunTask (>=2 ms) in the windows of the given flips, with the nested events >= 1.5 ms. usage: window.py <trace> <loop.json> <flip> [<flip>...]"""
+import json,sys,bisect
+trace,loop_path=sys.argv[1],sys.argv[2];want=[int(x) for x in sys.argv[3:]]
+ev=json.load(open(trace))['traceEvents'];loop=json.load(open(loop_path));to={f['i']:(f['from'],f['to']) for f in loop['flips']}
+marks=sorted([e for e in ev if e.get('cat')=='blink.user_timing' and e['name'].startswith('hunt:')],key=lambda e:e['ts']);M={e['name']:e['ts'] for e in marks}
+mp,mt=marks[0]['pid'],marks[0]['tid']
+main=sorted([e for e in ev if e['pid']==mp and e['tid']==mt and e.get('ph')=='X' and 'dur' in e],key=lambda e:(e['ts'],-e['dur']));mts=[e['ts'] for e in main]
+def dump(ts,dur,maxdepth=7,mindur=1500):
+    lo,hi=ts,ts+dur;i=bisect.bisect_left(mts,lo);stack=[]
+    while i<len(main) and main[i]['ts']<hi:
+        e=main[i];i+=1
+        while stack and e['ts']>=stack[-1]['ts']+stack[-1]['dur']:stack.pop()
+        if e['dur']>=mindur and len(stack)<=maxdepth:
+            d=(e.get('args') or {}).get('data') or {};extra=' '.join(f'{k}={str(v)[:50]}' for k,v in d.items() if k in('type','functionName','url','lineNumber'))
+            print('      '+'  '*len(stack)+f"{e['name']} {e['dur']/1000:.1f}ms {extra}")
+        stack.append(e)
+for n in want:
+    lo=M[f'hunt:flip:{n}'];hi=M.get(f'hunt:flip:{n+1}',M['hunt:stills'])
+    print(f"\n### flip {n} {to[n][0]}->{to[n][1]} window {(hi-lo)/1000:.1f} ms")
+    for e in main:
+        if e['name']=='RunTask' and e['ts']+e['dur']>lo-2000 and e['ts']<hi and e['dur']>=2000:
+            print(f"  ts{(e['ts']-lo)/1000:+.1f}ms RunTask {e['dur']/1000:.1f}ms");dump(e['ts'],e['dur'])

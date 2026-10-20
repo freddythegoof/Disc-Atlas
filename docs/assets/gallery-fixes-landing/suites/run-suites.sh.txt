@@ -1,0 +1,15 @@
+#!/bin/zsh
+S=/private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing
+cd /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing
+L=$S/suites/summary.log; : > $L
+units=(${(f)"$(grep -l 'node:test' tests/*.mjs | grep -v -- '-browser\.mjs$' | sort)"})
+echo "UNIT ${#units} suites start $(date +%T)" >> $L
+node --test $units > $S/suites/unit.log 2>&1; echo "EXIT unit $? $(date +%T)" >> $L
+for t in atlas-organic-browser atlas-depth-browser atlas-3d-browser atlas-persist-browser atlas-intro-reveal-browser atlas-stamps-browser atlas-speed-band-browser my-map-browser \
+         all-discs-browser bag-collections-browser bag-browser bag-demo-browser bag-memorial-browser bag-3d-browser bag-overmold-browser bag-scene-browser bag-v13-browser bag-staging-browser bag-spin-pocket-browser bag-map-controls-browser bag-popup-browser bag-tips-browser bag-pulled-sizing-browser bag-pulled-quality-browser \
+         halo-plastic-browser disc-appearance-browser non-overmold-photo-edge-browser photo-stamp-level-browser disc3d-browser disc3d-popout-browser; do
+  start=$(date +%s)
+  if [ "$t" = disc-appearance-browser ]; then node --test tests/$t.mjs > $S/suites/$t.log 2>&1; else node tests/$t.mjs > $S/suites/$t.log 2>&1; fi
+  echo "EXIT $t $? $(( $(date +%s)-start ))s $(date +%T)" >> $L
+done
+echo "DONE $(date +%T)" >> $L

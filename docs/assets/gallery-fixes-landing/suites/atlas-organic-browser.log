@@ -1,0 +1,15 @@
+ok - desktop: full atlas, Putter, Axiom and a search in three themes rest within reach, touch nothing and follow the walk
+ok - phone: full atlas, Putter, Axiom and a search in three themes rest within reach, touch nothing and follow the walk
+  desktop: 24 shown at 1x (cap 29), 22 featured; others: Impact (Ace Race 2007), Pestilence
+  phone: 6 shown at 1x (cap 8), 5 featured; others: Croc
+ok - Full atlas: featured discs lead; others show by coverage or after every featured disc; the cap holds
+  desktop understable: Stingray, Paradox, Monarch, Sonic, Vulcan, Mamba, Impact (Ace Race 2007), Pestilence
+  desktop neutral: Buzzz, Judge, Crank, Magic, Tesla, Gorgon, Reactor
+  desktop overstable: Destroyer, Zone, TeeBird, Berg, Firebird, Boss, Predator, A1, Stiletto
+  phone understable: Stingray, Mamba
+  phone neutral: Buzzz, Crank
+  phone overstable: Destroyer, Croc
+ok - Neighborhoods: nearest neighbors and stability order are preserved on desktop and phone
+ok - Determinism: fresh renders match exactly, layout and pixels, desktop and phone
+ok - Landing (2.8x), 5x and 9x views touch nothing; selection shows its disc without reshuffling
+PASS: 6 checks, 25 screenshots in outputs/atlas-organic

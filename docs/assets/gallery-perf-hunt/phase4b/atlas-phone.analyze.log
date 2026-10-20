@@ -1,0 +1,60 @@
+== atlas-phone: {'pid': 63797, 'tid': 1900041, 'thread': 'CrRendererMain', 'process': 'Renderer'} | GPU threads ['CrGpuMain', 'ThreadPoolForegroundWorker', 'VizCompositorThread']
+RunTasks 8159, long tasks 16 by phase {'flips': 16}; observer 16 longest 73; trace longest 73.142
+ratio table:
+   {'class': 'photo continuation (Destroyer arrival)', 'n': 16, 'wall_median': 72.037, 'wall_max': 73.142, 'cpu_median': 72.521, 'ratio_min': 0.94, 'ratio_p25': 1.0, 'ratio_median': 1.0, 'ratio_p75': 1.0, 'ratio_max': 1.0, 'js_self_median': 61.969, 'style_max_max': 0.0, 'layout_max_max': 0.0, 'paint_max_max': 0.0}
+per flip: {'flips_with_long_task': 16, 'flips_with_two_or_more': 0, 'class_mix_per_flip': [('photo continuation (Destroyer arrival)', 16)]}
+by from mold: {'Luna': 16} | by to mold: {'Destroyer': 16}
+by class and to mold: [{'class': 'photo continuation (Destroyer arrival)', 'to': 'Destroyer', 'n': 16}]
+child urls by class: {'photo continuation (Destroyer arrival)': []}
+flip block gpu busy ms: {'VizCompositorThread': 51.919, 'CrGpuMain': 1750.75, 'ThreadPoolForegroundWorker': 324.706} of wall 10817.6
+longest five:
+   {'task': 11, 'wall_ms': 73.142, 'cpu_ms': 72.858, 'ratio': 1.0, 'flip': 207, 'from': 'Luna', 'to': 'Destroyer', 'class': 'photo continuation (Destroyer arrival)', 'callback': '', 'top_self': 'RunMicrotasks 60.4; ThreadControllerImpl::RunTask 5.1; CanvasRenderingContext2D::FinalizeFrame 3.0; V8.BytecodeBudgetInterruptWithStackCheck 0.8; V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED 0.7; V8.HandleInterrupts 0.6', 'gpu_main': '', 'gpu_busy_ms': {'CrGpuMain': 0.109, 'VizCompositorThread': 0.053}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 3, 'clipped_ms': 0.109, 'max_ms': 0.097}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 3, 'clipped_ms': 0.105, 'max_ms': 0.096}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 2, 'clipped_ms': 0.102, 'max_ms': 0.096}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 2, 'clipped_ms': 0.099, 'max_ms': 0.094}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::OnCreateSharedImageWithBuffer', 'count': 1, 'clipped_ms': 0.094, 'max_ms': 0.094}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::CreateSharedImage', 'count': 1, 'clipped_ms': 0.092, 'max_ms': 0.092}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'Scheduler::FinishTask', 'count': 2, 'clipped_ms': 0.002, 'max_ms': 0.001}
+   {'task': 3, 'wall_ms': 73.039, 'cpu_ms': 72.791, 'ratio': 1.0, 'flip': 143, 'from': 'Luna', 'to': 'Destroyer', 'class': 'photo continuation (Destroyer arrival)', 'callback': '', 'top_self': 'RunMicrotasks 62.1; ThreadControllerImpl::RunTask 5.4; CanvasRenderingContext2D::FinalizeFrame 2.9; GetImageData 0.8; V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED 0.6; V8.GC_HEAP_EPILOGUE 0.4', 'gpu_main': '', 'gpu_busy_ms': {'CrGpuMain': 0.036, 'VizCompositorThread': 0.051}}
+      gpu {'thread': 'VizCompositorThread', 'name': 'RunTask', 'count': 9, 'clipped_ms': 0.051, 'max_ms': 0.012}
+      gpu {'thread': 'VizCompositorThread', 'name': 'ThreadControllerImpl::RunTask', 'count': 9, 'clipped_ms': 0.046, 'max_ms': 0.012}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 3, 'clipped_ms': 0.036, 'max_ms': 0.021}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 3, 'clipped_ms': 0.033, 'max_ms': 0.021}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 2, 'clipped_ms': 0.028, 'max_ms': 0.021}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 2, 'clipped_ms': 0.025, 'max_ms': 0.019}
+   {'task': 5, 'wall_ms': 72.983, 'cpu_ms': 76.927, 'ratio': 0.95, 'flip': 159, 'from': 'Luna', 'to': 'Destroyer', 'class': 'photo continuation (Destroyer arrival)', 'callback': '', 'top_self': 'RunMicrotasks 61.6; ThreadControllerImpl::RunTask 4.6; CanvasRenderingContext2D::FinalizeFrame 3.0; V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.7; LocalFrameView::ScheduleAnimation 0.7; GetImageData 0.6', 'gpu_main': '', 'gpu_busy_ms': {'CrGpuMain': 0.087, 'VizCompositorThread': 0.052}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 2, 'clipped_ms': 0.087, 'max_ms': 0.077}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 2, 'clipped_ms': 0.086, 'max_ms': 0.077}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 2, 'clipped_ms': 0.082, 'max_ms': 0.075}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 2, 'clipped_ms': 0.081, 'max_ms': 0.075}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::OnCreateSharedImageWithBuffer', 'count': 1, 'clipped_ms': 0.074, 'max_ms': 0.074}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::CreateSharedImage', 'count': 1, 'clipped_ms': 0.072, 'max_ms': 0.072}
+   {'task': 0, 'wall_ms': 72.875, 'cpu_ms': 72.62, 'ratio': 1.0, 'flip': 119, 'from': 'Luna', 'to': 'Destroyer', 'class': 'photo continuation (Destroyer arrival)', 'callback': '', 'top_self': 'RunMicrotasks 62.0; ThreadControllerImpl::RunTask 4.3; CanvasRenderingContext2D::FinalizeFrame 2.0; GetImageData 1.0; V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED 0.7; V8.GC_SCAVENGER_SCAVENGE 0.6', 'gpu_main': '', 'gpu_busy_ms': {'CrGpuMain': 0.109, 'VizCompositorThread': 0.061}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 2, 'clipped_ms': 0.109, 'max_ms': 0.101}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 2, 'clipped_ms': 0.108, 'max_ms': 0.101}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 2, 'clipped_ms': 0.107, 'max_ms': 0.101}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 2, 'clipped_ms': 0.105, 'max_ms': 0.1}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::OnCreateSharedImageWithBuffer', 'count': 1, 'clipped_ms': 0.099, 'max_ms': 0.099}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::CreateSharedImage', 'count': 1, 'clipped_ms': 0.098, 'max_ms': 0.098}
+      gpu-kw {'thread': 'CrGpuMain', 'name': 'Scheduler::FinishTask', 'count': 2, 'clipped_ms': 0.002, 'max_ms': 0.001}
+   {'task': 4, 'wall_ms': 72.871, 'cpu_ms': 72.656, 'ratio': 1.0, 'flip': 151, 'from': 'Luna', 'to': 'Destroyer', 'class': 'photo continuation (Destroyer arrival)', 'callback': '', 'top_self': 'RunMicrotasks 63.1; ThreadControllerImpl::RunTask 4.8; CanvasRenderingContext2D::FinalizeFrame 2.6; GetImageData 1.0; V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED 0.4; V8.GC_SCAVENGER 0.3', 'gpu_main': '', 'gpu_busy_ms': {'CrGpuMain': 0.125, 'VizCompositorThread': 0.051}}
+      gpu {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 2, 'clipped_ms': 0.125, 'max_ms': 0.117}
+      gpu {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 2, 'clipped_ms': 0.123, 'max_ms': 0.115}
+      gpu {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 2, 'clipped_ms': 0.121, 'max_ms': 0.115}
+      gpu {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 2, 'clipped_ms': 0.118, 'max_ms': 0.113}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::OnCreateSharedImageWithBuffer', 'count': 1, 'clipped_ms': 0.112, 'max_ms': 0.112}
+      gpu {'thread': 'CrGpuMain', 'name': 'SharedImageStub::CreateSharedImage', 'count': 1, 'clipped_ms': 0.111, 'max_ms': 0.111}
+gpu over all long windows:
+   {'thread': 'CrGpuMain', 'name': 'RunTask', 'count': 37, 'clipped_ms': 1.3}
+   {'thread': 'CrGpuMain', 'name': 'ThreadControllerImpl::RunTask', 'count': 37, 'clipped_ms': 1.2}
+   {'thread': 'CrGpuMain', 'name': 'Scheduler::RunTask', 'count': 33, 'clipped_ms': 1.2}
+   {'thread': 'CrGpuMain', 'name': 'GpuChannel::ExecuteDeferredRequest', 'count': 33, 'clipped_ms': 1.1}
+   {'thread': 'CrGpuMain', 'name': 'SharedImageStub::OnCreateSharedImageWithBuffer', 'count': 16, 'clipped_ms': 1.0}
+   {'thread': 'CrGpuMain', 'name': 'SharedImageStub::CreateSharedImage', 'count': 16, 'clipped_ms': 1.0}
+   {'thread': 'VizCompositorThread', 'name': 'RunTask', 'count': 141, 'clipped_ms': 0.9}
+   {'thread': 'VizCompositorThread', 'name': 'ThreadControllerImpl::RunTask', 'count': 134, 'clipped_ms': 0.8}
+   {'thread': 'CrGpuMain', 'name': 'GLContextEGL::MakeCurrent', 'count': 16, 'clipped_ms': 0.7}
+   {'thread': 'VizCompositorThread', 'name': 'SimpleWatcher::OnHandleReady', 'count': 49, 'clipped_ms': 0.2}
+   {'thread': 'VizCompositorThread', 'name': 'Receive mojo message', 'count': 48, 'clipped_ms': 0.1}
+   {'thread': 'CrGpuMain', 'name': 'SharedImageStub::OnCreateSharedImagePool', 'count': 16, 'clipped_ms': 0.1}

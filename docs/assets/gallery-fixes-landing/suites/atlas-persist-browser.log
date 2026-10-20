@@ -1,0 +1,18 @@
+ok - desktop Innova 3x: Cheetah selects at 0.9 of its drawn radius
+ok - phone Innova 6.5x: Caiman selects at 0.9 of its drawn radius
+ok - phone Innova 9x: Classic Roc selects at 0.9 of its drawn radius
+ok - desktop unfiltered 9x: Enemy selects at 0.9 of its drawn radius
+ok - desktop 1x: 3 curated discs and 3 small discs land a click on their art and on their name
+ok - desktop 3x: 3 curated discs and 3 small discs land a click on their art and on their name
+ok - desktop 6.5x: 3 curated discs and 1 small discs land a click on their art and on their name
+ok - phone 1x: 3 curated discs and 1 small discs land a tap on their art and on their name
+ok - phone 3x: 3 curated discs and 0 small discs land a tap on their art and on their name
+ok - desktop: the pointer cursor shows over a small disc on the canvas and not over empty map
+ok - desktop: a regroup due while the pointer moves waits until the pointer has stopped, then happens
+ok - desktop: a regroup waits for a pointer resting on a readable disc (2029ms), and then happens
+ok - desktop: cursor anchoring and the 9x cap hold
+ok - desktop: a curated disc the new set drops stays under the pointer and lands its click, then fades once the pointer has gone
+ok - desktop: a small disc the new set drops stays under the pointer and lands its click, then fades once the pointer has gone
+ok - desktop: a disc merged into a stack stays reachable under the pointer, then its stack holds it
+ok - desktop: small zoom nudges across a level boundary never take a readable disc from under the pointer
+PASS: 17 checks.

@@ -1,0 +1,66 @@
+#!/usr/bin/env python3 -I
+"""Phase 4b extra pass (ignored diagnostic): per-arriving-mold click-frame task durations (all 241 flips, long or not),
+GLES2::ReadPixels on the renderer main thread per phase, per-flip task sequence classes for one arrival mold, GPU-main busy time.
+usage: python3 -I extra.py <trace.json> <loop.json> <label>"""
+import json,sys,bisect,statistics as st
+from collections import Counter,defaultdict
+trace,loop_path,label=sys.argv[1:4]
+ev=json.load(open(trace))['traceEvents'];loop=json.load(open(loop_path))
+tn={(e['pid'],e['tid']):e['args']['name'] for e in ev if e.get('ph')=='M' and e['name']=='thread_name'}
+marks=sorted([e for e in ev if e.get('cat')=='blink.user_timing' and e['name'].startswith('hunt:')],key=lambda e:e['ts'])
+M={e['name']:e['ts'] for e in marks};mp,mt=marks[0]['pid'],marks[0]['tid']
+main=sorted([e for e in ev if e['pid']==mp and e['tid']==mt and e.get('ph')=='X' and 'dur' in e],key=lambda e:(e['ts'],-e['dur']))
+mts=[e['ts'] for e in main]
+tasks=[e for e in main if e['name']=='RunTask']
+flips=sorted(((int(e['name'].split(':')[2]),e['ts']) for e in marks if e['name'].startswith('hunt:flip:')),key=lambda x:x[1])
+to={f['i']:f['to'] for f in loop['flips']}
+def q(v,p):
+    s=sorted(v);return round(s[min(len(s)-1,int(len(s)*p))],1) if s else None
+def stats(v):return {'n':len(v),'median':q(v,.5),'p95':q(v,.95),'max':round(max(v),1) if v else None,'ge50':sum(1 for x in v if x>=50)}
+# click frame = RunTask containing the flip mark
+cf=defaultdict(list)
+for n,ts in flips:
+    i=bisect.bisect_right(mts,ts)-1
+    while i>=0:
+        e=main[i]
+        if e['name']=='RunTask' and e['ts']<=ts<=e['ts']+e['dur']:cf[to[n]].append(e['dur']/1000);break
+        i-=1
+out={'label':label,'click_frame_by_to':{m:stats(v) for m,v in cf.items()},'click_frame_all':stats([x for v in cf.values() for x in v])}
+# ReadPixels per phase and per arriving mold (flip window = mark to next mark)
+def phase(ts):
+    if ts<M['hunt:start']:return 'pre'
+    if ts<M['hunt:stills']:return 'flips'
+    if ts<M['hunt:end']:return 'stills'
+    return 'post'
+rp=[e for e in main if e['name']=='GLES2::ReadPixels']
+by=defaultdict(list);bym=defaultdict(list)
+fts=[ts for _,ts in flips]
+for e in rp:
+    by[phase(e['ts'])].append(e['dur']/1000)
+    if phase(e['ts'])=='flips':
+        k=bisect.bisect_right(fts,e['ts'])-1
+        if k>=0:bym[to[flips[k][0]]].append(e['dur']/1000)
+out['readpixels_by_phase']={k:stats(v) for k,v in by.items()};out['readpixels_per_flip_by_to']={m:stats(v) for m,v in bym.items()}
+out['readpixels_per_flip_count']=dict(Counter(len(v) for v in [[e for e in rp if fts[k]<=e['ts']<(fts[k+1] if k+1<len(fts) else M['hunt:stills'])] for k in range(len(fts))]))
+# long tasks per flip, by arriving mold, with class = click frame (contains mark) or later frame
+lt=defaultdict(Counter)
+for n,ts in flips:
+    hi=fts[bisect.bisect_right(fts,ts)] if bisect.bisect_right(fts,ts)<len(fts) else M['hunt:stills']
+    for t in tasks:
+        if t['dur']>=50000 and t['ts']+t['dur']>ts and t['ts']<hi:
+            lt[to[n]]['click frame' if t['ts']<=ts<=t['ts']+t['dur'] else 'later task']+=1
+out['long_tasks_by_to_and_kind']={m:dict(c) for m,c in lt.items()}
+# GPU main busy during flip block
+g=[(pid,tid) for (pid,tid),n in tn.items() if n=='CrGpuMain']
+busy=0
+if g:
+    iv=sorted((max(e['ts'],M['hunt:start']),min(e['ts']+e['dur'],M['hunt:stills'])) for e in ev if (e['pid'],e['tid'])==g[0] and e.get('ph')=='X' and 'dur' in e and e['ts']<M['hunt:stills'] and e['ts']+e['dur']>M['hunt:start'])
+    if iv:
+        cs,ce=iv[0]
+        for s,t in iv[1:]:
+            if s>ce:busy+=ce-cs;cs,ce=s,t
+            else:ce=max(ce,t)
+        busy+=ce-cs
+out['flip_block_wall_ms']=round((M['hunt:stills']-M['hunt:start'])/1000,1);out['gpu_main_busy_ms']=round(busy/1000,1)
+out['renderer']=loop['gl']['unmaskedRenderer'];out['flags']=loop['flags'];out['phase']=loop['phase']
+print(json.dumps(out,indent=1))

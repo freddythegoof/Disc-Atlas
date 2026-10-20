@@ -1,0 +1,87 @@
+
+### before-desktop task 134 viewer scheduled draw flip 167 Luna->Destroyer wall 240.022 cpu 1.826
+RunTask 240.0ms 
+  ThreadControllerImpl::RunTask 240.0ms 
+    ProxyMain::BeginMainFrame 240.0ms 
+      WebFrameWidgetImpl::BeginMainFrame 2.4ms 
+        Blink.Animate.UpdateTime 2.4ms 
+          PageAnimator::serviceScriptedAnimations 2.4ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 2.4ms 
+              FireAnimationFrame 2.3ms frame=D07E1A23C38AC7D0A3E6F98F29E52D06
+                AsyncTask Run 2.3ms 
+                  v8.callFunction 2.3ms 
+                    FunctionCall 2.3ms frame=D07E1A23C38AC7D0A3E6F98F29E52D06 functionName=render lineNumber=134 url=https://localhost:8951/disc3d/viewer.mjs
+                      GLES2Implementation::GetProgramiv 0.6ms 
+                        ImplementationBase::WaitForCmd 0.6ms 
+      Commit 237.5ms 
+        LayerTreeHost::DoUpdateLayers 237.4ms 
+          GLES2::ReadPixels 237.3ms 
+            ImplementationBase::WaitForCmd 237.2ms 
+              CommandBufferHelper::Finish 237.2ms 
+                CommandBufferProxyImpl::WaitForGetOffset 237.2ms 
+
+### before-desktop all RunTasks in flip 167 window (343.8 ms):
+  ts+-50.7ms RunTask 50.4ms
+RunTask 50.4ms 
+  ThreadControllerImpl::RunTask 50.4ms 
+    ProxyMain::BeginMainFrame 50.4ms 
+      WebFrameWidgetImpl::BeginMainFrame 2.8ms 
+        Blink.Animate.UpdateTime 2.7ms 
+          PageAnimator::serviceScriptedAnimations 2.7ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 2.7ms 
+      Commit 47.4ms 
+        LayerTreeHost::DoUpdateLayers 47.3ms 
+          GLES2::ReadPixels 47.2ms 
+            ImplementationBase::WaitForCmd 47.2ms 
+  ts+-0.2ms RunTask 49.8ms
+RunTask 49.8ms 
+  ThreadControllerImpl::RunTask 49.8ms 
+    ProxyMain::BeginMainFrame 49.8ms 
+      WebFrameWidgetImpl::BeginMainFrame 2.6ms 
+        Blink.Animate.UpdateTime 2.5ms 
+          PageAnimator::serviceScriptedAnimations 2.5ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 2.5ms 
+      Commit 46.8ms 
+        LayerTreeHost::DoUpdateLayers 46.8ms 
+          GLES2::ReadPixels 46.7ms 
+            ImplementationBase::WaitForCmd 46.6ms 
+  ts+49.7ms RunTask 30.3ms
+RunTask 30.3ms 
+  ThreadControllerImpl::RunTask 30.3ms 
+    ProxyMain::BeginMainFrame 30.3ms 
+      Commit 29.9ms 
+        LayerTreeHost::DoUpdateLayers 29.9ms 
+          GLES2::ReadPixels 29.8ms 
+            ImplementationBase::WaitForCmd 29.8ms 
+  ts+88.5ms RunTask 5.9ms
+RunTask 5.9ms 
+  BlinkScheduler_PerformMicrotaskCheckpoint 4.7ms 
+    RunMicrotasks 4.7ms 
+  ts+103.6ms RunTask 240.0ms
+RunTask 240.0ms 
+  ThreadControllerImpl::RunTask 240.0ms 
+    ProxyMain::BeginMainFrame 240.0ms 
+      WebFrameWidgetImpl::BeginMainFrame 2.4ms 
+        Blink.Animate.UpdateTime 2.4ms 
+          PageAnimator::serviceScriptedAnimations 2.4ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 2.4ms 
+      Commit 237.5ms 
+        LayerTreeHost::DoUpdateLayers 237.4ms 
+          GLES2::ReadPixels 237.3ms 
+            ImplementationBase::WaitForCmd 237.2ms 
+  ts+343.6ms RunTask 23.1ms
+RunTask 23.1ms 
+  ThreadControllerImpl::RunTask 23.1ms 
+    ProxyMain::BeginMainFrame 23.1ms 
+      WebFrameWidgetImpl::BeginMainFrame 3.3ms 
+        Blink.Animate.UpdateTime 3.3ms 
+          PageAnimator::serviceScriptedAnimations 3.3ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 3.3ms 
+      Commit 19.3ms 
+        LayerTreeHost::DoUpdateLayers 19.3ms 
+          GLES2::ReadPixels 19.2ms 
+            ImplementationBase::WaitForCmd 19.2ms 
+
+### before-desktop click-frame tasks (contain hunt:flip mark): n=241 median 50.5 p95 52.8 max 57.5 ms
+### before-desktop GLES2::ReadPixels on main: n=481 median 45.1 p95 233.7 max 237.3 ms; count>=50ms 62
+### gpu-cat names on main: [('CommandBufferHelper::Flush', 1257), ('CommandBufferProxyImpl::Flush', 1257), ('CommandBuffer::OrderingBarrier', 942), ('ImplementationBase::WaitForCmd', 721), ('CommandBufferHelper::Finish', 721), ('CommandBufferProxyImpl::WaitForGetOffset', 721), ('GLES2Implementation::GetProgramiv', 568), ('GLES2::GetUniformLocation', 513), ('RenderThreadImpl::EstablishGpuChannelSync', 503), ('GLES2::ReadPixels', 481), ('WidgetBase::WillBeginMainFrame', 448), ('GLES2::GetActiveUniform', 430)]

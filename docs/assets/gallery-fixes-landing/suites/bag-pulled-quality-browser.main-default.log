@@ -1,0 +1,21 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing/mainwt/dist/workers-public/
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: the GPU path, where pulled discs take the detail look
+
+'low' !== 'high'
+
+    at open (file:///private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing/mainwt/tests/bag-pulled-quality-browser.mjs:65:10)
+    at async file:///private/tmp/claude-501/-Users-freddy-Disc-Atlas/d41a23d4-6f10-47f4-8244-06f11faa2de3/scratchpad/landing/mainwt/tests/bag-pulled-quality-browser.mjs:100:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'low',
+  expected: 'high',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

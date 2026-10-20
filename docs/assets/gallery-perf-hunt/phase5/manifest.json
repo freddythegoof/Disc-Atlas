@@ -1,0 +1,16 @@
+[
+  {
+    "file": "before-phone-metal-241.trace.json.gz",
+    "raw_bytes": 86303374,
+    "gzip_bytes": 8647403,
+    "raw_sha256": "0cfe8163523bac5a1718fc2723ca7a05c458e83803e47940324a4e418ac8ee18",
+    "gzip_sha256": "dfe75c5a75ab1bc1039c66de00758eb3aecd220c017d9f80a4803f14e9070b62"
+  },
+  {
+    "file": "after-phone-metal-241.trace.json.gz",
+    "raw_bytes": 109784957,
+    "gzip_bytes": 11080582,
+    "raw_sha256": "e6792ca6e9166001943571d91c0b69f8bad2b0b7a04e7789da1faa1fc8869778",
+    "gzip_sha256": "b16066532db83674308adce49098598bf118525ce34fe2e57608d61d7291068f"
+  }
+]

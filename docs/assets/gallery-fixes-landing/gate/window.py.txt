@@ -1,0 +1,89 @@
+#!/usr/bin/env python3 -I
+"""Quiet-window gatekeeper for the Gallery landing receipt (modelled on the intro-reveal and Phase 5 windows).
+
+Samples every 30 s: power source, load, total CPU idle, background daemons that wake on this Mac (Spotlight,
+Photos, media analysis, Messages BlastDoor, backup, software update), and any headless Chromium / workerd /
+Wrangler process not started by this script. Starts the measured runs only after FIVE consecutive quiet samples:
+AC power, idle >= 85 %, daemons summed <= 5 %, no foreign measuring process. Gives up after MAX_WAIT seconds and
+writes OWED. During the runs it keeps sampling; the receipt qualifies only if every in-run sample has daemons
+<= 5 % and no gap between samples exceeds 45 s.
+
+usage: python3 -I window.py <logdir> <worktree>
+"""
+import os, re, subprocess, sys, threading, time, json
+logdir, tree = sys.argv[1], sys.argv[2]
+MAX_WAIT = 45 * 60
+DAEMONS = re.compile(r'mds_stores|/mds$|mdworker|mediaanalysisd|photoanalysisd|photolibraryd|ImageConversionService|MessagesBlastDoorService|Spotlight|backupd|softwareupdated|cloudphotod|bird$')
+MEASURE = re.compile(r'chrome-headless-shell|Chromium|workerd|wrangler')
+samples, ours = [], set()
+lock = threading.Lock()
+
+def sh(cmd):
+    return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+
+def sample():
+    power = 'AC' if 'AC Power' in sh('pmset -g batt') else 'battery'
+    load = sh('sysctl -n vm.loadavg').strip('{} \n')
+    top = sh('top -l 2 -n 0 -s 1 | grep "CPU usage" | tail -1')
+    m = re.search(r'([\d.]+)% idle', top); idle = float(m.group(1)) if m else 0.0
+    daemons, foreign, mine = {}, 0.0, 0.0
+    for line in sh('ps -axo pid=,ppid=,%cpu=,comm=').splitlines():
+        parts = line.split(None, 3)
+        if len(parts) < 4: continue
+        pid, ppid, cpu, comm = int(parts[0]), int(parts[1]), float(parts[2]), parts[3]
+        if DAEMONS.search(comm): daemons[os.path.basename(comm)] = daemons.get(os.path.basename(comm), 0) + cpu
+        if MEASURE.search(comm):
+            if ours: mine += cpu
+            else: foreign += cpu
+    d = sum(daemons.values())
+    return {'t': time.strftime('%Y-%m-%dT%H:%M:%S'), 'epoch': time.time(), 'power': power, 'load': load, 'idle': idle,
+            'daemons': round(d, 1), 'daemonTop': {k: round(v, 1) for k, v in sorted(daemons.items(), key=lambda x: -x[1])[:3] if v > 0},
+            'foreignMeasuring': round(foreign, 1), 'gateBrowser': round(mine, 1)}
+
+def quiet_pre(s):
+    return s['power'] == 'AC' and s['idle'] >= 85 and s['daemons'] <= 5 and s['foreignMeasuring'] == 0
+
+stop = threading.Event()
+def sampler():
+    with open(f'{logdir}/watch.jsonl', 'a') as f:
+        while not stop.is_set():
+            s = sample()
+            with lock: samples.append(s)
+            f.write(json.dumps(s) + '\n'); f.flush()
+            stop.wait(30 - (time.time() - s['epoch']) % 30)
+threading.Thread(target=sampler, daemon=True).start()
+
+status = open(f'{logdir}/window.log', 'a')
+def log(msg):
+    status.write(f"{time.strftime('%Y-%m-%dT%H:%M:%S')} {msg}\n"); status.flush()
+
+start = time.time(); log('waiting for five consecutive quiet samples')
+while True:
+    time.sleep(5)
+    with lock: last = samples[-5:]
+    if len(last) == 5 and all(quiet_pre(s) for s in last):
+        log('quiet: ' + ' | '.join(f"{s['t'][11:]} idle {s['idle']} daemons {s['daemons']} load {s['load']}" for s in last)); break
+    if time.time() - start > MAX_WAIT:
+        log('OWED: no five-sample quiet window within %d min' % (MAX_WAIT // 60)); stop.set(); sys.exit(2)
+
+ours.add(1)
+with lock: run_from = len(samples)
+runs = [('gate-after', 'node tests/gallery-fixes-browser.mjs'),
+        ('diagnostic-before-replay', 'node tests/gallery-fixes-browser.mjs --before'),
+        ('atlas-perf-gate', 'node tests/atlas-3d-perf.mjs')]
+for name, cmd in runs:
+    log(f'START {name}: {cmd}')
+    with open(f'{logdir}/{name}.log', 'w') as out:
+        code = subprocess.run(cmd, shell=True, cwd=tree, stdout=out, stderr=subprocess.STDOUT).returncode
+    log(f'EXIT {name} {code}')
+    if name == 'gate-after':
+        sh(f'cp {tree}/docs/images/storage-all-discs-fixes/after.darwin.json {logdir}/after.darwin.composed.json')
+    if name == 'diagnostic-before-replay':
+        sh(f'cp {tree}/docs/images/storage-all-discs-fixes/before.darwin.json {logdir}/before.darwin.composed-replay.json')
+time.sleep(31)
+stop.set()
+with lock: inrun = samples[run_from:]
+gaps = [round(b['epoch'] - a['epoch']) for a, b in zip(inrun, inrun[1:])]
+ok = all(s['power'] == 'AC' and s['daemons'] <= 5 and s['foreignMeasuring'] == 0 for s in inrun) and all(g <= 45 for g in gaps)
+log(f"IN-RUN samples {len(inrun)} max gap {max(gaps) if gaps else 0}s max daemons {max((s['daemons'] for s in inrun), default=0)} "
+    f"min idle {min((s['idle'] for s in inrun), default=0)} -> {'QUALIFIES' if ok else 'DOES NOT QUALIFY'}")

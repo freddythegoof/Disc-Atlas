@@ -1,0 +1,7 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/interesting-bun-3677b7/dist/workers-public/
+[2026-10-20T03:24:47.875Z] fixture ready at https://localhost:8951 stage setup
+[2026-10-20T03:24:47.958Z] launched gate ["--use-angle=d3d11","--enable-gpu"] 156.0.8078.4
+[2026-10-20T03:24:53.347Z] owned copies [{"id":"706cc32b-b7c4-42d5-b52b-25a8fb0e97df","mold_id":"3d60892b6812","plastic":"Star","photo":false},{"id":"a36dbb2a-762e-43a3-b67e-057113c2b91a","mold_id":"8cc6c4a94762","plastic":"ESP","photo":false},{"id":"45ad53c1-0d3f-4e69-8cad-480629e8e8be","mold_id":" [… trimmed, 32448 chars …]
+[2026-10-20T03:24:54.681Z] session saved (ignored, never evidence)
+[2026-10-20T03:24:54.682Z] stage setup done

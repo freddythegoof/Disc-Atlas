@@ -1,0 +1,75 @@
+
+### after-phone-metal task 13 photo continuation (Destroyer arrival) flip 231 Luna->Destroyer wall 71.915 cpu 71.705
+RunTask 71.9ms 
+  ThreadControllerImpl::RunTask 4.7ms 
+  BlinkScheduler_PerformMicrotaskCheckpoint 67.1ms 
+    RunMicrotasks 67.1ms 
+      GetImageData 4.0ms 
+        CanvasRenderingContext2D::FinalizeFrame 3.1ms 
+      MinorGC 0.9ms 
+        V8.GCScavenger 0.8ms 
+          V8.GC_SCAVENGER 0.7ms 
+            V8.GC_SCAVENGER_SCAVENGE 0.7ms 
+              V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.6ms 
+      MinorGC 0.8ms 
+        V8.GCScavenger 0.7ms 
+          V8.GC_SCAVENGER 0.7ms 
+            V8.GC_SCAVENGER_SCAVENGE 0.7ms 
+              V8.GC_SCAVENGER_SCAVENGE_FINALIZE 0.6ms 
+
+### after-phone-metal all RunTasks in flip 231 window (117.0 ms):
+  ts+-0.1ms RunTask 9.7ms
+RunTask 9.7ms 
+  ThreadControllerImpl::RunTask 9.2ms 
+    ProxyMain::BeginMainFrame 9.2ms 
+      WebFrameWidgetImpl::BeginMainFrame 7.0ms 
+        Blink.Animate.UpdateTime 7.0ms 
+          PageAnimator::serviceScriptedAnimations 7.0ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 7.0ms 
+      WebFrameWidgetImpl::UpdateLifecycle 2.1ms 
+  ts+19.3ms RunTask 71.9ms
+RunTask 71.9ms 
+  ThreadControllerImpl::RunTask 4.7ms 
+  BlinkScheduler_PerformMicrotaskCheckpoint 67.1ms 
+    RunMicrotasks 67.1ms 
+      GetImageData 4.0ms 
+        CanvasRenderingContext2D::FinalizeFrame 3.1ms 
+  ts+91.2ms RunTask 13.2ms
+RunTask 13.2ms 
+  ThreadControllerImpl::RunTask 13.2ms 
+    ProxyMain::BeginMainFrame 13.2ms 
+      WebFrameWidgetImpl::BeginMainFrame 12.7ms 
+        Blink.Animate.UpdateTime 12.7ms 
+          PageAnimator::serviceScriptedAnimations 12.7ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 12.6ms 
+  ts+104.9ms RunTask 2.8ms
+RunTask 2.8ms 
+  ThreadControllerImpl::RunTask 2.8ms 
+    ProxyMain::BeginMainFrame 2.8ms 
+      WebFrameWidgetImpl::UpdateLifecycle 2.0ms 
+  ts+109.3ms RunTask 2.8ms
+RunTask 2.8ms 
+  ThreadControllerImpl::RunTask 2.8ms 
+    V8.GCIncrementalMarking 2.8ms 
+      V8.GC_MC_INCREMENTAL 2.8ms 
+        V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING 2.8ms 
+  ts+112.1ms RunTask 3.6ms
+RunTask 3.6ms 
+  ThreadControllerImpl::RunTask 3.6ms 
+    MajorGC 3.5ms 
+      V8.GCFinalizeMC 3.4ms 
+        V8.GC_MARK_COMPACTOR 3.4ms 
+          V8.GC_MC_EVACUATE 1.6ms 
+  ts+116.6ms RunTask 9.3ms
+RunTask 9.3ms 
+  ThreadControllerImpl::RunTask 8.9ms 
+    ProxyMain::BeginMainFrame 8.9ms 
+      WebFrameWidgetImpl::BeginMainFrame 7.0ms 
+        Blink.Animate.UpdateTime 6.8ms 
+          PageAnimator::serviceScriptedAnimations 6.8ms 
+            FrameRequestCallbackCollection::ExecuteFrameCallbacks 6.8ms 
+      WebFrameWidgetImpl::UpdateLifecycle 1.7ms 
+
+### after-phone-metal click-frame tasks (contain hunt:flip mark): n=241 median 8.5 p95 10.5 max 13.2 ms
+### after-phone-metal GLES2::ReadPixels on main: n=0 median 0.0 p95 0.0 max 0.0 ms; count>=50ms 0
+### gpu-cat names on main: [('CommandBuffer::OrderingBarrier', 1163), ('CommandBufferProxyImpl::OrderingBarrier', 1129), ('CommandBufferHelper::Flush', 808), ('CommandBufferProxyImpl::Flush', 804), ('GLES2Implementation::GetProgramiv', 590), ('GLES2::GetUniformLocation', 512), ('WidgetBase::WillBeginMainFrame', 494), ('RasterImplementation::RasterCHROMIUM', 482), ('GLES2::GetActiveUniform', 402), ('GpuChannel::Flush', 255), ('ImplementationBase::WaitForCmd', 240), ('CommandBufferHelper::Finish', 240)]

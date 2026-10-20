@@ -1,0 +1,3 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-fixes-landing/dist/workers-public/
+PASS: list picker, empty rack, 80 discs -> 2 racks, 72 -> 1 rack (live), rack card pull/put back/move/remove, bag <-> storage counts, loss -> headstone with story, Found it! from card and list, empty graveyard, phone lazy-load/quality/draw calls/frame times/overflow. {"storage80":{"info":{"calls":27,"triangles":229186},"state":{"racks":2,"discs":80,"pulled":null,"moving":false,"batches":14,"focus" […]

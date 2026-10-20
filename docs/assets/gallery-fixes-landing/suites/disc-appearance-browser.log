@@ -1,0 +1,16 @@
+✔ atlas default rims follow the theme without reusing stale LODs or overriding custom colors (440.303333ms)
+✔ signed-out Atlas redraws default rims on theme-change while custom rims stay fixed (868.722916ms)
+✔ My Map redraws default rims on theme-change while custom rims stay fixed (884.479625ms)
+✔ atlas cache and pixels honor custom rims independently of the plate (325.385375ms)
+✔ Bag viewer uses each mold and two materials with saved plate/rim colors (2418.321334ms)
+✔ My Map refreshes colors and its disc set without reloading the page (3183.503834ms)
+✔ visible list thumbnails use shared 3D renders; offscreen rows wait (686.217208ms)
+✔ My Map dot tiers display their cached model at the existing dot size (385.55225ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9467.498333

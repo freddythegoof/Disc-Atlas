@@ -1,11 +1,11 @@
-// Real Storage UI and shared WebGL viewer on local Wrangler/D1/R2. Nothing reaches production.
+// Real Gallery UI and shared WebGL viewer on local Wrangler/D1/R2. Nothing reaches production.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
-const config='tests/auth.wrangler.jsonc',state='work/all-discs/d1-qa',base='https://localhost:8842',dir='docs/images/storage-all-discs';
+const config='tests/auth.wrangler.jsonc',state='work/all-discs/d1-qa',base='https://localhost:8842',dir='outputs/all-discs';
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
 fs.mkdirSync(dir,{recursive:true});
 execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
@@ -26,7 +26,7 @@ try{
   const cb=new URL(u.searchParams.get('redirect_uri'));cb.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();
   await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});
  });
- const tab=name=>page.locator(`[data-bag-view="${name}"]`),mode=name=>page.getByRole('radio',{name,exact:true}).and(page.locator('[data-storage-mode]'));
+ const tab=name=>page.locator(`[data-bag-view="${name}"]`);
  const filter=name=>page.locator(`[data-album-filter="${name}"]`),counter=page.locator('[data-album-counter]'),stage=page.locator('[data-album-stage]');
  const api=async(path='',method='GET',body)=>{const r=await page.request.fetch(base+'/api/bag'+path,{method,headers:await page.evaluate(()=>({'Content-Type':'application/json',Origin:location.origin,'X-Atlas-CSRF':AtlasAccount.current.csrfToken})),...(body?{data:body}:{})});assert.ok(r.ok(),await r.text());return r.json();};
  const reload=async()=>{await page.reload();await page.waitForFunction(()=>window.AtlasAccount?.current?.user&&discs.length>0);await page.locator('#myBagLoadState').waitFor({state:'hidden'});await tab('storage').click();};
@@ -36,8 +36,8 @@ try{
  const link=page.getByRole('link',{name:'Continue with Google',exact:true});await link.waitFor();
  const redirect=await page.request.get(base+await link.getAttribute('href'),{maxRedirects:0});await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();await tab('storage').click();
- // First red: the new mode must be reachable from Storage's controls.
- await mode('All Discs').click({timeout:5000});
+ // Gallery is a collection section beside Storage and Lost.
+ await tab('gallery').click({timeout:5000});
  await page.getByText('No discs in the collection yet',{exact:true}).waitFor();
  assert.equal(await counter.innerText(),'0 / 0');assert.ok(await stage.isHidden());
  assert.ok(await page.getByRole('button',{name:'Next disc',exact:true}).isDisabled());
@@ -49,7 +49,7 @@ try{
  const photoBytes=await page.evaluate(async bytes=>{const {preparePhoto}=await import('/disc-photo.mjs');const bitmap=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/webp'}));const {blob}=await preparePhoto(bitmap,{});bitmap.close();return [...new Uint8Array(await blob.arrayBuffer())];},[...fs.readFileSync('tests/fixtures/stamped-disc.webp')]);
  const photoResponse=await page.request.put(base+'/api/bag/discs/'+owned[0].id+'/photo',{headers:await page.evaluate(()=>({'Content-Type':'image/webp',Origin:location.origin,'X-Atlas-CSRF':AtlasAccount.current.csrfToken})),data:Buffer.from(photoBytes)});
  assert.ok(photoResponse.ok(),await photoResponse.text());
- await reload();assert.equal(await mode('Rack').getAttribute('aria-checked'),'true');await mode('All Discs').click();await expectCounter('1 / 7');
+ await reload();assert.ok(await page.locator('#storageScene').isVisible());await tab('gallery').click();await expectCounter('1 / 7');
  await page.waitForFunction(()=>BagApp.scenes.album?.state.props?.mold==='Destroyer'&&BagApp.scenes.album.debug.photo?.userData.photoReady);
  assert.equal(await stage.locator('canvas').count(),1);assert.equal(await current(),owned[0].id);
  assert.ok(await page.locator('[data-album-bag]').isVisible());
@@ -74,28 +74,30 @@ try{
  assert.equal(await stage.locator('canvas').count(),1,'Rapid flips reuse one viewer and discard the old photo');
  await filter('all').click();await expectCounter('1 / 7');
  // Do not steal arrows from sliders or other page controls.
+ await page.waitForFunction(()=>document.querySelector('#allDiscsGallery').dataset.appearance==='ready');
  const tilt=page.locator('#allDiscsGallery [data-disc3d-tilt]');await tilt.focus();await page.keyboard.press('ArrowRight');await expectCounter('1 / 7');assert.equal(await tilt.inputValue(),'1');
- await tab('bag').click();await page.keyboard.press('ArrowRight');assert.ok(await page.locator('#allDiscsGallery').isHidden());await tab('storage').click();assert.equal(await mode('Rack').getAttribute('aria-checked'),'true');
- await mode('All Discs').click();await page.evaluate(()=>document.querySelector('[data-theme-choice="light"]').click());
+ await tab('bag').click();await page.keyboard.press('ArrowRight');assert.ok(await page.locator('#allDiscsGallery').isHidden());await tab('storage').click();assert.ok(await page.locator('#storageScene').isVisible());
+ await tab('gallery').click();await page.evaluate(()=>document.querySelector('[data-theme-choice="light"]').click());
  const shots=async(p,size)=>{
   for(const theme of ['light','black'])for(const cls of ['all','putter']){
    await p.evaluate(t=>document.querySelector(`[data-theme-choice="${t}"]`).click(),theme);await p.locator(`[data-album-filter="${cls}"]`).click();
    if(cls==='all')await p.waitForFunction(()=>BagApp.scenes.album?.debug.photo?.userData.photoReady);
    await p.evaluate(()=>{BagApp.scenes.album.setTilt(0);BagApp.scenes.album.setView('angle',{instant:true});return document.fonts.ready;});await p.waitForTimeout(400);
-   await p.locator('#storageAlbum').screenshot({path:`${dir}/${size}-${cls}-${theme}.png`});
-   assert.ok(await p.locator('#storageModes').isVisible());
+   await p.locator('#allDiscsGallery').screenshot({path:`${dir}/${size}-${cls}-${theme}.png`});
+   assert.ok(await p.locator('[data-bag-view="gallery"]').isVisible());
   }
  };
  await shots(page,'desktop');
  const phone=await browser.newContext({ignoreHTTPSErrors:true,storageState:await context.storageState(),viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2});
  const p=await phone.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base+'/?bag=1');await p.waitForFunction(()=>window.AtlasAccount?.current?.user&&discs.length>0);await p.locator('#myBagLoadState').waitFor({state:'hidden'});
- await p.locator('[data-bag-view="storage"]').click();await p.locator('[data-storage-mode="all"]').click();await p.locator('[data-album-stage] canvas').waitFor();
+ await p.locator('[data-bag-view="gallery"]').click();await p.locator('[data-album-stage] canvas').waitFor();
  const cdp=await phone.newCDPSession(p),box=await p.locator('[data-album-stage] canvas').boundingBox();
  const swipe=async(from,to,y=box.y+box.height/2)=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:from,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:to,y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});};
  await swipe(box.x+box.width*.8,box.x+box.width*.2);await p.waitForFunction(()=>document.querySelector('[data-album-counter]').textContent==='2 / 7');
  await swipe(box.x+box.width*.2,box.x+box.width*.8);await p.waitForFunction(()=>document.querySelector('[data-album-counter]').textContent==='1 / 7');
  await swipe(box.x+box.width*.2,box.x+box.width*.8);await p.waitForFunction(()=>document.querySelector('[data-album-counter]').textContent==='7 / 7');
  for(const b of await p.locator('[data-album-step]').all()){const r=await b.boundingBox();assert.ok(r.width>=44&&r.height>=44);}
+  await p.waitForFunction(()=>document.querySelector('#allDiscsGallery').dataset.appearance==='ready');
  const phoneTilt=p.locator('#allDiscsGallery [data-disc3d-tilt]');await phoneTilt.scrollIntoViewIfNeeded();const slider=await phoneTilt.boundingBox();
  await swipe(slider.x+slider.width*.2,slider.x+slider.width*.8,slider.y+slider.height/2);
  assert.equal(await p.locator('[data-album-counter]').innerText(),'7 / 7','A touch slider drag must not turn the album page');
@@ -105,14 +107,14 @@ try{
  const unrated=await page.evaluate(()=>discs.find(d=>d.speed==null)?.id);assert.ok(unrated);
  for(const i of owned)await api('/discs/'+i.id,'DELETE');
  await api('/discs','POST',{mold_id:unrated,plastic:'Unknown',wear:8,weight_g:173,color:'#e6c668'});
- await reload();await mode('All Discs').click();await expectCounter('1 / 1');
+ await reload();await tab('gallery').click();await expectCounter('1 / 1');
  await page.waitForFunction(()=>BagApp.scenes.album?.state.source==='pdga');
  assert.ok(await stage.isVisible(),'An unrated disc with real PDGA measurements still has a 3D album view');
  assert.equal(await page.locator('[data-album-flight]').innerText(),'');
  await filter('putter').click();await page.getByText('No putters in the collection yet',{exact:true}).waitFor();await expectCounter('0 / 0');
- await reload();assert.equal(await mode('Rack').getAttribute('aria-checked'),'true');
- // Demo access matches today's Storage: list only, no Storage scene or new mode.
+ await reload();assert.ok(await page.locator('#storageScene').isVisible());
+ // Demo access remains list-only with signed-in collection navigation hidden.
  const demo=await browser.newContext({ignoreHTTPSErrors:true}),d=await demo.newPage();await d.goto(base+'/?bag=1');await d.locator('#myBagDemo').waitFor();await d.locator('[data-bag-list="storage"]').click();
- assert.ok(await d.locator('#storageModes').isHidden());assert.ok(await d.locator('#bagStorage').isVisible());await demo.close();
+ assert.equal(await d.locator('[data-storage-mode]').count(),0);assert.ok(await d.locator('#myBagViews').isHidden());assert.ok(await d.locator('#bagStorage').isVisible());await demo.close();
  assert.deepEqual(errors,[]);console.log('All Discs browser: ownership, order, controls, wrap, filters, photo, clay, touch, reset, empty/unrated, demo and eight screenshots passed.');
 }finally{await browser?.close();server.kill();}
