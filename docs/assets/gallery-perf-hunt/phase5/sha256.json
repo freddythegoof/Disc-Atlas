@@ -1,11 +1,13 @@
 {
   "after-phone-metal-241.loop.json": "df4047dcf8f6ea90906f8af77b997d32fc91763827dbfde0bed8c482df91db54",
+  "after-phone-metal-241.trace.json.gz": "b16066532db83674308adce49098598bf118525ce34fe2e57608d61d7291068f",
   "after-phone-metal-summary.json": "dfc5cfc094e89455ddc6726669052f1984618a6ed0767d7fcf9788914485cc6c",
   "after-phone-metal-tasks.csv": "bebd28c45fce27b3046ffb43b812b56b6f16b65d62537cde317bad51be0e189a",
   "after-phone-metal.analyze.txt": "1190dcb44617180beb6a607315696af4d32c8f122029cc027035c9fdd8b804bd",
   "after-phone-metal.chain.txt": "e37a540390d5d8420716de4ae58316324756ee89b321897d6c59111d91e9b850",
   "after-phone-metal.extra.txt": "360783a265b18c3528fffeb9447c232f7e39fd135c111be32372632063cb2527",
   "before-phone-metal-241.loop.json": "0846d663d3257d4d8cb65cbeea7a85671c5587e461821f24f0d11aef09ddb355",
+  "before-phone-metal-241.trace.json.gz": "dfe75c5a75ab1bc1039c66de00758eb3aecd220c017d9f80a4803f14e9070b62",
   "before-phone-metal-summary.json": "6c243b110205a59f692db80fe408898639c534efd288af0934f2c8413ab142e9",
   "before-phone-metal-tasks.csv": "ce18d25710527e8fa099f5119aae8ea9f953d796d262ad00008117f105f6d1d0",
   "before-phone-metal.analyze.txt": "03988aff048842f38c89854347096def30ae1bbbb7b5d7dbcf7919fe334dc1ea",
