@@ -100,7 +100,61 @@ async function clickLands(page,point,disc,how,label){
  assert.equal(got,disc,`${label}: a click at (${Math.round(point.x)}, ${Math.round(point.y)}) selected ${got}, not ${disc}`);
 }
 
+
+async function completeDot(page,z,brand){
+ await show(page,1);
+ await page.evaluate(([brand,z])=>{
+  document.querySelector('#collection').value='all';
+  if(brand)selectedBrands.add(brand);filter();
+  const {width:w,height:h}=mapViewport,t=boundedCamera(zoomDestination(z,{x:w*.55,y:h*.5}));
+  zoom=t.zoom;pan={x:t.x,y:t.y};draw();
+ },[brand,z]);
+ await settled(page);
+ const ids=await page.evaluate(()=>groupCache.groups.filter(g=>!g.large&&!g.hidden&&g.complete&&g.members.length===1).map(g=>g.key));
+ for(const id of ids){
+  await page.mouse.move(1,1);
+  await page.evaluate(id=>{
+   const g=groupCache.groups.find(g=>g.key===id),{width:w,height:h}=mapViewport,a=AtlasLayout.bounds(w,h,true);
+   const t=boundedCamera({zoom,x:w*.55-a.left-g.pos.x*a.width*zoom-(g.markerOffset?.x||0),y:h*.5-a.bottom+g.pos.y*a.height*zoom-(g.markerOffset?.y||0)});
+   pan={x:t.x,y:t.y};draw();
+  },id);
+  await settled(page);
+  const dot=await page.evaluate(id=>{
+   const g=mapClusters.find(g=>g.key===id),n=markerNodes.get(id);
+   if(!g||g.large||!n?.classList.contains('is-dot')||n.position.inert)return;
+   const m=canvas.getBoundingClientRect(),art=n.querySelector('.disc-art').getBoundingClientRect(),label=n.querySelector('.marker-name').getBoundingClientRect();
+   const cx=art.left+art.width/2,cy=art.top+art.height/2,r=art.width/2,targets=mapTargets();
+   for(let i=0;i<32;i++){
+    const angle=-Math.PI/2+i*Math.PI/16,x=cx+Math.cos(angle)*r*.9,y=cy+Math.sin(angle)*r*.9,hit=document.elementFromPoint(x,y);
+    if(x<20||x>innerWidth-20||y<150||y>innerHeight-160||!hit||!(hit===canvas||hit.closest('#mapMarkers')))continue;
+    if(x>=label.left&&x<=label.right&&y>=label.top&&y<=label.bottom)continue;
+    if(targets.some(t=>t.ref!==g&&AtlasTargets.reach(t,x-m.left,y-m.top)))continue;
+    return {id:g.key,name:g.lead.name,x,y,r,offset:r*.9};
+   }
+  },id);
+  if(dot)return dot;
+ }
+}
+
 try{
+
+ // Complete-view dots: click visible plastic at 90% of its DOM-measured radius, outside the name.
+ // The denser phone layout retains Innova dots at 6.5x/9x; desktop Innova promotes them all.
+ const dotFailures=[];
+ for(const [viewport,brand,z] of [['desktop','Innova',3],['phone','Innova',6.5],['phone','Innova',9],['desktop',null,9]]){
+  const page=await open(viewport),label=viewport+' '+(brand||'unfiltered')+' '+z+'x';
+  const dot=await completeDot(page,z,brand);
+  assert.ok(dot,label+': a drawn complete-view dot with unobstructed plastic outside its name');
+  assert.ok(dot.offset>22,label+': the point is beyond the legacy 22px hit circle');
+  await page.mouse.click(dot.x,dot.y);
+  await page.waitForFunction(()=>selected!==null,null,{timeout:2500}).catch(()=>{});
+  const got=await page.evaluate(()=>selected?.id??null);
+  if(got!==dot.id)dotFailures.push({label,disc:dot.id,selected:got,offset:dot.offset});
+  else check(label+': '+dot.name+' selects at 0.9 of its drawn radius');
+  await page.context().close();
+ }
+ assert.deepEqual(dotFailures,[],'complete-view dot off-centre clicks select their discs');
+
  for(const viewport of ['desktop','phone']){
   const page=await open(viewport),how=viewport==='phone'?'tap':'click';
   const cameras=viewport==='desktop'?[['1x',1],['3x',3],['6.5x',6.5]]:[['1x',1],['3x',3]];

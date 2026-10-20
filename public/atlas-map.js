@@ -110,10 +110,11 @@ function markerLabel(g,f){
  if(g.gapLabel&&AtlasGroups.gapLabelAlpha(zoom)>=AtlasTargets.READABLE)return {x:g.x+f.x,y:g.y+f.y+AtlasGroups.gapDrop(AtlasGroups.gapSize(zoom,'small')),w:f.w,h:f.h};
  return null;
 }
-// A dot's button is a generous target (22px); a curated disc's is its art (the footprint's radius, scaled) and 8px.
+// Organic dots share their drawn radius with compare rings; hit targets add 6px slack.
+function dotArtRadius(){return AtlasGroups.gapSize(zoom,'small')/2;}
 function markerTarget(g){
  const f=groupCache.footprints.get(g.key);
- return {kind:'marker',ref:g,x:g.x,y:g.y,r:g.large?(f?.radius??34)*mapMarkerScale()+8:22,label:markerLabel(g,f)};
+ return {kind:'marker',ref:g,x:g.x,y:g.y,r:g.large?(f?.radius??34)*mapMarkerScale()+8:organicAtlas()?dotArtRadius()+6:22,label:markerLabel(g,f)};
 }
 function gapTarget(e){return {kind:'gap',ref:e,x:e.x,y:e.y,r:Math.max(e.size/2+6,12),label:e.strength>=AtlasTargets.READABLE&&e.box?e.box:null};}
 function mapTargets(){
@@ -424,7 +425,7 @@ function drawCompareHighlights(){
  };
  for(const g of mapClusters)if(g.members.some(d=>ids.has(d.id))){
   // Reserve the selected art's extra scale too, so selecting a compared disc cannot cover its ring.
-  const radius=g.large?(organic?38:34)*scale*1.09:organic?AtlasGroups.gapSize(zoom,'small')/2:16*scale*1.12;
+  const radius=g.large?(organic?38:34)*scale*1.09:organic?dotArtRadius():16*scale*1.12;
   ring(g.x,g.y,radius);
  }
  for(const g of mapGaps)if(g.on&&g.drawn&&ids.has(g.id))ring(g.x,g.y,g.size/2);
