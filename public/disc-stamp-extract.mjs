@@ -153,7 +153,7 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false}){
  }
  const lo=Math.max(LO,centre+4*sigma),hi=Math.max(HI,centre+8*sigma),lo2=Math.max(LO2,centre+5*sigma),hi2=Math.max(HI2,centre+10*sigma);
  // 2. Strong design, and the three cleanup rules.
- const minArea=Math.max(4,Math.round(MIN_AREA*k*k)),stats={specks:0,scuffs:0,bands:[],reflections:[],weak:0,weakRejected:0};
+ const minArea=Math.max(4,Math.round(MIN_AREA*k*k)),stats={specks:0,scuffs:0,bands:[],reflections:[],weak:0,weakRejected:0,slivers:0};
  const edgeArc=pixels=>{const arcs=new Uint8Array(90);for(const p of pixels)if(radius[p]>reach-3*k){const i=p%size,j=(p-i)/size;arcs[Math.min(89,Math.floor((Math.atan2(j+.5-c,i+.5-c)+Math.PI)/(2*Math.PI)*90))]=1;}return arcs.reduce((a,v)=>a+v,0)/90;};
  const mask=hysteresis(d,inside,size,lo,hi),stages=debug?{d}:null;
  for(const pixels of components(mask,size)){
@@ -187,6 +187,9 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false}){
  if(debug)stages.grown=mask.slice();
  const peak=maxFilter(d,mask,size,Math.max(2,Math.round(3*k)));
  for(let p=0;p<N;p++)if(mask[p]&&d[p]<.5*peak[p])mask[p]=0;
+ // What the trim leaves of a halo away from the ink (mid-gap between two letters) is a sliver too small or too faint
+ // to have seeded anything: the speck and scuff rules again, at the weak seed level.
+ for(const pixels of components(mask,size)){let strongest=0;for(const p of pixels)strongest=Math.max(strongest,d[p]);if(pixels.length<minArea||strongest<hi2){stats.slivers++;for(const p of pixels)mask[p]=0;}}
  // 4. Layers, from the core (interior) design pixels.
  const core=[];for(let p=0;p<N;p++){if(!mask[p])continue;const i=p%size,j=(p-i)/size;if(i>0&&j>0&&i<size-1&&j<size-1&&mask[p-1]&&mask[p+1]&&mask[p-size]&&mask[p+size])core.push(lab[3*p],lab[3*p+1],lab[3*p+2]);}
  let inks=[];
