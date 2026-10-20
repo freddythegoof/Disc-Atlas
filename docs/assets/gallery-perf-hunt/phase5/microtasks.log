@@ -1,0 +1,6 @@
+before-phone-metal microtask-dominated tasks in flip block: 60 with canvas readback: 60
+before-phone-metal wall ms min/p25/median/p75/p95/max: 23.4 24.0 24.3 24.6 25.3 28.5 | >=50 ms: 0 | 40-50 ms: 0
+before-phone-metal histogram (10 ms bins): {20: 60}
+after-phone-metal microtask-dominated tasks in flip block: 60 with canvas readback: 60
+after-phone-metal wall ms min/p25/median/p75/p95/max: 23.4 24.5 27.0 68.9 70.1 71.9 | >=50 ms: 15 | 40-50 ms: 0
+after-phone-metal histogram (10 ms bins): {20: 45, 60: 12, 70: 3}

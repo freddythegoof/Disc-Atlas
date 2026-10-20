@@ -1,4 +1,4 @@
-# Gallery per-flip performance hunt — Phases 1–4b
+# Gallery per-flip performance hunt — Phases 1–5
 
 October 17, 2026. **Phase 2 retained a one-file experiment; Gallery and Atlas phone perf gates remain red. Stop for Freddy.** See Phase 2 below for results, regressions and screenshots. Phase 1 attribution is retained as historical evidence.
 
@@ -459,3 +459,100 @@ Under the Atlas control's flags WebGL and GPU compositing are enabled (Phase 4, 
 ### Fences held
 
 No product code, gate, limit, margin, rep or workload changed; `tests/gallery-fixes-browser.mjs` is byte-identical to `12b939f`. `reliefTexture()` was neither touched nor re-profiled. The baseline route, the Storage › All entry and the Atlas launch args are probe-only choices that mirror the gate and the Atlas control. No push, PR, merge or deploy; this section and its evidence are a local commit on this session's branch, which was pointed at Phase 4's commit `4c853e9` so that 4b stacks on 4, for Freddy's review.
+
+## Phase 5 — gate repair, the Mac baseline, and the fixes judgment run
+
+October 19, 2026. Fable, Freddy's Mac (Apple M4, macOS 15.7.3 / Darwin 24.6.0, Node 24.21.0, Playwright 1.64.1, `HeadlessChrome/156.0.8078.4`), branch `claude/gallery-gate-repair` from `a589784` in the `interesting-bun-3677b7` worktree. Freddy ruled on October 19 that both gate repairs Phase 4b left open are made. **This phase makes them, re-baselines the Mac in a watcher-verified quiet window, and runs the judgment on the Gallery fixes. The verdict is a report: the repaired gate is red on one check, phone long tasks 6 against a Mac limit of 1, and every long task is the owner-photo continuation on a Destroyer return. No product code changed; nothing lands here.**
+
+### What changed in the gate, and why
+
+Two edits to `tests/gallery-fixes-browser.mjs`, nothing else:
+
+1. **Per-OS renderer flags.** The launch line requests `--use-angle=d3d11` only when `process.platform === 'win32'`; everywhere else it passes `--enable-gpu` alone, the same branch `tests/atlas-3d-perf.mjs:125` has always taken. Phase 4 showed the D3D11 request on macOS is not ignored: Chromium fails GPU initialisation for the missing backend and falls back to SwiftShader WebGL with software compositing, and Phases 4 and 4b traced every one of the 241 / 244 phone long tasks to a compositor readback waiting on that software path. The `BAG3D_CHROMIUM_ARGS` override is unchanged.
+2. **Per-machine baselines.** The gate reads its baseline from, and writes both reports to, `docs/images/storage-all-discs-fixes/<phase>.<process.platform>.json`. The PC rows that were `before.json` are now `before.win32.json` (a `git mv`, so their history follows the rename; the perf rows are byte-identical, and a `machine` block at the top records where they came from: the Windows PC, RTX 3070, ANGLE D3D11, Node 24.21.0, Playwright 1.62.1, Chromium revision 1234, October 17, commit `c3956cf`). `after.json` moved to `after.win32.json` unchanged. The after phase asserts the baseline's `machine.platform` equals the running platform, so a Mac run can no longer be graded against PC rows by accident. Both reports now carry `machine` (platform, arch, OS release, CPU, Node, Chromium, launch args) and, per measured device, `renderer`: `UNMASKED_RENDERER_WEBGL` read from the album viewer's own context after Gallery entry, so the run itself says which backend drew the frames. The `GALLERY_FIXES_EVIDENCE_ONLY` path reads the per-platform file. The two reports' links in `docs/storage-all-discs-fixes.md` and Phase 3 above now point at the `.win32` files.
+
+Untouched: limits derivation (baseline median × 1.15 + 1.5 ms desktop / 3 ms phone for frames, baseline median + 1 for long tasks, independent and paired checks), 7 desktop / 3 phone warm repetitions, the 241-flip + 120-still workload, the baseline replay route, the functional checks, the Atlas gate, and all product code. The Mac runs rewrote the functional screenshots in the same folder; those were restored to the PC versions (the functional results are in the JSON reports), so the screenshot evidence in `docs/storage-all-discs-fixes.md` is still the PC's.
+
+### The quiet window
+
+The model is the intro-reveal qualifying runs: a watcher sample every 30 s ([watch.sh.txt](assets/gallery-perf-hunt/phase5/watch.sh.txt), [watch.log](assets/gallery-perf-hunt/phase5/watch.log)) recording power source, load, total CPU, the indexers that wake on this Mac (`mds`, `mds_stores`, `mdworker`, `mediaanalysisd`, `photoanalysisd`, `photolibraryd`, `Spotlight`, `backupd`, `softwareupdated`), any headless Chromium / `workerd` / Wrangler process, and the Claude app's renderer; the gate run started only after five samples existed, and everything ran under `caffeinate -dims` ([run-gate.sh.txt](assets/gallery-perf-hunt/phase5/run-gate.sh.txt), [gate-runs.log](assets/gallery-perf-hunt/phase5/gate-runs.log)).
+
+| Window | Samples | Power | Idle CPU | Indexers | Other measuring processes | Claude app UI | Gaps |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Five pre-start samples, 23:16:19–23:18:25 | 5 | AC, 100% | 91.4–96.0% | 0.0% (one `mds_stores` 0.2%) | none | 5.2–11.9% | none (31 s apart) |
+| Before run, 23:18:31–23:20:12 (101 s) | 3 | AC | 82.8–89.1% | 0.0% | the gate's own 7 processes only | 2.1–3.7% | none |
+| After run, 23:20:12–23:22:50 (158 s) | 5 | AC | 82.8–89.9% | 0.0% | the gate's own | 1.0–8.0% | none |
+| Trace captures, 23:24:46–23:25:29 | 3 | AC | 83.2–94.7% | 0.0% | the probe's own | — | none |
+
+Load average sat at 1.4–2.1 throughout from the Claude desktop app and five idle Claude Code sessions, none measuring (no headless shell, `workerd` or Wrangler before the gate started). User CPU peaked at 14.2% in a sample during the runs, the gate's own browser. The window qualifies on the intro-reveal criteria; the watcher does not record the lid state, and this phase does not claim it.
+
+### Renderer evidence: Metal, from the run itself
+
+Both phases, both devices, as recorded by the gate in [before.darwin.json](images/storage-all-discs-fixes/before.darwin.json) and [after.darwin.json](images/storage-all-discs-fixes/after.darwin.json) under `renderer`, and printed in [gate-before.log](assets/gallery-perf-hunt/phase5/gate-before.log) / [gate-after.log](assets/gallery-perf-hunt/phase5/gate-after.log):
+
+```text
+ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)   WebGL 2.0 (OpenGL ES 3.0 Chromium)   pixelRatio 1 desktop / 2 phone
+```
+
+`machine.args` is `["--enable-gpu"]`, `machine.chromium` `156.0.8078.4`. The two trace captures below record the same string in their `loop.json` `gl` block. No SwiftShader string appears anywhere in this phase.
+
+### The Mac baseline
+
+`node tests/gallery-fixes-browser.mjs --before`: the shipped build (`e59e67e`'s four sources served through the gate's own replay route, `baselineRoutes` `/`, `/my-bag.css`, `/my-bag.js`, `/all-discs-gallery.js`), exit 0, functional checks all false as the before phase requires, zero page errors. Committed as [before.darwin.json](images/storage-all-discs-fixes/before.darwin.json) with its `machine` and `renderer` blocks.
+
+| Device | Warm reps | Long tasks per rep (longest ms) | Fly p95 median | Still p95 median | Reveal p95 median | Limits derived: fly / still / long tasks |
+| --- | ---: | --- | ---: | ---: | ---: | --- |
+| Desktop 1× | 7 | 0 / 0 / 0 / 0 / 0 / 0 / 0 | 1.7 ms | 0.4 ms | 33.4 ms | 3.455 / 1.96 / 1 |
+| Phone 4×, DPR 2 | 3 | 1 (69) / 0 / 0 | 6.2 ms | 0.1 ms | 48.0 ms | 10.13 / 3.115 / 1 |
+
+Cold diagnostics: desktop 0, phone 1 (68 ms). Against Phase 4b's SwiftShader replay of the same build (phone 244, desktop 195), this is the same code on the path the gate should always have taken here. For comparison the PC's own baseline rows are phone 2 / 2 / 3, desktop 0 ([before.win32.json](images/storage-all-discs-fixes/before.win32.json)).
+
+### The judgment run
+
+`node tests/gallery-fixes-browser.mjs` on this stack's product code (`c3956cf` + `fb382fe`; Phases 3–5 changed no product file), immediately after the baseline in the same window. Functional checks `placement`, `top`, `noPopIn`, `sticky` all true, zero page errors, one canvas, two draw calls, same triangle counts as the baseline per copy. **Exit 1.** Report: [after.darwin.json](images/storage-all-discs-fixes/after.darwin.json).
+
+| Device | Metric | Mac baseline | After | Limit | Paired median excess | Verdict |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Desktop | fly p95 | 1.7 | 2.7 | 3.455 | −0.855 | pass |
+| Desktop | still p95 | 0.4 | 0.5 | 1.96 | −1.56 | pass |
+| Desktop | long tasks | 0 | 0 | 1 | −1 | pass |
+| Phone | fly p95 | 6.2 | 6.2 | 10.13 | −3.93 | pass |
+| Phone | still p95 | 0.1 | 0.3 | 3.115 | −2.815 | pass |
+| Phone | long tasks | 0 | **6** | **1** | **+5** | **FAIL** |
+
+Per rep, after build: desktop 0 / 0 / 0 / 0 / 0 / 0 / 0 long tasks (cold 0); phone **9 / 3 / 6** (cold 6), longest **69 ms in every rep**. Reveal latency, recorded but not gated: desktop median 1.3 → 17.0 ms and p95 33 → 50 ms, phone 5.2 → 17.6 ms and 48 → 59 ms. That is the hold doing what fix 3 asks (no generated-then-real frame; `noPopIn` true), paid as click-to-ready latency, not as main-thread time: fly and still are at or within 1 ms of the baseline on both devices.
+
+### Class by class: what is baseline behaviour and what is not
+
+The gate records a count and a longest per rep, not a class, so one warm phone repetition of each build was traced on the same Metal path in the same window with the Phase 4 probe ([probe5.mjs.txt](assets/gallery-perf-hunt/phase5/probe5.mjs.txt), a copy that writes to a Phase 5 folder; [trace-runs.log](assets/gallery-perf-hunt/phase5/trace-runs.log)) and read with the Phase 4 analysers plus two small scripts that list every microtask-dominated task in the flip block, long or not ([microtasks.py.txt](assets/gallery-perf-hunt/phase5/microtasks.py.txt), [microtasks2.py.txt](assets/gallery-perf-hunt/phase5/microtasks2.py.txt), outputs [microtasks.log](assets/gallery-perf-hunt/phase5/microtasks.log), [microtasks2.log](assets/gallery-perf-hunt/phase5/microtasks2.log)).
+
+| Capture (phone 4×, Metal) | Observer / trace long tasks | Class of every long task | Owner-photo continuations in the block (one per Destroyer arrival) | Their wall time |
+| --- | --- | --- | ---: | --- |
+| before build, `e59e67e` replay | 0 / 0 | — | 60 | 23.4–28.5 ms, median 24.3, all in the 20–30 ms bin |
+| after build, `c3956cf` + `fb382fe` | 15 / 15 | owner-photo continuation on a Destroyer arrival, 15 of 15 | 60 | 45 at 23.4–28 ms; **15 at 68.9–71.9 ms** (median of the long ones 69.4) |
+
+Every long task in the after capture is the Phase 1 / Phase 4b class: a microtask checkpoint with no animation frame, no click, no style, layout or paint, `RunMicrotasks` 64–67 ms of it, `GetImageData` and `CanvasRenderingContext2D::FinalizeFrame` 3–4 ms, a minor GC of 1–2 ms, wall / thread-CPU ratio 1.00 (CPU-bound, as on the PC) ([after-phone-metal-tasks.csv](assets/gallery-perf-hunt/phase5/after-phone-metal-tasks.csv), [after-phone-metal.chain.txt](assets/gallery-perf-hunt/phase5/after-phone-metal.chain.txt)). The gate's warm reps agree by their longest, 69 / 69 / 69 ms, as does Phase 4b's Metal capture (16 of the same class at 72–73 ms). There is no reveal-frame, click-frame or readback class on this path, on either build.
+
+What is baseline behaviour: the continuation itself. The before build runs it on all 60 Destroyer arrivals at about 24 ms at 4× and never crosses 50 ms in the traced block (the gate's before phone rows show it crossing once in rep 1 and once cold, 68–69 ms, so the heavier form is not impossible there, but it is a one-off). What is not: in the after build a quarter of the returns take about 45 ms more inside the same microtask, and they are not random. The 15 long ones sit at flips **123, 135, 143, 151, …, 239**: none in the first 120 flips, then every other Destroyer return to the end of the block; Phase 4b's capture had the same shape (119, 127, 135, 143, …). The gate's per-rep spread (9 / 3 / 6, and 13 / 8 / 7 on the PC's after rows) is this alternating mode landing at different points of each repetition. Which function carries the extra 45 ms is not in these traces (microtask bodies are not named without V8 sampling), and chasing it is product work outside this phase's fences; the two obvious candidates are the hold keeping a second photo / texture alive across the return and the `fb382fe` cancellation order, and one sampled capture would name it.
+
+Desktop needs no breakdown: 0 long tasks on both builds in all 16 rows.
+
+### Where the earlier numbers now stand
+
+- The Mac's "241 vs limit 3" was the SwiftShader readback counted against a PC baseline; on the repaired gate the same after build on the same Mac is **6 vs 1**. The PC's own "8 vs 3" (`after.win32.json` against `before.win32.json`) is unchanged and still that machine's verdict.
+- The Phase 4b arithmetic ("a before baseline replayed on this Mac under the gate flags would put the limits at 245 / 196") is moot: those flags no longer run here.
+- Fly and still, the two frame metrics, pass with room on both devices; the fixes cost no measurable main-thread draw time on Metal.
+
+### Landing recommendation
+
+Do not land on this run. The repaired gate is honest and red: the after build's phone long-task median is 6 against a baseline-derived limit of 1, the paired excess is +5 in every repetition, and the margins stay where the doctrine puts them. The failure is narrow and well characterised, which is new: it is one CPU-bound class, the owner-photo continuation on alternate Destroyer returns after about 120 flips, 45 ms heavier than the same continuation in the shipped build, and nothing else on either device. That is the first product-level lead the hunt has produced that is not the renderer, and it is small enough to be the next bounded piece of work: one V8-sampled capture of the after build's Destroyer returns to name the function, then a fix judged by this same gate. The gate repair itself (flags and per-machine baselines) is independent of that outcome and can land on its own; the functional fixes remain passing and unchanged.
+
+### Evidence and reproduction
+
+- Reports: [before.darwin.json](images/storage-all-discs-fixes/before.darwin.json), [after.darwin.json](images/storage-all-discs-fixes/after.darwin.json) (both with `machine`, `renderer`, every rep, `gate` in the after file); [before.win32.json](images/storage-all-discs-fixes/before.win32.json) and [after.win32.json](images/storage-all-discs-fixes/after.win32.json), the PC rows.
+- [assets/gallery-perf-hunt/phase5/](assets/gallery-perf-hunt/phase5/): the gate logs and run script, the watcher script and log, the two trace captures' `loop.json` (per-flip log, observer entries, renderer record, launch args), [manifest.json](assets/gallery-perf-hunt/phase5/manifest.json) with the raw and gzip sha256 of both traces, the analysers' `-tasks.csv`, `-summary.json`, `.analyze.txt`, `.chain.txt`, `.extra.txt` per capture, the microtask scripts and outputs, `probe5.mjs.txt`, [sha256.json](assets/gallery-perf-hunt/phase5/sha256.json) for the folder. The raw traces (86 MB and 110 MB; 8.6 MB and 11.1 MB gzipped) are retained locally in ignored `outputs/gallery-perf-hunt-mac/phase5/` under the manifest's digests and are not committed, unlike Phases 4 and 4b; ask and they go in.
+- Reproduction, serially, from this worktree on a quiet Mac, under `caffeinate -dims`: `node tests/gallery-fixes-browser.mjs --before`, then `node tests/gallery-fixes-browser.mjs`. The gate exits 1 on the long-task check and still writes `after.darwin.json`. Traces: `node outputs/gallery-perf-hunt-mac/probe5.mjs --stage=setup`, then `--stage=trace --device=phone --flags=atlas --phase=before` and `--phase=after`; `python3 -I outputs/gallery-perf-hunt-mac/analyze.py <trace> <out> <label> <loop.json>`, `chain.py`, `extra.py`, then `microtasks.py <trace> <label>` and `microtasks2.py <trace> <loop.json> <label>` from the committed `.txt` copies.
+
+### Fences held
+
+The two ruled repairs are the only gate changes; limits derivation, margins, repetition counts and the 241-flip workload are untouched, and no margin was re-derived or widened. No product code changed; the fixes and the retained experiment were judged as they are. The Atlas gate was not touched. The PC baseline rows are preserved byte-for-byte under their new name with their provenance recorded in the file. No push, PR, merge or deploy; this section, the gate edit, the renamed and new baseline files and the Phase 5 evidence are local commits on `claude/gallery-gate-repair` for Freddy's review, with the Graphify refresh committed alongside.

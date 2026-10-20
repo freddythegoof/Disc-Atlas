@@ -1,0 +1,29 @@
+#!/usr/bin/env python3 -I
+"""Distribution of every microtask-dominated main-thread task in the flip block (the owner-photo continuation class),
+long or not: wall ms per task, so the sub-threshold part of the class is visible. usage: microtasks.py <trace.json> <label>"""
+import json, sys, bisect, statistics as st
+trace, label = sys.argv[1], sys.argv[2]
+ev = json.load(open(trace))['traceEvents']
+marks = [e for e in ev if e.get('cat') == 'blink.user_timing' and e['name'].startswith('hunt:')]
+pid, tid = marks[0]['pid'], marks[0]['tid']
+start = next(e['ts'] for e in marks if e['name'] == 'hunt:start'); stills = next(e['ts'] for e in marks if e['name'] == 'hunt:stills')
+main = sorted([e for e in ev if e['pid'] == pid and e['tid'] == tid and e.get('ph') == 'X' and 'dur' in e], key=lambda e: (e['ts'], -e['dur']))
+tasks = [e for e in main if e['name'] in ('RunTask', 'ThreadControllerImpl::RunTask') and start <= e['ts'] < stills]
+ts = [e['ts'] for e in main]
+rows = []
+for t in tasks:
+    lo, hi = t['ts'], t['ts'] + t['dur']; i = bisect.bisect_left(ts, lo); names = set(); micro = 0
+    while i < len(main) and main[i]['ts'] < hi:
+        e = main[i]; i += 1
+        if e is t: continue
+        names.add(e['name'])
+        if e['name'] == 'RunMicrotasks': micro = max(micro, e['dur'])
+    if micro >= 5000 and 'FireAnimationFrame' not in names and 'EventDispatch' not in names:
+        rows.append((t['dur'] / 1000, micro / 1000, 'GetImageData' in names or 'CanvasRenderingContext2D::FinalizeFrame' in names))
+w = sorted(r[0] for r in rows)
+q = lambda p: w[min(len(w) - 1, int(len(w) * p))] if w else 0
+print(label, 'microtask-dominated tasks in flip block:', len(rows), 'with canvas readback:', sum(1 for r in rows if r[2]))
+if w: print(label, 'wall ms min/p25/median/p75/p95/max: %.1f %.1f %.1f %.1f %.1f %.1f' % (w[0], q(.25), q(.5), q(.75), q(.95), w[-1]), '| >=50 ms:', sum(1 for x in w if x >= 50), '| 40-50 ms:', sum(1 for x in w if 40 <= x < 50))
+hist = {}
+for x in w: hist[int(x // 10) * 10] = hist.get(int(x // 10) * 10, 0) + 1
+print(label, 'histogram (10 ms bins):', dict(sorted(hist.items())))
