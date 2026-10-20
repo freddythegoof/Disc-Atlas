@@ -86,6 +86,8 @@ export async function mountBag(container, {
   layout = null,
   bagColor = null,
   accentColor = null,
+  // Display customization: the player's stamp appearance (DisplayPalette.stampStyle()); null is today's stamp.
+  stampStyle = null,
   compartmentDuration = 2.15,
   maxPixels = Infinity,
   ambientFps = 0,
@@ -481,6 +483,13 @@ export async function mountBag(container, {
     }
     invalidate();
   };
+  // A new stamp style drops the drawn stamps; the next look (syncLook) draws them again in it.
+  let currentStampStyle = stampStyle;
+  const setStampStyle = value => {
+    currentStampStyle = value || null;
+    for (const record of records.values()) if (record.ink) { record.mesh.remove(record.ink); record.ink.userData.disposeStamp(); record.ink = null; syncLook(record); }
+    invalidate();
+  };
   const setAccentColor = value => {
     accent = new THREE.Color(value ?? '#80bcb0');
     for (const material of accentMaterials) { material.color.copy(accent); material.emissive.copy(accent).multiplyScalar(.18); }
@@ -565,14 +574,15 @@ export async function mountBag(container, {
     // Only a pulled stock disc asks for stamp art. Pocketed discs and user photos cost no stamp request.
     const asset=record.placement.photoURL?null:catalogStampAsset(record.placement.mold);
     if(asset&&record.parts&&record.slideTo===1&&!record.ink){
-      const parts=record.parts,m=stampMaterial(),placement=catalogStampPlacement(record.placement.mold);
+      // The bag's room is dimmer than the viewer's (.55 against DETAIL.environment); a foil keeps the viewer's look.
+      const parts=record.parts,m=stampMaterial(currentStampStyle,{envMap:environment.texture}),placement=catalogStampPlacement(record.placement.mold);
       const geometry=stock=>{
         const g=stampGeometry(parts.shape,{placement:stock});
         g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
         g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);return g;
       };
       const ink=new THREE.Mesh(geometry(null),m);record.ink=ink;record.mesh.add(ink);
-      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,onChange:texture=>{
+      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,style:currentStampStyle,onChange:texture=>{
         if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}invalidate();
       }});
       ink.userData.disposeStamp=()=>{ink.geometry.dispose();m.map.dispose();m.dispose();};
@@ -1500,6 +1510,10 @@ export async function mountBag(container, {
     get bagColor() { return '#' + shell.material.color.getHexString(); },
     get customBagColor() { return appliedBagColor; },
     setAccentColor,
+    setStampStyle,
+    get stampFinish() { return currentStampStyle?.finish?.id || 'flat'; },
+    // For QA: each drawn stamp layer (pulled stock discs) and the finish its material actually wears.
+    get stampLayers() { return [...records.entries()].filter(([, r]) => r.ink).map(([key, r]) => ({key, finish: r.ink.material.userData.stampFinish || 'flat', metalness: r.ink.material.metalness})); },
     liftDisc,
     get liftedDisc() { return liftedKey; },
     stageDiscs,

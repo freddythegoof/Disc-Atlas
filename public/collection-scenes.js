@@ -37,6 +37,8 @@ class CollectionScene{
    else if(event.key==='-'||event.key==='_'){event.preventDefault();this.viewer.zoomBy(1/ZOOM_STEP);}
   });
   addEventListener('atlas-theme-change',()=>this.viewer?.setTheme?.(theme()));
+  // A new stamp appearance redraws the shown scene; its discs rebuild only where the style changed.
+  addEventListener('atlas-palette-change',()=>{if(this.visible&&this.viewer&&this.wants())this.draw(this.viewer);});
  }
  load(){
   this.loading??=this.loader().then(viewer=>{this.viewer=viewer;this.root.dataset.engine='ready';this.status.textContent='';return viewer;},error=>{

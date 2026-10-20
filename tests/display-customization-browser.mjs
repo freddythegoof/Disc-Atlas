@@ -61,7 +61,7 @@ try {
     inputs: document.querySelectorAll('#appearanceDialog input').length,
     reset: document.querySelector('[data-appearance-reset]').disabled
   }));
-  assert.deepEqual(sheet.rows, [['distance', 8, 'classic'], ['fairway', 8, 'classic'], ['mid', 8, 'classic'], ['putter', 8, 'classic'], ['accent', 9, 'lime']]);
+  assert.deepEqual(sheet.rows, [['distance', 8, 'classic'], ['fairway', 8, 'classic'], ['mid', 8, 'classic'], ['putter', 8, 'classic'], ['accent', 9, 'lime'], ['ink', 11, 'auto'], ['finish', 5, 'flat']]);
   assert.equal(sheet.theme, 'light');
   assert.equal(sheet.inputs, 0, 'no free color input anywhere');
   assert.equal(sheet.reset, true, 'Reset is idle at the defaults');
@@ -70,7 +70,7 @@ try {
   await pick('distance', 'ember');await pick('putter', 'lavender');await pick('accent', 'violet');
   t = await tokens();
   assert.deepEqual(t.root, {...CLASSIC.light, distance: '#cc5824', putter: '#ae96da'});
-  assert.deepEqual(JSON.parse(t.stored), {classes: {distance: 'ember', fairway: 'classic', mid: 'classic', putter: 'lavender'}, accent: 'violet'});
+  assert.deepEqual(JSON.parse(t.stored), {classes: {distance: 'ember', fairway: 'classic', mid: 'classic', putter: 'lavender'}, accent: 'violet', stamp: {ink: 'auto', finish: 'flat'}});
   assert.equal(await page.locator('#appearanceDialog [data-row="distance"] output').innerText(), 'Ember');
   const preview = await page.evaluate(() => ({strip: getComputedStyle(document.querySelector('.appearance-strip .clean-disc')).getPropertyValue('--disc-color').trim(),
     fill: getComputedStyle(document.querySelector('.appearance-bag-add')).backgroundColor}));
@@ -140,8 +140,8 @@ try {
   const packs = await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-pack]')].map(b => [b.dataset.pack, b.getAttribute('aria-checked'), !!b.querySelector('.appearance-pack-tag')]));
   assert.deepEqual(packs, [['classic', 'true', true], ['harbor', 'false', true], ['sunset', 'false', true], ['field', 'false', false], ['floodlight', 'false', true]]);
   await page.locator('#appearanceDialog [data-pack="harbor"]').click();
-  assert.deepEqual(await page.evaluate(() => DisplayPalette.get()), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua'});
-  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-row] [aria-checked="true"]')].map(b => b.dataset.swatch)), ['coral', 'navy', 'teal', 'lavender', 'aqua'], 'the rows show what the pack chose');
+  assert.deepEqual(await page.evaluate(() => DisplayPalette.get()), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua', stamp: {ink: 'auto', finish: 'flat'}});
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-row] [aria-checked="true"]')].map(b => b.dataset.swatch)), ['coral', 'navy', 'teal', 'lavender', 'aqua', 'auto', 'flat'], 'the rows show what the pack chose, and stamps are untouched');
   assert.equal(await page.locator('#appearanceDialog [data-pack-name]').innerText(), 'Harbor');
   await pick('mid', 'leaf');
   assert.equal(await page.locator('#appearanceDialog [data-pack-name]').innerText(), 'Your mix');
@@ -189,6 +189,54 @@ try {
   assert.ok(atlas.mine >= 3 && atlas.allBag, 'owned discs on the personalized atlas keep their bag colors');
   await agree('signed in');
   await page.evaluate(() => DisplayPalette.reset());
+
+  // --- Stamp appearance: the player's own discs in personal contexts; the catalog keeps the official stamp.
+  await openSheet();
+  await page.locator('#appearanceDialog [data-row="ink"] [data-swatch="gold"]').click();
+  await page.locator('#appearanceDialog [data-row="finish"] [data-swatch="foil"]').click();
+  assert.deepEqual(await page.evaluate(() => DisplayPalette.get().stamp), {ink: 'gold', finish: 'foil'});
+  assert.equal(await page.locator('#appearanceDialog [data-row="finish"] output').innerText(), 'Foil');
+  const stampPreview = await page.locator('.appearance-stamp-preview').getAttribute('data-state');
+  assert.ok(['ready', 'fallback'].includes(stampPreview), `the stamp preview settles (${stampPreview})`);
+  await page.keyboard.press('Escape');await settle(600);
+  const stampOf = () => page.evaluate(() => { const m = Disc3D.viewer.debug.stamp.material; return {type: m.type, finish: m.userData.stampFinish || 'flat', metalness: m.metalness}; });
+  const openDisc = async name => {
+    await page.evaluate(name => select(discs.find(d => d.name === name && d.brand === 'Discraft')), name);
+    await page.waitForFunction(() => document.querySelector('#detail .disc3d-stage')?.dataset.state === 'ready');await settle(500);
+  };
+  await page.evaluate(() => { window.syncs = []; const sync = Disc3D.sync; Disc3D.sync = (panel, d, props) => { syncs.push({id: d.id, color: props.color, stamp: props.stampStyle?.finish.id || null}); return sync(panel, d, props); }; });
+  // Personalized atlas, owned Buzzz: gold foil, a physical metal layer.
+  assert.equal(await page.evaluate(() => atlasLens), 'mine');
+  await openDisc('Buzzz');
+  assert.deepEqual(await stampOf(), {type: 'MeshPhysicalMaterial', finish: 'foil', metalness: 1}, 'the owned Buzzz wears gold foil');
+  assert.equal((await page.evaluate(() => syncs.at(-1))).color, await page.evaluate(() => BagApp.mapColors().get(discs.find(d => d.name === 'Buzzz' && d.brand === 'Discraft').id)), 'still in its own bag color');
+  // A disc the player does not own, on the same map: the official stamp.
+  await openDisc('Zone');
+  assert.deepEqual(await stampOf(), {type: 'MeshStandardMaterial', finish: 'flat', metalness: .15}, 'a catalog Zone keeps the official stamp');
+  // The Standard map is the shared atlas: even the owned Buzzz shows the official stamp there.
+  const lens = value => page.evaluate(value => document.querySelector(`#lensMenu [data-lens="${value}"]`).click(), value);
+  await lens('default');await settle(800);
+  assert.equal(await page.evaluate(() => atlasLens), 'default');
+  await openDisc('Buzzz');
+  assert.deepEqual(await stampOf(), {type: 'MeshStandardMaterial', finish: 'flat', metalness: .15}, 'the Standard map stays neutral');
+  await lens('mine');await settle(1500);
+  // The personalized map's marker art for the owned Buzzz carries the style in its cache key; a change re-keys it.
+  const artKeys = () => page.evaluate(async () => [...(await (await import('/disc3d/atlas-art.mjs')).getAtlasArt()).debug.images.keys()].filter(k => k.includes('style:')));
+  // (Earlier choices, like the moment between tapping Gold and Foil, stay cached under their own keys.)
+  const art = await artKeys(), buzzz = await page.evaluate(() => { const d = discs.find(d => d.name === 'Buzzz' && d.brand === 'Discraft'); return d.id + '|full|' + BagApp.mapColors().get(d.id); });
+  if (art.some(k => k.startsWith(buzzz))) assert.ok(art.some(k => k.startsWith(buzzz) && k.endsWith('style:gold/foil')), 'the owned Buzzz marker is drawn in gold foil');
+  else console.log('Map art: the owned Buzzz was not drawn at full size at this zoom; the viewer and bag checks cover its stamp.');
+  // The bag: its pulled stock disc wears the foil; a change of finish redraws it.
+  await page.goto(base + '/?bag=1');await page.waitForFunction(() => document.querySelector('#bagScene')?.dataset.phase === 'open');await settle(1500);
+  const key = await page.evaluate(() => [...document.querySelectorAll('[data-physical-disc]')].find(n => /Buzzz/.test(n.getAttribute('aria-label') || ''))?.dataset.physicalDisc);
+  await page.locator(`[data-physical-disc="${key}"]`).evaluate(n => n.click());
+  await page.waitForFunction(() => document.querySelector('[data-bag-canvas]').bagViewer.stampLayers.length > 0, null, {timeout: 15000});
+  const layers = () => page.evaluate(() => document.querySelector('[data-bag-canvas]').bagViewer.stampLayers.map(l => [l.finish, l.metalness]));
+  assert.deepEqual(await layers(), [['foil', 1]], 'the pulled Buzzz in gold foil');
+  await page.evaluate(() => DisplayPalette.setStamp({ink: 'silver', finish: 'rainbow'}));await settle(400);
+  assert.deepEqual(await layers(), [['rainbow', 1]], 'and in rainbow foil after a change');
+  await page.evaluate(() => DisplayPalette.reset());await settle(400);
+  assert.deepEqual(await layers(), [['flat', .15]], 'Reset brings back today\'s stamp');
 
   assert.deepEqual(h.errors, []);
   console.log('Display customization browser suite passed.');

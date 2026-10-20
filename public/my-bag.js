@@ -98,7 +98,7 @@ function bagDetailMarkup(d){
 }
 function detailAppearance(d){
  const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;
- if(active&&item)window.DiscThumbnails.observe(detailPanel,mold);
+ if(active&&item)window.DiscThumbnails.observe(detailPanel,mold,{personal:true});
  return active && item?{photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,haloBand:haloBand(item),haloModel:haloModel(item),color:item.color,colors:{plate:item.color,rim:item.rim_color || undefined}}:{};
 }
 detailPanel.addEventListener('click',event=>{
@@ -195,7 +195,7 @@ function render() {
   }).join('')}</section>`;
  }).join('');
  $('#myBagContents').innerHTML=`<section id="bagLineup" aria-labelledby="bagLineupTitle" ${listView==='bag'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagLineupTitle">Bag</h2><span>${count} ${count===1?'disc':'discs'} for the round</span></div>${count?grouped(bagged,true):'<div id="myBagEmpty" class="my-bag-empty"><h3>Your bag is empty.</h3><p>Add a disc from the Directory, or bring one over from Storage.</p><button id="emptyBagDirectory" class="pill-button primary" type="button">Explore the Directory ↗</button></div>'}</section><section id="bagStorage" aria-labelledby="bagStorageTitle" ${listView==='storage'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagStorageTitle">Storage</h2><span>${stored.length} ${stored.length===1?'disc':'discs'} off the course</span></div><p class="bag-storage-note">The backups, the experiments, the ones waiting for their next round.</p>${stored.length?grouped(stored):'<div id="bagStorageEmpty" class="bag-storage-empty"><p>No discs in Storage yet. Tap Store on a disc to give it a rest.</p></div>'}</section>${demo?'':memorialWall()}`;
- window.DiscThumbnails.observe($('#myBagContents'),mold);
+ window.DiscThumbnails.observe($('#myBagContents'),mold,{personal:true});
 }
 function memorialWall(){
  const lost=lostItems();
@@ -586,6 +586,8 @@ addMenu.addEventListener('keydown',event=>{
  if(event.key==='Tab')closeAddMenu(true);
 });
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
+// A new stamp ink redraws the bag list's thumbnails (their stock stamps wear it).
+window.addEventListener('atlas-palette-change',()=>{const list=$('#myBagContents');if(list?.querySelector('[data-disc-thumbnail]'))window.DiscThumbnails.observe(list,mold,{personal:true});});
 window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,
  // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
  scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;},get album(){return gallery.viewer||null;}}};

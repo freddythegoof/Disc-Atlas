@@ -32,8 +32,28 @@
       group: 'accent', label: 'Bag accent', current: palette.catalog.accents.find(a => a.id === prefs.accent).label, swatches: palette.catalog.accents,
       legend: '<i class="appearance-dot appearance-dot-accent" data-accent-preview aria-hidden="true"></i>'
     });
+    // Stamps: ink and finish for the player's own discs, with a live 3D preview.
+    $('[data-appearance-stamp]').innerHTML = swatchRow({
+      group: 'ink', label: 'Stamp ink', current: palette.catalog.inks.find(i => i.id === prefs.stamp.ink).label, swatches: palette.catalog.inks, legend: ''
+    }) + `<fieldset class="appearance-row" data-row="finish"><legend><span class="appearance-row-title">Finish</span><output data-row-name></output></legend>` +
+      `<div class="appearance-finishes" role="radiogroup" aria-label="Stamp finish">` +
+      palette.catalog.finishes.map(f => `<button type="button" role="radio" aria-checked="false" tabindex="-1" data-swatch="${esc(f.id)}">${esc(f.label)}</button>`).join('') + `</div></fieldset>`;
     paint();
+    preview();
   }
+
+  // The stamp preview loads three.js only when the sheet opens, and draws only while it is open.
+  let stampPreview = null, loadingPreview = null;
+  function preview() {
+    const canvas = $('[data-stamp-preview]');
+    if (!canvas || window.ATLAS_3D_OFF) return;
+    // app.js's catalog is a top-level binding, not a window property.
+    const disc = (typeof discs === 'undefined' ? [] : discs).find(d => d.brand === 'Discraft' && d.name === 'Buzzz' && d.stampAsset);
+    loadingPreview ??= import('./disc3d/stamp-preview.mjs').then(m => { stampPreview = m.createStampPreview(canvas, disc); return stampPreview; })
+      .catch(error => { canvas.closest('.appearance-stamp-preview').dataset.state = 'fallback'; console.warn('Stamp preview unavailable.', error); });
+    loadingPreview.then(p => { if (!p || !dialog.open) return; p.setStyle(palette.stampStyle()); p.start(); canvas.closest('.appearance-stamp-preview').dataset.state = 'ready'; });
+  }
+  dialog.addEventListener('close', () => stampPreview?.stop());
 
   // Swatches show the value they would wear in the current theme.
   function paint() {
@@ -41,11 +61,12 @@
     const prefs = palette.get(), tone = palette.toneOf();
     for (const row of dialog.querySelectorAll('[data-row]')) {
       const group = row.dataset.row, accent = group === 'accent';
-      const list = accent ? palette.catalog.accents : palette.catalog.classes.find(c => c.key === group).swatches;
-      const chosen = accent ? prefs.accent : prefs.classes[group];
+      const list = accent ? palette.catalog.accents : group === 'ink' ? palette.catalog.inks : group === 'finish' ? palette.catalog.finishes : palette.catalog.classes.find(c => c.key === group).swatches;
+      const chosen = accent ? prefs.accent : group === 'ink' ? prefs.stamp.ink : group === 'finish' ? prefs.stamp.finish : prefs.classes[group];
       for (const button of row.querySelectorAll('[data-swatch]')) {
         const swatch = list.find(s => s.id === button.dataset.swatch), on = swatch.id === chosen;
-        button.style.setProperty('--swatch', accent ? swatch.chip : swatch[tone]);
+        // Auto ink is today's: near-black on a light plastic, white on a dark one; its swatch shows both.
+        if (group !== 'finish') button.style.setProperty('--swatch', accent ? swatch.chip : group === 'ink' ? swatch.hex || 'linear-gradient(135deg,#1b1d21 50%,#f2f2ee 50%)' : swatch[tone]);
         button.setAttribute('aria-checked', String(on));button.tabIndex = on ? 0 : -1;
         if (on) row.querySelector('[data-row-name]').textContent = swatch.label;
       }
@@ -69,6 +90,7 @@
       button.setAttribute('aria-checked', String(on));button.tabIndex = on ? 0 : -1;
     }
     $('[data-appearance-reset]').disabled = palette.isDefault();
+    stampPreview?.setStyle(palette.stampStyle());
   }
 
   function choose(button) {
@@ -79,7 +101,8 @@
       return;
     }
     const group = button.closest('[data-row]').dataset.row;
-    if (group === 'accent') palette.setAccent(button.dataset.swatch);
+    if (group === 'ink' || group === 'finish') palette.setStamp({[group]: button.dataset.swatch});
+    else if (group === 'accent') palette.setAccent(button.dataset.swatch);
     else palette.setClass(group, button.dataset.swatch);
   }
 

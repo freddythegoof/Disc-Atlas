@@ -88,7 +88,25 @@
   // Where the accent setting reaches: My Bag (with its docked My Map), the bag's own sheets and menus, and
   // the Appearance preview. The header, atlas, directory and site menu keep the Disc Atlas lime.
   const ACCENT_SCOPE = ['#myBagView', '#addDiscDialog', '#bagModelDialog', '#lostDiscDialog', '#removeDiscDialog', '#rackStyleMenu', '[data-accent-preview]'];
-  const DEFAULTS = {classes: {distance: 'classic', fairway: 'classic', mid: 'classic', putter: 'classic'}, accent: 'lime'};
+  // Stamp appearance, on the player's own discs in personal contexts only (bag, the viewer for an owned disc,
+  // the personalized map, storage). Neutral and catalog surfaces keep the official presentation. Photo discs
+  // carry their stamp in the photo and are untouched. Auto is today's ink: near-black or white by the plastic.
+  const STAMP_INKS = [
+    ['auto', 'Auto', null], ['black', 'Black', '#1b1d21'], ['white', 'White', '#f2f2ee'], ['gold', 'Gold', '#d6a83a'],
+    ['silver', 'Silver', '#c9ced5'], ['copper', 'Copper', '#c07444'], ['red', 'Red', '#c9372f'], ['blue', 'Blue', '#3b67c4'],
+    ['green', 'Green', '#2f8f57'], ['violet', 'Violet', '#7f55bd'], ['pink', 'Pink', '#e47aae']
+  ];
+  // Finishes change only the stamp's response to light (disc3d/stamp.mjs): never the design, never the plastic.
+  // Flat is today's material. The rest are physical: real reflections and thin-film color where the scene has an
+  // environment (viewer, bag, storage); one frozen still on atlas markers (`still` is the reflection strength there).
+  const STAMP_FINISHES = [
+    ['flat', 'Flat ink', {}],
+    ['foil', 'Foil', {metalness: 1, roughness: .38, still: 1.1}],
+    ['rainbow', 'Rainbow foil', {metalness: 1, roughness: .36, iridescence: 1, ior: 1.8, thickness: [120, 980], pattern: 'sweep', still: 1.1}],
+    ['shatter', 'Shatter foil', {metalness: 1, roughness: .44, iridescence: 1, ior: 1.8, thickness: [180, 900], pattern: 'shatter', still: 1.1}],
+    ['spin', 'Spin foil', {metalness: 1, roughness: .42, iridescence: 1, ior: 1.8, thickness: [180, 900], pattern: 'spin', still: 1.1}]
+  ];
+  const DEFAULTS = {classes: {distance: 'classic', fairway: 'classic', mid: 'classic', putter: 'classic'}, accent: 'lime', stamp: {ink: 'auto', finish: 'flat'}};
   // Preset packs: one tap sets all four classes and the accent; any swatch can be tweaked after. A pack is
   // labeled colorblind-safe only when it clears Plan 06C's protanopia/deuteranopia floor in light and dark
   // (tests/display-palette.mjs proves the label matches; tests/palette.mjs checks the rendered tokens).
@@ -106,6 +124,8 @@
     classes: freeze(CLASSES.map(([key, label]) => freeze({key, label, swatches: freeze(SWATCHES[key].map(([id, name, light, dark]) => freeze({id, label: name, light, dark})))}))),
     accents: freeze(ACCENTS.map(([id, label, chip, light, dark]) => freeze({id, label, chip, light: light && freeze({...light}), dark: dark && freeze({...dark})}))),
     packs: freeze(PACKS.map(([id, label, classes, accent, colorblindSafe]) => freeze({id, label, classes: freeze({...classes}), accent, colorblindSafe}))),
+    inks: freeze(STAMP_INKS.map(([id, label, hex]) => freeze({id, label, hex}))),
+    finishes: freeze(STAMP_FINISHES.map(([id, label, light]) => freeze({id, label, ...light, ...(light.thickness && {thickness: freeze([...light.thickness])})}))),
     tones: freeze({...TONES}),
     scope: freeze([...ACCENT_SCOPE])
   });
@@ -119,6 +139,8 @@
     if (!raw || typeof raw !== 'object') return prefs;
     for (const [key] of CLASSES) if (swatchOf(key, raw.classes?.[key])) prefs.classes[key] = raw.classes[key];
     if (accentOf(raw.accent)) prefs.accent = raw.accent;
+    if (catalog.inks.some(i => i.id === raw.stamp?.ink)) prefs.stamp.ink = raw.stamp.ink;
+    if (catalog.finishes.some(f => f.id === raw.stamp?.finish)) prefs.stamp.finish = raw.stamp.finish;
     return prefs;
   }
   const isDefault = prefs => JSON.stringify(normalize(prefs)) === JSON.stringify(DEFAULTS);
@@ -188,7 +210,15 @@
     applyPack: id => { const pack = catalog.packs.find(p => p.id === id); return pack ? commit({...prefs, classes: {...pack.classes}, accent: pack.accent}) : get(); },
     // The pack the current choices match exactly, or null once a swatch has been tweaked away from it.
     pack: () => catalog.packs.find(p => p.accent === prefs.accent && Object.entries(p.classes).every(([key, id]) => prefs.classes[key] === id))?.id ?? null,
-    set: next => commit({...prefs, ...next, classes: {...prefs.classes, ...next?.classes}}),
+    set: next => commit({...prefs, ...next, classes: {...prefs.classes, ...next?.classes}, stamp: {...prefs.stamp, ...next?.stamp}}),
+    // Only curated values get through; anything else leaves the current choice as it is.
+    setStamp: next => commit({...prefs, stamp: {...prefs.stamp,
+      ...catalog.inks.some(i => i.id === next?.ink) && {ink: next.ink}, ...catalog.finishes.some(f => f.id === next?.finish) && {finish: next.finish}}}),
+    // What a personal stamp wears: null for today's (Auto, Flat), else the ink (null for Auto) and the finish.
+    stampStyle: () => {
+      if (prefs.stamp.ink === 'auto' && prefs.stamp.finish === 'flat') return null;
+      return {ink: catalog.inks.find(i => i.id === prefs.stamp.ink).hex, inkId: prefs.stamp.ink, finish: catalog.finishes.find(f => f.id === prefs.stamp.finish)};
+    },
     reset: () => commit(DEFAULTS)
   };
 })();

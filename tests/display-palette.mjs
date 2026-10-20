@@ -126,7 +126,7 @@ test('Choices persist like the theme: one key, applied before paint, unknown val
   first.palette.setClass('distance', 'ember');
   first.palette.setAccent('violet');
   const saved = first.store.get('disc-atlas-display');
-  assert.deepEqual(JSON.parse(saved), {classes: {distance: 'ember', fairway: 'classic', mid: 'classic', putter: 'classic'}, accent: 'violet'});
+  assert.deepEqual(JSON.parse(saved), {classes: {distance: 'ember', fairway: 'classic', mid: 'classic', putter: 'classic'}, accent: 'violet', stamp: {ink: 'auto', finish: 'flat'}});
   assert.equal(first.events.at(-1).type, 'atlas-palette-change');
   assert.equal(first.palette.classColor('distance'), '#e06b39', 'midnight wears the dark value');
   assert.equal(first.palette.classColor('distance', 'light'), '#cc5824');
@@ -140,7 +140,7 @@ test('Choices persist like the theme: one key, applied before paint, unknown val
   assert.ok(!/html:root\[data-theme="light"\]\{[^}]*--lime/.test(css), 'the accent never lands on the root, so the site chrome keeps its lime');
 
   const edited = loadPalette({stored: JSON.stringify({classes: {distance: 'neon', mid: 'jade'}, accent: '#ff00ff'})});
-  assert.deepEqual(edited.palette.get(), {classes: {distance: 'classic', fairway: 'classic', mid: 'jade', putter: 'classic'}, accent: 'lime'});
+  assert.deepEqual(edited.palette.get(), {classes: {distance: 'classic', fairway: 'classic', mid: 'jade', putter: 'classic'}, accent: 'lime', stamp: {ink: 'auto', finish: 'flat'}});
   assert.equal(loadPalette({stored: '{not json'}).palette.isDefault(), true);
 
   first.palette.reset();
@@ -188,7 +188,7 @@ test('One tap applies a pack; a tweak afterwards leaves it as your own mix', () 
   const {palette, store, events} = loadPalette();
   assert.equal(palette.pack(), 'classic', 'the defaults are Classic');
   palette.applyPack('harbor');
-  assert.deepEqual(palette.get(), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua'});
+  assert.deepEqual(palette.get(), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua', stamp: {ink: 'auto', finish: 'flat'}});
   assert.equal(palette.pack(), 'harbor');
   assert.equal(events.length, 1, 'one change, one event');
   palette.setClass('mid', 'leaf');
@@ -198,4 +198,40 @@ test('One tap applies a pack; a tweak afterwards leaves it as your own mix', () 
   assert.equal(store.has('disc-atlas-display'), false, 'Classic is the default, so nothing is saved');
   palette.applyPack('no-such-pack');
   assert.equal(palette.pack(), 'classic');
+});
+
+test('Stamps: curated inks and finishes; untouched, every stamp is today\'s', () => {
+  const {palette} = loadPalette();
+  assert.equal(catalog.inks[0].id, 'auto');assert.equal(catalog.inks[0].hex, null, 'Auto is today\'s ink, chosen by the plastic');
+  assert.ok(catalog.inks.length >= 8 && catalog.inks.length <= 12);
+  for (const ink of catalog.inks.slice(1)) assert.match(ink.hex, /^#[0-9a-f]{6}$/);
+  assert.equal(catalog.finishes.map(f => f.id).join(), 'flat,foil,rainbow,shatter,spin');
+  assert.equal(Object.keys(catalog.finishes[0]).sort().join(), 'id,label', 'Flat carries no material change');
+  for (const f of catalog.finishes.slice(1)) {
+    assert.equal(f.metalness, 1, `${f.id}: a foil is metal`);
+    assert.ok(f.roughness > 0 && f.roughness < .5, `${f.id}: polished to satin`);
+    assert.ok(f.still > 0, `${f.id}: has a still strength for atlas markers`);
+  }
+  assert.ok(catalog.finishes.filter(f => f.iridescence).length >= 3, 'a rainbow family');
+  assert.ok(catalog.finishes.filter(f => f.pattern).length >= 2, 'patterned foils');
+  assert.equal(palette.stampStyle(), null, 'default: nothing to restyle');
+});
+
+test('Stamp choices persist with the rest, ignore anything uncurated, and leave packs alone', () => {
+  const {palette, store} = loadPalette();
+  palette.setStamp({ink: 'gold', finish: 'foil'});
+  const style = palette.stampStyle();
+  assert.equal(style.ink, '#d6a83a');assert.equal(style.inkId, 'gold');assert.equal(style.finish.id, 'foil');
+  assert.deepEqual(JSON.parse(store.get('disc-atlas-display')).stamp, {ink: 'gold', finish: 'foil'});
+  palette.setStamp({ink: '#ff00ff', finish: 'chrome'});
+  assert.deepEqual(palette.get().stamp, {ink: 'gold', finish: 'foil'}, 'no free ink, no invented finish');
+  palette.applyPack('sunset');
+  assert.deepEqual(palette.get().stamp, {ink: 'gold', finish: 'foil'}, 'a pack sets colors, not stamps');
+  assert.equal(palette.pack(), 'sunset');
+  palette.setStamp({ink: 'auto'});
+  assert.equal(palette.stampStyle().ink, null, 'Auto ink under a foil keeps the plastic-chosen ink');
+  assert.equal(palette.css(palette.get()).includes('stamp'), false, 'stamps write no CSS');
+  palette.reset();
+  assert.equal(palette.stampStyle(), null);
+  assert.equal(store.has('disc-atlas-display'), false);
 });

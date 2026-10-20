@@ -43,6 +43,20 @@
 .appearance-pack-name {font-size:13px;font-weight:500}
 .appearance-pack-tag {font:400 9px/1.2 var(--mono,ui-monospace,monospace);letter-spacing:.02em;color:var(--muted);text-align:center}
 
+/* Stamps: a live 3D preview beside the ink and finish choices. */
+.appearance-stamp {margin:26px 0 0;padding:20px 0 0;border-top:1px solid var(--hairline,var(--line));display:grid;grid-template-columns:150px 1fr;gap:4px 18px}
+.appearance-stamp-head {grid-column:1/-1;margin-bottom:12px}
+.appearance-stamp-head h3 {margin:0 0 4px;font:500 18px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.3px}
+.appearance-stamp-head p {margin:0;font-size:12px;line-height:1.5;color:var(--muted)}
+.appearance-stamp-preview {align-self:start;aspect-ratio:1;border:1px solid var(--hairline,var(--line));border-radius:14px;background:radial-gradient(circle at 50% 40%,var(--surface),var(--bg))}
+.appearance-stamp-preview canvas {display:block;width:100%;height:100%}
+.appearance-stamp-preview[data-state="fallback"] {display:none}
+.appearance-stamp .appearance-swatches {grid-template-columns:repeat(6,minmax(0,30px));justify-content:start;gap:8px 10px}
+.appearance-finishes {display:flex;flex-wrap:wrap;gap:6px}
+.appearance-finishes button {min-height:34px;padding:0 12px;border:1px solid var(--hairline,var(--line));border-radius:999px;background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer}
+.appearance-finishes button[aria-checked="true"] {color:var(--text);border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text)}
+.appearance-finishes button:focus-visible {outline:2px solid var(--lime);outline-offset:3px}
+
 /* Theme: a quiet segmented control. */
 .appearance-themes {display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border:1px solid var(--hairline,var(--line));border-radius:999px;background:var(--bg)}
 .appearance-themes button {min-height:36px;padding:0 8px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
@@ -51,6 +65,8 @@
 .appearance-sheet .sheet-actions button[disabled] {opacity:.45;cursor:default}
 
 @media(max-width:560px){
+ .appearance-stamp {grid-template-columns:1fr}
+ .appearance-stamp-preview {width:min(200px,60%);justify-self:center;margin-bottom:12px}
  .appearance-pack-list {grid-template-columns:repeat(3,minmax(0,1fr))}
  .appearance-preview {grid-template-columns:1fr}
  .appearance-strip,.appearance-bag {min-height:96px}

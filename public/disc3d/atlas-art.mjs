@@ -83,7 +83,16 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const mesh=new THREE.Mesh(new THREE.BufferGeometry(),plateMaterial);scene.add(mesh);
 
  // Stock art is an explicit Atlas opt-in. Lists keep their existing overlay path.
- const stampMesh=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial());
+ const stampMesh=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial()),plainStamp=stampMesh.material;
+ // The player's own disc on the personalized map may wear their stamp appearance (d.stampStyle, set by
+ // atlas-map.js). A foil here is one still from above, lit once: it reads as foil, but it does not move.
+ const foils=new Map();
+ const styleKey=d=>d.stampStyle?'|style:'+d.stampStyle.inkId+'/'+d.stampStyle.finish.id:'';
+ const stampLayer=d=>{
+  const f=d.stampStyle?.finish;if(!f||f.id==='flat')return plainStamp;
+  let m=foils.get(f.id);if(!m){m=stampMaterial(d.stampStyle,{envMap:envTexture,envIntensity:f.still});foils.set(f.id,m);}
+  return m;
+ };
  const shapes=new Map(),geometries=new Map(),images=new Map(),photos=new Map(),stamps=new Map();
  const STAMPS_LIVE=8;
  const stampAssetOf=(d,lod,official)=>official&&lod!=='low'&&!d.photoURL?catalogStampAsset(d):null;
@@ -95,10 +104,10 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  };
  const stampOf=(d,color,asset)=>{
   if(!asset)return null;
-  const key=asset+'|'+color;
+  const key=asset+'|'+color+styleKey(d);
   let ink=stamps.get(key);
   if(ink){stamps.delete(key);stamps.set(key,ink);return ink;}
-  ink=stampTexture(d.catalogName||d.name,color,{asset,onChange:()=>{trimStamps(key);window.dispatchEvent(new Event('atlas-stamp-ready'));}});
+  ink=stampTexture(d.catalogName||d.name,color,{asset,style:d.stampStyle||null,onChange:()=>{trimStamps(key);window.dispatchEvent(new Event('atlas-stamp-ready'));}});
   stamps.set(key,ink);
   // Loading entries finish before eviction, avoiding repeated requests under a busy map.
   trimStamps(key);
@@ -144,7 +153,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):
   {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
-  (asset?'|stamp:'+asset+'|'+JSON.stringify(catalogStampPlacement(d)):'');
+  (asset?'|stamp:'+asset+'|'+JSON.stringify(catalogStampPlacement(d))+styleKey(d):'');
  function touch(key){const e=images.get(key);if(e){images.delete(key);images.set(key,e);}return e||null;}
 
  // The cached image at the level `size` needs, else the best other level already drawn (a disc growing
@@ -180,6 +189,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   // A generated/loading/failed texture is never attached to the Atlas scene.
   if(ink?.userData.stampAsset){
    stampMesh.geometry=geometryOf(s,lod,true,catalogStampPlacement(d));
+   stampMesh.material=stampLayer(d);
    if(!stampMesh.material.map)stampMesh.material.needsUpdate=true;
    stampMesh.material.map=ink;scene.add(stampMesh);
   }
@@ -209,7 +219,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  function dispose(){
   window.removeEventListener('atlas-photo-clear',clearPhotos);clearPhotos();
   for(const g of geometries.values())g.dispose();geometries.clear();images.clear();
-  for(const ink of stamps.values())ink.dispose();stamps.clear();stampMesh.material.dispose();stampMesh.geometry.dispose();
+  for(const ink of stamps.values())ink.dispose();stamps.clear();plainStamp.dispose();for(const m of foils.values())m.dispose();foils.clear();stampMesh.geometry.dispose();
   plateMaterial.dispose();rimMaterial.dispose();haloRimMaterial.dispose();envTexture.dispose();renderer.dispose();
  }
  return {get,has,render,lodFor,stats,dispose,dpr,

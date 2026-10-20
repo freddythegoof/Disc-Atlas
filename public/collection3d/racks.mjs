@@ -12,7 +12,7 @@
 // A tapped disc lifts, clears the front rail and turns face out in front of its bay (rack-motion.mjs, the
 // bag's timing), wearing its generic name stamp; tapping it again, or empty space, puts it back. The pulled
 // disc and the hovered one carry a billboard name tag that stays readable while the racks turn.
-import {THREE,SceneView,discParts,discColors,discMaterial,discModel,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
+import {THREE,SceneView,discParts,discColors,discMaterial,discModel,stampStyleKey,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {discPose,TOTAL_MS} from './rack-motion.mjs';
@@ -186,7 +186,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  const pulledTarget=r=>{const s=pulledSpot(r.to,{bayX:r.bayX});return s;};
  function restyle(p,r){
   // A recolour or a new mold while out: rebuild the proxy in place.
-  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL]);if(p.key===key)return;
+  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL,stampStyleKey()]);if(p.key===key)return;
   const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,onChange:()=>view.request()});
   if(p.proxy){next.position.copy(p.proxy.position);next.quaternion.copy(p.proxy.quaternion);discRoot.remove(p.proxy);disposeObject(p.proxy);}
   p.proxy=next;p.key=key;discRoot.add(next);

@@ -107,7 +107,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const tiltGroup=new THREE.Group(),flipGroup=new THREE.Group(),discGroup=new THREE.Group();
  tiltGroup.add(flipGroup);flipGroup.add(discGroup);scene.add(tiltGroup);
  const bodyMaterial=new THREE.MeshPhysicalMaterial({color:0x888888,side:THREE.FrontSide});
- const stampMaterial=makeStampMaterial();
+ // Swapped for a foil when the player's own disc wears one (props.stampStyle, display customization).
+ let stampMaterial=makeStampMaterial(),stampFinish='flat';
  // Overmold discs only: bodyMaterial becomes the flight plate and rimMaterial the rim.
  const rimMaterial=new THREE.MeshPhysicalMaterial({color:0x444444,side:THREE.FrontSide});
  // A Halo v2 band (`haloModel`): the same plastic, wash on top out to the dye front (halo-shader.mjs).
@@ -222,7 +223,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   else{const radius=Math.min(controls.maxDistance,Math.max(controls.minDistance,pose.zoom*state.fit));placeCamera(new THREE.Spherical(radius,pose.phi,pose.theta));setPressedView(null);request();}
  }
 
- function build(shape,mold,color,overmold,asset,placement,band=null,halo=null){
+ function build(shape,mold,color,overmold,asset,placement,band=null,halo=null,style=null){
   // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs). A Halo band splits at the
   // same seam; its cross-section is still drawn as one piece.
   const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold:overmold||!!band,halo:!!halo});
@@ -232,7 +233,9 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   body.geometry.dispose();body.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
   stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
-  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,onChange:texture=>{
+  const finish=style?.finish?.id||'flat';
+  if(finish!==stampFinish){stampMaterial.map?.dispose();stampMaterial.map=null;stampMaterial.dispose();stampMaterial=makeStampMaterial(style);stamp.material=stampMaterial;stampFinish=finish;}
+  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,style,onChange:texture=>{
    if(texture?.userData.stampAsset&&placement){stamp.geometry.dispose();stamp.geometry=stampGeometry(shape,{placement});}
    request();
   }});stampMaterial.needsUpdate=true;
@@ -253,7 +256,9 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
   const asset=props.photoURL?null:catalogStampAsset(props),placement=asset?catalogStampPlacement(props):null;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,props.photoURL,asset,placement]);
+  // A personal stamp style only reaches here for the player's own disc; neutral views pass none.
+  const style=props.photoURL?null:props.stampStyle||null;
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,props.photoURL,asset,placement,style&&[style.inkId,style.finish.id]]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
@@ -261,7 +266,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
   state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;state.band=band;state.halo=halo;
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
-  build(shape,props.mold,color,overmold,asset,placement,band,halo);
+  build(shape,props.mold,color,overmold,asset,placement,band,halo,style);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
   if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
