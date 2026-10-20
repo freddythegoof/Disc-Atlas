@@ -473,3 +473,28 @@ Not a redesign proposal. Two facts a future map task should know before it start
    795–803; `myMap` at 295, 386, 491, 495, 775). The legacy `promote` label system is alive only on
    the second branch (X2). That is the main source of "code that looks dead but isn't" in this
    subsystem, and the reason U1 could hide: a dot is a My-Map-era object wearing organic-era art.
+
+## Rulings (Freddy, Oct 19, 2026)
+
+These rulings close D1–D4 for this docs pass. The findings above remain the audit record;
+the law below supersedes their open decisions and the old law quoted in D1.
+
+- **D1 — KEEP.** Smalls that earn name room carry names at 1×; that is now the law, not a
+  violation of it. The law text moves; the code does not. `nameAlpha` is unchanged.
+- **D2 — COHORT.** The score-ordering law is **per-cohort**: the seeded scatter may invert
+  neighbours within ~12 index points; whole cohorts stay ordered, and the named guarantees
+  (Wraith never more stable than Destroyer) hold absolutely.
+- **D3 — KEEP 'mine', with Freddy's addendum.** Signed-in users opening on the Personalized lens
+  is fine, and the standing rule is that the app opens to whatever default the user has set
+  for themselves. **Verification:** at `893e70c6`, `public/app.js:11–13,18,282–300` restores a valid
+  saved `atlas-default-map` (or migrates legacy `atlas-lens`) over the `'mine'` fallback, starts
+  `atlasLens` from it, saves site-menu defaults while toolbar switches last for the visit,
+  and uses Standard as the effective lens without bag colors. The preference mechanism exists;
+  no unbuilt preference follow-up is needed. Code is unchanged.
+- **D4 — DOCUMENT.** Canvas tiers (smalls/minis) are **pointer-only**: clickable, but not
+  keyboard-focusable and not screen-reader reachable, while tier-1 discs are real buttons.
+  This is a known, accepted limitation. The X13 correction from PR #29 remains: a pointer
+  click on canvas art or a readable name selects the disc.
+
+Implemented by the docs-only build on `codex/atlas-audit-rulings`, based on `893e70c6`:
+[Atlas audit rulings — evidence and verification](atlas-audit-rulings.md).

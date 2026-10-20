@@ -36,10 +36,10 @@ current filters, search and lens:
 6. **Complete views hide nothing.** A view is complete when the matching discs fit under the cap. That
    covers a narrow filter, a search, or deep zoom (about 6× and up on desktop). Every match shows
    there. The 130 px spacing is dropped, so more discs rest at full size. A disc with no room for
-   full size becomes a dot, a small disc of tier 2's size (see below), whose name shows on hover and
-   focus. A disc with no room even for that joins the stack of the nearest shown disc, and complete
-   views show stack counts. The
-   overview never shows dots or counts.
+   full size becomes a dot, a small disc of tier 2's size (see below), whose name is shown
+   in full wherever the disc and its name have room, including at 1x. A disc with no room even
+   for that joins the stack of the nearest shown disc, and complete views show stack counts.
+   The overview never shows dots or counts.
 
 On the unfiltered 1x map at 1440 × 900, this shows 24 discs, under the cap of 29: the 138 px
 spacing is what limits it. 22 are featured molds. The other two (Pestilence and Berg X) are the
@@ -69,9 +69,12 @@ between the controls (the cap there is 8).
   art's radius (38 px) plus 8 px.
 - **Determinism.** Every choice is seeded by disc ID, so the same data, view, zoom and selection
   always land the same way, to the pixel.
-- **Neighbors.** 23 px is small next to the 138 px spacing. A disc's nearest neighbor on screen is
-  always one of its three nearest by data, and two discs farther apart than both reaches keep
-  their order on both axes.
+- **Neighbors and score ordering (D2, Freddy, Oct 19, 2026).** 23 px is small next to the
+  138 px spacing. A disc's nearest neighbor on screen is always one of its three nearest by data.
+  The score-ordering law is **per-cohort**: the seeded scatter may invert neighbours within
+  ~12 index points; whole cohorts stay ordered, and the named guarantees (Wraith never more
+  stable than Destroyer) hold absolutely. This is the standing law for the map's three tiers;
+  the audit's per-pair question is resolved by the [rulings](atlas-map-audit.md#rulings-freddy-oct-19-2026).
 
 ## Zoom
 
@@ -89,8 +92,10 @@ layout work.
 
 Since October 9, 2026, the main Atlas draws its discs in three tiers. The curated discs above are
 tier 1. Tier 2, small discs, and tier 3, minis, fill the room between them with the rest of the
-rated catalog. Curated and small discs are named at every zoom; minis earn their names deeper in. Together they form a field the curated discs sit in front
-of, and more of it shows the further you zoom. At 9x, the deepest zoom, the tiers converge: every
+rated catalog. Curated discs are named at every zoom. Smalls that earn name room carry names at
+1x; that is the law (D1, Freddy, Oct 19, 2026). Small discs stay named at every zoom; minis earn
+their names deeper in. Together they form a field the curated discs sit in front of, and more of
+it shows the further you zoom. At 9x, the deepest zoom, the tiers converge: every
 disc is full size with its name, told apart from a curated disc only by curation. My Map has
 neither tier.
 
@@ -174,7 +179,9 @@ size and its name is not drawn at all, as curated discs already were.
   cached sprite. Each name is drawn once per theme and type, into a cached sprite. Names are drawn
   only above 1% strength, and at most 6 new name sprites are made in a frame. A level's names are
   also drawn ahead in idle time. A pointer click on their art or a readable name selects the disc;
-  they are not buttons and are not in the tab order.
+  the canvas tiers (smalls and minis) are **pointer-only**: clickable, but not keyboard-focusable
+  and not screen-reader reachable. Tier-1 discs are real buttons. This is a known, accepted
+  limitation, recorded by Freddy's D4 ruling on Oct 19, 2026.
 - **Cost.** The depth pass runs in the worker with its level. On the main thread it runs only when no
   worker result fits. A frame between levels only re-checks the level's own spots. Two slower
   approaches were removed: a CSS variable on the marker layer, which restyled every marker each
@@ -182,9 +189,10 @@ size and its name is not drawn at all, as curated discs already were.
 
 ### Names
 
-- **Small discs: always.** Every small disc wears its name at every zoom, 1x included, in full
-  (`nameAlpha(size, 'small')` is 1). That is what makes a small disc the medium tier: clearly
-  smaller than a curated disc, but a named, readable one. A small disc rests only where its name
+- **Small discs: always (D1 — KEEP).** Smalls that earn name room carry names at 1x. Every
+  placed small disc wears its name at every zoom in full (`nameAlpha(size, 'small')` is 1). This
+  is the standing law, confirmed by Freddy on Oct 19, 2026. That is what makes a small disc the
+  medium tier: clearly smaller than a curated disc, but a named, readable one. A small disc rests only where its name
   fits as well (`GAP.named`), so the 1x map holds fewer of them than it would nameless: about 13 on
   desktop and none on a phone, where the room runs out. The nameless alternative was 22 and 4.
 - **Minis: by size.** A mini's name strength is `nameAlpha(size)` of its disc's size on screen: 0
