@@ -45,7 +45,7 @@ The test holds actual owner-photo and Stalker stock-stamp responses until after 
 | Photo | ![Generated Destroyer before photo](images/storage-all-discs-fixes/before-photo-pending.png) | ![Neutral while photo loads](images/storage-all-discs-fixes/after-photo-pending.png) | ![Resolved photo](images/storage-all-discs-fixes/after-photo-ready.png) |
 | Stock stamp | ![Generated Stalker before stock art](images/storage-all-discs-fixes/before-stamp-pending.png) | ![Neutral while stock art loads](images/storage-all-discs-fixes/after-stamp-pending.png) | ![Resolved Stalker stamp](images/storage-all-discs-fixes/after-stamp-ready.png) |
 
-The sampler checks readiness metadata and computed host visibility on each animation frame; it does not classify canvas pixels. Screenshots independently show the pending/resolved looks, and the source's additional render turn supplies the draw-before-reveal barrier. This is controlled delayed-response evidence, not a claim about every network/device combination. Raw frame samples are in [before.json](images/storage-all-discs-fixes/before.json) and [after.json](images/storage-all-discs-fixes/after.json).
+The sampler checks readiness metadata and computed host visibility on each animation frame; it does not classify canvas pixels. Screenshots independently show the pending/resolved looks, and the source's additional render turn supplies the draw-before-reveal barrier. This is controlled delayed-response evidence, not a claim about every network/device combination. Raw frame samples are in [before.json](images/storage-all-discs-fixes/before.win32.json) and [after.json](images/storage-all-discs-fixes/after.win32.json).
 
 ### Same pattern elsewhere — report only
 

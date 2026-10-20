@@ -2,11 +2,16 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import https from 'node:https';
+import os from 'node:os';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 const phase=process.argv.includes('--before')?'before':process.env.GALLERY_FIXES_PHASE||'after',before=phase==='before';
 const config='tests/auth.wrangler.jsonc',state='work/gallery-fixes/d1',base='https://localhost:8843',dir='docs/images/storage-all-discs-fixes';
+// Baselines and reports are per machine: a limit derived from rows another machine recorded grades nothing (docs/gallery-perf-hunt.md, Phase 4b).
+const platform=process.platform,file=p=>`${dir}/${p}.${platform}.json`;
+// D3D11 is a Windows-only ANGLE backend; off Windows the request falls back to SwiftShader with software compositing (Phase 4), so request it only there, as tests/atlas-3d-perf.mjs does.
+const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?.split(' ').filter(Boolean)||(platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu']);
 const wrangler='node_modules/wrangler/wrangler-dist/cli.js';
 fs.mkdirSync(dir,{recursive:true});
 execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
@@ -15,13 +20,13 @@ command(['d1','migrations','apply','disc-atlas-accounts','--local']);command(['d
 const server=spawn(process.execPath,[wrangler,'dev','--config',config,'--local','--port','8843','--ip','127.0.0.1','--local-protocol','https','--inspector-port','0','--persist-to',state],{windowsHide:true,stdio:['ignore','pipe','pipe']});
 let logs='',browser;for(const stream of [server.stdout,server.stderr])stream.on('data',d=>logs+=d);
 const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
-const report={phase,base:'e59e67e10f263718a47ca4fd842a70db630d5987',checks:{},appearance:[],perf:process.env.GALLERY_FIXES_EVIDENCE_ONLY?JSON.parse(fs.readFileSync(`${dir}/${phase}.json`,'utf8')).perf:[]},errors=[];
+const report={phase,base:'e59e67e10f263718a47ca4fd842a70db630d5987',machine:{platform,arch:process.arch,release:os.release(),cpu:os.cpus()[0]?.model,node:process.version,args:gpuArgs},renderer:{},checks:{},appearance:[],perf:process.env.GALLERY_FIXES_EVIDENCE_ONLY?JSON.parse(fs.readFileSync(file(phase),'utf8')).perf:[]},errors=[];
 // Baseline serves the exact shipped sources; rerunning this differential gate needs no checkout.
 const baselineFiles=before?new Map([['/','web/index.html'],['/my-bag.js','public/my-bag.js'],['/my-bag.css','public/my-bag.css'],['/all-discs-gallery.js','public/all-discs-gallery.js']].map(([url,file])=>[url,{body:execFileSync('git',['show',report.base+':'+file]),contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'application/javascript'}])):null;
 const installBaseline=async c=>{if(before)await c.route('**/*',route=>{const u=new URL(route.request().url()),file=baselineFiles.get(u.pathname);if(u.origin===base&&file){(report.baselineRoutes??=[]).push(u.pathname);return route.fulfill(file);}return route.fallback();});};
 try{
  const deadline=Date.now()+45000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(logs);await new Promise(r=>setTimeout(r,200));}
- browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.env.BAG3D_CHROMIUM_ARGS?.split(' ').filter(Boolean)||['--use-angle=d3d11','--enable-gpu']});
+ browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs});report.machine.chromium=browser.version();
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64'),cb=new URL(u.searchParams.get('redirect_uri'));cb.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});});
  await page.goto(base+'/?bag=1');await page.locator('#myBagSignIn').click();const link=page.getByRole('link',{name:'Continue with Google',exact:true});await link.waitFor();const redirect=await page.request.get(base+await link.getAttribute('href'),{maxRedirects:0});await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor().catch(async error=>{report.error={message:error.message,errors,dom:await page.evaluate(()=>({url:location.href,mode:!!document.querySelector('#storageModes'),bagApp:!!window.BagApp,status:document.querySelector('#myBagLoadMessage')?.textContent,contents:document.querySelector('#myBagContents')?.innerHTML.slice(0,500)}))};throw error;});
@@ -67,6 +72,8 @@ try{
   const c=await browser.newContext({ignoreHTTPSErrors:true,storageState:session,...(device==='desktop'?{viewport:{width:1440,height:900}}:{viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true})}),p=await c.newPage();
   await installBaseline(c);
   const cdp=await c.newCDPSession(p);await cdp.send('Emulation.setCPUThrottlingRate',{rate:device==='phone'?4:1});await enter(p);await p.waitForFunction(appearanceReady);await p.locator('#allDiscsGallery').scrollIntoViewIfNeeded();
+  // The run itself records which GL backend drew the measured frames; the launch flags alone do not prove it.
+  report.renderer[device]=await p.evaluate(()=>{const gl=BagApp.scenes.album.debug.renderer.getContext(),ext=gl.getExtension('WEBGL_debug_renderer_info');return {unmaskedRenderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):null,renderer:gl.getParameter(gl.RENDERER),version:gl.getParameter(gl.VERSION),pixelRatio:BagApp.scenes.album.debug.renderer.getPixelRatio()};});console.log(phase,device,'renderer',JSON.stringify(report.renderer[device]));
   const reps=device==='desktop'?7:3;
   for(let rep=0;rep<=reps;rep++){
    const result=await p.evaluate(async()=>{
@@ -87,13 +94,13 @@ try{
   await c.close();
  }
  if(!before&&!process.env.GALLERY_FIXES_EVIDENCE_ONLY){
-  const baseline=JSON.parse(fs.readFileSync(`${dir}/before.json`,'utf8'));const median=a=>{const s=[...a].sort((a,b)=>a-b);return s[Math.floor(s.length/2)];};report.gate=[];
+  const baseline=JSON.parse(fs.readFileSync(file('before'),'utf8'));assert.equal(baseline.machine?.platform,platform,'baseline platform');const median=a=>{const s=[...a].sort((a,b)=>a-b);return s[Math.floor(s.length/2)];};report.gate=[];
   for(const device of ['desktop','phone']){
    const b=baseline.perf.filter(r=>r.device===device&&r.phase==='warm'),a=report.perf.filter(r=>r.device===device&&r.phase==='warm');assert.equal(a.length,device==='desktop'?7:3);assert.equal(b.length,a.length);
    for(const metric of ['fly','still','longTasks']){const read=r=>metric==='longTasks'?r.longTasks:r[metric].p95,mul=metric==='longTasks'?1:1.15,slack=metric==='longTasks'?1:device==='phone'?3:1.5,base=median(b.map(read)),actual=median(a.map(read)),limit=base*mul+slack,paired=median(a.map((r,i)=>read(r)-read(b[i])*mul-slack));report.gate.push({device,metric,baseline:base,actual,limit,pairedExcess:paired,passed:actual<=limit&&paired<=0});}
   }
  }
- report.errors=errors;fs.writeFileSync(`${dir}/${phase}.json`,JSON.stringify(report,null,2)+'\n');
+ report.errors=errors;fs.writeFileSync(file(phase),JSON.stringify(report,null,2)+'\n');
  assert.deepEqual(errors,[]);assert.ok(Object.values(report.checks).every(v=>before?!v:v),JSON.stringify(report.checks));if(report.gate)assert.ok(report.gate.every(r=>r.passed),JSON.stringify(report.gate));
  console.log(before?'Shipped gallery baseline reproduced':process.env.GALLERY_FIXES_EVIDENCE_ONLY?'Gallery functional fixes passed':'Gallery fixes and gallery performance gate passed');
-}finally{fs.writeFileSync(`${dir}/${phase}.json`,JSON.stringify(report,null,2)+'\n');await browser?.close();server.kill();}
+}finally{fs.writeFileSync(file(phase),JSON.stringify(report,null,2)+'\n');await browser?.close();server.kill();}

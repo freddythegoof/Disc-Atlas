@@ -1,6 +1,11 @@
 {
   "phase": "before",
   "base": "e59e67e10f263718a47ca4fd842a70db630d5987",
+  "machine": {
+    "platform": "win32",
+    "arch": "x64",
+    "provenance": "Rows recorded October 17, 2026 on the Windows PC (NVIDIA RTX 3070, ANGLE D3D11, Node 24.21.0, bundled Playwright 1.62.1, Chromium revision 1234) and committed at c3956cf as before.json; renamed for the per-machine gate, perf rows unchanged. Machine quietness was not independently verified there. See docs/storage-all-discs-fixes.md and docs/gallery-perf-hunt.md Phase 5."
+  },
   "checks": {
     "placement": false,
     "top": false,
