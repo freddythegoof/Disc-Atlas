@@ -89,11 +89,23 @@
   // the Appearance preview. The header, atlas, directory and site menu keep the Disc Atlas lime.
   const ACCENT_SCOPE = ['#myBagView', '#addDiscDialog', '#bagModelDialog', '#lostDiscDialog', '#removeDiscDialog', '#rackStyleMenu', '[data-accent-preview]'];
   const DEFAULTS = {classes: {distance: 'classic', fairway: 'classic', mid: 'classic', putter: 'classic'}, accent: 'lime'};
+  // Preset packs: one tap sets all four classes and the accent; any swatch can be tweaked after. A pack is
+  // labeled colorblind-safe only when it clears Plan 06C's protanopia/deuteranopia floor in light and dark
+  // (tests/display-palette.mjs proves the label matches; tests/palette.mjs checks the rendered tokens).
+  // [id, name, {distance, fairway, mid, putter}, accent, colorblind-safe]
+  const PACKS = [
+    ['classic', 'Classic', DEFAULTS.classes, 'lime', true],
+    ['harbor', 'Harbor', {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, 'aqua', true],
+    ['sunset', 'Sunset', {distance: 'marigold', fairway: 'cobalt', mid: 'jade', putter: 'raspberry'}, 'coral', true],
+    ['field', 'Field', {distance: 'rust', fairway: 'steel', mid: 'moss', putter: 'mauve'}, 'gold', false],
+    ['floodlight', 'Floodlight', {distance: 'ember', fairway: 'glacier', mid: 'lime', putter: 'violet'}, 'violet', true]
+  ];
 
   const freeze = value => Object.freeze(value);
   const catalog = freeze({
     classes: freeze(CLASSES.map(([key, label]) => freeze({key, label, swatches: freeze(SWATCHES[key].map(([id, name, light, dark]) => freeze({id, label: name, light, dark})))}))),
     accents: freeze(ACCENTS.map(([id, label, chip, light, dark]) => freeze({id, label, chip, light: light && freeze({...light}), dark: dark && freeze({...dark})}))),
+    packs: freeze(PACKS.map(([id, label, classes, accent, colorblindSafe]) => freeze({id, label, classes: freeze({...classes}), accent, colorblindSafe}))),
     tones: freeze({...TONES}),
     scope: freeze([...ACCENT_SCOPE])
   });
@@ -173,6 +185,9 @@
     catalog, defaults: freeze(clone(DEFAULTS)), get, css, normalize, isDefault: () => isDefault(prefs), toneOf, classColor,
     setClass: (key, id) => swatchOf(key, id) ? commit({...prefs, classes: {...prefs.classes, [key]: id}}) : get(),
     setAccent: id => accentOf(id) ? commit({...prefs, accent: id}) : get(),
+    applyPack: id => { const pack = catalog.packs.find(p => p.id === id); return pack ? commit({...prefs, classes: {...pack.classes}, accent: pack.accent}) : get(); },
+    // The pack the current choices match exactly, or null once a swatch has been tweaked away from it.
+    pack: () => catalog.packs.find(p => p.accent === prefs.accent && Object.entries(p.classes).every(([key, id]) => prefs.classes[key] === id))?.id ?? null,
     set: next => commit({...prefs, ...next, classes: {...prefs.classes, ...next?.classes}}),
     reset: () => commit(DEFAULTS)
   };

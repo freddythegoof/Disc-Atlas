@@ -30,6 +30,19 @@
 .appearance-swatches button[aria-checked="true"] {box-shadow:inset 0 0 0 1px #ffffff26,0 0 0 2px var(--panel),0 0 0 4px var(--text)}
 .appearance-swatches button:focus-visible {outline:2px solid var(--lime);outline-offset:5px}
 
+/* Packs: five quiet cards, each its four class colors and its accent. */
+.appearance-pack-list {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.appearance-pack-list button {display:grid;justify-items:center;align-content:start;gap:6px;min-height:84px;padding:12px 4px 10px;border:1px solid var(--hairline,var(--line));border-radius:12px;background:var(--surface);color:var(--text);cursor:pointer;transition:border-color var(--dur-ui) var(--ease-out),background var(--dur-ui) var(--ease-out)}
+.appearance-pack-list button:hover {background:var(--selected)}
+.appearance-pack-list button[aria-checked="true"] {border-color:var(--text);box-shadow:inset 0 0 0 1px var(--text)}
+.appearance-pack-list button:focus-visible {outline:2px solid var(--lime);outline-offset:3px}
+.appearance-pack-dots {display:flex;align-items:center}
+.appearance-pack-dots i {width:14px;height:14px;margin-left:-3px;border-radius:50%;box-shadow:0 0 0 1.5px var(--surface)}
+.appearance-pack-dots i:first-child {margin-left:0}
+.appearance-pack-dots .appearance-pack-accent {width:8px;height:8px;margin-left:5px;box-shadow:none}
+.appearance-pack-name {font-size:13px;font-weight:500}
+.appearance-pack-tag {font:400 9px/1.2 var(--mono,ui-monospace,monospace);letter-spacing:.02em;color:var(--muted);text-align:center}
+
 /* Theme: a quiet segmented control. */
 .appearance-themes {display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border:1px solid var(--hairline,var(--line));border-radius:999px;background:var(--bg)}
 .appearance-themes button {min-height:36px;padding:0 8px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer}
@@ -38,6 +51,7 @@
 .appearance-sheet .sheet-actions button[disabled] {opacity:.45;cursor:default}
 
 @media(max-width:560px){
+ .appearance-pack-list {grid-template-columns:repeat(3,minmax(0,1fr))}
  .appearance-preview {grid-template-columns:1fr}
  .appearance-strip,.appearance-bag {min-height:96px}
  .appearance-swatches {gap:6px}

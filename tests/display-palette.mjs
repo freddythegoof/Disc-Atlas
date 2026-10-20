@@ -162,3 +162,40 @@ test('Storage disabled still applies the choice for the session', () => {
   assert.equal(palette.get().classes.mid, 'teal');
   assert.equal(head.length, 1);
 });
+
+test('Packs: four or five designed starting points, Classic first and equal to the defaults', () => {
+  assert.ok(catalog.packs.length >= 4 && catalog.packs.length <= 5);
+  assert.equal(new Set(catalog.packs.map(p => p.id)).size, catalog.packs.length);
+  assert.equal(new Set(catalog.packs.map(p => p.label)).size, catalog.packs.length);
+  assert.deepEqual({id: catalog.packs[0].id, classes: {...catalog.packs[0].classes}, accent: catalog.packs[0].accent, safe: catalog.packs[0].colorblindSafe},
+    {id: 'classic', classes: palette.defaults.classes, accent: 'lime', safe: true});
+  for (const p of catalog.packs) {
+    for (const c of catalog.classes) assert.ok(c.swatches.some(s => s.id === p.classes[c.key]), `${p.id}: ${c.key} is a real swatch`);
+    assert.ok(catalog.accents.some(a => a.id === p.accent), `${p.id}: accent is a real swatch`);
+  }
+});
+
+test('A pack is labeled colorblind-safe if, and only if, it clears the 06C simulation floor', () => {
+  for (const p of catalog.packs) {
+    let min = Infinity;
+    for (const tone of ['light', 'dark']) for (const vision of ['protanopia', 'deuteranopia'])
+      min = Math.min(min, minDistance(catalog.classes.map(c => c.swatches.find(s => s.id === p.classes[c.key])[tone]), MATRICES[vision]));
+    assert.equal(p.colorblindSafe, min >= .065, `${p.id}: closest simulated pair ${min.toFixed(3)}, labeled ${p.colorblindSafe}`);
+  }
+});
+
+test('One tap applies a pack; a tweak afterwards leaves it as your own mix', () => {
+  const {palette, store, events} = loadPalette();
+  assert.equal(palette.pack(), 'classic', 'the defaults are Classic');
+  palette.applyPack('harbor');
+  assert.deepEqual(palette.get(), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua'});
+  assert.equal(palette.pack(), 'harbor');
+  assert.equal(events.length, 1, 'one change, one event');
+  palette.setClass('mid', 'leaf');
+  assert.equal(palette.pack(), null);
+  assert.equal(JSON.parse(store.get('disc-atlas-display')).classes.mid, 'leaf');
+  palette.applyPack('classic');
+  assert.equal(store.has('disc-atlas-display'), false, 'Classic is the default, so nothing is saved');
+  palette.applyPack('no-such-pack');
+  assert.equal(palette.pack(), 'classic');
+});

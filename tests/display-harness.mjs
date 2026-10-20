@@ -18,7 +18,7 @@ export const BAG=[
 ];
 
 // The local site alone: the public Worker with the auth fixture on a fresh local D1.
-export async function startServer({port=8799,state='work/display-customization/d1'}={}){
+export async function startServer({port=8811,state='work/display-customization/d1'}={}){
  const config='tests/auth.wrangler.jsonc',base=`https://localhost:${port}`,wrangler='node_modules/wrangler/wrangler-dist/cli.js';
  const command=args=>execFileSync(process.execPath,[wrangler,...args,'--config',config,'--persist-to',state],{windowsHide:true,stdio:'pipe'});
  if(!process.env.DISPLAY_SKIP_BUILD)execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});
@@ -32,7 +32,7 @@ export async function startServer({port=8799,state='work/display-customization/d
  return {base,stop:()=>server.kill(),logs:()=>logs};
 }
 
-export async function startHarness({port=8799,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light'}={}){
+export async function startHarness({port=8811,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light'}={}){
  const site=await startServer({port,state}),{base}=site;
  const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:process.platform==='win32'?['--use-angle=d3d11']:[]});
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme});

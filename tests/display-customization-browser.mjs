@@ -135,6 +135,23 @@ try {
   await agree('reset');
   await page.locator('#siteMenuButton').click();await page.locator('#siteMenu [data-theme-choice="light"]').click();await page.keyboard.press('Escape');
 
+  // --- Packs: one tap sets four classes and the accent; a tweak after it is the player's own mix.
+  await openSheet();
+  const packs = await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-pack]')].map(b => [b.dataset.pack, b.getAttribute('aria-checked'), !!b.querySelector('.appearance-pack-tag')]));
+  assert.deepEqual(packs, [['classic', 'true', true], ['harbor', 'false', true], ['sunset', 'false', true], ['field', 'false', false], ['floodlight', 'false', true]]);
+  await page.locator('#appearanceDialog [data-pack="harbor"]').click();
+  assert.deepEqual(await page.evaluate(() => DisplayPalette.get()), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua'});
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-row] [aria-checked="true"]')].map(b => b.dataset.swatch)), ['coral', 'navy', 'teal', 'lavender', 'aqua'], 'the rows show what the pack chose');
+  assert.equal(await page.locator('#appearanceDialog [data-pack-name]').innerText(), 'Harbor');
+  await pick('mid', 'leaf');
+  assert.equal(await page.locator('#appearanceDialog [data-pack-name]').innerText(), 'Your mix');
+  assert.equal(await page.locator('#appearanceDialog [data-pack][aria-checked="true"]').count(), 0);
+  await page.locator('#appearanceDialog [data-pack="sunset"]').focus();await page.keyboard.press('ArrowRight');
+  assert.equal(await page.evaluate(() => DisplayPalette.pack()), 'field', 'arrow keys move between packs');
+  await page.keyboard.press('Escape');await settle(1200);
+  await agree('Field pack');
+  await page.evaluate(() => DisplayPalette.reset());await settle(300);
+
   // --- Information pages do not load the palette: the About hero keeps its own clay.
   await page.evaluate(() => DisplayPalette.setClass('distance', 'brick'));
   for (const path of ['/about', '/privacy', '/terms']) {

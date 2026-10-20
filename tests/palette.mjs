@@ -40,6 +40,8 @@ try{
    const brands=[...selectedBrands].map(brandColor);selectedBrands.clear();saved.forEach(b=>selectedBrands.add(b));
    return {types:['putter','mid','fairway','distance'].map(k=>colors[k]),brands,background:css.getPropertyValue('--map-bg').trim(),edge:css.getPropertyValue('--marker-edge').trim()};
   });
+  // The atlas must be reading the palette under test, not a stale default.
+  assert.deepEqual(palette.types,await page.evaluate(()=>['putter','mid','fairway','distance'].map(k=>DisplayPalette.classColor(k))),`${option.id}/${theme}: the atlas reads the chosen palette`);
   for(const [vision,matrix] of Object.entries(matrices)){
    const bg=simulate(linear(palette.background),matrix);
    for(const kind of option.classes?['types']:['types','brands']){
