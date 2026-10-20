@@ -87,7 +87,6 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // The player's own disc on the personalized map may wear their stamp appearance (d.stampStyle, set by
  // atlas-map.js). A foil here is one still from above, lit once: it reads as foil, but it does not move.
  const foils=new Map();
- const styleKey=d=>d.stampStyle?'|style:'+d.stampStyle.inkId+'/'+d.stampStyle.finish.id:'';
  const stampLayer=d=>{
   const f=d.stampStyle?.finish;if(!f||f.id==='flat')return plainStamp;
   let m=foils.get(f.id);if(!m){m=stampMaterial(d.stampStyle,{envMap:envTexture,envIntensity:f.still});foils.set(f.id,m);}
@@ -95,6 +94,8 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  };
  const shapes=new Map(),geometries=new Map(),images=new Map(),photos=new Map(),stamps=new Map();
  const STAMPS_LIVE=8;
+ // A personal stamp style is part of a stamp's identity (tests/atlas-stamp-cache.mjs runs this block as is).
+ const styleKey=d=>d.stampStyle?'|style:'+d.stampStyle.inkId+'/'+d.stampStyle.finish.id:'';
  const stampAssetOf=(d,lod,official)=>official&&lod!=='low'&&!d.photoURL?catalogStampAsset(d):null;
  const trimStamps=keep=>{
   for(const [key,old] of stamps){
