@@ -13,7 +13,9 @@
   // [id, label, light value, dark value]. Each row keeps to its own hue sector at the lightness and chroma
   // of Plan 06C's set (light L .44–.76, C .05–.20; dark lifts warm, green and pink hues by .06 L and deep
   // blues by .03), so any combination reads as one palette and classes stay apart (tests/display-palette.mjs).
-  // `classic` is today's Okabe-Ito value, exactly.
+  // `classic` is today's Okabe-Ito value, exactly. The last swatch in each row is a neutral gray, marked
+  // 'neutral' (docs/more-packs.md): one step of a lightness ladder, Driver darkest to Putter lightest, at the
+  // same L range and dark lift, placed so every combination still keeps the classes apart.
   const SWATCHES = {
     distance: [
       ['classic', 'Orange', '#ce8a00', '#e6a139'],
@@ -23,7 +25,8 @@
       ['marigold', 'Marigold', '#d8aa32', '#ecbd4a'],
       ['coral', 'Coral', '#e2856c', '#f6987e'],
       ['sand', 'Sand', '#ba986e', '#cdaa80'],
-      ['rust', 'Rust', '#ab5d2b', '#bf6e3e']
+      ['rust', 'Rust', '#ab5d2b', '#bf6e3e'],
+      ['graphite', 'Graphite', '#515151', '#5c5c5c', 'neutral']
     ],
     fairway: [
       ['classic', 'Blue', '#0072b2', '#0072b2'],
@@ -33,7 +36,8 @@
       ['glacier', 'Glacier', '#65b2c4', '#6fbbce'],
       ['navy', 'Navy', '#1c548d', '#255d96'],
       ['steel', 'Steel', '#627e96', '#6a87a0'],
-      ['cornflower', 'Cornflower', '#6782ce', '#708bd8']
+      ['cornflower', 'Cornflower', '#6782ce', '#708bd8'],
+      ['pewter', 'Pewter', '#6f6f6f', '#7a7a7a', 'neutral']
     ],
     mid: [
       ['classic', 'Bluish green', '#008c67', '#009e73'],
@@ -43,7 +47,8 @@
       ['teal', 'Teal', '#2a8672', '#409884'],
       ['pine', 'Pine', '#237356', '#388567'],
       ['sage', 'Sage', '#789d7f', '#8ab091'],
-      ['lime', 'Lime', '#86bf3c', '#99d352']
+      ['lime', 'Lime', '#86bf3c', '#99d352'],
+      ['ash', 'Ash', '#929292', '#a4a4a4', 'neutral']
     ],
     putter: [
       ['classic', 'Reddish purple', '#bc719b', '#cc79a7'],
@@ -53,7 +58,8 @@
       ['orchid', 'Orchid', '#b36bc4', '#c77dd8'],
       ['raspberry', 'Raspberry', '#ba4374', '#ce5686'],
       ['mauve', 'Mauve', '#9f7892', '#b28aa4'],
-      ['magenta', 'Magenta', '#c841a5', '#dd56b8']
+      ['magenta', 'Magenta', '#c841a5', '#dd56b8'],
+      ['pearl', 'Pearl', '#b2b2b2', '#c5c5c5', 'neutral']
     ]
   };
   // The bag accent. Lime is today's Stitch accent and writes nothing. Every other swatch sets the whole
@@ -118,12 +124,24 @@
     ['field', 'Field', {distance: 'rust', fairway: 'steel', mid: 'moss', putter: 'mauve'}, 'gold', false],
     ['floodlight', 'Floodlight', {distance: 'ember', fairway: 'glacier', mid: 'lime', putter: 'violet'}, 'violet', true]
   ];
+  // The second row (docs/more-packs.md): looks chosen for variety, not held to the colorblind floor. The label
+  // law is the same: a pack carries it only if it measures over the floor, as Grayscale and Jewel do.
+  const MORE_PACKS = [
+    ['grayscale', 'Grayscale', {distance: 'graphite', fairway: 'pewter', mid: 'ash', putter: 'pearl'}, 'silver', true],
+    ['neon', 'Neon', {distance: 'tangerine', fairway: 'sky', mid: 'lime', putter: 'magenta'}, 'mint', false],
+    ['pastel', 'Pastel', {distance: 'coral', fairway: 'glacier', mid: 'jade', putter: 'lavender'}, 'pink', false],
+    ['vintage', 'Vintage', {distance: 'sand', fairway: 'ocean', mid: 'sage', putter: 'mauve'}, 'coral', false],
+    ['jewel', 'Jewel', {distance: 'brick', fairway: 'cobalt', mid: 'pine', putter: 'plum'}, 'gold', true]
+  ];
 
   const freeze = value => Object.freeze(value);
   const catalog = freeze({
-    classes: freeze(CLASSES.map(([key, label]) => freeze({key, label, swatches: freeze(SWATCHES[key].map(([id, name, light, dark]) => freeze({id, label: name, light, dark})))}))),
+    classes: freeze(CLASSES.map(([key, label]) => freeze({key, label, swatches: freeze(SWATCHES[key].map(([id, name, light, dark, kind]) =>
+      freeze({id, label: name, light, dark, ...kind === 'neutral' && {neutral: true}})))}))),
     accents: freeze(ACCENTS.map(([id, label, chip, light, dark]) => freeze({id, label, chip, light: light && freeze({...light}), dark: dark && freeze({...dark})}))),
-    packs: freeze(PACKS.map(([id, label, classes, accent, colorblindSafe]) => freeze({id, label, classes: freeze({...classes}), accent, colorblindSafe}))),
+    // `row` is the sheet row a pack sits in: 1 for the original five, 2 for the variety row.
+    packs: freeze([...PACKS.map(pack => [...pack, 1]), ...MORE_PACKS.map(pack => [...pack, 2])].map(([id, label, classes, accent, colorblindSafe, row]) =>
+      freeze({id, label, classes: freeze({...classes}), accent, colorblindSafe, row}))),
     inks: freeze(STAMP_INKS.map(([id, label, hex]) => freeze({id, label, hex}))),
     finishes: freeze(STAMP_FINISHES.map(([id, label, light]) => freeze({id, label, ...light, ...(light.thickness && {thickness: freeze([...light.thickness])})}))),
     tones: freeze({...TONES}),

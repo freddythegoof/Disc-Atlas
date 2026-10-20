@@ -21,8 +21,10 @@
     const prefs = palette.get();
     $('[data-appearance-theme]').innerHTML = THEMES.map(([id, label]) =>
       `<button type="button" role="radio" aria-checked="false" tabindex="-1" data-theme-option="${id}">${label}</button>`).join('');
-    // Packs: a starting point each. The label shows only on packs that clear the colorblind floor.
-    $('[data-appearance-packs]').innerHTML = palette.catalog.packs.map(p =>
+    // Packs: a starting point each, in two rows. The label shows only on packs that clear the colorblind floor;
+    // the second row is chosen for variety, and its caption says so (docs/more-packs.md).
+    $('[data-appearance-packs]').innerHTML = palette.catalog.packs.map((p, i, packs) =>
+      (i && p.row !== packs[i - 1].row ? `<p class="appearance-pack-more" data-pack-row-caption>More looks, chosen for variety. Any that are also colorblind-safe say so.</p>` : '') +
       `<button type="button" role="radio" aria-checked="false" tabindex="-1" data-pack="${esc(p.id)}" aria-label="${esc(p.label)}${p.colorblindSafe ? ', colorblind-safe' : ''}">` +
       `<span class="appearance-pack-dots" aria-hidden="true">${palette.catalog.classes.map(c => `<i data-pack-class="${c.key}"></i>`).join('')}<i class="appearance-pack-accent"></i></span>` +
       `<span class="appearance-pack-name">${esc(p.label)}</span>${p.colorblindSafe ? '<small class="appearance-pack-tag" aria-hidden="true">Colorblind-safe</small>' : ''}</button>`).join('');
