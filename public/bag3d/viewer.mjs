@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { advanceTime, poseAt } from './motion.mjs';
 import { attachDiscFeatures,bagDiscGeometry } from './disc-features.mjs';
 import {photoSurface} from '../disc3d/photo.mjs';
+import {photoStampFor} from '../disc3d/photo-stamps.mjs';
 import {PLASTICS} from '../disc3d/mesh.mjs';
 import {catalogStampAsset,stampTexture,stampGeometry,stampMaterial,catalogStampPlacement} from '../disc3d/stamp.mjs';
 import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../disc3d/quality.mjs';
@@ -571,18 +572,19 @@ export async function mountBag(container, {
     renderer.compileAsync(group, camera, scene).catch(() => {}).finally(() => { plate.dispose(); photo.dispose(); pixel.dispose(); shape.dispose(); });
   };
   const syncLook = (record, now = performance.now()) => {
-    // Only a pulled stock disc asks for stamp art. Pocketed discs and user photos cost no stamp request.
-    const asset=record.placement.photoURL?null:catalogStampAsset(record.placement.mold);
+    // Only a pulled stock disc (or a photo disc in its game-asset look) asks for stamp art. Pocketed discs and user
+    // photos cost no stamp request.
+    const look=record.placement.photoStamp,asset=look?look.asset:record.placement.photoURL?null:catalogStampAsset(record.placement.mold);
     if(asset&&record.parts&&record.slideTo===1&&!record.ink){
       // The bag's room is dimmer than the viewer's (.55 against DETAIL.environment); a foil keeps the viewer's look.
-      const parts=record.parts,m=stampMaterial(currentStampStyle,{envMap:environment.texture}),placement=catalogStampPlacement(record.placement.mold);
+      const parts=record.parts,m=stampMaterial(currentStampStyle,{envMap:environment.texture}),placement=look?look.placement:catalogStampPlacement(record.placement.mold);
       const geometry=stock=>{
         const g=stampGeometry(parts.shape,{placement:stock});
         g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
         g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);return g;
       };
       const ink=new THREE.Mesh(geometry(null),m);record.ink=ink;record.mesh.add(ink);
-      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,style:currentStampStyle,onChange:texture=>{
+      m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,style:currentStampStyle,size:look?1024:512,onChange:texture=>{
         if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}invalidate();
       }});
       ink.userData.disposeStamp=()=>{ink.geometry.dispose();m.map.dispose();m.dispose();};
@@ -657,7 +659,10 @@ export async function mountBag(container, {
     clipped = result.clipped;
     if (!layoutMode) { layoutMode = true; for (const disc of glbDiscs) disc.visible = false; }
     const now = performance.now();
-    for (const placement of result.placements) {
+    for (const laid of result.placements) {
+      // The game-asset look (photo-stamps.mjs): the disc drops its photo and wears its extracted stamp, drawn like a
+      // pulled stock disc's (bare in its pocket, stamped when out).
+      const look = photoStampFor(laid.photoURL), placement = look ? { ...laid, photoURL: null, photoStamp: look } : laid;
       // An empty go-to pocket shows the GLB's dashed outline instead of a ghost disc.
       if (placement.empty && placement.pocket === 'goTo') continue;
       let geometry=discGeometry,overmold=false,band=false,halo=false,parts=null;
@@ -1512,8 +1517,9 @@ export async function mountBag(container, {
     setAccentColor,
     setStampStyle,
     get stampFinish() { return currentStampStyle?.finish?.id || 'flat'; },
-    // For QA: each drawn stamp layer (pulled stock discs) and the finish its material actually wears.
-    get stampLayers() { return [...records.entries()].filter(([, r]) => r.ink).map(([key, r]) => ({key, finish: r.ink.material.userData.stampFinish || 'flat', metalness: r.ink.material.metalness})); },
+    // For QA: each drawn stamp layer (pulled stock discs, photo discs in their game-asset look), the finish its material
+    // actually wears, and the art it has drawn (null while the generated stand-in shows).
+    get stampLayers() { return [...records.entries()].filter(([, r]) => r.ink).map(([key, r]) => ({key, finish: r.ink.material.userData.stampFinish || 'flat', metalness: r.ink.material.metalness, asset: r.ink.material.map?.userData.stampAsset || null})); },
     liftDisc,
     get liftedDisc() { return liftedKey; },
     stageDiscs,

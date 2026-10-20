@@ -1,4 +1,5 @@
 import {bagSlots,wearLabel,stabilityBiasLabel,pocketLabel} from './bag-values.js';
+import {photoLooksKey} from './disc3d/photo-stamps.mjs';
 
 export const BAG_SPRING='cubic-bezier(.2,1.35,.35,1)';
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -133,7 +134,13 @@ export class BagScene {
   addEventListener('resize',()=>{clearTimeout(resizing);resizing=setTimeout(()=>{if(staged())void this.stageOut({instant:true,keepPopup:true});},150);});
   for(const event of ['atlas-theme-change','atlas-palette-change'])addEventListener(event,()=>this.viewer?.setAccentColor(accent(this.root)));
   // Every disc in the bag is the player's own, so it wears their stamp appearance.
-  addEventListener('atlas-palette-change',()=>this.viewer?.setStampStyle?.(stampStyle()));
+  // A photo disc switched between its photo and its game-asset look (photo-stamps.mjs) is laid out again.
+  this.photoLooks=photoLooksKey();
+  addEventListener('atlas-palette-change',()=>{
+   this.viewer?.setStampStyle?.(stampStyle());
+   const looks=photoLooksKey();if(looks===this.photoLooks)return;this.photoLooks=looks;
+   if(this.running)this.pendingDraw=true;else if(this.ready)this.draw();
+  });
   matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>this.viewer?.setAnimated(!reduced()));
  }
  load(){

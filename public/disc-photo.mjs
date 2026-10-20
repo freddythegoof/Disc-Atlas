@@ -3,6 +3,7 @@ import {delightPixels,rimColor,bandColor,bandModel} from './disc-albedo.mjs';
 import {encodeHalo} from './disc3d/halo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
+import {photoLook,setPhotoLook,savePhotoStamp} from './disc3d/photo-stamps.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
@@ -97,19 +98,20 @@ export async function decodePhoto(file){
 }
 // A 2048px working copy bounds memory and sampling cost even for large phone photos. Kept per decoded
 // photo (an ImageBitmap never changes), so the aligner's live preview does not re-read millions of pixels
-// on every drag. A canvas source can be redrawn, so it is always read afresh.
+// on every drag. A canvas source can be redrawn, so it is always read afresh. A larger `limit` (a photo stamp's
+// read of the original) is made for that one read and never kept.
 const workingCopies=new WeakMap();
-function workingCopy(image){
- const keep=typeof ImageBitmap!=='undefined'&&image instanceof ImageBitmap;
+function workingCopy(image,limit=2048){
+ const keep=limit===2048&&typeof ImageBitmap!=='undefined'&&image instanceof ImageBitmap;
  let copy=keep&&workingCopies.get(image);if(copy)return copy;
- const input=document.createElement('canvas'),ratio=Math.min(1,2048/Math.max(image.width,image.height));
+ const input=document.createElement('canvas'),ratio=Math.min(1,limit/Math.max(image.width,image.height));
  input.width=Math.round(image.width*ratio);input.height=Math.round(image.height*ratio);
  const g=input.getContext('2d',{willReadFrequently:true});g.drawImage(image,0,0,input.width,input.height);
  copy={data:g.getImageData(0,0,input.width,input.height).data,w:input.width,h:input.height};if(keep)workingCopies.set(image,copy);
  return copy;
 }
-export function photoCanvas(image,options={},size=PHOTO_SIZE){
- const {data:source,w,h}=workingCopy(image),out=document.createElement('canvas');out.width=out.height=size;
+export function photoCanvas(image,options={},size=PHOTO_SIZE,limit=2048){
+ const {data:source,w,h}=workingCopy(image,limit),out=document.createElement('canvas');out.width=out.height=size;
  const ctx=out.getContext('2d'),pixels=ctx.createImageData(size,size);
  for(let j=0;j<size;j++)for(let i=0;i<size;i++){
   const x=(i+.5)/size*2-1,y=(j+.5)/size*2-1,p=photoPoint(x,y,{...options,width:w,height:h});
@@ -178,6 +180,44 @@ export async function preparePhoto(image,options={},{albedo=true}={}){
  throw Error('The encoded photo still exceeds 512 KiB at 512 pixels and 40% quality.'+(empty?' The browser also returned empty encoding results.':''));
 }
 export async function processPhoto(image,options={}){return (await preparePhoto(image,options)).blob;}
+
+// Photo stamps (docs/photo-stamp-assets.md): the disc's printed design as a tintable stamp asset (white, the design in
+// alpha), the shape the stock stamps use, with its placement. Read from the original at STAMP_SIZE through a working
+// copy as large as the photo allows: the stored texture's 1024 px, cut from a 2048 px working copy, is what blurs an
+// illustrated stamp's line work. `plate`: the plate's reach as a share of the radius (plateRatio).
+export const STAMP_SIZE=2048;
+function extractStamp(pixels,size,plate){
+ const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.extract(pixels,size,plate));
+ let worker;try{worker=new Worker(new URL('./disc-stamp-worker.mjs',import.meta.url),{type:'module'});}catch{return inline();}
+ return new Promise((resolve,reject)=>{
+  worker.onmessage=({data})=>{worker.terminate();if(data.error)reject(Error(data.error));else resolve(data.result);};
+  // A browser that cannot start a module worker does the same work here.
+  worker.onerror=event=>{event.preventDefault?.();worker.terminate();inline().then(resolve,reject);};
+  worker.postMessage({pixels:pixels.buffer,size,plate});
+ });
+}
+export async function photoStampAsset(image,options={},{plate=.8}={}){
+ const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
+ const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
+ const result=await extractStamp(pixels,size,plate),a=result.alpha,c=size/2;
+ // The asset is the smallest centred square holding all of the design: no texture spent on bare plate.
+ let reach=0,x0=size,y0=size,x1=-1,y1=-1;
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(a[j*size+i]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
+ if(x1<0)throw Error('No stamp showed up on this photo. Try a sharper photo, taken square on.');
+ const half=Math.min(c,Math.ceil(reach)+2),side=2*half,from=c-half,out=document.createElement('canvas');out.width=out.height=side;
+ // A single-ink stamp is the stock format, white with the design in alpha. A layered one is opaque, its fills, lines and
+ // solid elements in red, green and blue (stamp.mjs inks them), so nothing is lost to premultiplied alpha.
+ const g=out.getContext('2d'),img=g.createImageData(side,side),L=result.layers,byte=v=>Math.round(255*Math.min(1,Math.max(0,v)));
+ for(let j=0;j<side;j++)for(let i=0;i<side;i++){const k=(j*side+i)*4,p=(j+from)*size+i+from;
+  if(L){img.data[k]=byte(L.fill[p]);img.data[k+1]=byte(L.line[p]);img.data[k+2]=byte(L.solid[p]);img.data[k+3]=255;}
+  else{img.data[k]=img.data[k+1]=img.data[k+2]=255;img.data[k+3]=a[p];}}
+ g.putImageData(img,0,0);
+ const blob=await new Promise(r=>out.toBlob(r,'image/png'));out.width=out.height=0;
+ if(!blob)throw Error('The browser returned no image data for the stamp. Close other tabs and retry.');
+ // The stock placement rule (stamp.mjs): the texture spans side/size of the disc's diameter.
+ const ink=Math.max(x1-x0+1,y1-y0+1);
+ return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats};
+}
 
 // The flight plate's edge as a share of the disc's radius: where the photo stops on the model (the shoulder,
 // or an overmold's inner seam). Drawn as a guide so the user can see what will land on the plate.
@@ -260,7 +300,13 @@ const degrees=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'°';
 // Lucide's rotate-ccw and rotate-cw.
 const TURN={ccw:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',cw:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'};
 const LEVEL='<div class="photo-aligner-level" role="group" aria-label="Level the stamp"><button type="button" data-rotate="-1" aria-label="Rotate 1 degree counterclockwise">'+TURN.ccw+'1°</button><button type="button" data-rotate="-0.1" aria-label="Rotate 0.1 degree counterclockwise">'+TURN.ccw+'0.1°</button><output class="photo-aligner-angle" aria-label="Rotation">0.0°</output><button type="button" data-rotate="0.1" aria-label="Rotate 0.1 degree clockwise">0.1°'+TURN.cw+'</button><button type="button" data-rotate="1" aria-label="Rotate 1 degree clockwise">1°'+TURN.cw+'</button><button type="button" data-rotate-zero aria-label="Reset rotation to 0 degrees">0°</button><button type="button" data-level-lines aria-pressed="false">Level lines</button></div>';
-const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the outer ring and its center on the crosshair.'],level:['Level the stamp','Turn the photo until the stamp runs along a level line. Only the angle changes.']};
+const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the outer ring and its center on the crosshair.'],level:['Level the stamp','Turn the photo until the stamp runs along a level line. Only the angle changes.'],
+ asset:['Frame the original','Center the disc and level its stamp, as for its photo. The game asset is read from this original at full detail.']};
+// Photo stamps (docs/photo-stamp-assets.md): a saved photo can also be worn as a game asset, its stamp drawn in the
+// player's ink and finish. Like the rest of Appearance it is a display choice kept in this browser: it applies at once,
+// without Save, and the photo on the account is untouched.
+let lookGroupId=0;
+const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="asset">Game asset</label></div><small>Game asset draws this disc’s stamp from your original photo, in your stamp ink and finish. Only in this browser; the photo stays saved.</small><button type="button" class="bag-photo-asset-make">Make from original photo</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
 
 // The sheet shows the photo and its actions; choosing a photo opens the aligner, a large pop-out with
 // guides. Use photo prepares the upload there (lighting removed, plate colour measured) and returns to
@@ -268,7 +314,7 @@ const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the o
 // onColor(color) reports the plate colour of a newly used photo, onColor(null) its removal.
 let sourceChooserId=0;
 export function createPhotoEditor(root,{onColor=()=>{}}={}){
- root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden><p class="bag-photo-status" role="status"></p>';
+ root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>'+LOOK('photoLook-'+(++lookGroupId))+'<p class="bag-photo-status" role="status"></p>';
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
@@ -295,7 +341,8 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  if(matchMedia('(min-width:701px) and (min-height:521px)').matches)dq('.photo-aligner-adjust').open=true;
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,haloModel,mode,url}.
  // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
- let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false;
+ // owned: the saved photo's disc and version {id,key}, which a game asset belongs to (photo-stamps.mjs).
+ let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null;
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -310,6 +357,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   q('.bag-photo-adjust').hidden=!used;q('.bag-photo-remove').hidden=!src;
   // A saved photo can be levelled again without the original (it was never uploaded): its own texture.
   q('.bag-photo-level').hidden=!(current&&!used&&!removed);
+  // The look belongs to the saved photo, so it shows only while that photo is the one in the sheet.
+  const look=q('.bag-photo-look'),shown=!!(owned&&current&&!used&&!removed);look.hidden=!shown;
+  if(shown){const state=photoLook(owned.id,owned.key);for(const input of look.querySelectorAll('input[type="radio"]'))input.checked=input.value===state.look;q('.bag-photo-asset-make').textContent=state.available?'Make again from original photo':'Make from original photo';}
  };
  const size=low=>Math.max(64,Math.min(low?360:720,Math.round(frame.clientWidth*Math.min(devicePixelRatio||1,2))));
  const paint=(low=false)=>{
@@ -323,7 +373,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  // mode 'frame' (a new photo: everything adjustable) or 'level' (a saved photo: the angle only).
  const openAligner=(bitmap,options,mode='frame')=>{
   closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options},mode};sync();
-  dialog.dataset.mode=mode;[dq('h2').textContent,dq('.photo-aligner-tip').textContent]=TEXT[mode];
+  dialog.dataset.mode=mode;[dq('h2').textContent,dq('.photo-aligner-tip').textContent]=TEXT[mode];dq('[data-aligner-confirm]').textContent=mode==='asset'?'Make game asset':'Use photo';
   dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;
   if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();
  };
@@ -353,16 +403,41 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   finally{if(id===serial)busy=false;}
  };
  q('.bag-photo-remove').onclick=()=>{serial++;busy=false;releaseUsed();removed=true;changed=true;q('.bag-photo-status').textContent='';renderSheet();onColor(null);};
- for(const input of root.querySelectorAll('input[type="file"]'))input.onchange=async()=>{
+ for(const input of root.querySelectorAll('input[type="file"]:not(.bag-photo-asset-file)'))input.onchange=async()=>{
   const chosen=input.files[0];input.value='';if(!chosen)return;const id=++serial;busy=true;
   try{const image=await decodePhoto(chosen);if(id!==serial){image.close();return;}q('.bag-photo-status').textContent='';openAligner(image,DEFAULTS);}
+  catch(e){if(id===serial)q('.bag-photo-status').textContent=e.message;}
+  finally{if(id===serial)busy=false;}
+ };
+ // The look: an existing asset switches at once; the first time, the original photo is framed and read.
+ const pickOriginal=()=>{if(owned&&!busy)q('.bag-photo-asset-file').click();};
+ q('.bag-photo-look').addEventListener('change',e=>{
+  if(!owned||e.target.type!=='radio')return;
+  const want=e.target.value,state=photoLook(owned.id,owned.key);
+  if(want==='asset'&&!state.available){renderSheet();pickOriginal();return;}
+  setPhotoLook(owned.id,owned.key,want);q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset, in this browser.':'Showing the photo.';renderSheet();
+ });
+ q('.bag-photo-asset-make').onclick=pickOriginal;
+ q('.bag-photo-asset-file').onchange=async()=>{
+  const input=q('.bag-photo-asset-file'),chosen=input.files[0];input.value='';if(!chosen||!owned)return;const id=++serial;busy=true;
+  try{const image=await decodePhoto(chosen);if(id!==serial){image.close();return;}q('.bag-photo-status').textContent='';openAligner(image,DEFAULTS,'asset');}
   catch(e){if(id===serial)q('.bag-photo-status').textContent=e.message;}
   finally{if(id===serial)busy=false;}
  };
  for(const el of dialog.querySelectorAll('[data-aligner-cancel]'))el.onclick=closeAligner;
  dq('[data-aligner-confirm]').onclick=async()=>{
   if(!draft||busy)return;const id=++serial,{bitmap,mode}=draft,options={...draft.options};clearGesture();busy=true;
-  dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent='Preparing your photo…';
+  dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent=mode==='asset'?'Making the game asset…':'Preparing your photo…';
+  if(mode==='asset'){
+   const target=owned;
+   try{
+    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
+    const asset=await photoStampAsset(bitmap,options,{plate});if(id!==serial)return;
+    await savePhotoStamp(target.id,target.key,asset);if(id!==serial)return;
+    closeAligner();q('.bag-photo-status').textContent='Game asset made. Kept in this browser.';renderSheet();
+   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message||'The game asset could not be made. Try again.';}}
+   return;
+  }
   try{
    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
    // Levelling only resamples the saved texture; it keeps the disc's colour as it is.
@@ -436,7 +511,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
 
  const reset=(item,mold)=>{
   closeSources();serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();
-  current=photoURL(item);removed=false;changed=false;plate=plateRatio(mold);
+  current=photoURL(item);owned=item?.id&&item?.texture_key?{id:String(item.id),key:item.texture_key}:null;removed=false;changed=false;plate=plateRatio(mold);
   rimInner=mold&&isOvermold({...mold,record:mold.name})?plate:null;bandInner=rimInner?null:bandRatio(mold);
   q('.bag-photo-status').textContent='';renderSheet();
  };
