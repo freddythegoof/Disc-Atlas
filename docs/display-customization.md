@@ -16,7 +16,7 @@ appearance was added on October 16.
 | `4fbed93` | Part 1: class colors and the bag accent, mix-and-match | Yes |
 | `7741f3a` | Part 2: preset packs | Needs Part 1 |
 | `7086eed`, `6105e8c` | Stamp appearance: ink and foil finishes on your own discs | Needs Part 1 |
-| `f616c68` | Part 3: two new themes, Paper and Dusk | Needs Part 1; droppable |
+| `f616c68`, `d29d4e5` | Part 3: two new themes, Paper and Dusk | Needs Part 1; droppable |
 
 Freddy's feel check works as asked: open Appearance from the site menu, tap a pack, swap one class
 color, and the atlas, the bag's class chips and the viewer agree at once, while the bag's glow,
@@ -272,25 +272,35 @@ and both have brand exports, which back the favicon swap. Every theme menu lists
 Verified in both themes, desktop and phone: the atlas with 3D marker art, the directory, the viewer
 and clay, My Bag with the 3D bag, My Map, Storage, the Gallery, Lost, the Appearance sheet, About,
 Privacy, Terms and Account settings, and a mid-cross-fade frame. The 06C colorblind test now runs in
-all six themes. Part 3 is droppable: reverting `f616c68` alone removes it.
+all six themes. Part 3 is droppable: reverting `d29d4e5` and `f616c68` removes it.
+
+The JS checks ask `theme.js` for the tone of the current theme name at the moment they run, and a
+MutationObserver keeps `data-tone` following `data-theme`. That matters because `app.js` and several
+suites set `data-theme` directly; the first version read a stale `data-tone` there and failed the
+pop-out, compare and appearance suites, which `d29d4e5` fixed.
 
 ## Proof
 
-Suites were run on the commits named, in a separate worktree so the code under test could not change
-mid-run. On a Mac, Chromium is launched with `--enable-gpu` (ANGLE on Metal), as the gallery gate is.
+Suites ran in a separate worktree, so the code under test could not change mid-run: the Part 1 set
+on `4fbed93`, a wider set on the stamp commit `7086eed`, a full run on `5dfc312`, and the
+theme-sensitive set again on the final `d29d4e5`. On a Mac, Chromium is launched with `--enable-gpu`
+(ANGLE on Metal), as the gallery gate is.
 
 | Suite | Result |
 | --- | --- |
 | `tests/display-palette.mjs` (new: catalog, discipline, all combinations, packs, stamps, persistence, theme tones) | Pass, 16 tests |
 | `tests/display-customization-browser.mjs` (new: the sheet, every consumer agreeing, accent scope, persistence before paint, keyboard, reset, packs, stamps in personal and neutral contexts) | Pass |
 | `tests/palette.mjs`, extended: the default and each labeled pack, rendered tokens, six themes | Pass (minimum 0.076) |
-| Bag unit suites, disc3d unit suites, `tests/brand-assets.mjs` | Pass |
-| Viewer: `disc3d-browser`, `disc3d-popout-browser`, `compare-viewer-polish-browser` | Pass |
-| Bag: `bag-scene`, `bag-3d`, `bag-browser`, `bag-pulled-quality`, `bag-pulled-sizing`, `bag-popup`, `bag-collections`, `bag-overmold`, `bag-demo`, `my-map` | Pass |
-| Atlas and photos: `atlas-3d-browser`, `photo-textures`, `all-discs` | Pass |
-| Theme and chrome: `apple-design-browser`, `apple-design-3-browser`, `brand-browser`, `dropdown-indicator-browser`, `disc-appearance-browser` | Pass |
-| `tests/atlas-stamp-cache.mjs` | Failed on `7086eed` (a helper sat outside the block the test runs); fixed in `6105e8c` |
-| `tests/discraft-stamps-browser.mjs` | Fails on `origin/main` too, at the same step: its baseline swap loads an old `stamp.mjs` that lacks `catalogStampAsset`. One earlier run on this branch failed sooner on a cold-start timing check; two reruns reached the same pre-existing failure as main. |
+| Bag and disc3d unit suites, `tests/brand-assets.mjs` | Pass |
+| Viewer: `disc3d-browser`, `disc3d-popout-browser`, `compare-viewer-polish-browser`, `disc-appearance-browser` | Pass on `d29d4e5` |
+| Bag: `bag-scene`, `bag-3d`, `bag-browser`, `bag-pulled-quality`, `bag-pulled-sizing`, `bag-popup`, `bag-collections`, `bag-overmold`, `bag-memorial`, `bag-demo`, `bag-spin-pocket`, `bag-staging`, `my-map` | Pass |
+| Atlas and photos: `atlas-3d-browser`, `atlas-organic`, `atlas-stamp-cache` with `atlas-stamps-browser`, `photo-textures`, `all-discs` | Pass |
+| Theme and chrome: `apple-design-browser`, `apple-design-3-browser`, `brand-browser`, `dropdown-indicator-browser` | Pass |
+| `tests/discraft-stamps-browser.mjs` | **Fails on `origin/main` too.** Run alone, both main and the branch fail at the same later step: its baseline swap loads an old `stamp.mjs` that lacks `catalogStampAsset`. Run right after the atlas-stamps suite, both main and the branch fail sooner, at a 700 ms check that the official Buzzz art has replaced the generated stamp. |
+
+Two one-off failures did not reproduce: `bag-staging` failed once on `5dfc312` (a disc measured just
+outside the canvas) and then passed three times, and `tests/atlas-stamp-cache.mjs` failed on
+`7086eed` because a helper sat outside the block the test runs, fixed in `6105e8c`.
 
 `tests/palette.mjs` needed two repairs that are not about this work: Black's map background is the
 short hex `#000`, which its parser could not read, and its last step waited for DOM dot markers that
