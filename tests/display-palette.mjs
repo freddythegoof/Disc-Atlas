@@ -50,7 +50,8 @@ test('Classic is today\'s Plan 06C palette, value for value, read from cosmic.cs
   for (const [theme, tone] of Object.entries(catalog.tones)) {
     const text = block(theme === 'light' ? ':root' : `:root[data-theme="${theme}"]`);
     for (const [key, name] of Object.entries(hue)) {
-      const value = text.match(new RegExp(`--palette-${name}:(#[0-9a-f]{6})`))[1];
+      // A theme that sets no palette of its own (Paper) inherits the :root (Light) values.
+      const own = text.match(new RegExp(`--palette-${name}:(#[0-9a-f]{6})`)), value = (own || block(':root').match(new RegExp(`--palette-${name}:(#[0-9a-f]{6})`)))[1];
       assert.equal(row(key)[0].id, 'classic', `${key}: Classic leads the row`);
       assert.equal(row(key)[0][tone], value, `${theme}: Classic ${key} is ${value}`);
     }
@@ -134,8 +135,8 @@ test('Choices persist like the theme: one key, applied before paint, unknown val
   const again = loadPalette({stored: saved, theme: 'light'});
   assert.equal(again.head.length, 1, 'a returning visitor gets the style before first paint');
   const css = again.head[0].textContent;
-  assert.match(css, /html:root\[data-theme="light"\]\{--distance:#cc5824\}/);
-  assert.match(css, /html:root\[data-theme="midnight"\],html:root\[data-theme="charcoal"\],html:root\[data-theme="black"\]\{--distance:#e06b39\}/);
+  assert.match(css, /html:root\[data-theme="light"\],html:root\[data-theme="paper"\]\{--distance:#cc5824\}/);
+  assert.match(css, /html:root\[data-theme="midnight"\],html:root\[data-theme="charcoal"\],html:root\[data-theme="dusk"\],html:root\[data-theme="black"\]\{--distance:#e06b39\}/);
   for (const scope of catalog.scope) assert.ok(css.includes(`html:root[data-theme="light"] ${scope}`), `accent reaches ${scope}`);
   assert.ok(!/html:root\[data-theme="light"\]\{[^}]*--lime/.test(css), 'the accent never lands on the root, so the site chrome keeps its lime');
 
@@ -234,4 +235,11 @@ test('Stamp choices persist with the rest, ignore anything uncurated, and leave 
   palette.reset();
   assert.equal(palette.stampStyle(), null);
   assert.equal(store.has('disc-atlas-display'), false);
+});
+
+test('Every theme in theme.js wears a swatch tone, and the same one theme.js gives it', () => {
+  const source = fs.readFileSync(new URL('../public/theme.js', import.meta.url), 'utf8');
+  const themes = Object.fromEntries([...source.matchAll(/(\w+): Object\.freeze\(\{label: '[^']+', tone: '(light|dark)'/g)].map(m => [m[1], m[2]]));
+  assert.deepEqual(Object.keys(themes), ['light', 'paper', 'midnight', 'charcoal', 'dusk', 'black']);
+  assert.equal(JSON.stringify(catalog.tones), JSON.stringify(themes));
 });

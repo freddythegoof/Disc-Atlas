@@ -31,7 +31,7 @@ try{
  assert.equal(await page.evaluate(()=>DisplayPalette.isDefault()&&!document.getElementById('display-palette')),true,'Untouched visitors see the 06C set exactly');
  for(const option of palettes){
  await page.evaluate(classes=>classes?DisplayPalette.set({classes}):DisplayPalette.reset(),option.classes);
- for(const theme of ['light','midnight','charcoal','black']){
+ for(const theme of ['light','paper','midnight','charcoal','dusk','black']){
   await page.evaluate(theme=>{applyTheme(theme);},theme);
   const palette=await page.evaluate(()=>{
    const css=getComputedStyle(document.documentElement);

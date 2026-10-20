@@ -6,8 +6,8 @@
    Per browser, like the theme: one localStorage key, no account storage. */
 (() => {
   const KEY = 'disc-atlas-display';
-  // Which swatch value each theme wears. A new theme joins here and nowhere else.
-  const TONES = {light: 'light', midnight: 'dark', charcoal: 'dark', black: 'dark'};
+  // Which swatch value each theme wears: theme.js's tones (tests/display-palette.mjs holds the two lists equal).
+  const TONES = {light: 'light', paper: 'light', midnight: 'dark', charcoal: 'dark', dusk: 'dark', black: 'dark'};
   // UI order follows the atlas chips: Driver, Fairway, Midrange, Putter.
   const CLASSES = [['distance', 'Driver'], ['fairway', 'Fairway'], ['mid', 'Midrange'], ['putter', 'Putter']];
   // [id, label, light value, dark value]. Each row keeps to its own hue sector at the lightness and chroma

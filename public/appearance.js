@@ -7,7 +7,8 @@
   if (!palette || !dialog) return;
   const $ = selector => dialog.querySelector(selector);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
-  const THEMES = [['light', 'Light'], ['midnight', 'Midnight'], ['charcoal', 'Charcoal'], ['black', 'Black']];
+  // theme.js owns the list (and its order).
+  const THEMES = Object.entries(window.DiscAtlasThemes || {}).map(([id, theme]) => [id, theme.label]);
 
   // A radiogroup of swatches. Arrow keys move the choice, as native radios do.
   const swatchRow = ({group, label, legend, current, swatches}) =>

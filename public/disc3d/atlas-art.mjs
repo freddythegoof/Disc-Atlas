@@ -151,7 +151,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // Resolve the theme default before every cache lookup so a theme switch cannot reuse the old rim.
  // A Halo copy (d.haloBand, disc3d/halo.mjs) on a one-piece mold: its photographed band, never a theme colour.
  // Halo v2 (d.haloModel): the band's wash and dye front, only with a band.
- const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(document.documentElement.dataset.theme==='light'?undefined:'#ffffff')}):
+ const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(document.documentElement.dataset.tone!=='dark'?undefined:'#ffffff')}):
   {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
   (asset?'|stamp:'+asset+'|'+JSON.stringify(catalogStampPlacement(d))+styleKey(d):'');

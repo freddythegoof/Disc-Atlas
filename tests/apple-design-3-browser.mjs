@@ -214,11 +214,11 @@ try{
      rows[name]=await header(page);
      await page.screenshot({path:`${dir}/${name}-${width}-${theme}.png`,clip:{x:0,y:0,width,height:name==='app'?Math.min(300,844):300}});
      if(['about','privacy','terms'].includes(name)){
-      // The theme control is Account's: an icon toggle and a menu of four radios, no labelled select (Privacy and
+      // The theme control is Account's: an icon toggle and a menu of six radios (Paper and Dusk joined in display customization), no labelled select (Privacy and
       // Terms since Prompt 4).
       const title=name[0].toUpperCase()+name.slice(1);
       const control=await page.evaluate(()=>({select:document.querySelectorAll('[data-theme-select],.theme-picker').length,toggle:document.querySelectorAll('header [data-theme-toggle]').length,choices:[...document.querySelectorAll('#siteMenu [data-theme-choice]')].map(b=>b.dataset.themeChoice),menu:!!document.querySelector('#siteMenuButton[aria-haspopup="menu"]#siteMenuButton')}));
-      assert.deepEqual(control,{select:0,toggle:1,choices:['light','midnight','charcoal','black'],menu:true},`${title} ${width} ${theme}: the Account theme control`);
+      assert.deepEqual(control,{select:0,toggle:1,choices:['light','paper','midnight','charcoal','dusk','black'],menu:true},`${title} ${width} ${theme}: the Account theme control`);
       await page.locator('[data-theme-toggle]').click();await page.waitForFunction(t=>document.documentElement.dataset.theme!==t,theme);
       await page.locator('#siteMenuButton').click();
       await page.locator('[data-theme-choice="charcoal"]').click();await page.waitForFunction(()=>document.documentElement.dataset.theme==='charcoal');

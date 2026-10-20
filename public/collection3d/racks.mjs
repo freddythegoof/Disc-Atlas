@@ -36,6 +36,9 @@ export const RACK_FINISHES={
  midnight:{frame:'#2e3746',trim:'#b25e3f',screws:'#7d8798',feet:'#07090d'},
  charcoal:{frame:'#383b41',trim:'#b25e3f',screws:'#868a92',feet:'#0b0c0e'},
  black:{frame:'#2c2c2e',trim:'#ad5a3c',screws:'#7c7c80',feet:'#040404'},
+ // Paper and Dusk: the same steel, warmed a step toward their umber pages.
+ paper:{frame:'#423d38',trim:'#a2523a',screws:'#a39b92',feet:'#1a1714'},
+ dusk:{frame:'#3b342e',trim:'#b25e3f',screws:'#8c8278',feet:'#0c0a09'},
 };
 // A finish from the palette (bag-values.js RACK_STYLES) keeps its frame and trim on every theme; Match
 // theme (auto) uses the theme's own. Screws and feet stay steel and black.
@@ -260,7 +263,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   focusRack(rack){focus=rack==null||rack>=count?null:rack;view.frame(box());onCamera();},
   zoomBy(f){view.setZoom(view.zoom*f);},zoomTo(z){view.setZoom(z);},get zoom(){return view.zoom;},
   turnBy(rad){view.turnBy(rad);},
-  // Repaint the rack for a site theme (light, midnight, charcoal or black); the discs keep their colours.
+  // Repaint the rack for a site theme (any of theme.js's six); the discs keep their colours.
   setTheme(theme){if(theme===finish)return;finish=theme;paint(finish,chosen);view.request();},
   // The player's finish from the palette (a RACK_STYLES key; null or auto follows the theme).
   setStyle(style){const key=rackStyle(style).key;if(key===chosen)return;chosen=key;paint(finish,chosen);view.request();},

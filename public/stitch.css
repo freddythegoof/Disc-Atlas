@@ -54,9 +54,28 @@
   --hairline:rgba(255,255,255,.07);
   --stitch-grid:rgba(255,255,255,.04);
 }
+/* Paper keeps Light's lime, on warm paper surfaces. */
+:root[data-theme="paper"] {
+  --panel:#fffdf8;--surface:#f1ece2;--selected:#e9e9d6;--line:#e4ddcf;
+  --lime:#3f6212;--accent-soft:#eef2de;--on-accent:#ffffff;
+  --accent-fill:#a3e635;--accent-ink:#1a2e05;
+  --accent-edge:color-mix(in srgb,#65a30d 45%,transparent);
+  --accent-glow:0 0 18px -4px rgba(101,163,13,.42);
+  --stitch-grid:rgba(58,42,20,.07);
+}
+/* Dusk keeps the dark themes' lime, on warm umber surfaces. */
+:root[data-theme="dusk"] {
+  --panel:#1b1714;--surface:#241f1b;--selected:#30291f;--line:#342c26;
+  --lime:#a3e635;--accent-soft:#1f2513;--on-accent:#132004;
+  --accent-fill:#a3e635;--accent-ink:#132004;
+  --accent-edge:rgba(163,230,53,.32);
+  --accent-glow:0 0 20px -4px rgba(163,230,53,.3);
+  --hairline:rgba(255,240,225,.07);
+  --stitch-grid:rgba(255,240,225,.05);
+}
 
 /* Page: a barely-there grid and a lime breath at the top, dark themes only. */
-:root:not([data-theme="light"]):not([data-theme="black"]) body {
+:root[data-tone="dark"]:not([data-theme="black"]) body {
   background:
     radial-gradient(ellipse 70% 40% at 50% 0%,rgba(163,230,53,.035),transparent 70%),
     linear-gradient(to right,rgba(255,255,255,.018) 1px,transparent 1px) 0 0/48px 48px,

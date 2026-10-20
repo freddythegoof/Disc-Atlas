@@ -12,7 +12,7 @@ test('the master preserves the supplied tilted disc badge',()=>{
  assert.match(svg,/<ellipse[^>]*cx="130"[^>]*cy="50"[^>]*rx="58"[^>]*ry="38"[^>]*fill="#b8ff00"/);
 });
 test('every variation and theme preserves the tilted four-node identity',()=>{
- for(const folder of ['', 'light/','midnight/','charcoal/','black/','dark/']){
+ for(const folder of ['', 'light/','paper/','midnight/','charcoal/','dusk/','black/','dark/']){
   for(const id of ['primary','secondary','mark','submark']){
    const svg=read(`${folder}${id}.svg`);
    assert.match(svg,/rotate\(-22\)/,`${folder}${id} preserves the tilt`);
