@@ -1,0 +1,112 @@
+[
+  {
+    "device": "desktop",
+    "gpuArgs": [
+      "--use-angle=d3d11",
+      "--enable-gpu"
+    ],
+    "art": "ready",
+    "timing": {
+      "at": 434.6,
+      "expected": 1580,
+      "initial": {
+        "zoom": 2.8,
+        "x": -2286.2748206656433,
+        "y": 914.8660103760259
+      },
+      "elapsed": 1583.3000000000002,
+      "firstFrame": 561.3999999985099
+    },
+    "firstFrameBaseline": 280,
+    "frames": [
+      {
+        "name": "start",
+        "ms": 0,
+        "zoom": 2.8,
+        "x": -2286.2748206656433,
+        "y": 914.8660103760259,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "mid",
+        "ms": 400,
+        "zoom": 1.7880803987484,
+        "x": -1000.9824290658929,
+        "y": 400.54887236583136,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "end",
+        "ms": 1580,
+        "zoom": 1,
+        "x": 0,
+        "y": 0,
+        "selected": "3d60892b6812",
+        "active": false,
+        "intro": false
+      }
+    ],
+    "clipped": [],
+    "pixelEquivalent": true,
+    "pixelMethod": "Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct"
+  },
+  {
+    "device": "phone",
+    "gpuArgs": [
+      "--use-angle=d3d11",
+      "--enable-gpu"
+    ],
+    "art": "ready",
+    "timing": {
+      "at": 388.2,
+      "expected": 1580,
+      "initial": {
+        "zoom": 4,
+        "x": -849.5393646070704,
+        "y": 997.9443724737773
+      },
+      "elapsed": 1583.2,
+      "firstFrame": 580.2000000029802
+    },
+    "firstFrameBaseline": 434.69999999552965,
+    "frames": [
+      {
+        "name": "start",
+        "ms": 0,
+        "zoom": 4,
+        "x": -849.5393646070704,
+        "y": 997.9443724737773,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "mid",
+        "ms": 400,
+        "zoom": 2.3134673312473337,
+        "x": -371.94740067333476,
+        "y": 436.92244388214243,
+        "selected": "3d60892b6812",
+        "active": true,
+        "intro": true
+      },
+      {
+        "name": "end",
+        "ms": 1580,
+        "zoom": 1,
+        "x": 0,
+        "y": 0,
+        "selected": "3d60892b6812",
+        "active": false,
+        "intro": false
+      }
+    ],
+    "clipped": [],
+    "pixelEquivalent": true,
+    "pixelMethod": "Buffer.equals on #map PNG screenshots: reveal vs direct (session seen), reduced motion vs direct"
+  }
+]

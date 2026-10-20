@@ -837,14 +837,15 @@ export async function mountBag(container, {
       stageAround = !!frame.around; stageBrick = !!frame.brick;
       for (const [key, spot] of spots) sides.set(key, spot.side);
       goal = pullToFit(spots, labels, reserve, clear, nameSpot);
-      if(desktopSizing && !keep.length){
+      // A canvas with no size (the bag hidden) has no bag to measure: the original scatter stands.
+      const fullBag=desktopSizing && !keep.length ? standingRect(1,[]) : null;
+      if(fullBag){
         const desktopBag=factor=>{
           const body=bagRect(factor);
           return {bag:standingRect(factor,[],body),bagWidth:body.width};
         };
         const allLabels=new Map(desktopSizing.entries.map(entry=>[entry.key,entry.label]));
         const allEntries=desktopSizing.entries.map(entry=>({...entry,label:{width:entry.label.width*unit,height:entry.label.height*unit}}));
-        const fullBag=standingRect(1,[]);
         const cacheKey=JSON.stringify([allEntries,view,width,height,clear,reserve,fullBag]);
         if(desktopFloorCache?.key!==cacheKey){
           // pullToFit uses fitCamera while searching. Restore the page view

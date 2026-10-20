@@ -1,0 +1,248 @@
+[
+  {
+    "device": "desktop",
+    "theme": "light",
+    "columns": [
+      8,
+      1432,
+      360
+    ],
+    "headerBottom": 68,
+    "mapTop": 80,
+    "sampleRows": [
+      66,
+      82
+    ],
+    "rgb": [
+      247,
+      248,
+      250
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "desktop",
+    "theme": "midnight",
+    "columns": [
+      8,
+      1432,
+      360
+    ],
+    "headerBottom": 68,
+    "mapTop": 80,
+    "sampleRows": [
+      66,
+      82
+    ],
+    "rgb": [
+      8,
+      11,
+      16
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "desktop",
+    "theme": "charcoal",
+    "columns": [
+      8,
+      1432,
+      360
+    ],
+    "headerBottom": 68,
+    "mapTop": 80,
+    "sampleRows": [
+      66,
+      82
+    ],
+    "rgb": [
+      16,
+      17,
+      19
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "desktop",
+    "theme": "black",
+    "columns": [
+      8,
+      1432,
+      360
+    ],
+    "headerBottom": 68,
+    "mapTop": 80,
+    "sampleRows": [
+      66,
+      82
+    ],
+    "rgb": [
+      0,
+      0,
+      0
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "desktop",
+    "theme": "paper",
+    "columns": [
+      8,
+      1432,
+      360
+    ],
+    "headerBottom": 68,
+    "mapTop": 80,
+    "sampleRows": [
+      66,
+      82
+    ],
+    "rgb": [
+      246,
+      242,
+      234
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "desktop",
+    "theme": "dusk",
+    "columns": [
+      8,
+      1432,
+      360
+    ],
+    "headerBottom": 68,
+    "mapTop": 80,
+    "sampleRows": [
+      66,
+      82
+    ],
+    "rgb": [
+      20,
+      17,
+      15
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "phone",
+    "theme": "light",
+    "columns": [
+      8,
+      382
+    ],
+    "headerBottom": 112,
+    "mapTop": 124,
+    "sampleRows": [
+      110,
+      126
+    ],
+    "rgb": [
+      247,
+      248,
+      250
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "phone",
+    "theme": "midnight",
+    "columns": [
+      8,
+      382
+    ],
+    "headerBottom": 112,
+    "mapTop": 124,
+    "sampleRows": [
+      110,
+      126
+    ],
+    "rgb": [
+      8,
+      11,
+      16
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "phone",
+    "theme": "charcoal",
+    "columns": [
+      8,
+      382
+    ],
+    "headerBottom": 112,
+    "mapTop": 124,
+    "sampleRows": [
+      110,
+      126
+    ],
+    "rgb": [
+      16,
+      17,
+      19
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "phone",
+    "theme": "black",
+    "columns": [
+      8,
+      382
+    ],
+    "headerBottom": 112,
+    "mapTop": 124,
+    "sampleRows": [
+      110,
+      126
+    ],
+    "rgb": [
+      0,
+      0,
+      0
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "phone",
+    "theme": "paper",
+    "columns": [
+      8,
+      382
+    ],
+    "headerBottom": 112,
+    "mapTop": 124,
+    "sampleRows": [
+      110,
+      126
+    ],
+    "rgb": [
+      246,
+      242,
+      234
+    ],
+    "changedPixels": 0
+  },
+  {
+    "device": "phone",
+    "theme": "dusk",
+    "columns": [
+      8,
+      382
+    ],
+    "headerBottom": 112,
+    "mapTop": 124,
+    "sampleRows": [
+      110,
+      126
+    ],
+    "rgb": [
+      20,
+      17,
+      15
+    ],
+    "changedPixels": 0
+  }
+]

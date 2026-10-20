@@ -61,7 +61,7 @@ try {
     inputs: document.querySelectorAll('#appearanceDialog input').length,
     reset: document.querySelector('[data-appearance-reset]').disabled
   }));
-  assert.deepEqual(sheet.rows, [['distance', 8, 'classic'], ['fairway', 8, 'classic'], ['mid', 8, 'classic'], ['putter', 8, 'classic'], ['accent', 9, 'lime'], ['ink', 11, 'auto'], ['finish', 5, 'flat']]);
+  assert.deepEqual(sheet.rows, [['distance', 9, 'classic'], ['fairway', 9, 'classic'], ['mid', 9, 'classic'], ['putter', 9, 'classic'], ['accent', 9, 'lime'], ['ink', 11, 'auto'], ['finish', 5, 'flat']]);
   assert.equal(sheet.theme, 'light');
   assert.equal(sheet.inputs, 0, 'no free color input anywhere');
   assert.equal(sheet.reset, true, 'Reset is idle at the defaults');
@@ -138,7 +138,8 @@ try {
   // --- Packs: one tap sets four classes and the accent; a tweak after it is the player's own mix.
   await openSheet();
   const packs = await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-pack]')].map(b => [b.dataset.pack, b.getAttribute('aria-checked'), !!b.querySelector('.appearance-pack-tag')]));
-  assert.deepEqual(packs, [['classic', 'true', true], ['harbor', 'false', true], ['sunset', 'false', true], ['field', 'false', false], ['floodlight', 'false', true]]);
+  assert.deepEqual(packs, [['classic', 'true', true], ['harbor', 'false', true], ['sunset', 'false', true], ['field', 'false', false], ['floodlight', 'false', true],
+    ['grayscale', 'false', true], ['neon', 'false', false], ['pastel', 'false', false], ['vintage', 'false', false], ['jewel', 'false', true]]);
   await page.locator('#appearanceDialog [data-pack="harbor"]').click();
   assert.deepEqual(await page.evaluate(() => DisplayPalette.get()), {classes: {distance: 'coral', fairway: 'navy', mid: 'teal', putter: 'lavender'}, accent: 'aqua', stamp: {ink: 'auto', finish: 'flat'}});
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-row] [aria-checked="true"]')].map(b => b.dataset.swatch)), ['coral', 'navy', 'teal', 'lavender', 'aqua', 'auto', 'flat'], 'the rows show what the pack chose, and stamps are untouched');
@@ -150,6 +151,40 @@ try {
   assert.equal(await page.evaluate(() => DisplayPalette.pack()), 'field', 'arrow keys move between packs');
   await page.keyboard.press('Escape');await settle(1200);
   await agree('Field pack');
+  await page.evaluate(() => DisplayPalette.reset());await settle(300);
+
+  // --- The variety row (docs/more-packs.md): a second row of five under a plain caption, packs like any other.
+  await openSheet();
+  const packRows = await page.evaluate(() => {
+    const list = document.querySelector('#appearanceDialog [data-appearance-packs]'), caption = list.querySelector('[data-pack-row-caption]');
+    const top = id => Math.round(list.querySelector(`[data-pack="${id}"]`).getBoundingClientRect().top);
+    return {caption: caption?.textContent, before: caption?.previousElementSibling?.dataset.pack, after: caption?.nextElementSibling?.dataset.pack,
+      first: new Set(['classic', 'harbor', 'sunset', 'field', 'floodlight'].map(top)).size, second: new Set(['grayscale', 'neon', 'pastel', 'vintage', 'jewel'].map(top)).size,
+      below: top('grayscale') > top('floodlight')};
+  });
+  assert.deepEqual(packRows, {caption: 'More looks, chosen for variety. Any that are also colorblind-safe say so.', before: 'floodlight', after: 'grayscale', first: 1, second: 1, below: true},
+    'two rows of five on desktop, the caption between them');
+  await page.locator('#appearanceDialog [data-pack="floodlight"]').focus();await page.keyboard.press('ArrowRight');
+  assert.equal(await page.evaluate(() => DisplayPalette.pack()), 'grayscale', 'arrow keys cross into the second row');
+  assert.deepEqual(await page.evaluate(() => DisplayPalette.get()), {classes: {distance: 'graphite', fairway: 'pewter', mid: 'ash', putter: 'pearl'}, accent: 'silver', stamp: {ink: 'auto', finish: 'flat'}});
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('#appearanceDialog [data-row] [aria-checked="true"]')].map(b => b.dataset.swatch)), ['graphite', 'pewter', 'ash', 'pearl', 'silver', 'auto', 'flat'], 'all five settings, shown in the rows');
+  t = await tokens();
+  assert.deepEqual(t.root, {distance: '#515151', fairway: '#6f6f6f', mid: '#929292', putter: '#b2b2b2'});
+  assert.equal(await page.locator('#appearanceDialog [data-pack-name]').innerText(), 'Grayscale');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.appearance-bag-add')).backgroundColor), 'rgb(197, 203, 210)', 'the preview wears the silver accent');
+  await page.locator('#appearanceDialog [data-pack="neon"]').click();
+  assert.deepEqual(await page.evaluate(() => DisplayPalette.get()), {classes: {distance: 'tangerine', fairway: 'sky', mid: 'lime', putter: 'magenta'}, accent: 'mint', stamp: {ink: 'auto', finish: 'flat'}});
+  await pick('putter', 'pearl');
+  assert.equal(await page.locator('#appearanceDialog [data-pack-name]').innerText(), 'Your mix', 'a tweak makes it your own');
+  assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('disc-atlas-display'))).classes.putter, 'pearl');
+  await page.locator('#appearanceDialog [data-pack="grayscale"]').click();
+  await page.keyboard.press('Escape');await settle(1200);
+  await agree('Grayscale pack');
+  // Dark themes wear the lifted ladder.
+  await page.locator('#siteMenuButton').click();await page.locator('#siteMenu [data-theme-choice="midnight"]').click();await page.keyboard.press('Escape');await settle(1200);
+  assert.deepEqual((await tokens()).root, {distance: '#5c5c5c', fairway: '#7a7a7a', mid: '#a4a4a4', putter: '#c5c5c5'});
+  await agree('Grayscale pack, Midnight');
+  await page.locator('#siteMenuButton').click();await page.locator('#siteMenu [data-theme-choice="light"]').click();await page.keyboard.press('Escape');
   await page.evaluate(() => DisplayPalette.reset());await settle(300);
 
   // --- Information pages do not load the palette: the About hero keeps its own clay.

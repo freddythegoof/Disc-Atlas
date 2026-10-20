@@ -86,6 +86,10 @@
 /* Pitch black is flat: no page grid, no lime breath. */
 :root[data-theme="black"] body { background:#000; }
 
+/* The immersive Atlas also exposes the page between header and map. Keep that gap seamless;
+   the map keeps its own grid, while other views keep the page wash. */
+:root body[data-view="map"]:not(.my-bag-mode) { background:var(--bg); }
+
 /* Header and primary nav */
 header { background:var(--glass); border-bottom-color:var(--hairline); }
 /* On the Flight Atlas the header and the map are one surface: no rule between them, and the map's
