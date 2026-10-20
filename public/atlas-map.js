@@ -28,7 +28,6 @@ let groupRevision=0,groupWorker=null,groupContext=null,regrouping=false,retireme
 const preparedGroups=new Map(),pendingGroups=new Set();
 const markerNodes=new Map();
 const MAX_MAP_ZOOM=9;
-const planetLabels=new Map();
 let satelliteLabelsSuppressed=false;
 let mapViewport=null;
 const fullLabelFootprints=new Map();
@@ -91,6 +90,7 @@ function measureChrome(){
 }
 // The main Atlas rests discs organically (AtlasGroups.curate); My Map keeps its plotted overview.
 function organicAtlas(){return !myMap;}
+function immersiveMap(){return !document.body.classList.contains('my-bag-mode');}
 // Curate options for a level at the current zoom (AtlasGroups.organicOptions), with the chrome measured here.
 function organicOptions(area,w,h,cache,first=null){
  if(!mapChrome)measureChrome();
@@ -199,7 +199,7 @@ function prepareZoomLevel(nextZoom){
  if(level!==groupCache?.level){const {items,w,h,immersive}=groupContext;prepareGroups(level,items,w,h,immersive);}
 }
 function buildClusters(items,w,h){
- const immersive=!document.body.classList.contains('my-bag-mode'),area=window.AtlasLayout.bounds(w,h,immersive);
+ const immersive=immersiveMap(),area=window.AtlasLayout.bounds(w,h,immersive);
  const changed=!groupContext||groupContext.items!==items||groupContext.w!==w||groupContext.h!==h||groupContext.immersive!==immersive;
  if(changed){
   cancelRegroup();
@@ -297,7 +297,7 @@ function shownPositions(items,w,h,immersive){
 }
 function shownPosition(id){
  const {width:w,height:h}=mapViewport||canvas.getBoundingClientRect();
- return shownPositions(filtered,w,h,!document.body.classList.contains('my-bag-mode')).get(id)??atlasPositions.get(id);
+ return shownPositions(filtered,w,h,immersiveMap()).get(id)??atlasPositions.get(id);
 }
 function featuredDisc(){return filtered.find(d=>d.name.toLowerCase()==='destroyer'&&/innova/i.test(d.brand)&&d.speed!=null)||filtered.find(d=>d.speed!=null);}
 function focusFeatured(){
@@ -374,7 +374,7 @@ function draw(){
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
  artFrame();
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.font='12px DM Sans, sans-serif';}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
- const immersive=!document.body.classList.contains('my-bag-mode');
+ const immersive=immersiveMap();
  const area=window.AtlasLayout.bounds(w,h,immersive),plotBottom=h-(immersive?(w<700?155:110):16);
  mapClusters=buildClusters(filtered,w,h);
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
@@ -401,7 +401,7 @@ function draw(){
  // Explain the selected disc's offset without turning a dense view into a web of lines.
  // An organic rest offset is the disc's own small toss, not a displacement worth a line.
  for(const g of mapClusters){if(!organicAtlas()&&!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
- drawPlanetLabels();
+ updateSatelliteLabelSuppression();
  renderMarkers();drawSatelliteLeaders();drawCompareHighlights();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
  // Discs still waiting for their 3D render get another frame's budget.
@@ -717,12 +717,10 @@ function drawSatelliteLeaders(){
 function setMapText(node,text){if(node.textContent!==text)node.textContent=text;}
 // Growth settles before the deepest regroup boundary; only artwork scales.
 function mapMarkerScale(){return AtlasGroups.artRoom(zoom);}
-function drawPlanetLabels(){
- // Preserve the shipped label-density hysteresis. Automatic low-zoom names
- // now come exclusively from measured DOM promotion at their true positions.
+function updateSatelliteLabelSuppression(){
+ // My Map's live promotion path still depends on this shipped hysteresis.
  if(zoom>=2.9)satelliteLabelsSuppressed=true;
  else if(zoom<=2.7)satelliteLabelsSuppressed=false;
- planetLabels.clear();groupCache.labelPlacements?.clear();
 }
 function renderMarkers(){
  const layer=$('#mapMarkers'),live=new Set(),brandView=!!(selectedBrands.size||myMap);
@@ -1010,7 +1008,7 @@ const CALM_CAMERA_MS=150;let cameraEase=null;
 const edgeFeedback={x:0,y:0};let edgeTween=null,edgeReleaseTimer=null;
 function boundedCamera(target,result,area){
  const {width:w,height:h}=mapViewport;
- return window.AtlasLayout.constrain(target,area||window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode')),groupCache?.extent,36,result);
+ return window.AtlasLayout.constrain(target,area||window.AtlasLayout.bounds(w,h,immersiveMap()),groupCache?.extent,36,result);
 }
 function paintEdge(){
  const map=$('#map'),x=edgeFeedback.x,y=edgeFeedback.y;
@@ -1087,7 +1085,7 @@ function tweenCamera(target){
  if(!window.AtlasMotion?.enabled()&&!window.AtlasMotion?.reduced()){stopCamera();zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
  if(!cameraTween)cameraSpring.at=performance.now();
  cameraEase=window.AtlasMotion.enabled()?null:{from:{zoom,x:pan.x,y:pan.y},at:performance.now()};
- cameraSpring.area=AtlasLayout.bounds(mapViewport.width,mapViewport.height,!document.body.classList.contains('my-bag-mode'));
+ cameraSpring.area=AtlasLayout.bounds(mapViewport.width,mapViewport.height,immersiveMap());
  cameraSpring.zooming=target.zoom!==zoom;
  cameraDestination=target;cameraTween=cameraSpring;scheduleMapDraw();
 }
@@ -1108,7 +1106,7 @@ function releaseCamera(velocity){
 }
 function zoomDestination(next,anchor,source){
  const {width:w,height:h}=mapViewport,at=anchor||{x:w/2,y:h/2},ratio=next/(source?.zoom??zoom);
- const area=window.AtlasLayout.bounds(w,h,!document.body.classList.contains('my-bag-mode'));
+ const area=window.AtlasLayout.bounds(w,h,immersiveMap());
  return {zoom:next,x:next===1?0:at.x-area.left-(at.x-area.left-(source?.x??pan.x))*ratio,
   y:next===1?0:at.y-area.bottom-(at.y-area.bottom-(source?.y??pan.y))*ratio};
 }

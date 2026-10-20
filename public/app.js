@@ -21,16 +21,15 @@ function inLens(d){const lens=activeLens();return lens==='only'?bagColors().has(
 // Group leads and label priority follow this order: the player's bag first, then the curated list.
 function atlasPriority(){const featured=window.DiscAtlasFeatured||[];if(activeLens()==='default'&&!myMap)return featured;const bag=bagColors();return [...[...bag.keys()].map(id=>({id})),...featured.filter(f=>!bag.has(f.id))];}
 let manufacturers=[],stackDiscs=[],speedAscending=false,stabilityAscending=false,newestAscending=false;
-let discs=[],meta={},filtered=[],selected=null,hover=null,view=document.body.dataset.view,limit=80,zoom=1,pan={x:0,y:0},points=[],comparison=[],hand='RHBH',power=100,drag=null,moved=false;
+let discs=[],meta={},filtered=[],selected=null,view=document.body.dataset.view,limit=80,zoom=1,pan={x:0,y:0},comparison=[],hand='RHBH',power=100;
 const colors={putter:'',mid:'',fairway:'',distance:'',unknown:''},typeOf=d=>d.speed==null?'unknown':d.category==='Putter'?'putter':d.category==='Midrange'?'mid':d.category==='Control Driver'?'fairway':d.category==='Distance Driver'?'distance':d.speed<=3?'putter':d.speed<=5?'mid':d.speed<=9?'fairway':'distance',score=d=>d.speed==null?null:Math.max(0,Math.min(100,50+10*(d.turn+d.fade))),stability=d=>score(d)==null?'Not rated':score(d)<40?'Understable':score(d)>60?'Overstable':'Neutral';
 const canvas=$('#canvas'),ctx=canvas.getContext('2d');
 let themePalette={};
 let brandPalette=[];
-function applyTheme(theme,persist=false){
+function applyTheme(theme){
  document.documentElement.dataset.theme=theme;
- if(persist){try{localStorage.setItem('disc-atlas-theme',theme);}catch{}}
  const css=getComputedStyle(document.documentElement),token=n=>css.getPropertyValue('--'+n).trim();
- themePalette={text:token('text'),muted:token('muted'),background:token('map-bg'),grid:token('grid'),center:token('center-line'),edge:token('marker-edge'),compare:token('palette-vermillion')};
+ themePalette={text:token('text'),muted:token('muted'),background:token('map-bg'),grid:token('grid'),center:token('center-line'),compare:token('palette-vermillion')};
  for(const kind of Object.keys(colors))colors[kind]=token(kind);
  brandPalette=['blue','orange','green','purple','sky','yellow','vermillion'].map(hue=>token('palette-'+hue));
 
@@ -51,7 +50,7 @@ function showOnAtlas(d){
  if(!d||d.speed==null||!atlasPositions.has(d.id))return;
  if(!filtered.includes(d)){$('#search').value='';selectedBrands.clear();selectedTypes.clear();$('#speed').value=0;$('#stability').value='';if(!inCollection(d))$('#collection').value='all';filter();renderCompare();}
  // A map that has never been shown has no groups yet; draw it before selecting.
- measureMap();draw();const w=canvas.clientWidth,h=canvas.clientHeight,immersive=!document.body.classList.contains('my-bag-mode');
+ measureMap();draw();const w=canvas.clientWidth,h=canvas.clientHeight,immersive=immersiveMap();
  const footprints=groupContext?.items===filtered?groupContext.footprints:measureFullLabels(filtered);
  const level=z=>AtlasGroups.level(z),own=z=>window.AtlasGroups.build(filtered,shownPositions(filtered,w,h,immersive),w,h,level(z),immersive,footprints,atlasPriority()).groups.some(g=>g.key===d.id);
  const target=[4,5,6.35,8,MAX_MAP_ZOOM].find(own)??MAX_MAP_ZOOM;
@@ -61,7 +60,7 @@ function showOnAtlas(d){
  const box=canvas.getBoundingClientRect(),panel=$('#detail').getBoundingClientRect(),sheet=panel.left<box.left+box.width*.2;
  const at=sheet?{x:box.width/2,y:(Math.max(box.top,$('#search').getBoundingClientRect().bottom)+panel.top)/2-box.top}:{x:(Math.min(panel.left,box.right)-box.left)/2,y:h*.48};
  const camera=window.AtlasLayout.camera(shownPosition(d.id),w,h,target);
- prepareZoomLevel(target);tweenCamera({...camera,x:camera.x+at.x-w*.5,y:camera.y+at.y-h*.48},.45);
+ prepareZoomLevel(target);tweenCamera({...camera,x:camera.x+at.x-w*.5,y:camera.y+at.y-h*.48});
 }
 // state: {ids: bagged mold IDs, positions: personal positions, shifts: mold ID -> index points}.
 // New positions invalidate the groups on screen, so they are rebuilt at once, not kept during a regroup.
@@ -79,7 +78,6 @@ function hideMyMap(){
  $('#directory').before($('#mapWrap'));({zoom,pan}=sharedCamera);sharedCamera=null;
  view=document.body.dataset.view;$('#mapWrap').hidden=view!=='map';measureMap();filter();
 }
-function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h);}
 // Warm the initial panel after the map paints, outside the user's selection path.
 function prepareFeaturedDetails(){if(selected&&$('#detail').hidden&&$('#detail .detail-placeholder')){detail();$('#flight svg')?.pauseAnimations();}}
 let detailTrigger=null;
@@ -224,7 +222,7 @@ function renderCompare(){
   card.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:220,easing:'cubic-bezier(.16,1,.3,1)'});
  }
 }
-$('#search').oninput=filter;$('#speed').oninput=filter;$('#stability').onchange=filter;$('#sort').onchange=()=>{filter();setView('list')};$('#types').onclick=e=>{const b=e.target.closest('button');if(b)toggleType(b.dataset.type)};$('#typeChips').onclick=e=>{const b=e.target.closest('button[data-type]');if(b)toggleType(b.dataset.type)};$('#reset').onclick=reset;$('#emptyReset').onclick=()=>{if(filtered.some(d=>d.speed!=null)){$('#zoomReset').click();}else reset();};$('#mapTab').onclick=()=>setView('map');$('#listTab').onclick=()=>setView('list');$('#unratedBtn').onclick=()=>{$('#method').close();$('#stability').value='unknown';filter();setView('list')};$('#rows').onclick=e=>{const b=e.target.closest('[data-id]');if(b)select(discs.find(d=>d.id===b.dataset.id));};$('#more').onclick=()=>{limit+=80;renderList()};$('#zoomIn').onclick=()=>animateZoom(1.3);$('#zoomOut').onclick=()=>animateZoom(1/1.3);$('#zoomReset').onclick=()=>tweenCamera({zoom:1,x:0,y:0},.28);$('#compareBar').onclick=e=>{const b=e.target.closest('[data-remove]');if(b){comparison=comparison.filter(d=>d.id!==b.dataset.remove);renderCompare();detail();}};['#sourcesBtn','#coverageBtn'].forEach(s=>$(s).onclick=()=>$('#method').showModal());$('#closeMethod').onclick=()=>$('#method').close();$('#method').onclick=e=>{if(e.target===$('#method')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};initAtlasMap();new ResizeObserver(()=>{measureMap();draw();}).observe($('#map'));setView(view);load();
+$('#search').oninput=filter;$('#speed').oninput=filter;$('#stability').onchange=filter;$('#sort').onchange=()=>{filter();setView('list')};$('#types').onclick=e=>{const b=e.target.closest('button');if(b)toggleType(b.dataset.type)};$('#typeChips').onclick=e=>{const b=e.target.closest('button[data-type]');if(b)toggleType(b.dataset.type)};$('#reset').onclick=reset;$('#emptyReset').onclick=()=>{if(filtered.some(d=>d.speed!=null)){$('#zoomReset').click();}else reset();};$('#mapTab').onclick=()=>setView('map');$('#listTab').onclick=()=>setView('list');$('#unratedBtn').onclick=()=>{$('#method').close();$('#stability').value='unknown';filter();setView('list')};$('#rows').onclick=e=>{const b=e.target.closest('[data-id]');if(b)select(discs.find(d=>d.id===b.dataset.id));};$('#more').onclick=()=>{limit+=80;renderList()};$('#zoomIn').onclick=()=>animateZoom(1.3);$('#zoomOut').onclick=()=>animateZoom(1/1.3);$('#zoomReset').onclick=()=>tweenCamera({zoom:1,x:0,y:0});$('#compareBar').onclick=e=>{const b=e.target.closest('[data-remove]');if(b){comparison=comparison.filter(d=>d.id!==b.dataset.remove);renderCompare();detail();}};['#sourcesBtn','#coverageBtn'].forEach(s=>$(s).onclick=()=>$('#method').showModal());$('#closeMethod').onclick=()=>$('#method').close();$('#method').onclick=e=>{if(e.target===$('#method')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}};initAtlasMap();new ResizeObserver(()=>{measureMap();draw();}).observe($('#map'));setView(view);load();
 
 function recentCutoff(){const date=new Date((meta.statusAsOf||'2026-09-23')+'T00:00:00Z');date.setUTCMonth(date.getUTCMonth()-24);return date;}
 function isCurrentOrRecent(d){const p=d.production||{};if(p.status==='active'||p.status==='catalog_listed')return true;if(p.status!=='retired'||!p.retirementAnnouncedAt)return false;const date=new Date(p.retirementAnnouncedAt+'T00:00:00Z'),asOf=new Date((meta.statusAsOf||'2026-09-23')+'T00:00:00Z');return date>=recentCutoff()&&date<=asOf;}

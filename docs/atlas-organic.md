@@ -173,8 +173,8 @@ size and its name is not drawn at all, as curated discs already were.
   `public/atlas-map.js`), so they always sit behind the curated discs. Each disc is a blit of a
   cached sprite. Each name is drawn once per theme and type, into a cached sprite. Names are drawn
   only above 1% strength, and at most 6 new name sprites are made in a frame. A level's names are
-  also drawn ahead in idle time. They are decoration for the eye, not buttons: a click on one does
-  nothing, and they are not in the tab order.
+  also drawn ahead in idle time. A pointer click on their art or a readable name selects the disc;
+  they are not buttons and are not in the tab order.
 - **Cost.** The depth pass runs in the worker with its level. On the main thread it runs only when no
   worker result fits. A frame between levels only re-checks the level's own spots. Two slower
   approaches were removed: a CSS variable on the marker layer, which restyled every marker each
