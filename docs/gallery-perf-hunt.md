@@ -1,4 +1,4 @@
-# Gallery per-flip performance hunt — Phases 1–2
+# Gallery per-flip performance hunt — Phases 1–3
 
 October 17, 2026. **Phase 2 retained a one-file experiment; Gallery and Atlas phone perf gates remain red. Stop for Freddy.** See Phase 2 below for results, regressions and screenshots. Phase 1 attribution is retained as historical evidence.
 
@@ -211,3 +211,81 @@ Unit command: `node --test tests/bag.mjs tests/bag-values.mjs tests/bag-3d-layou
 Syntax, changed-file ESLint and whitespace checks passed. AST-only `graphify update .` ran with environment/credential/document exclusions verified; no topology change was detected, so committed graph outputs stayed untouched. Independent read-only review found no guard regression. Final diff/protected-file checks against `4e5930a` confirm only the named product file plus report/evidence changes. Historical generated fixes evidence was restored; Phase 2 results are separate. [SHA-256 manifest](assets/gallery-perf-hunt/phase2/sha256.json) covers committed Git blob bytes (`git show HEAD:<path>`), so text checksums remain portable across Git line-ending conversions.
 
 **STOP for Freddy.** Keep `fb382fe` as the separate local experiment and commit this report/evidence separately. Both perf gates remain red. No second experiment, `reliefTexture()` work, push, PR, merge or deploy. Freddy's quiet-Mac re-run remains the landing judge; this run makes no landing claim.
+
+## Phase 3 — reasoning burst over the collected evidence (the Mac 241 signature)
+
+October 19, 2026. Fable, Freddy's Mac. **Pure analysis: no product code, no measurement, no gate edit, no push.** Halo v2 is on main (`f271f00`); this section re-aims the hunt and lands nothing. The quiet-Mac judgment run remains the landing judge.
+
+### What was read, and what was not available
+
+Read in full from this branch: the Phase 1 and Phase 2 text above; all **527 rows** of [tasks.csv](assets/gallery-perf-hunt/tasks.csv) with [summary.json](assets/gallery-perf-hunt/summary.json) and the manifest; the seven gate reports behind the PC numbers ([before](images/storage-all-discs-fixes/before.json), [after-initial](images/storage-all-discs-fixes/after-initial.json), [after-deferred](images/storage-all-discs-fixes/after-deferred.json), [after](images/storage-all-discs-fixes/after.json), [fresh before](assets/gallery-perf-hunt/phase2/before-variant-fresh.json), [pre-experiment](assets/gallery-perf-hunt/phase2/pre-experiment-fresh.json), [post-experiment](assets/gallery-perf-hunt/phase2/post-experiment.json)); the `fb382fe` diff; `tests/gallery-fixes-browser.mjs`; the before (`e59e67e`) and after Gallery sources; `public/disc3d/viewer.mjs`, `photo.mjs`, `stamp.mjs`; and [storage-all-discs-fixes.md](storage-all-discs-fixes.md).
+
+Not available on this Mac: the two prompt-library files (`gallery-perf-hunt-prompt.md`, `gallery-perf-hunt-phase-2-prompt.md`). They are not in the checkout, Documents, Desktop, Downloads, iCloud Drive or the local agent session folders. The numbers they carry for the PC (14 → 7 → 8; 8 vs limit 3; 2 baseline) were taken from the gate JSONs above instead. The **quiet-Mac rows themselves** (desktop 61 vs limit 1, phone 242 / 241 / 241 / 244 vs limit 3, longest tasks about 270–530 ms, fly and still p95 passing) exist in no repository file or local transcript; they are used here exactly as the burst brief states them, unverified against a stored report. Everything below that depends on them says so.
+
+### Three facts the Phase 1 table carries but the text did not spell out
+
+1. **The PC long tasks fall into two classes by wall / thread-CPU ratio.** Under the 4× phone throttle, pure main-thread work shows wall ≈ 4 × CPU. The 425 photo-continuation tasks sit at a median ratio of **4.0** (range 3.4–5.3), JS share about 0.8, never above 200 ms: `reliefTexture()` is CPU, nothing else. The 79 Gallery-frame tasks sit at ratios of **4.7–11** (one at 20) with JS shares of 0.2–0.7 and up to **50 ms** left over after JS, style, layout and paint are subtracted. The 23 viewer scheduled draws reach ratios of **36 and 88**: 99.7 ms wall on 2.8 ms CPU (before, flip 213), 118.4 ms on 3.7 ms (after wait-ready, flip 16), 79.8 ms on 0.9 ms (before wait-ready, flip 150). A ratio far above the throttle factor means the main thread was **blocked on another thread or process** (compositor or GPU side), which the CPU throttle does not stretch. The PC therefore already shows a waiting class, small and intermittent on an RTX 3070 under D3D11.
+2. **The waiting class is where after differs from before inside the gate loop.** Gate-style before: 60 tasks, all photo. Gate-style after: 58 photo + **38 Gallery-frame**; the CPU-sampled after run 59 + 9. Wait-ready: 6 Gallery + 15 viewer before versus 20 Gallery + 6 viewer after. The before build has no per-flip frame task crossing 50 ms in the gate loop on any capture; the after build has them on every mold transition (Stalker 6, Destroyer 6, Buzzz 9, Luna 17 in the traced gate-style run), at 50–150 ms.
+3. **The photo class is capped by construction.** 241 flips over four copies arrive at Destroyer 60 or 61 times. Stock flips create no `reliefTexture()` task. No count built on the photo class can reach 241.
+
+### How the gate counts, and why healthy p95s are not a contradiction
+
+In `tests/gallery-fixes-browser.mjs:76–79` each flip runs in the continuation of `await frame()`: click → `update()`/`build()`/new textures → `renderNow()` → the `fly` sample. That JS runs inside one animation-frame task, which then continues into style, layout, paint and the compositor commit of the same frame. `fly` stops after the JS; the Long Tasks observer times the whole task. The after build adds a second per-flip frame two or more rAF turns later: `reveal(true)` sets `visibility=''` and `data-appearance=ready`, forces style through `getComputedStyle`, and starts the opacity animation on the host around the WebGL canvas. Both halves are per flip and both are after-specific, so a count that tracks flips exactly needs no per-flip JS stall at all. The fly and still gates are also relative to the same Mac's own before build, so a cost outside the timed JS, or one the before build pays equally, is invisible to them. The Mac's "frame timings healthy, one block per flip" is exactly what a long rendering half or a long reveal frame looks like from inside this harness.
+
+### A platform difference that is verified in source
+
+`tests/gallery-fixes-browser.mjs:24` launches Chromium with `['--use-angle=d3d11','--enable-gpu']` **on every platform** (so do `all-discs-browser.mjs`, `bag-animation-perf.mjs`, `bag-pulled-quality-browser.mjs` and `apple-design-browser.mjs`). The quiet-Mac control, `tests/atlas-3d-perf.mjs:125`, switches on `process.platform` and passes only `--enable-gpu` off Windows, as do the bag, collection and atlas browser suites. D3D11 is a Windows-only ANGLE backend. On Freddy's Mac the Gallery gate asks headless Chromium for a GL backend that does not exist there; the Atlas control does not. What macOS headless Chromium does with that request (ignore it and take its default Metal path, or fail GL initialisation and fall back to software GL) has never been recorded: no run on either machine has logged `UNMASKED_RENDERER_WEBGL` for a gate context. The detail viewer the Gallery uses (`public/disc3d/viewer.mjs:85`) asks for `antialias:true` at pixel ratio 2 and has none of the software-GL downgrades that `atlas-art.mjs`, `bag3d/viewer.mjs` and `collection3d/stage.mjs` apply when they detect SwiftShader. On a software path it draws a multisampled PBR disc with an environment map at roughly 780 px, re-uploads a 512² stamp canvas with mipmaps on every flip, and on every Destroyer return uploads a 1024² photo with mipmaps and recompiles the photo material's program, because `disposePhoto()` disposes that material and three.js deletes a program whose last material is gone.
+
+### Hypothesis, ranked first
+
+**H1. The 241 signature is the after build's per-flip frame task waiting on the GPU side, on a Mac gate whose WebGL stack is slower than the control's.** Each flip queues GPU-side work (stamp texture + mipmaps + lathe geometry; on Destroyer returns the photo upload + mipmaps + program recompile). The neutral hold's hide-then-reveal structure makes the main thread synchronise against that work once per flip inside a frame task that `fly` does not time (the compositor hand-over of the hidden-then-revealed canvas, and on photo returns the first-use program queries in the viewer's scheduled draw). On D3D11 hardware that wait is 10–50 ms (the Phase 1 residuals), so only some flips cross 50 ms. On a slow or software GL path the same wait is several times longer and crosses 50 ms on every flip. The most economical reason for the Mac's path to be slow is the launch flag above; a slower Metal translation path is the weaker variant.
+
+Against each number:
+
+| Observation | Under H1 |
+| --- | --- |
+| Phone 242 / 241 / 241 / 244, flat across reps | One wait per flip; the 1–3 extras are a second task on some photo returns (Phase 1 saw 4–18 flips with two tasks). No growth, so not a leak. |
+| Desktop 61 vs baseline 0 | At 1× the stock-flip wait stays under 50 ms; the Destroyer-return wait (4 MB upload, mipmaps, recompile) does not. 61 is the Destroyer-arrival count for a 241-flip block that starts on the right copy. |
+| Longest 270–530 ms; PC gate longest never above 124 ms in seven runs | A compile or upload wait on a slow path. 270 ms of CPU under 4× would be 68 ms of main-thread CPU per flip, which the relative fly gate could not have missed against a 2-task baseline. |
+| Fly and still p95 pass | Fly times the JS only; stills create no GPU resources; the before build on the same Mac pays the same per-draw costs, so the relative gate stays green. |
+| PC 8 vs 3, after 14 → 7 → 8 | The same wait class on D3D11, mostly under 50 ms. The first implementation's extra synchronous draw added GPU-side work per flip; deferring to the viewer's draw removed it. |
+| Phase 2: 55 → 42 against 44, paired +1 | The flush was CPU and was the PC delta; it is not the Mac mechanism. **H1 predicts the quiet-Mac run of `fb382fe` leaves the phone count near 241.** |
+| Before build 2 on the Mac phone | No hide/reveal frame, no per-flip sync in the gate loop: the gate-style before trace has zero Gallery-frame and zero viewer-draw long tasks over 241 flips. |
+| Atlas control passes on the same Mac | Launched without the D3D11 request; its art also degrades itself under software GL. |
+
+What H1 does **not** settle: which synchronisation point it is (compositor hand-over, program first-use queries, or transfer-buffer waits on the upload), and whether the Mac's slow path is SwiftShader or a slow Metal path. Both are one trace away. Caveat: the waiting class was measured in headed Chromium 151 on D3D11; the headless shell may composite differently, and the Mac has never been traced.
+
+### Alternatives, and what each fails to explain
+
+| Hypothesis | Explains | Fails on |
+| --- | --- | --- |
+| **H2. The added style-flush boundary (`render():60`) plus the hold's extra rAF turn, CPU work** (Phase 1's candidate) | The PC before→after delta; the Phase 2 recovery to baseline+1. | Desktop 61 at 1× from a 0 baseline (a 1–13 ms flush cannot; and if it could, the count would be 241, not 61). Longest 270–530 ms (no style recalc in the 527 PC rows exceeded 32.5 ms, at 4×). Wall / CPU ratios above 4 on the frame tasks. **H2 predicts the quiet-Mac run of `fb382fe` drops the phone count substantially.** That run is already scheduled; it is a free H1-versus-H2 test. |
+| **H3. `reliefTexture()` alone** | The dominant PC stall; 60 tasks per block on the PC traces. | Capped at 60–61 per block. CPU-bound (ratio 4.0). Present and sub-threshold in the before build on the same Mac (baseline 2). Cannot make a 241 count, nor a 61-task desktop out of a 0-task baseline when the relief code is byte-identical in both builds. |
+| **H4. `reliefTexture()` plus the flush** | Adds the PC Gallery-frame tasks to the photo tasks. | The arithmetic: 60 photo tasks leave 181 stock flips that must each cross 50 ms at 4× on the flush alone, that is 12.5 ms of main-thread CPU per flush, while the whole Gallery frame task on the PC traces, click handler, viewer update and flush included, is about 10 ms of main-thread CPU (median 9.6, maximum 16.3), and the before build runs its own `getAnimations()` flush per flip. Still 61-versus-0 on desktop. |
+| **H5. Harness or trace artifact** | — | Ruled out in Phase 1 (trusted input, tracing disabled). Open point only: the Mac has been measured through the gate loop alone, never with native input. |
+| **H6. GC or per-flip memory growth** | — | Flat counts across four reps; GC inside PC long tasks at most 20 ms. |
+| **H7. Coarser CPU throttling on macOS** | A larger phone count | Desktop 61 at 1× with no throttle; the Atlas control passes at 4× on the same Mac. |
+
+### `reliefTexture()`, head-on
+
+It dominates the PC stalls and it predates the fixes; both stand. It is not the 241 signature: it is capped at Destroyer arrivals, it is pure main-thread CPU, and on the Mac's own before build it stays under the 50 ms line (phone baseline 2, desktop 0). Relief plus the removed flush does not reach 241 either. Where it plausibly matters on the Mac is the desktop 61 and the 270–530 ms worst cases, as part of the Destroyer-return work the main thread waits **behind** (upload, mipmaps, recompile) rather than as the work itself. If H1 holds, a relief change would move the desktop count and the worst-case length and leave the phone 241 where it is. Whether and when to touch it remains Freddy's call, sequenced against the glare lane; nothing here moves that sequence.
+
+### The one experiment
+
+A single quiet-Mac trace session, no gate change, one probe in the Phase 1 style:
+
+- Sign in with the existing local fixture, enter Gallery, and run **one warm phone repetition of the gate's own loop** (241 flips + 120 stills, 4× CPU, DPR 2) and **one warm desktop repetition**, launched with the Gallery gate's flags (`--use-angle=d3d11 --enable-gpu`), with CDP `Tracing` on (`devtools.timeline`, `disabled-by-default-devtools.timeline`, `blink`, `cc`, `gpu`, `v8.execute`) and `hunt:flip:N` marks, the way Phase 1 did.
+- Before the loop, read `UNMASKED_RENDERER_WEBGL` from the album viewer's own context; read it once more from a page launched with the Atlas control's flags (`--enable-gpu` only).
+- Cost: about five minutes of machine time plus packaging; no product file, no gate file, no limit, rep or workload touched. The limits and the quiet-Mac judgment run are unaffected.
+
+Readouts, and what each decides:
+
+1. **Renderer string.** A software renderer under the Gallery flags and a hardware (Metal) renderer under the Atlas flags confirms H1's premise and turns the platform gap into a launch-flag question for Freddy. The same hardware string under both acquits the flag; H1 survives only as a Metal-path wait, and readout 2 decides it.
+2. **Wall versus thread-CPU of the 241 long tasks** (the column Phase 1 already produced). Ratio ≈ 4 on phone and ≈ 1 on desktop means CPU work: H2 or H4, and the task's category split (script, UpdateLayoutTree, Layout, Paint) names the lane. Ratio well above the throttle factor means a wait: H1, and the GPU-process thread in the same trace shows what the main thread waited behind (texture upload, mipmap generation, shader compile, readback).
+3. **Which per-flip task is long.** The click frame (rAF → click → `renderNow()` → rendering steps) points at the flip-path work; the reveal frame points at the hold's hide/reveal structure; the viewer's scheduled draw with program-link queries points at program recreation on photo returns.
+
+A free preliminary read arrives with the quiet-Mac judgment run of `fb382fe`: a phone count still near 241 is what H1 expects and what H2 cannot absorb; a large drop is the reverse. That run should not be changed to collect anything else.
+
+### Fences held
+
+No product code, measurement, gate, limit, margin, rep or workload changed. `reliefTexture()` was not touched or re-profiled. No push, PR, merge or deploy; this section is a local, uncommitted edit on `codex/gallery-perf-hunt` for Freddy's review. The three functional fixes remain the spec and were not re-litigated.
