@@ -1,0 +1,16 @@
+[
+  {
+    "file": "phone-gate-241.trace.json.gz",
+    "raw_bytes": 104601873,
+    "gzip_bytes": 9974026,
+    "raw_sha256": "7968d5480d8d8bf761fd2c8ff279a513594abdcf7330d6c47e272b6b971a87f5",
+    "gzip_sha256": "7fff34d9d14cc163e5ed2242345321e16bb272445af8d6775de8bdc36c2b42aa"
+  },
+  {
+    "file": "desktop-gate-241.trace.json.gz",
+    "raw_bytes": 116500174,
+    "gzip_bytes": 10528037,
+    "raw_sha256": "8512a6773321ff070c772c1e482c886d8b4ec7af8b77a4a23b1f90a1c3b611f3",
+    "gzip_sha256": "6cf03bc9a71028866964e90eb744cda305a29457ce71c847dcbe5724c2fce9fb"
+  }
+]

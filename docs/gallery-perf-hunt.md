@@ -1,4 +1,4 @@
-# Gallery per-flip performance hunt — Phases 1–3
+# Gallery per-flip performance hunt — Phases 1–4
 
 October 17, 2026. **Phase 2 retained a one-file experiment; Gallery and Atlas phone perf gates remain red. Stop for Freddy.** See Phase 2 below for results, regressions and screenshots. Phase 1 attribution is retained as historical evidence.
 
@@ -289,3 +289,89 @@ A free preliminary read arrives with the quiet-Mac judgment run of `fb382fe`: a 
 ### Fences held
 
 No product code, measurement, gate, limit, margin, rep or workload changed. `reliefTexture()` was not touched or re-profiled. No push, PR, merge or deploy; this section is a local, uncommitted edit on `codex/gallery-perf-hunt` for Freddy's review. The three functional fixes remain the spec and were not re-litigated.
+
+## Phase 4 — Mac trace (the one experiment)
+
+October 19, 2026. Fable, Freddy's Mac (Apple M4, 10 cores, 16 GB, macOS 15.7.3). **Measurement only: no product code, no gate, limit, rep or workload edit, `reliefTexture()` untouched, no push.** This is the experiment Phase 3 named under "The one experiment", run with an ignored probe ([probe.mjs.txt](assets/gallery-perf-hunt/phase4/probe.mjs.txt)) that mirrors the gate's own setup in `tests/gallery-fixes-browser.mjs`: `node scripts/build-workers.mjs`, the local Wrangler auth/D1/R2 fixture on `https://localhost:8951` with state in ignored `outputs/gallery-perf-hunt-mac/state`, the routed Google callback sign-in, the same four owned copies (owner-photo Destroyer from `tests/fixtures/stamped-disc.webp`, stock Stalker, Buzzz, Luna), then Gallery. The gate file is byte-identical to `12b939f`. Freddy approved the measured loops in words before they ran; the Mac was otherwise idle.
+
+### Readout 1 — the renderer strings
+
+Playwright 1.64.1 `chromium.launch({headless:true})` on this Mac runs `~/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell`, `HeadlessChrome/156.0.8078.4` (not the Chrome for Testing app that `chromium.executablePath()` names). User agent: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36`. `UNMASKED_RENDERER_WEBGL` was read from `BagApp.scenes.album.debug.renderer.getContext()` after Gallery entry, in a setup-sized, a phone (390 × 844, DPR 2, 4×) and a desktop (1440 × 900) context; the three contexts agree within each launch.
+
+| Launch args | `UNMASKED_RENDERER_WEBGL` | GPU process command line | `SystemInfo.getInfo` feature status |
+| --- | --- | --- | --- |
+| Gallery gate, `--use-angle=d3d11 --enable-gpu` (`tests/gallery-fixes-browser.mjs:24`) | `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)` | relaunched with `--use-gl=angle --use-angle=swiftshader-webgl` | webgl **unavailable_software**, gpu_compositing **disabled_software** |
+| Atlas control, `--enable-gpu` (`tests/atlas-3d-perf.mjs:125`, non-Windows branch) | `ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)` | no backend override | webgl **enabled**, gpu_compositing **enabled** |
+
+Both negotiate WebGL 2.0 with `antialias:true` (4 samples) at pixel ratio 2 on the phone (708 × 574 drawing buffer). Records: [renderer-gate.json](assets/gallery-perf-hunt/phase4/renderer-gate.json), [renderer-atlas.json](assets/gallery-perf-hunt/phase4/renderer-atlas.json).
+
+The D3D11 request is not ignored on macOS. Chromium fails GPU initialisation for the unavailable backend and falls back to SwiftShader WebGL **with software compositing**. The Gallery gate on this Mac has been measuring a software-rendered, software-composited PBR disc at pixel ratio 2 with multisampling; the Atlas control measures Metal on the M4. Readout 1 confirms H1's premise.
+
+### Readouts 2 and 3 — the traced loops
+
+Per device, under the gate's flags: enter Gallery, one warm-up pass of the four copies (4 flips, Destroyer → Stalker → Buzzz → Luna → Destroyer), then **exactly one copy of the gate's warm repetition** (241 synthetic clicks on `[data-album-step="1"]` + `debug.renderNow()` + the gate's own readiness wait, then 120 still `renderNow()` draws), under CDP `Tracing` with `hunt:start` / `hunt:flip:N` / `hunt:stills` / `hunt:end` marks and the gate's `longtask` observer. Categories: the six Phase 3 named, plus `blink.user_timing` (so the marks land in the trace), callback stacks, frames, `toplevel`, and the GPU-process `gpu.angle` / service / decoder detail. Phone: 390 × 844, DPR 2, `isMobile`, `hasTouch`, CPU 4×. Desktop: 1440 × 900, 1×. Zero page errors in either run.
+
+The single-repetition gate numbers reproduce Freddy's quiet-Mac medians: **phone 242 long tasks, longest 413 ms** (fly p95 16.3 ms, still p95 0.7 ms, reveal p95 59 ms); **desktop 64, longest 311 ms** (fly p95 3.2, still p95 0.2, reveal p95 40.5). The trace's own count of renderer-main `RunTask` intervals ≥ 50 ms is identical to the observer's on both devices (242 and 64), all inside the flip block, none in the stills.
+
+| Capture | Long tasks (observer / trace) | Class of every long task | Per flip | Longest |
+| --- | ---: | --- | --- | ---: |
+| Phone, 4×, DPR 2 | 242 / 242 | 241 reveal frames + 1 photo continuation (Destroyer arrival, 70.6 ms) | every one of the 241 flips has exactly one long reveal frame; one flip has two tasks | 413.4 ms |
+| Desktop, 1× | 64 / 64 | 64 reveal frames | 60 of 61 Destroyer arrivals, plus Buzzz 2, Stalker 1, Luna 1 | 311.6 ms |
+
+**Which per-flip task is long (readout 3): the reveal frame, never the click frame.** The task that contains the `hunt:flip` mark (rAF → click → `render()` with its L60 flush → `v.update()` → `renderNow()` → style/layout/paint/commit) is **13.8 ms median, 22.8 ms max on the phone** and 3.5 / 7.1 ms on desktop across all 241 flips. The long task is the later animation frame in which `reveal(true)` at `public/all-discs-gallery.js:102` sets `visibility=''` and `data-appearance=ready`. Its script is about 1 ms. The nesting is the same in all 304 reveal-frame tasks:
+
+```text
+RunTask 413.4 ms  (phone flip 135, Luna → Destroyer)
+  ProxyMain::BeginMainFrame
+    FireAnimationFrame → FunctionCall all-discs-gallery.js:102   1.5 ms
+    WebFrameWidgetImpl::UpdateLifecycle (style 1.8, paint 0.7)   2.7 ms
+    Commit → LayerTreeHost::DoUpdateLayers                     409.1 ms
+      GLES2::ReadPixels                                        407.4 ms
+        ImplementationBase::WaitForCmd → CommandBufferHelper::Finish
+          → CommandBufferProxyImpl::WaitForGetOffset           407.1 ms   (blocked on the GPU process)
+```
+
+With GPU compositing disabled, the compositor commit reads the WebGL canvas back through `glReadPixels` on the renderer main thread, and that readback waits for the GPU process to finish every command queued before it. The readback happens on every commit that follows a draw (121 of them in the stills block too, at 27.8 ms median on the phone and 15.3 ms on desktop, none over 50 ms except one at 81 ms). What makes the per-flip one long is what it waits behind: the flip's own draw, issued by `renderNow()` in the click frame, with the new stamp canvas texture and its mipmaps, and on Destroyer returns the 1024² photo upload, its mipmaps and a program link.
+
+**Wall versus thread-CPU (readout 2):**
+
+| Capture | Class | n | Wall median / max (ms) | Thread CPU median (ms) | Ratio min / p25 / median / p75 / max | JS self median | Style max | Layout max | Commit max |
+| --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| Phone 4× | reveal frame | 241 | 86.0 / 413.4 | 66.2 | 1.28 / 1.30 / 1.31 / 1.31 / 1.32 | 0.63 | 2.3 | 2.4 | 409.1 |
+| Phone 4× | photo continuation | 1 | 70.6 / 70.6 | 70.4 | 1.0 | 61.5 | 0 | 0 | 0 |
+| Desktop 1× | reveal frame | 64 | 272.8 / 311.6 | 2.4 | 34.5 / 80.9 / 99.0 / 324.2 / 353.5 | 0.14 | 0.18 | 0.09 | 310.8 |
+
+At 1× the ratio is 35–353: a thread that does 2.4 ms of work in a 273 ms task is waiting, which is H1's signature exactly as Phase 3 wrote it. At 4× the ratio column is **not usable on this build**: a 413 ms task whose script, style and layout total under 4 ms reports 316 ms of thread time, and the one pure-CPU task (the photo continuation) reports a ratio of 1.0 rather than the 4.0 the PC showed under the same throttle. The macOS thread clock evidently keeps running while the throttled thread sits in the sync wait, so on the phone capture the attribution rests on the self-time column (`WaitForGetOffset` is 99 % of every long task) and on the GPU-process view below, not on the ratio.
+
+**What the GPU process was doing (per Phase 3's list: upload, mipmap, compile, readback).** In each long task's window the GPU main thread (`CrGpuMain`) is inside ANGLE's `ContextVk::finishImpl` for nearly the whole wait, that is, SwiftShader finishing the queued draw. Median long task per arrival mold, with the GPU-side self time in the median flip's window:
+
+| Capture | Arriving at | n | Long task median (min–max) | `ContextVk::finishImpl` | `CommandBufferService:PutChanged` (command processing) | Readback copy | Program link / upload |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Phone | Stalker | 61 | 86.3 (83.3–109.8) | 82.4 | 0.4 | 0.1 | — |
+| Phone | Buzzz | 60 | 85.7 (82.7–92.7) | 81.7 | 0.2 | 0.1 | — |
+| Phone | Luna | 60 | 80.3 (77.8–88.4) | 76.0 | 0.2 | 0.2 | — |
+| Phone | Destroyer | 61 | 330.2 (70.6–413.4) | 288.8 | 36.2 | 0.2 | `DoLinkProgram` present; "Upload image data on host" 0.3 ms × 3 |
+| Desktop | Destroyer | 60 | 272.9 (222.9–311.6) | 236.8 | 35.3 | 0.1 | same |
+| Desktop | Stalker / Buzzz / Luna | 1 / 2 / 1 | 54.1 / 51.7 / 84.3 | 51–83 | 0.3–0.6 | 0.1 | — |
+
+The five longest tasks on each device are all Luna → Destroyer reveal frames (phone 413, 386, 367, 366, 352 ms; desktop 312, 279, 277, 276, 276 ms), each with 325–367 ms (phone) or 239–276 ms (desktop) in `FramebufferVk::readPixelsImpl → ImageHelper::readPixelsImpl - CPU Readback → ContextVk::finishImpl` on `CrGpuMain`. The memcpy of the readback is 0.1–0.2 ms; the upload and link calls are sub-millisecond on the GPU thread (their cost is the rasterisation they trigger). Over the whole flip block `CrGpuMain` is busy 34.5 s of 41.6 s on the phone and 24.5 s of 28.3 s on desktop. Desktop stock flips sit just under the line (readback median 46.0 ms, 3 of 180 over 50), which is why its count is the Destroyer-arrival count; phone stock flips sit at about 80 ms because the DPR 2, 4-sample buffer costs SwiftShader more per frame.
+
+### Verdict against the Phase 3 readouts
+
+- **H1 confirmed, in its strong form.** The Mac 241 is one wait per flip on the GPU side, inside the after build's reveal frame, on a software GL path that the Gallery gate's launch flag selects. The wait is the compositor's synchronous canvas readback (software compositing) blocking on SwiftShader finishing the flip's draw; the per-flip draw is 80 ms of software rasterisation for a stock copy and about 300 ms for a Destroyer return (photo texture, mipmaps, program link). The synchronisation point Phase 3 left open is therefore neither program first-use queries nor transfer-buffer waits: it is `GLES2::ReadPixels` in `LayerTreeHost::DoUpdateLayers`, and the slow path is SwiftShader, not a slow Metal path.
+- **H2 / H4 rejected.** The click frame that carries the `render():60` flush never reaches 23 ms on the phone or 8 ms on desktop. Inside the long tasks style peaks at 2.3 ms, layout at 2.4 ms and script self time at 0.6 ms median. No CPU lane produces the count.
+- **H3 (`reliefTexture()`) is not the signature.** On the M4 at 4× the photo continuation crossed 50 ms once in 61 Destroyer arrivals (70.6 ms), never on desktop. Its texture is part of what the Destroyer-return wait sits behind, but the wait is the software rasterisation of the photo-bearing frame, not the relief loops.
+- **Desktop 61 and the 270–530 ms worst cases** are the Destroyer returns of the same mechanism (60 of 64 here; 223–312 ms at 1×, 330 ms median at 4×).
+- **Fly and still p95 pass** because `fly` stops before the commit, and the stills' readbacks (28 / 15 ms) never cross 50 ms.
+
+What this does not settle: the before build's reported quiet-Mac counts (phone 2, desktop 0). The readback runs on every commit after a draw, hide/reveal or not (the stills prove it), so under the same flags the before build should also wait per flip, inside its click frame. Either that wait lands below 50 ms there, or the before numbers were taken under a different browser or flag set. A before replay through this probe (the gate's own `installBaseline` route; about three minutes) and an after run under the Atlas control's flags would close that and show the count without the readback. Both are outside this brief and were not run. Whether the gate's launch line should stop requesting a Windows-only backend off Windows is Freddy's call; nothing here changes it.
+
+### Evidence and reproduction
+
+- [Trace manifest](assets/gallery-perf-hunt/phase4/manifest.json): `phone-gate-241.trace.json.gz` (raw 104,601,873 B, sha256 `7968d548…1a87f5`; gzip 9,974,026 B, `7fff34d9…2b42aa`) and `desktop-gate-241.trace.json.gz` (raw 116,500,174 B, `8512a677…3b611f3`; gzip 10,528,037 B, `6cf03bc9…fce9fb`). Full digests in the manifest. Decompress and load in DevTools Performance; `hunt:start`, `hunt:flip:N`, `hunt:stills`, `hunt:end` delimit the measured window.
+- Per-task rows: [phone-tasks.csv](assets/gallery-perf-hunt/phase4/phone-tasks.csv), [desktop-tasks.csv](assets/gallery-perf-hunt/phase4/desktop-tasks.csv) (wall, thread CPU, ratio, flip, from/to mold, class, callback, style/layout/paint maxima, top self-time events, GPU-thread busy time). Summaries: [phone-summary.json](assets/gallery-perf-hunt/phase4/phone-summary.json), [desktop-summary.json](assets/gallery-perf-hunt/phase4/desktop-summary.json). Loop results with the per-flip log and observer entries: [phone-gate-241.loop.json](assets/gallery-perf-hunt/phase4/phone-gate-241.loop.json), [desktop-gate-241.loop.json](assets/gallery-perf-hunt/phase4/desktop-gate-241.loop.json). Probe log: [probe.log](assets/gallery-perf-hunt/phase4/probe.log). Scripts as text: [probe.mjs.txt](assets/gallery-perf-hunt/phase4/probe.mjs.txt), [analyze.py.txt](assets/gallery-perf-hunt/phase4/analyze.py.txt), [gpuside.py.txt](assets/gallery-perf-hunt/phase4/gpuside.py.txt), [chain.py.txt](assets/gallery-perf-hunt/phase4/chain.py.txt). [sha256.json](assets/gallery-perf-hunt/phase4/sha256.json) lists every other file in the folder. No auth storage state or database is included.
+- Reproduction from this worktree, serially: `node outputs/gallery-perf-hunt-mac/probe.mjs --stage=setup`, then `--stage=renderer --flags=gate` and `--flags=atlas`, then `--stage=trace --device=phone` and `--device=desktop`; `python3 -I outputs/gallery-perf-hunt-mac/analyze.py <trace> <out_dir> <label> <loop.json>`. The analyser was checked first against Phase 1's gate-style after trace, where it reproduces that capture's 96 long tasks (58 photo returns at ratio 4.0, 37 click frames at 4.7–11).
+
+### Fences held
+
+No product code, gate, limit, margin, rep or workload changed; `tests/gallery-fixes-browser.mjs` is byte-identical to `12b939f`. `reliefTexture()` was neither touched nor re-profiled. Chromium categories and the four-flip warm-up are probe-only choices. No push, PR, merge or deploy; this section and its evidence are a local commit on this worktree's branch for Freddy's review.
