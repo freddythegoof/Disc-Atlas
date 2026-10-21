@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import {shapeFrame,topHeight} from './shape.mjs';
 import {DETAIL} from './quality.mjs';
-import {PHOTO_STAMP,photoStampBlob} from './photo-stamps.mjs';
+import {PHOTO_STAMP,isColorStamp,photoStampBlob} from './photo-stamps.mjs';
 
 const masks=new Map(),MAX_MASKS=12,STOCK=/^stamps\/discraft\/[a-z0-9-]+\.png$/;
 export function catalogStampAsset(d){
@@ -74,6 +74,9 @@ export function stampTexture(name,color,{asset=null,onChange=()=>{},style=null,s
    if(!live)return;
    if(entry.failed){texture.userData.stampFailed=true;onChange();return;}
    g.clearRect(0,0,size,size);g.drawImage(entry.image,0,0,size,size);
+   // A colour photo stamp (docs/photo-stamp-color-assets.md) is the print itself: its own colours, opaque where it is
+   // printed, no ink.
+   if(isColorStamp(asset)){texture.userData.stampAsset=asset;texture.userData.stampColor=true;texture.needsUpdate=true;onChange(texture);return;}
    if(asset.endsWith('/l'))layer(g,size,ink,color);
    // Only the source alpha survives. Source foil/plastic RGB can never tint the plate.
    g.globalCompositeOperation='source-in';g.fillStyle=ink;g.fillRect(0,0,size,size);g.globalCompositeOperation='source-over';
@@ -96,6 +99,15 @@ export function stampGeometry(shape,{segments=48,rings=8,placement=null}={}){
  for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,topHeight(shape,Math.hypot(x,z))+.012);}
  ring.computeVertexNormals();
  return ring;
+}
+
+// A colour photo stamp (photo-stamps.mjs) carries its own colours, so the player's ink never reaches it; a finish
+// becomes a sheen over those colours (SHEEN of its metal, film and pattern), never a full metal that would replace them
+// with reflections (docs/photo-stamp-color-assets.md). Flat stays today's flat material.
+const SHEEN=.35;
+export function colorStyle(style){
+ const f=style?.finish;if(!f||f.id==='flat')return null;
+ return {ink:null,inkId:'color',finish:{...f,id:f.id+'~sheen',metalness:f.metalness*SHEEN,iridescence:(f.iridescence||0)*SHEEN}};
 }
 
 const LAYER={transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2};

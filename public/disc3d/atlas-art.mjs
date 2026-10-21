@@ -28,7 +28,7 @@ import {isOvermold,overmoldColors,lightTheme} from './overmold.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
 import {photoSurface} from './photo.mjs';
 import {photoStampFor} from './photo-stamps.mjs';
-import {catalogStampAsset,catalogStampPlacement,stampTexture,stampGeometry,stampMaterial} from './stamp.mjs';
+import {catalogStampAsset,catalogStampPlacement,stampTexture,stampGeometry,stampMaterial,colorStyle} from './stamp.mjs';
 import {LODS,ORDER,lodFor} from './lod.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
@@ -157,8 +157,9 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
   (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'');
  // A photo disc its owner switched to the game-asset look (photo-stamps.mjs) is drawn as a stamped disc: no photo,
- // its extracted stamp where stock art goes (markers from medium size up, as stock stamps are).
- const asLook=d=>{const look=photoStampFor(d.photoURL);return look?{...d,photoURL:null,photoStamp:look}:d;};
+ // its extracted stamp where stock art goes (markers from medium size up, as stock stamps are). A colour asset keeps its
+ // own colours: its finish is a sheen (stamp.mjs colorStyle).
+ const asLook=d=>{const look=photoStampFor(d.photoURL);return look?{...d,photoURL:null,photoStamp:look,...look.color&&{stampStyle:colorStyle(d.stampStyle)}}:d;};
  const placementOf=d=>d.photoStamp?.placement||catalogStampPlacement(d);
  function touch(key){const e=images.get(key);if(e){images.delete(key);images.set(key,e);}return e||null;}
 

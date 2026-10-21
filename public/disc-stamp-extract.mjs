@@ -126,9 +126,10 @@ function kmeans(points,k){
 /**
  * data: RGBA bytes of the size × size crop, de-lit with softenGlare:false. plate: the plate's reach as a share of the
  * radius (Rs/R, or Ri/R on an overmold). plateColor: '#rrggbb', the colour delightPixels measured.
- * Returns {alpha (Uint8Array, size²), layered, coverage, inkReach, stats}.
+ * Returns {alpha (Uint8Array, size²), layered, coverage, inkReach, stats}, and with `keepMask` the final binary design
+ * mask (`mask`), which the colour asset is drawn inside (disc-stamp-color.mjs).
  */
-export function extractPhotoStamp(data,size,{plate,plateColor,debug=false}){
+export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false}){
  const N=size*size,k=size/1024,lab=new Float32Array(N*3),inside=new Uint8Array(N),radius=new Float32Array(N);
  const reach=plate*size/2-GUARD*k,c=size/2;
  for(let p=0;p<N;p++){
@@ -232,7 +233,7 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false}){
  }
  const alpha=new Uint8Array(N);let coverage=0,maxR=0,plateArea=0;
  for(let p=0;p<N;p++){if(!inside[p])continue;plateArea++;alpha[p]=Math.round(255*Math.min(1,alphaF[p]));if(alpha[p]>127){coverage++;maxR=Math.max(maxR,radius[p]);}}
- return {alpha,layered,layers,...debug&&{stages:{...stages,final:mask}},coverage:+(coverage/plateArea).toFixed(4),inkReach:+(maxR/(size/2)).toFixed(4),
+ return {alpha,layered,layers,...debug&&{stages:{...stages,final:mask}},...keepMask&&{mask},coverage:+(coverage/plateArea).toFixed(4),inkReach:+(maxR/(size/2)).toFixed(4),
   stats:{...stats,thresholds:{lo:+lo.toFixed(2),hi:+hi.toFixed(2),lo2:+lo2.toFixed(2),hi2:+hi2.toFixed(2),noise:+centre.toFixed(2),sigma:+sigma.toFixed(2)},
    inks:inks.map(ink=>({L:+ink.lab[0].toFixed(1),share:+(ink.count/(core.length/3)).toFixed(3),line:ink===line})),enclosed:edge?+(enclosed/edge).toFixed(3):0}};
 }

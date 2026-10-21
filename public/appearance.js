@@ -7,6 +7,9 @@
   if (!palette || !dialog) return;
   const $ = selector => dialog.querySelector(selector);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+  // Photo stamps v2 (docs/photo-stamp-color-assets.md): a disc in its Full color look carries its own colors, so the
+  // stamp ink never reaches it. Read from disc3d/photo-stamps.mjs's index (a classic script cannot import it).
+  const colorLooks = () => { try { return Object.values(JSON.parse(localStorage.getItem('disc-atlas-photo-stamps') || 'null')?.discs || {}).some(e => e?.look === 'color'); } catch { return false; } };
   // theme.js owns the list (and its order).
   const THEMES = Object.entries(window.DiscAtlasThemes || {}).map(([id, theme]) => [id, theme.label]);
 
@@ -38,7 +41,7 @@
     // Stamps: ink and finish for the player's own discs, with a live 3D preview.
     $('[data-appearance-stamp]').innerHTML = swatchRow({
       group: 'ink', label: 'Stamp ink', current: palette.catalog.inks.find(i => i.id === prefs.stamp.ink).label, swatches: palette.catalog.inks, legend: ''
-    }) + `<fieldset class="appearance-row" data-row="finish"><legend><span class="appearance-row-title">Finish</span><output data-row-name></output></legend>` +
+    }) + `<p class="appearance-stamp-note" data-color-look-note hidden>Discs in Full color keep their own colors, so the ink doesn’t reach them.</p>` + `<fieldset class="appearance-row" data-row="finish"><legend><span class="appearance-row-title">Finish</span><output data-row-name></output></legend>` +
       `<div class="appearance-finishes" role="radiogroup" aria-label="Stamp finish">` +
       palette.catalog.finishes.map(f => `<button type="button" role="radio" aria-checked="false" tabindex="-1" data-swatch="${esc(f.id)}">${esc(f.label)}</button>`).join('') + `</div></fieldset>`;
     paint();
@@ -93,6 +96,7 @@
       button.setAttribute('aria-checked', String(on));button.tabIndex = on ? 0 : -1;
     }
     $('[data-appearance-reset]').disabled = palette.isDefault();
+    $('[data-color-look-note]').hidden = !colorLooks();
     stampPreview?.setStyle(palette.stampStyle());
   }
 

@@ -53,6 +53,7 @@
 .appearance-stamp-preview {align-self:start;aspect-ratio:1;border:1px solid var(--hairline,var(--line));border-radius:14px;background:radial-gradient(circle at 50% 40%,var(--surface),var(--bg))}
 .appearance-stamp-preview canvas {display:block;width:100%;height:100%}
 .appearance-stamp-preview[data-state="fallback"] {display:none}
+.appearance-stamp-note {margin:0 0 10px;font-size:12px;line-height:1.5;color:var(--muted)}.appearance-stamp-note[hidden] {display:none}
 .appearance-stamp .appearance-swatches {grid-template-columns:repeat(6,minmax(0,30px));justify-content:start;gap:8px 10px}
 .appearance-finishes {display:flex;flex-wrap:wrap;gap:6px}
 .appearance-finishes button {min-height:34px;padding:0 12px;border:1px solid var(--hairline,var(--line));border-radius:999px;background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer}
