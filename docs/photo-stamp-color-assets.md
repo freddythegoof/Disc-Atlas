@@ -95,6 +95,9 @@ all three looks at once. "Make again from original photo" redoes both.
   one disc wears full colour would take it away from all the others, so it stays live. Instead, while any disc wears Full
   color, a one-line note sits under it: *"Discs in Full color keep their own colors, so the ink doesn’t reach them."* The
   disc sheet carries its own note (above). If Freddy wants a per-disc ink control, that is a new control, not this one.
+- At phone width (390 px) the row wraps: "Full color" sits on a second line under "Look"
+  ([screenshot](../work/photo-stamp-color-assets/evidence/phone-look-row.png)). The chips stay 44 px tall, and the page
+  does not scroll sideways. Left as is; a tighter row, or a shorter label, is Freddy's call.
 - Measured in the evidence run: **5.6 s** for the Destroyer and **6.9 s** for the DD3 (v1 alone: 1.9 / 2.5 s). The status
   line says "Making the game asset…" throughout.
 
