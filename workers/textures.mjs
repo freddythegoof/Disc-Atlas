@@ -7,7 +7,7 @@ const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control
 // error response. The queue row stays and the cron retries it.
 export async function cleanupTextures(env){
  if(!env.DB||!env.TEXTURES)return;
- let rows;try{rows=(await env.DB.prepare('SELECT key FROM texture_cleanup WHERE not_before<=? AND NOT EXISTS (SELECT 1 FROM bag_discs WHERE texture_key=texture_cleanup.key) LIMIT 100').bind(Math.floor(Date.now()/1000)).all()).results;}catch{return;}
+ let rows;try{rows=(await env.DB.prepare('SELECT key FROM texture_cleanup WHERE not_before<=? AND NOT EXISTS (SELECT 1 FROM bag_discs WHERE texture_key=texture_cleanup.key) AND NOT EXISTS (SELECT 1 FROM bag_photo_stamps WHERE ink_key=texture_cleanup.key OR color_key=texture_cleanup.key) LIMIT 100').bind(Math.floor(Date.now()/1000)).all()).results;}catch{return;}
  for(const {key} of rows){try{await env.TEXTURES.delete(key);await env.DB.prepare('DELETE FROM texture_cleanup WHERE key=?').bind(key).run();}catch{/* Durable retry on the next request/cron. */}}
 }
 async function imageBytes(request){
@@ -25,10 +25,11 @@ async function imageBytes(request){
 // but never EXIF/GPS or XMP). This bounds
 // decoding dimensions without decoding pixels in the Worker. See the WebP RIFF container spec:
 // https://developers.google.com/speed/webp/docs/riff_container
-function validateProcessedWebP(bytes){
+// Photo stamps (stamps.mjs) pass their own bounds: a square stamp asset up to 2048 pixels.
+export function validateProcessedWebP(bytes,{min=128,max=MAX_SIDE,what='processed photo'}={}){
  const size=bytes.length,text=(a,b)=>String.fromCharCode(...bytes.slice(a,b)),v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
- const invalid=()=>{throw Error('Invalid processed photo.');};
- const dimensions=(w,h)=>{if(w<128||w!==h||w>MAX_SIDE)throw Error('Use a square processed photo up to 1024 pixels.');};
+ const invalid=()=>{throw Error('Invalid '+what+'.');};
+ const dimensions=(w,h)=>{if(w<min||w!==h||w>max)throw Error('Use a square '+what+' up to '+max+' pixels.');};
  if(size<26||text(0,4)!=='RIFF'||text(8,12)!=='WEBP'||v.getUint32(4,true)!==size-8)invalid();
  let canvas=null,frame=false,alpha=false,alphaFlag=false,profile=false,profileFlag=false;
  for(let start=12;start<size;){

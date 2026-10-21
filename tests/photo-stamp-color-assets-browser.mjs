@@ -31,7 +31,8 @@ const dE=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
 // Opaque pixels of a sampled canvas within ΔE 12 of each ink.
 const inksIn=(px,inks)=>Object.fromEntries(inks.map(h=>{const L=lab(hex(h));let n=0;for(let i=0;i<px.length;i+=4)if(px[i+3]>200&&dE(lab([px[i],px[i+1],px[i+2]]),L)<12)n++;return [h,n];}));
 
-const h=await startHarness({port:Number(process.env.PHOTO_STAMP_PORT||8877),state:'work/photo-stamp-color-assets/d1-test'});
+// PHOTO_STAMP_ENGINE=webkit runs it in the phone's engine (docs/photo-stamp-sync.md).
+const h=await startHarness({port:Number(process.env.PHOTO_STAMP_PORT||8877),state:'work/photo-stamp-color-assets/d1-test',engine:process.env.PHOTO_STAMP_ENGINE||'chromium'});
 const {page,base,errors}=h;
 const wait=ms=>page.waitForTimeout(ms);
 const items=()=>page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs);
@@ -53,7 +54,7 @@ try{
   return (await items()).find(i=>i.id===disc.id);
  };
  const saved=await usePhoto(first),key=saved.texture_key,url='/api/bag/discs/'+encodeURIComponent(disc.id)+'/photo?v='+encodeURIComponent(key);
- const idb=()=>page.evaluate(()=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets'),s=t.objectStore('assets'),out={};const c=s.openCursor();c.onsuccess=()=>{const k=c.result;if(!k){r.result.close();res(out);return;}out[k.key]={type:k.value.type,size:k.value.size};k.continue();};c.onerror=rej;};r.onerror=rej;}));
+ const idb=()=>page.evaluate(()=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets'),s=t.objectStore('assets'),out={};const c=s.openCursor();c.onsuccess=()=>{const k=c.result;if(!k){r.result.close();res(out);return;}out[k.key]={type:k.value.type,size:k.value.size??k.value.bytes?.byteLength};k.continue();};c.onerror=rej;};r.onerror=rej;}));
 
  const inspect=async()=>{
   await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-inspect]').length>=2);
@@ -192,13 +193,24 @@ try{
  assert.equal(await page.locator('[data-color-look-note]').isHidden(),true);
  await page.locator('#appearanceDialog [data-appearance-close]').first().click();
 
- // Colour bytes this browser lost (cleared site data) give the disc its photo back.
+ // v3 (docs/photo-stamp-sync.md): colour bytes this browser lost (cleared site data) come back from the account; only
+ // when the account cannot give them either does the disc show its photo again.
  await page.evaluate(([id,k])=>import('/disc3d/photo-stamps.mjs').then(m=>m.setPhotoLook(id,k,'color')),[disc.id,key]);
- await page.evaluate(k=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets','readwrite');t.objectStore('assets').delete(k);t.oncomplete=()=>{r.result.close();res();};t.onerror=rej;};}),disc.id+'/'+key+'/c');
+ const dropColor=()=>page.evaluate(k=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets','readwrite');t.objectStore('assets').delete(k);t.oncomplete=()=>{r.result.close();res();};t.onerror=rej;};}),disc.id+'/'+key+'/c');
+ await dropColor();
+ await inspect();await page.waitForFunction(()=>/\/c$/.test(Disc3D.viewer.debug.stamp.material.map?.userData.stampAsset||''),null,{timeout:30000});
+ assert.equal(await page.evaluate(()=>!!Disc3D.viewer.debug.photo),false,'drawn from the account, not the photo');
+ await dropColor();await page.route('**/stamp/color?*',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"offline"}'}));
  await inspect();await page.waitForFunction(()=>Disc3D.viewer.debug.photo?.userData.photoReady,null,{timeout:30000});
+ await page.unroute('**/stamp/color?*');
 
- // An asset made before full colour existed (a v1 entry, no colour part): Full color reads the original again.
- await page.evaluate(id=>{const s=JSON.parse(localStorage.getItem('disc-atlas-photo-stamps'));s.discs[id].look='asset';delete s.discs[id].color;localStorage.setItem('disc-atlas-photo-stamps',JSON.stringify(s));},disc.id);
+ // An asset made before full colour existed (a v1 entry, no colour part; v3: as the account holds one adopted from a v1
+ // browser): Full color reads the original again.
+ await page.evaluate(async([id,k])=>{
+  const ink=await (await fetch('/api/bag/discs/'+id+'/stamp/ink',{credentials:'same-origin'})).blob(),{stamp}=await (await fetch('/api/bag/discs/'+id+'/stamp',{credentials:'same-origin'})).json();
+  const form=new FormData();form.set('meta',JSON.stringify({texture_key:k,look:'asset',placement:stamp.placement,layered:stamp.layered,color:null}));form.set('ink',ink,'ink');
+  const r=await fetch('/api/bag/discs/'+id+'/stamp',{method:'PUT',body:form,credentials:'same-origin',headers:{'X-Atlas-CSRF':AtlasAccount.current.csrfToken}});if(!r.ok)throw Error(await r.text());
+ },[disc.id,key]);
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=2);
  await edit();
  assert.equal(await look('asset').isChecked(),true);

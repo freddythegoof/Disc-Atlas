@@ -3,6 +3,7 @@ import plastics from '../source-data/bag-plastics.json' with {type: 'json'};
 import models from '../source-data/bag-models.json' with {type: 'json'};
 import {validateDiscDetails, validateBagSettings} from '../public/bag-values.js';
 import {photoRoute,cleanupTextures} from './textures.mjs';
+import {stampsRoute,stampRoute} from './stamps.mjs';
 
 const json = (data, status = 200) => Response.json(data, {status, headers: {'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff'}});
 const byId = new Map(catalog.discs.map(d => [d.id, d]));
@@ -24,6 +25,10 @@ export function createBag(auth) {
    const path = new URL(request.url).pathname, method = request.method;
    const photo=/^\/api\/bag\/discs\/([^/]+)\/photo$/.exec(path);
    if(photo)return await photoRoute(request,env,user,photo[1]);
+   // Photo stamps v3 (stamps.mjs): the generated stamp assets and Look, with the account.
+   if(path==='/api/bag/stamps')return await stampsRoute(request,env,user);
+   const stamp=/^\/api\/bag\/discs\/([^/]+)\/stamp(?:\/(ink|color))?$/.exec(path);
+   if(stamp)return await stampRoute(request,env,user,stamp[1],stamp[2]);
    const single = /^\/api\/bag\/discs\/([^/]+)$/.exec(path), id = single?.[1];
    const root = path === '/api/bag', collection = path === '/api/bag/discs', order=path==='/api/bag/order';
    if (!root && !collection && !single && !order) return json({error:'Not found.'},404);

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
 import {spawn,execFileSync} from 'node:child_process';
-const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const playwright=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 export const BAG=[
  {mold_id:'3d60892b6812',plastic:'Champion',wear:8,weight_g:172,color:'#70b7cd'},  // Destroyer · distance · generated stamp
@@ -32,13 +32,15 @@ export async function startServer({port=8861,state='work/display-customization/d
  return {base,stop:()=>server.kill(),logs:()=>logs};
 }
 
-export async function startHarness({port=8861,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light',deviceScaleFactor=1}={}){
- const site=await startServer({port,state}),{base}=site;
+// One browser profile on the site, signed out until signIn(): its own browser, cookies and storage, like another
+// device. `engine: 'webkit'` is the phone's engine (docs/photo-stamp-sync.md); `context` adds context options (a phone's
+// touch and pointer).
+export async function openDevice(base,{viewport={width:1440,height:1000},colorScheme='light',deviceScaleFactor=1,engine='chromium',context:extra={}}={}){
  // A real GPU, as tests/gallery-fixes-browser.mjs asks for it: without one the atlas keeps its 2D orbs (atlas-art
  // refuses SwiftShader). D3D11 is Windows-only; elsewhere --enable-gpu reaches ANGLE on Metal or GL.
  const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?.split(' ').filter(Boolean)||(process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu']);
- const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs});
- const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme,deviceScaleFactor});
+ const browser=engine==='chromium'?await playwright.chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs}):await playwright[engine].launch({headless:true});
+ const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme,deviceScaleFactor,...extra});
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{
   const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64');
   const cb=new URL(u.searchParams.get('redirect_uri'));cb.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();
@@ -61,8 +63,13 @@ export async function startHarness({port=8861,state='work/display-customization/
    for(const disc of discs){const r=await fetch('/api/bag/discs',{method:'POST',headers,body:JSON.stringify(disc)});if(!r.ok)throw Error(await r.text());}
   },discs);
  };
- const stop=async()=>{await browser?.close().catch(()=>{});site.stop();};
- return {base,browser,context,page,errors,signIn,seedBag,stop,logs:site.logs};
+ return {browser,context,page,errors,signIn,seedBag,close:()=>browser.close().catch(()=>{})};
+}
+export async function startHarness({port=8861,state='work/display-customization/d1',...device}={}){
+ const site=await startServer({port,state}),{base}=site;
+ const first=await openDevice(base,device);
+ const stop=async()=>{await first.close();site.stop();};
+ return {base,...first,stop,logs:site.logs,device:options=>openDevice(base,options)};
 }
 
 // `node tests/display-harness.mjs` keeps the site up for suites that take ATLAS_URL (tests/palette.mjs).

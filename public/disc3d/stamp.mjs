@@ -20,7 +20,7 @@ function maskFor(asset){
  const image=new Image();entry={image,ready:false,failed:false,listeners:new Set()};masks.set(asset,entry);
  image.onload=()=>{entry.ready=true;for(const ready of entry.listeners)ready();entry.listeners.clear();trim();};
  image.onerror=()=>{entry.failed=true;for(const ready of entry.listeners)ready();entry.listeners.clear();trim();};
- // A photo stamp (photo-stamps.mjs) lives in this browser, not on the server: its bytes come from IndexedDB.
+ // A photo stamp (photo-stamps.mjs) belongs to the account: its bytes come from this browser's cache, else the account.
  if(PHOTO_STAMP.test(asset))photoStampBlob(asset).then(blob=>{const url=URL.createObjectURL(blob),done=()=>URL.revokeObjectURL(url);image.addEventListener('load',done,{once:true});image.addEventListener('error',done,{once:true});image.src=url;},()=>image.onerror());
  else image.src='/'+asset;
  trim();return entry;
