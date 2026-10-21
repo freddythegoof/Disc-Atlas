@@ -1,0 +1,67 @@
+[2026-10-21T01:26:14.922Z] launched ["--enable-gpu"] 156.0.8078.4 stage setup tag main
+[2026-10-21T01:26:17.254Z] session saved
+[2026-10-21T01:26:17.255Z] stage setup done
+[2026-10-21T01:26:47.605Z] launched ["--enable-gpu"] 156.0.8078.4 stage slices tag slices
+[2026-10-21T01:27:01.810Z] slices cold 17 72.0
+[2026-10-21T01:27:14.724Z] slices rep 1 long tasks 15 longest 73.0
+[2026-10-21T01:27:27.473Z] slices rep 2 long tasks 12 longest 75.0
+[2026-10-21T01:27:40.056Z] slices rep 3 long tasks 7 longest 78.0
+[2026-10-21T01:27:40.059Z] stage slices done
+[2026-10-21T01:28:06.775Z] launched ["--enable-gpu","--js-flags=--trace-deopt --trace-opt"] 156.0.8078.4 stage slices tag deopt
+[2026-10-21T01:28:20.451Z] deopt cold 5 72.0
+[2026-10-21T01:28:33.828Z] deopt rep 1 long tasks 25 longest 74.0
+[2026-10-21T01:28:33.831Z] stage slices done
+[2026-10-21T01:29:32.825Z] launched ["--enable-gpu"] 156.0.8078.4 stage trace tag trace
+[2026-10-21T01:29:46.513Z] trace cold 6 71.0
+[2026-10-21T01:30:01.282Z] trace rep 1 traced long tasks 23 longest 77.0
+[2026-10-21T01:30:01.285Z] stage trace done
+[2026-10-21T01:31:35.261Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag varA
+[2026-10-21T01:31:49.012Z] varA cold 0 0.0
+[2026-10-21T01:32:01.293Z] varA rep 1 long tasks 0 longest 0.0
+[2026-10-21T01:32:13.459Z] varA rep 2 long tasks 0 longest 0.0
+[2026-10-21T01:32:25.691Z] varA rep 3 long tasks 0 longest 0.0
+[2026-10-21T01:32:25.699Z] varA relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:32:25.702Z] stage run done
+[2026-10-21T01:32:26.514Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag varB
+[2026-10-21T01:32:39.971Z] varB cold 0 0.0
+[2026-10-21T01:32:52.169Z] varB rep 1 long tasks 0 longest 0.0
+[2026-10-21T01:33:04.519Z] varB rep 2 long tasks 0 longest 0.0
+[2026-10-21T01:33:16.700Z] varB rep 3 long tasks 0 longest 0.0
+[2026-10-21T01:33:16.702Z] varB relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:33:16.705Z] stage run done
+[2026-10-21T01:33:32.535Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag control
+[2026-10-21T01:33:46.736Z] control cold 17 72.0
+[2026-10-21T01:34:00.282Z] control rep 1 long tasks 26 longest 76.0
+[2026-10-21T01:34:13.297Z] control rep 2 long tasks 18 longest 72.0
+[2026-10-21T01:34:25.564Z] control rep 3 long tasks 2 longest 75.0
+[2026-10-21T01:34:25.567Z] control relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:34:25.570Z] stage run done
+[2026-10-21T01:35:15.961Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag fixed
+[2026-10-21T01:35:29.626Z] fixed cold 5 69.0
+[2026-10-21T01:35:42.223Z] fixed rep 1 long tasks 9 longest 70.0
+[2026-10-21T01:35:55.105Z] fixed rep 2 long tasks 15 longest 74.0
+[2026-10-21T01:36:07.504Z] fixed rep 3 long tasks 5 longest 75.0
+[2026-10-21T01:36:07.507Z] fixed relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:36:07.510Z] stage run done
+[2026-10-21T01:36:08.308Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag fixed-noyield
+[2026-10-21T01:36:21.777Z] fixed-noyield cold 1 70.0
+[2026-10-21T01:36:34.074Z] fixed-noyield rep 1 long tasks 3 longest 70.0
+[2026-10-21T01:36:34.124Z] fixed-noyield relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:36:34.127Z] stage run done
+[2026-10-21T01:36:42.924Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag fixed
+[2026-10-21T01:36:56.290Z] fixed cold 0 0.0
+[2026-10-21T01:37:08.421Z] fixed rep 1 long tasks 0 longest 0.0
+[2026-10-21T01:37:20.537Z] fixed rep 2 long tasks 0 longest 0.0
+[2026-10-21T01:37:32.721Z] fixed rep 3 long tasks 0 longest 0.0
+[2026-10-21T01:37:32.724Z] fixed relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:37:32.726Z] stage run done
+[2026-10-21T01:37:33.475Z] launched ["--enable-gpu"] 156.0.8078.4 stage run tag fixed-noyield
+[2026-10-21T01:37:47.993Z] fixed-noyield cold 0 0.0
+[2026-10-21T01:38:01.256Z] fixed-noyield rep 1 long tasks 0 longest 0.0
+[2026-10-21T01:38:01.313Z] fixed-noyield relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T01:38:01.316Z] stage run done
+[2026-10-21T02:39:18.941Z] launched ["--enable-gpu"] 156.0.8078.4 stage trace tag fixed-trace
+[2026-10-21T02:39:32.291Z] fixed-trace cold 0 0.0
+[2026-10-21T02:39:45.788Z] fixed-trace rep 1 traced long tasks 0 longest 0.0
+[2026-10-21T02:39:45.842Z] fixed-trace relief bytes {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+[2026-10-21T02:39:45.845Z] stage trace done

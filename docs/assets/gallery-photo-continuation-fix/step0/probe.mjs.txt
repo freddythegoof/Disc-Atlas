@@ -1,0 +1,80 @@
+// Step 0 probe for the owner-photo continuation (ignored diagnostic, never a gate). Mirrors tests/gallery-fixes-browser.mjs:
+// build workers, local Wrangler auth/D1/R2 fixture on its own port/state, routed Google sign-in, the same four owned copies with
+// stamped-disc.webp on Destroyer, then Gallery, phone context (390x844, DPR 2, 4x CPU), the gate's warm-rep loop (241 flips + 120 stills).
+// Stages: --stage=setup | --stage=trace (CDP trace with V8 sampling) | --stage=slices (untraced; wraps the browser calls the continuation makes)
+// --tag=<name> names the output. Run from the worktree root: node outputs/gpc/probe.mjs --stage=...
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import https from 'node:https';
+import {createRequire} from 'node:module';
+import {spawn,execFileSync} from 'node:child_process';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
+const args=Object.fromEntries(process.argv.slice(2).map(a=>{const m=/^--([^=]+)=(.*)$/.exec(a);return m?[m[1],m[2]]:[a.replace(/^--/,''),'true'];}));
+const stage=args.stage||'setup',tag=args.tag||'main',reps=Number(args.reps||1),flips=Number(args.flips||241);
+const config='tests/auth.wrangler.jsonc',out='outputs/gpc',state=out+'/state',base='https://localhost:8961';
+const wrangler='node_modules/wrangler/wrangler-dist/cli.js',FLAGS=['--enable-gpu',...(args.js?['--js-flags='+args.js]:[])];
+const log=(...a)=>{const line=`[${new Date().toISOString()}] ${a.join(' ')}`;console.log(line);fs.appendFileSync(`${out}/probe.log`,line+'\n');};
+const command=a=>execFileSync(process.execPath,[wrangler,...a,'--config',config,'--persist-to',state],{windowsHide:true,stdio:'pipe'});
+const ready=()=>new Promise(resolve=>{const r=https.get(base,{rejectUnauthorized:false,family:4},res=>{res.resume();resolve(res.statusCode===200);});r.on('error',()=>resolve(false));r.setTimeout(500,()=>r.destroy());});
+if(stage==='setup'){execFileSync(process.execPath,['scripts/build-workers.mjs'],{windowsHide:true,stdio:'inherit'});command(['d1','migrations','apply','disc-atlas-accounts','--local']);command(['d1','execute','disc-atlas-accounts','--local','--command','DELETE FROM auth_users;']);}
+const server=spawn(process.execPath,[wrangler,'dev','--config',config,'--local','--port','8961','--ip','127.0.0.1','--local-protocol','https','--inspector-port','0','--persist-to',state],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+let logs='',browser;for(const stream of [server.stdout,server.stderr])stream.on('data',d=>logs+=d);
+const errors=[];
+const enter=async p=>{await p.goto(base+'/?bag=1');await p.waitForFunction(()=>window.AtlasAccount?.current?.user&&discs.length>0);await p.locator('#myBagLoadState').waitFor({state:'hidden'});await p.locator('[data-bag-view="gallery"]').click();await p.waitForFunction(()=>!!BagApp.scenes.album);};
+const appearanceReady=()=>{const v=BagApp.scenes.album;if(!v)return false;const p=v.state.props,photo=v.debug.photo,stamp=v.debug.stamp.material.map;return !!p&&(!p.photoURL||photo?.userData.photoReady)&&(!p.stampAsset||p.photoURL||stamp?.userData.stampAsset);};
+// The gate's warm repetition loop with marks and per-flip bookkeeping added; nothing removed.
+const LOOP=async({flips,stills,tag})=>{
+ const longs=[],o=new PerformanceObserver(l=>{for(const e of l.getEntries())longs.push({start:e.startTime,duration:e.duration});});o.observe({type:'longtask'});
+ const frame=()=>new Promise(r=>requestAnimationFrame(r)),flipsLog=[],name=()=>document.querySelector('[data-album-name]').textContent;
+ performance.mark(tag+':start');
+ for(let i=0;i<flips;i++){
+  await frame();performance.mark(tag+':flip:'+i);const from=name(),start=performance.now();document.querySelector('[data-album-step="1"]').click();BagApp.scenes.album.debug.renderNow();
+  let limit=performance.now()+10000;while(true){const v=BagApp.scenes.album,p=v.state.props,ready=(!p.photoURL||v.debug.photo?.userData.photoReady)&&(!p.stampAsset||p.photoURL||v.debug.stamp.material.map?.userData.stampAsset);if(ready&&document.querySelector('#allDiscsGallery').dataset.appearance!=='loading')break;if(performance.now()>limit)throw Error('Appearance timed out');await frame();}
+  flipsLog.push({i,from,to:name(),start,reveal:performance.now()-start});
+ }
+ performance.mark(tag+':stills');
+ for(let i=0;i<stills;i++){await frame();BagApp.scenes.album.debug.renderNow();}
+ await new Promise(r=>setTimeout(r,100));o.disconnect();performance.mark(tag+':end');
+ return {longTasks:longs.length,longest:Math.max(0,...longs.map(l=>l.duration)),longs,flips:flipsLog,relief:window.__relief?.splice(0)||null,cont:window.__cont?.splice(0)||null};
+};
+try{
+ const deadline=Date.now()+60000;while(!await ready()){if(Date.now()>deadline||server.exitCode!==null)throw Error(logs);await new Promise(r=>setTimeout(r,200));}
+ browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:FLAGS});log('launched',JSON.stringify(FLAGS),browser.version(),'stage',stage,'tag',tag);
+ if(stage==='setup'){
+  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64'),cb=new URL(u.searchParams.get('redirect_uri'));cb.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();await route.fulfill({contentType:'text/html',body:`<a href="${cb.href.replaceAll('&','&amp;')}">Continue as Atlas Player</a>`});});
+  await page.goto(base+'/?bag=1');await page.locator('#myBagSignIn').click();const link=page.getByRole('link',{name:'Continue with Google',exact:true});await link.waitFor();const redirect=await page.request.get(base+await link.getAttribute('href'),{maxRedirects:0});await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();await page.waitForFunction(()=>window.AtlasAccount?.current?.user);await page.locator('#myBagEmpty').waitFor();
+  const api=async(path='',method='GET',body)=>{const r=await page.request.fetch(base+'/api/bag'+path,{method,headers:await page.evaluate(()=>({'Content-Type':'application/json',Origin:location.origin,'X-Atlas-CSRF':AtlasAccount.current.csrfToken})),...(body?{data:body}:{})});assert.ok(r.ok(),await r.text());return r.json();};
+  const owned=[];for(const [mold_id,plastic,in_bag] of [['3d60892b6812','Star',true],['8cc6c4a94762','ESP',false],['7446eb39abe5','ESP',false],['ff4bf9e7743c','Putter Line Hard',false]])owned.push((await api('/discs','POST',{mold_id,plastic,in_bag,wear:8,weight_g:173,color:'#e6c668'})).disc);
+  const bytes=await page.evaluate(async bytes=>{const {preparePhoto}=await import('/disc-photo.mjs');const bitmap=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/webp'}));const {blob}=await preparePhoto(bitmap,{});bitmap.close();return [...new Uint8Array(await blob.arrayBuffer())];},[...fs.readFileSync('tests/fixtures/stamped-disc.webp')]);
+  const upload=await page.request.put(base+'/api/bag/discs/'+owned[0].id+'/photo',{headers:await page.evaluate(()=>({'Content-Type':'image/webp',Origin:location.origin,'X-Atlas-CSRF':AtlasAccount.current.csrfToken})),data:Buffer.from(bytes)});assert.ok(upload.ok(),await upload.text());
+  await enter(page);await page.waitForFunction(appearanceReady);await context.storageState({path:`${out}/session.json`});await context.close();log('session saved');
+ }else{
+  const c=await browser.newContext({ignoreHTTPSErrors:true,storageState:`${out}/session.json`,viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true}),p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));
+  // Probe-only: serve photo.mjs with per-slice timestamps (outputs/gpc/photo.instrumented.mjs); the arithmetic is unchanged.
+  // --noyield exercises the MessageChannel fallback the browsers without scheduler.yield take.
+  if(args.noyield)await c.addInitScript(()=>{delete Scheduler.prototype.yield;});
+  if(args.variant)await c.route('**/disc3d/photo.mjs',route=>route.fulfill({contentType:'application/javascript',body:fs.readFileSync(`${out}/photo.${args.variant}.mjs`)}));
+  if(stage==='slices')await c.route('**/disc3d/photo.mjs',route=>route.fulfill({contentType:'application/javascript',body:fs.readFileSync(`${out}/photo.instrumented.mjs`)}));
+  const cdp=await c.newCDPSession(p);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});await enter(p);await p.waitForFunction(appearanceReady);await p.locator('#allDiscsGallery').scrollIntoViewIfNeeded();
+  // Cold rep first, as the gate does, then warm reps.
+  const cold=await p.evaluate(LOOP,{flips,stills:120,tag:'cold'});log(tag,'cold',cold.longTasks,cold.longest.toFixed(1));
+  for(let r=1;r<=reps;r++){
+   if(stage==='trace'){
+    const done=new Promise(resolve=>cdp.once('Tracing.tracingComplete',resolve));
+    await cdp.send('Tracing.start',{traceConfig:{includedCategories:['devtools.timeline','disabled-by-default-devtools.timeline','blink.user_timing','v8.execute','v8','disabled-by-default-v8.cpu_profiler','disabled-by-default-v8.gc','toplevel','blink'],recordMode:'recordUntilFull',traceBufferSizeInKb:1024*1024},transferMode:'ReturnAsStream',streamFormat:'json'});
+    const result=await p.evaluate(LOOP,{flips,stills:120,tag:'hunt'});
+    await cdp.send('Tracing.end');const {stream}=await done;const file=fs.openSync(`${out}/${tag}-r${r}.trace.json`,'w');
+    while(true){const x=await cdp.send('IO.read',{handle:stream,size:1<<22});fs.writeSync(file,x.base64Encoded?Buffer.from(x.data,'base64'):Buffer.from(x.data,'utf8'));if(x.eof)break;}
+    fs.closeSync(file);await cdp.send('IO.close',{handle:stream});
+    fs.writeFileSync(`${out}/${tag}-r${r}.loop.json`,JSON.stringify(result,null,1));log(tag,'rep',r,'traced long tasks',result.longTasks,'longest',result.longest.toFixed(1));
+   }else{const result=await p.evaluate(LOOP,{flips,stills:120,tag:'hunt'});fs.writeFileSync(`${out}/${tag}-r${r}.loop.json`,JSON.stringify(result,null,1));log(tag,'rep',r,'long tasks',result.longTasks,'longest',result.longest.toFixed(1));}
+  }
+  // The relief bytes the viewer actually holds for the owner photo, for the identical-output check.
+  const relief=await p.evaluate(async()=>{const frame=()=>new Promise(r=>requestAnimationFrame(r));for(let k=0;k<8;k++){const v=BagApp.scenes.album;if(v.state.props.photoURL&&v.debug.photo?.userData.photoReady)break;document.querySelector('[data-album-step="1"]').click();for(let f=0;f<200&&!(BagApp.scenes.album.debug.photo?.userData.photoReady||!BagApp.scenes.album.state.props.photoURL);f++)await frame();}
+   const m=BagApp.scenes.album.debug.photo.material,b=m.bumpMap.image,h=new Uint8Array(await crypto.subtle.digest('SHA-256',b.data));return {w:b.width,h:b.height,bumpScale:m.bumpScale,sha256:[...h].map(x=>x.toString(16).padStart(2,'0')).join('')};});
+  log(tag,'relief bytes',JSON.stringify(relief));fs.writeFileSync(`${out}/${tag}.relief.json`,JSON.stringify(relief)+'\n');
+  await c.close();
+ }
+ assert.deepEqual(errors,[]);log('stage',stage,'done');
+}finally{await browser?.close();server.kill();}

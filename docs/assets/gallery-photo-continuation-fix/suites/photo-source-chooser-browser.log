@@ -1,0 +1,2 @@
+PASS: webkit iPhone 16 Pro Max sources/capture, Add/Replace, outside/Esc/Cancel, OS/framing cancellation, shared decode/prepare and desktop picker
+PASS: chromium Pixel 7 sources/capture, Add/Replace, outside/Esc/Cancel, OS/framing cancellation, shared decode/prepare and desktop picker

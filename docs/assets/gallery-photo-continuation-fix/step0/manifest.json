@@ -1,0 +1,16 @@
+[
+  {
+    "file": "trace-r1.trace.json.gz",
+    "raw_bytes": 48414416,
+    "gzip_bytes": 4815732,
+    "raw_sha256": "01c885ae3ba4bf443e9ea03fc49befd38abd0b05cea66851b9441cb90e1a819c",
+    "gzip_sha256": "a76ba4eb933194330e6368e8e795c5b428f80c4e88b8ea95b9812b50031ed438"
+  },
+  {
+    "file": "fixed-trace-r1.trace.json.gz",
+    "raw_bytes": 46016349,
+    "gzip_bytes": 4499206,
+    "raw_sha256": "e2ca40f2a40263b719b48c4d2d980bd562e18aca6f330b229cbffa5d3105fab7",
+    "gzip_sha256": "d06755d09aa9fbd704bee0b24de51deea1d76b85aeda3fc835dfd55b240e236c"
+  }
+]

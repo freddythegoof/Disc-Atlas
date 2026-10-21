@@ -1,0 +1,17 @@
+#!/bin/zsh
+# Suites for the photo-continuation fix: every unit suite, then the gallery, bag, photo, disc3d and Atlas browser suites at their defaults.
+# usage: outputs/gpc/run-suites.sh <worktree> <outdir> [suite ...]
+W=$1; O=$2; shift 2; mkdir -p $O; cd $W
+L=$O/summary.log; : > $L
+if (( $# )); then suites=($@); else suites=(all-discs-browser bag-collections-browser bag-browser bag-demo-browser bag-memorial-browser bag-3d-browser bag-overmold-browser bag-scene-browser bag-v12-browser bag-v13-browser bag-staging-browser bag-hidden-stage-browser bag-interactions-browser bag-pockets-browser bag-tweaks-browser bag-switch-dump-browser bag-spin-pocket-browser bag-map-controls-browser bag-popup-browser bag-tips-browser bag-pulled-sizing-browser bag-pulled-quality-browser photo-textures-browser photo-texture-perf-browser photo-decode-browser photo-compression-browser photo-gestures-browser photo-editor-contract-browser photo-source-chooser-browser photo-rim-color-browser photo-stamp-level-browser non-overmold-photo-edge-browser non-overmold-photo-edge-atlas-browser halo-plastic-browser disc-appearance-browser disc3d-browser disc3d-popout-browser atlas-3d-browser atlas-stamps-browser my-map-browser); fi
+if [ -z "$NO_UNIT" ]; then
+ units=(${(f)"$(grep -l 'node:test' tests/*.mjs | grep -v -- '-browser\.mjs$' | sort)"})
+ echo "UNIT ${#units} suites start $(date +%T)" >> $L
+ node --test $units > $O/unit.log 2>&1; echo "EXIT unit $? $(date +%T)" >> $L
+fi
+for t in $suites; do
+ start=$(date +%s)
+ if grep -q 'node:test' tests/$t.mjs; then node --test tests/$t.mjs > $O/$t.log 2>&1; else node tests/$t.mjs > $O/$t.log 2>&1; fi
+ echo "EXIT $t $? $(( $(date +%s)-start ))s $(date +%T)" >> $L
+done
+echo "DONE $(date +%T)" >> $L

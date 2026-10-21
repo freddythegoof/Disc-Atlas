@@ -1,0 +1,1948 @@
+{
+ "note": "Untraced phone loop (390x844, DPR 2, 4x CPU, --enable-gpu, ANGLE Metal) on main 5fb9801 with photo.mjs served by the probe with per-slice timestamps only (photo.instrumented.mjs). Times in ms. slow = continuations over 45 ms.",
+ "reps": [
+  {
+   "rep": 1,
+   "longTasks": 15,
+   "longest": 73,
+   "arrivals": 60,
+   "pattern": ".S.S.S.S.S.S.S.S.S..S..S.S..........................S..S.S..",
+   "fastMedian": {
+    "n": 45,
+    "drawImage": 0.9,
+    "getImageData": 3,
+    "luminanceLoop": 2.9,
+    "heightLoop": 12.7,
+    "dataTexture": 0,
+    "relief": 20.1,
+    "continuation": 20.1,
+    "decodeWall": 13
+   },
+   "slowMedian": {
+    "n": 15,
+    "drawImage": 0.9,
+    "getImageData": 2.9,
+    "luminanceLoop": 32.1,
+    "heightLoop": 31.9,
+    "dataTexture": 0.1,
+    "relief": 68.3,
+    "continuation": 68.3,
+    "decodeWall": 13.2
+   },
+   "longTaskDurations": [
+    71,
+    72,
+    71,
+    72,
+    72,
+    72,
+    73,
+    72,
+    72,
+    72,
+    73,
+    72,
+    73,
+    72,
+    72
+   ],
+   "perArrival": [
+    {
+     "drawImage": 1,
+     "getImageData": 2.8,
+     "luminanceLoop": 5.4,
+     "heightLoop": 12.7,
+     "dataTexture": 0,
+     "relief": 21.9,
+     "continuation": 21.9,
+     "decodeWall": 12.4
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.9,
+     "luminanceLoop": 31.8,
+     "heightLoop": 31.5,
+     "dataTexture": 0.1,
+     "relief": 67.3,
+     "continuation": 67.3,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3,
+     "luminanceLoop": 5,
+     "heightLoop": 13.5,
+     "dataTexture": 0,
+     "relief": 22.3,
+     "continuation": 22.3,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.9,
+     "luminanceLoop": 32.2,
+     "heightLoop": 31.4,
+     "dataTexture": 0,
+     "relief": 67.5,
+     "continuation": 67.5,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.6,
+     "luminanceLoop": 5.8,
+     "heightLoop": 13,
+     "dataTexture": 0,
+     "relief": 22.4,
+     "continuation": 22.4,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 32,
+     "heightLoop": 31.5,
+     "dataTexture": 0.1,
+     "relief": 67.3,
+     "continuation": 67.3,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 2.8,
+     "luminanceLoop": 5.6,
+     "heightLoop": 12.7,
+     "dataTexture": 0.1,
+     "relief": 21.8,
+     "continuation": 21.8,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.1,
+     "luminanceLoop": 32.3,
+     "heightLoop": 31.4,
+     "dataTexture": 0.1,
+     "relief": 67.7,
+     "continuation": 67.7,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3.2,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.7,
+     "dataTexture": 0,
+     "relief": 23.3,
+     "continuation": 23.3,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.9,
+     "luminanceLoop": 32.7,
+     "heightLoop": 31.1,
+     "dataTexture": 0.1,
+     "relief": 67.8,
+     "continuation": 67.8,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.9,
+     "luminanceLoop": 5.4,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 22.2,
+     "continuation": 22.8,
+     "decodeWall": 12.1
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.9,
+     "luminanceLoop": 31.8,
+     "heightLoop": 32.4,
+     "dataTexture": 0.1,
+     "relief": 68.3,
+     "continuation": 68.3,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.7,
+     "luminanceLoop": 5.1,
+     "heightLoop": 12.9,
+     "dataTexture": 0,
+     "relief": 21.6,
+     "continuation": 21.6,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 32.5,
+     "heightLoop": 32.5,
+     "dataTexture": 0.1,
+     "relief": 68.8,
+     "continuation": 68.8,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.7,
+     "luminanceLoop": 5.3,
+     "heightLoop": 12.9,
+     "dataTexture": 0,
+     "relief": 22.2,
+     "continuation": 22.2,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 2.8,
+     "luminanceLoop": 31.7,
+     "heightLoop": 31.9,
+     "dataTexture": 0.8,
+     "relief": 68,
+     "continuation": 68,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3,
+     "luminanceLoop": 5,
+     "heightLoop": 13.5,
+     "dataTexture": 0,
+     "relief": 22.3,
+     "continuation": 22.3,
+     "decodeWall": 12.1
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.4,
+     "luminanceLoop": 31.8,
+     "heightLoop": 31.7,
+     "dataTexture": 0.5,
+     "relief": 68.3,
+     "continuation": 68.3,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 1.4,
+     "getImageData": 2.7,
+     "luminanceLoop": 2.8,
+     "heightLoop": 13.5,
+     "dataTexture": 0,
+     "relief": 20.4,
+     "continuation": 20.4,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 5,
+     "heightLoop": 13.9,
+     "dataTexture": 0,
+     "relief": 22.6,
+     "continuation": 22.6,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3,
+     "luminanceLoop": 32,
+     "heightLoop": 31.9,
+     "dataTexture": 0.8,
+     "relief": 68.5,
+     "continuation": 68.5,
+     "decodeWall": 15.4
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 2.8,
+     "luminanceLoop": 3.5,
+     "heightLoop": 13.2,
+     "dataTexture": 0,
+     "relief": 20.1,
+     "continuation": 20.1,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 2.9,
+     "luminanceLoop": 5.9,
+     "heightLoop": 12.7,
+     "dataTexture": 0,
+     "relief": 22.2,
+     "continuation": 22.2,
+     "decodeWall": 12.1
+    },
+    {
+     "drawImage": 1.5,
+     "getImageData": 2.9,
+     "luminanceLoop": 31.7,
+     "heightLoop": 32.9,
+     "dataTexture": 0.1,
+     "relief": 69.1,
+     "continuation": 69.1,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 2.8,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.2,
+     "dataTexture": 0,
+     "relief": 22,
+     "continuation": 22,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 2.7,
+     "luminanceLoop": 33,
+     "heightLoop": 31.8,
+     "dataTexture": 0.1,
+     "relief": 68.4,
+     "continuation": 68.4,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3,
+     "luminanceLoop": 4.9,
+     "heightLoop": 12.9,
+     "dataTexture": 0,
+     "relief": 22,
+     "continuation": 22,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 13.5,
+     "dataTexture": 0,
+     "relief": 20.2,
+     "continuation": 20.2,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.9,
+     "luminanceLoop": 4.1,
+     "heightLoop": 31.8,
+     "dataTexture": 0.3,
+     "relief": 40.2,
+     "continuation": 40.2,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.8,
+     "luminanceLoop": 4.3,
+     "heightLoop": 31.6,
+     "dataTexture": 0,
+     "relief": 39.9,
+     "continuation": 39.9,
+     "decodeWall": 14.1
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.7,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.5,
+     "luminanceLoop": 3,
+     "heightLoop": 11.8,
+     "dataTexture": 0,
+     "relief": 18.2,
+     "continuation": 18.2,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 3,
+     "luminanceLoop": 2.7,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18,
+     "continuation": 18,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.6,
+     "heightLoop": 11.8,
+     "dataTexture": 0,
+     "relief": 18.4,
+     "continuation": 18.4,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.4,
+     "getImageData": 3,
+     "luminanceLoop": 2.3,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 19.3,
+     "continuation": 19.3,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 18.6,
+     "continuation": 18.6,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.7,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.3,
+     "continuation": 19.3,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.4,
+     "luminanceLoop": 2.5,
+     "heightLoop": 11.8,
+     "dataTexture": 0,
+     "relief": 18.2,
+     "continuation": 18.2,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.2,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 17.9,
+     "continuation": 17.9,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 2.8,
+     "luminanceLoop": 3.2,
+     "heightLoop": 11.4,
+     "dataTexture": 0.4,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 12.4
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 3.5,
+     "luminanceLoop": 2.6,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 13.9
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.4,
+     "getImageData": 3,
+     "luminanceLoop": 2.3,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.5,
+     "luminanceLoop": 2.6,
+     "heightLoop": 11.6,
+     "dataTexture": 0.3,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.5,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.8,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 14.1
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.7,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.5,
+     "getImageData": 2.7,
+     "luminanceLoop": 2.5,
+     "heightLoop": 11.8,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.4,
+     "continuation": 18.4,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 3,
+     "luminanceLoop": 2.4,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.9,
+     "luminanceLoop": 2.9,
+     "heightLoop": 11.4,
+     "dataTexture": 0,
+     "relief": 18.4,
+     "continuation": 18.4,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.7,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.6,
+     "dataTexture": 0,
+     "relief": 22.4,
+     "continuation": 22.4,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.9,
+     "luminanceLoop": 32.1,
+     "heightLoop": 32.8,
+     "dataTexture": 0.1,
+     "relief": 69.1,
+     "continuation": 69.1,
+     "decodeWall": 14.6
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.9,
+     "luminanceLoop": 2.4,
+     "heightLoop": 13.7,
+     "dataTexture": 0,
+     "relief": 20.1,
+     "continuation": 20.1,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.5,
+     "luminanceLoop": 6,
+     "heightLoop": 13,
+     "dataTexture": 0,
+     "relief": 22.5,
+     "continuation": 22.5,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 33.1,
+     "heightLoop": 31.9,
+     "dataTexture": 0,
+     "relief": 68.7,
+     "continuation": 68.8,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3,
+     "luminanceLoop": 4.4,
+     "heightLoop": 13.7,
+     "dataTexture": 0,
+     "relief": 21.6,
+     "continuation": 21.7,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.2,
+     "luminanceLoop": 32.2,
+     "heightLoop": 32.2,
+     "dataTexture": 0.5,
+     "relief": 68.9,
+     "continuation": 68.9,
+     "decodeWall": 14.2
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3,
+     "luminanceLoop": 2.5,
+     "heightLoop": 14,
+     "dataTexture": 0,
+     "relief": 20.6,
+     "continuation": 20.6,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.5,
+     "luminanceLoop": 5,
+     "heightLoop": 13.2,
+     "dataTexture": 0,
+     "relief": 22.5,
+     "continuation": 22.5,
+     "decodeWall": 12.6
+    }
+   ]
+  },
+  {
+   "rep": 2,
+   "longTasks": 12,
+   "longest": 75,
+   "arrivals": 60,
+   "pattern": "S.S.S.S.S....................................S.S..S..S.S.S.S",
+   "fastMedian": {
+    "n": 48,
+    "drawImage": 0.9,
+    "getImageData": 3,
+    "luminanceLoop": 2.9,
+    "heightLoop": 12.2,
+    "dataTexture": 0,
+    "relief": 18.8,
+    "continuation": 18.8,
+    "decodeWall": 13.1
+   },
+   "slowMedian": {
+    "n": 12,
+    "drawImage": 1,
+    "getImageData": 3,
+    "luminanceLoop": 33,
+    "heightLoop": 32.3,
+    "dataTexture": 0.3,
+    "relief": 69.6,
+    "continuation": 69.6,
+    "decodeWall": 13.3
+   },
+   "longTaskDurations": [
+    72,
+    73,
+    72,
+    74,
+    72,
+    73,
+    73,
+    74,
+    74,
+    73,
+    75,
+    74
+   ],
+   "perArrival": [
+    {
+     "drawImage": 1,
+     "getImageData": 2.5,
+     "luminanceLoop": 33.7,
+     "heightLoop": 31.4,
+     "dataTexture": 0.1,
+     "relief": 68.7,
+     "continuation": 68.8,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.7,
+     "luminanceLoop": 5.4,
+     "heightLoop": 12.7,
+     "dataTexture": 0,
+     "relief": 22.1,
+     "continuation": 22.2,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.6,
+     "luminanceLoop": 33,
+     "heightLoop": 31.8,
+     "dataTexture": 0.1,
+     "relief": 68.6,
+     "continuation": 68.7,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.4,
+     "getImageData": 2.6,
+     "luminanceLoop": 5.4,
+     "heightLoop": 14,
+     "dataTexture": 0,
+     "relief": 23.4,
+     "continuation": 23.4,
+     "decodeWall": 12.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3,
+     "luminanceLoop": 32.4,
+     "heightLoop": 31.6,
+     "dataTexture": 0.7,
+     "relief": 68.6,
+     "continuation": 68.6,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.6,
+     "luminanceLoop": 5.7,
+     "heightLoop": 13.4,
+     "dataTexture": 0,
+     "relief": 22.6,
+     "continuation": 22.6,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.9,
+     "luminanceLoop": 33.5,
+     "heightLoop": 32.3,
+     "dataTexture": 0,
+     "relief": 69.7,
+     "continuation": 69.7,
+     "decodeWall": 14.1
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.6,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.2,
+     "dataTexture": 0,
+     "relief": 22.3,
+     "continuation": 22.3,
+     "decodeWall": 12.4
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.9,
+     "luminanceLoop": 32.4,
+     "heightLoop": 32.3,
+     "dataTexture": 0.4,
+     "relief": 69.1,
+     "continuation": 69.1,
+     "decodeWall": 12.4
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.1,
+     "luminanceLoop": 5.3,
+     "heightLoop": 13.1,
+     "dataTexture": 0,
+     "relief": 22.3,
+     "continuation": 22.3,
+     "decodeWall": 14.9
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.6,
+     "luminanceLoop": 2.8,
+     "heightLoop": 13.7,
+     "dataTexture": 0,
+     "relief": 20,
+     "continuation": 20,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.2,
+     "luminanceLoop": 4.1,
+     "heightLoop": 32.5,
+     "dataTexture": 0.1,
+     "relief": 40.4,
+     "continuation": 40.4,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.8,
+     "luminanceLoop": 4.5,
+     "heightLoop": 31.9,
+     "dataTexture": 0.1,
+     "relief": 40.4,
+     "continuation": 40.4,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 2.1,
+     "luminanceLoop": 3.2,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 17.9,
+     "continuation": 18.3,
+     "decodeWall": 12.2
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.4,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 18.6,
+     "continuation": 18.6,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 14.9
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.8,
+     "luminanceLoop": 2.9,
+     "heightLoop": 11.3,
+     "dataTexture": 0,
+     "relief": 18.1,
+     "continuation": 18.1,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.3,
+     "dataTexture": 0,
+     "relief": 18.2,
+     "continuation": 18.2,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.7,
+     "luminanceLoop": 2.7,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 14
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.7,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.5,
+     "luminanceLoop": 3.2,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.6,
+     "continuation": 18.6,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3,
+     "luminanceLoop": 2.4,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 0.4,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 18,
+     "continuation": 18,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.7,
+     "luminanceLoop": 3,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.7,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 18.3,
+     "continuation": 18.3,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.7,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3,
+     "luminanceLoop": 3,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 12.4
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.9,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.8,
+     "continuation": 18.8,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3,
+     "luminanceLoop": 2.2,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 18.4,
+     "continuation": 18.4,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3,
+     "luminanceLoop": 2.3,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 18.3,
+     "continuation": 18.3,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3,
+     "luminanceLoop": 3.2,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 19,
+     "continuation": 19,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 2.5,
+     "luminanceLoop": 3.2,
+     "heightLoop": 11.8,
+     "dataTexture": 0.4,
+     "relief": 18.4,
+     "continuation": 18.4,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.4,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.7,
+     "heightLoop": 11.6,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.6,
+     "luminanceLoop": 2.3,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 18.6,
+     "continuation": 18.6,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.4,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 18.4,
+     "continuation": 18.4,
+     "decodeWall": 12.3
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.9,
+     "luminanceLoop": 2.6,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.8,
+     "continuation": 18.8,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.5,
+     "luminanceLoop": 2.9,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 18.5,
+     "continuation": 18.5,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.8,
+     "luminanceLoop": 2.6,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 18.8,
+     "continuation": 18.8,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.9,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 18.8,
+     "continuation": 19.2,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.3,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.6,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.8,
+     "dataTexture": 0,
+     "relief": 18.8,
+     "continuation": 18.8,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 1.4,
+     "getImageData": 2.9,
+     "luminanceLoop": 5.4,
+     "heightLoop": 13.4,
+     "dataTexture": 0.1,
+     "relief": 23.2,
+     "continuation": 23.2,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3,
+     "luminanceLoop": 33.6,
+     "heightLoop": 31.9,
+     "dataTexture": 0.1,
+     "relief": 69.7,
+     "continuation": 69.7,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3,
+     "luminanceLoop": 5,
+     "heightLoop": 13.1,
+     "dataTexture": 0,
+     "relief": 22,
+     "continuation": 22,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.4,
+     "luminanceLoop": 33,
+     "heightLoop": 32.2,
+     "dataTexture": 0.7,
+     "relief": 69.5,
+     "continuation": 69.5,
+     "decodeWall": 15
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3,
+     "luminanceLoop": 3.1,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 19.5,
+     "continuation": 19.5,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.9,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.2,
+     "dataTexture": 0,
+     "relief": 22.3,
+     "continuation": 22.3,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.2,
+     "luminanceLoop": 32.6,
+     "heightLoop": 32.9,
+     "dataTexture": 0,
+     "relief": 69.6,
+     "continuation": 69.6,
+     "decodeWall": 15.2
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.9,
+     "heightLoop": 13.3,
+     "dataTexture": 0,
+     "relief": 20.2,
+     "continuation": 20.2,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.9,
+     "luminanceLoop": 5.3,
+     "heightLoop": 14,
+     "dataTexture": 0,
+     "relief": 23.1,
+     "continuation": 23.1,
+     "decodeWall": 12.4
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.2,
+     "luminanceLoop": 33.5,
+     "heightLoop": 32.7,
+     "dataTexture": 0.3,
+     "relief": 70.6,
+     "continuation": 70.6,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.5,
+     "getImageData": 3,
+     "luminanceLoop": 5.4,
+     "heightLoop": 13.3,
+     "dataTexture": 0,
+     "relief": 23.2,
+     "continuation": 23.2,
+     "decodeWall": 12.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 32.9,
+     "heightLoop": 32.5,
+     "dataTexture": 0.4,
+     "relief": 69.5,
+     "continuation": 69.5,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.9,
+     "luminanceLoop": 4.7,
+     "heightLoop": 13.6,
+     "dataTexture": 0,
+     "relief": 22.1,
+     "continuation": 22.1,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.5,
+     "luminanceLoop": 33.6,
+     "heightLoop": 32,
+     "dataTexture": 0.5,
+     "relief": 70.4,
+     "continuation": 70.4,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 3.3,
+     "luminanceLoop": 5.5,
+     "heightLoop": 12.9,
+     "dataTexture": 0,
+     "relief": 23,
+     "continuation": 23,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3.5,
+     "luminanceLoop": 32.9,
+     "heightLoop": 33,
+     "dataTexture": 0.1,
+     "relief": 70.6,
+     "continuation": 70.6,
+     "decodeWall": 13.3
+    }
+   ]
+  },
+  {
+   "rep": 3,
+   "longTasks": 7,
+   "longest": 78,
+   "arrivals": 61,
+   "pattern": ".S....S.S.S.S.S.S............................................",
+   "fastMedian": {
+    "n": 54,
+    "drawImage": 1,
+    "getImageData": 3.2,
+    "luminanceLoop": 2.9,
+    "heightLoop": 12.3,
+    "dataTexture": 0,
+    "relief": 19.2,
+    "continuation": 19.2,
+    "decodeWall": 13.2
+   },
+   "slowMedian": {
+    "n": 7,
+    "drawImage": 1.1,
+    "getImageData": 2.9,
+    "luminanceLoop": 33.3,
+    "heightLoop": 32.6,
+    "dataTexture": 0.1,
+    "relief": 70.3,
+    "continuation": 70.3,
+    "decodeWall": 13.3
+   },
+   "longTaskDurations": [
+    72,
+    74,
+    74,
+    73,
+    78,
+    77,
+    74
+   ],
+   "perArrival": [
+    {
+     "drawImage": 0.8,
+     "getImageData": 2.9,
+     "luminanceLoop": 5.6,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 21.9,
+     "continuation": 21.9,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3.1,
+     "luminanceLoop": 32.7,
+     "heightLoop": 31.9,
+     "dataTexture": 0,
+     "relief": 68.9,
+     "continuation": 68.9,
+     "decodeWall": 15.8
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.2,
+     "luminanceLoop": 5.1,
+     "heightLoop": 13.2,
+     "dataTexture": 0,
+     "relief": 22,
+     "continuation": 22,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3,
+     "luminanceLoop": 3,
+     "heightLoop": 13.3,
+     "dataTexture": 0,
+     "relief": 20.4,
+     "continuation": 20.4,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.4,
+     "getImageData": 2.7,
+     "luminanceLoop": 4.8,
+     "heightLoop": 32,
+     "dataTexture": 0.7,
+     "relief": 40.6,
+     "continuation": 40.6,
+     "decodeWall": 13.6
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.5,
+     "luminanceLoop": 5.4,
+     "heightLoop": 13.4,
+     "dataTexture": 0,
+     "relief": 22.5,
+     "continuation": 22.5,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.9,
+     "luminanceLoop": 33.7,
+     "heightLoop": 32.6,
+     "dataTexture": 0,
+     "relief": 70.3,
+     "continuation": 70.3,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 1.5,
+     "getImageData": 2.8,
+     "luminanceLoop": 5.4,
+     "heightLoop": 13.5,
+     "dataTexture": 0,
+     "relief": 23.2,
+     "continuation": 23.2,
+     "decodeWall": 12.5
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.1,
+     "luminanceLoop": 33.3,
+     "heightLoop": 32.6,
+     "dataTexture": 0.5,
+     "relief": 70.2,
+     "continuation": 70.2,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.4,
+     "luminanceLoop": 5.3,
+     "heightLoop": 13.6,
+     "dataTexture": 0,
+     "relief": 22.6,
+     "continuation": 22.6,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.8,
+     "luminanceLoop": 33,
+     "heightLoop": 32.2,
+     "dataTexture": 0.1,
+     "relief": 69.2,
+     "continuation": 69.2,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.7,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.1,
+     "dataTexture": 0,
+     "relief": 22,
+     "continuation": 22,
+     "decodeWall": 12
+    },
+    {
+     "drawImage": 0.4,
+     "getImageData": 3.1,
+     "luminanceLoop": 36,
+     "heightLoop": 33.9,
+     "dataTexture": 0.1,
+     "relief": 73.5,
+     "continuation": 73.6,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.2,
+     "luminanceLoop": 5.2,
+     "heightLoop": 13.4,
+     "dataTexture": 0,
+     "relief": 22.7,
+     "continuation": 22.7,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.7,
+     "luminanceLoop": 36,
+     "heightLoop": 33.3,
+     "dataTexture": 0.2,
+     "relief": 73.4,
+     "continuation": 73.4,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.6,
+     "luminanceLoop": 5.7,
+     "heightLoop": 12.8,
+     "dataTexture": 0.7,
+     "relief": 22.9,
+     "continuation": 22.9,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 33,
+     "heightLoop": 33.2,
+     "dataTexture": 0.5,
+     "relief": 70.4,
+     "continuation": 70.4,
+     "decodeWall": 14.7
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 2.5,
+     "luminanceLoop": 3.1,
+     "heightLoop": 13.4,
+     "dataTexture": 0,
+     "relief": 20.2,
+     "continuation": 20.2,
+     "decodeWall": 12.8
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 6.2,
+     "heightLoop": 13.8,
+     "dataTexture": 0,
+     "relief": 23.7,
+     "continuation": 23.7,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.5,
+     "heightLoop": 13.8,
+     "dataTexture": 0,
+     "relief": 20.5,
+     "continuation": 20.5,
+     "decodeWall": 13.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.3,
+     "luminanceLoop": 4.1,
+     "heightLoop": 32.2,
+     "dataTexture": 0.7,
+     "relief": 41.2,
+     "continuation": 41.2,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 1.6,
+     "getImageData": 3.1,
+     "luminanceLoop": 4.6,
+     "heightLoop": 31.6,
+     "dataTexture": 0.4,
+     "relief": 41.3,
+     "continuation": 41.4,
+     "decodeWall": 14.3
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.7,
+     "luminanceLoop": 2.6,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 19.1,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.3,
+     "luminanceLoop": 3,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 13.9
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.9,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 3.5,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.6,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 19.3,
+     "continuation": 19.3,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.2,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 1.4,
+     "getImageData": 3.4,
+     "luminanceLoop": 2.7,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 19.4,
+     "continuation": 19.4,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 2.7,
+     "luminanceLoop": 3,
+     "heightLoop": 12.3,
+     "dataTexture": 0,
+     "relief": 19,
+     "continuation": 19,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 3.5,
+     "luminanceLoop": 2.8,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 18.6,
+     "continuation": 18.6,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.6,
+     "luminanceLoop": 2.9,
+     "heightLoop": 11.8,
+     "dataTexture": 0.1,
+     "relief": 19.4,
+     "continuation": 19.4,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.2,
+     "luminanceLoop": 3.1,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 19,
+     "continuation": 19,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.9,
+     "heightLoop": 11.7,
+     "dataTexture": 0.3,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 2.8,
+     "luminanceLoop": 3.1,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 0.6,
+     "getImageData": 2.9,
+     "luminanceLoop": 3,
+     "heightLoop": 12,
+     "dataTexture": 0.1,
+     "relief": 18.6,
+     "continuation": 18.6,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.6,
+     "luminanceLoop": 3.3,
+     "heightLoop": 12.1,
+     "dataTexture": 0.1,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 12.6
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3.4,
+     "luminanceLoop": 2.9,
+     "heightLoop": 12,
+     "dataTexture": 0.1,
+     "relief": 19.5,
+     "continuation": 19.5,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.2,
+     "luminanceLoop": 3,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 18.8,
+     "continuation": 18.8,
+     "decodeWall": 13.6
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.3,
+     "luminanceLoop": 3,
+     "heightLoop": 11.9,
+     "dataTexture": 0,
+     "relief": 19,
+     "continuation": 19,
+     "decodeWall": 13.1
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3,
+     "luminanceLoop": 3.3,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3,
+     "luminanceLoop": 2.2,
+     "heightLoop": 12.9,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 12.7
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12.3,
+     "dataTexture": 0,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.2,
+     "luminanceLoop": 3.2,
+     "heightLoop": 11.7,
+     "dataTexture": 0.7,
+     "relief": 19.6,
+     "continuation": 19.6,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.4,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 18.7,
+     "continuation": 18.7,
+     "decodeWall": 13.9
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.9,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.3,
+     "continuation": 19.3,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 2.8,
+     "luminanceLoop": 3,
+     "heightLoop": 12.4,
+     "dataTexture": 0,
+     "relief": 19.3,
+     "continuation": 19.3,
+     "decodeWall": 13.5
+    },
+    {
+     "drawImage": 1.3,
+     "getImageData": 2.7,
+     "luminanceLoop": 3.2,
+     "heightLoop": 12.3,
+     "dataTexture": 0,
+     "relief": 19.5,
+     "continuation": 19.5,
+     "decodeWall": 12.3
+    },
+    {
+     "drawImage": 0.9,
+     "getImageData": 3.6,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12,
+     "dataTexture": 0,
+     "relief": 19.3,
+     "continuation": 19.3,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3,
+     "luminanceLoop": 2.9,
+     "heightLoop": 12.5,
+     "dataTexture": 0,
+     "relief": 19.4,
+     "continuation": 19.4,
+     "decodeWall": 13.2
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.5,
+     "luminanceLoop": 2.6,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 19.7,
+     "continuation": 20.3,
+     "decodeWall": 13
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.2,
+     "luminanceLoop": 2.6,
+     "heightLoop": 12.5,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 0.8,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12.1,
+     "dataTexture": 0,
+     "relief": 19,
+     "continuation": 19,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.8,
+     "heightLoop": 12.3,
+     "dataTexture": 0.1,
+     "relief": 19,
+     "continuation": 19,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 1,
+     "getImageData": 3.1,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.6,
+     "dataTexture": 0,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 13.8
+    },
+    {
+     "drawImage": 0.5,
+     "getImageData": 3.6,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.3,
+     "dataTexture": 0,
+     "relief": 18.9,
+     "continuation": 18.9,
+     "decodeWall": 13.9
+    },
+    {
+     "drawImage": 0.7,
+     "getImageData": 3.7,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 13.4
+    },
+    {
+     "drawImage": 1.2,
+     "getImageData": 3.4,
+     "luminanceLoop": 2.9,
+     "heightLoop": 11.7,
+     "dataTexture": 0,
+     "relief": 19.2,
+     "continuation": 19.2,
+     "decodeWall": 12.9
+    },
+    {
+     "drawImage": 1.1,
+     "getImageData": 3.3,
+     "luminanceLoop": 2.5,
+     "heightLoop": 12.2,
+     "dataTexture": 0,
+     "relief": 19.1,
+     "continuation": 19.1,
+     "decodeWall": 13.7
+    }
+   ]
+  }
+ ]
+}

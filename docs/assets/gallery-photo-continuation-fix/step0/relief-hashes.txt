@@ -1,0 +1,6 @@
+control {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+fixed-noyield {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+fixed-trace {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+fixed {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+varA {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}
+varB {"w":512,"h":512,"bumpScale":0.35,"sha256":"e9d0f20297dfb3092f06fc1702e0b7eee1dc69a0318d665a97273da8ce29b3c3"}

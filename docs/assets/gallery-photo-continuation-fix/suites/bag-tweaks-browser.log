@@ -1,0 +1,17 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-photo-continuation-fix/dist/workers-public/
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Discs reach close to both sides at 1440: {"width":1440,"height":932,"left":40.94999694824219,"right":78.4599609375,"top":12.5,"bottom":61.9793701171875,"overlaps":0,"large":28,"largeSize":76,"groups":28}
+    at file:///Users/freddy/Disc-Atlas/.claude/worktrees/gallery-photo-continuation-fix/tests/bag-tweaks-browser.mjs:59:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

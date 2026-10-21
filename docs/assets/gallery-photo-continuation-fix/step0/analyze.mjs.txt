@@ -1,0 +1,25 @@
+// Step 0 analyser: every renderer-main task >50 ms in the hunt flip block, its child events by category, and the V8 samples
+// inside it attributed to function:line. usage: node outputs/gpc/analyze.mjs <trace.json>
+import fs from 'node:fs';
+const ev=JSON.parse(fs.readFileSync(process.argv[2],'utf8')).traceEvents??JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+const marks=ev.filter(e=>e.cat==='blink.user_timing'&&e.name?.startsWith('hunt:'));
+const {pid,tid}=marks[0],t0=marks.find(e=>e.name==='hunt:start').ts,t1=marks.find(e=>e.name==='hunt:stills').ts;
+const main=ev.filter(e=>e.pid===pid&&e.tid===tid&&e.ph==='X'&&e.dur!==undefined).sort((a,b)=>a.ts-b.ts||b.dur-a.dur);
+const tasks=main.filter(e=>(e.name==='RunTask'||e.name==='ThreadControllerImpl::RunTask')&&e.ts>=t0&&e.ts<t1&&e.dur>50000);
+// CPU profile: ProfileChunk events carry nodes, samples and timeDeltas on the trace clock.
+const nodes=new Map(),samples=[];let clock=null;
+for(const e of ev.filter(e=>e.pid===pid&&(e.name==='Profile'||e.name==='ProfileChunk')).sort((a,b)=>a.ts-b.ts)){
+ const d=e.args?.data;if(!d)continue;if(e.name==='Profile'){clock=d.startTime;continue;}
+ for(const n of d.cpuProfile?.nodes||[])nodes.set(n.id,n);
+ const s=d.cpuProfile?.samples||[],dt=d.timeDeltas||[],lines=d.lines||[];
+ for(let i=0;i<s.length;i++){clock+=dt[i];samples.push({ts:clock,node:s[i],line:lines[i]});}
+}
+const frameOf=id=>{const n=nodes.get(id);return n?`${n.callFrame.functionName||'(anon)'}@${(n.callFrame.url||'').split('/').pop()}`:'?';};
+const rows=[];
+for(const t of tasks){
+ const kids={};for(const e of main){if(e.ts<t.ts||e.ts>=t.ts+t.dur||e===t)continue;kids[e.name]=Math.max(kids[e.name]||0,e.dur/1000);}
+ const fn={};let n=0;for(const s of samples){if(s.ts<t.ts||s.ts>=t.ts+t.dur)continue;n++;const k=frameOf(s.node)+(s.line?':'+s.line:'');fn[k]=(fn[k]||0)+1;}
+ rows.push({wall:t.dur/1000,cpu:(t.tdur??0)/1000,samples:n,top:Object.entries(fn).sort((a,b)=>b[1]-a[1]).slice(0,8),kids:Object.entries(kids).filter(([,v])=>v>=1).sort((a,b)=>b[1]-a[1]).slice(0,10)});
+}
+console.log('long tasks in flip block',rows.length,'samples total',samples.length);
+for(const r of rows)console.log(JSON.stringify({wall:+r.wall.toFixed(1),cpu:+r.cpu.toFixed(1),samples:r.samples,top:r.top,kids:r.kids.map(([k,v])=>k+'='+v.toFixed(1))}));

@@ -1,0 +1,24 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gpc-control/dist/workers-public/
+ok - Toolbar: Manufacturer chip first (brand name or "2 manufacturers" when picked); the map dropdown and Default map say My Bag
+ok - Main atlas: the Stitch 48px grid sits under the canvas and markers in light, midnight and charcoal; neutral and faint; markers and labels unchanged
+ok - Toggle: a click (or Enter) slides a disc out (no details; the popup on its name opens them) and it stays out through Escape, empty-space clicks, closing the bag; each disc is independent; the next click puts back just that disc
+ok - Relative split: the demo bag's eight most overstable discs (stability 0.893, 0.84, 0.821, 0.755, 0.754, 0.753, 0.744, 0.734) still split 0/1, 1/1, 2/1, 2/2, 2/3, 3/3, 4/3, 4/4, the less overstable half left, faster higher, every name shown and clear
+ok - 1–5 out: beside the bag, balanced, every left disc less stable than every right disc, names shown, nothing overlapping; camera pulled back only to 1.00×
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: 8 out with details (1440): demo-04 inside the canvas {"key":"demo-04","id":"demo-04","pocket":"main","order":0,"empty":false,"shape":"ellipse","out":true,"arriving":false,"position":[-0.10288461538461538,-0.072,0.01],"left":-6.370201960347392,"top":34.6518626664214,"width":113.19627466715788,"height":113.19627466715787}
+    at layoutChecks (file:///Users/freddy/Disc-Atlas/.claude/worktrees/gpc-control/tests/bag-staging-browser.mjs:81:11)
+    at async sideCheck (file:///Users/freddy/Disc-Atlas/.claude/worktrees/gpc-control/tests/bag-staging-browser.mjs:162:3)
+    at async file:///Users/freddy/Disc-Atlas/.claude/worktrees/gpc-control/tests/bag-staging-browser.mjs:320:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

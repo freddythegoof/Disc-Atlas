@@ -1,0 +1,8 @@
+START fixed1 22:08:16 5fb9801 dirty=1
+END fixed1 22:10:54 exit 0
+START main1 22:11:42 5fb9801 dirty=0
+END main1 22:14:21 exit 1
+START main2 22:15:09 5fb9801 dirty=0
+END main2 22:17:47 exit 1
+START fixed2 22:18:35 5fb9801 dirty=1
+END fixed2 22:21:12 exit 0

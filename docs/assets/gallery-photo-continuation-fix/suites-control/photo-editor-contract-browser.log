@@ -1,0 +1,11 @@
+PASS: chromium exact baseline pixels/color/WebP for three transforms; non-passive legacy/touch/double-tap guards and usable control taps
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: This photo could not be compressed. Try another photo.
+    at /Users/freddy/Disc-Atlas/.claude/worktrees/gpc-control/tests/photo-editor-contract-browser.mjs:13:28 {
+  log: []
+}
+
+Node.js v24.21.0
