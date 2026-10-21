@@ -586,8 +586,12 @@ addMenu.addEventListener('keydown',event=>{
  if(event.key==='Tab')closeAddMenu(true);
 });
 window.addEventListener('atlas-account-change',event=>sync(event.detail));
-// A new stamp ink redraws the bag list's thumbnails (their stock stamps wear it).
-window.addEventListener('atlas-palette-change',()=>{const list=$('#myBagContents');if(list?.querySelector('[data-disc-thumbnail]'))window.DiscThumbnails.observe(list,mold,{personal:true});});
+// A new stamp ink redraws the bag list's thumbnails (their stock stamps wear it), and so does a photo disc's switch
+// between its photo and its game-asset look (disc3d/photo-stamps.mjs), in the list and in an open disc's details.
+window.addEventListener('atlas-palette-change',()=>{
+ const list=$('#myBagContents');if(list?.querySelector('[data-disc-thumbnail]'))window.DiscThumbnails.observe(list,mold,{personal:true});
+ if(detailPanel.querySelector('.bag-detail-personal [data-disc-thumbnail]'))window.DiscThumbnails.observe(detailPanel,mold,{personal:true});
+});
 window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,
  // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
  scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;},get album(){return gallery.viewer||null;}}};

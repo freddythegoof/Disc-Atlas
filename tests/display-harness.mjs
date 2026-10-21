@@ -32,13 +32,13 @@ export async function startServer({port=8861,state='work/display-customization/d
  return {base,stop:()=>server.kill(),logs:()=>logs};
 }
 
-export async function startHarness({port=8861,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light'}={}){
+export async function startHarness({port=8861,state='work/display-customization/d1',viewport={width:1440,height:1000},colorScheme='light',deviceScaleFactor=1}={}){
  const site=await startServer({port,state}),{base}=site;
  // A real GPU, as tests/gallery-fixes-browser.mjs asks for it: without one the atlas keeps its 2D orbs (atlas-art
  // refuses SwiftShader). D3D11 is Windows-only; elsewhere --enable-gpu reaches ANGLE on Metal or GL.
  const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?.split(' ').filter(Boolean)||(process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu']);
  const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs});
- const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme});
+ const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme,deviceScaleFactor});
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{
   const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64');
   const cb=new URL(u.searchParams.get('redirect_uri'));cb.search=new URLSearchParams({code,state:u.searchParams.get('state')}).toString();

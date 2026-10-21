@@ -47,6 +47,9 @@ export class AllDiscsGallery{
   this.stage.addEventListener('pointerup',release,true);this.stage.addEventListener('pointercancel',release,true);
   // Hide before the shared viewer reacts to a theme and potentially rebuilds its appearance.
   window.addEventListener('atlas-theme-change',()=>{if(this.visible)this.render();});
+  // A photo disc's look (photo or game asset) and its stamp ink are display choices (photo-stamps.mjs).
+  // Only a photo disc can change with them, so a stock disc on show is left alone.
+  window.addEventListener('atlas-palette-change',()=>{if(this.visible&&this.module&&photoURL(this.items[this.index]))this.render();});
  }
  sync(visible,collection){
   if(!visible){this.visible=false;this.root.hidden=true;this.revision++;cancelAnimationFrame(this.appearanceFrame);this.viewer?.dispose();this.viewer=null;this.filter='all';this.index=0;this.collection=[];this.items=[];this.pose={view:'top',tilt:0,flipped:false};return;}
@@ -84,20 +87,25 @@ export class AllDiscsGallery{
     manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
     color:item.color,colors:{plate:item.color,rim:item.rim_color||undefined},plastic:item.plastic||'premium',
     photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,haloBand:haloBand(item),haloModel:haloModel(item)};
+   // The game-asset look draws the disc's extracted stamp in the player's own ink and finish, as their stamps do
+   // everywhere else; every other disc here keeps exactly what it showed before.
+   const look=this.module.photoStampFor(props.photoURL);if(look)props.stampStyle=window.DisplayPalette?.stampStyle?.()||null;
    // ResizeObserver maintains an attached viewer; reattaching it would force a layout read per flip.
    if(v.element.parentNode!==this.host)v.attach(this.host);
    v.update(props);
    // Restore only the camera choice. The shared viewer still owns flip/tilt reset behavior.
    v.applyPose({...this.pose,tilt:v.state.tilt,flipped:v.state.flipped});v.setClay(this.clay);
-   const asset=props.photoURL?null:this.module.catalogStampAsset(props);
+   const asset=look?look.asset:props.photoURL?null:this.module.catalogStampAsset(props);
    const reveal=(painted=false)=>{
     if(!this.visible||revision!==this.revision||v!==this.viewer)return;
     const photo=v.debug.photo?.userData,stamp=v.debug.stamp.material.map?.userData;
+    // A photo stamp this browser can no longer read hands the disc back to its photo (photo-stamps.mjs).
+    if(look&&stamp?.stampFailed){show();return;}
     if(photo?.photoFailed||asset&&stamp?.stampFailed){
      this.root.dataset.appearance='failed';this.stage.setAttribute('aria-busy','false');
      this.message.hidden=false;this.message.textContent='This disc’s appearance couldn’t load. You can still browse the collection.';return;
     }
-    if(props.photoURL&&!photo?.photoReady||asset&&stamp?.stampAsset!==asset){this.appearanceFrame=requestAnimationFrame(()=>reveal());return;}
+    if(props.photoURL&&!look&&!photo?.photoReady||asset&&stamp?.stampAsset!==asset){this.appearanceFrame=requestAnimationFrame(()=>reveal());return;}
     // Let the shared viewer's already-scheduled frame paint the decoded assets before exposure.
     // A separate rAF turn also covers a ready callback that ran ahead of that renderer this frame.
     if(!painted){this.appearanceFrame=requestAnimationFrame(()=>reveal(true));return;}
@@ -113,6 +121,6 @@ export class AllDiscsGallery{
   };
   const failed=()=>{if(revision!==this.revision)return;this.viewer?.dispose();this.viewer=null;this.root.dataset.appearance='failed';this.stage.hidden=true;this.stage.setAttribute('aria-busy','false');this.message.hidden=false;this.message.textContent='The 3D view couldn’t load here. You can still browse every disc’s details.';};
   if(this.module){try{show();}catch{failed();}}
-  else (this.loading??=Promise.all([import('./disc3d/viewer.mjs'),import('./disc3d/stamp.mjs')]).then(([viewer,stamp])=>({...viewer,catalogStampAsset:stamp.catalogStampAsset}))).then(m=>{this.module=m;try{show();}catch{failed();}},failed);
+  else (this.loading??=Promise.all([import('./disc3d/viewer.mjs'),import('./disc3d/stamp.mjs'),import('./disc3d/photo-stamps.mjs')]).then(([viewer,stamp,photos])=>({...viewer,catalogStampAsset:stamp.catalogStampAsset,photoStampFor:photos.photoStampFor}))).then(m=>{this.module=m;try{show();}catch{failed();}},failed);
  }
 }

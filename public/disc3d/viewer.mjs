@@ -32,6 +32,7 @@ import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
 import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial,catalogStampAsset,catalogStampPlacement} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
+import {PHOTO_STAMP,photoStampFor} from './photo-stamps.mjs';
 import {isOvermold,overmoldColors,bagRimColor,lightTheme} from './overmold.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
@@ -235,7 +236,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
   const finish=style?.finish?.id||'flat';
   if(finish!==stampFinish){stampMaterial.map?.dispose();stampMaterial.map=null;stampMaterial.dispose();stampMaterial=makeStampMaterial(style);stamp.material=stampMaterial;stampFinish=finish;}
-  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,style,onChange:texture=>{
+  // A photo stamp spans most of the disc in fine line work: the viewer draws it at its full 2048 (stamp.mjs).
+  stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,style,size:PHOTO_STAMP.test(asset||'')?2048:512,onChange:texture=>{
    if(texture?.userData.stampAsset&&placement){stamp.geometry.dispose();stamp.geometry=stampGeometry(shape,{placement});}
    request();
   }});stampMaterial.needsUpdate=true;
@@ -255,10 +257,13 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const halo=band&&parseHalo(props.haloModel)?props.haloModel.toLowerCase():null;
   // The stamp sits on the plate, so its ink follows the plate colour.
   const color=colors?colors.plate:props.color||'#8a8f98',plastic=PLASTICS[props.plastic]||PLASTICS.premium;
-  const asset=props.photoURL?null:catalogStampAsset(props),placement=asset?catalogStampPlacement(props):null;
+  // A photo disc its owner switched to the game-asset look (photo-stamps.mjs) wears its extracted stamp instead of
+  // the photo, through the same stamp path as stock art, in the owner's ink and finish.
+  const look=photoStampFor(props.photoURL),photoURL=look?null:props.photoURL;
+  const asset=look?look.asset:photoURL?null:catalogStampAsset(props),placement=look?look.placement:asset?catalogStampPlacement(props):null;
   // A personal stamp style only reaches here for the player's own disc; neutral views pass none.
-  const style=props.photoURL?null:props.stampStyle||null;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,props.photoURL,asset,placement,style&&[style.inkId,style.finish.id]]);
+  const style=photoURL?null:props.stampStyle||null;
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id]]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
@@ -269,7 +274,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   build(shape,props.mold,color,overmold,asset,placement,band,halo,style);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
-  if(props.photoURL){photo=photoSurface(shape,props.photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
+  if(photoURL){photo=photoSurface(shape,photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   if(overmold||band){rimMaterial.color.set(overmold?colors.rim:band);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
   if(halo){setHalo(haloRim,halo);haloRimMaterial.color.set(band);Object.assign(haloRimMaterial,plastic);haloRimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.

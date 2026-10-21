@@ -27,6 +27,7 @@ import {shapeForDisc,normalizeShape} from './shape.mjs';
 import {isOvermold,overmoldColors,lightTheme} from './overmold.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
 import {photoSurface} from './photo.mjs';
+import {photoStampFor} from './photo-stamps.mjs';
 import {catalogStampAsset,catalogStampPlacement,stampTexture,stampGeometry,stampMaterial} from './stamp.mjs';
 import {LODS,ORDER,lodFor} from './lod.mjs';
 import {parseHalo} from './halo.mjs';
@@ -96,7 +97,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const STAMPS_LIVE=8;
  // A personal stamp style is part of a stamp's identity (tests/atlas-stamp-cache.mjs runs this block as is).
  const styleKey=d=>d.stampStyle?'|style:'+d.stampStyle.inkId+'/'+d.stampStyle.finish.id:'';
- const stampAssetOf=(d,lod,official)=>official&&lod!=='low'&&!d.photoURL?catalogStampAsset(d):null;
+ const stampAssetOf=(d,lod,official)=>official&&lod!=='low'&&!d.photoURL?d.photoStamp?.asset||catalogStampAsset(d):null;
  const trimStamps=keep=>{
   for(const [key,old] of stamps){
    if(stamps.size<=STAMPS_LIVE)break;
@@ -154,7 +155,11 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(lightTheme()?undefined:'#ffffff')}):
   {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
-  (asset?'|stamp:'+asset+'|'+JSON.stringify(catalogStampPlacement(d))+styleKey(d):'');
+  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'');
+ // A photo disc its owner switched to the game-asset look (photo-stamps.mjs) is drawn as a stamped disc: no photo,
+ // its extracted stamp where stock art goes (markers from medium size up, as stock stamps are).
+ const asLook=d=>{const look=photoStampFor(d.photoURL);return look?{...d,photoURL:null,photoStamp:look}:d;};
+ const placementOf=d=>d.photoStamp?.placement||catalogStampPlacement(d);
  function touch(key){const e=images.get(key);if(e){images.delete(key);images.set(key,e);}return e||null;}
 
  // The cached image at the level `size` needs, else the best other level already drawn (a disc growing
@@ -162,19 +167,19 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // A finished photo or official stamp beats its loading placeholder. Bare and decorated stand-ins
  // have separate identities, so a low request can never borrow a decorated larger image.
  function get(d,color,size,rim,lod=lodFor(size),official=false){
-  const s=shapeOf(d);if(!s)return null;
+  d=asLook(d);const s=shapeOf(d);if(!s)return null;
   const asset=stampAssetOf(d,lod,official),c=colorsOf(s,color,rim,d.haloBand,d.haloModel),want=lod,order=[want,...ORDER.slice(ORDER.indexOf(want)+1),...ORDER.slice(0,ORDER.indexOf(want)).reverse()];
   for(const level of order){const e=touch(keyOf(d,level,c,asset));if(e)return e;}
   if(d.photoURL||asset)for(const level of order){const e=touch(keyOf(d,level,c,asset)+'|pending');if(e)return e;}
   return null;
  }
  function has(d,color,size,rim,lod=lodFor(size),official=false){
-  const s=shapeOf(d);if(!s)return true;
+  d=asLook(d);const s=shapeOf(d);if(!s)return true;
   return images.has(keyOf(d,lod,colorsOf(s,color,rim,d.haloBand,d.haloModel),stampAssetOf(d,lod,official)));
  }
  // Draws the disc at the level `size` needs (or returns it from the cache). Null for a disc without a model.
  function render(d,color,size,rim,lod=lodFor(size),official=false){
-  const s=shapeOf(d);if(!s)return null;
+  d=asLook(d);const s=shapeOf(d);if(!s)return null;
   const asset=stampAssetOf(d,lod,official),c=colorsOf(s,color,rim,d.haloBand,d.haloModel),finalKey=keyOf(d,lod,c,asset),done=touch(finalKey);if(done)return done;
   const photo=photoOf(d,s),ink=stampOf(d,c.plate,asset),ready=(!photo||photo.userData.photoReady)&&(!ink||ink.userData.stampAsset||ink.userData.stampFailed),key=finalKey+(ready?'':'|pending');
   const cached=touch(key);if(cached)return cached;
@@ -189,7 +194,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   if(photo?.userData.photoReady)scene.add(photo);
   // A generated/loading/failed texture is never attached to the Atlas scene.
   if(ink?.userData.stampAsset){
-   stampMesh.geometry=geometryOf(s,lod,true,catalogStampPlacement(d));
+   stampMesh.geometry=geometryOf(s,lod,true,placementOf(d));
    stampMesh.material=stampLayer(d);
    if(!stampMesh.material.map)stampMesh.material.needsUpdate=true;
    stampMesh.material.map=ink;scene.add(stampMesh);
