@@ -75,6 +75,11 @@ try {
   const preview = await page.evaluate(() => ({strip: getComputedStyle(document.querySelector('.appearance-strip .clean-disc')).getPropertyValue('--disc-color').trim(),
     fill: getComputedStyle(document.querySelector('.appearance-bag-add')).backgroundColor}));
   assert.equal(preview.fill, 'rgb(206, 192, 255)', 'the bag-glow preview wears the violet accent');
+  // The sheet's Done button follows at once, with the sheet still open (past its .18s background transition); the
+  // rest of the sheet keeps the root lime.
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('#appearanceDialog [data-appearance-close].primary')).backgroundColor === 'rgb(206, 192, 255)', null, {timeout: 1000}).catch(() => {});
+  assert.deepEqual(await page.evaluate(() => ({done: getComputedStyle(document.querySelector('#appearanceDialog [data-appearance-close].primary')).backgroundColor,
+    sheet: getComputedStyle(document.getElementById('appearanceDialog')).getPropertyValue('--lime').trim()})), {done: 'rgb(206, 192, 255)', sheet: '#3f6212'});
   await page.keyboard.press('Escape');await settle(1200);
   await agree('mixed');
   // The accent reaches the bag and the top bar (docs/accent-follows-appearance.md); the atlas keeps the Disc Atlas lime.
@@ -110,6 +115,7 @@ try {
     return {inHead: style?.parentNode === document.head, beforeSheets: nodes.indexOf(style) < nodes.findIndex(n => n.matches('link[href="cosmic.css"]'))};
   });
   assert.deepEqual(early, {inHead: true, beforeSheets: true}, 'the style is written during head parsing, before the stylesheets and first paint');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#appearanceDialog [data-appearance-close].primary')).backgroundColor), 'rgb(206, 192, 255)', 'Done keeps the accent after a reload');
   assert.deepEqual((await tokens()).root, {...CLASSIC.light, distance: '#cc5824', putter: '#ae96da'});
   await page.locator('#siteMenuButton').click();await page.locator('#siteMenu [data-theme-choice="midnight"]').click();await page.keyboard.press('Escape');
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'midnight' && !document.documentElement.classList.contains('theme-switching'));await settle(800);
@@ -134,6 +140,7 @@ try {
   assert.equal(t.style, null);assert.equal(t.stored, null);
   assert.deepEqual(t.root, CLASSIC.dark);
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('body>header')).getPropertyValue('--lime').trim()), '#a3e635', 'the top bar is lime again');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#appearanceDialog [data-appearance-close].primary')).backgroundColor), 'rgb(163, 230, 53)', 'and so is Done');
   assert.equal(await page.locator('[data-appearance-reset]').isDisabled(), true);
   await page.locator('#appearanceDialog [data-appearance-close].primary').click();
   await agree('reset');

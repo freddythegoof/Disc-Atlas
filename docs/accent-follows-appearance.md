@@ -10,9 +10,12 @@ accent the user has chosen; it will look cleaner.
 
 ## What changed
 
-One line of behavior: the accent's scope in `public/display-palette.js` now includes the page's own
-header, `body>header`, which holds the primary nav and the site menu. Everything else follows from the
-module that already owned the accent:
+Two entries in the accent's scope in `public/display-palette.js`. The first is the page's own header,
+`body>header`, which holds the primary nav and the site menu. The second, added after Freddy's review
+the same day, is the Appearance sheet's Done button,
+`#appearanceDialog [data-appearance-close].primary` (see
+[The Appearance sheet's Done button](#the-appearance-sheets-done-button)). Everything else follows
+from the module that already owned the accent:
 
 - **No second setting and no second path.** The same `disc-atlas-display` key in `localStorage`, the
   same `<style id="display-palette">` written during head parsing, the same `atlas-palette-change`.
@@ -154,10 +157,8 @@ In Light, the test opens the Appearance sheet from the site menu and taps Violet
 The middle strip is framed a few pixels higher than the other two because the sheet had just closed.
 Focus has returned to the menu button, so its ring shows in Violet.
 
-**Not changed, but worth a look:** the Appearance sheet's own **Done** button stays lime whatever the
-accent, as it does on `origin/main`. The sheet isn't in the accent's scope; only its preview dot is.
-It's outside this brief, which covers the top bar. If you want the sheet to match too, it's the same
-one-line kind of change (`#appearanceDialog` in the scope).
+The sheet's **Done** button, still lime in the picture above, is now in scope too. That was added
+afterwards; see [The Appearance sheet's Done button](#the-appearance-sheets-done-button).
 
 ### Page load: no lime frame
 
@@ -210,21 +211,74 @@ The lowest is 5.48:1, for Mint on Paper. In the light themes the bar's icon, rin
 wear each accent's ink (OKLCH L .47); in the dark themes they wear its fill. That's the same split
 My Bag already uses.
 
+## The Appearance sheet's Done button
+
+The first pass left the sheet's own Done button lime whatever the accent; it flagged that as outside
+the brief. Freddy ruled to add it before he pushes.
+
+The change is a second scope entry, made the same way as `body>header`:
+`#appearanceDialog [data-appearance-close].primary`. That's the Done button and nothing else. The
+sheet's `×` close button shares `data-appearance-close` but isn't `.primary`; Reset, the swatches, the
+packs, the theme control and the stamp preview stay out. The button was already painted from the
+accent tokens (`stitch.css` `.pill-button.primary`: `--accent-fill`, `--accent-ink`, `--accent-glow`;
+and the focus ring, `--lime`). Scoping those tokens to it is the whole change. `tests/display-palette.mjs`
+holds that the button is the sheet's only scope entry.
+
+Evidence: `node tests/accent-done-button-evidence.mjs`. Its `--before` run was made in a clean
+checkout of the previous tip, `ba5e98b`, and the plain run on this branch compares against it.
+
+| Check | Result |
+| --- | --- |
+| Default (never chosen), six themes × desktop 1440 and phone 390: computed colors of every other element in the sheet (242 readings each; the live 3D stamp preview is left out) | 0 differences |
+| Default: the Done button's paint at rest, hovered and focused from the keyboard | Identical |
+| Default: pixels of the Reset and Done row | 0 differing pixels |
+| Violet chosen, the same 12 combinations: every other element in the sheet | 0 differences: only Done moves |
+| Violet chosen: Done's fill | `rgb(163, 230, 53)` lime → `rgb(206, 192, 255)` Violet, all 12 |
+| A tap on Violet in the open sheet | Done turns Violet within 181 ms, same document, sheet still open (previous tip: stays lime) |
+| After a reload | Violet (previous tip: lime) |
+
+![Done, this branch, desktop](images/accent-follows-appearance/after-done-1440.jpg)
+![Done, this branch, phone](images/accent-follows-appearance/after-done-390.jpg)
+![Done, tap and reload](images/accent-follows-appearance/after-done-change-and-reload.jpg)
+
+On the previous tip the same choices left Done lime:
+![Done, previous tip, phone](images/accent-follows-appearance/before-done-390.jpg)
+
+Contrast covers all nine accents in all six themes. The label is the accent's ink on its fill (text,
+4.5:1). The keyboard focus ring is the accent's `--lime` on the sheet's surface (3:1).
+
+| Theme | Label, Lime | Label, lowest of 8 | Focus ring, Lime | Focus ring, lowest of 8 |
+| --- | --- | --- | --- | --- |
+| Light | 9.69 | 10.08 (Pink) | 7.08 | 6.45 (Mint) |
+| Paper | 9.69 | 10.08 (Pink) | 6.96 | 6.34 (Mint) |
+| Midnight | 11.27 | 10.08 (Pink) | 12.54 | 11.11 (Pink) |
+| Charcoal | 11.27 | 10.08 (Pink) | 11.66 | 10.32 (Pink) |
+| Dusk | 11.27 | 10.08 (Pink) | 11.81 | 10.46 (Pink) |
+| Black | 11.27 | 10.08 (Pink) | 13.13 | 11.63 (Pink) |
+
+The lowest label ratio is 10.08:1 (Pink) and the lowest ring is 6.34:1 (Mint on Paper).
+
+One thing for test authors: in the open sheet, Done's background has a .18 s transition. A read
+taken the instant after a tap still returns the start value. `tests/display-customization-browser.mjs`
+waits for the new value (up to 1 s) before asserting.
+
 ## Tests
 
 | Suite | Result |
 | --- | --- |
-| `node --test tests/display-palette.mjs` | 21 / 21 pass (scope assertion added) |
-| `node tests/display-customization-browser.mjs` | Pass (now asserts the bar wears the accent, the root and atlas keep lime, and Reset brings the bar back to lime) |
-| `ATLAS_URL=https://localhost:8861 node tests/palette.mjs` | Pass |
+| `node --test tests/display-palette.mjs` | 21 / 21 pass (scope assertions for the bar and the Done button) |
+| `node tests/display-customization-browser.mjs` | Pass. It asserts the bar and Done wear the accent (Done live, in the open sheet, and after a reload), the root, the atlas and the rest of the sheet keep lime, and Reset brings both back to lime |
+| `ATLAS_URL=https://localhost:8861 node tests/palette.mjs` | Pass (rerun with the Done button change) |
 | `node tests/brand-browser.mjs` | Pass: 40 page/width/theme combinations, logo `--da-accent` unchanged |
 | `node tests/dropdown-indicator-browser.mjs` | Pass: 9 checks, 66 screenshots |
 | `node --test tests/disc-appearance-browser.mjs` | 8 / 8 pass |
-| `node tests/accent-follows-appearance-evidence.mjs` | The evidence above |
+| `node tests/accent-follows-appearance-evidence.mjs` | The top-bar evidence above |
+| `node tests/accent-done-button-evidence.mjs` | The Done-button evidence above |
 
 Only three suites ever choose an accent (`display-palette`, `display-customization-browser`,
-`palette`). Every other theme-sensitive suite runs in the default state, where this change writes
-nothing.
+`palette`), and all three were rerun with the Done button change. Every other theme-sensitive suite
+runs in the default state, where neither change writes anything. Brand, dropdown-indicator and
+disc-appearance ran with the top-bar change.
 
 ## Fences kept
 

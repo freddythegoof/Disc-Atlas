@@ -160,6 +160,8 @@ test('Choices persist like the theme: one key, applied before paint, unknown val
   assert.ok(!/html:root\[data-theme="light"\]\{[^}]*--lime/.test(css), 'the accent never lands on the root, so the atlas and directory keep their lime');
   // The top bar follows the accent (docs/accent-follows-appearance.md): the page's own header only, not a dialog's or a sheet's.
   assert.ok(catalog.scope.includes('body>header') && !catalog.scope.includes('header'), 'the top bar is in scope by its exact place');
+  // So is the Appearance sheet's Done button, and nothing else in the sheet.
+  assert.deepEqual([...catalog.scope].filter(scope => scope.includes('appearanceDialog')), ['#appearanceDialog [data-appearance-close].primary'], 'only the sheet\'s Done button');
 
   const edited = loadPalette({stored: JSON.stringify({classes: {distance: 'neon', mid: 'jade'}, accent: '#ff00ff'})});
   assert.deepEqual(edited.palette.get(), {classes: {distance: 'classic', fairway: 'classic', mid: 'jade', putter: 'classic'}, accent: 'lime', stamp: {ink: 'auto', finish: 'flat'}});
