@@ -491,9 +491,10 @@ function discArt(d,color,size,lod){
 function photoDisc(d){
  if(!(myMap||activeLens()!=='default'))return d;
  const photoURL=window.BagApp?.mapPhotos?.().get(d.id),haloBand=photoURL?window.BagApp?.mapHaloBands?.().get(d.id):null,haloModel=haloBand?window.BagApp?.mapHaloModels?.().get(d.id):null;
- if(photoURL)return {...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel}};
- // The player's own disc on their map wears their stamp appearance; a photo already carries its own stamp.
- const stampStyle=myColor(d)?window.DisplayPalette?.stampStyle?.():null;
+ // The player's own disc on their map wears their stamp appearance. A photo already carries its own stamp, unless its
+ // owner switched it to the game-asset look (disc3d/photo-stamps.mjs): only then does atlas-art use the style.
+ const stampStyle=photoURL||myColor(d)?window.DisplayPalette?.stampStyle?.():null;
+ if(photoURL)return {...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel},...stampStyle&&{stampStyle}};
  return stampStyle?{...d,stampStyle}:d;
 }
 function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}

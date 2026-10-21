@@ -1,5 +1,6 @@
 import {getAtlasArt} from './atlas-art.mjs';
 import {catalogStampAsset,catalogStampPlacement,stampTexture} from './stamp.mjs';
+import {photoStampFor} from './photo-stamps.mjs';
 import {shapeForDisc,shapeFrame} from './shape.mjs';
 
 const lists=new WeakMap();
@@ -25,7 +26,8 @@ export function observeThumbnails(root,lookup,{personal=false}={}){
     const d=lookup(host.dataset.discThumbnail);if(!d)continue;
     const size=host.getBoundingClientRect().width,plate=host.dataset.plateColor,rim=host.dataset.rimColor||undefined;
     const entry=art.render({...d,photoURL:host.dataset.photoUrl||null,haloBand:host.dataset.haloBand||null,haloModel:host.dataset.haloModel||null},plate,size,rim);
-    const asset=host.dataset.photoUrl?null:catalogStampAsset(d);
+    // A photo disc in its game-asset look (photo-stamps.mjs): the disc bare (atlas-art drops the photo) under its stamp.
+    const look=photoStampFor(host.dataset.photoUrl),asset=look?look.asset:host.dataset.photoUrl?null:catalogStampAsset(d);
     let ink=state.stamps.get(host);
     if(asset&&!ink){ink=stampTexture(d.catalogName||d.name,plate,{asset,style:ink2d,onChange:()=>{if(lists.get(root)===state&&state.visible.has(host)&&state.stamps.has(host)){state.pending.add(host);schedule();}}});state.stamps.set(host,ink);}
     if(entry){
@@ -34,7 +36,7 @@ export function observeThumbnails(root,lookup,{personal=false}={}){
      canvas.getContext('2d').drawImage(entry.canvas,0,0);canvas.setAttribute('aria-hidden','true');
      if(ink?.userData.stampAsset){
       const {shape}=shapeForDisc({model:d.model3d,specs:d.specs,flight:d}),{Rs,R}=shapeFrame(shape);
-      const placement=catalogStampPlacement(d);
+      const placement=look?look.placement:catalogStampPlacement(d);
       const width=entry.px*entry.fill*(placement?placement.diameterFraction/placement.assetInkFraction:Math.min(Rs*.78,6.2)/R);
       canvas.getContext('2d').drawImage(ink.image,(entry.px-width)/2,(entry.px-width)/2,width,width);
      }

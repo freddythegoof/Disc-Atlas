@@ -3,10 +3,11 @@
 import * as THREE from 'three';
 import {shapeFrame,topHeight} from './shape.mjs';
 import {DETAIL} from './quality.mjs';
+import {PHOTO_STAMP,photoStampBlob} from './photo-stamps.mjs';
 
-const masks=new Map(),MAX_MASKS=12;
+const masks=new Map(),MAX_MASKS=12,STOCK=/^stamps\/discraft\/[a-z0-9-]+\.png$/;
 export function catalogStampAsset(d){
- return (d?.brand||d?.manufacturer)==='Discraft'&&/^stamps\/discraft\/[a-z0-9-]+\.png$/.test(d?.stampAsset||'')?d.stampAsset:null;
+ return (d?.brand||d?.manufacturer)==='Discraft'&&STOCK.test(d?.stampAsset||'')?d.stampAsset:null;
 }
 // The ink extent is measured against the FULL disc, independently of texture padding.
 export function catalogStampPlacement(d){
@@ -19,7 +20,10 @@ function maskFor(asset){
  const image=new Image();entry={image,ready:false,failed:false,listeners:new Set()};masks.set(asset,entry);
  image.onload=()=>{entry.ready=true;for(const ready of entry.listeners)ready();entry.listeners.clear();trim();};
  image.onerror=()=>{entry.failed=true;for(const ready of entry.listeners)ready();entry.listeners.clear();trim();};
- image.src='/'+asset;trim();return entry;
+ // A photo stamp (photo-stamps.mjs) lives in this browser, not on the server: its bytes come from IndexedDB.
+ if(PHOTO_STAMP.test(asset))photoStampBlob(asset).then(blob=>{const url=URL.createObjectURL(blob),done=()=>URL.revokeObjectURL(url);image.addEventListener('load',done,{once:true});image.addEventListener('error',done,{once:true});image.src=url;},()=>image.onerror());
+ else image.src='/'+asset;
+ trim();return entry;
 }
 function trim(){
  for(const [key,entry] of masks){if(masks.size<=MAX_MASKS)break;if(entry.ready||entry.failed)masks.delete(key);}
@@ -33,26 +37,44 @@ function inkFor(color,style){
  const c=new THREE.Color(color),hsl={};c.getHSL(hsl,THREE.SRGBColorSpace);
  return hsl.l>.55?`rgba(18,22,28,${foil?1:.72})`:`rgba(255,255,255,${foil?1:.78})`;
 }
-export function stampTexture(name,color,{asset=null,onChange=()=>{},style=null}={}){
- const size=512,canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+// A layered photo stamp (photo-stamps.mjs) carries an illustrated stamp's fills, lines and solid elements in its red,
+// green and blue. One ink keeps the real disc's light and dark: an ink lighter than the plastic fills the design and
+// leaves its line work in the plastic's colour (light fills, dark lines, as printed); a darker ink draws the lines and
+// tints the fills (TINT). Solid elements (a name, a logo) are full ink either way. The result is the stamp's alpha.
+const TINT=.42;
+const luminance=css=>{const c=new THREE.Color(),m=css.match(/[\d.]+/g);if(m&&css.startsWith('rgba'))c.setRGB(m[0]/255,m[1]/255,m[2]/255,THREE.SRGBColorSpace);else c.set(css);return .2126*c.r+.7152*c.g+.0722*c.b;};
+function layer(g,size,ink,plate){
+ const image=g.getImageData(0,0,size,size),d=image.data,light=luminance(ink)>luminance(plate);
+ for(let i=0;i<d.length;i+=4){
+  const fill=d[i]/255,line=d[i+1]/255,solid=d[i+2]/255,a=Math.max(solid,light?fill*(1-line):line+(1-line)*TINT*fill);
+  d[i]=d[i+1]=d[i+2]=255;d[i+3]=Math.round(255*a);
+ }
+ g.putImageData(image,0,0);
+}
+// `size`: the canvas, 512 for stock art. A photo stamp spans most of the disc in fine detail, so a large surface (the
+// viewer) asks for more; the generated fallback is drawn the same at any size.
+export function stampTexture(name,color,{asset=null,onChange=()=>{},style=null,size=512}={}){
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=size;
  const g=canvas.getContext('2d');
  const ink=inkFor(color,style);
+ g.save();g.scale(size/512,size/512);
  g.strokeStyle=ink;g.fillStyle=ink;g.lineWidth=5;
- g.beginPath();g.arc(size/2,size/2,size*.44,0,Math.PI*2);g.stroke();
- g.lineWidth=3;g.beginPath();g.arc(size/2,size/2,size*.405,0,Math.PI*2);g.stroke();
+ g.beginPath();g.arc(256,256,512*.44,0,Math.PI*2);g.stroke();
+ g.lineWidth=3;g.beginPath();g.arc(256,256,512*.405,0,Math.PI*2);g.stroke();
  const text=String(name||'').toUpperCase().slice(0,22);
  const family=getComputedStyle(document.body).fontFamily||'sans-serif';
  let px=104;g.font=`800 ${px}px ${family}`;
- while(px>34&&g.measureText(text).width>size*.7){px-=4;g.font=`800 ${px}px ${family}`;}
- g.textAlign='center';g.textBaseline='middle';g.fillText(text,size/2,size/2);
- g.fillRect(size*.34,size/2+px*.62,size*.32,4);
+ while(px>34&&g.measureText(text).width>512*.7){px-=4;g.font=`800 ${px}px ${family}`;}
+ g.textAlign='center';g.textBaseline='middle';g.fillText(text,256,256);
+ g.fillRect(512*.34,256+px*.62,512*.32,4);g.restore();
  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;
- if(asset&&/^stamps\/discraft\/[a-z0-9-]+\.png$/.test(asset)){
+ if(asset&&(STOCK.test(asset)||PHOTO_STAMP.test(asset))){
   const entry=maskFor(asset);let live=true;
   const paint=()=>{
    if(!live)return;
    if(entry.failed){texture.userData.stampFailed=true;onChange();return;}
    g.clearRect(0,0,size,size);g.drawImage(entry.image,0,0,size,size);
+   if(asset.endsWith('/l'))layer(g,size,ink,color);
    // Only the source alpha survives. Source foil/plastic RGB can never tint the plate.
    g.globalCompositeOperation='source-in';g.fillStyle=ink;g.fillRect(0,0,size,size);g.globalCompositeOperation='source-over';
    texture.userData.stampAsset=asset;texture.needsUpdate=true;onChange(texture);
