@@ -1,4 +1,4 @@
-/* Display customization (docs/display-customization.md): curated class colors and the bag accent.
+/* Display customization (docs/display-customization.md): curated class colors and the accent.
    The one source of truth for the active palette. It runs before first paint, right after theme.js, and
    writes CSS custom properties: 2D surfaces use them directly and the WebGL surfaces read them back
    through applyTheme(), so no second table can drift. Untouched, it writes nothing at all, so the
@@ -62,7 +62,7 @@
       ['pearl', 'Pearl', '#b2b2b2', '#c5c5c5', 'neutral']
     ]
   };
-  // The bag accent. Lime is today's Stitch accent and writes nothing. Every other swatch sets the whole
+  // The accent. Lime is today's Stitch accent and writes nothing. Every other swatch sets the whole
   // accent family at one hue: ink L .47 (6.4:1 or better on white), fill L .84, tint L .96 (light) / .25 (dark).
   const ACCENTS = [
     ['lime', 'Lime', '#a3e635', null, null],
@@ -91,9 +91,12 @@
       {lime: '#575b60', soft: '#f1f2f4', selected: '#e9eaec', fill: '#c5cbd2', ink: '#1c1d1e', edge: '#8d9399', dd: '#575b60'},
       {lime: '#c5cbd2', soft: '#1f2122', fill: '#c5cbd2', ink: '#1c1d1e', dd: '#bec5cc'}]
   ];
-  // Where the accent setting reaches: My Bag (with its docked My Map), the bag's own sheets and menus, and
-  // the Appearance preview. The header, atlas, directory and site menu keep the Disc Atlas lime.
-  const ACCENT_SCOPE = ['#myBagView', '#addDiscDialog', '#bagModelDialog', '#lostDiscDialog', '#removeDiscDialog', '#rackStyleMenu', '[data-accent-preview]'];
+  // Where the accent setting reaches: the top bar (the page's header with its nav and site menu,
+  // docs/accent-follows-appearance.md), My Bag (with its docked My Map), the bag's own sheets and menus, and in the
+  // Appearance sheet its preview and its Done button (nothing else in the sheet). The logo keeps its brand tokens
+  // (brand/site.css); the atlas, directory and page keep the lime.
+  const ACCENT_SCOPE = ['body>header', '#myBagView', '#addDiscDialog', '#bagModelDialog', '#lostDiscDialog', '#removeDiscDialog', '#rackStyleMenu', '[data-accent-preview]',
+    '#appearanceDialog [data-appearance-close].primary'];
   // Stamp appearance, on the player's own discs in personal contexts only (bag, the viewer for an owned disc,
   // the personalized map, storage). Neutral and catalog surfaces keep the official presentation. Photo discs
   // carry their stamp in the photo and are untouched. Auto is today's ink: near-black or white by the plastic.

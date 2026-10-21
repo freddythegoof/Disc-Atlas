@@ -106,6 +106,10 @@ menu, the coach, the logo's brand lime and the Stitch page backdrop. Those carry
 identity. Semantic colors are not the accent either: success and error states, wear warnings, the
 compare vermillion and the stability colors stay as they are.
 
+> **Superseded for the top bar (October 20, 2026).** Freddy's later ruling the same day brings the
+> site header, its navigation and the site menu under the accent too. The logo, the atlas, the
+> directory and the page backdrop are unchanged. See `docs/accent-follows-appearance.md`.
+
 ### How the theme persists, and where its controls live
 
 The theme is a per-browser setting: `public/theme.js` stores it in `localStorage` under

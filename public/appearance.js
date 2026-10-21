@@ -1,4 +1,4 @@
-/* The Appearance sheet: one home for the theme, preset packs, the class colors and the bag accent
+/* The Appearance sheet: one home for the theme, preset packs, the class colors and the accent
    (docs/display-customization.md). Every control is a curated swatch from DisplayPalette's catalog;
    tapping one applies it at once and saves it, like the theme radios. */
 (() => {
@@ -32,7 +32,7 @@
       group: c.key, label: c.label, current: c.swatches.find(s => s.id === prefs.classes[c.key]).label, swatches: c.swatches,
       legend: `<i class="appearance-dot" style="background:var(--${c.key})" aria-hidden="true"></i>`
     })).join('') + swatchRow({
-      group: 'accent', label: 'Bag accent', current: palette.catalog.accents.find(a => a.id === prefs.accent).label, swatches: palette.catalog.accents,
+      group: 'accent', label: 'Accent', current: palette.catalog.accents.find(a => a.id === prefs.accent).label, swatches: palette.catalog.accents,
       legend: '<i class="appearance-dot appearance-dot-accent" data-accent-preview aria-hidden="true"></i>'
     });
     // Stamps: ink and finish for the player's own discs, with a live 3D preview.
