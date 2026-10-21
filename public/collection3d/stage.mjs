@@ -13,7 +13,7 @@ import {photoSurface} from '../disc3d/photo.mjs';
 import {photoStampFor,photoLooksKey} from '../disc3d/photo-stamps.mjs';
 import {parseHalo} from '../disc3d/halo.mjs';
 import {haloCoord,haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
-import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset,catalogStampPlacement} from '../disc3d/stamp.mjs';
+import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset,catalogStampPlacement,colorStyle} from '../disc3d/stamp.mjs';
 
 export const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -139,7 +139,7 @@ export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,onC
  if(stamp){
   const geometry=placement=>{const ring=stampGeometry(entry.shape,{segments:32,rings:5,placement});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);return ring;};
   // Storage's room (.75) is a little dimmer than the viewer's; a foil keeps the viewer's look.
-  const style=photoURL?null:personalStampStyle(),material=stampMaterial(style,{envMap:stage().env}),placement=look?look.placement:photoURL?null:catalogStampPlacement(d);
+  const style=photoURL?null:look?.color?colorStyle(personalStampStyle()):personalStampStyle(),material=stampMaterial(style,{envMap:stage().env}),placement=look?look.placement:photoURL?null:catalogStampPlacement(d);
   ink=new THREE.Mesh(geometry(null),material);group.add(ink);
   material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:look?look.asset:photoURL?null:catalogStampAsset(d),style,size:look?1024:512,onChange:texture=>{
    if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}onChange();

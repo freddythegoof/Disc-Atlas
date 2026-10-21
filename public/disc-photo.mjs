@@ -186,20 +186,23 @@ export async function processPhoto(image,options={}){return (await preparePhoto(
 // copy as large as the photo allows: the stored texture's 1024 px, cut from a 2048 px working copy, is what blurs an
 // illustrated stamp's line work. `plate`: the plate's reach as a share of the radius (plateRatio).
 export const STAMP_SIZE=2048;
-function extractStamp(pixels,size,plate){
- const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.extract(pixels,size,plate));
+function extractStamp(pixels,size,plate,color=false){
+ const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.extract(pixels,size,plate,{color}));
  let worker;try{worker=new Worker(new URL('./disc-stamp-worker.mjs',import.meta.url),{type:'module'});}catch{return inline();}
  return new Promise((resolve,reject)=>{
   worker.onmessage=({data})=>{worker.terminate();if(data.error)reject(Error(data.error));else resolve(data.result);};
   // A browser that cannot start a module worker does the same work here.
   worker.onerror=event=>{event.preventDefault?.();worker.terminate();inline().then(resolve,reject);};
-  worker.postMessage({pixels:pixels.buffer,size,plate});
+  worker.postMessage({pixels:pixels.buffer,size,plate,color});
  });
 }
-export async function photoStampAsset(image,options={},{plate=.8}={}){
+// v2 (docs/photo-stamp-color-assets.md): with `color`, the same read also gives the full-colour asset (`color`: its blob
+// and placement), the stamp's own colours flattened like print (disc-stamp-color.mjs). The one-ink asset is made
+// exactly as without it.
+export async function photoStampAsset(image,options={},{plate=.8,color=false}={}){
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
- const result=await extractStamp(pixels,size,plate),a=result.alpha,c=size/2;
+ const result=await extractStamp(pixels,size,plate,color),a=result.alpha,c=size/2;
  // The asset is the smallest centred square holding all of the design: no texture spent on bare plate.
  let reach=0,x0=size,y0=size,x1=-1,y1=-1;
  for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(a[j*size+i]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
@@ -216,7 +219,31 @@ export async function photoStampAsset(image,options={},{plate=.8}={}){
  if(!blob)throw Error('The browser returned no image data for the stamp. Close other tabs and retry.');
  // The stock placement rule (stamp.mjs): the texture spans side/size of the disc's diameter.
  const ink=Math.max(x1-x0+1,y1-y0+1);
- return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats};
+ return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,
+  ...result.color&&{color:await colorStampBlob(result.color.rgba,size)}};
+}
+// The colour asset: the smallest centred square holding all of it, as WebP (lossy colour, its alpha kept exact), which
+// keeps it near the one-ink asset's size; the bundled encoder stands in where the canvas cannot write WebP.
+const COLOR_STAMP_BYTES=1.5*1024*1024;
+async function colorStampBlob(rgba,size){
+ const c=size/2;let reach=0,x0=size,y0=size,x1=-1,y1=-1;
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(rgba[4*(j*size+i)+3]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
+ if(x1<0)throw Error('No stamp showed up on this photo. Try a sharper photo, taken square on.');
+ const half=Math.min(c,Math.ceil(reach)+2),side=2*half,from=c-half,out=document.createElement('canvas');out.width=out.height=side;
+ const g=out.getContext('2d'),img=g.createImageData(side,side);
+ for(let j=0;j<side;j++)img.data.set(rgba.subarray(4*((j+from)*size+from),4*((j+from)*size+from+side)),4*j*side);
+ g.putImageData(img,0,0);
+ let blob=null;
+ try{
+  for(const quality of [.9,.8,.7]){
+   blob=await supportsCanvasWebP()===false?null:await canvasBlob(out,quality);
+   if(!blob||blob.type!=='image/webp')blob=await fallbackWebP(out,quality);
+   if(blob.size<=COLOR_STAMP_BYTES)break;
+  }
+ }finally{out.width=out.height=0;}
+ if(!blob)throw Error('The browser returned no image data for the stamp. Close other tabs and retry.');
+ const ink=Math.max(x1-x0+1,y1-y0+1);
+ return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side}};
 }
 
 // The flight plate's edge as a share of the disc's radius: where the photo stops on the model (the shoulder,
@@ -306,7 +333,11 @@ const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the o
 // player's ink and finish. Like the rest of Appearance it is a display choice kept in this browser: it applies at once,
 // without Save, and the photo on the account is untouched.
 let lookGroupId=0;
-const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="asset">Game asset</label></div><small>Game asset draws this disc’s stamp from your original photo, in your stamp ink and finish. Only in this browser; the photo stays saved.</small><button type="button" class="bag-photo-asset-make">Make from original photo</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
+// v2 (docs/photo-stamp-color-assets.md): Full color wears the stamp's own colours from the original instead of one ink,
+// so the note under the row says the stamp ink does not reach it.
+const LOOK_NOTE={asset:'Game asset draws this disc’s stamp from your original photo, in your stamp ink and finish. Only in this browser; the photo stays saved.',
+ color:'Full color keeps the stamp’s own colors from your original photo, so your stamp ink doesn’t apply; a foil finish adds only a light sheen. Only in this browser; the photo stays saved.'};
+const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="asset">Game asset</label><label><input type="radio" name="'+name+'" value="color">Full color</label></div><small class="bag-photo-look-note">'+LOOK_NOTE.asset+'</small><button type="button" class="bag-photo-asset-make">Make from original photo</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
 
 // The sheet shows the photo and its actions; choosing a photo opens the aligner, a large pop-out with
 // guides. Use photo prepares the upload there (lighting removed, plate colour measured) and returns to
@@ -342,7 +373,8 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,haloModel,mode,url}.
  // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
  // owned: the saved photo's disc and version {id,key}, which a game asset belongs to (photo-stamps.mjs).
- let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null;
+ // making: the look a game asset is being made for ('asset' or 'color'); one read of the original makes both.
+ let current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='asset';
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -359,7 +391,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   q('.bag-photo-level').hidden=!(current&&!used&&!removed);
   // The look belongs to the saved photo, so it shows only while that photo is the one in the sheet.
   const look=q('.bag-photo-look'),shown=!!(owned&&current&&!used&&!removed);look.hidden=!shown;
-  if(shown){const state=photoLook(owned.id,owned.key);for(const input of look.querySelectorAll('input[type="radio"]'))input.checked=input.value===state.look;q('.bag-photo-asset-make').textContent=state.available?'Make again from original photo':'Make from original photo';}
+  if(shown){const state=photoLook(owned.id,owned.key);for(const input of look.querySelectorAll('input[type="radio"]'))input.checked=input.value===state.look;q('.bag-photo-asset-make').textContent=state.available?'Make again from original photo':'Make from original photo';q('.bag-photo-look-note').textContent=LOOK_NOTE[state.look==='color'?'color':'asset'];}
  };
  const size=low=>Math.max(64,Math.min(low?360:720,Math.round(frame.clientWidth*Math.min(devicePixelRatio||1,2))));
  const paint=(low=false)=>{
@@ -410,14 +442,15 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   finally{if(id===serial)busy=false;}
  };
  // The look: an existing asset switches at once; the first time, the original photo is framed and read.
- const pickOriginal=()=>{if(owned&&!busy)q('.bag-photo-asset-file').click();};
+ const pickOriginal=look=>{if(owned&&!busy){making=look;q('.bag-photo-asset-file').click();}};
  q('.bag-photo-look').addEventListener('change',e=>{
   if(!owned||e.target.type!=='radio')return;
   const want=e.target.value,state=photoLook(owned.id,owned.key);
-  if(want==='asset'&&!state.available){renderSheet();pickOriginal();return;}
-  setPhotoLook(owned.id,owned.key,want);q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset, in this browser.':'Showing the photo.';renderSheet();
+  // An asset made before full colour existed has no colour layer: the original is read again for it.
+  if(want==='asset'&&!state.available||want==='color'&&!state.color){renderSheet();pickOriginal(want);return;}
+  setPhotoLook(owned.id,owned.key,want);q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset, in this browser.':want==='color'?'Showing the full-color asset, in this browser.':'Showing the photo.';renderSheet();
  });
- q('.bag-photo-asset-make').onclick=pickOriginal;
+ q('.bag-photo-asset-make').onclick=()=>pickOriginal(owned&&photoLook(owned.id,owned.key).look==='color'?'color':'asset');
  q('.bag-photo-asset-file').onchange=async()=>{
   const input=q('.bag-photo-asset-file'),chosen=input.files[0];input.value='';if(!chosen||!owned)return;const id=++serial;busy=true;
   try{const image=await decodePhoto(chosen);if(id!==serial){image.close();return;}q('.bag-photo-status').textContent='';openAligner(image,DEFAULTS,'asset');}
@@ -432,9 +465,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    const target=owned;
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-    const asset=await photoStampAsset(bitmap,options,{plate});if(id!==serial)return;
-    await savePhotoStamp(target.id,target.key,asset);if(id!==serial)return;
-    closeAligner();q('.bag-photo-status').textContent='Game asset made. Kept in this browser.';renderSheet();
+    const asset=await photoStampAsset(bitmap,options,{plate,color:true}),look=making;if(id!==serial)return;
+    await savePhotoStamp(target.id,target.key,{...asset,look});if(id!==serial)return;
+    closeAligner();q('.bag-photo-status').textContent=look==='color'?'Full-color asset made. Kept in this browser.':'Game asset made. Kept in this browser.';renderSheet();
    }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message||'The game asset could not be made. Try again.';}}
    return;
   }

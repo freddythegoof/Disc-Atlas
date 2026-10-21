@@ -30,7 +30,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {shapeForDisc} from './shape.mjs';
 import {PLASTICS,discGeometry} from './mesh.mjs';
 import {profileSVG,CLAY_TONES} from './profile.mjs';
-import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial,catalogStampAsset,catalogStampPlacement} from './stamp.mjs';
+import {stampTexture,stampGeometry,stampMaterial as makeStampMaterial,catalogStampAsset,catalogStampPlacement,colorStyle} from './stamp.mjs';
 import {photoSurface} from './photo.mjs';
 import {PHOTO_STAMP,photoStampFor} from './photo-stamps.mjs';
 import {isOvermold,overmoldColors,bagRimColor,lightTheme} from './overmold.mjs';
@@ -261,8 +261,9 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   // the photo, through the same stamp path as stock art, in the owner's ink and finish.
   const look=photoStampFor(props.photoURL),photoURL=look?null:props.photoURL;
   const asset=look?look.asset:photoURL?null:catalogStampAsset(props),placement=look?look.placement:asset?catalogStampPlacement(props):null;
-  // A personal stamp style only reaches here for the player's own disc; neutral views pass none.
-  const style=photoURL?null:props.stampStyle||null;
+  // A personal stamp style only reaches here for the player's own disc; neutral views pass none. A colour asset keeps
+  // its own colours: its finish is a sheen (stamp.mjs colorStyle).
+  const style=photoURL?null:look?.color?colorStyle(props.stampStyle):props.stampStyle||null;
   const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id]]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
