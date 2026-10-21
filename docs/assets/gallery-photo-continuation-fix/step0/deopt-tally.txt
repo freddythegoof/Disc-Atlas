@@ -1,0 +1,25 @@
+  60 [completed compiling  <JSFunction reliefTexture (sfi = )> (target MAGLEV) OSR - ]
+  60 [compiling method  <JSFunction reliefTexture (sfi = )> (target MAGLEV) OSR, mode: ConcurrencyMode::kConcurrent]
+  59 [completed optimizing  <JSFunction reliefTexture (sfi = )> (target TURBOFAN_JS) OSR]
+  59 [completed compiling  <JSFunction reliefTexture (sfi = )> (target TURBOFAN_JS) OSR - ]
+  59 [compiling method  <JSFunction reliefTexture (sfi = )> (target TURBOFAN_JS) OSR, mode: ConcurrencyMode::kConcurrent]
+  33 [marking  <JSFunction reliefTexture (sfi = )> for optimization to MAGLEV, ConcurrencyMode::kConcurrent, reason: hot and stable]
+  30 [bailout (kind: deopt-eager, reason: prepare for on stack replacement (OSR)): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 484, deopt exit 114, 
+  29 [completed compiling  <JSFunction reliefTexture (sfi = )> (target MAGLEV) - ]
+  29 [compiling method  <JSFunction reliefTexture (sfi = )> (target MAGLEV), mode: ConcurrencyMode::kConcurrent]
+  26 [bailout (kind: deopt-eager, reason: Insufficient type feedback for generic named access): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 202, deopt exit 12, 
+  20 [bailout (kind: deopt-eager, reason: exit from OSR'd inner loop): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 820, deopt exit 38, 
+   3 [marking dependent code  <Code MAGLEV> ( <SharedFunctionInfo reliefTexture>) () for deoptimization, reason: embedded weak objects cleared]
+   3 [bailout (kind: deopt-eager, reason: Insufficient type feedback for generic named access): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code TURBOFAN_JS>, , bytecode offset 492, deopt exit 41, 
+   2 [marking  <JSFunction reliefTexture (sfi = )> for optimization to TURBOFAN_JS, ConcurrencyMode::kConcurrent, reason: hot and stable]
+   2 [bailout (kind: deopt-eager, reason: Insufficient type feedback for generic named access): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 910, deopt exit 101, 
+   2 [bailout (kind: deopt-eager, reason: Insufficient type feedback for call): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 838, deopt exit 52, 
+   1 [marking dependent code  <Code TURBOFAN_JS> ( <SharedFunctionInfo reliefTexture>) () for deoptimization, reason: embedded weak objects cleared]
+   1 [completed optimizing  <JSFunction reliefTexture (sfi = )> (target TURBOFAN_JS)]
+   1 [completed compiling  <JSFunction reliefTexture (sfi = )> (target TURBOFAN_JS) - ]
+   1 [compiling method  <JSFunction reliefTexture (sfi = )> (target TURBOFAN_JS), mode: ConcurrencyMode::kConcurrent]
+   1 [bailout (kind: deopt-eager, reason: prepare for on stack replacement (OSR)): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 488, deopt exit 116, 
+   1 [bailout (kind: deopt-eager, reason: prepare for on stack replacement (OSR)): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 484, deopt exit 48, 
+   1 [bailout (kind: deopt-eager, reason: Insufficient type feedback for call): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code TURBOFAN_JS>, , bytecode offset 850, deopt exit 70, 
+   1 [bailout (kind: deopt-eager, reason: Insufficient type feedback for binary operation): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code TURBOFAN_JS>, , bytecode offset 463, deopt exit 32, 
+   1 [bailout (kind: deopt-eager, reason: Insufficient type feedback for binary operation): begin. deoptimizing  <JSFunction reliefTexture (sfi = )>,  <Code MAGLEV>, , bytecode offset 420, deopt exit 29, 

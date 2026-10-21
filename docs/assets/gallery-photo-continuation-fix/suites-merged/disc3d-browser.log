@@ -1,0 +1,35 @@
+ok - the viewer stays unloaded until a disc is shown
+ok - viewer: rim direction, hands, clay, live slider, orbit, clamps, outside release and Top
+ok - viewer: touch rim tilt, second-finger pinch handoff and cancellation
+ok - selecting a rated disc lazy-loads three.js and the viewer
+ok - the toolbar fits Clay without clipping a preset at 1440, 1100 and 800 px
+ok - default 3/4 camera frames the whole disc (36% of the canvas)
+ok - one disc, 11488 triangles per frame
+ok - the canvas survives a detail re-render
+ok - profile and bottom presets move the camera
+ok - top preset looks straight down
+ok - flip turns the disc over and back
+ok - hyzer/anhyzer tilt follows the throwing hand
+ok - arrow keys turn and + zooms
+ok - drag turns and the wheel zooms
+ok - a putter replaces the driver in the same viewer
+ok - rim close-ups written
+ok - molds draw at true scale (Buzzz 1.031x, Aviar 1.005x the Destroyer)
+ok - ten random molds draw at their PDGA diameter and height: Magnolia, Zone GT (Banger Top), Alpaca, Delirium, Bigfoot, Outer Core, River Pro, Stag, Realm, Tui
+ok - review boards written
+ok - Envy (Axiom), Volt (MVP) and Atlas (Innova) draw two materials split at the measured rim width: Envy #0a0a0a/#bc719b, Volt #0a0a0a/#0072b2, Atlas #0a0a0a/#008c67
+ok - Streamline Drift, Innova Destroyer and Discraft Buzzz stay one material
+ok - rim/plate colours override the defaults and fall back without them (default rim #0a0a0a for #d94f2b)
+ok - overmold review board written
+ok - clay: matte grey on a dark ground, stamp hidden, plastic untouched; cross-section below the stage from the lathe's 68 points with the panel's Height 1.4 cm, Rim width 2.2 cm, Rim depth 1.2 cm, Diameter 21.1 cm
+ok - clay stays on from disc to disc, each drawn and annotated for itself
+ok - the clay ground is dark in light, midnight, charcoal and black
+ok - turning clay off restores the plastic material, finish, colour, stamp and backdrop exactly
+ok - overmold in clay: plate #b3b3af and rim #6c6c6a split at the seam on screen and in the cross-section; a chosen rim colour waits underneath
+ok - a rated disc without PDGA dimensions keeps the Phase 1 generic shape
+ok - discs without model data fall back to the illustration
+ok - phone bottom sheet draws the disc and fits its controls
+ok - phone frames: 11488 triangles, 0.00 ms per mold vs 0.00 ms generic
+ok - phone draws the Envy overmold in two materials (11488 triangles)
+ok - phone: clay keeps its cross-section under the stage and the controls inside the sheet
+ok - no page errors

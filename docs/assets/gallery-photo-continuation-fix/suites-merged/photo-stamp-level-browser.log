@@ -1,0 +1,16 @@
+ok - level photo: texture -0.03°
+ok - level photo: detail viewer top -0.14°
+ok - level photo: detail viewer 3/4 -0.02°
+ok - 5b50637, floating disc roll -5.46°
+ok - level photo: floating out of the bag, main (no roll hunk ported) -0.02°
+ok - crooked photo: texture before levelling -3.00°
+ok - crooked photo: texture after +3.0° in the aligner -0.01°
+ok - crooked photo: detail viewer top, before -3.07°
+ok - crooked photo: detail viewer top, levelled -0.14°
+ok - crooked photo: detail viewer 3/4, levelled -0.03°
+ok - saved photo: re-exported at 0° (unchanged) -3.01°
+ok - saved photo: texture after re-levelling +3.0° -0.04°
+ok - saved photo: detail viewer top, re-levelled -0.11°
+ok - saved photo: detail viewer 3/4, re-levelled -0.05°
+ok - 0° export byte-identical to 466c92e (pixels, colour, rim, WebP) for four framings
+PASS: stamp levelling: characterization, aligner tools, post-save re-level, 0° parity. Shots in docs/photo-stamp-orientation

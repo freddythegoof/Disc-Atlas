@@ -16,21 +16,37 @@ window.addEventListener('atlas-photo-reset',clearPhotoCache);
 // A whisper of relief for detail views: height is how far a pixel's brightness sits from the plate's, so
 // a stamp (dark on light or light on dark) stands a hair proud of the plastic and catches the light at its
 // edges. Smooth gradients have no slope worth shading, so leftover lighting adds nothing.
-function reliefTexture(image){
- const n=Math.min(512,image.width),canvas=document.createElement('canvas');canvas.width=canvas.height=n;
- const g=canvas.getContext('2d',{willReadFrequently:true});g.drawImage(image,0,0,n,n);
- const d=g.getImageData(0,0,n,n).data,L=new Float32Array(n*n),histogram=new Uint32Array(256);let counted=0;
- for(let i=0;i<n*n;i++){
+// Both pixel passes run in row bands with a yield between bands, so one photo's relief is never one long task. Each band is a
+// small function V8 optimizes once and keeps: the single loop entered once per photo churned through on-stack-replacement
+// deopts and ran about three times slower on alternate photos (docs/gallery-photo-continuation-fix.md).
+const BAND=128;
+// Without scheduler.yield, a message turn rather than setTimeout, which nested timers clamp to 4 ms.
+const nextTask=()=>globalThis.scheduler?.yield?.()??new Promise(r=>{const c=new MessageChannel();c.port1.onmessage=()=>r();c.port2.postMessage(0);});
+function luminanceRows(d,n,L,histogram,j0,j1){
+ let counted=0;
+ for(let i=j0*n;i<j1*n;i++){
   const l=.2126*d[4*i]+.7152*d[4*i+1]+.0722*d[4*i+2],x=(i%n+.5)/n*2-1,y=((i/n|0)+.5)/n*2-1;L[i]=l;
   if(d[4*i+3]>250&&x*x+y*y<.6){histogram[l|0]++;counted++;}
  }
- let plate=128;for(let v=0,seen=0;v<256;v++){seen+=histogram[v];if(seen>=counted/2){plate=v;break;}}
- const height=new Uint8Array(n*n);
- for(let j=0;j<n;j++)for(let i=0;i<n;i++){
+ return counted;
+}
+function heightRows(L,n,plate,height,j0,j1){
+ for(let j=j0;j<j1;j++)for(let i=0;i<n;i++){
   let sum=0,count=0;
   for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii>=0&&jj>=0&&ii<n&&jj<n){sum+=Math.abs(L[jj*n+ii]-plate);count++;}}
   height[j*n+i]=Math.min(255,sum/count*2.5);
  }
+}
+// `live()` turns false when the photo is released or the cache cleared while a band waits; the caller's catch drops the entry.
+async function reliefTexture(image,live){
+ const n=Math.min(512,image.width),canvas=document.createElement('canvas');canvas.width=canvas.height=n;
+ const g=canvas.getContext('2d',{willReadFrequently:true});g.drawImage(image,0,0,n,n);
+ const d=g.getImageData(0,0,n,n).data,L=new Float32Array(n*n),histogram=new Uint32Array(256);let counted=0;
+ const bands=async run=>{for(let j=0;j<n;j+=BAND){run(j,Math.min(n,j+BAND));await nextTask();if(!live())throw Error('Photo cleared');}};
+ await bands((j0,j1)=>{counted+=luminanceRows(d,n,L,histogram,j0,j1);});
+ let plate=128;for(let v=0,seen=0;v<256;v++){seen+=histogram[v];if(seen>=counted/2){plate=v;break;}}
+ const height=new Uint8Array(n*n);
+ await bands((j0,j1)=>heightRows(L,n,plate,height,j0,j1));
  const texture=new THREE.DataTexture(height,n,n,THREE.RedFormat,THREE.UnsignedByteType);
  texture.minFilter=THREE.LinearMipmapLinearFilter;texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=true;texture.needsUpdate=true;
  return texture;
@@ -42,7 +58,7 @@ export function acquirePhoto(url,size=1024,{relief=false}={}){
  let entry=cache.get(cacheKey);
  if(!entry){
   const controller=new AbortController(),start=epoch;entry={refs:0,controller};cache.set(cacheKey,entry);
-  entry.ready=fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('Photo unavailable');const image=await createImageBitmap(await r.blob(),{imageOrientation:'flipY',resizeWidth:size,resizeHeight:size,resizeQuality:'high'});if(start!==epoch||controller.signal.aborted){image.close();throw Error('Photo cleared');}const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;texture.anisotropy=4;entry.texture=texture;entry.image=image;entry.relief=relief?reliefTexture(image):null;return {map:texture,relief:entry.relief};}).catch(e=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey);throw e;});
+  entry.ready=fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('Photo unavailable');const image=await createImageBitmap(await r.blob(),{imageOrientation:'flipY',resizeWidth:size,resizeHeight:size,resizeQuality:'high'});if(start!==epoch||controller.signal.aborted){image.close();throw Error('Photo cleared');}const texture=new THREE.Texture(image);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;texture.anisotropy=4;entry.texture=texture;entry.image=image;entry.relief=relief?await reliefTexture(image,()=>start===epoch&&!controller.signal.aborted):null;return {map:texture,relief:entry.relief};}).catch(e=>{if(cache.get(cacheKey)===entry)cache.delete(cacheKey);throw e;});
  }
  entry.refs++;let released=false;
  return {ready:entry.ready,release(){if(released)return;released=true;if(--entry.refs===0){if(cache.get(cacheKey)===entry)cache.delete(cacheKey);entry.controller.abort();entry.texture?.dispose();entry.relief?.dispose();entry.image?.close?.();}}};

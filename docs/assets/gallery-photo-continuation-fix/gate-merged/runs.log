@@ -1,0 +1,8 @@
+START fixed1 22:55:27 e5a39d0 dirty=0
+END fixed1 22:58:04 exit 0
+START main1 22:59:35 d157c4a dirty=0
+END main1 23:02:15 exit 1
+START main2 23:03:03 d157c4a dirty=0
+END main2 23:05:41 exit 1
+START fixed2 23:06:29 e5a39d0 dirty=0
+END fixed2 23:09:06 exit 0

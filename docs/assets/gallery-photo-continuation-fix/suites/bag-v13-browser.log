@@ -1,0 +1,10 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-photo-continuation-fix/dist/workers-public/
+✓ New putter defaults to the putter pocket at insert
+✓ Inline move to main persists across reload (API, list select and scene)
+✓ Putter stays in main through Store/Bag, sort change, edit-sheet save and reload
+✓ Go-to slot: empty outline, inline assignment, centered/raised with accent rim, persists across reload
+✓ Distance driver, midrange and putters can each be go-to; a full putter pocket stays intact
+✓ Inline select: three pockets, labelled, 44px target, immediate persist, reverts on failure
+✓ One size: 680px at 1440×1000 and 680px at 2560×1440 (no S/M/L); zooming 140% scales hit targets 1.40×
+PASS: 7 checks, 27 screenshots across 3 themes at 1440px, 360px and 2560px; no page errors.

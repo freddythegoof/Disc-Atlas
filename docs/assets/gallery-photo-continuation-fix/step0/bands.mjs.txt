@@ -1,0 +1,13 @@
+// Fixed-tree trace: every renderer-main task in the hunt flip block whose V8 samples touch the relief bands, with its wall time.
+// usage: node outputs/gpc/bands.mjs <trace.json>
+import fs from 'node:fs';
+const ev=JSON.parse(fs.readFileSync(process.argv[2],'utf8')).traceEvents;
+const marks=ev.filter(e=>e.cat==='blink.user_timing'&&e.name?.startsWith('hunt:'));
+const {pid,tid}=marks[0],t0=marks.find(e=>e.name==='hunt:start').ts,t1=marks.find(e=>e.name==='hunt:stills').ts;
+const tasks=ev.filter(e=>e.pid===pid&&e.tid===tid&&e.ph==='X'&&(e.name==='RunTask'||e.name==='ThreadControllerImpl::RunTask')&&e.ts>=t0&&e.ts<t1).sort((a,b)=>a.ts-b.ts);
+const nodes=new Map(),samples=[];let clock=null;
+for(const e of ev.filter(e=>e.pid===pid&&(e.name==='Profile'||e.name==='ProfileChunk')).sort((a,b)=>a.ts-b.ts)){const d=e.args?.data;if(!d)continue;if(e.name==='Profile'){clock=d.startTime;continue;}for(const n of d.cpuProfile?.nodes||[])nodes.set(n.id,n);const s=d.cpuProfile?.samples||[],dt=d.timeDeltas||[];for(let i=0;i<s.length;i++){clock+=dt[i];samples.push({ts:clock,node:s[i]});}}
+const relief=new Set([...nodes.values()].filter(n=>/luminanceRows|heightRows|reliefTexture/.test(n.callFrame.functionName)).map(n=>n.id));
+let k=0;const rows=[];for(const t of tasks){let hit=0;while(k<samples.length&&samples[k].ts<t.ts)k++;for(let j=k;j<samples.length&&samples[j].ts<t.ts+t.dur;j++)if(relief.has(samples[j].node))hit++;if(hit)rows.push(t.dur/1000);}
+const s=[...rows].sort((a,b)=>a-b),q=p=>s[Math.min(s.length-1,Math.floor(s.length*p))];
+console.log('tasks touching relief',s.length,'ms min/median/p95/max',s[0]?.toFixed(1),q(.5)?.toFixed(1),q(.95)?.toFixed(1),s.at(-1)?.toFixed(1),'| all tasks >50 ms in block',tasks.filter(t=>t.dur>50000).length);

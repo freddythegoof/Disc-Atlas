@@ -1,0 +1,16 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-photo-continuation-fix/dist/workers-public/
+┌─────────┬──────────────────────────┬───────┬────────┬─────────────────────┬────────┬───────┬───────────┐
+│ (index) │ device                   │ photo │ median │ p95                 │ frames │ calls │ triangles │
+├─────────┼──────────────────────────┼───────┼────────┼─────────────────────┼────────┼───────┼───────────┤
+│ 0       │ 'desktop'                │ false │ 0      │ 0.10000000009313226 │ 128    │ 3     │ 11488     │
+│ 1       │ 'desktop'                │ true  │ 0      │ 0.10000000009313226 │ 128    │ 3     │ 12768     │
+│ 2       │ 'desktop'                │ false │ 0      │ 0.10000000009313226 │ 128    │ 3     │ 11488     │
+│ 3       │ 'desktop'                │ true  │ 0      │ 0.10000000009313226 │ 128    │ 3     │ 12768     │
+│ 4       │ 'desktop'                │ false │ 0      │ 0.10000000009313226 │ 128    │ 3     │ 11488     │
+│ 5       │ 'phone viewport, 4x CPU' │ false │ 0      │ 0.3000000002793968  │ 128    │ 3     │ 11488     │
+│ 6       │ 'phone viewport, 4x CPU' │ true  │ 0      │ 0.20000000018626451 │ 128    │ 3     │ 12768     │
+│ 7       │ 'phone viewport, 4x CPU' │ false │ 0      │ 0.2999999998137355  │ 128    │ 3     │ 11488     │
+│ 8       │ 'phone viewport, 4x CPU' │ true  │ 0      │ 0.39999999990686774 │ 128    │ 3     │ 12768     │
+│ 9       │ 'phone viewport, 4x CPU' │ false │ 0      │ 0.39999999990686774 │ 128    │ 3     │ 11488     │
+└─────────┴──────────────────────────┴───────┴────────┴─────────────────────┴────────┴───────┴───────────┘

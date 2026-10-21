@@ -1,0 +1,6 @@
+Catalog artwork gate passed for 2434 records. Data-source permissions remain a separate launch requirement.
+Public atlas built at /Users/freddy/Disc-Atlas/.claude/worktrees/gallery-photo-continuation-fix/dist/workers-public/
+ok - Switch (1440): with the details showing a bag disc, a click on a bagged disc slides it out and shows it, on another out disc or any name shows it, Enter too; no popup in between; a click on the shown disc still puts it back
+ok - Dump bag (1440): one press takes all 18 discs out (names showing), the button goes and Return all takes focus and puts them back; from a closed bag with the pocket collapsed it opens both first
+ok - Phone (390, touch): a tap dumps the bag; with the sheet up, a tap on another name switches it; Return all puts everything back
+ok - No page or console errors
