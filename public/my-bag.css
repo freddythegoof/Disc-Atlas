@@ -587,6 +587,17 @@ body[data-view="bag"] main {display:none!important}
 .bag-photo-thumb{flex:none;width:56px;height:56px;border-radius:50%;overflow:hidden;background:var(--surface);box-shadow:0 0 0 1px var(--line)}
 .bag-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .bag-photo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.bag-photo-status:empty{display:none}
+/* Photo stamps (docs/photo-stamp-assets.md): the saved photo's look, Photo or Game asset, as a segmented pair in the
+   sheet's chip family, and the action that reads a game asset from the original. */
+.bag-photo-look{display:grid;gap:8px;margin-top:14px}.bag-photo-look[hidden]{display:none}
+.bag-photo-look small{font-size:11px;color:var(--muted);line-height:1.5}
+.bag-photo-look-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bag-photo-look-title{font-weight:600}
+.bag-photo-look-row label{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:24px;background:var(--surface);cursor:pointer}
+.bag-photo-look-row label:has(input:checked){border-color:color-mix(in srgb,var(--lime) 70%,var(--line));background:var(--accent-soft);font-weight:600}
+.bag-photo-look-row input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.bag-photo-look-row label:has(input:focus-visible){outline:2px solid var(--lime);outline-offset:2px}
+.bag-photo-control .bag-photo-asset-make{justify-self:start}
 .bag-photo-source-menu{width:min(240px,calc(100vw - 16px));min-width:0;max-height:calc(100dvh - 16px);overflow:auto}
 .bag-photo-source-menu button{display:flex;justify-content:flex-start;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;font-weight:500;text-align:left}
 .bag-photo-source-menu button:hover,.bag-photo-source-menu button:focus-visible{background:var(--accent-soft)}

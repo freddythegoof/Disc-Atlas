@@ -183,6 +183,8 @@ const thumbnailsSource=()=>readFileSync(new URL('../public/disc3d/thumbnails.mjs
 // No catalog stamp asset, so no stamp texture or shape lookup is needed.
 const stampStubs={
  catalogStampAsset:()=>null,
+ // No disc here is in its game-asset look (photo-stamps.mjs): every photo stays a photo.
+ photoStampFor:()=>null,
  stampTexture:()=>{throw new Error('stampTexture is not expected here');},
  shapeForDisc:()=>{throw new Error('shapeForDisc is not expected here');},
  shapeFrame:()=>{throw new Error('shapeFrame is not expected here');},
