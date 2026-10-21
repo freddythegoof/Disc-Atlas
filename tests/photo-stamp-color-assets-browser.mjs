@@ -41,7 +41,9 @@ try{
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=2);
  const disc=(await items()).find(i=>i.mold_id==='3d60892b6812');
  const edit=async()=>{await page.locator(`[data-bag-edit="${disc.id}"]`).evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');};
- const closeSheet=async()=>{await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'));};
+ // The sheet clears its photo editor on the dialog's close event, a task after Escape: wait for it, or a sheet reopened at
+ // once would be wiped by the late event.
+ const closeSheet=async()=>{const closed=page.evaluate(()=>new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true})));await page.keyboard.press('Escape');await closed;};
  const look=v=>page.locator(`#addDiscDialog .bag-photo-look input[value="${v}"]`);
  const usePhoto=async file=>{
   await edit();await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
@@ -210,6 +212,21 @@ try{
  // A replaced photo is a new version: the look returns to Photo, and both of the old assets go.
  const replaced=await usePhoto(second);assert.notEqual(replaced.texture_key,key);
  assert.deepEqual(await page.evaluate(([id,k])=>import('/disc3d/photo-stamps.mjs').then(m=>m.photoLook(id,k)),[disc.id,replaced.texture_key]),{available:false,look:'photo'});
+
+ // The colour asset's size budget holds: over it, the image steps down in resolution in the same placement; one that
+ // cannot fit is not kept, and the one-ink asset stands alone.
+ const budget=await page.evaluate(async bytes=>{
+  const {decodePhoto,photoStampAsset}=await import('/disc-photo.mjs');
+  const make=async limit=>{const image=await decodePhoto(new File([new Uint8Array(bytes)],'print.jpg',{type:'image/jpeg'}));const r=await photoStampAsset(image,{},{color:true,...limit&&{colorBytes:limit}});image.close?.();
+   const size=r.color?await createImageBitmap(r.color.blob).then(b=>{const w=b.width;b.close();return w;}):null;return {one:r.blob.size,color:r.color?{bytes:r.color.blob.size,type:r.color.blob.type,side:size,placement:r.color.placement}:null};};
+  const full=await make(),half=await make(Math.floor(full.color.bytes/2)),none=await make(500);
+  return {full,half,none,limit:Math.floor(full.color.bytes/2)};
+ },[...fs.readFileSync(first)]);
+ assert.ok(budget.half.color.bytes<=budget.limit,'within a halved budget: '+JSON.stringify(budget));
+ assert.ok(budget.half.color.side<budget.full.color.side,'by stepping down in resolution');
+ assert.deepEqual(budget.half.color.placement,budget.full.color.placement,'in the same placement');
+ assert.equal(budget.none.color,null,'a colour asset that cannot fit is not kept');
+ assert.equal(budget.none.one,budget.full.one,'the one-ink asset stands alone, as made');
 
  assert.deepEqual(errors,[]);
  console.log('photo stamp color assets: pass');

@@ -1,17 +1,17 @@
 # Graph Report - photo-stamp-color-assets  (2026-10-21)
 
 ## Corpus Check
-- 436 files · ~5,620,182 words
+- 436 files · ~5,620,402 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 306 file(s) not represented in the graph (top: .log 231, .gz 23, .css 16)
 
 ## Summary
-- 2834 nodes · 5969 edges · 163 communities (129 shown, 34 thin omitted)
+- 2834 nodes · 5970 edges · 163 communities (129 shown, 34 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 239 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7fab320f`
+- Built from commit: `8d3f3a2c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

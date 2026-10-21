@@ -199,7 +199,7 @@ function extractStamp(pixels,size,plate,color=false){
 // v2 (docs/photo-stamp-color-assets.md): with `color`, the same read also gives the full-colour asset (`color`: its blob
 // and placement), the stamp's own colours flattened like print (disc-stamp-color.mjs). The one-ink asset is made
 // exactly as without it.
-export async function photoStampAsset(image,options={},{plate=.8,color=false}={}){
+export async function photoStampAsset(image,options={},{plate=.8,color=false,colorBytes=COLOR_STAMP_BYTES}={}){
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
  const result=await extractStamp(pixels,size,plate,color),a=result.alpha,c=size/2;
@@ -219,13 +219,16 @@ export async function photoStampAsset(image,options={},{plate=.8,color=false}={}
  if(!blob)throw Error('The browser returned no image data for the stamp. Close other tabs and retry.');
  // The stock placement rule (stamp.mjs): the texture spans side/size of the disc's diameter.
  const ink=Math.max(x1-x0+1,y1-y0+1);
+ // `color` is null when the colour asset could not be kept within its budget: the one-ink asset stands alone.
  return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,
-  ...result.color&&{color:await colorStampBlob(result.color.rgba,size)}};
+  ...result.color&&{color:await colorStampBlob(result.color.rgba,size,colorBytes)}};
 }
 // The colour asset: the smallest centred square holding all of it, as WebP (lossy colour, its alpha kept exact), which
-// keeps it near the one-ink asset's size; the bundled encoder stands in where the canvas cannot write WebP.
+// keeps it near the one-ink asset's size; the bundled encoder stands in where the canvas cannot write WebP. It never
+// exceeds `limit` (COLOR_STAMP_BYTES): past quality 0.7 the image steps down in resolution, which leaves its placement
+// as it is (the texture spans the same share of the disc at any resolution); one still too large is not kept (null).
 const COLOR_STAMP_BYTES=1.5*1024*1024;
-async function colorStampBlob(rgba,size){
+async function colorStampBlob(rgba,size,limit=COLOR_STAMP_BYTES){
  const c=size/2;let reach=0,x0=size,y0=size,x1=-1,y1=-1;
  for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(rgba[4*(j*size+i)+3]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
  if(x1<0)throw Error('No stamp showed up on this photo. Try a sharper photo, taken square on.');
@@ -233,15 +236,18 @@ async function colorStampBlob(rgba,size){
  const g=out.getContext('2d'),img=g.createImageData(side,side);
  for(let j=0;j<side;j++)img.data.set(rgba.subarray(4*((j+from)*size+from),4*((j+from)*size+from+side)),4*j*side);
  g.putImageData(img,0,0);
- let blob=null;
+ let blob=null,smaller=null;
+ const encode=async(canvas,quality)=>{let b=await supportsCanvasWebP()===false?null:await canvasBlob(canvas,quality);if(!b||b.type!=='image/webp')b=await fallbackWebP(canvas,quality);return b;};
  try{
-  for(const quality of [.9,.8,.7]){
-   blob=await supportsCanvasWebP()===false?null:await canvasBlob(out,quality);
-   if(!blob||blob.type!=='image/webp')blob=await fallbackWebP(out,quality);
-   if(blob.size<=COLOR_STAMP_BYTES)break;
+  for(const quality of [.9,.8,.7]){blob=await encode(out,quality);if(blob&&blob.size<=limit)break;}
+  for(let scale=.8;blob&&blob.size>limit&&scale>.3;scale*=.8){
+   smaller??=document.createElement('canvas');smaller.width=smaller.height=Math.round(side*scale);
+   const s=smaller.getContext('2d');s.clearRect(0,0,smaller.width,smaller.height);s.imageSmoothingQuality='high';s.drawImage(out,0,0,smaller.width,smaller.height);
+   blob=await encode(smaller,.7);
   }
- }finally{out.width=out.height=0;}
+ }finally{out.width=out.height=0;if(smaller)smaller.width=smaller.height=0;}
  if(!blob)throw Error('The browser returned no image data for the stamp. Close other tabs and retry.');
+ if(blob.size>limit)return null;
  const ink=Math.max(x1-x0+1,y1-y0+1);
  return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side}};
 }
@@ -467,7 +473,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
     const asset=await photoStampAsset(bitmap,options,{plate,color:true}),look=making;if(id!==serial)return;
     await savePhotoStamp(target.id,target.key,{...asset,look});if(id!==serial)return;
-    closeAligner();q('.bag-photo-status').textContent=look==='color'?'Full-color asset made. Kept in this browser.':'Game asset made. Kept in this browser.';renderSheet();
+    closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Kept in this browser.':'Game asset made in one ink. This stamp is too detailed to keep in full color in this browser.'):'Game asset made. Kept in this browser.';renderSheet();
    }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message||'The game asset could not be made. Try again.';}}
    return;
   }

@@ -129,7 +129,12 @@ Browser-local, beside v1's assets. **No account storage, no migration, no server
 - The colour asset's bytes sit in the same IndexedDB store, keyed `<disc>/<photo version>/c`. Its asset id ends in `/c`.
 - It is **WebP** (lossy colour, exact alpha), cropped to the smallest centred square holding the design, the same rule
   as v1. Stored sizes: **208 KB** (Destroyer) and **773 KB** (DD3), against the one-ink assets' 350 KB and 1.64 MB.
-  Encoding steps down from quality 0.9 only past 1.5 MB. Where the canvas cannot write WebP, the bundled encoder does.
+  The budget is **1.5 MiB, enforced**. Encoding tries quality 0.9, 0.8 and 0.7. Past that it steps the image down in
+  resolution (×0.8 each step, placement unchanged, since the texture spans the same share of the disc at any size). A
+  colour asset that still cannot fit is not kept: the one-ink asset is saved alone, and the sheet says *"Game asset made
+  in one ink. This stamp is too detailed to keep in full color in this browser."* Where the canvas cannot write WebP,
+  the bundled encoder does. (Codex review on PR #40 caught that the first version returned an over-budget blob after
+  quality 0.7. Fixed and tested before merge.)
 - Replacing the photo is a new version, so the look returns to Photo, and both of the old assets are deleted. Colour
   bytes this browser can no longer read give the disc its photo back, everywhere, as in v1.
 
@@ -221,7 +226,7 @@ Run on this Mac (ANGLE on Metal, `--enable-gpu`), at commit `7fab320`. Logs: `wo
 | --- | --- |
 | Every unit suite (35 files, `node:test`, incl. the new `tests/disc-stamp-color.mjs`) | **283 / 283 pass** (277 before + 6 new) |
 | `tests/disc-stamp-color.mjs` (new, drawn synthetic discs: every ink keeps its colour and the plate carries nothing; the same print on another plastic; an edge is the ink, not a blend with the plastic; the plastic shows through a halftone; a sheen across one ink and a clipped glare spot; the one-ink asset byte-identical to v1's with and without the colour asset) | Pass, 6 |
-| `tests/photo-stamp-color-assets-browser.mjs` (new: the Look row's three choices; Full color from the original; both assets stored, the colour one as WebP within budget; the viewer at 2048 carrying all four drawn inks; gold ink leaves it as it was; the finish becomes `rainbow~sheen` at 0.35 with the texture unchanged; the Appearance note; the pulled bag disc; the bag-list thumbnail; the gallery; storage's disc model; the map still; the catalog Destroyer untouched; Game asset in gold; back to Photo byte-for-byte; lost colour bytes give the photo back; a v1-only entry asks for the original again; a replaced photo returns to Photo) | Pass |
+| `tests/photo-stamp-color-assets-browser.mjs` (new: the Look row's three choices; Full color from the original; both assets stored, the colour one as WebP within budget; the viewer at 2048 carrying all four drawn inks; gold ink leaves it as it was; the finish becomes `rainbow~sheen` at 0.35 with the texture unchanged; the Appearance note; the pulled bag disc; the bag-list thumbnail; the gallery; storage's disc model; the map still; the catalog Destroyer untouched; Game asset in gold; back to Photo byte-for-byte; lost colour bytes give the photo back; a v1-only entry asks for the original again; a replaced photo returns to Photo; the size budget: a halved budget gives a smaller image in the same placement, an impossible one keeps the one-ink asset alone) | Pass, 3 of 3 after the review fix |
 | `tests/photo-stamp-identity-browser.mjs` (new, above) | Pass: 0 differences vs `origin/main` |
 | Browser sweep: the 40 suites the last landing ran, plus `display-customization`, `stamp-scale`, `photo-stamp-assets` and `photo-stamp-color-assets` (44) | **40 pass.** One of the passes, `photo-decode-browser`, is a helper module another suite imports: run alone, it exits 0 having checked nothing. |
 | `bag-interactions-browser` (details panel never opens), `bag-tweaks-browser` ("Discs reach close to both sides at 1440"), `photo-compression-browser` ("native bytes unchanged"), `photo-editor-contract-browser` ("This photo could not be compressed") | **Fail on `origin/main` too, identically**: the paired control ran in the detached `01971aa` worktree, same messages (`work/photo-stamp-color-assets/suites-control/`). Recorded as failing on main in earlier landings. |
