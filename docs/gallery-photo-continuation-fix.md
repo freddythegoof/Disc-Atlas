@@ -137,6 +137,13 @@ At Freddy's request, `origin/main` at **`d157c4a`** (PR #37, photo stamps) was m
 
 The other ten gate rows pass on all four runs: desktop fly p95 2.5–2.8 against a limit of 3.455, phone fly p95 5.9–6.7 against 10.13, and stills within 0.5 ms. Every behaviour check is true, and every run had zero page errors and drew on ANGLE Metal. Main's failures are the same owner-photo class, with a longest of 67–70 ms per rep.
 
+## After merging the accent PR (`f61ffe7`)
+
+PR #39 was blocked on conflicts after `origin/main` moved to **`f61ffe7`** (PR #38, accent follows appearance). That was merged in as **`87cdf3d`**. Only `graphify-out/` conflicted: `.graphify_labels.json.sig`, `GRAPH_REPORT.md`, `graph.html` and `graph.json`. They were taken from main and regenerated AST-only (2,774 nodes). There was no product-code conflict. Against `f61ffe7`, the merged tree still differs in product code only in `public/disc3d/photo.mjs`. `photo.mjs`, the gate script and `before.darwin.json` are unchanged on main since `5fb9801`.
+
+- **Suites** ([suites-merged2/](assets/gallery-photo-continuation-fix/suites-merged2/)): unit **34 suites, 277 / 277 pass**. The same 11 browser suites: **11 / 11 pass**.
+- **One Gallery gate run under the quiet protocol** ([gate-merged2/](assets/gallery-photo-continuation-fix/gate-merged2/)): 23:34:43–23:38:46 on October 20, 18 samples, all on AC Power. The run started at 23:36:18, after twelve qualifying samples (idle 90.9%, load 2.03, `foreign=0`). Idle during the run was 74.8–95.8% and load 1.5–2.7. **Exit 0, PASS.** Phone warm long tasks were **0 / 0 / 0** (cold 0): a median of **0** against the limit of 1, paired excess −1. Desktop was 0 × 7. Every frame row passes (desktop fly p95 2.5 / 3.455, phone fly p95 6.2 / 10.13), every behaviour check is true, with zero page errors, on ANGLE Metal. Because the run passed, the paired control was not needed and was not run.
+
 ## Verification
 
 - **Unit:** every non-browser `node:test` suite (`tests/*.mjs` importing `node:test`, excluding `*-browser.mjs`): **33 suites, 271 tests, 271 pass, 0 fail** ([unit.log](assets/gallery-photo-continuation-fix/suites/unit.log)).

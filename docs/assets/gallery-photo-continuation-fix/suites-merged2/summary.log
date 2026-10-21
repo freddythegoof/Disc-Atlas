@@ -1,0 +1,14 @@
+UNIT 34 suites start 23:28:25
+EXIT unit 0 23:28:36
+EXIT photo-stamp-assets-browser 0 13s 23:28:49
+EXIT all-discs-browser 0 34s 23:29:23
+EXIT bag-collections-browser 0 25s 23:29:48
+EXIT photo-textures-browser 0 21s 23:30:09
+EXIT photo-texture-perf-browser 0 7s 23:30:16
+EXIT photo-stamp-level-browser 0 24s 23:30:40
+EXIT photo-rim-color-browser 0 30s 23:31:10
+EXIT disc3d-browser 0 39s 23:31:49
+EXIT bag-3d-browser 0 64s 23:32:53
+EXIT bag-pulled-quality-browser 0 39s 23:33:32
+EXIT non-overmold-photo-edge-browser 0 49s 23:34:21
+DONE 23:34:21
