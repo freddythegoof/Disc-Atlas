@@ -278,7 +278,7 @@ Before each run it waits for 12 consecutive samples (about 60 s) at 85% idle or 
 ## Graphify
 
 Refreshed on this Mac with `graphify update .` (AST only, 0.9.91 under uv in the session scratchpad), on the final code,
-and committed with this write-up: 2,834 nodes, 5,969 edges, 163 communities. No `.env*` or `.dev.vars*` files exist in
+and committed with this write-up: 2,834 nodes, 5,970 edges, 163 communities. No `.env*` or `.dev.vars*` files exist in
 the checkout. The ignored `work/` folder, holding the photos, the baseline worktree and the evidence, is not in the
 graph. Graphify's own deterministic community step rewrote the label signatures; no LLM labeling ran. The dated backup
 it writes (`graphify-out/2026-10-21/`) is git-ignored.
