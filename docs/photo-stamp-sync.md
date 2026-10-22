@@ -48,11 +48,23 @@ Safari's canvas writing PNG when asked for WebP. **That was not it.**
   with `null`. The sheet's handler then read `e.message`, threw, and never cleared its busy state. So the sheet hung,
   and nothing said why.
 
-- **What I could not check:** this Mac has no Xcode, so there is no iOS Simulator, and I had no iPhone. The failure
-  above needs an ephemeral WebKit store: Private Browsing, and some in-app browsers (a link opened inside another app).
-  **Freddy, was the phone in a Private tab, or in another app's browser?** If not, the phone hit something this branch
-  did not reproduce. Either way, the save no longer depends on storing a Blob, and a failure now shows a message
-  instead of hanging.
+- **Not what happened on Freddy's phone.** That failure needs an ephemeral WebKit store, and Freddy confirmed (October
+  21) that he was in a **normal Safari tab**. So it is a real bug, fixed here, but not his. His phone's cause is still
+  open, and this Mac cannot settle it: it has no Xcode (so no iOS Simulator), and I had no iPhone. What is ruled out and
+  what is left:
+
+  | Candidate | Status |
+  | --- | --- |
+  | Canvas WebP (the suspect on file) | Ruled out: the bundled encoder stands in, and works in WebKit. |
+  | Blob in IndexedDB | Ruled out for his phone (normal tab). Fixed anyway. |
+  | Photo size | Ruled out: both originals are 12 MP (4032 × 3024). Every canvas on the asset path stays under iOS's 16.7 MP limit. |
+  | ProRAW handed over as DNG, which no browser decodes | Unlikely for a library pick. WebKit's iOS upload panel (`WKFileUploadPanel.mm`, `_preferredAssetRepresentationMode`) asks PhotoKit for the *compatible* form (a JPEG) when the input's `accept` list names specific types, as the original-photo input does. A DNG picked through **Choose File** (the Files app) would arrive as itself and be refused with *"Choose a JPG, PNG, WebP or HEIC photo up to 30 MB."* |
+  | The bundled WebP encoder failing on the phone (WASM memory or download) at the colour asset's 2048 px | Possible, untested on iOS. **Covered by this branch:** the colour asset now falls back to PNG, under the same budget. |
+  | Memory pressure (the tab reloads mid-make) | Possible, untested. A reload would look like nothing happened. |
+
+  What Freddy saw on screen tells these apart: a message (its words), a spinner that never ended, the page reloading,
+  or a picker that showed nothing usable. With this branch, a failure that leaves the page alive always shows its
+  reason in the aligner.
 
 - **A second WebKit difference, found on the way:** WebKit's canvas writes an **`eXIf` chunk into every PNG** (68
   bytes of resolution data from its image I/O, never camera data). Chromium writes none. The account takes no EXIF in
