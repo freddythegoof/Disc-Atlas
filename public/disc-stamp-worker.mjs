@@ -15,8 +15,8 @@ export function extract(data,size,plate,{color=false,stored=false}={}){
  if(!measured)throw Error('This photo shows too little of the disc to read its stamp.');
  // v3.1: no camera light in the asset. The glare and shading the quadratic left are taken out, upstream of both looks.
  const light=delightStamp(data,raw,size,{plate,plateColor:measured,stored}),plateColor=light.plateColor;
- const {mask,...stamp}=extractPhotoStamp(data,size,{plate,plateColor,keepMask:color,unknown:light.unreliable,lit:light.lit});
- return {plateColor,light:light.stats,...stamp,...color&&{color:extractStampColor(data,raw,size,mask,plateColor,{plate,glare:light.unreliable})}};
+ const {mask,...stamp}=extractPhotoStamp(data,size,{plate,plateColor,keepMask:color,unknown:light.unreliable,lit:light.lit,strong:light.strong});
+ return {plateColor,light:light.stats,...stamp,...color&&{color:extractStampColor(data,raw,size,mask,plateColor,{plate,glare:light.unreliable,filled:light.filled})}};
 }
 if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=({data:{pixels,size,plate,color,stored}})=>{
  try{const result=extract(new Uint8ClampedArray(pixels),size,plate,{color,stored});self.postMessage({result},[result.alpha.buffer,...result.layers?Object.values(result.layers).map(v=>v.buffer):[],...result.color?[result.color.rgba.buffer]:[]]);}

@@ -42,7 +42,7 @@ import {plateColor,GLARE_CEILING} from './disc-albedo.mjs';
 // when the white found there is at least this share of its luminance. SHARE: a material counts in
 // a cell with at least this share of its pixels. K, MERGE_DE: materials, and how close two are to merge (ΔE). LIT_MATCH: a material within this
 // (relative) of another plus white is that one, lit.
-const CELL=16,WHITE_MIN=.012,GLARE_RATIO=3,GLARE_FLOOR=.5,STORED_RING=.8,FLAT=.06,PLATEAU=.08,PEAK_SHARE=.4,CORE_REACH=240,CAP=1.25,CLIPPED_SHARE=.3,LIT_MATCH=.04,SHARE=.12,K=8,MERGE_DE=10,WL=.5,PASSES=3,CLIP=250;
+const CELL=16,WHITE_MIN=.012,GLARE_RATIO=3,GLARE_FLOOR=.5,STORED_RING=.8,FLAT=.06,PLATEAU=.08,PEAK_SHARE=.4,CORE_REACH=240,CAP=1.25,CLIPPED_SHARE=.3,HALO_RISE=2,HALO_ROUND=.75,HALO_REACH=1.25,STRONG=.5,LIT_MATCH=.04,SHARE=.12,K=8,MERGE_DE=10,WL=.5,PASSES=3,CLIP=250;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -108,6 +108,117 @@ function kmeans(points,k){
  }
  const list=centres.map((c,ci)=>({lab:c,members:[]}));for(let i=0;i<n;i++)list[label[i]].members.push(i);
  return list.filter(c=>c.members.length);
+}
+// Chamfer distance (in pixels) to the nearest set pixel of `mask`, over a w × h grid.
+function distanceTo(mask,w,h){
+ const D=new Float32Array(w*h).fill(1e9),s2=Math.SQRT2;
+ for(let p=0;p<w*h;p++)if(mask[p])D[p]=0;
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++){const p=j*w+i;let v=D[p];if(i)v=Math.min(v,D[p-1]+1);if(j){v=Math.min(v,D[p-w]+1);if(i)v=Math.min(v,D[p-w-1]+s2);if(i<w-1)v=Math.min(v,D[p-w+1]+s2);}D[p]=v;}
+ for(let j=h-1;j>=0;j--)for(let i=w-1;i>=0;i--){const p=j*w+i;let v=D[p];if(i<w-1)v=Math.min(v,D[p+1]+1);if(j<h-1){v=Math.min(v,D[p+w]+1);if(i<w-1)v=Math.min(v,D[p+w+1]+s2);if(i)v=Math.min(v,D[p+w-1]+s2);}D[p]=v;}
+ return D;
+}
+// v3.1: a glare core inside printed area (at least CLONE_PRINT of the ring round it is print, not plastic) holds print
+// the photo lost: an illustration's lines and halftone run under it. Filled with any one colour, or a blend of the
+// colours around, it reads as a patch. So it is filled with print cloned from nearby, as a retoucher's stamp does, in
+// tiles (TILE px at 2048) from the edge inward: each tile takes the source, within SEARCH tiles, whose surroundings best
+// match the tile's own known surroundings (mean ΔE over its margin), so every piece continues the print beside it and no
+// distinct element (a logo) is carried in from elsewhere. A core on plastic or at a print's edge is left unreliable, for
+// the layers to decide (disc-stamp-extract.mjs `unknown`: plastic, a gap like wear). Returns how many cores were filled;
+// clears their pixels from `unreliable`.
+const CLONE_PRINT=.7,CLONE_RING=10,CLONE_OFF=15,TILE=24,SEARCH=5;
+function cloneCores(unreliable,inside,R,G,B,S,size,P,k,report=[]){
+ const N=size*size,seen=new Uint8Array(N),Plab=new Float32Array(3),a=new Float32Array(3),ring=Math.round(CLONE_RING*k),T=Math.max(6,Math.round(TILE*k/2)),M=Math.max(2,T/3|0),S0=SEARCH*T,step=Math.max(2,T/4|0);let cloned=0;
+ lab(P[0],P[1],P[2],Plab,0);
+ const ok=q=>inside[q]&&!unreliable[q];
+ for(let p0=0;p0<N;p0++){
+  if(!unreliable[p0]||seen[p0])continue;
+  const pixels=[p0];seen[p0]=1;
+  for(let at=0;at<pixels.length;at++){const p=pixels[at],i=p%size,j=(p-i)/size;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(unreliable[q]&&!seen[q]){seen[q]=1;pixels.push(q);}}}
+  let x0=size,y0=size,x1=0,y1=0;for(const p of pixels){const i=p%size,j=(p-i)/size;x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
+  if(Math.max(x1-x0,y1-y0)<3)continue;
+  // Inside print? The ring of reliable pixels round the core, against the plastic.
+  {const X0=Math.max(0,x0-ring),Y0=Math.max(0,y0-ring),X1=Math.min(size-1,x1+ring),Y1=Math.min(size-1,y1+ring),w=X1-X0+1,h=Y1-Y0+1,hole=new Uint8Array(w*h);
+   for(const p of pixels)hole[((p/size|0)-Y0)*w+p%size-X0]=1;
+   const near=distanceTo(hole,w,h);let n=0,print=0;
+   for(let j=0;j<h;j++)for(let i=0;i<w;i++){const q=(j+Y0)*size+i+X0;if(near[j*w+i]>ring||!ok(q))continue;n++;lab(R[q],G[q],B[q],a,0);if(Math.hypot(a[0]-Plab[0],a[1]-Plab[1],a[2]-Plab[2])>CLONE_OFF)print++;}
+   if(n<30||print<CLONE_PRINT*n)continue;}
+  // Its halo is under-measured right beside it (the clipping cut the light's shape short), so the zone filled reaches
+  // HALO_REACH × the core's radius where light was found; given back if the core cannot be filled. (Not from a stored
+  // texture, `S` null: its halo was compressed, not clipped, and still holds the print; the flood marked its core.)
+  const halo=[];if(S){let cx=0,cy=0;for(const p of pixels){cx+=p%size;cy+=p/size|0;}cx/=pixels.length;cy/=pixels.length;const r=HALO_REACH*Math.sqrt(pixels.length/Math.PI)+4*k;
+   for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(size-1,Math.ceil(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(size-1,Math.ceil(cx+r));x++){const q=y*size+x;if(inside[q]&&!unreliable[q]&&S[q]>4*WHITE_MIN&&(x-cx)**2+(y-cy)**2<=r*r){halo.push(q);unreliable[q]=1;seen[q]=1;}}
+   for(const q of halo){pixels.push(q);const i=q%size,j=(q-i)/size;x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}}
+  const giveBack=()=>{for(const q of halo)unreliable[q]=0;};
+  // First, the whole core in one piece, when one nearby patch matches both the surroundings and the print itself.
+  const across=Math.max(x1-x0,y1-y0)+1;
+  if(wholeCore(pixels,unreliable,inside,R,G,B,size,ring,across,report)){cloned++;continue;}
+  // Else in tiles. The working region: the core, its search reach (at least the core's size), Lab for every pixel there.
+  const far=Math.max(S0,Math.round(1.5*across));
+  const X0=Math.max(0,x0-far-M),Y0=Math.max(0,y0-far-M),X1=Math.min(size-1,x1+far+M),Y1=Math.min(size-1,y1+far+M),w=X1-X0+1,h=Y1-Y0+1,L=new Float32Array(3*w*h),src=new Uint8Array(w*h),known=new Uint8Array(w*h),todo=new Uint8Array(w*h);
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const q=(j+Y0)*size+i+X0,l=j*w+i;if(!inside[q])continue;lab(R[q],G[q],B[q],L,3*l);if(!unreliable[q]){src[l]=1;known[l]=1;}}
+  for(const p of pixels)todo[((p/size|0)-Y0)*w+p%size-X0]=1;
+  const tiles=new Map();for(const p of pixels){const i=p%size-X0,j=(p/size|0)-Y0,key=((j/T|0)<<16)|(i/T|0);if(!tiles.has(key))tiles.set(key,[i/T|0,j/T|0]);}
+  let left=pixels.length,stuck=false;
+  while(left&&!stuck){
+   // The tile with the most known surroundings goes next: the fill grows inward from the core's edge.
+   let pick=null,most=-1;
+   for(const [key,[ti,tj]] of tiles){let n=0,t=0;for(let j=Math.max(0,tj*T-M);j<Math.min(h,tj*T+T+M);j++)for(let i=Math.max(0,ti*T-M);i<Math.min(w,ti*T+T+M);i++){if(todo[j*w+i]&&i>=ti*T&&i<ti*T+T&&j>=tj*T&&j<tj*T+T)t++;else if(known[j*w+i])n++;}if(!t){tiles.delete(key);continue;}if(n>most){most=n;pick=key;}}
+   if(pick===null)break;
+   const [ti,tj]=tiles.get(pick),ctx=[],tgt=[];
+   for(let j=Math.max(0,tj*T-M);j<Math.min(h,tj*T+T+M);j++)for(let i=Math.max(0,ti*T-M);i<Math.min(w,ti*T+T+M);i++){const l=j*w+i,core=i>=ti*T&&i<ti*T+T&&j>=tj*T&&j<tj*T+T;if(core&&todo[l])tgt.push([i,j]);else if(known[l]&&(i+j)%2===0)ctx.push([i,j]);}
+   let best=null,score=Infinity;
+   if(ctx.length>=8)for(let dy=-far;dy<=far;dy+=step)for(let dx=-far;dx<=far;dx+=step){
+    if(Math.abs(dx)<T&&Math.abs(dy)<T)continue;
+    let fine=true;for(const [i,j] of tgt){const ii=i+dx,jj=j+dy;if(ii<0||jj<0||ii>=w||jj>=h||!src[jj*w+ii]){fine=false;break;}}if(!fine)continue;
+    let sum=0,n=0;for(const [i,j] of ctx){const ii=i+dx,jj=j+dy;if(ii<0||jj<0||ii>=w||jj>=h||!src[jj*w+ii])continue;const l=3*(j*w+i),m=3*(jj*w+ii);sum+=Math.hypot(L[l]-L[m],L[l+1]-L[m+1],L[l+2]-L[m+2]);n++;}
+    if(n<.8*ctx.length)continue;if(sum/n<score){score=sum/n;best=[dx,dy];}
+   }
+   if(!best){stuck=true;break;}
+   for(const [i,j] of tgt){const l=j*w+i,m=(j+best[1])*w+i+best[0],q=(j+Y0)*size+i+X0,from=(j+best[1]+Y0)*size+i+best[0]+X0;R[q]=R[from];G[q]=G[from];B[q]=B[from];L[3*l]=L[3*m];L[3*l+1]=L[3*m+1];L[3*l+2]=L[3*m+2];todo[l]=0;known[l]=1;left--;}
+   tiles.delete(pick);
+  }
+  if(left){giveBack();continue;}
+  for(const p of pixels)unreliable[p]=0;cloned++;
+ }
+ return cloned;
+}
+// One offset for the whole core (CLONE_DIRS directions at CLONE_STEPS × its size): the one whose ring of reliable print
+// best matches the core's ring (mean ΔE), plus how unlike the ring the patch itself is (Lab mean and spread). Taken only
+// when that total is under WHOLE_FIT: a nearby logo or word matches no face's statistics, and then tiles are used.
+const CLONE_DIRS=16,CLONE_STEPS=[1.1,1.4,1.8,2.3],WHOLE_FIT=40,ALIGN=8,TONE=.15;
+function wholeCore(pixels,unreliable,inside,R,G,B,size,ring,across,report){
+ const N=size*size,a=new Float32Array(3),b=new Float32Array(3),ok=q=>q>=0&&q<N&&inside[q]&&!unreliable[q];
+ let x0=size,y0=size,x1=0,y1=0;for(const p of pixels){const i=p%size,j=(p-i)/size;x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
+ const X0=Math.max(0,x0-ring),Y0=Math.max(0,y0-ring),X1=Math.min(size-1,x1+ring),Y1=Math.min(size-1,y1+ring),w=X1-X0+1,h=Y1-Y0+1,hole=new Uint8Array(w*h);
+ for(const p of pixels)hole[((p/size|0)-Y0)*w+p%size-X0]=1;
+ const near=distanceTo(hole,w,h),around=[];for(let j=0;j<h;j++)for(let i=0;i<w;i++){const q=(j+Y0)*size+i+X0;if(near[j*w+i]<=ring&&ok(q))around.push(q);}
+ if(around.length<30)return false;
+ const stats=list=>{const m=[0,0,0],v=[0,0,0];for(const q of list){lab(R[q],G[q],B[q],a,0);for(let c=0;c<3;c++){m[c]+=a[c];v[c]+=a[c]*a[c];}}return m.map((x,c)=>[x/list.length,Math.sqrt(Math.max(0,v[c]/list.length-(x/list.length)**2))]);};
+ const ringStats=stats(around),sample=around.filter((_,i)=>i%3===0),body=pixels.filter((_,i)=>i%3===0);let best=null,score=Infinity;
+ const dE=(p,q)=>{lab(R[p],G[p],B[p],a,0);lab(R[q],G[q],B[q],b,0);return Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);};
+ for(const step of CLONE_STEPS)for(let t=0;t<CLONE_DIRS;t++){
+  const dx=Math.round(Math.cos(2*Math.PI*t/CLONE_DIRS)*step*across),dy=Math.round(Math.sin(2*Math.PI*t/CLONE_DIRS)*step*across),d=dy*size+dx;
+  const fits=p=>{const i=p%size+dx,j=(p/size|0)+dy;return i>=0&&j>=0&&i<size&&j<size&&ok(p+d);};
+  if(!pixels.every(fits))continue;let sum=0,n=0;for(const q of sample)if(fits(q)){sum+=dE(q,q+d);n++;}
+  if(n<.9*sample.length)continue;
+  const src=stats(body.map(p=>p+d)),unlike=src.reduce((t,[m,sd],c)=>t+(c?1:.5)*(Math.abs(m-ringStats[c][0])+Math.abs(sd-ringStats[c][1])),0);
+  if(sum/n+unlike<score){score=sum/n+unlike;best=d;}
+ }
+ report.push({px:pixels.length,across,whole:+score.toFixed(1)});
+ if(best===null||score>WHOLE_FIT)return false;
+ // Then the exact alignment near it, by the ring alone, so a halftone's or a hatching's phase runs on across the core.
+ {let bx=((best%size)+size+size/2)%size-size/2|0;bx=Math.round(bx);const by=Math.round((best-bx)/size);let fine=Infinity,pick=best;
+  for(let oy=-ALIGN;oy<=ALIGN;oy++)for(let ox=-ALIGN;ox<=ALIGN;ox++){const dx=bx+ox,dy=by+oy,d=dy*size+dx;
+   const fits=p=>{const i=p%size+dx,j=(p/size|0)+dy;return i>=0&&j>=0&&i<size&&j<size&&ok(p+d);};
+   if(!body.every(fits))continue;let sum=0,n=0;for(const q of sample)if(fits(q)){sum+=dE(q,q+d);n++;}
+   if(n>=.9*sample.length&&sum/n<fine){fine=sum/n;pick=d;}}
+  if(pixels.every(p=>ok(p+pick)))best=pick;}
+ // The patch takes the core's own light level: shifted by how the core's ring differs from the source's ring (linear),
+ // by at most TONE of it (the ring is de-lit print, not perfectly so).
+ const shift=[R,G,B].map(C=>{let a=0,b=0;for(const q of around){a+=C[q];b+=C[q+best];}a/=around.length;b/=around.length;return Math.max(-TONE*b,Math.min(TONE*b,a-b));});
+ for(const p of pixels){R[p]=Math.max(0,R[p+best]+shift[0]);G[p]=Math.max(0,G[p+best]+shift[1]);B[p]=Math.max(0,B[p+best]+shift[2]);}
+ for(const p of pixels)unreliable[p]=0;
+ return true;
 }
 // The dichromatic fit of one pixel D against each material A: D ≈ g·A + s·(1,1,1), g in [.6, 1.6] (shading), s ≥ 0
 // (white), by least squares. A neutral material cannot tell shading from white; there g is 1. Returns the material that
@@ -239,6 +350,21 @@ export function delightStamp(data,raw,size,{plate=.8,plateColor:plateHex,stored=
   // Clipped is unreliable only where the light explains a real share of it: foil or white ink can clip on its own.
   if(clipped[p]&&s>CLIPPED_SHARE*luma(R[p]+s,G[p]+s,B[p]+s)||s>Math.max(GLARE_FLOOR,GLARE_RATIO*Plum))unreliable[p]=1;
  }
+ // A clipped patch whose own light could not be measured (a hard core: the white there is interpolated from a halo the
+ // clipping cut short) is glare when the light just outside it is at least HALO_RISE × the light a few radii out: a
+ // hotspot's halo rises toward its core, all round (HALO_ROUND of the directions). Clipped ink or foil under an even
+ // sheen has no such rise, and a foil facet among brighter facets has it only in places: both stay.
+ {const seen=new Uint8Array(N),at=(x,y)=>{const i=Math.round(x),j=Math.round(y);return i>=0&&j>=0&&i<size&&j<size?S[j*size+i]:0;};
+  for(let p0=0;p0<N;p0++){
+   if(!clipped[p0]||seen[p0]||unreliable[p0])continue;const list=[p0];seen[p0]=1;
+   for(let i=0;i<list.length;i++){const p=list[i],x=p%size,y=(p-x)/size;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=size||yy>=size)continue;const q=yy*size+xx;if(clipped[q]&&!seen[q]){seen[q]=1;list.push(q);}}}
+   if(list.length<4)continue;let cx=0,cy=0;for(const p of list){cx+=p%size;cy+=p/size|0;}cx/=list.length;cy/=list.length;
+   const r=Math.sqrt(list.length/Math.PI),near=[],far=[];
+   for(let a=0;a<32;a++){const t=a*Math.PI/16,c=Math.cos(t),sn=Math.sin(t);near.push(at(cx+c*(r+4*k),cy+sn*(r+4*k)));far.push(at(cx+c*(3*r+12*k),cy+sn*(3*r+12*k)));}
+   // In nearly every direction: a hotspot's halo is round; a foil facet among brighter facets rises only here and there.
+   let rising=0;for(let a=0;a<32;a++)if(near[a]>4*WHITE_MIN&&near[a]>=HALO_RISE*far[a])rising++;
+   if(rising>=HALO_ROUND*32)for(const p of list)unreliable[p]=1;
+  }}
  if(stored&&peak>WHITE_MIN){
   // The softened core: a flat plateau of light at the centre of a hotspot. From each cell where the white peaks (the
   // most within two cells, and at least STORED_RING of the ceiling over the plastic), flood through pixels with no
@@ -266,12 +392,18 @@ export function delightStamp(data,raw,size,{plate=.8,plateColor:plateHex,stored=
  }
  // A soft rim round each unreliable patch: light blended with the print, not clipped.
  {const rim=Math.max(1,Math.round(6*k)),grow=unreliable.slice();for(let j=0;j<size;j++)for(let i=0;i<size;i++){const p=j*size+i;if(!unreliable[p])continue;for(let dj=-rim;dj<=rim;dj++)for(let di=-rim;di<=rim;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(inside[q])grow[q]=1;}}unreliable.set(grow);}
+ // 5. A core inside printed area is cloned from print nearby (cloneCores); those pixels hold print again.
+ const fills=[],before=unreliable.slice(),cloned=cloneCores(unreliable,inside,R,G,B,stored?null:S,size,P,k,fills),filled=new Uint8Array(N);
+ for(let p=0;p<N;p++)if(before[p]&&!unreliable[p])filled[p]=1;
  for(let p=0;p<N;p++)if(unreliable[p])flagged++;
  // In-painted smoothly from the reliable pixels around (pull-push), so a core takes the colours that surround it.
  if(flagged){const W=new Float32Array(N);for(let p=0;p<N;p++)W[p]=inside[p]&&!unreliable[p]?1:0;for(const C of [R,G,B])fillHoles(C,W.slice(),size);}
  // Untouched pixels keep their bytes exactly: a photo with no glare reads as it did.
  for(let p=0;p<N;p++){if(!inside[p]||!unreliable[p]&&!S[p])continue;data[4*p]=encode(R[p]);data[4*p+1]=encode(G[p]);data[4*p+2]=encode(B[p]);}
- const lit=new Uint8Array(N);for(let p=0;p<N;p++)if(S[p]>0)lit[p]=1;
- return {unreliable,lit,plateColor:plateColor(data,size)||plateHex,...debug&&{fields:{white:S}},
-  stats:{white:+peak.toFixed(3),unreliable:+(flagged/Math.max(1,inside.reduce((a,v)=>a+v,0))).toFixed(4),materials:materials.length}};
+ // Where light was taken out (`lit`), and, from a stored texture, where it was strong, past STRONG × the softening's
+ // ceiling over the plastic (`strong`): the upload's softening laid plastic over the print there, so a small mark beside
+ // it is a stub (disc-stamp-extract.mjs). A camera original's print there is still in the photo, and stays.
+ const lit=new Uint8Array(N),strong=new Uint8Array(N),hot=STRONG*GLARE_CEILING*Plum;for(let p=0;p<N;p++){if(S[p]>0)lit[p]=1;if(stored&&S[p]>=hot)strong[p]=1;}
+ return {unreliable,filled,lit,strong,plateColor:plateColor(data,size)||plateHex,...debug&&{fields:{white:S}},
+  stats:{cloned,fills,white:+peak.toFixed(3),unreliable:+(flagged/Math.max(1,inside.reduce((a,v)=>a+v,0))).toFixed(4),materials:materials.length}};
 }

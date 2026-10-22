@@ -80,3 +80,20 @@ test('from a stored texture: the upload already softened the core; it is found a
  const blob=zone.filter(p=>design(b)(p)&&!design(a)(p)).length/zone.length,lost=zone.filter(p=>design(a)(p)&&!design(b)(p)).length/zone.length;
  assert.ok(blob<.06,'no blob: '+blob.toFixed(3)+' '+JSON.stringify(b.light));assert.ok(lost<.12,'the print kept: '+lost.toFixed(3));
 });
+
+test('a core inside printed area is filled with that print, not one flat colour or a blend of the inks',async()=>{
+ // As on the DD3's face: periwinkle print hatched with dark red line work, on red plastic, a hard flash in its middle.
+ // The core comes back as the print (its spread of lightness, its share of print, its colours), where v3 drew a smudge
+ // of the inks mixed (docs/photo-stamp-one-click.md).
+ const lines=Array.from({length:30},(_,i)=>`<rect x="${300+14*i}" y="360" width="7" height="300" fill="#6b1f24"/>`).join('');
+ const clean=await disc('#c64533',`<rect x="300" y="360" width="420" height="300" fill="#8e9fd8"/>`+lines),lit=flash(clean,{x:510,y:510,sigma:14,a:3});
+ const r=extract(lit.slice(),SIZE,PLATE,{color:true});
+ assert.ok(r.light.cloned>=1,'the core was filled from the print: '+JSON.stringify(r.light));
+ const core=within(510,510,16),ring=within(510,510,90).filter(p=>{const i=p%SIZE,j=(p-i)/SIZE;return Math.hypot(i-510,j-510)>60;});
+ const L=list=>list.map(p=>labAt(r.color.rgba,p)[0]),sd=v=>{const m=v.reduce((a,b)=>a+b,0)/v.length;return Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length);};
+ const print=list=>list.filter(p=>r.color.rgba[4*p+3]>200).length/list.length;
+ const mean=list=>{const m=[0,0,0];for(const p of list){const c=labAt(r.color.rgba,p);for(let q=0;q<3;q++)m[q]+=c[q];}return m.map(v=>v/list.length);};
+ assert.ok(sd(L(core))>.5*sd(L(ring)),'hatched like the print: spread '+sd(L(core)).toFixed(1)+' vs '+sd(L(ring)).toFixed(1));
+ assert.ok(Math.abs(print(core)-print(ring))<.15,'as much print as around it: '+print(core).toFixed(2)+' vs '+print(ring).toFixed(2));
+ assert.ok(dE(mean(core),mean(ring))<8,'in the print\'s colours: ΔE '+dE(mean(core),mean(ring)).toFixed(1));
+});

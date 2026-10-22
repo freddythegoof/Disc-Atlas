@@ -28,12 +28,12 @@
 //     texture never pulls in a fringe.
 // The spike's other variants (each ink averaged, posterized, or flattened to one lightness on its own) turned a halftone
 // face into blotches or flattened a print's own gradients; they are recorded in the write-up, not kept here.
-import {rgbToLab} from './disc-stamp-extract.mjs';
+import {rgbToLab,fillFromRing} from './disc-stamp-extract.mjs';
 
 // WL: lightness weight when telling inks apart (light moves lightness more than hue). GRID: light-probe cells across the
 // crop. GUARD: plastic this close to the design (px at 1024) is not a probe; ink bleeds into it. HULL: plastic the design
 // closes round (gaps up to twice this, px at 1024) is not a probe either: seen through a print it is not open plate.
-const K=8,MERGE_DE=12,WL=.5,GRID=32,GUARD=8,HULL=32,CLIP=250,CLIP_CHROMA=.12;
+const RING_PX=6,K=8,MERGE_DE=12,WL=.5,GRID=32,GUARD=8,HULL=32,CLIP=250,CLIP_CHROMA=.12;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -139,9 +139,10 @@ export function lightField(data,size,mask,inside){
  * data: RGBA of the de-lit size × size crop. raw: the same crop before de-lighting (glare is read off it). mask: v1's
  * final binary design mask (size²). plateColor: '#rrggbb', the colour delightPixels measured. plate: the plate's reach
  * as a share of the radius (as v1). `glare`: pixels already known to hold no print (disc-stamp-delight.mjs's unreliable
- * mask), in-painted like clipped glare. Returns {rgba (Uint8ClampedArray, straight alpha), inks, stats}.
+ * mask), in-painted like clipped glare. `filled`: pixels the light stage filled with print cloned from nearby, which `raw`
+ * still shows clipped; they are kept as they are. Returns {rgba (Uint8ClampedArray, straight alpha), inks, stats}.
  */
-export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:unreliable=null}={}){
+export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:unreliable=null,filled=null}={}){
  const N=size*size,k=size/1024,c0=size/2,reach=plate*size/2-6*k,inside=new Uint8Array(N);
  for(let p=0;p<N;p++){const i=p%size,j=(p-i)/size;inside[p]=data[4*p+3]>=250&&Math.hypot(i+.5-c0,j+.5-c0)<=reach?1:0;}
  // 1. The light, divided out of every design pixel.
@@ -154,9 +155,9 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
  // 3. Unreliable: clipped glare, and the design's edge.
  const outside=new Uint8Array(N);for(let p=0;p<N;p++)outside[p]=mask[p]?0:1;
  const depth=distanceTo(outside,size),edge=Math.max(1,1.2*k),glare=new Uint8Array(N),reliable=new Uint8Array(N);let glared=0,designArea=0;
- for(let p=0;p<N;p++){if(!mask[p])continue;designArea++;if(unreliable?.[p]){glare[p]=1;glared++;continue;}const r=raw[4*p],g=raw[4*p+1],b=raw[4*p+2],hi=Math.max(r,g,b);if(hi>=CLIP&&(hi-Math.min(r,g,b))/hi<CLIP_CHROMA){glare[p]=1;glared++;}}
+ for(let p=0;p<N;p++){if(!mask[p])continue;designArea++;if(unreliable?.[p]){glare[p]=1;glared++;continue;}if(filled?.[p])continue;const r=raw[4*p],g=raw[4*p+1],b=raw[4*p+2],hi=Math.max(r,g,b);if(hi>=CLIP&&(hi-Math.min(r,g,b))/hi<CLIP_CHROMA){glare[p]=1;glared++;}}
  // A glare spot's soft rim (light blended with the ink, not clipped) is glare too.
- if(glared){const near=distanceTo(glare,size),rim=Math.max(2,2*k);for(let p=0;p<N;p++)if(mask[p]&&!glare[p]&&near[p]<=rim){glare[p]=1;glared++;}}
+ if(glared){const near=distanceTo(glare,size),rim=Math.max(2,2*k);for(let p=0;p<N;p++)if(mask[p]&&!glare[p]&&!filled?.[p]&&near[p]<=rim){glare[p]=1;glared++;}}
  for(let p=0;p<N;p++)reliable[p]=mask[p]&&!glare[p]&&depth[p]>edge?1:0;
  // A stroke too thin to have an interior keeps its own pixels (glare aside): it would otherwise borrow nothing.
  const core=box(Float32Array.from(reliable),size,Math.ceil(2*k));for(let p=0;p<N;p++)if(mask[p]&&!glare[p]&&!reliable[p]&&core[p]===0)reliable[p]=1;
@@ -187,10 +188,20 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
    else for(let q=0;q<3;q++)out[3*p+q]=inks[c].lab[q];
   }
  }
- // Glare is in-painted from the design around it: the mean of the coloured pixels in the smallest window that holds
- // some (growing from 2 px at 1024), so a spot takes the ink it sits in rather than blocks of a coarser level.
+ // Glare is in-painted from the design around it, as plain print. v3.1 (docs/photo-stamp-one-click.md): each glare patch
+ // takes the ink(s) of the ring of coloured pixels around it (fillFromRing: the dominant ink, or the nearer of two that
+ // share the ring) in that ink's own mean colour there. The mean of everything around (v2) blended a face's lines and
+ // fills into a colour neither has, a smudge. A patch with no ink around it falls back to that mean.
  if(glared){
-  const todo=new Uint8Array(N);for(let p=0;p<N;p++)todo[p]=glare[p];
+  const {label:fill,rings}=fillFromRing(glare,have,p=>label[p]===255?-1:label[p],size,Math.round(RING_PX*k)),ids=new Int32Array(N).fill(-1);
+  const means=rings.map(groups=>new Map([...groups].map(([ink,list])=>{const m=[0,0,0];for(const p of list)for(let q=0;q<3;q++)m[q]+=out[3*p+q];return [ink,m.map(v=>v/list.length)];})));
+  // Which patch each glare pixel is in, to read its own ring's means.
+  let patch=0;const stack=[];
+  for(let p0=0;p0<N;p0++){if(!glare[p0]||ids[p0]>=0)continue;ids[p0]=patch;stack.push(p0);
+   while(stack.length){const p=stack.pop(),i=p%size,j=(p-i)/size;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(glare[q]&&ids[q]<0){ids[q]=patch;stack.push(q);}}}
+   patch++;}
+  const todo=new Uint8Array(N);
+  for(let p=0;p<N;p++){if(!glare[p])continue;const m=fill[p]>=0&&means[ids[p]]?.get(fill[p]);if(m){for(let q=0;q<3;q++)out[3*p+q]=m[q];have[p]=1;}else todo[p]=1;}
   const hv=Float32Array.from(have),sums=[0,1,2].map(q=>{const a=new Float32Array(N);for(let p=0;p<N;p++)if(have[p])a[p]=out[3*p+q];return a;});
   for(let radius=Math.max(2,Math.round(2*k));radius<=64*k;radius*=2){
    const W=box(hv,size,radius),S=sums.map(a=>box(a,size,radius));let left=0;
