@@ -161,8 +161,12 @@ async function load(asset){
  const v=await cached(id,key,color),blob=blobOf(v);
  // A cached copy of this revision, or (v1/v2) the Blob of an entry this browser made and the account has not replaced.
  if(blob&&(v.rev===rev||v instanceof Blob&&e&&!e.server&&e.key===key))return blob;
- if(!e?.server)throw Error('Photo stamp unavailable.');
+ // Only the bytes of the revision asked for: an asset id from before another device remade the stamp is not filled
+ // with the new bytes (they belong to another placement). The account refuses a stale revision too (409); a sync then
+ // brings this browser the new one.
+ if(!e?.server||e.key!==key||(color?e.color?.rev:e.rev)!==rev)throw Error('Photo stamp unavailable.');
  const response=await fetch(stampPath(id)+'/'+(color?'color':'ink')+'?v='+rev,{credentials:'same-origin',cache:'no-store',signal:deadline()}).catch(()=>null);
+ if(response?.status===409)syncPhotoStamps().catch(()=>{});
  if(!response?.ok)throw Error('Photo stamp unavailable.');
  const bytes=await response.arrayBuffer(),type=response.headers.get('Content-Type')||'image/png',fetched=new Blob([bytes],{type});
  run('readwrite',store=>store.put({rev,type,bytes},slot(id,key,color))).catch(()=>{});
@@ -178,12 +182,15 @@ export function syncPhotoStamps(){
  return syncing||=pull().finally(()=>{syncing=null;synced=Date.now();});
 }
 async function pull(){
+ // Every local write replaces a disc's entry, so one that changed while the request was out (a save or a look that
+ // landed meanwhile) is newer than this snapshot and is left as it is.
+ const seen={...index};
  const {stamps,photos}=await api('/api/bag/stamps');
  const server=new Map(stamps.map(s=>[s.disc_id,s])),photo=new Map(photos.map(p=>[p.id,p.texture_key])),adopt=[];
  let dirty=false;
- for(const [id,s] of server){const e=fromServer(s);if(!same(index[id],e)){index[id]={...e,savedAt:index[id]?.savedAt};dirty=true;}}
+ for(const [id,s] of server){if(index[id]!==seen[id])continue;const e=fromServer(s);if(!same(index[id],e)){index[id]={...e,savedAt:index[id]?.savedAt};dirty=true;}}
  for(const [id,e] of Object.entries(index)){
-  if(server.has(id))continue;
+  if(server.has(id)||e!==seen[id])continue;
   if(e.server){delete index[id];dirty=true;void forget(id,e.key);}
   else if(photo.get(id)===e.key&&!e.refused)adopt.push(id);
  }

@@ -78,6 +78,9 @@ export async function stampRoute(request,env,user,id,asset){
   if(method!=='GET')return json({error:'Method not allowed.'},405);
   const row=await owned(env,user,id),key=row&&(asset==='color'?row.color_key:row.ink_key);
   if(!key)return json({error:'Stamp asset not found.'},404);
+  // A revision asked for (?v=) must be the current one: never newer bytes under an older revision's placement.
+  const v=new URL(request.url).searchParams.get('v');
+  if(v!==null&&v!==row.rev)return json({error:'This stamp asset was made again.',rev:row.rev},409);
   if(!env.TEXTURES)return json({error:'Stamp storage is unavailable. Please try again.'},503);
   const object=await env.TEXTURES.get(key);
   return object?new Response(object.body,{headers:{'Content-Type':TYPES[key.split('.').pop()],'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Cross-Origin-Resource-Policy':'same-origin'}}):json({error:'Stamp asset not found.'},404);

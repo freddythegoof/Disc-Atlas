@@ -218,7 +218,7 @@ made. That page load uploads them. Then the phone shows them.
 
 | Suite | Result |
 | --- | --- |
-| `tests/photo-stamp-sync.mjs` (new, server on real SQLite with every migration) | **6/6.** Store and read back on the owner's devices, never another account's. Look moves, Full color needs its asset. Validation: a PNG labelled WebP, WebP labelled PNG, JPEG, EXIF/text chunk, non-square, over 2 MiB, over 2048 px, stale photo version (409). Replace/photo/disc/account cascades to cleanup. Cleanup never takes a referenced asset. A failed attach stays queued. The migration leaves existing rows alone. |
+| `tests/photo-stamp-sync.mjs` (new, server on real SQLite with every migration) | **6/6.** A stale `?v=` is refused (409). Store and read back on the owner's devices, never another account's. Look moves, Full color needs its asset. Validation: a PNG labelled WebP, WebP labelled PNG, JPEG, EXIF/text chunk, non-square, over 2 MiB, over 2048 px, stale photo version (409). Replace/photo/disc/account cascades to cleanup. Cleanup never takes a referenced asset. A failed attach stays queued. The migration leaves existing rows alone. |
 | `tests/photo-stamp-sync-browser.mjs` (new, real app, harness Worker + local D1/R2) | **Pass, 5 of 5 runs** after the fix below. (1) Desktop Chromium makes Full color. (2) A fresh **WebKit phone profile** (390 px, touch) first shows that it cannot keep a Blob in IndexedDB, then signs in and draws the same asset id, **byte-identical** bytes, with the inks present, in the **3D viewer** and on the pulled bag disc. Its sheet shows Full color. (3) The phone makes its own Full color asset (5.6 s) and caches it as bytes; the desktop then draws it, the same bytes. (4) A look set on the phone reaches the desktop, and Photo is the photo exactly. A look the account cannot take goes back and says so. (5) Adopt-up: a profile with v2-format Blob records uploads them once, and the account holds those very bytes. The phone draws them. A photo replaced on one device clears the stamp on the others. No page errors on any device. |
 | `tests/photo-stamp-stall-browser.mjs` (new, real app, phone size), **WebKit** / Chromium | **Pass / Pass.** No fault: made, each step named (5.0–5.6 s). IndexedDB never answers: made, saved, then drawn in the viewer from the account. Every write fails after it is made: made, and the account has it. Worker never answers: *"Finding the stamp took too long…"*, retry enabled, nothing kept. No canvas WebP and the encoder never loads: made, colour asset stored as PNG. Upload never answers: *"Saving to your account took too long…"*, retry enabled, nothing kept. No page errors. |
 | The same "write fails after it is made" case on untouched `origin/main` | **Hangs** past 90 s in WebKit and in Chromium, on *"Making the game asset…"*, with the `e.message`-on-null page error: Freddy's symptom. |
@@ -238,6 +238,24 @@ that names the stalled step and dumps each device's state found it: the asset ha
 The suite's `closeSheet()` sent its close listener and the Escape key together, and the key sometimes arrived first, so
 the close went unheard. The listener is now in place before Escape. v2's identical helper got the same fix (it had the
 same latent race). The suite keeps the watchdog: a stalled step fails within 5 minutes, with its name.
+
+### Review fixes (Codex on PR #41)
+
+Two findings, both real, both fixed and tested. Each new test fails on the pre-fix commit `4ecb30a` and passes after.
+
+- **Bytes matched to their revision.** A browser holding a stamp's old entry, without its bytes, could fetch after
+  another device remade the stamp, get the *new* bytes, cache them under the old revision, and draw them with the old
+  placement. Now `GET …/stamp/ink|color?v=<rev>` answers 409 for anything but the current revision. The client also
+  asks only for the revision its entry names, and a 409 starts a sync. Tested: the phone remakes a disc while the
+  desktop holds the old entry with its bytes cleared. The old asset id is refused, and nothing is cached under it. The
+  desktop catches up to the new revision.
+- **A slow sync no longer undoes a newer change.** A sync remembers each disc's entry before its request. A disc whose
+  entry changed while the request was out (a save or look that landed meanwhile) is left as it is. Tested: a sync
+  snapshot is held back while the phone sets a look; the look stands.
+
+The gallery gate was not re-run for these: they touch the sync's bookkeeping and the asset route, not anything the
+gallery draws. Every photo-stamp suite, the identity probe (0 differences) and the unit sweep (289/289) were re-run on
+the fix.
 
 ## Gallery gate
 

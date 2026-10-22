@@ -52,6 +52,9 @@ test('a stamp is stored with the account and read back on any device of the owne
   assert.equal(r.headers.get('Content-Type'),type);assert.equal(r.headers.get('Cache-Control'),'private, no-store');
   assert.deepEqual(new Uint8Array(await r.arrayBuffer()),bytes);
  }
+ // A revision asked for must be the current one (?v=): never newer bytes under an older revision.
+ assert.equal((await s.call('GET','/api/bag/discs/disc/stamp/ink?v='+stamp.rev)).status,200);
+ const stale=await s.call('GET','/api/bag/discs/disc/stamp/color?v=old1');assert.equal(stale.status,409);assert.equal((await stale.json()).rev,stamp.rev);
  // Another account sees nothing of it, and cannot write it.
  assert.deepEqual((await (await s.call('GET','/api/bag/stamps',{user:'b'})).json()).stamps,[]);
  for(const part of ['ink','color'])assert.equal((await s.call('GET','/api/bag/discs/disc/stamp/'+part,{user:'b'})).status,404);

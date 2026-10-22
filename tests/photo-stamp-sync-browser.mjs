@@ -56,9 +56,10 @@ const on=device=>{
   return (await items()).find(i=>i.id===id);
  };
  // Full color through the sheet: the original asked for, framed, read. The aligner must finish, not hang.
- const makeColor=async(id,file)=>{
+ // `again`: a disc already in Full color is made again with "Make again from original photo".
+ const makeColor=async(id,file,again=false)=>{
   await edit(id);const chooser=page.waitForEvent('filechooser');
-  await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}).click();
+  await (again?page.locator('#addDiscDialog .bag-photo-asset-make'):page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'})).click();
   await (await chooser).setFiles(file);await page.waitForSelector('dialog.photo-aligner[open]');
   const t=Date.now();await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||'')||/^(?!Making the game asset)\S/.test(document.querySelector('dialog.photo-aligner[open] .photo-aligner-status')?.textContent||''),null,{timeout:240000});
@@ -132,6 +133,28 @@ try{
  const deskB=await D.viewerStamp();assert.equal(deskB.asset,'photo-stamp/'+B+'/'+keyB+'/'+entryB.rev+'/c');
  assert.equal(await D.assetHash(deskB.asset),await P.assetHash(deskB.asset));
  const inksB=inksIn(deskB.sample,[RED,YELLOW]);assert.ok(inksB[RED]>40&&inksB[YELLOW]>40,'the desktop draws the phone’s colours: '+JSON.stringify(inksB));
+
+ // The phone makes B again while the desktop still holds B's old entry (no sync since) and has lost its bytes: the
+ // desktop never fills the old revision with the new bytes (they belong to another placement); it catches up instead.
+ const oldB=deskB.asset;
+ await D.page.evaluate(k=>new Promise(res=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets','readwrite');t.objectStore('assets').delete(k);t.oncomplete=()=>{r.result.close();res();};};}),B+'/'+keyB+'/c');
+ await P.openBag();await P.makeColor(B,second,true);const remade=(await P.look(B)).rev;assert.notEqual(remade,entryB.rev);
+ assert.equal(await D.page.evaluate(a=>import('/disc3d/photo-stamps.mjs').then(m=>m.photoStampBlob(a)).then(()=>'drawn',()=>'refused'),oldB),'refused','the old revision is not served the new bytes');
+ await D.page.waitForFunction(([id,rev])=>JSON.parse(localStorage.getItem('disc-atlas-photo-stamps')).discs[id]?.rev===rev,[B,remade],{timeout:30000});
+ const slot=await D.page.evaluate(k=>new Promise(res=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const g=r.result.transaction('assets').objectStore('assets').get(k);g.onsuccess=()=>res(g.result?.rev??null);};}),B+'/'+keyB+'/c');
+ assert.notEqual(slot,entryB.rev,'nothing cached under the old revision');
+
+ // A sync whose snapshot was read before a look changed does not undo it: the snapshot is held back until the look
+ // has landed.
+ await P.page.evaluate(()=>import('/disc3d/photo-stamps.mjs').then(m=>m.syncPhotoStamps()));
+ let release,fetched;const gate=new Promise(r=>release=r),read=new Promise(r=>fetched=r);
+ await P.page.route('**/api/bag/stamps',async route=>{const stale=await route.fetch();fetched();await gate;await route.fulfill({response:stale});});
+ await P.page.evaluate(()=>{window.__sync=import('/disc3d/photo-stamps.mjs').then(m=>m.syncPhotoStamps());});
+ await read;
+ await P.page.evaluate(([id,k])=>import('/disc3d/photo-stamps.mjs').then(m=>m.setPhotoLook(id,k,'asset')),[B,keyB]);
+ release();await P.page.evaluate(()=>window.__sync);await P.page.unroute('**/api/bag/stamps');
+ assert.equal((await P.look(B)).look,'asset','the look set during the sync stands');
+ await P.page.evaluate(([id,k])=>import('/disc3d/photo-stamps.mjs').then(m=>m.setPhotoLook(id,k,'color')),[B,keyB]);
 
  // 4. A look chosen on the phone reaches the desktop; the photo look is the photo exactly.
  await P.openBag();await P.edit(A);await P.page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Photo'}).click();

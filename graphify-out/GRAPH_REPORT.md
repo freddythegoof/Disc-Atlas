@@ -1,17 +1,17 @@
 # Graph Report - photo-stamp-server-sync  (2026-10-21)
 
 ## Corpus Check
-- 441 files · ~5,625,397 words
+- 441 files · ~5,625,696 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 306 file(s) not represented in the graph (top: .log 231, .gz 23, .css 16)
 
 ## Summary
-- 2909 nodes · 6142 edges · 166 communities (131 shown, 35 thin omitted)
+- 2909 nodes · 6144 edges · 166 communities (131 shown, 35 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 242 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `335df045`
+- Built from commit: `4ecb30a7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -728,7 +728,7 @@ Nodes (4): ids, items, worker(), runtime
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `jose` connect `public.mjs` to `package.json`, `workers/auth.mjs`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+  _High betweenness centrality (0.065) - this node is a cross-community bridge._
 - **What connects `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react` to the rest of the system?**
   _52 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `app.js` be split into smaller, more focused modules?**
