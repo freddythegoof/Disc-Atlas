@@ -1,7 +1,9 @@
 # Photo stamps v3: account-synced assets and phone generation
 
 October 21, 2026. Branch `claude/photo-stamp-server-sync`, own worktree, from freshly fetched `origin/main` **`86eed7f`**
-(photo stamps v2, PR #40). Local commits only: no push, no PR, no merge, no deploy.
+(photo stamps v2, PR #40). Local commits only: no push, no PR, no merge, no deploy. In order: `b3b4b59` the build,
+`f88a8b4` a test race fixed, `90fbdd5` Graphify, `16c1455`/`a4bda73` this write-up, `335df04` no step waits forever,
+then the write-up and Graphify for it.
 
 > **Migration first.** This branch adds **`migrations/accounts/0013_photo_stamps.sql`**. Apply it to the remote
 > `disc-atlas-accounts` D1 **before** deploying the Worker, in the standard order:
@@ -48,23 +50,26 @@ Safari's canvas writing PNG when asked for WebP. **That was not it.**
   with `null`. The sheet's handler then read `e.message`, threw, and never cleared its busy state. So the sheet hung,
   and nothing said why.
 
-- **Not what happened on Freddy's phone.** That failure needs an ephemeral WebKit store, and Freddy confirmed (October
-  21) that he was in a **normal Safari tab**. So it is a real bug, fixed here, but not his. His phone's cause is still
-  open, and this Mac cannot settle it: it has no Xcode (so no iOS Simulator), and I had no iPhone. What is ruled out and
-  what is left:
+- **Freddy's phone: a normal tab, the same hang.** Freddy confirmed (October 21) a **normal Safari tab**, and what he
+  saw: he tapped *Make game asset*, the line said *"Making the game asset…"*, and nothing ever happened after. No
+  message, no progress. So the Private Browsing trigger above is not his. But the hang is not specific to that trigger.
+  **v2 hangs this way on any IndexedDB write that fails asynchronously, in any tab, in both engines**, because every
+  such failure reaches its handler before the transaction records an error. Shown on untouched `origin/main` (a detached
+  `86eed7f` worktree, this branch's stall suite cut to that one case): a write that fails after it is made leaves both
+  WebKit and Chromium on *"Making the game asset…"* past 90 s, with `null is not an object (evaluating 'e.message')`.
+  A full or unwell store (quota, storage pressure, a storage-process fault) fails that way. A throw at the moment of
+  the write does not hang (it is a real error); only the asynchronous kind does.
+
+  What made the write fail on his phone is not known: this Mac has no Xcode (so no iOS Simulator), and I had no
+  iPhone. The other things that could leave the sheet waiting are a step that never answers. Each is now bounded and
+  tested (below). Ruled out or unlikely:
 
   | Candidate | Status |
   | --- | --- |
   | Canvas WebP (the suspect on file) | Ruled out: the bundled encoder stands in, and works in WebKit. |
-  | Blob in IndexedDB | Ruled out for his phone (normal tab). Fixed anyway. |
   | Photo size | Ruled out: both originals are 12 MP (4032 × 3024). Every canvas on the asset path stays under iOS's 16.7 MP limit. |
-  | ProRAW handed over as DNG, which no browser decodes | Unlikely for a library pick. WebKit's iOS upload panel (`WKFileUploadPanel.mm`, `_preferredAssetRepresentationMode`) asks PhotoKit for the *compatible* form (a JPEG) when the input's `accept` list names specific types, as the original-photo input does. A DNG picked through **Choose File** (the Files app) would arrive as itself and be refused with *"Choose a JPG, PNG, WebP or HEIC photo up to 30 MB."* |
-  | The bundled WebP encoder failing on the phone (WASM memory or download) at the colour asset's 2048 px | Possible, untested on iOS. **Covered by this branch:** the colour asset now falls back to PNG, under the same budget. |
-  | Memory pressure (the tab reloads mid-make) | Possible, untested. A reload would look like nothing happened. |
-
-  What Freddy saw on screen tells these apart: a message (its words), a spinner that never ended, the page reloading,
-  or a picker that showed nothing usable. With this branch, a failure that leaves the page alive always shows its
-  reason in the aligner.
+  | ProRAW handed over as DNG, which no browser decodes | Ruled out by the symptom (that refusal shows a message), and unlikely anyway: WebKit's iOS upload panel (`WKFileUploadPanel.mm`, `_preferredAssetRepresentationMode`) asks PhotoKit for the *compatible* form (a JPEG) when the input's `accept` list names specific types, as the original-photo input does. |
+  | Memory pressure (the tab reloads mid-make) | Unlikely by the symptom: the line stayed on screen. |
 
 - **A second WebKit difference, found on the way:** WebKit's canvas writes an **`eXIf` chunk into every PNG** (68
   bytes of resolution data from its image I/O, never camera data). Chromium writes none. The account takes no EXIF in
@@ -81,11 +86,25 @@ Safari's canvas writing PNG when asked for WebP. **That was not it.**
    `onerror`. The sheet reads `e?.message`.
 4. **PNGs go up plain.** Chunks other than image and colour-space chunks (`eXIf`, text) are dropped before upload. Each
    chunk carries its own CRC, so what remains is byte for byte what the canvas wrote.
-5. **A format fallback, kept small.** WebP was not the cause, but the brief asked for a fallback where WebP cannot be
+5. **No step waits forever** (`MAKE_LIMITS` in `public/disc-photo.mjs`, generous for a slow phone). If the extraction
+   never answers within 180 s, the worker is stopped and the aligner says *"Finding the stamp took too long on this
+   device. Try again, or make it on a computer: it shows here too."* An encode that never answers within 90 s counts as
+   no image data, and the colour asset falls back to PNG. A save that never answers within 90 s says *"Saving to your
+   account took too long. Check your connection and try again."*, and keeps nothing. Account requests end after a
+   minute. A cache transaction that does not answer within 8 s gives up the cache for the session, and the account
+   serves the bytes instead.
+6. **The status names the step**: *"Making the game asset: finding the stamp… / drawing it in one ink… / drawing it in
+   full color… / saving to your account…"*. If a phone ever stalls again, the words on screen say where.
+7. **A format fallback, kept small.** WebP was not the cause, but the brief asked for a fallback where WebP cannot be
    written, and it is cheap. Should neither the canvas nor the bundled encoder write WebP (the encoder failed to load),
    the colour asset is a PNG under the same 1.5 MiB budget. The account and every renderer take either format.
 
-Proved in WebKit: the v1 and v2 suites pass in WebKit (`PHOTO_STAMP_ENGINE=webkit`), and the new cross-device suite
+Proved in WebKit and Chromium by `tests/photo-stamp-stall-browser.mjs` (new). At phone size, each way a step could
+stall is forced: IndexedDB never answering, every write failing after it is made, the worker never answering, no canvas
+WebP *and* the bundled encoder never loading, the upload never answering. The sheet either finishes (the asset made,
+saved and drawn from the account) or names the step that failed and lets the aligner try again. It never sits there.
+
+Also proved in WebKit: the v1 and v2 suites pass in WebKit (`PHOTO_STAMP_ENGINE=webkit`), and the new cross-device suite
 makes a Full color asset on a WebKit phone profile in **5.3–5.5 s** (the desktop's 5.5 s, five runs). The **control**:
 origin/main's own v2 suite, unchanged except for the harness's engine switch, run in WebKit in a detached `86eed7f`
 worktree, **times out after 180 s waiting for "Full-color asset made"**. That is the phone's hang, on untouched main
@@ -201,6 +220,8 @@ made. That page load uploads them. Then the phone shows them.
 | --- | --- |
 | `tests/photo-stamp-sync.mjs` (new, server on real SQLite with every migration) | **6/6.** Store and read back on the owner's devices, never another account's. Look moves, Full color needs its asset. Validation: a PNG labelled WebP, WebP labelled PNG, JPEG, EXIF/text chunk, non-square, over 2 MiB, over 2048 px, stale photo version (409). Replace/photo/disc/account cascades to cleanup. Cleanup never takes a referenced asset. A failed attach stays queued. The migration leaves existing rows alone. |
 | `tests/photo-stamp-sync-browser.mjs` (new, real app, harness Worker + local D1/R2) | **Pass, 5 of 5 runs** after the fix below. (1) Desktop Chromium makes Full color. (2) A fresh **WebKit phone profile** (390 px, touch) first shows that it cannot keep a Blob in IndexedDB, then signs in and draws the same asset id, **byte-identical** bytes, with the inks present, in the **3D viewer** and on the pulled bag disc. Its sheet shows Full color. (3) The phone makes its own Full color asset (5.6 s) and caches it as bytes; the desktop then draws it, the same bytes. (4) A look set on the phone reaches the desktop, and Photo is the photo exactly. A look the account cannot take goes back and says so. (5) Adopt-up: a profile with v2-format Blob records uploads them once, and the account holds those very bytes. The phone draws them. A photo replaced on one device clears the stamp on the others. No page errors on any device. |
+| `tests/photo-stamp-stall-browser.mjs` (new, real app, phone size), **WebKit** / Chromium | **Pass / Pass.** No fault: made, each step named (5.0–5.6 s). IndexedDB never answers: made, saved, then drawn in the viewer from the account. Every write fails after it is made: made, and the account has it. Worker never answers: *"Finding the stamp took too long…"*, retry enabled, nothing kept. No canvas WebP and the encoder never loads: made, colour asset stored as PNG. Upload never answers: *"Saving to your account took too long…"*, retry enabled, nothing kept. No page errors. |
+| The same "write fails after it is made" case on untouched `origin/main` | **Hangs** past 90 s in WebKit and in Chromium, on *"Making the game asset…"*, with the `e.message`-on-null page error: Freddy's symptom. |
 | `tests/photo-stamp-assets-browser.mjs` (v1), Chromium / **WebKit** | Pass / **Pass** |
 | `tests/photo-stamp-color-assets-browser.mjs` (v2), Chromium / **WebKit** | Pass / **Pass** |
 | `tests/photo-stamp-identity-browser.mjs` vs `origin/main` | **Pass: 0 differences** (made one-ink asset bytes, and every surface's stamp texture, material, photo texture and map still, in Auto/flat and gold foil); branch vs itself 0 |
@@ -225,15 +246,22 @@ quiet protocol, with v2's runner (`docs/assets/gallery-photo-continuation-fix/ga
 required, 12 consecutive samples (about 60 s) at 85% idle or more with no foreign headless browser, `workerd` or
 Wrangler before each run, and power/CPU/load logged every ~15 s. Logs: `work/photo-stamp-server-sync/gate/`.
 
-**Grading: PASS on every run, branch and control alike.**
+Run twice: on the account-sync build (`90fbdd5`), and again on the final code with the bounded steps (`335df04`). The
+second session's branch runs show `dirty=1`: the uncommitted write-up, no code.
+
+**Grading: PASS on every run of both sessions, branch and control alike.**
 
 | Run (Oct 21) | Tree | Desktop fly p95 per rep (limit 3.455 ms) | Phone fly p95 per rep (limit 10.13) | Long tasks, desktop / phone warm | Result |
 | --- | --- | --- | --- | --- | --- |
 | 20:26–20:29 | branch `90fbdd5` | 2.5–2.8 | 6.5–7.2 | 0 / 0 | **pass** |
 | 20:30–20:32 | `origin/main` `86eed7f` (control) | 2.4–2.6 | 6.5–7.3 | 0 / 0 | **pass** |
 | 20:33–20:36 | branch `90fbdd5` | 2.6–2.7 | 6.4–7.5 | 0 / 0 | **pass** |
+| 21:11–21:14 | branch `335df04` | 2.4–2.8 | 6.1–7.4 | 0 / 0 | **pass** |
+| 21:14–21:17 | `origin/main` `86eed7f` (control) | 2.5–2.8 | 6.3–7.0 | 0 / 0 | **pass** |
+| 21:18–21:21 | branch `335df04` | 2.5–2.8 | 6.4–8.0 | 0 / 0 | **pass** |
 
-- **Window:** 44 samples, all on AC power. Each run started after 12 qualifying samples, at 90.5–92.8% idle. During the
+- **Windows:** first session 44 samples, second 53, all on AC power; the second session's runs started at 89.0–89.5%
+  idle. Logs: `work/photo-stamp-server-sync/gate/` and `…/gate2/`. First session: 44 samples, all on AC power. Each run started after 12 qualifying samples, at 90.5–92.8% idle. During the
   runs, idle was 75.5–95.7% and `foreign=8`: the gate's own browser and `workerd`. No outside process was seen.
 - The branch sits within 0.1–0.2 ms of the control on desktop and the same on phone. v2's morning desktop-fly failure
   (3.5–3.8 on both trees) did not recur in this evening window. That fits v2's reading that the machine was the cause.
@@ -253,7 +281,10 @@ Wrangler before each run, and power/CPU/load logged every ~15 s. Logs: `work/pho
 
 ## Known limits and follow-ups (not built)
 
-- **Real iPhone hardware not run** (no Xcode on this Mac, no device). WebKit's engine was, in its ephemeral profile.
+- **What made the write fail on Freddy's phone is not known.** The hang it caused is fixed, and every other way to wait
+  forever is bounded. If the phone fails again, the aligner now shows the reason, or the step it stopped at.
+
+- **Real iPhone hardware not run** (no Xcode on this Mac, no device). WebKit's engine was, at phone size.
   Freddy's own acceptance (the DD3 + Destroyer on the computer, then the phone, then one made on the phone) is the
   hardware check.
 - **The local cache outlives sign-out** on that browser, as v1/v2's assets did. Clearing it on sign-out is a small
@@ -265,6 +296,6 @@ Wrangler before each run, and power/CPU/load logged every ~15 s. Logs: `work/pho
 ## Graphify
 
 Refreshed on this Mac with `graphify update .` (AST only, 0.9.91 under uv in a session scratchpad), on the final code,
-and committed: 2,894 nodes, 6,114 edges, 173 communities. No `.env*` or `.dev.vars*` files exist in the checkout. The
+and committed: 2,909 nodes, 6,142 edges, 166 communities. No `.env*` or `.dev.vars*` files exist in the checkout. The
 ignored `work/` folder (diagnostics, logs, the control worktree, synthetic photos) is not in the graph. No LLM labeling
 ran.
