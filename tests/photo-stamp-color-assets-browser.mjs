@@ -44,7 +44,8 @@ try{
  const edit=async()=>{await page.locator(`[data-bag-edit="${disc.id}"]`).evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');};
  // The sheet clears its photo editor on the dialog's close event, a task after Escape: wait for it, or a sheet reopened at
  // once would be wiped by the late event.
- const closeSheet=async()=>{const closed=page.evaluate(()=>new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true})));await page.keyboard.press('Escape');await closed;};
+ // (The listener is in place before Escape is sent: sent together, the key can win and the close go unheard.)
+ const closeSheet=async()=>{await page.evaluate(()=>{window.__sheetClosed=new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true}));});await page.keyboard.press('Escape');await page.evaluate(()=>window.__sheetClosed);};
  const look=v=>page.locator(`#addDiscDialog .bag-photo-look input[value="${v}"]`);
  const usePhoto=async file=>{
   await edit();await page.setInputFiles('#addDiscDialog .bag-photo-file',file);

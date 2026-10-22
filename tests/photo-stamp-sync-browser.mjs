@@ -33,6 +33,11 @@ const dE=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
 const inksIn=(px,inks)=>Object.fromEntries(inks.map(h=>{const L=lab(hex(h));let n=0;for(let i=0;i<px.length;i+=4)if(px[i+3]>200&&dE(lab([px[i],px[i+1],px[i+2]]),L)<12)n++;return [h,n];}));
 const sha=s=>createHash('sha256').update(s).digest('hex');
 
+// A step that never finishes fails with its name rather than hanging the run (an evaluate has no timeout of its own).
+let at='start',since=Date.now();const step=name=>{at=name;since=Date.now();},states=[];
+setInterval(async()=>{if(Date.now()-since<300000)return;since=Infinity;console.error('Stalled for 5 minutes at: '+at);
+ for(const state of states)console.error(JSON.stringify(await Promise.race([state().catch(e=>e.message),new Promise(r=>setTimeout(()=>r('no answer'),5000))])));process.exit(1);},5000).unref();
+
 const h=await startHarness({port:Number(process.env.PHOTO_STAMP_PORT||8883),state:'work/photo-stamp-server-sync/d1-test'});
 const desk=h,{base}=h;let phone=null,mac=null;
 // Each device: its sheet, its viewer and its own view of the account.
@@ -41,7 +46,8 @@ const on=device=>{
  const items=()=>page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs);
  const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=3);};
  const edit=async id=>{await page.locator(`[data-bag-edit="${id}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');};
- const closeSheet=async()=>{const closed=page.evaluate(()=>new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true})));await page.keyboard.press('Escape');await closed;};
+ // The listener is in place before Escape is sent: sent together, the key can win and the close go unheard.
+ const closeSheet=async()=>{await page.evaluate(()=>{window.__sheetClosed=new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true}));});await page.keyboard.press('Escape');await page.evaluate(()=>window.__sheetClosed);};
  const savePhoto=async(id,file)=>{
   await edit(id);await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
   await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
@@ -71,11 +77,14 @@ const on=device=>{
  // The bytes a renderer gets for an asset (cache or account), hashed.
  const assetHash=asset=>page.evaluate(async asset=>{const {photoStampBlob}=await import('/disc3d/photo-stamps.mjs');const b=new Uint8Array(await (await photoStampBlob(asset)).arrayBuffer());const d=new Uint8Array(await crypto.subtle.digest('SHA-256',b));return Array.from(d,x=>x.toString(16).padStart(2,'0')).join('');},asset);
  const stamps=()=>page.evaluate(async()=>(await (await fetch('/api/bag/stamps',{credentials:'same-origin'})).json()).stamps);
- return {page,wait,items,openBag,edit,closeSheet,savePhoto,makeColor,look,inspect,viewerStamp,photoPixels,assetHash,stamps};
+ states.push(()=>page.evaluate(name=>({device:name,open:[...document.querySelectorAll('dialog[open]')].map(d=>d.id||d.className),active:document.activeElement?.outerHTML.slice(0,100),status:document.querySelector('#addDiscDialog .bag-photo-status')?.textContent,aligner:document.querySelector('.photo-aligner-status')?.textContent}),device.name));
+ const steps={openBag,edit,closeSheet,savePhoto,makeColor,inspect,viewerStamp,photoPixels,assetHash,stamps};
+ for(const [name,fn] of Object.entries(steps))steps[name]=(...a)=>{step(device.name+' '+name+'('+a.filter(v=>typeof v==='string').join(',')+')');return fn(...a);};
+ return {page,wait,items,look,...steps};
 };
 try{
  // 1. Desktop: a photo on two discs, Full color on the first.
- await desk.signIn();
+ desk.name='desktop';await desk.signIn();
  await desk.seedBag([{mold_id:'3d60892b6812',plastic:'Star',wear:8,weight_g:172,color:'#70b7cd'},{mold_id:'7446eb39abe5',plastic:'Z',wear:8,weight_g:177,color:'#b99bdd'},{mold_id:'6be51219c6db',plastic:'ESP',wear:9,weight_g:174,color:'#f2c14e'}]);
  const D=on(desk);await D.openBag();
  const all=await D.items(),A=all.find(i=>i.mold_id==='3d60892b6812').id,B=all.find(i=>i.mold_id==='7446eb39abe5').id;
@@ -90,8 +99,8 @@ try{
  const deskHash=await D.assetHash(deskA.asset);
 
  // 2. The phone: a fresh WebKit profile. Nothing local; the account brings the look and the bytes.
- phone=await h.device({engine:'webkit',viewport:{width:390,height:844},deviceScaleFactor:2,context:{hasTouch:true,isMobile:true}});
- const P=on(phone);
+ step('phone opens');phone=await h.device({engine:'webkit',viewport:{width:390,height:844},deviceScaleFactor:2,context:{hasTouch:true,isMobile:true}});
+ phone.name='phone';const P=on(phone);
  // The phone condition, reproduced: this profile (like Safari's private browsing) cannot keep a Blob in IndexedDB.
  await phone.page.goto(base+'/api/bag/stamps');
  assert.equal(await phone.page.evaluate(()=>new Promise(res=>{const r=indexedDB.open('blob-probe',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>{const t=r.result.transaction('s','readwrite');t.objectStore('s').put(new Blob([new Uint8Array(64)],{type:'image/png'}),'k');t.oncomplete=()=>res('kept');t.onabort=()=>res('aborted');};})),'aborted','WebKit refuses the Blob');
@@ -142,7 +151,7 @@ try{
  // 5. Adopt-up: a browser with v2 assets of its own (Blobs in IndexedDB, an entry the account never saw) on the
  // third disc. Made with this checkout's own extractor, then written exactly as v2 wrote them.
  const C=all.find(i=>i.mold_id==='6be51219c6db').id,keyC=(await D.savePhoto(C,first)).texture_key;
- mac=await h.device({});const M=on(mac);await mac.signIn();
+ step('mac opens');mac=await h.device({});mac.name='mac';const M=on(mac);await mac.signIn();
  await mac.page.goto(base+'/api/bag/stamps');
  const legacy=await mac.page.evaluate(async([id,key,bytes])=>{
   const {decodePhoto,photoStampAsset}=await import('/disc-photo.mjs');
