@@ -52,8 +52,11 @@ export const anyColorLook=()=>Object.values(index).some(e=>e.look==='color');
 
 // The account (workers/stamps.mjs). Errors carry the server's message and status.
 const account=()=>window.AtlasAccount?.current;
+// A request the account never answers ends after a minute, so a sync or a save cannot hang on it.
+const deadline=()=>AbortSignal.timeout?.(60000);
 async function api(path,{method='GET',body,headers={}}={}){
- const response=await fetch(path,{method,body,credentials:'same-origin',cache:'no-store',headers:method==='GET'?headers:{'X-Atlas-CSRF':account()?.csrfToken||'',...headers}});
+ const response=await fetch(path,{method,body,credentials:'same-origin',cache:'no-store',signal:deadline(),headers:method==='GET'?headers:{'X-Atlas-CSRF':account()?.csrfToken||'',...headers}})
+  .catch(()=>{throw Error('Your account could not be reached. Check your connection and try again.');});
  const data=await response.json().catch(()=>({}));
  if(!response.ok)throw Object.assign(Error(data.error||'Your account could not be reached. Check your connection and try again.'),{status:response.status});
  return data;
@@ -94,8 +97,14 @@ function open(){
   request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||Error('Storage unavailable.'));
  }).catch(error=>{db=null;throw error;});
 }
-// An aborted transaction may report no error (WebKit, before its abort): never reject with nothing.
-const run=(mode,work)=>open().then(d=>new Promise((resolve,reject)=>{const t=d.transaction(STORE,mode),out=work(t.objectStore(STORE));t.oncomplete=()=>resolve(out?.result);t.onerror=e=>e.preventDefault?.();t.onabort=()=>reject(t.error||Error('Storage unavailable.'));}));
+// An aborted transaction may report no error (WebKit, before its abort): never reject with nothing. And never wait on
+// the cache for long: a store that does not answer within STORE_MS is given up on for the session, and the account
+// serves instead (docs/photo-stamp-sync.md).
+const STORE_MS=8000;let silent=false;
+const run=(mode,work)=>silent?Promise.reject(Error('Storage unavailable.')):new Promise((resolve,reject)=>{
+ const timer=setTimeout(()=>{silent=true;reject(Error('Storage did not answer.'));},STORE_MS),done=f=>v=>{clearTimeout(timer);f(v);};
+ open().then(d=>{const t=d.transaction(STORE,mode),out=work(t.objectStore(STORE));t.oncomplete=()=>done(resolve)(out?.result);t.onerror=e=>e.preventDefault?.();t.onabort=()=>done(reject)(t.error||Error('Storage unavailable.'));}).catch(done(reject));
+});
 const slot=(id,key,color)=>id+'/'+key+(color?'/c':'');
 const blobOf=v=>v instanceof Blob?v:v?.bytes instanceof ArrayBuffer?new Blob([v.bytes],{type:v.type}):null;
 const cached=(id,key,color)=>run('readonly',store=>store.get(slot(id,key,color))).catch(()=>null);
@@ -153,7 +162,7 @@ async function load(asset){
  // A cached copy of this revision, or (v1/v2) the Blob of an entry this browser made and the account has not replaced.
  if(blob&&(v.rev===rev||v instanceof Blob&&e&&!e.server&&e.key===key))return blob;
  if(!e?.server)throw Error('Photo stamp unavailable.');
- const response=await fetch(stampPath(id)+'/'+(color?'color':'ink')+'?v='+rev,{credentials:'same-origin',cache:'no-store'}).catch(()=>null);
+ const response=await fetch(stampPath(id)+'/'+(color?'color':'ink')+'?v='+rev,{credentials:'same-origin',cache:'no-store',signal:deadline()}).catch(()=>null);
  if(!response?.ok)throw Error('Photo stamp unavailable.');
  const bytes=await response.arrayBuffer(),type=response.headers.get('Content-Type')||'image/png',fetched=new Blob([bytes],{type});
  run('readwrite',store=>store.put({rev,type,bytes},slot(id,key,color))).catch(()=>{});

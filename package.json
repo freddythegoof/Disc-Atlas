@@ -61,7 +61,7 @@
     "test:photo-phone": "node tests/photo-compression-browser.mjs && node tests/photo-gestures-browser.mjs && node tests/photo-editor-contract-browser.mjs && node tests/photo-source-chooser-browser.mjs",
     "test:photo-rim": "node tests/photo-rim-color-browser.mjs",
     "test:photo-level": "node tests/photo-stamp-level-browser.mjs",
-    "test:photo-stamp-sync": "node --test tests/photo-stamp-sync.mjs && node tests/photo-stamp-sync-browser.mjs",
+    "test:photo-stamp-sync": "node --test tests/photo-stamp-sync.mjs && node tests/photo-stamp-sync-browser.mjs && node tests/photo-stamp-stall-browser.mjs && PHOTO_STAMP_ENGINE=chromium node tests/photo-stamp-stall-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",
     "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs",
     "test:halo": "node --test tests/halo-plastic.mjs tests/halo-band-sampling.mjs tests/halo-band-v2.mjs && node tests/halo-plastic-browser.mjs"

@@ -61,7 +61,7 @@ const on=device=>{
   await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}).click();
   await (await chooser).setFiles(file);await page.waitForSelector('dialog.photo-aligner[open]');
   const t=Date.now();await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
-  await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||'')||/\S/.test(document.querySelector('dialog.photo-aligner[open] .photo-aligner-status')?.textContent.replace('Making the game asset…','')||''),null,{timeout:240000});
+  await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||'')||/^(?!Making the game asset)\S/.test(document.querySelector('dialog.photo-aligner[open] .photo-aligner-status')?.textContent||''),null,{timeout:240000});
   const status=await page.locator('#addDiscDialog .bag-photo-status').textContent(),aligner=await page.evaluate(()=>document.querySelector('dialog.photo-aligner[open] .photo-aligner-status')?.textContent??null);
   assert.equal(status,'Full-color asset made. Saved to your account.','made and saved, aligner said: '+aligner);
   await closeSheet();return Date.now()-t;
