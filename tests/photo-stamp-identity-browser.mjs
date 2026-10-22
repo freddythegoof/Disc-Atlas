@@ -35,8 +35,10 @@ if(process.argv[2]==='--probe'){
   await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
   const key=(await items()).find(i=>i.id===disc.id).texture_key,url='/api/bag/discs/'+encodeURIComponent(disc.id)+'/photo?v='+encodeURIComponent(key);
   // The one-ink game asset, made through the sheet from the same original.
+  // (v3.1: through the camera original, the quiet option, on a tree that has it; the radio itself on one that does not.)
   await edit();const chooser=page.waitForEvent('filechooser');
-  await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}).click();await (await chooser).setFiles(photoFile);
+  const original=page.locator('#addDiscDialog .bag-photo-asset-original');
+  await ((await original.count())?original:page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'})).click();await (await chooser).setFiles(photoFile);
   await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   await page.waitForFunction(()=>/Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
   await page.keyboard.press('Escape');

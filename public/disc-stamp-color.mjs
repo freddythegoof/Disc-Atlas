@@ -138,9 +138,10 @@ export function lightField(data,size,mask,inside){
 /**
  * data: RGBA of the de-lit size × size crop. raw: the same crop before de-lighting (glare is read off it). mask: v1's
  * final binary design mask (size²). plateColor: '#rrggbb', the colour delightPixels measured. plate: the plate's reach
- * as a share of the radius (as v1). Returns {rgba (Uint8ClampedArray, straight alpha), inks, stats}.
+ * as a share of the radius (as v1). `glare`: pixels already known to hold no print (disc-stamp-delight.mjs's unreliable
+ * mask), in-painted like clipped glare. Returns {rgba (Uint8ClampedArray, straight alpha), inks, stats}.
  */
-export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8}={}){
+export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:unreliable=null}={}){
  const N=size*size,k=size/1024,c0=size/2,reach=plate*size/2-6*k,inside=new Uint8Array(N);
  for(let p=0;p<N;p++){const i=p%size,j=(p-i)/size;inside[p]=data[4*p+3]>=250&&Math.hypot(i+.5-c0,j+.5-c0)<=reach?1:0;}
  // 1. The light, divided out of every design pixel.
@@ -153,7 +154,7 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8}={}){
  // 3. Unreliable: clipped glare, and the design's edge.
  const outside=new Uint8Array(N);for(let p=0;p<N;p++)outside[p]=mask[p]?0:1;
  const depth=distanceTo(outside,size),edge=Math.max(1,1.2*k),glare=new Uint8Array(N),reliable=new Uint8Array(N);let glared=0,designArea=0;
- for(let p=0;p<N;p++){if(!mask[p])continue;designArea++;const r=raw[4*p],g=raw[4*p+1],b=raw[4*p+2],hi=Math.max(r,g,b);if(hi>=CLIP&&(hi-Math.min(r,g,b))/hi<CLIP_CHROMA){glare[p]=1;glared++;}}
+ for(let p=0;p<N;p++){if(!mask[p])continue;designArea++;if(unreliable?.[p]){glare[p]=1;glared++;continue;}const r=raw[4*p],g=raw[4*p+1],b=raw[4*p+2],hi=Math.max(r,g,b);if(hi>=CLIP&&(hi-Math.min(r,g,b))/hi<CLIP_CHROMA){glare[p]=1;glared++;}}
  // A glare spot's soft rim (light blended with the ink, not clipped) is glare too.
  if(glared){const near=distanceTo(glare,size),rim=Math.max(2,2*k);for(let p=0;p<N;p++)if(mask[p]&&!glare[p]&&near[p]<=rim){glare[p]=1;glared++;}}
  for(let p=0;p<N;p++)reliable[p]=mask[p]&&!glare[p]&&depth[p]>edge?1:0;

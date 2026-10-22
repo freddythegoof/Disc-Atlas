@@ -598,6 +598,11 @@ body[data-view="bag"] main {display:none!important}
 .bag-photo-look-row input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
 .bag-photo-look-row label:has(input:focus-visible){outline:2px solid var(--lime);outline-offset:2px}
 .bag-photo-control .bag-photo-asset-make{justify-self:start}
+/* v3.1 (docs/photo-stamp-one-click.md): the camera original is an option, never a step, so it reads as a quiet link. */
+.bag-photo-control .bag-photo-asset-original{justify-self:start;min-height:44px;padding:0;border:0;background:none;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.bag-photo-control .bag-photo-asset-original:hover{color:var(--text)}
+.bag-photo-control .bag-photo-asset-original:focus-visible{outline:2px solid var(--lime);outline-offset:2px;border-radius:4px}
+.bag-photo-look[aria-busy] .bag-photo-look-row label,.bag-photo-look[aria-busy] button{cursor:progress;opacity:.7}
 .bag-photo-source-menu{width:min(240px,calc(100vw - 16px));min-width:0;max-height:calc(100dvh - 16px);overflow:auto}
 .bag-photo-source-menu button{display:flex;justify-content:flex-start;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;font-weight:500;text-align:left}
 .bag-photo-source-menu button:hover,.bag-photo-source-menu button:focus-visible{background:var(--accent-soft)}

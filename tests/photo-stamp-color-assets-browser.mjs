@@ -69,17 +69,20 @@ try{
  await inspect();await page.waitForFunction(()=>Disc3D.viewer.debug.photo?.userData.photoReady,null,{timeout:30000});
  const pixelsBefore=createHash('sha256').update(await photoPixels()).digest('hex');
 
- // The Look row: three choices. Full color asks for the original, frames it, and makes both assets from one read.
+ // The Look row: three choices. The original (v3.1: the quiet option; one click from the stored photo is the default,
+ // tests/photo-stamp-one-click-browser.mjs) is framed and read once for both assets; Full color then applies at once.
  await edit();
  assert.deepEqual(await page.locator('#addDiscDialog .bag-photo-look-row label').allTextContents(),['Photo','Game asset','Full color']);
  assert.equal(await look('photo').isChecked(),true);
  const chooser=page.waitForEvent('filechooser');
- await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}).click();
+ await page.locator('#addDiscDialog .bag-photo-asset-original').click();
  await (await chooser).setFiles(first);
  await page.waitForSelector('dialog.photo-aligner[open]');
  assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
  await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
- await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ await page.waitForFunction(()=>/Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}).click();
+ await page.waitForFunction(()=>/Showing the full-color asset/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:30000});
  assert.equal(await look('color').isChecked(),true);
  assert.match(await page.locator('#addDiscDialog .bag-photo-look-note').textContent(),/stamp ink doesn’t apply/);
  await closeSheet();
@@ -206,7 +209,7 @@ try{
  await page.unroute('**/stamp/color?*');
 
  // An asset made before full colour existed (a v1 entry, no colour part; v3: as the account holds one adopted from a v1
- // browser): Full color reads the original again.
+ // browser): Full color makes both again. v3.1: in one click, from the stored photo, with no file asked for.
  await page.evaluate(async([id,k])=>{
   const ink=await (await fetch('/api/bag/discs/'+id+'/stamp/ink',{credentials:'same-origin'})).blob(),{stamp}=await (await fetch('/api/bag/discs/'+id+'/stamp',{credentials:'same-origin'})).json();
   const form=new FormData();form.set('meta',JSON.stringify({texture_key:k,look:'asset',placement:stamp.placement,layered:stamp.layered,color:null}));form.set('ink',ink,'ink');
@@ -215,11 +218,10 @@ try{
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=2);
  await edit();
  assert.equal(await look('asset').isChecked(),true);
- const again=page.waitForEvent('filechooser');
+ let asked=false;page.once('filechooser',()=>{asked=true;});
  await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}).click();
- await (await again).setFiles(first);
- await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
  await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ assert.equal(asked,false,'no file asked for');assert.equal(await page.locator('dialog.photo-aligner[open]').count(),0);
  await closeSheet();
 
  // A replaced photo is a new version: the look returns to Photo, and both of the old assets go.

@@ -256,6 +256,9 @@ export function delightPixels(data,size,{plate=.78,rimInner=null,bandInner=null,
 // Glare up to KNEE times the plastic's own luminance passes untouched (the patch's edge, so it cannot show a
 // seam); above that it is compressed smoothly and monotonically toward KNEE+ROOM: a bright sheen, not a hole.
 const Q0=1.3,KNEE=.3,ROOM=.25;
+// The most glare the pass leaves, as a share of the plastic's luminance: a photo stamp read from a stored texture treats
+// glare near it as print the pass replaced (disc-stamp-delight.mjs).
+export const GLARE_CEILING=KNEE+ROOM;
 const compress=x=>x<=KNEE?x:KNEE+ROOM*(1-Math.exp(-(x-KNEE)/ROOM));
 function softenGlare(data,input,size,fieldAt){
  const n=size*size,ratio=new Float32Array(n),kind=new Uint8Array(n); // kind 1: above the light, 2: clipped glare

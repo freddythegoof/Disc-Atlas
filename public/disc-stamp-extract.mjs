@@ -21,7 +21,7 @@
 //     fills, fills closed over their halftone gaps, and solid elements: fills no line touches, dark elements no fill
 //     touches), so the stamp path can ink it either way round for the ink and plastic (stamp.mjs). `alpha` is then
 //     the dark-ink composite (lines full, fills at TINT), for coverage and reporting.
-const LO=9,HI=18,LO2=4,HI2=8,MIN_AREA=24,BAND_ARC=.4,MERGE_DE=18,GUARD=6,GRID=32,NEAR=.035,TINT=.42,LAYERED=.55,SOFT=.5;
+const LIT_AREA=2000,BRIDGES=8,BRIDGE_MIN=5,BRIDGE_REACH=160,LO=9,HI=18,LO2=4,HI2=8,MIN_AREA=24,BAND_ARC=.4,MERGE_DE=18,GUARD=6,GRID=32,NEAR=.035,TINT=.42,LAYERED=.55,SOFT=.5;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -126,16 +126,21 @@ function kmeans(points,k){
 /**
  * data: RGBA bytes of the size × size crop, de-lit with softenGlare:false. plate: the plate's reach as a share of the
  * radius (Rs/R, or Ri/R on an overmold). plateColor: '#rrggbb', the colour delightPixels measured.
+ * `unknown` (Uint8Array, size²): pixels that hold no print (a glare core), decided by the design around them. `lit`
+ * (Uint8Array, size²): where light was taken out; a small stray mark wholly inside it is a reflection's residue.
  * Returns {alpha (Uint8Array, size²), layered, coverage, inkReach, stats}, and with `keepMask` the final binary design
  * mask (`mask`), which the colour asset is drawn inside (disc-stamp-color.mjs).
  */
-export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false}){
+export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false,unknown=null,lit=null}){
  const N=size*size,k=size/1024,lab=new Float32Array(N*3),inside=new Uint8Array(N),radius=new Float32Array(N);
- const reach=plate*size/2-GUARD*k,c=size/2;
+ const reach=plate*size/2-GUARD*k,c=size/2;let unknowns=0;
  for(let p=0;p<N;p++){
   const i=p%size,j=(p-i)/size,r=Math.hypot(i+.5-c,j+.5-c);radius[p]=r;
-  if(r>reach||data[4*p+3]<250)continue;inside[p]=1;
+  if(r>reach||data[4*p+3]<250)continue;
+  // v3.1: a pixel that holds no print (disc-stamp-delight.mjs) is no evidence either way; it is decided last.
   const L=rgbToLab(data[4*p],data[4*p+1],data[4*p+2]);lab[3*p]=L[0];lab[3*p+1]=L[1];lab[3*p+2]=L[2];
+  if(unknown?.[p]){unknowns++;continue;}
+  inside[p]=1;
  }
  // 1. The local plate field, starting from the measured plate colour.
  const P=hexToLab(plateColor),d=new Float32Array(N),weight=new Uint8Array(N),near=Math.max(1,Math.round(3*k));let field=null,sigma=0,centre=0;
@@ -167,8 +172,11 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  // steps down within a pixel or two) and away from the rest of the design. Room light on the plastic, not ink. A
  // bright reflection with a hard core does not read as soft and stays (docs/photo-stamp-assets.md).
  for(const pixels of components(mask,size)){
-  let soft=0,L=0;for(const p of pixels){if(d[p]<hi)soft++;L+=lab[3*p];}
-  if(soft/pixels.length<SOFT||L/pixels.length<P[0]+4)continue;
+  let soft=0,L=0,glow=0;for(const p of pixels){if(d[p]<hi)soft++;L+=lab[3*p];if(lit?.[p])glow++;}
+  // v3.1: or a small mark lying wholly where light was found and taken out (disc-stamp-delight.mjs `lit`): what is left
+  // of a reflection once its light is gone no longer reads as lighter than the plastic.
+  const residue=lit&&pixels.length<LIT_AREA*k*k&&glow>=.9*pixels.length;
+  if(!residue&&(soft/pixels.length<SOFT||L/pixels.length<P[0]+4))continue;
   for(const p of pixels)mask[p]=0;
   const others=distanceTo(mask,size);let closest=Infinity;for(const p of pixels)closest=Math.min(closest,others[p]);
   if(closest>NEAR*size)stats.reflections.push({pixels:pixels.length,soft:+(soft/pixels.length).toFixed(3)});else for(const p of pixels)mask[p]=1;
@@ -191,6 +199,25 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  // What the trim leaves of a halo away from the ink (mid-gap between two letters) is a sliver too small or too faint
  // to have seeded anything: the speck and scuff rules again, at the weak seed level.
  for(const pixels of components(mask,size)){let strongest=0;for(const p of pixels)strongest=Math.max(strongest,d[p]);if(pixels.length<minArea||strongest<hi2){stats.slivers++;for(const p of pixels)mask[p]=0;}}
+ // v3.1: the unknown pixels (a glare core) are decided by the design around them. One is design when it is enclosed by
+ // design: along most of BRIDGES lines through it (at least BRIDGE_MIN), the nearest pixels that were read on BOTH
+ // sides are design. A core inside a printed area stays printed (no hole); one on bare plastic, or across a mark's edge,
+ // stays plastic (no glare-shaped blob). A stroke that crossed the core shows a gap there, as wear would: what a clipped
+ // core held is not in the photo, and a blob would be the glare's own shape.
+ if(unknowns){
+  const todo=p=>unknown[p]&&radius[p]<=reach&&data[4*p+3]>=250,known=inside.slice(),far=Math.round(BRIDGE_REACH*k),hit=new Int8Array(2),decided=[];
+  const dirs=Array.from({length:BRIDGES},(_,i)=>{const t=i*Math.PI/BRIDGES;return [Math.cos(t),Math.sin(t)];});
+  for(let p=0;p<N;p++){
+   if(!todo(p))continue;const x=p%size,y=(p-x)/size;let bridged=0;
+   for(const [dx,dy] of dirs){
+    for(let side=0;side<2;side++){hit[side]=-1;const sx=side?-dx:dx,sy=side?-dy:dy;
+     for(let t=1;t<=far;t++){const i=Math.round(x+sx*t),j=Math.round(y+sy*t);if(i<0||j<0||i>=size||j>=size)break;const q=j*size+i;if(known[q]){hit[side]=mask[q];break;}if(radius[q]>reach)break;}}
+    if(hit[0]===1&&hit[1]===1)bridged++;
+   }
+   decided.push(p,bridged>=BRIDGE_MIN?1:0);
+  }
+  for(let i=0;i<decided.length;i+=2){inside[decided[i]]=1;mask[decided[i]]=decided[i+1];}
+ }
  // 4. Layers, from the core (interior) design pixels.
  const core=[];for(let p=0;p<N;p++){if(!mask[p])continue;const i=p%size,j=(p-i)/size;if(i>0&&j>0&&i<size-1&&j<size-1&&mask[p-1]&&mask[p+1]&&mask[p-size]&&mask[p+size])core.push(lab[3*p],lab[3*p+1],lab[3*p+2]);}
  let inks=[];

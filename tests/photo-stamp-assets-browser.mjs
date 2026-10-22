@@ -1,5 +1,6 @@
 // Photo stamps (docs/photo-stamp-assets.md) in the real app on the local signed-in harness, with a drawn synthetic disc
-// photo made at run time (never a player's photo): the sheet's Look row, making a game asset from the original, every
+// photo made at run time (never a player's photo): the sheet's Look row, making a game asset from the original (v3.1:
+// the optional path), every
 // personal surface drawing it in the player's ink and finish, and the photo look kept exactly as it was.
 //   node tests/photo-stamp-assets-browser.mjs
 import assert from 'node:assert/strict';
@@ -55,11 +56,14 @@ try{
  await inspect();await page.waitForFunction(()=>Disc3D.viewer.debug.photo?.userData.photoReady,null,{timeout:30000});
  const pixelsBefore=createHash('sha256').update(await photoPixels()).digest('hex');
 
- // The Look row: Photo by default; Game asset asks for the original, frames it, and makes the asset.
+ // The Look row: Photo by default. v3.1 (docs/photo-stamp-one-click.md): Game asset itself makes the asset from the
+ // stored photo in one click (tests/photo-stamp-one-click-browser.mjs); the camera original is the quiet option beside
+ // it, which frames the original and makes the asset, as here.
  await edit();assert.equal(await lookRow().isVisible(),true);
  assert.equal(await page.locator('#addDiscDialog .bag-photo-look input[value="photo"]').isChecked(),true);
+ assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isHidden(),true,'nothing to make again yet');
  const chooser=page.waitForEvent('filechooser');
- await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}).click();
+ await page.locator('#addDiscDialog .bag-photo-asset-original').click();
  await (await chooser).setFiles(first);
  await page.waitForSelector('dialog.photo-aligner[open]');
  assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
@@ -134,7 +138,8 @@ try{
  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
  const replaced=(await items()).find(i=>i.id===disc.id);assert.notEqual(replaced.texture_key,saved.texture_key);
  assert.deepEqual(await page.evaluate(([id,key])=>import('/disc3d/photo-stamps.mjs').then(m=>m.photoLook(id,key)),[disc.id,replaced.texture_key]),{available:false,look:'photo'});
- await edit();assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').textContent(),'Make from original photo');await closeSheet();
+ await edit();assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isHidden(),true);
+ assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-original').textContent(),'Use a higher-resolution original instead');await closeSheet();
 
  assert.deepEqual(errors,[]);
  console.log('photo stamp assets: pass');
