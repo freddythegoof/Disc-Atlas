@@ -19,7 +19,8 @@ const photo=async(file,stamp)=>{
 const first=await photo(DIR+'/disc-a.jpg',(x,y,ink)=>`<circle cx="${x}" cy="${y}" r="360" fill="none" stroke="${ink}" stroke-width="22"/><rect x="${x-280}" y="${y-30}" width="560" height="56" fill="${ink}"/><rect x="${x-120}" y="${y+70}" width="60" height="110" fill="${ink}"/><rect x="${x-20}" y="${y+70}" width="60" height="110" fill="${ink}"/>`);
 const second=await photo(DIR+'/disc-b.jpg',(x,y,ink)=>`<rect x="${x-200}" y="${y-200}" width="400" height="60" fill="${ink}"/>`);
 
-const h=await startHarness({port:Number(process.env.PHOTO_STAMP_PORT||8875),state:'work/photo-stamp-assets/d1-test'});
+// PHOTO_STAMP_ENGINE=webkit runs it in the phone's engine (docs/photo-stamp-sync.md).
+const h=await startHarness({port:Number(process.env.PHOTO_STAMP_PORT||8875),state:'work/photo-stamp-assets/d1-test',engine:process.env.PHOTO_STAMP_ENGINE||'chromium'});
 const {page,base,errors}=h;
 const wait=ms=>page.waitForTimeout(ms);
 const items=()=>page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs);
@@ -115,10 +116,16 @@ try{
  assert.equal(createHash('sha256').update(await photoPixels()).digest('hex'),pixelsBefore,'the photo look is byte-for-byte the same');
  assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.stamp.visible),false);
 
- // An asset this browser lost (cleared site data) gives the disc its photo back.
+ // v3 (docs/photo-stamp-sync.md): an asset this browser lost (cleared site data) comes back from the account; when the
+ // account cannot give it either, the disc shows its photo again.
  await page.evaluate(([id,key])=>import('/disc3d/photo-stamps.mjs').then(m=>m.setPhotoLook(id,key,'asset')),[disc.id,saved.texture_key]);
- await page.evaluate(()=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets','readwrite');t.objectStore('assets').clear();t.oncomplete=()=>{r.result.close();res();};t.onerror=rej;};}));
+ const clearCache=()=>page.evaluate(()=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const t=r.result.transaction('assets','readwrite');t.objectStore('assets').clear();t.oncomplete=()=>{r.result.close();res();};t.onerror=rej;};}));
+ await clearCache();
+ await inspect();await page.waitForFunction(()=>/^photo-stamp\//.test(Disc3D.viewer.debug.stamp.material.map?.userData.stampAsset||''),null,{timeout:30000});
+ assert.equal(await page.evaluate(()=>!!Disc3D.viewer.debug.photo),false,'drawn from the account, not the photo');
+ await clearCache();await page.route('**/stamp/ink?*',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"offline"}'}));
  await inspect();await page.waitForFunction(()=>Disc3D.viewer.debug.photo?.userData.photoReady,null,{timeout:30000});
+ await page.unroute('**/stamp/ink?*');
 
  // A replaced photo is a new version: the look returns to Photo, and the Look row offers a new asset.
  await edit();await page.setInputFiles('#addDiscDialog .bag-photo-file',second);

@@ -186,23 +186,36 @@ export async function processPhoto(image,options={}){return (await preparePhoto(
 // copy as large as the photo allows: the stored texture's 1024 px, cut from a 2048 px working copy, is what blurs an
 // illustrated stamp's line work. `plate`: the plate's reach as a share of the radius (plateRatio).
 export const STAMP_SIZE=2048;
+// v3 (docs/photo-stamp-sync.md): Freddy's phone sat on "Making the game asset…" for good, with no error. No step of
+// making an asset may wait forever: each has a limit (generous, for a slow phone), and the sheet names the step it is
+// on, so a stall says where it is. Tests shorten them.
+export const MAKE_LIMITS={extract:180000,encode:90000,save:90000};
+const within=(promise,ms,message)=>new Promise((resolve,reject)=>{
+ const timer=setTimeout(()=>reject(Error(message)),ms);
+ promise.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});
+});
+// A canvas encode that never calls back counts as no image data (null), like an empty one.
+const stampBlob=(canvas,type,quality)=>within(new Promise(r=>canvas.toBlob(r,type,quality)),MAKE_LIMITS.encode,'').catch(()=>null);
 function extractStamp(pixels,size,plate,color=false){
+ const slow='Finding the stamp took too long on this device. Try again, or make it on a computer: it shows here too.';
  const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.extract(pixels,size,plate,{color}));
- let worker;try{worker=new Worker(new URL('./disc-stamp-worker.mjs',import.meta.url),{type:'module'});}catch{return inline();}
- return new Promise((resolve,reject)=>{
+ let worker;try{worker=new Worker(new URL('./disc-stamp-worker.mjs',import.meta.url),{type:'module'});}catch{return within(inline(),MAKE_LIMITS.extract,slow);}
+ return within(new Promise((resolve,reject)=>{
   worker.onmessage=({data})=>{worker.terminate();if(data.error)reject(Error(data.error));else resolve(data.result);};
   // A browser that cannot start a module worker does the same work here.
   worker.onerror=event=>{event.preventDefault?.();worker.terminate();inline().then(resolve,reject);};
   worker.postMessage({pixels:pixels.buffer,size,plate,color});
- });
+ }),MAKE_LIMITS.extract,slow).catch(error=>{worker.terminate();throw error;});
 }
 // v2 (docs/photo-stamp-color-assets.md): with `color`, the same read also gives the full-colour asset (`color`: its blob
 // and placement), the stamp's own colours flattened like print (disc-stamp-color.mjs). The one-ink asset is made
 // exactly as without it.
-export async function photoStampAsset(image,options={},{plate=.8,color=false,colorBytes=COLOR_STAMP_BYTES}={}){
+// `stage(name)` reports each step as it starts ('extract', 'ink', 'color'), for the sheet's status line.
+export async function photoStampAsset(image,options={},{plate=.8,color=false,colorBytes=COLOR_STAMP_BYTES,stage=()=>{}}={}){
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
- const result=await extractStamp(pixels,size,plate,color),a=result.alpha,c=size/2;
+ stage('extract');
+ const result=await extractStamp(pixels,size,plate,color),a=result.alpha,c=size/2;stage('ink');
  // The asset is the smallest centred square holding all of the design: no texture spent on bare plate.
  let reach=0,x0=size,y0=size,x1=-1,y1=-1;
  for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(a[j*size+i]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
@@ -215,19 +228,30 @@ export async function photoStampAsset(image,options={},{plate=.8,color=false,col
   if(L){img.data[k]=byte(L.fill[p]);img.data[k+1]=byte(L.line[p]);img.data[k+2]=byte(L.solid[p]);img.data[k+3]=255;}
   else{img.data[k]=img.data[k+1]=img.data[k+2]=255;img.data[k+3]=a[p];}}
  g.putImageData(img,0,0);
- const blob=await new Promise(r=>out.toBlob(r,'image/png'));out.width=out.height=0;
+ // v3 (docs/photo-stamp-sync.md): the account keeps it within INK_STAMP_BYTES; one past that steps down in resolution as
+ // the colour asset does, its placement unchanged. No stamp measured so far comes near it (the DD3's is 1.64 MB).
+ let blob=await stampBlob(out,'image/png'),smaller=null;
+ try{
+  for(let scale=.8;blob&&blob.size>INK_STAMP_BYTES&&scale>.3;scale*=.8){
+   smaller??=document.createElement('canvas');smaller.width=smaller.height=Math.round(side*scale);
+   const s=smaller.getContext('2d');s.clearRect(0,0,smaller.width,smaller.height);s.imageSmoothingQuality='high';s.drawImage(out,0,0,smaller.width,smaller.height);
+   blob=await stampBlob(smaller,'image/png');
+  }
+ }finally{out.width=out.height=0;if(smaller)smaller.width=smaller.height=0;}
  if(!blob)throw Error('The browser returned no image data for the stamp. Close other tabs and retry.');
+ if(blob.size>INK_STAMP_BYTES)throw Error('This stamp is too detailed to keep as a game asset. Try a photo with less around the stamp.');
  // The stock placement rule (stamp.mjs): the texture spans side/size of the disc's diameter.
  const ink=Math.max(x1-x0+1,y1-y0+1);
  // `color` is null when the colour asset could not be kept within its budget: the one-ink asset stands alone.
  return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,
-  ...result.color&&{color:await colorStampBlob(result.color.rgba,size,colorBytes)}};
+  ...result.color&&{color:(stage('color'),await colorStampBlob(result.color.rgba,size,colorBytes))}};
 }
 // The colour asset: the smallest centred square holding all of it, as WebP (lossy colour, its alpha kept exact), which
 // keeps it near the one-ink asset's size; the bundled encoder stands in where the canvas cannot write WebP. It never
 // exceeds `limit` (COLOR_STAMP_BYTES): past quality 0.7 the image steps down in resolution, which leaves its placement
 // as it is (the texture spans the same share of the disc at any resolution); one still too large is not kept (null).
-const COLOR_STAMP_BYTES=1.5*1024*1024;
+// v3: workers/stamps.mjs holds the same budgets (STAMP_LIMITS).
+const COLOR_STAMP_BYTES=1.5*1024*1024,INK_STAMP_BYTES=2*1024*1024;
 async function colorStampBlob(rgba,size,limit=COLOR_STAMP_BYTES){
  const c=size/2;let reach=0,x0=size,y0=size,x1=-1,y1=-1;
  for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(rgba[4*(j*size+i)+3]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
@@ -237,7 +261,14 @@ async function colorStampBlob(rgba,size,limit=COLOR_STAMP_BYTES){
  for(let j=0;j<side;j++)img.data.set(rgba.subarray(4*((j+from)*size+from),4*((j+from)*size+from+side)),4*j*side);
  g.putImageData(img,0,0);
  let blob=null,smaller=null;
- const encode=async(canvas,quality)=>{let b=await supportsCanvasWebP()===false?null:await canvasBlob(canvas,quality);if(!b||b.type!=='image/webp')b=await fallbackWebP(canvas,quality);return b;};
+ // v3: should neither the canvas nor the bundled encoder write WebP (the encoder failed to load), a PNG under the same
+ // budget stands in; the account and every renderer take either.
+ // Each try is bounded (MAKE_LIMITS.encode): an encoder that never answers is one that failed.
+ const encode=async(canvas,quality)=>{
+  let b=await within(supportsCanvasWebP(),MAKE_LIMITS.encode,'').catch(()=>null)===false?null:await stampBlob(canvas,'image/webp',quality);
+  if(!b||b.type!=='image/webp')b=await within(fallbackWebP(canvas,quality),MAKE_LIMITS.encode,'').catch(()=>stampBlob(canvas,'image/png'));
+  return b;
+ };
  try{
   for(const quality of [.9,.8,.7]){blob=await encode(out,quality);if(blob&&blob.size<=limit)break;}
   for(let scale=.8;blob&&blob.size>limit&&scale>.3;scale*=.8){
@@ -336,13 +367,16 @@ const LEVEL='<div class="photo-aligner-level" role="group" aria-label="Level the
 const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the outer ring and its center on the crosshair.'],level:['Level the stamp','Turn the photo until the stamp runs along a level line. Only the angle changes.'],
  asset:['Frame the original','Center the disc and level its stamp, as for its photo. The game asset is read from this original at full detail.']};
 // Photo stamps (docs/photo-stamp-assets.md): a saved photo can also be worn as a game asset, its stamp drawn in the
-// player's ink and finish. Like the rest of Appearance it is a display choice kept in this browser: it applies at once,
-// without Save, and the photo on the account is untouched.
+// player's ink and finish. Like the rest of Appearance it is a display choice: it applies at once, without Save, and the
+// photo on the account is untouched.
 let lookGroupId=0;
 // v2 (docs/photo-stamp-color-assets.md): Full color wears the stamp's own colours from the original instead of one ink,
 // so the note under the row says the stamp ink does not reach it.
-const LOOK_NOTE={asset:'Game asset draws this disc’s stamp from your original photo, in your stamp ink and finish. Only in this browser; the photo stays saved.',
- color:'Full color keeps the stamp’s own colors from your original photo, so your stamp ink doesn’t apply; a foil finish adds only a light sheen. Only in this browser; the photo stays saved.'};
+// v3 (docs/photo-stamp-sync.md): the asset and the look are saved to the account, so every device signed in shows them.
+// The step a game asset is being made at, after "Making the game asset: " (MAKE_LIMITS).
+const MAKE_STEPS={extract:'finding the stamp…',ink:'drawing it in one ink…',color:'drawing it in full color…',save:'saving to your account…'};
+const LOOK_NOTE={asset:'Game asset draws this disc’s stamp from your original photo, in your stamp ink and finish. Saved to your account, on every device; the photo stays saved.',
+ color:'Full color keeps the stamp’s own colors from your original photo, so your stamp ink doesn’t apply; a foil finish adds only a light sheen. Saved to your account, on every device; the photo stays saved.'};
 const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="asset">Game asset</label><label><input type="radio" name="'+name+'" value="color">Full color</label></div><small class="bag-photo-look-note">'+LOOK_NOTE.asset+'</small><button type="button" class="bag-photo-asset-make">Make from original photo</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
 
 // The sheet shows the photo and its actions; choosing a photo opens the aligner, a large pop-out with
@@ -454,7 +488,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   const want=e.target.value,state=photoLook(owned.id,owned.key);
   // An asset made before full colour existed has no colour layer: the original is read again for it.
   if(want==='asset'&&!state.available||want==='color'&&!state.color){renderSheet();pickOriginal(want);return;}
-  setPhotoLook(owned.id,owned.key,want);q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset, in this browser.':want==='color'?'Showing the full-color asset, in this browser.':'Showing the photo.';renderSheet();
+  const target=owned;q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset.':want==='color'?'Showing the full-color asset.':'Showing the photo.';
+  // Saved to the account (photo-stamps.mjs); if it cannot be, the disc keeps the look it had and says why.
+  setPhotoLook(target.id,target.key,want).catch(error=>{if(owned===target){q('.bag-photo-status').textContent=error.message||'Your look could not be saved. Try again.';renderSheet();}});renderSheet();
  });
  q('.bag-photo-asset-make').onclick=()=>pickOriginal(owned&&photoLook(owned.id,owned.key).look==='color'?'color':'asset');
  q('.bag-photo-asset-file').onchange=async()=>{
@@ -468,13 +504,14 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   if(!draft||busy)return;const id=++serial,{bitmap,mode}=draft,options={...draft.options};clearGesture();busy=true;
   dq('[data-aligner-confirm]').disabled=true;dq('.photo-aligner-status').textContent=mode==='asset'?'Making the game asset…':'Preparing your photo…';
   if(mode==='asset'){
-   const target=owned;
+   const target=owned,step=name=>{if(id===serial)dq('.photo-aligner-status').textContent='Making the game asset: '+MAKE_STEPS[name];};
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-    const asset=await photoStampAsset(bitmap,options,{plate,color:true}),look=making;if(id!==serial)return;
-    await savePhotoStamp(target.id,target.key,{...asset,look});if(id!==serial)return;
-    closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Kept in this browser.':'Game asset made in one ink. This stamp is too detailed to keep in full color in this browser.'):'Game asset made. Kept in this browser.';renderSheet();
-   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message||'The game asset could not be made. Try again.';}}
+    const asset=await photoStampAsset(bitmap,options,{plate,color:true,stage:step}),look=making;if(id!==serial)return;
+    step('save');
+    await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');if(id!==serial)return;
+    closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.';renderSheet();
+   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e?.message||'The game asset could not be made. Try again.';}}
    return;
   }
   try{
