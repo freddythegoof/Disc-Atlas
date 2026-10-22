@@ -76,20 +76,34 @@ once, while a print's own gradient belongs to one ink.* So:
 3. **Inside lit cells, the white's shape is followed per pixel** (each pixel's own fit, blurred among confident fits),
    capped at 1.25 × the cells' estimate. Neutral inks (silver foil, white, black) cannot tell their brightness from white,
    so they do not vote. This is the fix for DESTROYER's foil, whose sparkle the first cut read as light.
-4. **Unreliable pixels.** A clipped pixel (neutral at 250+, or a channel at the top under light) is unreliable only where
-   the light found explains at least 30% of it. Foil and white ink can clip on their own; the experiment's white-ink
-   guard still holds (asserted). On the stored path there is no clipping left to see: the upload's softening replaced each
-   clipped core with a smooth fill at its ceiling. So that core is found as **the flat plateau at a hotspot's peak**:
-   flood-filled from each strong white peak through textureless pixels at the plateau's luminance that still carry
-   ≥ 40% of the peak's light, within 240 px.
-5. **Deciding what light hid.** The colour layer in-paints unreliable pixels from the design around them, as it already
-   did clipped glare (`glare` option, `disc-stamp-color.mjs`). The mask treats them as **unknown** (`unknown` option,
-   `disc-stamp-extract.mjs`). An unknown pixel is design only when **enclosed by design**: along at least 5 of 8 lines
-   through it, the nearest read pixels on *both* sides are design. A core inside a printed area stays printed (no hole);
-   a core on bare plastic, or across a mark's edge, stays plastic (**no glare-shaped blob**). A stroke that crossed a
-   clipped core shows a gap there, like wear. That is a deliberate choice: what a clipped core held is not in the photo,
-   and every alternative I tried (smooth fill, nearest neighbour, any-line bridging) drew the glare's own round shape
-   back into the asset as a blob or a fan.
+4. **Unreliable pixels.** A clipped pixel (neutral at 250+, or a channel at the top under light) is unreliable where
+   the light found explains at least 30% of it, or where its clipped patch sits in a **rising halo**: the light just
+   outside the patch is at least twice the light a few radii further out, in at least 24 of 32 directions. (A hard
+   core's own light can't be measured, so it is interpolated low; a hotspot's halo rises toward it all round, while
+   clipped ink or foil under an even sheen does not rise, and a holographic facet among brighter facets rises only in
+   places.)
+   Foil and white ink can clip on their own; the experiment's white-ink guard still holds (asserted). On the stored path
+   there is no clipping left to see: the upload's softening replaced each clipped core with a smooth fill at its ceiling.
+   So that core is found as **the flat plateau at a hotspot's peak**: flood-filled from each strong white peak through
+   textureless pixels at the plateau's luminance that still carry ≥ 40% of the peak's light, within 240 px.
+5. **Filling what light hid** (revised after Freddy saw the DD3 smudge, below).
+   - **A core inside printed area** (≥ 70% of the ring round it is print, not plastic) is **filled with that print,
+     cloned from nearby**, the way a retoucher's stamp works (`cloneCores`). First the whole core in one piece: the
+     offset whose ring best matches the core's ring and whose patch has the ring's colour statistics, then aligned to
+     the pixel so a halftone's or hatching's phase runs on, its tone matched to the core's ring (capped). If no single
+     patch fits, it is filled in tiles from the edge inward, each from the source whose surroundings best match its own.
+     From a camera original the filled zone reaches 1.25× the core's radius into the under-measured halo. Cloned pixels
+     are print again: both looks draw them as print.
+   - **Any other unreliable pixel** in the mask (`unknown`, `disc-stamp-extract.mjs`) is design only when **enclosed by
+     design**: along at least 5 of 8 lines through it, the nearest read pixels on *both* sides are design. A core on bare
+     plastic, or across a mark's edge, stays plastic (**no glare-shaped blob**); a stroke that crossed it shows a gap,
+     like wear. Its ink (line or fill) and, in the colour layer, its colour come from **the ring of print around it**
+     (`fillFromRing`): the dominant ink, or the nearer of two that share the ring, in that ink's own mean colour. Never
+     the mean of everything around, which blends a face's lines and fills into a colour neither has.
+   - **Stranded stubs go.** A small mark (under 1,200 px at 2048) touching a core is the end of a stroke the core cut,
+     and on the model reads as a dot. From a stored photo the same holds beside strong light (white past half the
+     softening's ceiling), where the upload laid plastic over the print. (Not on the original: there the print near
+     strong light is still in the photo, and a small letter beside a hotspot is a letter.)
 6. **Reflection residue.** v1's reflection rule dropped soft marks lighter than the plastic. Once the light is out, a
    window reflection's leftovers no longer look lighter. So a small stray mark (under 2000 px at 1024) lying ≥ 90% in
    lit pixels, away from the rest of the design, is dropped too. (Without this, the DD3 with no flash grew a speck at its
@@ -120,8 +134,8 @@ main's code on the same photos, not a reconstruction.
 
 | Sheet | What it shows |
 | --- | --- |
-| [Destroyer, flash, full color](../work/photo-stamp-one-click/evidence/sheet-destroyer-flash-color.jpg) · [game asset](../work/photo-stamp-one-click/evidence/sheet-destroyer-flash-asset.jpg) | **Main bakes the flash in**: a pink spot from the stored photo, a white one from the original, visible even in the bag at pulled size. **This branch: no spot.** "DISTANCE" shows a gap where the clipped core sat (from the stored photo the gap is a little wider, as the numbers say). |
-| [DD3, flash, full color](../work/photo-stamp-one-click/evidence/sheet-dd3-flash-color.jpg) · [game asset](../work/photo-stamp-one-click/evidence/sheet-dd3-flash-asset.jpg) | **Main bakes a white highlight into the face** from the original, plainly visible in the bag, and a pale pink spot from the stored photo. **This branch: no highlight.** What remains where the core was is a soft violet smudge (original) and, **from the stored photo, a darker magenta smudge**: the upload had already blended the face's inks there, and that blend is what is left to draw. It reads as a discoloured patch, not as light. **It is the one thing on these sheets I would want Freddy's eye on.** |
+| [Destroyer, flash, full color](../work/photo-stamp-one-click/evidence/sheet-destroyer-flash-color.jpg) · [game asset](../work/photo-stamp-one-click/evidence/sheet-destroyer-flash-asset.jpg) | **Main bakes the flash in**: a pink spot from the stored photo, a white one from the original, visible even in the bag at pulled size. **This branch: no spot, and no dot.** "DISTANCE" shows a gap where the clipped core sat. From the stored photo more is lost near the core (parts of "OYER" and "DRIVER"), because the upload's softening had already laid plastic over them. |
+| [DD3, flash, full color](../work/photo-stamp-one-click/evidence/sheet-dd3-flash-color.jpg) · [game asset](../work/photo-stamp-one-click/evidence/sheet-dd3-flash-asset.jpg) | **Main bakes a white highlight into the face** from the original, plainly visible in the bag, and a pale pink spot from the stored photo. **This branch: the core reads as the face's own print** (periwinkle fills, red line work) from both the stored photo and the original; from the stored photo it is a little redder than the face around it (the stored photo itself carries a pink haze there). |
 | [DD3, as taken, full color](../work/photo-stamp-one-click/evidence/sheet-dd3-clean-color.jpg) · [game asset](../work/photo-stamp-one-click/evidence/sheet-dd3-clean-asset.jpg) | The real disc with known glare (the window across its shoulder and crystals). All four columns read as the same print at bag size; the branch's crystals are a little calmer where the window lit them. |
 | [Destroyer, as taken, full color](../work/photo-stamp-one-click/evidence/sheet-destroyer-clean-color.jpg) · [game asset](../work/photo-stamp-one-click/evidence/sheet-destroyer-clean-asset.jpg) | Indistinguishable across the four at bag size and at 2×. |
 
@@ -143,10 +157,10 @@ are shares of the clean design in the zone. Colour ΔE includes the flash's whol
 
 | | Blob | Eaten | Colour ΔE |
 | --- | --- | --- | --- |
-| Destroyer, camera original: main → branch | 0.518 → **0.105** | 0.070 → 0.244 | 19.5 → **9.6** |
-| Destroyer, stored photo: main → branch | 0.547 → **0.077** | 0.087 → 0.390 | 22.7 → **13.1** |
-| DD3, camera original: main → branch | 0.183 → **0.101** | 0.000 → 0.003 | 21.8 → **18.9** |
-| DD3, stored photo: main → branch | 0.083 → **0.057** | 0.000 → 0.008 | 22.2 → 22.1 |
+| Destroyer, camera original: main → branch | 0.518 → **0.100** | 0.070 → 0.254 | 19.5 → **11.2** |
+| Destroyer, stored photo: main → branch | 0.547 → **0.052** | 0.087 → 0.429 | 22.7 → **13.4** |
+| DD3, camera original: main → branch | 0.183 → **0.100** | 0.000 → 0.020 | 21.8 → **19.2** |
+| DD3, stored photo: main → branch | 0.083 → **0.057** | 0.000 → 0.012 | 22.2 → 22.8 |
 | Drawn disc (unit test), camera original: main → branch | 0.464 → **0.000** | 0.015 → 0.075 | |
 | Drawn disc, stored photo: main → branch | 0.009 → 0.026 | 0.065 → **0.033** | |
 
@@ -169,6 +183,28 @@ light coming out.
 **Cost.** The light stage adds about 2–3 s per make in Node (Destroyer 4.9 → 7.2 s, DD3 6.2 → 9.3 s). In the browser
 suites a one-click Game asset takes 6.4 s in desktop Chromium and 7.1 s in WebKit at phone size on this Mac. A real
 phone will be slower; v3's 180 s extraction limit has ample room.
+
+## Follow-up: the DD3 smudge and the Destroyer dot (October 22)
+
+Freddy saw the first sheets and ruled the DD3's stored-photo core, a dark magenta smudge, not good enough: it should read
+as plain print. He also spotted a dot on the Destroyer. Causes and fixes:
+
+- **The smudge** was the colour layer filling the core with the mean colour of everything around it, and on the DD3's
+  face that is red line work averaged with periwinkle fill. Filling with the dominant ink alone was tried first: a flat
+  mauve patch, which reads as a hole. Now a core inside print is **cloned from nearby print** (rule 5 above), so it
+  carries the face's own lines and halftone. The first clone pasted the Discmania logo into the face, because it matched
+  surroundings only; the patch must now also match the print's colour statistics, and is aligned to the pixel.
+- **The dot** on the Destroyer was a real piece of print: a 583 px stub of the underline beneath DESTROYER, stranded
+  when the core cut the stroke (from the stored photo), plus a 233 px fleck at the core's edge (from the original).
+  Small marks touching a core, or strong light on the stored path, now go.
+- **Found on the way:** the colour layer re-ran its own clipping test on the raw photo and re-filled cores the light
+  stage had already cloned (radial petals). It now skips exactly the pixels the light stage filled (`filled`).
+- **Caught on the way back:** the first rising-halo test fired on one of the DD3's holographic crystal facets in the
+  photo with no flash (clipped foil among bright foil), and the tile fill turned it to blocks. The rise must now hold
+  all round (24 of 32 directions); on the DD3 as taken nothing is filled.
+- **A limit, measured on a drawn disc:** a near-neutral dark ink (navy) beside a fast-clipping colour (yellow) under a
+  hard flash measures its halo light low, so the plastic can show through a ring round the core. Neither of Freddy's
+  discs is like that; DD3-like inks (periwinkle hatched with dark red, on red) come back clean and are the unit test.
 
 ## Stored copy vs camera original: the quality delta, on record
 
@@ -198,8 +234,8 @@ discs.** The difference lives in the asset itself at full zoom. The stored asset
 | Suite | Result |
 | --- | --- |
 | `tests/photo-stamp-one-click-browser.mjs` (new). Desktop Chromium, and `PHOTO_STAMP_ENGINE=webkit` at phone size with taps. Covers: no photo, no Look row; Game asset in one click (no file picker, no aligner, each step named, look applied, both layers on the account, the viewer wears it); Make again (new revision, no file); Full color on a disc with no asset, the sheet closed mid-make and the asset still saved; a choice made while it waits is put back; the quiet original still frames and makes; the photos' bytes unchanged | **Pass, both engines** |
-| `tests/disc-stamp-delight.mjs` (new, drawn discs). Covers: no glare = bytes untouched; a cream-fading print is not light; clipped white ink is not glare; a flash leaves no blob (< 0.03) and no bleach (halo ΔE < 8) with the print kept but for the core; the same from a stored texture (upload softening included) | Pass, 5 |
-| Unit: `disc-stamp-color`, `disc-stamp-extract`, `photo-albedo`, `photo-stamp-sync` and the rest of `tests/*.mjs` | 301 pass. 3 fail for the environment, not this change: `palette` and `redesign` want a dev server on :5173, and `prompt-4-stability-fixture` wants an `outputs/` file this worktree does not have |
+| `tests/disc-stamp-delight.mjs` (new, drawn discs). Covers: no glare = bytes untouched; a cream-fading print is not light; clipped white ink is not glare; a flash leaves no blob (< 0.03) and no bleach (halo ΔE < 8) with the print kept but for the core; the same from a stored texture (upload softening included); a flash inside hatched print comes back hatched (its spread, share of print and colours) | Pass, 6 |
+| Unit: `disc-stamp-color`, `disc-stamp-extract`, `photo-albedo`, `photo-stamp-sync` and the rest of `tests/*.mjs` | 302 pass. 3 fail for the environment, not this change: `palette` and `redesign` want a dev server on :5173, and `prompt-4-stability-fixture` wants an `outputs/` file this worktree does not have |
 | v1 `photo-stamp-assets-browser` (its original step now through the quiet link) | **Pass**, Chromium and WebKit |
 | v2 `photo-stamp-color-assets-browser` (the original through the link; a v1 entry's Full color now one click, no file) | **Pass**, Chromium and WebKit |
 | v3 `photo-stamp-sync-browser` (Full color in one tap on desktop and on the WebKit phone; Make again) | **Pass** (desktop Full color in one click, 6.7 s) |
@@ -214,8 +250,8 @@ Every browser suite ran one at a time on a quiet machine. Under load, v1's 20 s 
 
 - `public/disc-stamp-delight.mjs`: new, the light stage.
 - `public/disc-stamp-worker.mjs`: the stage wired in; `stored` skips the second de-light.
-- `public/disc-stamp-extract.mjs`: `unknown` (enclosure decision) and `lit` (reflection residue).
-- `public/disc-stamp-color.mjs`: `glare`, the upstream unreliable mask.
+- `public/disc-stamp-extract.mjs`: `unknown` (enclosure decision, ink from the ring, stranded stubs), `lit` (reflection residue), `strong`, and `fillFromRing`.
+- `public/disc-stamp-color.mjs`: `glare` (the upstream unreliable mask) and `filled` (cloned print); glare in-painted by the ring's ink.
 - `public/disc-albedo.mjs`: exports `GLARE_CEILING` (the softening's ceiling, KNEE + ROOM), otherwise unchanged.
 - `public/disc-photo.mjs`, `public/my-bag.css`: the one-click flow.
 - Tests above; `tests/photo-stamp-one-click-evidence.mjs` writes the evidence (needs the ignored photos).
