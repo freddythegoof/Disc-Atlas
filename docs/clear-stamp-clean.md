@@ -1,6 +1,6 @@
 # Clear stamp cleanliness: print only, nothing of the plastic
 
-Branch `claude/clear-stamp-clean`, off `origin/main` 9990681 (clear plastics, PR #44). Nothing pushed, merged or deployed.
+Branch `claude/clear-stamp-clean`, off `origin/main` 9990681 (clear plastics, PR #44). Pushed Oct 23, 2026 as PR #45; not merged or deployed.
 
 **Freddy's report** (Oct 23, 2026, the live blue Raptor on Clear with its game asset): the clear disc looks right, the
 stamp does not. Around and behind the stamp the plate shows *a different shade, a whiter, greyer blue* that is not
