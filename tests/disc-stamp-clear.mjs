@@ -73,3 +73,39 @@ test('extract: clear off is today\'s extraction exactly; clear on reports the sh
  const under=r=>{let n=0;for(let y=RED_BOX[3]+4;y<RED_BOX[3]+SHIFT[1];y++)for(let x=RED_BOX[0]+SHIFT[0];x<RED_BOX[2]+SHIFT[0];x++)if(r.alpha[y*N+x]>127)n++;return n;};
  assert.ok(under(on)<under(off)/4,`shadow read as design: ${under(off)} without, ${under(on)} with`);
 });
+
+// The clean finish (docs/clear-stamp-clean.md): on a clear disc the asset holds print and nothing else. The synthetic
+// disc adds what the Raptor's photo showed through its plastic: a glare band whose scratches catch the light (lighter,
+// still the plate's blue), a soft scuff darker than the plate, and a fine navy hairline the photo blurred.
+const GLARE=[340,280,470,300],SCUFF=[120,320,150,345],HAIR=[150,380,380,383];
+function clearPhoto(){
+ const d=disc({shadow:false});
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+  const p=y*N+x;let col=null;
+  // Scratches: short bright streaks across the band, the plate lifted towards white.
+  if(inBox(x,y,GLARE)&&((x+2*y)%9<4))col=[10,132,168].map(v=>v+.45*(255-v));
+  else if(inBox(x,y,SCUFF)){const e=Math.min(x-SCUFF[0],SCUFF[2]-x,y-SCUFF[1],SCUFF[3]-y)/6;col=PLATE.map(v=>v*(1-.22*Math.min(1,e)));}
+  // The hairline: a navy core one pixel wide with half-blended sides.
+  else if(inBox(x,y,HAIR))col=y===HAIR[1]+1?NAVY:NAVY.map((v,k)=>(v+PLATE[k])/2);
+  if(col){d[4*p]=col[0];d[4*p+1]=col[1];d[4*p+2]=col[2];}
+ }
+ return d;
+}
+test('clean finish: print at full alpha, nothing of the plastic (glare, a scuff), the hairline kept', () => {
+ const opaque=extract(clearPhoto(),N,.95,{stored:true,color:true}),clear=extract(clearPhoto(),N,.95,{stored:true,color:true,clear:true});
+ const a=clear.color.rgba,count=(r,box,test)=>{let n=0;for(let y=box[1];y<box[3];y++)for(let x=box[0];x<box[2];x++)if(test(r,y*N+x))n++;return n;};
+ const shown=(r,p)=>r.color.rgba[4*p+3]>0;
+ // Every pixel is print at full alpha or not in the asset, in the colour asset and the one-ink asset alike.
+ for(let p=0;p<N*N;p++){assert.ok(a[4*p+3]===0||a[4*p+3]===255);assert.equal(clear.alpha[p],a[4*p+3]);}
+ // The plastic: today's extraction paints some of it, the clean finish none.
+ assert.ok(count(opaque,GLARE,shown)+count(opaque,SCUFF,shown)>0,'the opaque extraction reads some of the plastic as design');
+ assert.equal(count(clear,GLARE,shown),0,'no glare');assert.equal(count(clear,SCUFF,shown),0,'no scuff');
+ // The print: both words and the hairline's core.
+ for(const box of [RED_BOX,NAVY_BOX]){let n=0,s=0;for(let y=box[1]+1;y<box[3]-1;y++)for(let x=box[0];x<box[2];x++)if(stroke(x,y,box)&&stroke(x-1,y,box)&&stroke(x+1,y,box)){n++;s+=shown(clear,y*N+x);}assert.ok(s/n>.97,`a word is kept (${s}/${n})`);}
+ const core=count(clear,[HAIR[0]+4,HAIR[1]+1,HAIR[2]-4,HAIR[1]+2],shown);assert.ok(core>.9*(HAIR[2]-HAIR[0]-8),`the hairline is kept (${core})`);
+});
+test('clean finish off: the colour asset is today\'s, soft-edged', () => {
+ const r=extract(clearPhoto(),N,.95,{stored:true,color:true});
+ let partial=0;for(let p=0;p<N*N;p++)if(r.color.rgba[4*p+3]>0&&r.color.rgba[4*p+3]<255)partial++;
+ assert.ok(partial>0);
+});
