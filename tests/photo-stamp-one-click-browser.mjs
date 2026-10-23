@@ -2,10 +2,13 @@
 // In the real app on the local signed-in harness, with a drawn synthetic disc photo made at run time (never a player's
 // photo). Desktop Chromium by default; PHOTO_STAMP_ENGINE=webkit runs it at phone size in WebKit with touch (taps):
 //   a disc with no photo · no Look row (nothing to make an asset from);
-//   Game asset           · one click: the asset made from the stored photo, saved to the account, the look applied,
-//                          no file asked for and no aligner; the status named each step;
-//   Full color           · the same, from a disc with no asset;
-//   Make again           · one click again, a new revision, still no file;
+//   Game asset           · one click: the asset made from the stored photo, saved to the account, landing on Full
+//                          color (docs/spin-color-default.md), no file asked for and no aligner; the status named
+//                          each step;
+//   One ink              · the alternate style applies at once and is saved;
+//   Make again           · one click again, a new revision, still no file, and the One ink choice kept;
+//   a reload             · the saved One ink choice is still the disc's look; Photo and back returns to it;
+//   Game asset (2nd disc)· the same, from a disc with no asset, landing on Full color;
 //   the sheet closed     · mid-make, the asset is still made and saved;
 //   the original         · the quiet "Use a higher-resolution original instead" still frames an original and makes
 //                          the asset from it;
@@ -77,16 +80,25 @@ try{
  const savedA=await savePhoto(A,first),photoA=await photoHash(A,savedA.texture_key);
  await edit(A);assert.equal(await lookChecked('photo'),true);
  assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isHidden(),true,'nothing to make again yet');
+ // The style row is not offered while the disc wears its photo.
+ assert.equal(await page.locator('#addDiscDialog .bag-photo-look-style').isHidden(),true,'no style under Photo');
  let r=results.asset=await oneClick(page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}));
- assert.equal(r.status,'Game asset made. Saved to your account.',JSON.stringify(r));
+ assert.equal(r.status,'Full-color asset made. Saved to your account.',JSON.stringify(r));
  assert.equal(r.pickers,0,'no file picker');assert.equal(r.aligner,0,'no aligner');
  for(const step of STEPS)assert.ok(r.steps.includes(step),'named '+step+': '+JSON.stringify(r.steps));
- assert.equal(await lookChecked('asset'),true,'the look applied');
+ assert.deepEqual([await lookChecked('game'),await lookChecked('color')],[true,true],'a new asset lands on Full color');
+ assert.equal(await page.locator('#addDiscDialog .bag-photo-look-style').isVisible(),true,'One ink offered beside it');
  assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isVisible(),true,'it can be made again');
  await closeSheet();
  let server=await stamp(A),local=await entry(A);
- assert.deepEqual([server?.look,server?.texture_key,!!server?.color],['asset',savedA.texture_key,true],'on the account, both layers: '+JSON.stringify(server));
- assert.deepEqual([local?.look,local?.rev,local?.server],['asset',server.rev,true]);
+ assert.deepEqual([server?.look,server?.texture_key,!!server?.color],['color',savedA.texture_key,true],'on the account, both layers: '+JSON.stringify(server));
+ assert.deepEqual([local?.look,local?.rev,local?.server],['color',server.rev,true]);
+ const firstRev=server.rev;
+ // The player prefers one ink: it applies at once, from the same read, and is saved.
+ await edit(A);await press(page.locator('#addDiscDialog .bag-photo-look label',{hasText:'One ink'}));
+ assert.equal(await page.locator('#addDiscDialog .bag-photo-status').textContent(),'Showing the game asset in one ink.');
+ await page.waitForFunction(async id=>(await (await fetch('/api/bag/stamps',{credentials:'same-origin'})).json()).stamps.find(s=>s.disc_id===id)?.look==='asset',A,{timeout:15000});
+ await closeSheet();
  log('viewer');
  // The viewer wears it, with no photo.
  await page.locator(`[data-bag-inspect="${A}"]`).first().evaluate(n=>n.click());
@@ -95,15 +107,33 @@ try{
 
  log('make again');
  // Make again: one click, a new revision, still no file.
+ // Make again: one click, a new revision, still no file. The saved One ink choice is kept: the default is for new
+ // assets only.
  await edit(A);r=results.again=await oneClick(page.locator('#addDiscDialog .bag-photo-asset-make'));
  assert.equal(r.status,'Game asset made. Saved to your account.');assert.equal(r.pickers,0);assert.equal(r.aligner,0);
- await closeSheet();assert.notEqual((await stamp(A)).rev,server.rev,'a new revision');
+ assert.equal(await lookChecked('asset'),true,'still One ink');
+ await closeSheet();server=await stamp(A);assert.notEqual(server.rev,firstRev,'a new revision');
+ assert.deepEqual([server.look,!!server.color],['asset',true],'One ink on the account, colour made beside it: '+JSON.stringify(server));
+
+ log('reload');
+ // After a reload the choice is still One ink, from the account and the cache alike; nothing was re-rendered.
+ await page.reload();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=3);
+ assert.deepEqual([(await entry(A))?.look,(await entry(A))?.rev],['asset',server.rev]);
+ await edit(A);assert.deepEqual([await lookChecked('game'),await lookChecked('asset')],[true,true],'One ink after a reload');
+ assert.match(await page.locator('#addDiscDialog .bag-photo-look-note').textContent(),/^One ink draws/);
+ // Photo and back to Game asset returns to the style the disc wore, not the default.
+ await press(page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Photo'}));assert.equal(await lookChecked('photo'),true);
+ assert.match(await page.locator('#addDiscDialog .bag-photo-look-note').textContent(),/in full color/);
+ await press(page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}));assert.equal(await lookChecked('asset'),true,'back to One ink');
+ await page.waitForFunction(async id=>(await (await fetch('/api/bag/stamps',{credentials:'same-origin'})).json()).stamps.find(s=>s.disc_id===id)?.look==='asset',A,{timeout:15000});
+ assert.equal((await stamp(A)).rev,server.rev,'switching re-renders nothing');
+ await closeSheet();
 
  log('full color');
- // Full color, one click, on a disc with no asset; the sheet closed mid-make does not stop it.
+ // Game asset, one click, on a second disc with no asset, lands on Full color; the sheet closed mid-make does not stop it.
  const savedB=await savePhoto(B,second),photoB=await photoHash(B,savedB.texture_key);
  await edit(B);const before=pickers;
- await press(page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}));
+ await press(page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}));
  await page.waitForFunction(()=>/^Making the game asset: /.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''));
  assert.equal(await page.locator('#addDiscDialog .bag-photo-look').getAttribute('aria-busy'),'','the row waits while it is made');
  assert.equal(await lookChecked('color'),true,'the row shows the look asked for');

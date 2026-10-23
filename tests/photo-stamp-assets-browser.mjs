@@ -58,7 +58,8 @@ try{
 
  // The Look row: Photo by default. v3.1 (docs/photo-stamp-one-click.md): Game asset itself makes the asset from the
  // stored photo in one click (tests/photo-stamp-one-click-browser.mjs); the camera original is the quiet option beside
- // it, which frames the original and makes the asset, as here.
+ // it, which frames the original and makes the asset, as here. Since docs/spin-color-default.md a new asset lands on
+ // Full color; One ink, this suite's look, is the alternate style beside it.
  await edit();assert.equal(await lookRow().isVisible(),true);
  assert.equal(await page.locator('#addDiscDialog .bag-photo-look input[value="photo"]').isChecked(),true);
  assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isHidden(),true,'nothing to make again yet');
@@ -69,7 +70,8 @@ try{
  assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
  assert.equal(await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').textContent(),'Make game asset');
  await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
- await page.waitForFunction(()=>/Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'One ink'}).click();
  assert.equal(await page.locator('#addDiscDialog .bag-photo-look input[value="asset"]').isChecked(),true);
  await closeSheet();
  assert.equal(await routeHash(),storedBefore,'the saved photo on the account is untouched');

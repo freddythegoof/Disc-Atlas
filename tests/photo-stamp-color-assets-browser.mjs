@@ -70,9 +70,10 @@ try{
  const pixelsBefore=createHash('sha256').update(await photoPixels()).digest('hex');
 
  // The Look row: three choices. The original (v3.1: the quiet option; one click from the stored photo is the default,
- // tests/photo-stamp-one-click-browser.mjs) is framed and read once for both assets; Full color then applies at once.
+ // tests/photo-stamp-one-click-browser.mjs) is framed and read once for both assets, and lands on Full color, the
+ // default style (docs/spin-color-default.md); One ink beside it then applies at once.
  await edit();
- assert.deepEqual(await page.locator('#addDiscDialog .bag-photo-look-row label').allTextContents(),['Photo','Game asset','Full color']);
+ assert.deepEqual(await page.locator('#addDiscDialog .bag-photo-look-row label').allTextContents(),['Photo','Game asset','Full color','One ink']);
  assert.equal(await look('photo').isChecked(),true);
  const chooser=page.waitForEvent('filechooser');
  await page.locator('#addDiscDialog .bag-photo-asset-original').click();
@@ -80,7 +81,9 @@ try{
  await page.waitForSelector('dialog.photo-aligner[open]');
  assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
  await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
- await page.waitForFunction(()=>/Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+ await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'One ink'}).click();
+ await page.waitForFunction(()=>/Showing the game asset in one ink/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:30000});
  await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'}).click();
  await page.waitForFunction(()=>/Showing the full-color asset/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:30000});
  assert.equal(await look('color').isChecked(),true);
@@ -174,9 +177,9 @@ try{
  await page.waitForFunction(()=>document.querySelector('#detail .disc3d-stage')?.dataset.state==='ready');await wait(500);
  assert.equal(await page.evaluate(()=>Disc3D.viewer.debug.stamp.material.map?.userData.stampAsset||null),null);
 
- // Game asset: the one-ink asset made from the same read, in the player's ink again.
+ // One ink: the one-ink asset made from the same read, in the player's ink again.
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=2);
- await edit();await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}).click();
+ await edit();await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'One ink'}).click();
  assert.equal(await look('asset').isChecked(),true);
  assert.match(await page.locator('#addDiscDialog .bag-photo-look-note').textContent(),/in your stamp ink and finish/);
  await closeSheet();

@@ -40,7 +40,8 @@ if(process.argv[2]==='--probe'){
   const original=page.locator('#addDiscDialog .bag-photo-asset-original');
   await ((await original.count())?original:page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'})).click();await (await chooser).setFiles(photoFile);
   await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
-  await page.waitForFunction(()=>/Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
+  // (Full-color on a tree where a new asset lands on it, docs/spin-color-default.md; the looks are set below either way.)
+  await page.waitForFunction(()=>/asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
   await page.keyboard.press('Escape');
   result.assetBytes=await page.evaluate(k=>new Promise((res,rej)=>{const r=indexedDB.open('disc-atlas-photo-stamps');r.onsuccess=()=>{const g=r.result.transaction('assets').objectStore('assets').get(k);g.onsuccess=async()=>{const v=g.result,b=new Uint8Array(v instanceof Blob?await v.arrayBuffer():v.bytes);res(Array.from(b).join(','));};g.onerror=rej;};}),disc.id+'/'+key);
   const setLook=look=>page.evaluate(([id,k,look])=>import('/disc3d/photo-stamps.mjs').then(m=>m.setPhotoLook(id,k,look)),[disc.id,key,look]);

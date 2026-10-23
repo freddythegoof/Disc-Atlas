@@ -378,15 +378,20 @@ let lookGroupId=0;
 // The step a game asset is being made at, after "Making the game asset: " (MAKE_LIMITS).
 // v3.1: 'open' fetches the disc's own photo, which one click makes the asset from.
 const MAKE_STEPS={open:'opening your photo…',extract:'finding the stamp…',ink:'drawing it in one ink…',color:'drawing it in full color…',save:'saving to your account…'};
-const LOOK_NOTE={asset:'Game asset draws this disc’s stamp from its photo, in your stamp ink and finish, with the photo’s glare left out. Saved to your account, on every device; the photo stays saved.',
+// Full colour is the game asset's default style (docs/spin-color-default.md): Game asset lands on it, and One ink is the
+// alternate style beside it. A look already saved is never changed by the default.
+const LOOK_NOTE={photo:'Game asset draws this disc’s stamp from its photo in full color, with the photo’s glare left out. Saved to your account, on every device; the photo stays saved.',
+ asset:'One ink draws this disc’s stamp from its photo, in your stamp ink and finish, with the photo’s glare left out. Saved to your account, on every device; the photo stays saved.',
  color:'Full color keeps the stamp’s own colors from its photo, with the photo’s glare left out, so your stamp ink doesn’t apply; a foil finish adds only a light sheen. Saved to your account, on every device; the photo stays saved.'};
-const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="asset">Game asset</label><label><input type="radio" name="'+name+'" value="color">Full color</label></div><small class="bag-photo-look-note">'+LOOK_NOTE.asset+'</small><button type="button" class="bag-photo-asset-make" hidden>Make again</button><button type="button" class="bag-photo-asset-original">Use a higher-resolution original instead</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
+const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="game">Game asset</label></div><div class="bag-photo-look-row bag-photo-look-style" role="radiogroup" aria-label="Game asset style" hidden><span class="bag-photo-look-title" aria-hidden="true">Style</span><label><input type="radio" name="'+name+'-style" value="color">Full color</label><label><input type="radio" name="'+name+'-style" value="asset">One ink</label></div><small class="bag-photo-look-note">'+LOOK_NOTE.photo+'</small><button type="button" class="bag-photo-asset-make" hidden>Make again</button><button type="button" class="bag-photo-asset-original">Use a higher-resolution original instead</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
 
 // The sheet shows the photo and its actions; choosing a photo opens the aligner, a large pop-out with
 // guides. Use photo prepares the upload there (lighting removed, plate colour measured) and returns to
 // the sheet with it; Cancel returns with nothing changed. Saving still happens with the sheet.
 // onColor(color) reports the plate colour of a newly used photo, onColor(null) its removal.
 let sourceChooserId=0;
+// The style a disc wore before it went back to Photo this visit, so Game asset returns to it rather than the default.
+const lastStyle=new Map();
 export function createPhotoEditor(root,{onColor=()=>{}}={}){
  root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>'+LOOK('photoLook-'+(++lookGroupId))+'<p class="bag-photo-status" role="status"></p>';
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
@@ -416,9 +421,9 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,haloModel,mode,url}.
  // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
  // owned: the saved photo's disc and version {id,key}, which a game asset belongs to (photo-stamps.mjs).
- // making: the look a game asset is being made for ('asset' or 'color'); one read makes both.
+ // making: the look a game asset is being made for ('color' or 'asset'); one read makes both.
  // makingNow: a one-click make from the stored photo in progress {target, look} (v3.1); it outlives the sheet.
- let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='asset';
+ let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='color';
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -439,10 +444,11 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    // While this disc's asset is being made, its row shows the look asked for and waits.
    const state=photoLook(owned.id,owned.key),wait=makingNow&&makingNow.target.id===owned.id&&makingNow.target.key===owned.key,want=wait?makingNow.look:state.look;
    // Marked, not disabled: a disabled control that has focus swallows keys, and Escape must still close the sheet.
-   for(const input of look.querySelectorAll('input[type="radio"]')){input.checked=input.value===want;input.toggleAttribute('aria-disabled',!!wait);}
+   for(const input of look.querySelectorAll('input[type="radio"]')){input.checked=input.value===want||input.value==='game'&&want!=='photo';input.toggleAttribute('aria-disabled',!!wait);}
+   q('.bag-photo-look-style').hidden=want==='photo';
    look.toggleAttribute('aria-busy',!!wait);q('.bag-photo-asset-make').hidden=!state.available;
    for(const b of look.querySelectorAll('button'))b.toggleAttribute('aria-disabled',!!wait);
-   q('.bag-photo-look-note').textContent=LOOK_NOTE[want==='color'?'color':'asset'];
+   q('.bag-photo-look-note').textContent=LOOK_NOTE[want]||LOOK_NOTE.photo;
   }
  };
  const size=low=>Math.max(64,Math.min(low?360:720,Math.round(frame.clientWidth*Math.min(devicePixelRatio||1,2))));
@@ -518,14 +524,19 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
   if(!owned||e.target.type!=='radio')return;
   // While an asset is being made the row waits: a choice made meanwhile is put back.
   if(makingNow){if(makingNow.target.id!==owned.id||makingNow.target.key!==owned.key)q('.bag-photo-status').textContent='Another disc’s game asset is being made. Try again when it’s done.';renderSheet();return;}
-  const want=e.target.value,state=photoLook(owned.id,owned.key);
+  const state=photoLook(owned.id,owned.key),disc=owned.id+'/'+owned.key;
+  // Game asset lands on Full color: the style this disc wore before Photo this visit, else colour when it has a colour
+  // layer or none is made yet. An asset with no colour layer (made before v2, or too detailed for colour) stays one ink.
+  const want=e.target.value==='game'?lastStyle.get(disc)||(state.available&&!state.color?'asset':'color'):e.target.value;
+  if(want==='photo'&&state.look!=='photo')lastStyle.set(disc,state.look);
   // An asset made before full colour existed has no colour layer: it is made again, both layers from one read.
   if(want==='asset'&&!state.available||want==='color'&&!state.color){makeFromPhoto(want);return;}
-  const target=owned;q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset.':want==='color'?'Showing the full-color asset.':'Showing the photo.';
+  const target=owned;q('.bag-photo-status').textContent=want==='asset'?'Showing the game asset in one ink.':want==='color'?'Showing the full-color asset.':'Showing the photo.';
   // Saved to the account (photo-stamps.mjs); if it cannot be, the disc keeps the look it had and says why.
   setPhotoLook(target.id,target.key,want).catch(error=>{if(owned===target){q('.bag-photo-status').textContent=error.message||'Your look could not be saved. Try again.';renderSheet();}});renderSheet();
  });
- const lookNow=()=>owned&&photoLook(owned.id,owned.key).look==='color'?'color':'asset';
+ // A make keeps the style the disc wears; from Photo it makes the default, Full color.
+ const lookNow=()=>owned&&photoLook(owned.id,owned.key).look==='asset'?'asset':'color';
  q('.bag-photo-asset-make').onclick=()=>makeFromPhoto(lookNow());
  q('.bag-photo-asset-original').onclick=()=>pickOriginal(lookNow());
  q('.bag-photo-asset-file').onchange=async()=>{
