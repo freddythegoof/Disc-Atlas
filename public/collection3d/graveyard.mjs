@@ -4,7 +4,8 @@
 // reads on the green by lightness, not hue), and the selected and hovered stones carry billboard name tags
 // that stay readable while the yard turns. A new loss rises out of the lawn; a disc that's found floats up
 // and away while its stone sinks.
-import {THREE,SceneView,discModel,stampStyleKey,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
+import {THREE,SceneView,discModel,paintClear,stampStyleKey,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
+import {pageColor} from '../disc3d/clear.mjs';
 import {plots,graveColumns,PLOT_WIDTH,PLOT_DEPTH} from './graveyard-layout.mjs';
 
 const STONE_W=.46,STONE_H=.6,STONE_D=.09,FACE_W=STONE_W*.86,ENTER_MS=760,LEAVE_MS=1100,MOVE_MS=520;
@@ -93,12 +94,12 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
   plotsById.set(e.id,plot);return plot;
  }
  function dress(plot,e){
-  const key=JSON.stringify([e.lines,e.color,e.rimColor,e.haloBand,e.haloModel,e.photoURL,e.d?.id,plotsById.size>12,stampStyleKey()]);if(plot.key===key)return;plot.key=key;
+  const key=JSON.stringify([e.lines,e.color,e.rimColor,e.haloBand,e.haloModel,e.photoURL,e.d?.id,plotsById.size>12,stampStyleKey(),e.finish]);if(plot.key===key)return;plot.key=key;
   plot.name=e.lines.name;
   const texture=engraving(e.lines,stoneVariant(plot),plotsById.size>12?320:512);texture.anisotropy=anisotropy;
   plot.face.material.map?.dispose();plot.face.material.map=texture;plot.face.material.needsUpdate=true;
   if(plot.disc){plot.group.remove(plot.disc);disposeObject(plot.disc);}
-  const disc=discModel(e.d,{color:e.color,rimColor:e.rimColor,haloBand:e.haloBand,haloModel:e.haloModel,name:e.name,photoURL:e.photoURL,onChange:()=>view.request()});
+  const disc=discModel(e.d,{color:e.color,rimColor:e.rimColor,haloBand:e.haloBand,haloModel:e.haloModel,name:e.name,photoURL:e.photoURL,finish:e.finish,walls:1,onChange:()=>view.request()});paintClear(disc,pageColor(host));
   const t=disc.userData.parts.thickness;disc.position.set(.01,.045+t/2-.004,.3);disc.rotation.set(-.12,THREE.MathUtils.degToRad((plot.x*97)%40-20),.06);
   plot.disc=disc;plot.group.add(disc);
  }

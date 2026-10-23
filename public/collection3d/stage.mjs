@@ -13,6 +13,7 @@ import {photoSurface} from '../disc3d/photo.mjs';
 import {photoStampFor,photoLooksKey} from '../disc3d/photo-stamps.mjs';
 import {parseHalo} from '../disc3d/halo.mjs';
 import {haloCoord,haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
+import {isClear,clearPart,clearRig,CLEAR_ORDER} from '../disc3d/clear.mjs';
 import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset,catalogStampPlacement,colorStyle} from '../disc3d/stamp.mjs';
 
 export const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -124,17 +125,17 @@ export const personalStampStyle=()=>window.DisplayPalette?.stampStyle?.()||null;
 // Photo discs switched to their game-asset look (photo-stamps.mjs) are part of it too.
 export const stampStyleKey=()=>{const s=personalStampStyle(),looks=photoLooksKey();return (s?s.inkId+'/'+s.finish.id:'')+(looks?'|'+looks:'');};
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
-export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,onChange=()=>{},stamp=true}={}){
+// A clear copy (`finish` 'clear', disc3d/clear.mjs) filters what is behind it: `walls` 2 (the pulled disc) shows its
+// underside through the top, 1 (small) the front wall only. Its page colour is set by paintClear().
+export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,walls=2,onChange=()=>{},stamp=true}={}){
  // The game-asset look: the extracted stamp on the stamp mesh, and no photo.
  const look=photoStampFor(photoURL);if(look)photoURL=null;
  const twoTone=!!haloBand&&!!parseHalo(haloModel);
  const entry=discParts(d,undefined,!!haloBand,twoTone),colors=discColors(entry,color,rimColor,haloBand),group=new THREE.Group();
  const plate=new THREE.Mesh(entry.plate,discMaterial(colors.plate));group.add(plate);
- if(entry.rim){
-  const material=discMaterial(colors.rim);
-  if(entry.halo){const uniforms=haloUniforms();setHalo(uniforms,haloModel);patchHalo(material,uniforms);}
-  group.add(new THREE.Mesh(entry.rim,material));
- }
+ const twoToned=material=>{if(entry.halo){const uniforms=haloUniforms();setHalo(uniforms,haloModel);patchHalo(material,uniforms);}return material;};
+ let rim=null;
+ if(entry.rim){rim=new THREE.Mesh(entry.rim,twoToned(discMaterial(colors.rim)));group.add(rim);}
  let ink=null;
  if(stamp){
   const geometry=placement=>{const ring=stampGeometry(entry.shape,{segments:32,rings:5,placement});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);return ring;};
@@ -148,8 +149,19 @@ export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,onC
  if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,like:plate.material,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
  group.userData.parts=entry;
+ if(isClear(finish)){
+  // The plate's passes, and a band's (an overmold's rim piece stays opaque); the print over both walls.
+  const platePart=clearPart(()=>discMaterial(),{walls});platePart.paint(colors.plate);
+  const rigs=[clearRig(plate,{plate:platePart})];
+  if(rim&&!entry.overmold){const band=clearPart(()=>twoToned(discMaterial()),{walls,page:platePart.page});band.paint(colors.rim);rigs.push(clearRig(rim,{plate:band}));}
+  for(const rig of rigs)rig.walls(walls);
+  for(const o of group.children)if(o===ink||o.userData.disposePhoto)o.renderOrder=CLEAR_ORDER.printAbove;
+  group.userData.clear=rigs;
+ }
  return group;
 }
+// The page colour behind a discModel's clear plastic (a no-op for an opaque disc).
+export function paintClear(group,color){for(const rig of group.userData.clear||[])rig.page(color);}
 
 // --- Name tags -----------------------------------------------------------------------------------------
 // A disc's name as a billboard: a sprite that always faces the camera and keeps one on-screen size, so it

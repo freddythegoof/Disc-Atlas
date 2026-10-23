@@ -355,6 +355,9 @@ body[data-view="bag"] main {display:none!important}
 .bag-storage-empty {padding:28px 0}
 .bag-disc-swatch {display:block;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 25%,#ffffff55,transparent 48%),var(--disc-color);border:3px solid #0002;box-shadow:inset 0 0 0 2px #ffffff33,inset 0 -5px 8px #0003;position:relative}
 .bag-disc-swatch::after {content:'';position:absolute;inset:7px;border:1px solid #ffffff45;border-radius:50%}
+/* Clear plastics (docs/clear-plastic-discs.md): Opaque · Clear, pills like the photo's Look row (.bag-finish-row shares its rules). */
+.bag-finish-field {border:0;margin:0;padding:0;min-width:0;display:grid;gap:8px;align-content:start}
+.bag-finish-field legend {padding:0;margin-bottom:8px}
 .bag-color-field input[type="color"] {width:100%;height:44px;min-height:44px;padding:4px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
 .bag-color-field {grid-column:1/-1}
 .bag-pockets {margin:0!important}
@@ -591,12 +594,12 @@ body[data-view="bag"] main {display:none!important}
    sheet's chip family, and the action that reads a game asset from the original. */
 .bag-photo-look{display:grid;gap:8px;margin-top:14px}.bag-photo-look[hidden]{display:none}
 .bag-photo-look small{font-size:11px;color:var(--muted);line-height:1.5}
-.bag-photo-look-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.bag-photo-look-row[hidden]{display:none}
+.bag-photo-look-row,.bag-finish-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.bag-photo-look-row[hidden]{display:none}
 .bag-photo-look-title{font-weight:600}
-.bag-photo-look-row label{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:24px;background:var(--surface);cursor:pointer}
-.bag-photo-look-row label:has(input:checked){border-color:color-mix(in srgb,var(--lime) 70%,var(--line));background:var(--accent-soft);font-weight:600}
-.bag-photo-look-row input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.bag-photo-look-row label:has(input:focus-visible){outline:2px solid var(--lime);outline-offset:2px}
+.bag-photo-look-row label,.bag-finish-row label{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:24px;background:var(--surface);cursor:pointer}
+.bag-photo-look-row label:has(input:checked),.bag-finish-row label:has(input:checked){border-color:color-mix(in srgb,var(--lime) 70%,var(--line));background:var(--accent-soft);font-weight:600}
+.bag-photo-look-row input,.bag-finish-row input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.bag-photo-look-row label:has(input:focus-visible),.bag-finish-row label:has(input:focus-visible){outline:2px solid var(--lime);outline-offset:2px}
 .bag-photo-control .bag-photo-asset-make{justify-self:start}
 /* v3.1 (docs/photo-stamp-one-click.md): the camera original is an option, never a step, so it reads as a quiet link. */
 .bag-photo-control .bag-photo-asset-original{justify-self:start;min-height:44px;padding:0;border:0;background:none;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}

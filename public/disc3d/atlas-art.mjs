@@ -32,6 +32,7 @@ import {catalogStampAsset,catalogStampPlacement,stampTexture,stampGeometry,stamp
 import {LODS,ORDER,lodFor} from './lod.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
+import {isClear,clearPart,clearBackdrop,clearMeshes,pageColor,CLEAR_ORDER} from './clear.mjs';
 // Levels of detail by size on screen (lod.mjs): the thresholds, and the hysteresis a moving camera needs.
 export {LODS,lodFor};
 
@@ -82,6 +83,12 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // A Halo v2 band: the rim's own material and slope shading, plus the wash out to the dye front.
  const haloRim=haloUniforms(),haloRimMaterial=patchHalo(material(0x444444),haloRim);
  const mesh=new THREE.Mesh(new THREE.BufferGeometry(),plateMaterial);scene.add(mesh);
+ // A clear copy (d.finish, disc3d/clear.mjs): the front wall filtering the page colour behind it (d.page, else the
+ // page's own), with the same slope shading; an overmold's rim piece stays opaque.
+ const clearPlate=clearPart(()=>material(0x888888),{walls:1}),clearBand=clearPart(()=>material(0x444444),{walls:1,page:clearPlate.page}),clearHalo=clearPart(()=>patchHalo(material(0x444444),haloRim),{walls:1,page:clearPlate.page});
+ const clearPaper=clearBackdrop(),none=new THREE.MeshBasicMaterial({visible:false}),clearList=clearMeshes(mesh.geometry,clearPaper,clearPlate);
+ for(const m of clearList){m.visible=false;scene.add(m);}
+ const clearOf=d=>isClear(d.finish)?(d.page||pageColor(document.body)):'';
 
  // Stock art is an explicit Atlas opt-in. Lists keep their existing overlay path.
  const stampMesh=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial()),plainStamp=stampMesh.material;
@@ -155,7 +162,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(lightTheme()?undefined:'#ffffff')}):
   {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
-  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'');
+  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'')+(isClear(d.finish)?'|clear:'+clearOf(d):'');
  // A photo disc its owner switched to the game-asset look (photo-stamps.mjs) is drawn as a stamped disc: no photo,
  // its extracted stamp where stock art goes (markers from medium size up, as stock stamps are). A colour asset keeps its
  // own colours: its finish is a sheen (stamp.mjs colorStyle).
@@ -189,10 +196,19 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   const split=!!c.rim,band=split&&c.halo?haloRimMaterial:rimMaterial;
   mesh.geometry=geometryOf(s,lod,false,null,split,!!c.halo);mesh.material=split?[plateMaterial,band]:plateMaterial;
   plateMaterial.color.set(c.plate);if(split)band.color.set(c.rim);if(c.halo)setHalo(haloRim,c.halo);
+  const clear=isClear(d.finish);
+  if(clear){
+   clearPaper.color.set(clearOf(d));clearPlate.page.value.copy(clearPaper.color);clearPlate.paint(c.plate,PLASTICS.premium);
+   const bandPart=c.halo?clearHalo:clearBand;if(split&&!s.overmold)bandPart.paint(c.rim,PLASTICS.premium);
+   mesh.material=split?[none,s.overmold?rimMaterial:none]:none;
+   clearList.forEach((m,i)=>{m.geometry=mesh.geometry;if(i){const kind=(i-1)&1?'shine':'filter';m.material=split?[clearPlate.walls[0][kind],s.overmold?none:bandPart.walls[0][kind]]:clearPlate.walls[0][kind];}});
+  }
+  for(const m of clearList)m.visible=clear;
+  stampMesh.renderOrder=clear?CLEAR_ORDER.printAbove:0;
   // The disc's own diameter spans the image, less a pixel at each edge.
   const half=s.shape.diameter/2*px/(px-2);
   camera.left=-half;camera.right=half;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();
-  if(photo?.userData.photoReady)scene.add(photo);
+  if(photo?.userData.photoReady){photo.renderOrder=clear?CLEAR_ORDER.printAbove:0;scene.add(photo);}
   // A generated/loading/failed texture is never attached to the Atlas scene.
   if(ink?.userData.stampAsset){
    stampMesh.geometry=geometryOf(s,lod,true,placementOf(d));
@@ -227,7 +243,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   window.removeEventListener('atlas-photo-clear',clearPhotos);clearPhotos();
   for(const g of geometries.values())g.dispose();geometries.clear();images.clear();
   for(const ink of stamps.values())ink.dispose();stamps.clear();plainStamp.dispose();for(const m of foils.values())m.dispose();foils.clear();stampMesh.geometry.dispose();
-  plateMaterial.dispose();rimMaterial.dispose();haloRimMaterial.dispose();envTexture.dispose();renderer.dispose();
+  plateMaterial.dispose();rimMaterial.dispose();haloRimMaterial.dispose();for(const part of [clearPlate,clearBand,clearHalo])part.dispose();clearPaper.dispose();none.dispose();envTexture.dispose();renderer.dispose();
  }
  return {get,has,render,lodFor,stats,dispose,dpr,
   // For tests and tuning.

@@ -66,11 +66,12 @@ export function acquirePhoto(url,size=1024,{relief=false}={}){
 // `like`: the plate material the photo covers. The photo wears a copy of it (same lighting model,
 // roughness, clearcoat and any shader hook) with the photo as its colour, so the scene lights the design
 // exactly as it lights the plastic around it: highlights and falloff come from the model, not the photo.
+// The copy is always drawn, even where the plate itself is hidden (a clear disc's, disc3d/clear.mjs).
 export function photoSurface(shape,url,{overmold=false,onChange=()=>{},plastic={},like=null,relief=false,size=1024}={}){
  const material=like?like.clone():new THREE.MeshPhysicalMaterial(plastic);
  if(like){material.onBeforeCompile=like.onBeforeCompile;material.customProgramCacheKey=like.customProgramCacheKey;}
  for(const slot of ['map','normalMap','bumpMap','roughnessMap','metalnessMap','aoMap','alphaMap','emissiveMap','lightMap'])if(slot in material)material[slot]=null;
- material.color.set(0xffffff);material.emissive?.set(0x000000);Object.assign(material,{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+ material.color.set(0xffffff);material.emissive?.set(0x000000);Object.assign(material,{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,visible:true});
  const mesh=new THREE.Mesh(photoGeometry(shape,{overmold}),material);mesh.visible=false;let disposed=false;
  const handle=acquirePhoto(url,size,{relief});
  handle.ready.then(({map,relief:height})=>{if(disposed)return;material.map=map;if(height){material.bumpMap=height;material.bumpScale=RELIEF;}material.needsUpdate=true;mesh.userData.photoReady=true;mesh.visible=true;onChange(mesh);},()=>{if(!disposed){mesh.userData.photoFailed=true;onChange(mesh);}});

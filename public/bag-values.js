@@ -24,12 +24,15 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  const rim_color=isOvermold({...disc,record:disc.name})?value.rim_color ?? null:null;
  if(rim_color!==null && !validColor(rim_color))throw new Error('Choose a six-digit hex rim color.');
  if(typeof in_bag!=='boolean')throw new Error('Choose Bag or Storage.');
+ // Clear plastics (docs/clear-plastic-discs.md): the copy's finish. An edit that does not mention it keeps the saved one.
+ const finish=value.finish===undefined?'opaque':value.finish;
+ if(!FINISHES.includes(finish))throw new Error('Choose Opaque or Clear plastic.');
  const pocket=value.pocket,stability_bias=value.stability_bias===undefined?null:value.stability_bias;
  if(!['main','putter','goto'].includes(pocket))throw new Error('Choose Main compartment, Putter pocket or Go-to.');
  if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
  if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
  const memorial=validateLostDetails(value);
- return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
+ return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,finish,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
 }
 export function validateLostDetails(data) {
  const status=data.status===undefined?'active':data.status;
@@ -85,6 +88,8 @@ export function validateBagSettings(data, catalog, saved = {}) {
  if(!['speed','stability','custom'].includes(sort_mode))throw new Error('Choose Speed, Stability or Custom order.');
  return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase(),sort_mode,rack_style};
 }
+// A bag disc's plastic finish: 'opaque' (every disc before clear plastics) or 'clear' (Champion, Z, Opto and the like).
+export const FINISHES=['opaque','clear'];
 export const validColor=color=>typeof color==='string'&&/^#[0-9a-f]{6}$/i.test(color);
 export function plasticColor(brand,plastic,catalog){return catalog.brands[brand]?.colors?.[plastic] || catalog.defaultColor || '#e6c668';}
 export function bagPalette(color){
