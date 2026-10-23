@@ -22,12 +22,13 @@ const gallery=new AllDiscsGallery($('#allDiscsGallery'),{lookup:id=>mold(id)});
 // the colour it replaced, unless it was changed by hand since.
 let colorBeforePhoto=null,photoColor=null;
 const colorHint=()=>$('#bagDiscColor').closest('label').querySelector('small');
-// Clear plastics (docs/clear-plastic-discs.md): the copy's finish. A photo is never changed by it, and the sheet says so.
+// Clear plastics (docs/clear-plastic-discs.md): the copy's finish. A photo is never changed by it, and the sheet says so;
+// a game asset made on Clear is the stamp alone (disc-stamp-clear.mjs), so one made before a change is made again.
 const finishChoice=()=>$('#addDiscForm input[name="bagFinish"]:checked')?.value||'opaque';
 function updateFinishHint(){
  const photo=!!editing?.texture_key||photoEditor.changed;
  $('#bagFinishHint').textContent=finishChoice()==='clear'&&photo
-  ?'Your photo was taken on a surface, and it shows through the plastic in the photo. The photo stays as it was taken; the plastic around it turns clear.'
+  ?'Your photo was taken on a surface, which shows through the plastic in it, with the stamp’s shadow. The photo stays as it was taken. Game asset keeps just the stamp: after changing the finish, make it again.'
   :'Clear is see-through plastic tinted by the disc color, like Champion, Z or Opto.';
 }
 $('#addDiscForm').addEventListener('change',event=>{if(event.target.name==='bagFinish')updateFinishHint();});
@@ -43,7 +44,7 @@ function matchPhotoColor(color){
  }
  updateRimColor();
 }
-const photoEditor=createPhotoEditor($('#bagPhoto'),{onColor:matchPhotoColor});
+const photoEditor=createPhotoEditor($('#bagPhoto'),{onColor:matchPhotoColor,clear:()=>finishChoice()==='clear'});
 $('#addDiscDialog').addEventListener('close',()=>{discEditSequence++;photoEditor.reset(null);colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';});
 const pendingPockets=new Map();
 const pendingFound=new Set();

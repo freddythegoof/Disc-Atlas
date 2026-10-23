@@ -55,7 +55,7 @@ try{
  // A disc with a photo says what Clear does to it, plainly.
  await edit(raptor.id);
  assert.equal(await chosen(),'clear');
- assert.match(await page.locator('#bagFinishHint').innerText(),/The photo stays as it was taken/);
+ assert.match(await page.locator('#bagFinishHint').innerText(),/The photo stays as it was taken\. Game asset keeps just the stamp/);
  await page.keyboard.press('Escape');await page.waitForSelector('#addDiscDialog:not([open])');
  check('the sheet saves Opaque · Clear, and it survives a reload');
 

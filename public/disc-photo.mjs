@@ -196,15 +196,15 @@ const within=(promise,ms,message)=>new Promise((resolve,reject)=>{
 });
 // A canvas encode that never calls back counts as no image data (null), like an empty one.
 const stampBlob=(canvas,type,quality)=>within(new Promise(r=>canvas.toBlob(r,type,quality)),MAKE_LIMITS.encode,'').catch(()=>null);
-function extractStamp(pixels,size,plate,color=false,stored=false){
+function extractStamp(pixels,size,plate,color=false,stored=false,clear=false){
  const slow='Finding the stamp took too long on this device. Try again, or make it on a computer: it shows here too.';
- const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.extract(pixels,size,plate,{color,stored}));
+ const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.extract(pixels,size,plate,{color,stored,clear}));
  let worker;try{worker=new Worker(new URL('./disc-stamp-worker.mjs',import.meta.url),{type:'module'});}catch{return within(inline(),MAKE_LIMITS.extract,slow);}
  return within(new Promise((resolve,reject)=>{
   worker.onmessage=({data})=>{worker.terminate();if(data.error)reject(Error(data.error));else resolve(data.result);};
   // A browser that cannot start a module worker does the same work here.
   worker.onerror=event=>{event.preventDefault?.();worker.terminate();inline().then(resolve,reject);};
-  worker.postMessage({pixels:pixels.buffer,size,plate,color,stored});
+  worker.postMessage({pixels:pixels.buffer,size,plate,color,stored,clear});
  }),MAKE_LIMITS.extract,slow).catch(error=>{worker.terminate();throw error;});
 }
 // v2 (docs/photo-stamp-color-assets.md): with `color`, the same read also gives the full-colour asset (`color`: its blob
@@ -213,11 +213,12 @@ function extractStamp(pixels,size,plate,color=false,stored=false){
 // `stage(name)` reports each step as it starts ('extract', 'ink', 'color'), for the sheet's status line.
 // v3.1 (docs/photo-stamp-one-click.md): `stored`: `image` is the disc's stored texture (already de-lit once, at upload),
 // read with the level framing, not a camera original.
-export async function photoStampAsset(image,options={},{plate=.8,color=false,stored=false,colorBytes=COLOR_STAMP_BYTES,stage=()=>{}}={}){
+// `clear`: the disc is clear plastic (docs/clear-plastic-discs.md): the stamp's shadow, seen through it, is taken out.
+export async function photoStampAsset(image,options={},{plate=.8,color=false,stored=false,clear=false,colorBytes=COLOR_STAMP_BYTES,stage=()=>{}}={}){
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
  stage('extract');
- const result=await extractStamp(pixels,size,plate,color,stored),a=result.alpha,c=size/2;stage('ink');
+ const result=await extractStamp(pixels,size,plate,color,stored,clear),a=result.alpha,c=size/2;stage('ink');
  // The asset is the smallest centred square holding all of the design: no texture spent on bare plate.
  let reach=0,x0=size,y0=size,x1=-1,y1=-1;
  for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(a[j*size+i]){reach=Math.max(reach,Math.hypot(i+.5-c,j+.5-c));x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
@@ -392,7 +393,8 @@ const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-
 let sourceChooserId=0;
 // The style a disc wore before it went back to Photo this visit, so Game asset returns to it rather than the default.
 const lastStyle=new Map();
-export function createPhotoEditor(root,{onColor=()=>{}}={}){
+// `clear()`: whether the sheet has the disc as clear plastic now; a game asset is then made in the clean stamp mode.
+export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
  root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>'+LOOK('photoLook-'+(++lookGroupId))+'<p class="bag-photo-status" role="status"></p>';
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
@@ -512,7 +514,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout?.(60000)}).catch(()=>null);
    if(!response?.ok)throw Error('Your saved photo could not open. Check your connection and try again.');
    const image=await decodePhoto(await response.blob());let asset;
-   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,stage:step});}
+   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:clear(),stage:step});}
    finally{image.close();}
    step('save');
    await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
@@ -553,7 +555,7 @@ export function createPhotoEditor(root,{onColor=()=>{}}={}){
    const target=owned,step=name=>{if(id===serial)dq('.photo-aligner-status').textContent='Making the game asset: '+MAKE_STEPS[name];};
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-    const asset=await photoStampAsset(bitmap,options,{plate,color:true,stage:step}),look=making;if(id!==serial)return;
+    const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:clear(),stage:step}),look=making;if(id!==serial)return;
     step('save');
     await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');if(id!==serial)return;
     closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.';renderSheet();
