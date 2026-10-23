@@ -29,11 +29,15 @@
 // The spike's other variants (each ink averaged, posterized, or flattened to one lightness on its own) turned a halftone
 // face into blotches or flattened a print's own gradients; they are recorded in the write-up, not kept here.
 import {rgbToLab,fillFromRing} from './disc-stamp-extract.mjs';
+import {plastic} from './disc-stamp-clear.mjs';
 
 // WL: lightness weight when telling inks apart (light moves lightness more than hue). GRID: light-probe cells across the
 // crop. GUARD: plastic this close to the design (px at 1024) is not a probe; ink bleeds into it. HULL: plastic the design
 // closes round (gaps up to twice this, px at 1024) is not a probe either: seen through a print it is not open plate.
 const RING_PX=6,K=8,MERGE_DE=12,WL=.5,GRID=32,GUARD=8,HULL=32,CLIP=250,CLIP_CHROMA=.12;
+// On a clear disc (`clear`): DEEP, the share of its ink a pixel must hold to lend its colour to the print around it;
+// SPECK, the fewest pixels (at 1024) a mark of print has; BRIDGE, how far (px at 1024) glare is looked across for the print round it.
+const DEEP=.9,SPECK=4,BRIDGE=64;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -70,6 +74,13 @@ function gaussian(mask,size,sigma){
  return out;
 }
 const median=a=>{const s=Float32Array.from(a).sort();return s.length?s[s.length>>1]:0;};
+// The most of `src` within ±r (a square window, separable).
+function maxFilter(src,size,r){
+ const tmp=new Float32Array(size*size),out=new Float32Array(size*size);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){let m=0;for(let t=Math.max(0,i-r);t<=Math.min(size-1,i+r);t++)m=Math.max(m,src[j*size+t]);tmp[j*size+i]=m;}
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){let m=0;for(let t=Math.max(0,j-r);t<=Math.min(size-1,j+r);t++)m=Math.max(m,tmp[t*size+i]);out[j*size+i]=m;}
+ return out;
+}
 
 // Pull-push hole filling of a field with `channels` values per cell, weights W in 0..1 (1 = measured).
 function pullPush(C,W,n,channels){
@@ -142,7 +153,7 @@ export function lightField(data,size,mask,inside){
  * mask), in-painted like clipped glare. `filled`: pixels the light stage filled with print cloned from nearby, which `raw`
  * still shows clipped; they are kept as they are. Returns {rgba (Uint8ClampedArray, straight alpha), inks, stats}.
  */
-export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:unreliable=null,filled=null}={}){
+export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:unreliable=null,filled=null,clear=false}={}){
  const N=size*size,k=size/1024,c0=size/2,reach=plate*size/2-6*k,inside=new Uint8Array(N);
  for(let p=0;p<N;p++){const i=p%size,j=(p-i)/size;inside[p]=data[4*p+3]>=250&&Math.hypot(i+.5-c0,j+.5-c0)<=reach?1:0;}
  // 1. The light, divided out of every design pixel.
@@ -174,15 +185,48 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
   for(let c=0;c<inks.length;c++){const I=inks[c].lab,v=[I[0]-P[0],I[1]-P[1],I[2]-P[2]],vv=v[0]**2+v[1]**2+v[2]**2||1,t=Math.min(1,Math.max(0,(x[0]*v[0]+x[1]*v[1]+x[2]*v[2])/vv));if(t<1/3)continue;const d=(x[0]-t*v[0])**2+(x[1]-t*v[1])**2+(x[2]-t*v[2])**2;if(d<bd){bd=d;best=c;}}
   label[p]=best;
  }
+ // Clear (docs/clear-stamp-clean.md): print only, at full alpha, in its ink's own colour. An ink that is the plastic's
+ // own colour (disc-stamp-clear.mjs plastic: glare, scratches, a shadow, an emboss) is no ink, and its pixels go. Every
+ // other pixel holds some share t of its ink (from the plate to the ink, as the edge un-blend reads it). A mark stays
+ // where it holds at least half the most its stroke holds nearby (a hairline the photo blurred keeps its width, cut at
+ // half its depth), and only as part of a mark that somewhere is nearer its ink than the plate: a soft plate-dark patch
+ // never is. Only pixels that are mostly ink (deep) lend their colour; the rest take it from them. Glare is print
+ // only where print encloses it, and then only if the colour it is filled with is not the plastic's (below).
+ let kept=null,source=reliable;
+ if(clear){
+  const isPlastic=plastic(P),inkPlastic=inks.map(ink=>isPlastic(...ink.lab)),cover=new Float32Array(N),near=new Uint8Array(N);
+  for(let p=0;p<N;p++){
+   if(!mask[p]||glare[p]||inkPlastic[label[p]])continue;
+   const I=inks[label[p]].lab,v=[I[0]-P[0],I[1]-P[1],I[2]-P[2]],x=[lab[3*p]-P[0],lab[3*p+1]-P[1],lab[3*p+2]-P[2]];
+   cover[p]=Math.max(1e-3,Math.min(1,(x[0]*v[0]+x[1]*v[1]+x[2]*v[2])/(v[0]**2+v[1]**2+v[2]**2||1)));
+   near[p]=Math.hypot(x[0]-v[0],x[1]-v[1],x[2]-v[2])<Math.hypot(x[0],x[1],x[2])?1:0;
+  }
+  const peak=maxFilter(cover,size,Math.max(1,Math.round(2*k)));
+  kept=new Uint8Array(N);source=new Uint8Array(N);
+  const stack=[];
+  for(let p=0;p<N;p++)if(near[p]&&cover[p]>=.5*peak[p]){kept[p]=1;stack.push(p);}
+  while(stack.length){const p=stack.pop(),i=p%size,j=(p-i)/size;
+   for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(!kept[q]&&cover[q]&&cover[q]>=.5*peak[q]){kept[q]=1;stack.push(q);}}}
+  // Glare is print pixel by pixel, never as a whole patch (one patch can cross a stroke and run on over bare plastic),
+  // and only where print encloses it: walking out of the glare along each of four lines, both ways (within BRIDGE px at
+  // 1024), every walk lands on kept print. What lies under glare cannot be seen, so on a clear disc it is not guessed:
+  // a core inside a fill is print; a band over bare plastic, down the gap between two marks, or across a stroke is not,
+  // and the stroke shows a gap where the band crosses it (Freddy's ruling: nothing of the plastic is ever painted).
+  const reachG=Math.round(BRIDGE*k),lands=(p,dx,dy)=>{let i=p%size,j=(p-i)/size;
+   for(let s=1;s<=reachG;s++){i+=dx;j+=dy;if(i<0||j<0||i>=size||j>=size)return false;const q=j*size+i;if(!glare[q])return kept[q]===1;}return false;};
+  const bridged=new Uint8Array(N);
+  for(let p=0;p<N;p++)if(glare[p])bridged[p]=[[1,0],[0,1],[1,1],[1,-1]].every(([dx,dy])=>lands(p,dx,dy)&&lands(p,-dx,-dy))?1:0;
+  for(let p=0;p<N;p++){if(bridged[p])kept[p]=1;source[p]=kept[p]&&reliable[p]&&(depth[p]>edge||cover[p]>=DEEP)?1:0;}
+ }
  // 4. Colour per ink: reliable pixels lightly denoised among their own ink (r), the rest from their ink nearby (far).
  const out=new Float32Array(N*3),have=new Uint8Array(N),r=Math.max(1,Math.round(k)),far=Math.max(2,Math.round(3*k));
  const w=new Float32Array(N),ch=[new Float32Array(N),new Float32Array(N),new Float32Array(N)];
  for(let c=0;c<inks.length;c++){
   w.fill(0);for(const a of ch)a.fill(0);
-  for(let p=0;p<N;p++)if(label[p]===c&&reliable[p]){w[p]=1;for(let q=0;q<3;q++)ch[q][p]=lab[3*p+q];}
+  for(let p=0;p<N;p++)if(label[p]===c&&source[p]){w[p]=1;for(let q=0;q<3;q++)ch[q][p]=lab[3*p+q];}
   const W=box(w,size,r),S=ch.map(a=>box(a,size,r)),W2=box(w,size,far),S2=ch.map(a=>box(a,size,far));
   for(let p=0;p<N;p++){
-   if(label[p]!==c||glare[p])continue;have[p]=1;
+   if(label[p]!==c||glare[p]||kept&&!kept[p])continue;have[p]=1;
    if(W[p]>0)for(let q=0;q<3;q++)out[3*p+q]=S[q][p]/W[p];
    else if(W2[p]>0)for(let q=0;q<3;q++)out[3*p+q]=S2[q][p]/W2[p];
    else for(let q=0;q<3;q++)out[3*p+q]=inks[c].lab[q];
@@ -202,6 +246,8 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
    patch++;}
   const todo=new Uint8Array(N);
   for(let p=0;p<N;p++){if(!glare[p])continue;const m=fill[p]>=0&&means[ids[p]]?.get(fill[p]);if(m){for(let q=0;q<3;q++)out[3*p+q]=m[q];have[p]=1;}else todo[p]=1;}
+  // Clear: a patch with no print in its own ring is not print (the wider fill below would reach the nearest ink).
+  if(clear)for(let p=0;p<N;p++)if(todo[p])kept[p]=0;
   const hv=Float32Array.from(have),sums=[0,1,2].map(q=>{const a=new Float32Array(N);for(let p=0;p<N;p++)if(have[p])a[p]=out[3*p+q];return a;});
   for(let radius=Math.max(2,Math.round(2*k));radius<=64*k;radius*=2){
    const W=box(hv,size,radius),S=sums.map(a=>box(a,size,radius));let left=0;
@@ -210,11 +256,21 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
   }
   for(let p=0;p<N;p++)if(glare[p]&&!todo[p])have[p]=1;
  }
+ // Clear: a glare patch filled with the plastic's colour is no print either.
+ if(clear){const isPlastic=plastic(P);for(let p=0;p<N;p++)if(glare[p]&&(!kept[p]||!have[p]||isPlastic(out[3*p],out[3*p+1],out[3*p+2]))){kept[p]=0;have[p]=0;}}
+ // Clear: a speck of a few pixels (under SPECK at 1024) is no print: the photo's grain, or glare's edge.
+ if(clear){
+  const seen=new Uint8Array(N),stack=[],list=[];
+  for(let p0=0;p0<N;p0++){if(!kept[p0]||seen[p0])continue;seen[p0]=1;stack.push(p0);list.length=0;
+   while(stack.length){const p=stack.pop(),i=p%size,j=(p-i)/size;list.push(p);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(kept[q]&&!seen[q]){seen[q]=1;stack.push(q);}}}
+   if(list.length<SPECK*k*k)for(const p of list){kept[p]=0;have[p]=0;}}
+ }
  // Colour for every pixel past the edge: pull-push from the design, so a filtered texture never reaches an undefined
  // colour.
  pullPush(out,Float32Array.from(have),size,3);
- const alpha=gaussian(mask,size,.6*k),rgba=new Uint8ClampedArray(N*4);
- for(let p=0;p<N;p++){const [R,G,B]=labToRgb(out[3*p],out[3*p+1],out[3*p+2]);rgba[4*p]=R;rgba[4*p+1]=G;rgba[4*p+2]=B;rgba[4*p+3]=Math.round(255*Math.min(1,alpha[p]));}
- return {rgba,inks:inks.map(ink=>({L:+ink.lab[0].toFixed(1),a:+ink.lab[1].toFixed(1),b:+ink.lab[2].toFixed(1),share:+(ink.count/(sample.length/3)).toFixed(3)})),
+ // Clear: a pixel is print at full alpha or not in the asset; the texture's own filtering smooths the edge.
+ const alpha=clear?null:gaussian(mask,size,.6*k),rgba=new Uint8ClampedArray(N*4);
+ for(let p=0;p<N;p++){const [R,G,B]=labToRgb(out[3*p],out[3*p+1],out[3*p+2]);rgba[4*p]=R;rgba[4*p+1]=G;rgba[4*p+2]=B;rgba[4*p+3]=clear?(kept[p]?255:0):Math.round(255*Math.min(1,alpha[p]));}
+ return {rgba,...clear&&{kept},inks:inks.map(ink=>({L:+ink.lab[0].toFixed(1),a:+ink.lab[1].toFixed(1),b:+ink.lab[2].toFixed(1),share:+(ink.count/(sample.length/3)).toFixed(3)})),
   stats:{glare:+(glared/Math.max(1,designArea)).toFixed(4),inks:inks.length,light:light.stats}};
 }

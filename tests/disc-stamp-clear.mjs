@@ -73,3 +73,77 @@ test('extract: clear off is today\'s extraction exactly; clear on reports the sh
  const under=r=>{let n=0;for(let y=RED_BOX[3]+4;y<RED_BOX[3]+SHIFT[1];y++)for(let x=RED_BOX[0]+SHIFT[0];x<RED_BOX[2]+SHIFT[0];x++)if(r.alpha[y*N+x]>127)n++;return n;};
  assert.ok(under(on)<under(off)/4,`shadow read as design: ${under(off)} without, ${under(on)} with`);
 });
+
+// The clean finish (docs/clear-stamp-clean.md): on a clear disc the asset holds print and nothing else. The synthetic
+// disc adds what the Raptor's photo showed through its plastic: a glare band whose scratches catch the light (lighter,
+// still the plate's blue), a soft scuff darker than the plate, and a fine navy hairline the photo blurred.
+const GLARE=[340,280,470,300],SCUFF=[120,320,150,345],HAIR=[150,380,380,383];
+function clearPhoto(){
+ const d=disc({shadow:false});
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+  const p=y*N+x;let col=null;
+  // Scratches: short bright streaks across the band, the plate lifted towards white.
+  if(inBox(x,y,GLARE)&&((x+2*y)%9<4))col=[10,132,168].map(v=>v+.45*(255-v));
+  else if(inBox(x,y,SCUFF)){const e=Math.min(x-SCUFF[0],SCUFF[2]-x,y-SCUFF[1],SCUFF[3]-y)/6;col=PLATE.map(v=>v*(1-.22*Math.min(1,e)));}
+  // The hairline: a navy core one pixel wide with half-blended sides.
+  else if(inBox(x,y,HAIR))col=y===HAIR[1]+1?NAVY:NAVY.map((v,k)=>(v+PLATE[k])/2);
+  if(col){d[4*p]=col[0];d[4*p+1]=col[1];d[4*p+2]=col[2];}
+ }
+ return d;
+}
+test('clean finish: print at full alpha, nothing of the plastic (glare, a scuff), the hairline kept', () => {
+ const opaque=extract(clearPhoto(),N,.95,{stored:true,color:true}),clear=extract(clearPhoto(),N,.95,{stored:true,color:true,clear:true});
+ const a=clear.color.rgba,count=(r,box,test)=>{let n=0;for(let y=box[1];y<box[3];y++)for(let x=box[0];x<box[2];x++)if(test(r,y*N+x))n++;return n;};
+ const shown=(r,p)=>r.color.rgba[4*p+3]>0;
+ // Every pixel is print at full alpha or not in the asset, in the colour asset and the one-ink asset alike.
+ for(let p=0;p<N*N;p++){assert.ok(a[4*p+3]===0||a[4*p+3]===255);assert.equal(clear.alpha[p],a[4*p+3]);}
+ // The plastic: today's extraction paints some of it, the clean finish none.
+ assert.ok(count(opaque,GLARE,shown)+count(opaque,SCUFF,shown)>0,'the opaque extraction reads some of the plastic as design');
+ assert.equal(count(clear,GLARE,shown),0,'no glare');assert.equal(count(clear,SCUFF,shown),0,'no scuff');
+ // The print: both words and the hairline's core.
+ for(const box of [RED_BOX,NAVY_BOX]){let n=0,s=0;for(let y=box[1]+1;y<box[3]-1;y++)for(let x=box[0];x<box[2];x++)if(stroke(x,y,box)&&stroke(x-1,y,box)&&stroke(x+1,y,box)){n++;s+=shown(clear,y*N+x);}assert.ok(s/n>.97,`a word is kept (${s}/${n})`);}
+ const core=count(clear,[HAIR[0]+4,HAIR[1]+1,HAIR[2]-4,HAIR[1]+2],shown);assert.ok(core>.9*(HAIR[2]-HAIR[0]-8),`the hairline is kept (${core})`);
+});
+test('clean finish off: the colour asset is today\'s, soft-edged', () => {
+ const r=extract(clearPhoto(),N,.95,{stored:true,color:true});
+ let partial=0;for(let p=0;p<N*N;p++)if(r.color.rgba[4*p+3]>0&&r.color.rgba[4*p+3]<255)partial++;
+ assert.ok(partial>0);
+});
+
+// Codex on PR #45. (1) Glare is print only where print encloses it (Freddy's ruling): what lies under glare cannot be
+// seen, so nothing is guessed. A glare core inside a fill stays; a band across strokes, or down the gap between two
+// marks, paints nothing (a stroke shows a gap where a band crosses it). The colour pass is given the glare as design and
+// as glare directly, as the extraction gives it a glare core it enclosed.
+async function glareCase(boxes){
+ const {extractStampColor}=await import('../public/disc-stamp-color.mjs');
+ const d=disc({shadow:false}),raw=d.slice(),mask=new Uint8Array(N*N),glare=new Uint8Array(N*N);
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){const p=y*N+x;if(stroke(x,y,RED_BOX)||stroke(x,y,NAVY_BOX))mask[p]=1;
+  if(boxes.some(box=>inBox(x,y,box))){mask[p]=1;glare[p]=1;for(let c=0;c<3;c++)d[4*p+c]=raw[4*p+c]=255;}}
+ const {rgba}=extractStampColor(d,raw,N,mask,'#0a84a8',{plate:.95,glare,clear:true});
+ const shown=box=>{let n=0,all=0;for(let y=box[1];y<box[3];y++)for(let x=box[0];x<box[2];x++){all++;n+=rgba[4*(y*N+x)+3]>0;}return [n,all];};
+ return shown;
+}
+test('clean finish: glare is print only where print encloses it', async () => {
+ // A core inside a bar of the red word (each bar is 18 px wide, 36 tall).
+ const CORE=[156,212,162,224],core=(await glareCase([CORE]))(CORE);
+ assert.ok(core[0]>=.9*core[1],`a glare core inside a fill stays (${core[0]} of ${core[1]})`);
+ // A band across the red word: none of it is painted, over the plastic or across the strokes.
+ const BAND=[150,212,360,224],band=(await glareCase([BAND]))(BAND);
+ assert.equal(band[0],0,`a band across strokes paints nothing (${band[0]} of ${band[1]})`);
+ // A band down the gap between two bars (Codex's P1): the gap stays plastic.
+ const GAP=[168,200,176,236],gap=(await glareCase([GAP]))(GAP);
+ assert.equal(gap[0],0,`a band down the gap between two marks paints nothing (${gap[0]} of ${gap[1]})`);
+});
+// (2) A layered asset is drawn from its layers, not its alpha (disc-photo.mjs): on a clear disc they are full or none,
+// and only where the asset is.
+test('clean finish: a layered stamp\'s layers are full or none, on every kept pixel and only there', async () => {
+ const sharp=(await import('node:module')).createRequire(import.meta.url)('sharp');
+ const px=await sharp('tests/fixtures/stamped-disc.webp').ensureAlpha().resize(1024,1024).raw().toBuffer();
+ const r=extract(new Uint8ClampedArray(px),1024,.85,{stored:true,clear:true,color:true});
+ assert.ok(r.layered,'the fixture reads as layered');
+ let on=0;for(const layer of Object.values(r.layers))for(let p=0;p<layer.length;p++){assert.ok(layer[p]===0||layer[p]===1,`layer value ${layer[p]}`);if(layer[p]){on++;assert.equal(r.alpha[p],255);}}
+ assert.ok(on>1000);
+ // The encoder writes only the layers, so a kept pixel with none set would vanish from the one-ink asset (Codex).
+ const layers=Object.values(r.layers);let bare=0;for(let p=0;p<r.alpha.length;p++)if(r.alpha[p]===255&&layers.every(l=>!l[p]))bare++;
+ assert.equal(bare,0,`kept pixels in no layer: ${bare}`);
+});

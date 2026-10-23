@@ -188,6 +188,24 @@ export function unshadow(data,size,{plate=.8,debug=null}={}){
  if(debug)Object.assign(debug,{size:D,print,hued,soft,guard,plateL,L,turnOf:turn,sharp:null});
  return {offset:fine.v.map(v=>v*f),strength,shadowed,recast,plate:pl};
 }
+// The clean finish (docs/clear-stamp-clean.md): on a clear disc nothing but print may be painted, since anything else
+// in the asset lies over the see-through plastic as an opaque patch of photograph (on an opaque disc it blends into
+// the plate and hides). `plastic(plateLab)` tells the plastic's own colours from ink: a colour in the plate's hue (off
+// its axis by under TURN) that keeps at least CHROMA of its saturation and is no more than INK darker than the plate
+// is the plastic itself, lit brighter by glare or scratches catching the light, or darker under a shadow, an emboss or
+// a scuff. An ink in the plate's own hue is opaque and blocks the surface's light, so it stands far darker than the
+// plastic (the Raptor's navy and black, 41 and 46 below its plate); a white ink has lost the plate's saturation. On a
+// colourless plate (chroma under 6) only a grey within INK of its lightness is the plastic. The colour extraction
+// (disc-stamp-color.mjs, `clear`) drops these, and keeps the rest at full alpha in its ink's own colour.
+export const INK=2*DARK,CHROMA=.5;
+export function plastic([PL,Pa,Pb]){
+ const chroma=Math.hypot(Pa,Pb),axis=[Pa/(chroma||1),Pb/(chroma||1)];
+ return (L,a,b)=>{
+  if(L<=PL-INK)return false;
+  if(chroma<6)return Math.hypot(a,b)<TURN&&L<PL+INK;
+  return Math.hypot(-a*axis[1]+b*axis[0],Math.min(0,a*axis[0]+b*axis[1]))<TURN&&Math.hypot(a,b)>=CHROMA*chroma;
+ };
+}
 // After the extraction: on a clear disc the shoulder, past RIM of the plate's radius (a little inside SHOULDER: it starts
 // to deepen before it reads as crisp), is the thick rim showing
 // its colour deepest, scratched, and catching the light: never print in the plate's own hue. Returns the pixels to drop

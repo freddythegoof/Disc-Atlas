@@ -20,10 +20,27 @@ export function extract(data,size,plate,{color=false,stored=false,clear=false}={
  if(!measured)throw Error('This photo shows too little of the disc to read its stamp.');
  // v3.1: no camera light in the asset. The glare and shading the quadratic left are taken out, upstream of both looks.
  const light=delightStamp(data,raw,size,{plate,plateColor:measured,stored}),plateColor=light.plateColor;
- const {mask,...stamp}=extractPhotoStamp(data,size,{plate,plateColor,keepMask:color,unknown:light.unreliable,lit:light.lit,strong:light.strong});
+ const {mask,...stamp}=extractPhotoStamp(data,size,{plate,plateColor,keepMask:color||clear,unknown:light.unreliable,lit:light.lit,strong:light.strong});
+ const drop=p=>{stamp.alpha[p]=0;if(mask)mask[p]=0;if(stamp.layers)for(const layer of Object.values(stamp.layers))layer[p]=0;};
  // A clear disc's shoulder is its rim's own colour, never print in the plate's hue (disc-stamp-clear.mjs).
- if(clear){const drop=shoulder(raw,size,plate,shadow.plate);for(let p=0;p<drop.length;p++)if(drop[p]){stamp.alpha[p]=0;if(mask)mask[p]=0;if(stamp.layers)for(const layer of Object.values(stamp.layers))layer[p]=0;}}
- return {plateColor,light:light.stats,...shadow&&{shadow},...stamp,...color&&{color:extractStampColor(data,raw,size,mask,plateColor,{plate,glare:light.unreliable,filled:light.filled})}};
+ if(clear){const off=shoulder(raw,size,plate,shadow.plate);for(let p=0;p<off.length;p++)if(off[p])drop(p);}
+ const colour=color||clear?extractStampColor(data,raw,size,mask,plateColor,{plate,glare:light.unreliable,filled:light.filled,clear}):null;
+ // The clean finish (docs/clear-stamp-clean.md): on a clear disc the colour pass decides what is print, and the one-ink
+ // asset holds exactly that, at full alpha: nothing of the plastic, nothing half there. A layered asset is drawn from
+ // its layers, not its alpha (disc-photo.mjs), so each layer is cut at half too: full or none. A kept pixel with every
+ // layer under half takes its strongest, so the layers together hold exactly the kept pixels.
+ if(clear){
+  const {kept}=colour;for(let p=0;p<kept.length;p++)if(!kept[p])drop(p);else stamp.alpha[p]=255;delete colour.kept;
+  if(stamp.layers){
+   const layers=Object.values(stamp.layers);
+   for(let p=0;p<kept.length;p++){
+    if(!kept[p])continue;let strongest=layers[0],any=false;
+    for(const layer of layers){if(layer[p]>strongest[p])strongest=layer;if(layer[p]>=.5)any=true;}
+    for(const layer of layers)layer[p]=layer[p]>=.5||!any&&layer===strongest?1:0;
+   }
+  }
+ }
+ return {plateColor,light:light.stats,...shadow&&{shadow},...stamp,...color&&{color:colour}};
 }
 if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=({data:{pixels,size,plate,color,stored,clear}})=>{
  try{const result=extract(new Uint8ClampedArray(pixels),size,plate,{color,stored,clear});self.postMessage({result},[result.alpha.buffer,...result.layers?Object.values(result.layers).map(v=>v.buffer):[],...result.color?[result.color.rgba.buffer]:[]]);}
