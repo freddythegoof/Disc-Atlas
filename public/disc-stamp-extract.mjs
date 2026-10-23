@@ -21,7 +21,7 @@
 //     fills, fills closed over their halftone gaps, and solid elements: fills no line touches, dark elements no fill
 //     touches), so the stamp path can ink it either way round for the ink and plastic (stamp.mjs). `alpha` is then
 //     the dark-ink composite (lines full, fills at TINT), for coverage and reporting.
-const LO=9,HI=18,LO2=4,HI2=8,MIN_AREA=24,BAND_ARC=.4,MERGE_DE=18,GUARD=6,GRID=32,NEAR=.035,TINT=.42,LAYERED=.55,SOFT=.5;
+const RING=12,STRANDED=300,LIT_AREA=2000,BRIDGES=8,BRIDGE_MIN=5,BRIDGE_REACH=160,LO=9,HI=18,LO2=4,HI2=8,MIN_AREA=24,BAND_ARC=.4,MERGE_DE=18,GUARD=6,GRID=32,NEAR=.035,TINT=.42,LAYERED=.55,SOFT=.5;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -74,13 +74,36 @@ function hysteresis(d,allowed,size,lo,hi){
  while(stack.length){const p=stack.pop(),i=p%size,j=(p-i)/size;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(!mask[q]&&allowed[q]&&d[q]>lo){mask[q]=1;stack.push(q);}}}
  return mask;
 }
-// Chamfer distance (in pixels) to the nearest set pixel of `mask`.
-function distanceTo(mask,size){
- const D=new Float32Array(size*size).fill(1e9),s2=Math.SQRT2;
- for(let p=0;p<size*size;p++)if(mask[p])D[p]=0;
- for(let j=0;j<size;j++)for(let i=0;i<size;i++){const p=j*size+i;let v=D[p];if(i)v=Math.min(v,D[p-1]+1);if(j){v=Math.min(v,D[p-size]+1);if(i)v=Math.min(v,D[p-size-1]+s2);if(i<size-1)v=Math.min(v,D[p-size+1]+s2);}D[p]=v;}
- for(let j=size-1;j>=0;j--)for(let i=size-1;i>=0;i--){const p=j*size+i;let v=D[p];if(i<size-1)v=Math.min(v,D[p+1]+1);if(j<size-1){v=Math.min(v,D[p+size]+1);if(i<size-1)v=Math.min(v,D[p+size+1]+s2);if(i)v=Math.min(v,D[p+size-1]+s2);}D[p]=v;}
+// Chamfer distance (in pixels) to the nearest set pixel of `mask`, over a w × h grid (h defaults to w).
+function distanceTo(mask,w,h=w){
+ const D=new Float32Array(w*h).fill(1e9),s2=Math.SQRT2;
+ for(let p=0;p<w*h;p++)if(mask[p])D[p]=0;
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++){const p=j*w+i;let v=D[p];if(i)v=Math.min(v,D[p-1]+1);if(j){v=Math.min(v,D[p-w]+1);if(i)v=Math.min(v,D[p-w-1]+s2);if(i<w-1)v=Math.min(v,D[p-w+1]+s2);}D[p]=v;}
+ for(let j=h-1;j>=0;j--)for(let i=w-1;i>=0;i--){const p=j*w+i;let v=D[p];if(i<w-1)v=Math.min(v,D[p+1]+1);if(j<h-1){v=Math.min(v,D[p+w]+1);if(i<w-1)v=Math.min(v,D[p+w+1]+s2);if(i)v=Math.min(v,D[p+w-1]+s2);}D[p]=v;}
  return D;
+}
+// v3.1 (docs/photo-stamp-one-click.md): what print a hole (a glare core) holds, from the ring of read print around it.
+// For each connected hole: the labels of the known pixels within `ring` px of it (labelOf(p) ≥ 0; -1 is not print) are
+// counted, every label holding at least RING_SHARE of them is a candidate (the most common always is), and each hole
+// pixel takes the candidate whose ring pixels are nearest. A core inside one ink is that ink; one across a line and a
+// fill splits between them. Returns {label (Int16Array, -1 outside holes), rings: per hole, label → its ring pixels}.
+const RING_SHARE=.25;
+export function fillFromRing(holes,known,labelOf,size,ring){
+ const N=size*size,label=new Int16Array(N).fill(-1),rings=[];
+ for(const pixels of components(holes,size)){
+  let x0=size,y0=size,x1=0,y1=0;for(const p of pixels){const i=p%size,j=(p-i)/size;x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}
+  x0=Math.max(0,x0-ring);y0=Math.max(0,y0-ring);x1=Math.min(size-1,x1+ring);y1=Math.min(size-1,y1+ring);
+  const w=x1-x0+1,h=y1-y0+1,local=p=>((p/size|0)-y0)*w+p%size-x0,inHole=new Uint8Array(w*h);for(const p of pixels)inHole[local(p)]=1;
+  const near=distanceTo(inHole,w,h),groups=new Map();
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const q=j*w+i,p=(j+y0)*size+i+x0;if(near[q]>ring||!known[p])continue;const l=labelOf(p);if(l<0)continue;if(!groups.has(l))groups.set(l,[]);groups.get(l).push(p);}
+  rings.push(groups);if(!groups.size)continue;
+  const total=[...groups.values()].reduce((a,g)=>a+g.length,0),top=Math.max(...[...groups.values()].map(g=>g.length));
+  const candidates=[...groups.entries()].filter(([,g])=>g.length>=RING_SHARE*total||g.length===top);
+  if(candidates.length===1){for(const p of pixels)label[p]=candidates[0][0];continue;}
+  const dist=candidates.map(([,g])=>{const m=new Uint8Array(w*h);for(const p of g)m[local(p)]=1;return distanceTo(m,w,h);});
+  for(const p of pixels){const q=local(p);let b=0;for(let c=1;c<candidates.length;c++)if(dist[c][q]<dist[b][q])b=c;label[p]=candidates[b][0];}
+ }
+ return {label,rings};
 }
 
 // The largest `d` among `mask` pixels within r (a separable square window).
@@ -126,16 +149,22 @@ function kmeans(points,k){
 /**
  * data: RGBA bytes of the size × size crop, de-lit with softenGlare:false. plate: the plate's reach as a share of the
  * radius (Rs/R, or Ri/R on an overmold). plateColor: '#rrggbb', the colour delightPixels measured.
+ * `unknown` (Uint8Array, size²): pixels that hold no print (a glare core), decided by the design around them. `lit`
+ * (Uint8Array, size²): where light was taken out; a small stray mark wholly inside it is a reflection's residue. `strong`:
+ * where it was strong; a small mark touching it, or a core, is a stranded stub.
  * Returns {alpha (Uint8Array, size²), layered, coverage, inkReach, stats}, and with `keepMask` the final binary design
  * mask (`mask`), which the colour asset is drawn inside (disc-stamp-color.mjs).
  */
-export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false}){
+export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false,unknown=null,lit=null,strong=null}){
  const N=size*size,k=size/1024,lab=new Float32Array(N*3),inside=new Uint8Array(N),radius=new Float32Array(N);
- const reach=plate*size/2-GUARD*k,c=size/2;
+ const reach=plate*size/2-GUARD*k,c=size/2;let unknowns=0;
  for(let p=0;p<N;p++){
   const i=p%size,j=(p-i)/size,r=Math.hypot(i+.5-c,j+.5-c);radius[p]=r;
-  if(r>reach||data[4*p+3]<250)continue;inside[p]=1;
+  if(r>reach||data[4*p+3]<250)continue;
+  // v3.1: a pixel that holds no print (disc-stamp-delight.mjs) is no evidence either way; it is decided last.
   const L=rgbToLab(data[4*p],data[4*p+1],data[4*p+2]);lab[3*p]=L[0];lab[3*p+1]=L[1];lab[3*p+2]=L[2];
+  if(unknown?.[p]){unknowns++;continue;}
+  inside[p]=1;
  }
  // 1. The local plate field, starting from the measured plate colour.
  const P=hexToLab(plateColor),d=new Float32Array(N),weight=new Uint8Array(N),near=Math.max(1,Math.round(3*k));let field=null,sigma=0,centre=0;
@@ -167,8 +196,11 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  // steps down within a pixel or two) and away from the rest of the design. Room light on the plastic, not ink. A
  // bright reflection with a hard core does not read as soft and stays (docs/photo-stamp-assets.md).
  for(const pixels of components(mask,size)){
-  let soft=0,L=0;for(const p of pixels){if(d[p]<hi)soft++;L+=lab[3*p];}
-  if(soft/pixels.length<SOFT||L/pixels.length<P[0]+4)continue;
+  let soft=0,L=0,glow=0;for(const p of pixels){if(d[p]<hi)soft++;L+=lab[3*p];if(lit?.[p])glow++;}
+  // v3.1: or a small mark lying wholly where light was found and taken out (disc-stamp-delight.mjs `lit`): what is left
+  // of a reflection once its light is gone no longer reads as lighter than the plastic.
+  const residue=lit&&pixels.length<LIT_AREA*k*k&&glow>=.9*pixels.length;
+  if(!residue&&(soft/pixels.length<SOFT||L/pixels.length<P[0]+4))continue;
   for(const p of pixels)mask[p]=0;
   const others=distanceTo(mask,size);let closest=Infinity;for(const p of pixels)closest=Math.min(closest,others[p]);
   if(closest>NEAR*size)stats.reflections.push({pixels:pixels.length,soft:+(soft/pixels.length).toFixed(3)});else for(const p of pixels)mask[p]=1;
@@ -191,6 +223,33 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  // What the trim leaves of a halo away from the ink (mid-gap between two letters) is a sliver too small or too faint
  // to have seeded anything: the speck and scuff rules again, at the weak seed level.
  for(const pixels of components(mask,size)){let strongest=0;for(const p of pixels)strongest=Math.max(strongest,d[p]);if(pixels.length<minArea||strongest<hi2){stats.slivers++;for(const p of pixels)mask[p]=0;}}
+ // v3.1: the unknown pixels (a glare core) are decided by the design around them. One is design when it is enclosed by
+ // design: along most of BRIDGES lines through it (at least BRIDGE_MIN), the nearest pixels that were read on BOTH
+ // sides are design. A core inside a printed area stays printed (no hole); one on bare plastic, or across a mark's edge,
+ // stays plastic (no glare-shaped blob). A stroke that crossed the core shows a gap there, as wear would: what a clipped
+ // core held is not in the photo, and a blob would be the glare's own shape.
+ if(unknowns){
+  const todo=p=>unknown[p]&&radius[p]<=reach&&data[4*p+3]>=250,known=inside.slice(),far=Math.round(BRIDGE_REACH*k),hit=new Int8Array(2),decided=[];
+  const dirs=Array.from({length:BRIDGES},(_,i)=>{const t=i*Math.PI/BRIDGES;return [Math.cos(t),Math.sin(t)];});
+  for(let p=0;p<N;p++){
+   if(!todo(p))continue;const x=p%size,y=(p-x)/size;let bridged=0;
+   for(const [dx,dy] of dirs){
+    for(let side=0;side<2;side++){hit[side]=-1;const sx=side?-dx:dx,sy=side?-dy:dy;
+     for(let t=1;t<=far;t++){const i=Math.round(x+sx*t),j=Math.round(y+sy*t);if(i<0||j<0||i>=size||j>=size)break;const q=j*size+i;if(known[q]){hit[side]=mask[q];break;}if(radius[q]>reach)break;}}
+    if(hit[0]===1&&hit[1]===1)bridged++;
+   }
+   decided.push(p,bridged>=BRIDGE_MIN?1:0);
+  }
+  for(let i=0;i<decided.length;i+=2){inside[decided[i]]=1;mask[decided[i]]=decided[i+1];}
+ }
+ // A small mark touching a core or strong light is a stranded stub (the end of a stroke a core cut, or a core's own edge;
+ // from a stored photo, where the upload's softening already laid plastic over the core): on the model it reads as a
+ // dot, not as print, so it goes.
+ if(unknowns||strong?.some(v=>v)){
+  const core=new Uint8Array(N);for(let p=0;p<N;p++)if(unknown?.[p]&&radius[p]<=reach||strong?.[p]&&!mask[p])core[p]=1;
+  const fromCore=distanceTo(core,size),touch=Math.max(2,3*k);
+  for(const pixels of components(mask,size)){if(pixels.length>=STRANDED*k*k)continue;let near=false;for(const p of pixels)if(fromCore[p]<=touch){near=true;break;}if(near)for(const p of pixels)mask[p]=0;}
+ }
  // 4. Layers, from the core (interior) design pixels.
  const core=[];for(let p=0;p<N;p++){if(!mask[p])continue;const i=p%size,j=(p-i)/size;if(i>0&&j>0&&i<size-1&&j<size-1&&mask[p-1]&&mask[p+1]&&mask[p-size]&&mask[p+size])core.push(lab[3*p],lab[3*p+1],lab[3*p+2]);}
  let inks=[];
@@ -202,7 +261,15 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  // The line ink: the darkest cluster, if it is clearly darker than the plastic and every other cluster.
  const byL=[...inks].sort((a,b)=>a.lab[0]-b.lab[0]),line=byL.length>1&&byL[0].lab[0]<35&&byL[0].lab[0]<P[0]-15&&byL[1].lab[0]-byL[0].lab[0]>15?byL[0]:null;
  const isLine=new Uint8Array(N),isFill=new Uint8Array(N);
- if(line)for(let p=0;p<N;p++)if(mask[p])(nearestInk(p)===line?isLine:isFill)[p]=1;
+ // v3.1: an unknown design pixel's own colour is an in-painted blend; its ink comes from the print around it.
+ let inkOf=nearestInk;
+ if(line&&unknowns){
+  const index=new Map(inks.map((ink,i)=>[ink,i])),holes=new Uint8Array(N),known=new Uint8Array(N);
+  for(let p=0;p<N;p++){if(!mask[p])continue;if(unknown[p])holes[p]=1;else known[p]=1;}
+  const {label}=fillFromRing(holes,known,p=>index.get(nearestInk(p)),size,Math.round(RING*k));
+  inkOf=p=>holes[p]&&label[p]>=0?inks[label[p]]:nearestInk(p);
+ }
+ if(line)for(let p=0;p<N;p++)if(mask[p])(inkOf(p)===line?isLine:isFill)[p]=1;
  // Layered: the fills are drawn round by the line ink, so most of their edge meets it rather than bare plastic. (A
  // measure of edges, not area, so it holds for a big outlined letter as for a thin crystal.)
  let layered=false,enclosed=0,fillArea=0,edge=0;

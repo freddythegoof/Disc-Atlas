@@ -55,16 +55,16 @@ const on=device=>{
   await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
   return (await items()).find(i=>i.id===id);
  };
- // Full color through the sheet: the original asked for, framed, read. The aligner must finish, not hang.
- // `again`: a disc already in Full color is made again with "Make again from original photo".
+ // Full color through the sheet. v3.1 (docs/photo-stamp-one-click.md): one tap, from the photo the disc already has; no
+ // file is asked for and no aligner opens. `again`: a disc already in Full color is made again with "Make again".
+ // (`file`, the photo saved for the disc, is not asked for again.)
  const makeColor=async(id,file,again=false)=>{
-  await edit(id);const chooser=page.waitForEvent('filechooser');
-  await (again?page.locator('#addDiscDialog .bag-photo-asset-make'):page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'})).click();
-  await (await chooser).setFiles(file);await page.waitForSelector('dialog.photo-aligner[open]');
-  const t=Date.now();await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
-  await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||'')||/^(?!Making the game asset)\S/.test(document.querySelector('dialog.photo-aligner[open] .photo-aligner-status')?.textContent||''),null,{timeout:240000});
-  const status=await page.locator('#addDiscDialog .bag-photo-status').textContent(),aligner=await page.evaluate(()=>document.querySelector('dialog.photo-aligner[open] .photo-aligner-status')?.textContent??null);
-  assert.equal(status,'Full-color asset made. Saved to your account.','made and saved, aligner said: '+aligner);
+  await edit(id);let asked=false;const ask=()=>{asked=true;};page.on('filechooser',ask);
+  const t=Date.now();await (again?page.locator('#addDiscDialog .bag-photo-asset-make'):page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'})).click();
+  await page.waitForFunction(()=>/^(?!Making the game asset)\S/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:240000});
+  page.off('filechooser',ask);
+  assert.equal(await page.locator('#addDiscDialog .bag-photo-status').textContent(),'Full-color asset made. Saved to your account.');
+  assert.equal(asked,false,'no file asked for');assert.equal(await page.locator('dialog.photo-aligner[open]').count(),0,'no aligner');
   await closeSheet();return Date.now()-t;
  };
  const look=id=>page.evaluate(id=>JSON.parse(localStorage.getItem('disc-atlas-photo-stamps')||'null')?.discs?.[id]||null,id);
