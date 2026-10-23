@@ -27,10 +27,18 @@ export function extract(data,size,plate,{color=false,stored=false,clear=false}={
  const colour=color||clear?extractStampColor(data,raw,size,mask,plateColor,{plate,glare:light.unreliable,filled:light.filled,clear}):null;
  // The clean finish (docs/clear-stamp-clean.md): on a clear disc the colour pass decides what is print, and the one-ink
  // asset holds exactly that, at full alpha: nothing of the plastic, nothing half there. A layered asset is drawn from
- // its layers, not its alpha (disc-photo.mjs), so each layer is cut at half too: full or none.
+ // its layers, not its alpha (disc-photo.mjs), so each layer is cut at half too: full or none. A kept pixel with every
+ // layer under half takes its strongest, so the layers together hold exactly the kept pixels.
  if(clear){
   const {kept}=colour;for(let p=0;p<kept.length;p++)if(!kept[p])drop(p);else stamp.alpha[p]=255;delete colour.kept;
-  if(stamp.layers)for(const layer of Object.values(stamp.layers))for(let p=0;p<layer.length;p++)layer[p]=layer[p]>=.5?1:0;
+  if(stamp.layers){
+   const layers=Object.values(stamp.layers);
+   for(let p=0;p<kept.length;p++){
+    if(!kept[p])continue;let strongest=layers[0],any=false;
+    for(const layer of layers){if(layer[p]>strongest[p])strongest=layer;if(layer[p]>=.5)any=true;}
+    for(const layer of layers)layer[p]=layer[p]>=.5||!any&&layer===strongest?1:0;
+   }
+  }
  }
  return {plateColor,light:light.stats,...shadow&&{shadow},...stamp,...color&&{color:colour}};
 }

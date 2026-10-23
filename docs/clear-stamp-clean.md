@@ -97,11 +97,11 @@ viewer from the top, Paper above and Midnight below, all made through the one-cl
 | Check | Result |
 |---|---|
 | **Opaque extraction byte-identical to main**: this branch's worker against origin/main's, the Raptor's photo and two fixtures, stored and camera paths, colour and one ink (`work/clear-stamp-clean/lab/extract-identity.mjs`) | **12 / 12 identical** (sha256 of every output) |
-| `tests/disc-stamp-clear.mjs`: four new cases. A synthetic clear disc with a glare band, a scuff and a blurred hairline (full alpha or none in both assets; no glare, no scuff; both words and the hairline kept; clear off stays soft-edged); a glare band across a stroke (the stroke stays under it, none of the band over the plastic); the layered fixture (every layer full or none, only on print) | 9/9 pass; each new case fails on the code before it |
+| `tests/disc-stamp-clear.mjs`: four new cases. A synthetic clear disc with a glare band, a scuff and a blurred hairline (full alpha or none in both assets; no glare, no scuff; both words and the hairline kept; clear off stays soft-edged); a glare band across a stroke (the stroke stays under it, none of the band over the plastic); the layered fixture (every layer full or none, on every kept pixel and only there) | 9/9 pass; each new case fails on the code before it |
 | `photo-editor-races`, `disc-stamp-extract`, `-color`, `-delight` (unit) | 36/36 pass with `disc-stamp-clear` |
 | **Photo stamp identity** (`tests/photo-stamp-identity-browser.mjs`: the photo look and the one-ink asset, every surface, against a detached origin/main) | **pass**: no differences, noise floor none |
 | Clear plastics (`tests/clear-plastic-browser.mjs`), one-click, colour assets, stall (WebKit and Chromium) | all pass |
-| `tests/photo-stamp-assets-browser.mjs` | pass after the Codex fixes. Before them it failed once on this branch and identically on main (line 90, the bag's pulled disc never showed the foil stamp layer within 20 s): a timing flake on an opaque path |
+| `tests/photo-stamp-assets-browser.mjs` | **flaky on both trees, at the same line** (90: the bag's pulled disc never shows the foil stamp layer within 20 s): this branch passed 1 of 4 runs, main 1 of 3. The suite's disc is opaque, whose extraction is byte-identical |
 | Peak memory of a clear extraction (Raptor at 2048, Node, `/usr/bin/time -l`) | main 857 / 868 MiB, branch 873 / 880 MiB: the clean finish's maps, about 15 MiB |
 
 The clear suite needs the Raptor's photo at `work/clear-plastic-discs/input/` (ignored): without it, it falls back to a
@@ -120,6 +120,12 @@ them:
 2. **Layered stamps kept soft layers.** The worker forced the one-ink alpha to full, but a layered asset is encoded from
    its layers at opaque alpha, and they kept their blurred edges. On a clear disc each layer is now cut at half. The
    Raptor is not layered; the stamped-disc fixture is, and the new case covers it.
+
+Codex's re-review (73d8216) found one more, also real and fixed:
+3. **A kept pixel could fall out of every layer.** Cutting each layer at half on its own left 716 of the fixture's 22,770
+   kept pixels with all three under half, and the encoder writes only the layers, so those edge and thin-print pixels
+   vanished from the one-ink asset. A kept pixel with every layer under half now takes its strongest, so the layers
+   together hold exactly the kept pixels. The layered case checks it, and fails on 73d8216.
 
 Opaque extraction is still byte-identical to main (12/12).
 

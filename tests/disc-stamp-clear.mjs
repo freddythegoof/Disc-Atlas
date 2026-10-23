@@ -127,11 +127,14 @@ test('clean finish: a glare band across a stroke keeps the stroke under it, neve
 });
 // (2) A layered asset is drawn from its layers, not its alpha (disc-photo.mjs): on a clear disc they are full or none,
 // and only where the asset is.
-test('clean finish: a layered stamp\'s layers are full or none, and only on print', async () => {
+test('clean finish: a layered stamp\'s layers are full or none, on every kept pixel and only there', async () => {
  const sharp=(await import('node:module')).createRequire(import.meta.url)('sharp');
  const px=await sharp('tests/fixtures/stamped-disc.webp').ensureAlpha().resize(1024,1024).raw().toBuffer();
  const r=extract(new Uint8ClampedArray(px),1024,.85,{stored:true,clear:true,color:true});
  assert.ok(r.layered,'the fixture reads as layered');
  let on=0;for(const layer of Object.values(r.layers))for(let p=0;p<layer.length;p++){assert.ok(layer[p]===0||layer[p]===1,`layer value ${layer[p]}`);if(layer[p]){on++;assert.equal(r.alpha[p],255);}}
  assert.ok(on>1000);
+ // The encoder writes only the layers, so a kept pixel with none set would vanish from the one-ink asset (Codex).
+ const layers=Object.values(r.layers);let bare=0;for(let p=0;p<r.alpha.length;p++)if(r.alpha[p]===255&&layers.every(l=>!l[p]))bare++;
+ assert.equal(bare,0,`kept pixels in no layer: ${bare}`);
 });
