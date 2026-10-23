@@ -117,10 +117,10 @@ async function keep(id,key,rev,ink,color){
 }
 const forget=(id,key)=>run('readwrite',store=>{store.delete(slot(id,key));store.delete(slot(id,key,true));}).catch(()=>{});
 
-// Saves a freshly extracted asset for this photo version and switches the disc to it (`look`: 'asset', or 'color' when
-// a colour asset came with it). Signed in, it goes to the account first (an upload that fails saves nothing); older
+// Saves a freshly extracted asset for this photo version and switches the disc to it (`look`: 'color', the default,
+// when a colour asset came with it, else 'asset'). Signed in, it goes to the account first (an upload that fails saves nothing); older
 // assets of the disc go, a colour asset with them unless a new one replaces it.
-export async function savePhotoStamp(id,key,{blob,placement,layered=false,color=null,look='asset'}){
+export async function savePhotoStamp(id,key,{blob,placement,layered=false,color=null,look='color'}){
  if(!ID.test(id)||!KEY.test(key)||!(blob instanceof Blob)||color&&!(color.blob instanceof Blob))throw Error('That photo stamp cannot be saved.');
  const place=p=>({diameterFraction:p.diameterFraction,assetInkFraction:p.assetInkFraction});
  let entry={key,rev:Date.now().toString(36),look:color?look:'asset',placement:place(placement),layered:!!layered,savedAt:new Date().toISOString()};

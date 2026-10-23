@@ -56,11 +56,11 @@ const on=device=>{
   return (await items()).find(i=>i.id===id);
  };
  // Full color through the sheet. v3.1 (docs/photo-stamp-one-click.md): one tap, from the photo the disc already has; no
- // file is asked for and no aligner opens. `again`: a disc already in Full color is made again with "Make again".
+ // file is asked for and no aligner opens. Game asset lands on Full color (docs/spin-color-default.md). `again`: a disc already in Full color is made again with "Make again".
  // (`file`, the photo saved for the disc, is not asked for again.)
  const makeColor=async(id,file,again=false)=>{
   await edit(id);let asked=false;const ask=()=>{asked=true;};page.on('filechooser',ask);
-  const t=Date.now();await (again?page.locator('#addDiscDialog .bag-photo-asset-make'):page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'})).click();
+  const t=Date.now();await (again?page.locator('#addDiscDialog .bag-photo-asset-make'):page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'})).click();
   await page.waitForFunction(()=>/^(?!Making the game asset)\S/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:240000});
   page.off('filechooser',ask);
   assert.equal(await page.locator('#addDiscDialog .bag-photo-status').textContent(),'Full-color asset made. Saved to your account.');

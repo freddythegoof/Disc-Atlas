@@ -33,7 +33,7 @@ const {base}=h;
 const ready=async page=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=1,null,{timeout:30000});};
 let disc;
 // One make on a fresh page with the fault in place before any script: `original` through the camera original and the
-// aligner, else in one tap from the stored photo ("Make again", or Full color while the disc has no asset).
+// aligner, else in one tap from the stored photo ("Make again", or Game asset, which lands on Full color, while the disc has no asset).
 async function make({init,route,limits,original=false}={}){
  const page=await h.context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
@@ -52,7 +52,7 @@ async function make({init,route,limits,original=false}={}){
   }else{
    let asked=false;page.on('filechooser',()=>{asked=true;});await watch('#addDiscDialog .bag-photo-status');t=Date.now();
    const again=page.locator('#addDiscDialog .bag-photo-asset-make');
-   await ((await again.isVisible())?again:page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Full color'})).click();
+   await ((await again.isVisible())?again:page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'})).click();
    page.__asked=()=>asked;
   }
   // Done: the sheet says the asset was made, or (the aligner, or the sheet in one tap) names what went wrong. Never:

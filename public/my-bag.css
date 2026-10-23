@@ -591,7 +591,7 @@ body[data-view="bag"] main {display:none!important}
    sheet's chip family, and the action that reads a game asset from the original. */
 .bag-photo-look{display:grid;gap:8px;margin-top:14px}.bag-photo-look[hidden]{display:none}
 .bag-photo-look small{font-size:11px;color:var(--muted);line-height:1.5}
-.bag-photo-look-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bag-photo-look-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.bag-photo-look-row[hidden]{display:none}
 .bag-photo-look-title{font-weight:600}
 .bag-photo-look-row label{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:24px;background:var(--surface);cursor:pointer}
 .bag-photo-look-row label:has(input:checked){border-color:color-mix(in srgb,var(--lime) 70%,var(--line));background:var(--accent-soft);font-weight:600}
