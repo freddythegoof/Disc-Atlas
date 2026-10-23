@@ -59,6 +59,17 @@ try{
  const next=page.getByRole('button',{name:'Next disc',exact:true}),prev=page.getByRole('button',{name:'Previous disc',exact:true});
  await next.click();await expectCounter('2 / 7');assert.equal(await current(),owned[1].id);assert.ok(await page.locator('[data-album-bag]').isHidden());
  await prev.click();await expectCounter('1 / 7');await prev.click();await expectCounter('7 / 7');await next.click();await expectCounter('1 / 7');
+ // Spin (docs/spin-color-default.md): the gallery's viewer turns on its turntable, keeps turning from disc to disc and
+ // eases to a stop when turned off, leaving the disc where it got to.
+ const album=()=>page.evaluate(()=>({spin:BagApp.scenes.album.state.spin,turn:BagApp.scenes.album.debug.discGroup.rotation.y}));
+ assert.equal((await album()).spin,false,'off for a fresh player');
+ await page.locator('#allDiscsGallery [data-disc3d-spin]').click();
+ let spun=await album();await page.waitForTimeout(1200);assert.equal(spun.spin,true);assert.notEqual((await album()).turn,spun.turn,'the gallery disc turns');
+ await next.click();await expectCounter('2 / 7');spun=await album();assert.equal(spun.spin,true,'still on for the next disc');
+ await page.waitForTimeout(600);assert.notEqual((await album()).turn,spun.turn);
+ await page.locator('#allDiscsGallery [data-disc3d-spin]').click();await page.waitForTimeout(1300);
+ spun=await album();await page.waitForTimeout(400);assert.deepEqual(await album(),spun,'eased to a stop');assert.notEqual(spun.turn,0);
+ await prev.click();await expectCounter('1 / 7');
  // Window keys, including from the viewer canvas, wrap without rotating the old disc.
  await stage.locator('canvas').focus();await page.keyboard.press('ArrowLeft');await expectCounter('7 / 7');await page.keyboard.press('ArrowRight');await expectCounter('1 / 7');
  const expected={distance:[owned[0].id,owned[1].id,owned[2].id],fairway:[owned[3].id],mid:[owned[4].id],putter:[owned[5].id,owned[6].id]};

@@ -40,6 +40,12 @@
 .disc3d-expand:hover{background:var(--surface)}
 .disc3d-expand:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
 @media(pointer:coarse){.disc3d-expand{width:40px;height:40px}}
+/* Spin (docs/spin-color-default.md): the turntable toggle, the Enlarge button's twin in the stage's other corner. */
+.disc3d-spin{position:absolute;top:8px;left:8px;z-index:1;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
+.disc3d-spin:hover{background:var(--surface)}
+.disc3d-spin[aria-pressed=true]{background:var(--accent-soft);color:var(--lime);border-color:color-mix(in srgb,var(--lime) 55%,var(--line))}
+.disc3d-spin:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+@media(pointer:coarse){.disc3d-spin{width:40px;height:40px}}
 
 /* The pop-out: a modal dialog in the site's dialog style, with the same viewer at the size of the window. */
 .disc3d-dialog{width:min(1040px,calc(100vw - 48px));height:min(780px,calc(100dvh - 48px));max-width:none;max-height:none;padding:0;overflow:hidden;overscroll-behavior:contain}

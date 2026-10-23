@@ -247,11 +247,11 @@ body[data-view="map"]:not(.my-bag-mode)>footer{position:fixed;left:28px;bottom:2
  --press-down:scale var(--dur-press) var(--ease-out),transform .25s cubic-bezier(.2,.8,.2,1),background var(--dur-ui),color var(--dur-ui),border-color var(--dur-ui),box-shadow .15s}
 :root :is(.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide,.stack-choice,.directory-add,
  .inspect-disc,.compare-item [data-remove],.compare-bag-add,.cluster-action,#clusterClose,.pick-compare,
- .disc3d-toolbar button,.disc3d-expand,dialog .close,header nav button,
+ .disc3d-toolbar button,.disc3d-expand,.disc3d-spin,dialog .close,header nav button,
  .site-menu [role^="menuitem"],.add-destination-menu button,.lens-menu [role="menuitemradio"]){transition:var(--press-rest)}
 :root :is(.explore-tools button,.atlas-lens button,.map-controls button,.detail-actions button,.coach-launch,.pill-button,.wide,.stack-choice,.directory-add,
  .inspect-disc,.compare-item [data-remove],.compare-bag-add,.cluster-action,#clusterClose,.pick-compare,
- .disc3d-toolbar button,.disc3d-expand,dialog .close,header nav button,
+ .disc3d-toolbar button,.disc3d-expand,.disc3d-spin,dialog .close,header nav button,
  .site-menu [role^="menuitem"],.add-destination-menu button,.lens-menu [role="menuitemradio"]):active:not(:disabled){scale:.97;transition:var(--press-down)}
 /* Markers: .atlas-marker is positioned by transform and GSAP owns .marker-stack (hover), so a disc's press is a
    GSAP tween on .marker-stack in atlas-motion.js; a CSS `scale` there would be merged into GSAP's transform.

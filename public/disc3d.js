@@ -7,6 +7,7 @@
 // Tapping the panel's viewer (or its Enlarge button) pops it out into a larger dialog: a second viewer from
 // the same module, given the same props and pose, so model, materials and overmold colours match exactly.
 // The panel's own viewer is left alone while the dialog is open and takes the dialog's pose back on close.
+// Spin (docs/spin-color-default.md) travels with the pose, like the disc's angle.
 // Clay mode (Prompt 4) is one setting for both: the Clay button in either viewer turns it on or off in both, a
 // pop-out opens in the current mode, and it stays on from disc to disc until it is turned off.
 (()=>{
@@ -100,6 +101,8 @@
  function openPopout(trigger){
   if(popout||!viewer?.state.props||!viewerModule)return;
   const props={...viewer.state.props,hand:viewer.state.hand},pose=viewer.getPose();
+  // The pop-out takes the turntable with the pose; the panel's disc rests behind it and gets it back on close.
+  viewer.setSpin(false,{instant:true});
   let big;
   try{big=viewerModule.createDiscViewer({segments:coarse()?72:128,onClay:setClay,hint:`Drag to turn · Drag the rim to tilt · ${coarse()?'pinch':'scroll'} to zoom`});}
   catch(err){console.warn('3D pop-out unavailable; keeping the panel viewer.',err);return;}

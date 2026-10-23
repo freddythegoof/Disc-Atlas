@@ -3,7 +3,7 @@
 // hyzer/anhyzer tilt. One renderer is reused for every disc; it draws only when something moves.
 //
 // createDiscViewer() returns {element, attach(host), update(props), setView(name), flip(), setTilt(deg),
-// setHand(hand), getPose(), applyPose(pose), glidePose(pose, ms), setClay(on), dispose()}. Options: {segments, onExpand, hint, onClay}. With `onExpand`
+// setHand(hand), getPose(), applyPose(pose), glidePose(pose, ms), setClay(on), setSpin(on), dispose()}. Options: {segments, onExpand, hint, onClay}. With `onExpand`
 // the viewer offers a pop-out: an Enlarge button and a tap or click on the canvas call onExpand(trigger),
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
@@ -24,6 +24,11 @@
 // hidden, and the mold's cross-section drawn from the lathe's own points (profile.mjs) under the stage. It only
 // swaps materials and a backdrop class; the plastic materials are left untouched underneath, so turning it off
 // restores them exactly. The Clay button calls onClay(on) so the host can carry the mode to its other viewer.
+// Spin (docs/spin-color-default.md) is a turntable: the disc turns about its own axis, so a tilted disc spins like a
+// coin on edge, the way the thrower's hand spins it. It runs on the viewer's own frame loop and only while on (and on
+// screen); off, the viewer is on-demand exactly as before. Grabbing the disc stops it at once; letting go eases it
+// back. The choice is remembered per browser; under reduced motion it never starts on its own. setSpin(on) turns it
+// on or off; getPose/applyPose carry the disc's angle (`turn`) and the toggle (`spin`) to the other viewer.
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
@@ -49,6 +54,8 @@ export const MAX_TILT=40;
 export const FRAME_DIAMETER=22;
 // A press that stays within TAP_SLOP px and under TAP_MS is a tap, not the start of a drag.
 const TAP_SLOP=6,TAP_MS=600;
+// A disc on its turntable, the arrow going round the hand's way.
+const SPIN_ICON='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.6C4.7 5.6 2 6.9 2 8.5s2.7 2.9 6 2.9 6-1.3 6-2.9c0-.9-.8-1.7-2.1-2.2"/><path d="M10.4 3.9l1.6 1.9-2.1 1.2"/></svg>';
 const EXPAND_ICON='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5 9 7M2.5 13.5 7 9"/></svg>';
 const SOURCE_TEXT={model:'its mold profile',pdga:'its PDGA dimensions, to scale',flight:'a generic shape from its flight numbers'};
 // The edge that drops on hyzer is the fade side: left for RHBH and LHFH, right for RHFH and LHBH.
@@ -77,13 +84,19 @@ function clayMatcap(){
 
 const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+// The turntable's knobs: SPIN_PERIOD_S seconds a revolution at full speed, reached (and left) over SPIN_EASE_MS on a
+// smoothstep, so a stop coasts a little under a tenth of a turn.
+export const SPIN_PERIOD_S=5,SPIN_EASE_MS=900;
+const SPIN_KEY='disc-atlas-viewer-spin';
+const spinRemembered=()=>{try{return localStorage.getItem(SPIN_KEY)==='1';}catch{return false;}};
+const rememberSpin=on=>{try{on?localStorage.setItem(SPIN_KEY,'1'):localStorage.removeItem(SPIN_KEY);}catch{/* Session only. */}};
 const angleDelta=(a,b)=>{let d=(b-a)%(2*Math.PI);if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;return d;};
 
 export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const coarse=matchMedia('(pointer: coarse)').matches;
  const radial=segments||(coarse?DETAIL.coarseSegments:DETAIL.segments);
  const element=document.createElement('div');element.className='disc3d-viewer';
- element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · Drag the rim to tilt · scroll to zoom'}</span>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
+ element.innerHTML=`<div class="disc3d-viewport"><canvas class="disc3d-canvas" tabindex="0" role="img"></canvas><span class="disc3d-hint" aria-hidden="true">${hint||'Drag to turn · Drag the rim to tilt · scroll to zoom'}</span><button type="button" class="disc3d-spin" data-disc3d-spin aria-pressed="false" aria-label="Spin the disc" title="Spin">${SPIN_ICON}</button>${onExpand?`<button type="button" class="disc3d-expand" data-disc3d-expand aria-label="Enlarge 3D view" aria-haspopup="dialog" title="Enlarge">${EXPAND_ICON}</button>`:''}</div>
 <figure class="disc3d-profile" hidden><div class="disc3d-profile-art"></div><figcaption class="disc3d-profile-caption"></figcaption></figure>
 <div class="disc3d-toolbar"><div class="disc3d-views" role="group" aria-label="Preset views">${Object.entries(VIEWS).map(([k,v])=>`<button type="button" data-disc3d-view="${k}" aria-pressed="${k==='angle'}">${v.label}</button>`).join('')}</div><button type="button" data-disc3d-flip aria-pressed="false">Flip</button><button type="button" data-disc3d-clay aria-pressed="false" title="Clay: plain shape and cross-section">Clay</button></div>
 <label class="disc3d-tilt"><span class="disc3d-tilt-end">Anhyzer</span><input type="range" min="${-MAX_TILT}" max="${MAX_TILT}" step="1" value="0" data-disc3d-tilt aria-label="Release angle, anhyzer to hyzer"><span class="disc3d-tilt-end">Hyzer</span><output data-disc3d-tilt-value>Flat</output></label>`;
@@ -121,9 +134,12 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,band:null,halo:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
+ const state={key:'',hand:'RHBH',tilt:0,flipped:false,spin:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,band:null,halo:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
  let photo=null;
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
+ // The turntable: `level` 0–1 along its ease (speed is smoothstep(level) of full), `held` while a finger or the mouse
+ // has the disc, `at` the last spun frame's time, `seen` while the canvas is on screen.
+ const spin={level:0,held:false,at:0,seen:true};
 
  const spherical=()=>new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
  const placeCamera=s=>{s.makeSafe();camera.position.setFromSpherical(s).add(controls.target);camera.lookAt(controls.target);};
@@ -150,13 +166,42 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   if(flipTween){const t=Math.min(1,(now-flipTween.start)/flipTween.ms);
    flipGroup.rotation.x=flipTween.from+(flipTween.to-flipTween.from)*ease(t);if(t<1)more=true;else flipTween=null;}
   if(!tween&&controls.update())more=true;
+  if(turn(now))more=true;
   renderer.render(scene,camera);state.frames++;
   if(more)request();
  }
  function request(){if(!frame&&!disposed)frame=requestAnimationFrame(render);}
  controls.addEventListener('change',request);
  const noteInteraction=()=>{if(!interacted){interacted=true;element.classList.add('has-interacted');}};
- controls.addEventListener('start',()=>{tween=null;setPressedView(null);noteInteraction();});
+ controls.addEventListener('start',()=>{tween=null;setPressedView(null);noteInteraction();if(pointers.size)holdSpin(true);});
+
+ // One frame of the turntable; true while it still moves. It eases toward full speed while on, not held and on
+ // screen, and toward a stop otherwise. The disc group turns about its own axis, the hand's way: clockwise from above
+ // for a right-hand backhand.
+ function turn(now){
+  const want=state.spin&&!spin.held&&spin.seen?1:0;
+  if(!want&&!spin.level){spin.at=0;return false;}
+  const dt=spin.at?Math.min(.05,(now-spin.at)/1000):0;spin.at=now;
+  spin.level=want?Math.min(1,spin.level+dt*1000/SPIN_EASE_MS):Math.max(0,spin.level-dt*1000/SPIN_EASE_MS);
+  const speed=spin.level*spin.level*(3-2*spin.level)*2*Math.PI/SPIN_PERIOD_S;
+  discGroup.rotation.y=(discGroup.rotation.y-speed*dt*hyzerSign(state.hand))%(2*Math.PI);
+  if(!want&&!spin.level){spin.at=0;return false;}
+  return true;
+ }
+ // `remember`: the reader's own tap, kept for next time. `instant`: no coast (a viewer set aside, not a reader's stop).
+ function setSpin(on,{remember=false,instant=false}={}){
+  state.spin=!!on;element.querySelector('[data-disc3d-spin]').setAttribute('aria-pressed',String(state.spin));
+  if(remember)rememberSpin(state.spin);
+  if(instant&&!state.spin){spin.level=0;spin.at=0;}
+  request();
+ }
+ // Grabbing the disc takes it from the turntable at once; letting go eases it back up.
+ function holdSpin(on){
+  if(on===spin.held)return;
+  spin.held=on;if(on){spin.level=0;spin.at=0;}
+  request();
+ }
+ const seen=new IntersectionObserver(([entry])=>{spin.seen=entry.isIntersecting;request();});seen.observe(viewport);
 
  function resize(){
   // Layout size, not the bounding rect: the pop-out's dialog is mid-morph (scaled by a WAAPI transform) when a
@@ -198,13 +243,18 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  }
  function setHand(hand){state.hand=hand||'RHBH';setTilt(state.tilt);}
  // The reader's framing, independent of the canvas size (zoom is relative to the fitted distance).
- function getPose(){const s=spherical();return {view:state.view,theta:s.theta,phi:s.phi,zoom:s.radius/state.fit,tilt:state.tilt,flipped:state.flipped};}
+ function getPose(){const s=spherical();return {view:state.view,theta:s.theta,phi:s.phi,zoom:s.radius/state.fit,tilt:state.tilt,flipped:state.flipped,turn:discGroup.rotation.y,spin:state.spin};}
+ // The disc's own angle and the turntable, from a pose that carries them.
+ function applyTurn(pose){
+  if(Number.isFinite(pose.turn))discGroup.rotation.y=pose.turn;
+  if(typeof pose.spin==='boolean'&&pose.spin!==state.spin)setSpin(pose.spin,{instant:true});
+ }
  // applyPose, but over `ms` on the viewer's own tween (the pop-out's close hands its pose back this way, so the
  // panel's disc turns to where the reader left it instead of snapping). Tilt follows at once; a flip animates.
  function glidePose(pose,ms=300){
   if(!pose)return;
   if(reducedMotion()||!size.w){applyPose(pose);return;}
-  setTilt(pose.tilt);
+  setTilt(pose.tilt);applyTurn(pose);
   const flipped=!!pose.flipped,now=performance.now();
   if(flipped!==state.flipped){
    state.flipped=flipped;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed',String(flipped));
@@ -217,7 +267,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  }
  function applyPose(pose){
   if(!pose)return;
-  tween=null;flipTween=null;setTilt(pose.tilt);
+  tween=null;flipTween=null;setTilt(pose.tilt);applyTurn(pose);
   state.flipped=!!pose.flipped;flipGroup.rotation.x=state.flipped?Math.PI:0;
   element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed',String(state.flipped));
   if(pose.view&&VIEWS[pose.view])setView(pose.view,{instant:true});
@@ -280,7 +330,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   if(halo){setHalo(haloRim,halo);haloRimMaterial.color.set(band);Object.assign(haloRimMaterial,plastic);haloRimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.
   if(discChanged){
-   state.flipped=false;flipTween=null;flipGroup.rotation.x=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');
+   state.flipped=false;flipTween=null;flipGroup.rotation.x=0;discGroup.rotation.y=0;element.querySelector('[data-disc3d-flip]').setAttribute('aria-pressed','false');
    if(size.w)setZoomRange();
    setView('angle',{instant:true});
   }
@@ -368,7 +418,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const rim=rimAt(e);if(!rim)return;
   rimGrab={...rim,id:e.pointerId,x:e.clientX,y:e.clientY,tilt:state.tilt,enabled:controls.enabled};
   controls.enabled=false;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='ns-resize';
-  tween=null;e.stopImmediatePropagation();
+  tween=null;holdSpin(true);e.stopImmediatePropagation();
  }
  function pointerMove(e){
   if(pointers.has(e.pointerId))pointers.set(e.pointerId,e);
@@ -383,16 +433,16 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   }
  }
  function pointerEnd(e){
-  pointers.delete(e.pointerId);
+  pointers.delete(e.pointerId);if(!pointers.size)holdSpin(false);
   if(press&&e.pointerId===press.id){
    const p=press;press=null;
    if(e.type==='pointerup'&&!p.moved&&performance.now()-p.at<TAP_MS)tapped=performance.now();
   }
   if(rimGrab&&e.pointerId===rimGrab.id){e.stopImmediatePropagation();endRim();}
  }
- function lostCapture(e){if(rimGrab?.id===e.pointerId){press=null;pointers.delete(e.pointerId);endRim();}}
+ function lostCapture(e){if(rimGrab?.id===e.pointerId){press=null;pointers.delete(e.pointerId);endRim();if(!pointers.size)holdSpin(false);}}
  function leaveRim(){if(!rimGrab)canvas.style.cursor='';}
- function cancelRim(){press=null;tapped=0;pointers.clear();endRim();}
+ function cancelRim(){press=null;tapped=0;pointers.clear();endRim();holdSpin(false);}
  canvas.addEventListener('pointerdown',pointerDown,true);
  canvas.addEventListener('pointermove',pointerMove,true);
  canvas.addEventListener('pointerup',pointerEnd,true);
@@ -406,6 +456,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const v=e.target.closest('[data-disc3d-view]');if(v){noteInteraction();setView(v.dataset.disc3dView);}
   if(e.target.closest('[data-disc3d-flip]')){noteInteraction();flip();}
   if(e.target.closest('[data-disc3d-clay]'))setClay(!state.clay,{notify:true});
+  if(e.target.closest('[data-disc3d-spin]')){noteInteraction();setSpin(!state.spin,{remember:true});}
  });
  element.querySelector('[data-disc3d-tilt]').addEventListener('input',e=>{noteInteraction();setTilt(e.target.value);});
  canvas.addEventListener('keydown',e=>{
@@ -432,13 +483,15 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   canvas.removeEventListener('pointerup',pointerEnd,true);canvas.removeEventListener('pointercancel',pointerEnd,true);
   canvas.removeEventListener('lostpointercapture',lostCapture);canvas.removeEventListener('pointerleave',leaveRim);
   window.removeEventListener('atlas-theme-change',themeChanged);
-  disposed=true;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
+  disposed=true;cancelAnimationFrame(frame);observer.disconnect();seen.disconnect();controls.dispose();
   photo?.userData.disposePhoto();
   body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();clayMaterial.dispose();clayRimMaterial.dispose();matcap.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
   envTexture.dispose();renderer.dispose();renderer.forceContextLoss();element.remove();
  }
  setTilt(0);
- return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,setClay,dispose,state,
+ // A remembered spin starts with the viewer, unless the reader asked for reduced motion: then only their tap starts it.
+ if(spinRemembered()&&!reducedMotion())setSpin(true);
+ return {element,attach,update,setView,flip,setTilt,setHand,getPose,applyPose,glidePose,setClay,setSpin,dispose,state,
   // For tests and tuning: the live objects and a synchronous draw.
-  debug:{get photo(){return photo;},renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,haloRimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
+  debug:{get photo(){return photo;},renderer,scene,camera,controls,body,stamp,bodyMaterial,rimMaterial,haloRimMaterial,clayMaterial,clayRimMaterial,profileFigure,tiltGroup,flipGroup,discGroup,spin,renderNow:()=>{tween&&(tween.start=-1e9);flipTween&&(flipTween.start=-1e9);render();}}};
 }

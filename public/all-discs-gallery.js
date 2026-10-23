@@ -93,8 +93,8 @@ export class AllDiscsGallery{
    // ResizeObserver maintains an attached viewer; reattaching it would force a layout read per flip.
    if(v.element.parentNode!==this.host)v.attach(this.host);
    v.update(props);
-   // Restore only the camera choice. The shared viewer still owns flip/tilt reset behavior.
-   v.applyPose({...this.pose,tilt:v.state.tilt,flipped:v.state.flipped});v.setClay(this.clay);
+   // Restore only the camera choice (and the turntable). The shared viewer still owns flip/tilt and the disc's angle.
+   v.applyPose({...this.pose,tilt:v.state.tilt,flipped:v.state.flipped,turn:v.debug.discGroup.rotation.y});v.setClay(this.clay);
    const asset=look?look.asset:props.photoURL?null:this.module.catalogStampAsset(props);
    const reveal=(painted=false)=>{
     if(!this.visible||revision!==this.revision||v!==this.viewer)return;
