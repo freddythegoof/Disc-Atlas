@@ -1,7 +1,7 @@
 # Graph Report - clear-plastic-discs  (2026-10-23)
 
 ## Corpus Check
-- 456 files · ~5,656,144 words
+- 456 files · ~5,656,370 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 314 file(s) not represented in the graph (top: .log 239, .gz 23, .css 16)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `180f76d8`
+- Built from commit: `df1a2345`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
