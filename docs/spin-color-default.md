@@ -138,17 +138,42 @@ before committing.
 
 ## The Gallery gate
 
-`public/disc3d/viewer.mjs` and `public/all-discs-gallery.js` are shared rendering files, so the Gallery gate
-(`node tests/gallery-fixes-browser.mjs`, unchanged) is owed under the quiet protocol, paired with current main. The runner
-is the one used for PR #39 (`gate-pair.sh`: AC power only, 60 s of samples at ≥85% idle with no foreign headless browser,
-`workerd` or Wrangler before each run). The order is branch, main (`c040219`), main, branch, and each run's report is
-copied out before the tracked files are restored.
+`public/disc3d/viewer.mjs` and `public/all-discs-gallery.js` are shared rendering files, so the Gallery gate ran under the
+quiet protocol, paired with current main. The gate is `node tests/gallery-fixes-browser.mjs`, unchanged. The runner is
+the one used for PR #39, [gate-pair.sh.txt](assets/spin-color-default/gate/gate-pair.sh.txt): AC power only, and before
+each run 12 consecutive samples (about 60 s) at ≥85% idle with no foreign headless browser, `workerd` or Wrangler.
+Each run's report was copied out and the tracked `docs/images/storage-all-discs-fixes/` restored. **Gate, baselines,
+limits and rep counts are untouched.** Trees: this branch at `da28018` and main at `c040219`, both clean. Order: branch,
+main, main, branch.
 
-**Status: not yet run.** When the money shot finished, the Mac was on **battery power**, and the protocol refuses to
-measure off AC. A background runner is waiting (up to two hours) for AC and will then run the four gates on its own,
-logging to the ignored `work/spin-color-default/gate/`. Expectation, not a result: the gate flips the Gallery with spin
-off (a fresh profile), and with spin off the viewer's frame loop is exactly main's (`turn()` returns at once, and no
-frames are requested). This section will be updated with the numbers.
+**Result: the gate passes on all four runs, branch and main alike.** Every warm rep, desktop and phone, had **0 long
+tasks**. Every behaviour check (`placement`, `top`, `noPopIn`, `sticky`) is true, with zero page errors. All four drew on
+ANGLE Metal (Apple M4).
+
+| Run | Started | Desktop fly p95 per warm rep (limit 3.455) | Phone fly p95 per warm rep (limit 10.13) | Long tasks, desktop / phone | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| branch 1 | 22:40:59 | 2.6 2.6 2.7 2.6 2.7 2.5 2.5 | 6.9 6.9 6.8 | 0 / 0 | **pass** |
+| main 1 | 22:44:41 | 2.7 2.6 2.5 2.7 2.6 2.5 2.6 | 6.2 6.3 6.3 | 0 / 0 | **pass** |
+| main 2 | 22:48:08 | 2.6 2.5 2.5 2.6 2.5 2.6 2.5 | 7.0 7.2 7.7 | 0 / 0 | **pass** |
+| branch 2 | 23:21:47 | 3.2 3.1 3.1 3.2 3.2 3.2 3.2 | 6.4 6.4 6.2 | 0 / 0 | **pass** |
+
+Stills were 0.1–0.5 ms against limits of 1.96 (desktop) and 3.12 (phone) on every run.
+
+**What happened to the window.** The runner waited for AC from the moment the money shot finished and started at 22:40.
+The first three runs went back to back. Then another project's local dev server (`wrangler dev` on port 8789, outside this
+repository) came up. It counted as foreign, so the protocol refused to start the last run. That server was left alone,
+and so was a brief off-AC reading at 22:59, which aborted the waiting runner as designed. A second runner, same protocol,
+started the last run at 23:21:47, once the server had gone and a clean quiet minute had passed. Logs:
+[runs.log](assets/spin-color-default/gate/runs.log), [quiet.log](assets/spin-color-default/gate/quiet.log),
+[window.log](assets/spin-color-default/gate/window.log), and each run's gate log and `after.darwin.json` in
+[gate/](assets/spin-color-default/gate/).
+
+**One number, read honestly.** The second branch run's desktop fly p95 is 3.1–3.2 ms, about 0.5 ms above the other
+three runs (2.5–2.7). It is still inside the 3.455 limit. It is **not this change**. Branch 1 is the identical tree,
+measured with the same profile 40 minutes earlier, and it gave 2.5–2.7. The gate runs a fresh profile, so spin is off,
+and with spin off `turn()` returns at once and requests no frames. The machine samples for the two branch runs look
+alike (idle 77–91%, AC throughout). It is run-to-run variance between windows, and phone, the sensitive device, was the
+lowest of the four on that run.
 
 ## Fences kept
 

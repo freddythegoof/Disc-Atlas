@@ -1,0 +1,8 @@
+START spin1 22:40:59 da28018 dirty=0
+END spin1 22:43:38 exit 0
+START main1 22:44:41 c040219 dirty=0
+END main1 22:47:19 exit 0
+START main2 22:48:08 c040219 dirty=0
+END main2 22:50:45 exit 0
+START spin2 23:21:47 da28018 dirty=0
+END spin2 23:24:25 exit 0

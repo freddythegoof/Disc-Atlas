@@ -1,0 +1,28 @@
+#!/bin/zsh
+# Quiet-protocol Gallery gate runs, serially, one per tree argument (label=path), in the order given.
+# Abort unless on AC power; before each run wait for 60 s of samples all at >=85% idle with no foreign headless browser,
+# workerd or wrangler; log power, load and idle every 15 s for the whole session. The gate itself is run unchanged.
+# usage: outputs/gpc/gate-pair.sh <outdir> label=/path/to/tree ...   (GATE=atlas runs tests/atlas-3d-perf.mjs instead)
+O=$1; shift; mkdir -p $O; W=$O/window.log
+sample(){ local cpu=$(top -l 2 -n 0 -s 1 | grep 'CPU usage' | tail -1 | sed 's/CPU usage: //'); local idle=$(echo $cpu | sed -E 's/.* ([0-9.]+)% idle.*/\1/'); local pw=$(pmset -g batt | head -1 | sed -E "s/Now drawing from '(.*)'/\1/"); local foreign=$(pgrep -fl 'chrome-headless|headless_shell|workerd|wrangler' | grep -v $$ | wc -l | tr -d ' '); echo "$(date +%T) power=$pw | $cpu | load $(sysctl -n vm.loadavg) | foreign=$foreign"; }
+pmset -g batt | grep -q "AC Power" || { echo "ABORT $(date +%T) not on AC power: $(pmset -g batt | head -1)" | tee -a $W; exit 2; }
+( while true; do sample >> $W; sleep 13; done ) & LOGGER=$!
+trap "kill $LOGGER 2>/dev/null" EXIT
+quiet(){ local ok=0 deadline=$(( $(date +%s)+1800 )); while [ $(date +%s) -lt $deadline ]; do
+  local s=$(sample); local idle=$(echo $s | sed -E 's/.* ([0-9.]+)% idle.*/\1/'); local f=$(echo $s | sed -E 's/.*foreign=([0-9]+).*/\1/'); local pw=$(echo $s | grep -c 'power=AC Power')
+  [ $pw -eq 0 ] && { echo "ABORT $(date +%T) power left AC" | tee -a $O/quiet.log; exit 2; }
+  if [ $(echo "$idle >= 85" | bc) -eq 1 ] && [ $f -eq 0 ]; then ok=$(( ok+1 )); echo "$s quiet $ok" >> $O/quiet.log; else ok=0; echo "$s NOT quiet" >> $O/quiet.log; fi
+  # Each sample spans about 2 s plus the 3 s pause: 12 consecutive quiet samples cover 60 s.
+  [ $ok -ge 12 ] && return 0; sleep 3; done; echo "ABORT $(date +%T) no quiet minute in 30 min" | tee -a $O/quiet.log; exit 3; }
+for spec in "$@"; do
+ label=${spec%%=*}; tree=${spec#*=}
+ quiet; echo "START $label $(date +%T) $(git -C $tree rev-parse --short HEAD) dirty=$(git -C $tree status --porcelain --untracked-files=no | wc -l | tr -d ' ')" | tee -a $O/runs.log
+ if [ "$GATE" = atlas ]; then
+  (cd $tree && caffeinate -dims node tests/atlas-3d-perf.mjs > $O/$label.atlas.log 2>&1); rc=$?; cp $tree/outputs/atlas-3d/perf.json $O/$label.atlas-perf.json
+ else
+  (cd $tree && caffeinate -dims node tests/gallery-fixes-browser.mjs > $O/$label.gate.log 2>&1); rc=$?
+  cp $tree/docs/images/storage-all-discs-fixes/after.darwin.json $O/$label.after.darwin.json
+  git -C $tree checkout -- docs/images/storage-all-discs-fixes/
+ fi
+ echo "END $label $(date +%T) exit $rc" | tee -a $O/runs.log
+done
