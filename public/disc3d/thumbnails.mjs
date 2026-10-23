@@ -12,7 +12,7 @@ const lists=new WeakMap();
 export function observeThumbnails(root,lookup,{personal=false}={}){
  const style=personal?window.DisplayPalette?.stampStyle?.():null,ink2d=style?.ink?{...style,finish:{id:'flat'}}:null;
  let state=lists.get(root);
- if(state){state.observer.disconnect();window.removeEventListener('atlas-photo-ready',state.onPhoto);cancelAnimationFrame(state.frame);state.pending.clear();for(const t of state.stamps.values())t.dispose();}
+ if(state){state.observer.disconnect();window.removeEventListener('atlas-photo-ready',state.onPhoto);window.removeEventListener('atlas-theme-change',state.onTheme);cancelAnimationFrame(state.frame);state.pending.clear();for(const t of state.stamps.values())t.dispose();}
  state={pending:new Set(),visible:new Set(),stamps:new Map(),frame:0};lists.set(root,state);
  let art=null,loading=false,failed=false;
  const schedule=()=>{
@@ -55,6 +55,9 @@ export function observeThumbnails(root,lookup,{personal=false}={}){
   });
  };
  state.onPhoto=event=>{for(const host of state.visible)if(host.isConnected&&host.dataset.photoUrl===event.detail?.url)state.pending.add(host);schedule();};window.addEventListener('atlas-photo-ready',state.onPhoto);
+ // A clear copy's image filters the row's colour, which a theme changes: its finished thumbnail is watched again, so it
+ // redraws (over the new colour) when on screen. Opaque thumbnails are not touched.
+ state.onTheme=()=>{for(const host of root.querySelectorAll('[data-disc-thumbnail][data-finish="clear"]'))state.observer.observe(host);};window.addEventListener('atlas-theme-change',state.onTheme);
  state.observer=new IntersectionObserver(entries=>{
   for(const e of entries)if(e.isIntersecting){state.visible.add(e.target);state.pending.add(e.target);}else{state.visible.delete(e.target);state.pending.delete(e.target);state.stamps.get(e.target)?.dispose();state.stamps.delete(e.target);}
   schedule();

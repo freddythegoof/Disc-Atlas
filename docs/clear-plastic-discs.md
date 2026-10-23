@@ -231,6 +231,22 @@ Found and fixed along the way:
 Side effects to restore before any commit: `photo-stamp-level` rewrites `docs/photo-stamp-orientation/`, and
 `atlas-stamps` rewrites `docs/assets/atlas-stamps/` (both restored here).
 
+## Codex review on PR #44 (fixed)
+
+Codex reviewed 180f76d and left three P2 findings. All three were checked in the source, and Freddy ruled to fix them:
+1. **Clear thumbnails kept the old theme's row colour** after a theme switch (finished thumbnails are no longer
+   watched, and nothing listened for the theme). Each list now watches its clear thumbnails again on
+   `atlas-theme-change`, so they redraw over the new colour. Opaque thumbnails are not touched.
+2. **Lost kept a clear disc's light-theme fill** on a dark canvas: the graveyard had no `setTheme`, which is what the
+   scene forwards theme changes to. It now repaints its clear discs' page colour.
+3. **The worker copied the "untouched" photo after the shadow pass.** The copy now comes first. It is only read for
+   blown-out glare, which the pass never touches, so the Raptor's clean asset is byte-identical before and after this
+   fix.
+
+The browser suite now switches theme with the list and Lost open (no reload) and checks the clear thumbnail and the
+Lost disc against a fresh load in that theme. Both checks fail without their fixes. Opaque renders and extraction are
+still identical to main.
+
 ## Left undone, on purpose
 
 - **The atlas perf gate was not run.** Its thresholds are untouched, catalog discs never take the clear path, and the

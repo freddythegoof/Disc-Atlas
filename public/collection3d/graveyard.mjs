@@ -185,6 +185,8 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
  function select(id){selected=plotsById.has(id)?id:null;placeRing();view.request();}
  return {
   update,select,
+  // A clear disc (disc3d/clear.mjs) filters the page behind it: a theme change gives it the new page colour.
+  setTheme(){let clear=false;for(const plot of plotsById.values())if(plot.disc?.userData.clear){paintClear(plot.disc,pageColor(host));clear=true;}if(clear)view.request();},
   show(){view.show();},hide(){view.hide();},
   zoomBy(f){view.setZoom(view.zoom*f);},zoomTo(z){view.setZoom(z);},get zoom(){return view.zoom;},
   turnBy(rad){view.turnBy(rad);},
@@ -192,7 +194,7 @@ export async function mountGraveyard(host,{onPick=()=>{},onHover=()=>{},onCamera
   get tags(){return [selectedTag,hoverTag].filter(t=>t.shown).map(t=>({text:t.text,...view.project(t.sprite.position)}));},
   // Each headstone's top centre in canvas CSS px, for the keyboard targets over the canvas.
   anchors(){return [...plotsById.values()].filter(p=>p.state!=='leaving').map(p=>{const at=new THREE.Vector3(0,STONE_H*.5,0);p.headstone.localToWorld(at);const s=view.project(at);const top=new THREE.Vector3(0,STONE_H,0);p.headstone.localToWorld(top);const t=view.project(top);const base=new THREE.Vector3(0,0,.42);p.group.localToWorld(base);const b=view.project(base);return {id:p.id,x:s.x,y:s.y,top:t.y,bottom:b.y,width:Math.abs(b.y-t.y)*.75,visible:s.visible};});},
-  get state(){return {graves:[...plotsById.values()].filter(p=>p.state!=='leaving').length,leaving:[...plotsById.values()].filter(p=>p.state==='leaving').length,selected,columns,zoom:view.zoom,quality:view.stage.quality,frames:view.frames||0,moving:[...plotsById.values()].some(p=>p.t0)};},
+  get state(){return {clearPages:[...plotsById.values()].flatMap(p=>(p.disc?.userData.clear||[]).map(r=>'#'+r.backdrop.color.getHexString())),graves:[...plotsById.values()].filter(p=>p.state!=='leaving').length,leaving:[...plotsById.values()].filter(p=>p.state==='leaving').length,selected,columns,zoom:view.zoom,quality:view.stage.quality,frames:view.frames||0,moving:[...plotsById.values()].some(p=>p.t0)};},
   get info(){const i=view.stage.renderer.info.render;return {calls:i.calls,triangles:i.triangles};},
   dispose(){for(const plot of [...plotsById.values()])remove(plot);view.dispose();moundGeometry.dispose();moundMaterial.dispose();},
  };

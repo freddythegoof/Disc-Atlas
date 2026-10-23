@@ -10,9 +10,10 @@ import {unshadow,shoulder} from './disc-stamp-clear.mjs';
 // `clear`: the disc is clear plastic (docs/clear-plastic-discs.md): its stamp's shadow on the surface under it shows
 // through, and is taken out first (disc-stamp-clear.mjs), so only the stamp is read.
 export function extract(data,size,plate,{color=false,stored=false,clear=false}={}){
- const shadow=clear?unshadow(data,size,{plate}):null;
- // Clipping is read off the crop as the camera gave it (disc-stamp-delight.mjs, and the full-colour asset's glare).
+ // Clipping is read off the crop as the camera gave it (disc-stamp-delight.mjs, and the full-colour asset's glare),
+ // so it is copied before the shadow pass changes anything.
  const raw=data.slice();
+ const shadow=clear?unshadow(data,size,{plate}):null;
  // Never the glare-softening pass: it trades fine ink under a hotspot for a nicer photo (docs/photo-stamp-spike.md).
  // A stored texture was de-lit once, at upload: a second pass would balance its white against its own glare core.
  const measured=stored?measurePlate(data,size):delightPixels(data,size,{softenGlare:false}).color;

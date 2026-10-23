@@ -25,7 +25,8 @@ try{
   {mold_id:'35a861477cf9',plastic:'Z',wear:10,weight_g:174,color:'#0984a8',finish:'clear',in_bag:false,notes:'raptor'},
   {mold_id:'7446eb39abe5',plastic:'Z',wear:8,weight_g:177,color:'#b99bdd',finish:'clear',notes:'buzzz'},
   {mold_id:'6be51219c6db',plastic:'ESP',wear:9,weight_g:174,color:'#f2c14e',notes:'undertaker'},
-  {mold_id:'761c90d342f5',plastic:'Electron',wear:6,weight_g:175,color:'#e6c668',notes:'envy'}
+  {mold_id:'761c90d342f5',plastic:'Electron',wear:6,weight_g:175,color:'#e6c668',notes:'envy'},
+  {mold_id:'7446eb39abe5',plastic:'Z',wear:7,weight_g:175,color:'#e05a4f',finish:'clear',in_bag:false,status:'lost',lostDate:'2026-10-01',notes:'lost'}
  ]);
  const discs=async()=>page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs);
  const byNote=async note=>(await discs()).find(d=>d.notes===note);
@@ -127,7 +128,7 @@ try{
  await page.locator('#myBagViews [data-bag-view="bag"]').click();await wait(500);
  const marked=await page.evaluate(()=>[...document.querySelectorAll('.my-bag-disc')].map(row=>[row.dataset.discId,row.querySelector('.disc-thumbnail')?.dataset.finish||null]));
  assert.ok(marked.some(([id,f])=>id===buzzz.id&&f==='clear'),'the clear Buzzz is marked in the bag list');
- assert.ok(marked.filter(([id])=>id!==buzzz.id&&id!==raptor.id).every(([,f])=>f===null),'opaque rows are not');
+ const lostId=(await byNote('lost')).id;assert.ok(marked.filter(([id])=>id!==buzzz.id&&id!==raptor.id&&id!==lostId).every(([,f])=>f===null),'opaque rows are not');
  for(const scheme of ['light','dark']){
   await theme(scheme);await page.goto(base+'/?bag=1');
   const host=page.locator(`[data-disc-id="${buzzz.id}"] [data-disc-thumbnail]`);await host.scrollIntoViewIfNeeded();
@@ -135,7 +136,28 @@ try{
   await page.locator(`[data-disc-id="${buzzz.id}"]`).screenshot({path:`${OUT}/thumbnail-buzzz-${scheme}.png`});
  }
  await theme('light');
- check('thumbnails carry the finish');
+ // A theme change with the list open repaints the clear thumbnail over the new row colour (Codex P2 on PR #44): the
+ // same pixel as a fresh load in that theme, and not the light one.
+ const thumbPixel=()=>page.locator(`[data-disc-id="${buzzz.id}"] [data-disc-thumbnail].has-3d canvas`).evaluate(c=>{const g=c.getContext('2d'),x=Math.round(c.width*.5),y=Math.round(c.height*.82);return [...g.getImageData(x,y,1,1).data].slice(0,3);});
+ const thumbHost=()=>page.locator(`[data-disc-id="${buzzz.id}"] [data-disc-thumbnail]`).scrollIntoViewIfNeeded().then(()=>page.locator(`[data-disc-id="${buzzz.id}"] [data-disc-thumbnail].has-3d`).waitFor({timeout:20000}));
+ await page.goto(base+'/?bag=1');await thumbHost();await wait(800);const lightPx=await thumbPixel();
+ await theme('dark');await wait(1500);const livePx=await thumbPixel();
+ await page.goto(base+'/?bag=1');await thumbHost();await wait(800);const freshPx=await thumbPixel();
+ await theme('light');
+ assert.ok(shift(livePx,freshPx)<=3,`live switch ${livePx} matches a fresh Midnight load ${freshPx}`);
+ assert.ok(shift(lightPx,livePx)>=10,`and is not the light one ${lightPx}`);
+ check('thumbnails carry the finish, and repaint on a theme change');
+
+ // 6. Lost: a clear disc in the graveyard takes the new page colour on a theme change (Codex P2 on PR #44).
+ const lostPages=()=>page.evaluate(()=>window.BagApp.scenes.lost.state.clearPages);
+ const openLost=async()=>{await page.goto(base+'/?bag=1');await page.locator('#myBagViews [data-bag-view="lost"]').click();await page.locator('#lostScene[data-engine="ready"]').waitFor({timeout:30000});await page.waitForFunction(()=>window.BagApp.scenes.lost?.state.clearPages.length===1);await wait(800);};
+ await openLost();const lostLight=await lostPages();
+ await theme('dark');await wait(1200);const lostLive=await lostPages();
+ await openLost();const lostFresh=await lostPages();
+ await theme('light');
+ assert.deepEqual(lostLive,lostFresh,`live ${lostLive} matches a fresh Midnight load ${lostFresh}`);
+ assert.notDeepEqual(lostLight,lostLive,'and differs from light');
+ check('Lost repaints a clear disc on a theme change');
 
  assert.deepEqual(errors,[],'no page errors');
  console.log('clear-plastic-browser: all checks passed');
