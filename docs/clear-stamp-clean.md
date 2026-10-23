@@ -64,11 +64,11 @@ patches above, and after the fix the print alone
   it): at least half of the most its stroke holds nearby, so a hairline the photo blurred keeps its width, cut at half
   its depth; and only as part of a mark that is somewhere nearer its ink than the plate, which a soft plate-dark patch
   never is.
-- **Glare is print pixel by pixel, where it bridges print**: across the glare's thinnest crossing through that pixel
-  (of four lines), kept print lies at both ends. A core inside a fill bridges; a band bridges where it crosses a
-  stroke, along the stroke; its run over bare plastic, or over the gap between two letters, does not. A patch with no
-  print in its own ring, or filled with the plastic's colour, is not print either. (Codex, below: deciding a patch whole
-  painted a band over bare plastic in the ink of a stroke it crossed.)
+- **Glare is print pixel by pixel, and only where print encloses it**: walking out of the glare along four lines, both
+  ways, every walk lands on kept print. What lies under glare cannot be seen, so on a clear disc it is not guessed
+  (Freddy's ruling, Oct 23): a glare core inside a fill is print; a band over bare plastic, down the gap between two
+  marks, or across a stroke is not, and **a stroke shows a gap where a glare band crosses it**, as worn foil would. A
+  patch with no print in its own ring, or filled with the plastic's colour, is not print either.
 - **Full alpha or none.** No soft alpha edge: the texture's own filtering smooths it on screen. Only pixels that are
   mostly ink (90%) lend colour, so an edge or hairline pixel takes its ink's full colour, not a blend with the photo's
   plate.
@@ -77,9 +77,9 @@ patches above, and after the fix the print alone
 - **A speck of under 4 pixels (at 1024) is no print**: the photo's grain or glare's edge, standing alone.
 
 On the Raptor: plate-blue pixels **22,439 → 300** (the outer ring's genuine dark tails at 3 and 9 o'clock, and foil
-edges), partial alpha **251,846 → 0**, design 276,959 → 264,144 pixels at 2048 (the glare streak, specks, and a glare blob hanging off the inner ring where
+edges), partial alpha **251,846 → 0**, design 276,959 → 264,104 pixels at 2048 (the glare streak, specks, and a glare blob hanging off the inner ring where
 the band crosses it; the signature, 5X, WORLD CHAMPION, the flight numbers and both rings all stay). The asset the product makes and stores (a 1514 px WebP) keeps the edge
-binary: 335 plate-blue pixels, 0 at partial alpha. Making it took 9.5 s on this Mac, against 8.6 s on main.
+binary: 324 plate-blue pixels, 0 at partial alpha. Making it took 9.5 s on this Mac, against 8.6 s on main.
 
 ## Before and after
 
@@ -97,11 +97,11 @@ viewer from the top, Paper above and Midnight below, all made through the one-cl
 | Check | Result |
 |---|---|
 | **Opaque extraction byte-identical to main**: this branch's worker against origin/main's, the Raptor's photo and two fixtures, stored and camera paths, colour and one ink (`work/clear-stamp-clean/lab/extract-identity.mjs`) | **12 / 12 identical** (sha256 of every output) |
-| `tests/disc-stamp-clear.mjs`: four new cases. A synthetic clear disc with a glare band, a scuff and a blurred hairline (full alpha or none in both assets; no glare, no scuff; both words and the hairline kept; clear off stays soft-edged); a glare band across a stroke (the stroke stays under it, none of the band over the plastic); the layered fixture (every layer full or none, on every kept pixel and only there) | 9/9 pass; each new case fails on the code before it |
+| `tests/disc-stamp-clear.mjs`: four new cases. A synthetic clear disc with a glare band, a scuff and a blurred hairline (full alpha or none in both assets; no glare, no scuff; both words and the hairline kept; clear off stays soft-edged); glare enclosed by a fill (kept), a band across strokes and a band down the gap between two marks (nothing painted); the layered fixture (every layer full or none, on every kept pixel and only there) | 9/9 pass; each new case fails on the code before it |
 | `photo-editor-races`, `disc-stamp-extract`, `-color`, `-delight` (unit) | 36/36 pass with `disc-stamp-clear` |
 | **Photo stamp identity** (`tests/photo-stamp-identity-browser.mjs`: the photo look and the one-ink asset, every surface, against a detached origin/main) | **pass**: no differences, noise floor none |
 | Clear plastics (`tests/clear-plastic-browser.mjs`), one-click, colour assets, stall (WebKit and Chromium) | all pass |
-| `tests/photo-stamp-assets-browser.mjs` | **flaky on both trees, at the same line** (90: the bag's pulled disc never shows the foil stamp layer within 20 s): this branch passed 1 of 4 runs, main 1 of 3. The suite's disc is opaque, whose extraction is byte-identical |
+| `tests/photo-stamp-assets-browser.mjs` | **flaky on both trees, at the same line** (90: the bag's pulled disc never shows the foil stamp layer within 20 s): this branch has passed 2 of 5 runs, main 1 of 3. The suite's disc is opaque, whose extraction is byte-identical |
 | Peak memory of a clear extraction (Raptor at 2048, Node, `/usr/bin/time -l`) | main 857 / 868 MiB, branch 873 / 880 MiB: the clean finish's maps, about 15 MiB |
 
 The clear suite needs the Raptor's photo at `work/clear-plastic-discs/input/` (ignored): without it, it falls back to a
@@ -127,6 +127,18 @@ Codex's re-review (73d8216) found one more, also real and fixed:
    vanished from the one-ink asset. A kept pixel with every layer under half now takes its strongest, so the layers
    together hold exactly the kept pixels. The layered case checks it, and fails on 73d8216.
 
+Codex's next review (af1da37) found the per-pixel glare rule still guessed, both ways, and both were real:
+4. **P1, a gap bridged**: a glare band down the bare gap between two marks has print at both ends of its thinnest
+   crossing, so the gap was kept and painted (1,800 of 1,800 pixels in Codex's case).
+5. **P2, a slanted stroke cut**: under a band, the shortest crossing lands on bare plastic while the crossing along the
+   stroke lands on ink (0 of 84 stroke pixels kept).
+
+No rule from print at a crossing's ends gets both right: the photo does not show what is under glare. **Freddy ruled
+for the conservative rule**: glare is print only where print encloses it in all four directions, so nothing of the
+plastic is ever painted, and a stroke crossing a glare band shows a gap there. That settles P1 and takes P2 as the
+trade. On the Raptor it drops 40 more pixels (slivers where the glare band meets the rings, which stay whole) and adds
+none; the case on af1da37 painted 1,650 of the band's 2,520 pixels across the strokes.
+
 Opaque extraction is still byte-identical to main (12/12).
 
 ## Left for Freddy
@@ -136,7 +148,8 @@ Opaque extraction is still byte-identical to main (12/12).
 - **The ordering trap stays as it was**: an asset made before a copy is set to Clear keeps the shadow until it is made
   again. The sheet says so, and nothing remakes it unasked (clear plastics, Part B). Whether a clear copy should refuse,
   or flag, an asset made on Opaque is Freddy's call; it would need a stored mark of the mode an asset was made in.
-- **Rules that would cut real print on some disc** (none on the Raptor): a light ink in a clear plate's own hue and
+- **Rules that would cut real print on some disc** (none on the Raptor): a stroke crossing a glare band shows a gap
+  there (the ruling above); a light ink in a clear plate's own hue and
   saturation (a pale blue on blue) reads as the plastic and goes; a hairline the photo blurred until it is nowhere more
   ink than plastic goes. On a colourless clear plate, glare lighter than the plate by more than 28 is not caught.
 - Not measured on a phone; WebKit on this Mac makes the same asset as Chromium.

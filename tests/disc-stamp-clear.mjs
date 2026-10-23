@@ -110,20 +110,29 @@ test('clean finish off: the colour asset is today\'s, soft-edged', () => {
  assert.ok(partial>0);
 });
 
-// Codex on PR #45. (1) One glare patch can cross a stroke and run on over bare plastic: it is decided pixel by pixel,
-// so the stroke stays under it and the run over the plastic goes. The colour pass is given the band as design and as
-// glare directly, as the extraction gives it a glare core it enclosed.
-test('clean finish: a glare band across a stroke keeps the stroke under it, never the band over the plastic', async () => {
+// Codex on PR #45. (1) Glare is print only where print encloses it (Freddy's ruling): what lies under glare cannot be
+// seen, so nothing is guessed. A glare core inside a fill stays; a band across strokes, or down the gap between two
+// marks, paints nothing (a stroke shows a gap where a band crosses it). The colour pass is given the glare as design and
+// as glare directly, as the extraction gives it a glare core it enclosed.
+async function glareCase(boxes){
  const {extractStampColor}=await import('../public/disc-stamp-color.mjs');
- const d=disc({shadow:false}),raw=d.slice(),mask=new Uint8Array(N*N),glare=new Uint8Array(N*N),BAND=[150,212,360,224];
+ const d=disc({shadow:false}),raw=d.slice(),mask=new Uint8Array(N*N),glare=new Uint8Array(N*N);
  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const p=y*N+x;if(stroke(x,y,RED_BOX)||stroke(x,y,NAVY_BOX))mask[p]=1;
-  if(inBox(x,y,BAND)){mask[p]=1;glare[p]=1;for(let c=0;c<3;c++)d[4*p+c]=raw[4*p+c]=255;}}
+  if(boxes.some(box=>inBox(x,y,box))){mask[p]=1;glare[p]=1;for(let c=0;c<3;c++)d[4*p+c]=raw[4*p+c]=255;}}
  const {rgba}=extractStampColor(d,raw,N,mask,'#0a84a8',{plate:.95,glare,clear:true});
- let over=0,overAll=0,under=0,underAll=0;
- for(let y=BAND[1];y<BAND[3];y++)for(let x=BAND[0];x<BAND[2];x++){const p=y*N+x,on=rgba[4*p+3]>0;
-  if(stroke(x,y,RED_BOX)&&stroke(x-2,y,RED_BOX)&&stroke(x+2,y,RED_BOX)){underAll++;under+=on;}else if(!stroke(x,y,RED_BOX)&&!stroke(x-2,y,RED_BOX)&&!stroke(x+2,y,RED_BOX)){overAll++;over+=on;}}
- assert.equal(over,0,`the band over bare plastic is not print (${over} of ${overAll})`);
- assert.ok(under>.9*underAll,`the stroke under the band stays (${under} of ${underAll})`);
+ const shown=box=>{let n=0,all=0;for(let y=box[1];y<box[3];y++)for(let x=box[0];x<box[2];x++){all++;n+=rgba[4*(y*N+x)+3]>0;}return [n,all];};
+ return shown;
+}
+test('clean finish: glare is print only where print encloses it', async () => {
+ // A core inside a bar of the red word (each bar is 18 px wide, 36 tall).
+ const CORE=[156,212,162,224],core=(await glareCase([CORE]))(CORE);
+ assert.ok(core[0]>=.9*core[1],`a glare core inside a fill stays (${core[0]} of ${core[1]})`);
+ // A band across the red word: none of it is painted, over the plastic or across the strokes.
+ const BAND=[150,212,360,224],band=(await glareCase([BAND]))(BAND);
+ assert.equal(band[0],0,`a band across strokes paints nothing (${band[0]} of ${band[1]})`);
+ // A band down the gap between two bars (Codex's P1): the gap stays plastic.
+ const GAP=[168,200,176,236],gap=(await glareCase([GAP]))(GAP);
+ assert.equal(gap[0],0,`a band down the gap between two marks paints nothing (${gap[0]} of ${gap[1]})`);
 });
 // (2) A layered asset is drawn from its layers, not its alpha (disc-photo.mjs): on a clear disc they are full or none,
 // and only where the asset is.
