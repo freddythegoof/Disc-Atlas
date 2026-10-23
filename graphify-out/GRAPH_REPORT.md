@@ -1,7 +1,7 @@
 # Graph Report - clear-plastic-discs  (2026-10-23)
 
 ## Corpus Check
-- 456 files · ~5,655,909 words
+- 456 files · ~5,656,144 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 314 file(s) not represented in the graph (top: .log 239, .gz 23, .css 16)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2541078d`
+- Built from commit: `180f76d8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -806,7 +806,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `app.js` be split into smaller, more focused modules?**
   _Cohesion score 0.05962059620596206 - nodes in this community are weakly interconnected._
 - **Why does `inCollection()` connect `app.js` to `bag-tweaks-browser.mjs`?**
-  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+  _High betweenness centrality (0.051) - this node is a cross-community bridge._
 - **Should `Bag scene` be split into smaller, more focused modules?**
   _Cohesion score 0.0989345509893455 - nodes in this community are weakly interconnected._
 - **Why does `scripts` connect `scripts` to `package.json`?**
