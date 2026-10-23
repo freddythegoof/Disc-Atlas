@@ -1,8 +1,8 @@
 # Clear plastics: a clear finish, and a clean stamp mode
 
 Branch `claude/clear-plastic-discs`, off `origin/main` 573c80c (photo stamps through v3.1 and the viewer spin).
-Two commits: **Part A**, a clear finish for bag discs (ships either way), and **Part B**, the clean stamp mode, an
-experiment that stops here for Freddy's eye. Nothing pushed, merged or deployed.
+Two commits: **Part A**, a clear finish for bag discs, and **Part B**, the clean stamp mode, an experiment that
+stopped for Freddy's eye. **Freddy kept Part B on Oct 23, 2026**, from the A/B sheet. Nothing pushed, merged or deployed.
 
 **Freddy's case**, pinned Oct 23, 2026: the blue Raptor (Discraft Z) in Storage, with its existing photo. The photo was
 read from the live account once, read-only, with Freddy's go-ahead: one `SELECT` on D1 and one `GET` from R2
@@ -206,8 +206,9 @@ Making the asset in clean mode took 10.6 s on this Mac, against 8.8 s for main's
   asset keeps just the stamp: after changing the finish, make it again."* Nothing remakes it behind the player's back.
 - **Rim sampling**: unchanged (§1).
 
-**Keep or kill is Freddy's.** A kill is a revert of commit 2541078: Part A stands, and a clear disc with a photo shows
-row A's look, or C's if its owner picks Game asset.
+**Ruling: kept** (Freddy, Oct 23, 2026, from the A/B sheet). Had it been killed, a revert of commit 2541078 would have
+left Part A standing, with a clear disc's photo showing row A's look, or C's under Game asset. The two blemishes
+left in row B (the glare fleck beside PIERCE, and the thin streak along the outer ring at top right) ship as they are.
 
 ## Proof
 
