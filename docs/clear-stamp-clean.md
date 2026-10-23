@@ -64,19 +64,22 @@ patches above, and after the fix the print alone
   it): at least half of the most its stroke holds nearby, so a hairline the photo blurred keeps its width, cut at half
   its depth; and only as part of a mark that is somewhere nearer its ink than the plate, which a soft plate-dark patch
   never is.
-- **Glare is print only where its own ring is print** and its fill is not the plastic's colour. (Without this, a glare
-  patch inside the dropped streak was filled from the nearest foil and drew red specks.)
+- **Glare is print pixel by pixel, where it bridges print**: across the glare's thinnest crossing through that pixel
+  (of four lines), kept print lies at both ends. A core inside a fill bridges; a band bridges where it crosses a
+  stroke, along the stroke; its run over bare plastic, or over the gap between two letters, does not. A patch with no
+  print in its own ring, or filled with the plastic's colour, is not print either. (Codex, below: deciding a patch whole
+  painted a band over bare plastic in the ink of a stroke it crossed.)
 - **Full alpha or none.** No soft alpha edge: the texture's own filtering smooths it on screen. Only pixels that are
   mostly ink (90%) lend colour, so an edge or hairline pixel takes its ink's full colour, not a blend with the photo's
   plate.
-- **The one-ink asset holds exactly the same pixels**, at full alpha (`disc-stamp-worker.mjs`).
-
+- **The one-ink asset holds exactly the same pixels**, at full alpha (`disc-stamp-worker.mjs`). A layered (illustrated)
+  asset is drawn from its fill, line and solid layers, not its alpha, so each layer is cut at half: full or none.
 - **A speck of under 4 pixels (at 1024) is no print**: the photo's grain or glare's edge, standing alone.
 
 On the Raptor: plate-blue pixels **22,439 → 300** (the outer ring's genuine dark tails at 3 and 9 o'clock, and foil
-edges), partial alpha **251,846 → 0**, design 276,959 → 264,767 pixels at 2048 (the glare streak and specks; the signature, 5X, WORLD CHAMPION, the
-flight numbers and both rings all stay). The asset the product makes and stores (a 1514 px WebP) keeps the edge
-binary: 327 plate-blue pixels, 0 at partial alpha. Making it took 9.5 s on this Mac, against 8.6 s on main.
+edges), partial alpha **251,846 → 0**, design 276,959 → 264,144 pixels at 2048 (the glare streak, specks, and a glare blob hanging off the inner ring where
+the band crosses it; the signature, 5X, WORLD CHAMPION, the flight numbers and both rings all stay). The asset the product makes and stores (a 1514 px WebP) keeps the edge
+binary: 335 plate-blue pixels, 0 at partial alpha. Making it took 9.5 s on this Mac, against 8.6 s on main.
 
 ## Before and after
 
@@ -94,15 +97,31 @@ viewer from the top, Paper above and Midnight below, all made through the one-cl
 | Check | Result |
 |---|---|
 | **Opaque extraction byte-identical to main**: this branch's worker against origin/main's, the Raptor's photo and two fixtures, stored and camera paths, colour and one ink (`work/clear-stamp-clean/lab/extract-identity.mjs`) | **12 / 12 identical** (sha256 of every output) |
-| `tests/disc-stamp-clear.mjs`: two new cases on a synthetic clear disc with a glare band, a scuff and a blurred hairline. Full alpha or none in both assets; no glare, no scuff; both words and the hairline kept; clear off stays soft-edged | 7/7 pass; the new case fails on main's modules |
+| `tests/disc-stamp-clear.mjs`: four new cases. A synthetic clear disc with a glare band, a scuff and a blurred hairline (full alpha or none in both assets; no glare, no scuff; both words and the hairline kept; clear off stays soft-edged); a glare band across a stroke (the stroke stays under it, none of the band over the plastic); the layered fixture (every layer full or none, only on print) | 9/9 pass; each new case fails on the code before it |
 | `photo-editor-races`, `disc-stamp-extract`, `-color`, `-delight` (unit) | 36/36 pass with `disc-stamp-clear` |
 | **Photo stamp identity** (`tests/photo-stamp-identity-browser.mjs`: the photo look and the one-ink asset, every surface, against a detached origin/main) | **pass**: no differences, noise floor none |
 | Clear plastics (`tests/clear-plastic-browser.mjs`), one-click, colour assets, stall (WebKit and Chromium) | all pass |
-| `tests/photo-stamp-assets-browser.mjs` | **fails, identically on main** (the bag's pulled disc never shows the foil stamp layer, line 90: an opaque path this branch doesn't touch) |
+| `tests/photo-stamp-assets-browser.mjs` | pass after the Codex fixes. Before them it failed once on this branch and identically on main (line 90, the bag's pulled disc never showed the foil stamp layer within 20 s): a timing flake on an opaque path |
 | Peak memory of a clear extraction (Raptor at 2048, Node, `/usr/bin/time -l`) | main 857 / 868 MiB, branch 873 / 880 MiB: the clean finish's maps, about 15 MiB |
 
 The clear suite needs the Raptor's photo at `work/clear-plastic-discs/input/` (ignored): without it, it falls back to a
 fixture the photo route refuses ("Use a square processed photo up to 1024 pixels"), on main too.
+
+## Codex review on PR #45 (fixed)
+
+Codex reviewed 4fbcc5e and left two P2 findings. Both were checked in the source and were real; Freddy ruled to fix
+them:
+1. **Glare kept as a whole patch.** `fillFromRing` gives one connected glare patch its ring's ink, so a band crossing a
+   stroke and running on over bare plastic was kept whole, in the stroke's ink, and the plastic-colour check then saw
+   the ink. Glare is now decided per pixel (above). Any of four lines was tried first and let the gap between two
+   letters under a band bridge diagonally (196 of 384 band pixels over plastic kept in the new case); the thinnest
+   crossing keeps none. On the Raptor this drops 623 pixels, a pink blob off the inner ring where the glare band
+   crosses it, and adds none. The ring itself is unbroken.
+2. **Layered stamps kept soft layers.** The worker forced the one-ink alpha to full, but a layered asset is encoded from
+   its layers at opaque alpha, and they kept their blurred edges. On a clear disc each layer is now cut at half. The
+   Raptor is not layered; the stamped-disc fixture is, and the new case covers it.
+
+Opaque extraction is still byte-identical to main (12/12).
 
 ## Left for Freddy
 

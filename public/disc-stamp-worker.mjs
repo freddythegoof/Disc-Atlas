@@ -26,8 +26,12 @@ export function extract(data,size,plate,{color=false,stored=false,clear=false}={
  if(clear){const off=shoulder(raw,size,plate,shadow.plate);for(let p=0;p<off.length;p++)if(off[p])drop(p);}
  const colour=color||clear?extractStampColor(data,raw,size,mask,plateColor,{plate,glare:light.unreliable,filled:light.filled,clear}):null;
  // The clean finish (docs/clear-stamp-clean.md): on a clear disc the colour pass decides what is print, and the one-ink
- // asset holds exactly that, at full alpha: nothing of the plastic, nothing half there.
- if(clear){const {kept}=colour;for(let p=0;p<kept.length;p++)if(!kept[p])drop(p);else stamp.alpha[p]=255;delete colour.kept;}
+ // asset holds exactly that, at full alpha: nothing of the plastic, nothing half there. A layered asset is drawn from
+ // its layers, not its alpha (disc-photo.mjs), so each layer is cut at half too: full or none.
+ if(clear){
+  const {kept}=colour;for(let p=0;p<kept.length;p++)if(!kept[p])drop(p);else stamp.alpha[p]=255;delete colour.kept;
+  if(stamp.layers)for(const layer of Object.values(stamp.layers))for(let p=0;p<layer.length;p++)layer[p]=layer[p]>=.5?1:0;
+ }
  return {plateColor,light:light.stats,...shadow&&{shadow},...stamp,...color&&{color:colour}};
 }
 if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=({data:{pixels,size,plate,color,stored,clear}})=>{

@@ -36,8 +36,8 @@ import {plastic} from './disc-stamp-clear.mjs';
 // closes round (gaps up to twice this, px at 1024) is not a probe either: seen through a print it is not open plate.
 const RING_PX=6,K=8,MERGE_DE=12,WL=.5,GRID=32,GUARD=8,HULL=32,CLIP=250,CLIP_CHROMA=.12;
 // On a clear disc (`clear`): DEEP, the share of its ink a pixel must hold to lend its colour to the print around it;
-// SPECK, the fewest pixels (at 1024) a mark of print has.
-const DEEP=.9,SPECK=4;
+// SPECK, the fewest pixels (at 1024) a mark of print has; BRIDGE, how far (px at 1024) glare is looked across for print.
+const DEEP=.9,SPECK=4,BRIDGE=64;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -190,8 +190,8 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
  // other pixel holds some share t of its ink (from the plate to the ink, as the edge un-blend reads it). A mark stays
  // where it holds at least half the most its stroke holds nearby (a hairline the photo blurred keeps its width, cut at
  // half its depth), and only as part of a mark that somewhere is nearer its ink than the plate: a soft plate-dark patch
- // never is. Only pixels that are mostly ink (deep) lend their colour; the rest take it from them. Glare is decided on
- // the colour it is filled with, below.
+ // never is. Only pixels that are mostly ink (deep) lend their colour; the rest take it from them. Glare is print
+ // where it bridges print, and then only if the colour it is filled with is not the plastic's (below).
  let kept=null,source=reliable;
  if(clear){
   const isPlastic=plastic(P),inkPlastic=inks.map(ink=>isPlastic(...ink.lab)),cover=new Float32Array(N),near=new Uint8Array(N);
@@ -207,7 +207,24 @@ export function extractStampColor(data,raw,size,mask,plateColor,{plate=.8,glare:
   for(let p=0;p<N;p++)if(near[p]&&cover[p]>=.5*peak[p]){kept[p]=1;stack.push(p);}
   while(stack.length){const p=stack.pop(),i=p%size,j=(p-i)/size;
    for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=size||jj>=size)continue;const q=jj*size+ii;if(!kept[q]&&cover[q]&&cover[q]>=.5*peak[q]){kept[q]=1;stack.push(q);}}}
-  for(let p=0;p<N;p++){if(glare[p])kept[p]=1;source[p]=kept[p]&&reliable[p]&&(depth[p]>edge||cover[p]>=DEEP)?1:0;}
+  // Glare is print pixel by pixel, never as a whole patch (one patch can cross a stroke and run on over bare plastic):
+  // a glare pixel is print where it bridges print: across the glare's thinnest crossing through it (of four lines, within
+  // BRIDGE px at 1024), kept print lies at both ends. A core inside a fill bridges; a band bridges where it crosses a
+  // stroke, along the stroke, and its run over bare plastic, or over the gap between two letters, does not. (Any line
+  // would let a short gap under a band reach the letters on both sides diagonally.)
+  const reachG=Math.round(BRIDGE*k),walk=(p,dx,dy)=>{let i=p%size,j=(p-i)/size;
+   for(let s=1;s<=reachG;s++){i+=dx;j+=dy;if(i<0||j<0||i>=size||j>=size)return null;const q=j*size+i;if(!glare[q])return {s,print:kept[q]===1};}return null;};
+  const bridged=new Uint8Array(N);
+  for(let p=0;p<N;p++){
+   if(!glare[p])continue;let best=Infinity,print=false;
+   for(const [dx,dy] of [[1,0],[0,1],[1,1],[1,-1]]){
+    const a=walk(p,dx,dy),b=walk(p,-dx,-dy);if(!a||!b)continue;
+    const length=(a.s+b.s)*(dx&&dy?Math.SQRT2:1),both=a.print&&b.print;
+    if(length<best-1e-6){best=length;print=both;}else if(Math.abs(length-best)<=1e-6)print||=both;
+   }
+   bridged[p]=print?1:0;
+  }
+  for(let p=0;p<N;p++){if(bridged[p])kept[p]=1;source[p]=kept[p]&&reliable[p]&&(depth[p]>edge||cover[p]>=DEEP)?1:0;}
  }
  // 4. Colour per ink: reliable pixels lightly denoised among their own ink (r), the rest from their ink nearby (far).
  const out=new Float32Array(N*3),have=new Uint8Array(N),r=Math.max(1,Math.round(k)),far=Math.max(2,Math.round(3*k));

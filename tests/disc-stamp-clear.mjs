@@ -109,3 +109,29 @@ test('clean finish off: the colour asset is today\'s, soft-edged', () => {
  let partial=0;for(let p=0;p<N*N;p++)if(r.color.rgba[4*p+3]>0&&r.color.rgba[4*p+3]<255)partial++;
  assert.ok(partial>0);
 });
+
+// Codex on PR #45. (1) One glare patch can cross a stroke and run on over bare plastic: it is decided pixel by pixel,
+// so the stroke stays under it and the run over the plastic goes. The colour pass is given the band as design and as
+// glare directly, as the extraction gives it a glare core it enclosed.
+test('clean finish: a glare band across a stroke keeps the stroke under it, never the band over the plastic', async () => {
+ const {extractStampColor}=await import('../public/disc-stamp-color.mjs');
+ const d=disc({shadow:false}),raw=d.slice(),mask=new Uint8Array(N*N),glare=new Uint8Array(N*N),BAND=[150,212,360,224];
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){const p=y*N+x;if(stroke(x,y,RED_BOX)||stroke(x,y,NAVY_BOX))mask[p]=1;
+  if(inBox(x,y,BAND)){mask[p]=1;glare[p]=1;for(let c=0;c<3;c++)d[4*p+c]=raw[4*p+c]=255;}}
+ const {rgba}=extractStampColor(d,raw,N,mask,'#0a84a8',{plate:.95,glare,clear:true});
+ let over=0,overAll=0,under=0,underAll=0;
+ for(let y=BAND[1];y<BAND[3];y++)for(let x=BAND[0];x<BAND[2];x++){const p=y*N+x,on=rgba[4*p+3]>0;
+  if(stroke(x,y,RED_BOX)&&stroke(x-2,y,RED_BOX)&&stroke(x+2,y,RED_BOX)){underAll++;under+=on;}else if(!stroke(x,y,RED_BOX)&&!stroke(x-2,y,RED_BOX)&&!stroke(x+2,y,RED_BOX)){overAll++;over+=on;}}
+ assert.equal(over,0,`the band over bare plastic is not print (${over} of ${overAll})`);
+ assert.ok(under>.9*underAll,`the stroke under the band stays (${under} of ${underAll})`);
+});
+// (2) A layered asset is drawn from its layers, not its alpha (disc-photo.mjs): on a clear disc they are full or none,
+// and only where the asset is.
+test('clean finish: a layered stamp\'s layers are full or none, and only on print', async () => {
+ const sharp=(await import('node:module')).createRequire(import.meta.url)('sharp');
+ const px=await sharp('tests/fixtures/stamped-disc.webp').ensureAlpha().resize(1024,1024).raw().toBuffer();
+ const r=extract(new Uint8ClampedArray(px),1024,.85,{stored:true,clear:true,color:true});
+ assert.ok(r.layered,'the fixture reads as layered');
+ let on=0;for(const layer of Object.values(r.layers))for(let p=0;p<layer.length;p++){assert.ok(layer[p]===0||layer[p]===1,`layer value ${layer[p]}`);if(layer[p]){on++;assert.equal(r.alpha[p],255);}}
+ assert.ok(on>1000);
+});
