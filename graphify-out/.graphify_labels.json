@@ -29,7 +29,6 @@
   "61": "vite.config.ts",
   "64": "atlas-layout.mjs",
   "68": "pathlib",
-  "69": "atlas-speed-band.mjs",
   "70": "atlas-speed-band-browser.mjs",
   "86": "palette.mjs",
   "90": "StampManifestTests",
