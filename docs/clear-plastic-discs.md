@@ -256,6 +256,27 @@ Codex's re-review (df1a234) found one more, also real and fixed:
    mode the extraction actually ran in. It fails on the old code. (`photo-editor-races`' thumbnail sandbox recorded the
    last listener added as the photo listener; its stub now keys listeners by event type.)
 
+Codex's next review (8ba3882) raised the clean pass's memory (P2): at 2048 px it kept many 16 MiB full-size fields
+alive at once, a risk to a low-memory phone's worker. Freddy ruled to fix it:
+5. **Detection at 1024, lift at full size.** The print, the offset, the recast and the footprint are found on a 2 × 2
+   averaged copy at 1024 px. The lift then walks the full 2048 photo, computing each pixel's colour as it goes and
+   reading the footprint and plate field from the 1024 maps. No full-size working field is kept, and the blurs and
+   working fields share a few reused buffers. Peak resident memory in the same Node harness (the Raptor's photo at
+   2048, two runs each; the harness alone peaks at 116 MiB):
+
+   | | Before | After |
+   |---|---|---|
+   | Opaque extraction | 912 MiB | 897 / 911 MiB |
+   | Clear extraction | 892 MiB | 946 / 924 MiB |
+   | Shadow pass alone | 568 MiB | **201 / 206 MiB** |
+
+   The pass's own working memory fell from about 452 to about 88 MiB. The clear extraction's overall peak is still set by
+   the existing extraction after it, as before; the run-to-run swing is the garbage collector.
+   **The Raptor's clean asset is not byte-identical:** the same shadow is found (offset (−50, 54), strength 2.55), but
+   293 of 1,048,576 mask pixels flip (single pixels on the RAPTOR letters' lower edges, and specks by the glare at
+   PIERCE and the left ring) and 3.8% of colour pixels shift, 29,001 of 40,034 of them by 1–2 levels. Freddy reviewed
+   the comparison and accepted it.
+
 ## Left undone, on purpose
 
 - **The atlas perf gate was not run.** Its thresholds are untouched, catalog discs never take the clear path, and the
