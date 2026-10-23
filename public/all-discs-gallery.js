@@ -86,7 +86,7 @@ export class AllDiscsGallery{
     model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:title(d),
     manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
     color:item.color,colors:{plate:item.color,rim:item.rim_color||undefined},plastic:item.plastic||'premium',
-    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,haloBand:haloBand(item),haloModel:haloModel(item)};
+    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,haloBand:haloBand(item),haloModel:haloModel(item),finish:item.finish};
    // The game-asset look draws the disc's extracted stamp in the player's own ink and finish, as their stamps do
    // everywhere else; every other disc here keeps exactly what it showed before.
    const look=this.module.photoStampFor(props.photoURL);if(look)props.stampStyle=window.DisplayPalette?.stampStyle?.()||null;

@@ -57,6 +57,47 @@ test('rim color migration preserves existing bag and storage copies with automat
  }finally{db.close();}
 });
 
+// Clear plastics (docs/clear-plastic-discs.md): the copy's finish, Opaque by default, Clear when chosen.
+test('a clear finish persists through edits, moves, the lost flow and fresh reads; anything else is refused', async () => {
+ const s=await fixture();try {
+  const plain=await (await s.call('/api/bag/discs','POST',item)).json();assert.equal(plain.disc.finish,'opaque');
+  const response=await s.call('/api/bag/discs','POST',{...item,mold_id:'35a861477cf9',plastic:'Z',color:'#0984A8',finish:'clear'});
+  assert.equal(response.status,201);
+  const disc=(await response.json()).disc,path='/api/bag/discs/'+disc.id;
+  assert.equal(disc.finish,'clear');assert.equal(s.db.prepare('SELECT finish FROM bag_discs WHERE id=?').get(disc.id).finish,'clear');
+  // A move, and an edit that does not mention the finish (an older client), keep it.
+  assert.equal((await s.call(path,'PATCH',{in_bag:false})).status,200);
+  assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,plastic:'Z',color:'#0984a8',notes:'Storage'})).status,200);
+  for(const route of ['/api/bag','/api/bag/discs',path]){
+   const data=await (await s.call(route)).json(),saved=data.disc || data.discs.find(d=>d.id===disc.id);
+   assert.equal(saved.finish,'clear');assert.equal(saved.in_bag,false);
+  }
+  for(const finish of ['glass','Clear','',null,1])assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,finish})).status,400,String(finish));
+  assert.equal((await (await s.call(path)).json()).disc.finish,'clear');
+  assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,finish:'opaque'})).status,200);
+  assert.equal((await (await s.call(path)).json()).disc.finish,'opaque');
+  // Another player's request never reaches it.
+  assert.equal((await s.call(path,'PUT',{...item,mold_id:disc.mold_id,finish:'clear'},{cookie:'y'.repeat(43)})).status,404);
+ }finally{s.close();}
+});
+
+test('the finish migration makes every existing copy opaque and accepts only opaque or clear', () => {
+ const db=new DatabaseSync(':memory:');try {
+  const files=fs.readdirSync('migrations/accounts').sort();
+  for(const file of files.filter(f=>f<'0014'))db.exec(fs.readFileSync('migrations/accounts/'+file,'utf8'));
+  db.prepare('INSERT INTO auth_users VALUES (?,?,?,?,?,?)').run('u','g','a@example.com','A',1,1);
+  for(const inBag of [0,1])db.prepare("INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,color,added_at,in_bag,texture_key) VALUES (?,?,?,?,?,?,?,?,?,?)").run('d'+inBag,'u','35a861477cf9','Z',10,174,'#0984a8','before',inBag,inBag?null:'0cef6b2f-a6ab-4f1d-beb5-3961903f8804.webp');
+  const before=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  db.exec(fs.readFileSync('migrations/accounts/0014_disc_finish.sql','utf8'));
+  const after=db.prepare('SELECT * FROM bag_discs ORDER BY id').all();
+  after.forEach(({finish,...disc},index)=>{assert.equal(finish,'opaque');assert.deepEqual(disc,{...before[index]});});
+  for(const bad of ['glass','Clear',''])assert.throws(()=>db.prepare('UPDATE bag_discs SET finish=?').run(bad));
+  assert.throws(()=>db.prepare('UPDATE bag_discs SET finish=NULL').run());
+  db.prepare("UPDATE bag_discs SET finish='clear'").run();
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM bag_discs WHERE finish='clear'").get().n,2);
+ }finally{db.close();}
+});
+
 test('lost disc keeps its physical details and leaves bag slots and ordering', async () => {
  const s=await fixture();try {
   const original=(await (await s.call('/api/bag/discs','POST',{...item,notes:'First ace disc',color:'#123456',pocket:'goto',stability_bias:'less_stable'})).json()).disc;

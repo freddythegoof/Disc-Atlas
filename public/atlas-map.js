@@ -13,9 +13,10 @@ function photoMarkup(d,extra=''){
 }
 // `band`: a Halo copy's photographed band colour (disc3d/halo.mjs haloBand), or nothing; `model` its v2 wash and
 // dye front (haloModel), or nothing.
-function thumbnailMarkup(d,color,rim,photoURL,band,model){
+// `finish`: 'clear' for a clear copy (disc3d/clear.mjs).
+function thumbnailMarkup(d,color,rim,photoURL,band,model,finish){
  const label=d?d.brand+' '+(d.catalogName||d.name):'Saved disc';
- return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}"${band?` data-halo-band="${esc(band)}"`:''}${model?` data-halo-model="${esc(model)}"`:''} style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
+ return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}"${band?` data-halo-band="${esc(band)}"`:''}${model?` data-halo-model="${esc(model)}"`:''}${finish==='clear'?' data-finish="clear"':''} style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
 }
 function observeDiscThumbnails(root,lookup,options){
  if(window.ATLAS_3D_OFF)return;
@@ -491,11 +492,20 @@ function discArt(d,color,size,lod){
 function photoDisc(d){
  if(!(myMap||activeLens()!=='default'))return d;
  const photoURL=window.BagApp?.mapPhotos?.().get(d.id),haloBand=photoURL?window.BagApp?.mapHaloBands?.().get(d.id):null,haloModel=haloBand?window.BagApp?.mapHaloModels?.().get(d.id):null;
+ // A clear copy (disc3d/clear.mjs) filters the map behind it.
+ const clear=window.BagApp?.mapFinishes?.().get(d.id)==='clear'?{finish:'clear',page:mapPage()}:null;
  // The player's own disc on their map wears their stamp appearance. A photo already carries its own stamp, unless its
  // owner switched it to the game-asset look (disc3d/photo-stamps.mjs): only then does atlas-art use the style.
  const stampStyle=photoURL||myColor(d)?window.DisplayPalette?.stampStyle?.():null;
- if(photoURL)return {...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel},...stampStyle&&{stampStyle}};
- return stampStyle?{...d,stampStyle}:d;
+ if(photoURL)return {...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel},...stampStyle&&{stampStyle},...clear};
+ return stampStyle||clear?{...d,...stampStyle&&{stampStyle},...clear}:d;
+}
+// The map's own colour, read once per theme.
+let mapPageColor=null;
+function mapPage(){
+ const theme=document.documentElement.dataset.theme;
+ if(mapPageColor?.theme!==theme){const c=/rgba?\(([^)]+)\)/.exec(getComputedStyle($('#map')).backgroundColor)?.[1].split(/[ ,/]+/).map(Number)||[255,255,255];mapPageColor={theme,color:'#'+c.slice(0,3).map(v=>Math.round(v).toString(16).padStart(2,'0')).join('')};}
+ return mapPageColor.color;
 }
 function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.mapRimColors?.().get(d.id):undefined;}
 // Idle time draws a neighbouring level's discs before the camera gets there: its curated discs and dots at

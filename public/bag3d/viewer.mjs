@@ -11,6 +11,7 @@ import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../d
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import {parseHalo} from '../disc3d/halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
+import {isClear,clearPart,clearRig,pageColor,CLEAR_ORDER} from '../disc3d/clear.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 import {desktopPulledLayout,phonePulledFit,phonePulledLayout,PHONE_PULLED_COUNT,PHONE_PULLED_MAX,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
 export { parseDiscParams } from './disc-state.mjs';
@@ -191,10 +192,16 @@ export async function mountBag(container, {
   const sphericalAt = (position, center) => new THREE.Spherical().setFromVector3(position.clone().sub(center));
   const placeOnSphere = (spherical, center) => { camera.position.setFromSpherical(spherical).add(center); target.copy(center); camera.lookAt(target); if (controls) controls.target.copy(target); };
   const finishCamera = () => { const waiters = cameraWaiters; cameraWaiters = []; for (const resolve of waiters) resolve(topView); container.dispatchEvent(new CustomEvent('bagviewlayout')); };
+  // Clear discs (disc3d/clear.mjs) filter what is behind them: the bag, or where nothing is, the page. Its colour is
+  // read again when the background or the theme changes.
+  let clearRecords = null;
+  const repaintClear = () => { if (!clearRecords) return; const color = pageColor(container); for (const record of clearRecords.values()) record.clear?.page(color); invalidate(); };
+  window.addEventListener('atlas-theme-change', repaintClear);
   const setBackground = value => {
     if (!['neutral', 'transparent'].includes(value)) throw new Error('Background must be neutral or transparent');
     container.dataset.background = value;
     container.style.background = value === 'neutral' ? '#eeefec' : 'transparent';
+    repaintClear();
     shadow.visible = contactShadow ?? value === 'neutral';
     invalidate();
   };
@@ -388,7 +395,7 @@ export async function mountBag(container, {
   let discFeatures;
   let mixer, flapAction, flapDuration = 1, compartmentOpen = false, flapMotion = null, flapWaiters = [];
   const discGroup = new THREE.Group();
-  const records = new Map();
+  const records = new Map();clearRecords = records;
   const moldGeometries=new Map(),detailGeometries=new Map();
   let discGeometry, discTemplate, ghostMaterial, fabric = [], accentMaterials = [], placeholders = [], accents = [], glbDiscs = [];
   let layoutMode = false, appliedBagColor = null, accent = new THREE.Color(accentColor ?? '#80bcb0'), liftedKey = null, clipped = { main: 0, putter: 0, goTo: 0 };
@@ -400,6 +407,7 @@ export async function mountBag(container, {
     intersection.disconnect();
     listening.abort();
     document.removeEventListener('visibilitychange', visibilityChanged);
+    window.removeEventListener('atlas-theme-change', repaintClear);
     renderer.domElement.removeEventListener('webglcontextlost', contextLost);
     controls?.dispose();
     if (mixer && gltf) { mixer.stopAllAction(); mixer.uncacheRoot(gltf.scene); }
@@ -504,6 +512,9 @@ export async function mountBag(container, {
     // one, which lights up in its own color.
     for(const material of materials){material.emissive.copy(material.color).lerp(WHITE, .3);
     material.emissiveIntensity = (record.glow ?? 0) * GLOW;}
+    // A clear disc glows through its passes' shine, in its own colour and at half strength: added over the page it
+    // shows through, the opaque glow's whitened colour would wash the plastic out to white.
+    for(const material of record.clear?.materials ?? [])if(material.userData.clear==='shine'){material.emissive.copy(material.color);material.emissiveIntensity=materials[0].emissiveIntensity*.5;}
     // A photo plate glows with the plate it covers.
     for(const child of record.mesh.children)if(child.userData.disposePhoto){child.material.emissive.copy(materials[0].emissive);child.material.emissiveIntensity=materials[0].emissiveIntensity;}
   };
@@ -527,6 +538,14 @@ export async function mountBag(container, {
     return false;
   };
   const detailMaterial = color => new THREE.MeshPhysicalMaterial({ color, ...PLASTICS.premium, envMap: environment.texture, envMapIntensity: DETAIL.environment / renderer.toneMappingExposure });
+  // A clear copy's passes, lit as a pulled disc's premium plate is (its band's with the copy's own Halo uniforms).
+  const clearDisc = (mesh, placement, { overmold, band, halo }) => {
+    const base = () => detailMaterial(new THREE.Color()), colors = overmold ? overmoldColors(placement.color, { rim: placement.rimColor }) : null;
+    const plate = clearPart(base), rim = band ? clearPart(halo ? () => paintHalo(base(), placement.haloModel) : base, { page: plate.page }) : null;
+    plate.paint(colors ? colors.plate : placement.color || '#e6c668', PLASTICS.premium); rim?.paint(placement.haloBand, PLASTICS.premium);
+    const rig = clearRig(mesh, { plate, band: rim, overmold }); rig.page(pageColor(container));
+    return rig;
+  };
   // A Halo v2 band material: its own uniforms, so each copy draws its own wash and dye front.
   const paintHalo = (material, model) => { const uniforms = haloUniforms(); setHalo(uniforms, model); return patchHalo(material, uniforms); };
   const setDetailRatio = () => {
@@ -555,6 +574,7 @@ export async function mountBag(container, {
     const { detail, mesh } = record;
     if (!detail) return;
     mesh.geometry = detail.base.geometry; mesh.material = detail.base.material;
+    record.clear?.sync(); record.clear?.walls(1);
     for (const material of detail.materials) material.dispose();
     for (const photo of detail.photos) { mesh.remove(photo); photo.userData.disposePhoto(); }
     record.detail = null;
@@ -585,7 +605,7 @@ export async function mountBag(container, {
         g.rotateY(Math.PI/2);g.translate(0,-parts.center,0);
         g.scale(DISC.radius*2/parts.shape.diameter,DISC.thickness/parts.thickness,DISC.radius*2/parts.shape.diameter);g.rotateZ(-Math.PI/2);return g;
       };
-      const ink=new THREE.Mesh(geometry(null),m);record.ink=ink;record.mesh.add(ink);
+      const ink=new THREE.Mesh(geometry(null),m);record.ink=ink;record.mesh.add(ink);if(record.clear)ink.renderOrder=CLEAR_ORDER.printAbove;
       m.map=stampTexture(record.placement.mold.name,record.placement.color,{asset,style,size:look?1024:512,onChange:texture=>{
         if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}invalidate();
       }});
@@ -611,6 +631,8 @@ export async function mountBag(container, {
       if (halo && detailGeometries.get(key).halo && materials[1]) paintHalo(materials[1], placement.haloModel);
       record.detail = { base, materials, parts: detailGeometries.get(key), photos: [], tier: undefined };
       mesh.geometry = record.detail.parts.geometry; mesh.material = Array.isArray(base.material) ? materials : materials[0];
+      // A clear disc out large shows both walls, like the viewer.
+      record.clear?.sync(); record.clear?.walls(2);
       paintDisc(record);
     }
     // A photo only ever trades up while the disc is out (a smaller tier would decode the photo again for no gain).
@@ -625,6 +647,7 @@ export async function mountBag(container, {
         if (photosMoving()) { detail.photoPending = true; showPhotos(record); invalidate(); return; }
         finishDetailPhoto(record, photo);
       } });
+      if (record.clear) photo.renderOrder = CLEAR_ORDER.printAbove;
       detail.photos.push(photo); mesh.add(photo);
     }
     setDetailRatio();
@@ -653,6 +676,7 @@ export async function mountBag(container, {
     for (const record of records.values()) {
       const kept = record.detail?.photos ?? [];
       held.push(...kept);
+      record.clear?.dispose();
       record.mesh.traverse(o => {o.userData.disposeStamp?.(); if (!kept.includes(o)) o.userData.disposePhoto?.(); }); discGroup.remove(record.mesh);
       for (const material of [record.mesh.material, record.detail?.base.material ?? []].flat()) if (material !== ghostMaterial) material.dispose();
     }
@@ -682,6 +706,9 @@ export async function mountBag(container, {
       const mesh = new THREE.Mesh(geometry, material);
       // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
       if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
+      // A clear copy (disc3d/clear.mjs): the front wall in its pocket, both walls once out large; its print on top.
+      const clear=parts&&!placement.empty&&isClear(placement.finish)?clearDisc(mesh,placement,{overmold,band,halo}):null;
+      if(clear)for(const child of mesh.children)if(child.userData.disposePhoto)child.renderOrder=CLEAR_ORDER.printAbove;
       mesh.name = placement.empty ? `EmptySlot-${placement.key}` : `Disc-${placement.key}`;
       mesh.userData.discKey = placement.key;
       const rest = restPose(placement);
@@ -690,7 +717,7 @@ export async function mountBag(container, {
       discGroup.add(mesh);
       // Putters have a stowed seat; `out` runs from 0 (stowed) to 1 (standing in their row).
       const out = placement.stow && !puttersOutState ? 0 : 1;
-      const record = { key: placement.key, placement, parts, mesh, rest, detail: null, shown: 0, lift: 0, liftFrom: 0, liftTo: 0, liftStart: 0, slide: 0, slideFrom: 0, slideTo: 0, slideStart: 0, move: null,
+      const record = { key: placement.key, placement, parts, mesh, rest, clear, detail: null, shown: 0, lift: 0, liftFrom: 0, liftTo: 0, liftStart: 0, slide: 0, slideFrom: 0, slideTo: 0, slideStart: 0, move: null,
         stow: placement.stow ? restPose(placement.stow) : null, out, outFrom: out, outTo: out, outStart: 0, outDuration: 0, glow: 0, glowFrom: 0, glowTo: 0, glowStart: 0 };
       // A disc that changed pockets glides from where it was.
       const before = previous.get(placement.key);
@@ -1604,6 +1631,9 @@ export async function mountBag(container, {
         key, id: placement.id, pocket: placement.pocket, order: placement.order, empty: placement.empty,
         color: placement.empty ? null : '#' + [mesh.material].flat()[0].color.getHexString(),
         overmold:!!record.parts?.overmold,haloTwoTone:!!record.parts?.halo&&!!(record.detail?.materials??[mesh.material].flat())[1]?.userData.halo,haloBand:record.parts?.band?'#'+[mesh.material].flat()[1].color.getHexString():null,rimColor:record.parts?.overmold?'#'+mesh.material[1].color.getHexString():null,
+        // A clear copy (disc3d/clear.mjs): the walls it draws, 1 in its pocket and 2 out large; 0 opaque; -1 if the page
+        // behind it is not filled in (nothing for the walls to filter).
+        clear: !record.clear ? 0 : record.clear.backdrop && record.clear.meshes[0].visible ? record.clear.meshes.filter(m => m.visible && /clear-.*-filter/.test(m.name)).length : -1,
         position: placement.position.slice(), visible: mesh.visible,
         // Live pose and finish, for QA of the slide-out path and the clean (unlit) go-to.
         pose: mesh.position.toArray(), slide: record.slide, rise: record.out, glow: placement.empty ? 0 : [mesh.material].flat()[0].emissiveIntensity,

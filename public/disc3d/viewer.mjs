@@ -8,7 +8,7 @@
 // where `trigger` is the element that was used (for returning focus). getPose/applyPose carry the camera,
 // tilt and flip between two viewers (the pop-out starts where the panel's viewer is, and hands it back).
 // Props: {model, specs, flight, mold, color, plastic, hand, manufacturer, record,
-// overmold, colors, photoURL, texture_key, photo_rim_color, haloBand}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
+// overmold, colors, photoURL, texture_key, photo_rim_color, haloBand, finish}. `model` is explicit shape parameters (d.model3d); otherwise the mold's PDGA `specs` set
 // its shape (phase 2), and without them the Phase 1 generic shape comes from `flight` {speed, turn, fade}.
 // `mold` is the name set as a generic text stamp: never manufacturer artwork.
 // Overmold discs (Plan 12) draw the rim and the flight plate in two materials, split at the measured rim
@@ -20,6 +20,8 @@
 // material as an overmold's rim, only coloured with the band; its photo still stops at the shoulder, and clay
 // shows it as the one piece it is. An overmold mold ignores the band (its rim piece is already the second colour).
 // Every other disc is one material, as before.
+// A clear copy (`finish` 'clear', docs/clear-plastic-discs.md) is see-through plastic that filters the page behind it by
+// its colour (clear.mjs): its plate and any Halo band, both walls, while an overmold's rim piece stays opaque plastic.
 // Clay (Prompt 4) is a shape-only inspect view: the same mesh in matte studio clay on a dark ground, the stamp
 // hidden, and the mold's cross-section drawn from the lathe's own points (profile.mjs) under the stage. It only
 // swaps materials and a backdrop class; the plastic materials are left untouched underneath, so turning it off
@@ -42,6 +44,7 @@ import {isOvermold,overmoldColors,bagRimColor,lightTheme} from './overmold.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
 import {DETAIL,detailPixelRatio} from './quality.mjs';
+import {isClear,clearPart,clearPage,clearBackdrop,clearMeshes,pageColor,CLEAR_ORDER} from './clear.mjs';
 
 const DEG=Math.PI/180;
 // Camera elevations measured from straight above. The 3/4 view is the default: from behind and above,
@@ -133,8 +136,15 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  const clayRimMaterial=new THREE.MeshMatcapMaterial({matcap,color:CLAY_TONES.rim,toneMapped:false});
  const body=new THREE.Mesh(new THREE.BufferGeometry(),bodyMaterial),stamp=new THREE.Mesh(new THREE.BufferGeometry(),stampMaterial);
  discGroup.add(body,stamp);
+ // Clear plastics (clear.mjs): the plate's, a band's and a Halo band's passes, both walls, and the page's colour behind
+ // them; drawn by `clearList` on the body's geometry. `none` draws nothing: the body when it is clear (an overmold's rim
+ // piece stays on the body, opaque), and the rim's group in the clear passes.
+ const page=clearPage(),clearPlate=clearPart(undefined,{page}),clearBand=clearPart(undefined,{page}),clearHalo=clearPart(()=>patchHalo(new THREE.MeshPhysicalMaterial(),haloRim),{page});
+ const backdrop=clearBackdrop(),none=new THREE.MeshBasicMaterial({visible:false});
+ const clearList=clearMeshes(body.geometry,backdrop,clearPlate);
+ for(const mesh of clearList){mesh.visible=false;discGroup.add(mesh);}
 
- const state={key:'',hand:'RHBH',tilt:0,flipped:false,spin:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,band:null,halo:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
+ const state={key:'',clear:false,centre:0,hand:'RHBH',tilt:0,flipped:false,spin:false,view:'angle',radius:10.6,frameRadius:FRAME_DIAMETER/2,source:'',overmold:false,colors:null,seamRadius:null,band:null,halo:null,thickness:2,fit:40,props:null,frames:0,clay:false,shape:null,profile:null,profileWidth:0};
  let photo=null;
  let frame=0,tween=null,flipTween=null,size={w:0,h:0},disposed=false,interacted=false;
  // The turntable: `level` 0–1 along its ease (speed is smoothstep(level) of full), `held` while a finger or the mouse
@@ -167,10 +177,20 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
    flipGroup.rotation.x=flipTween.from+(flipTween.to-flipTween.from)*ease(t);if(t<1)more=true;else flipTween=null;}
   if(!tween&&controls.update())more=true;
   if(turn(now))more=true;
+  if(state.clear)orderClear();
   renderer.render(scene,camera);state.frames++;
   if(more)request();
  }
  function request(){if(!frame&&!disposed)frame=requestAnimationFrame(render);}
+ // A clear disc's print (stamp or photo) on the top surface: over both walls from above, under them from below,
+ // where it shows through the plastic (mirrored, as it is).
+ const cameraLocal=new THREE.Vector3();
+ function orderClear(){
+  const print=discGroup.worldToLocal(cameraLocal.copy(camera.position)).y>state.centre?CLEAR_ORDER.printAbove:CLEAR_ORDER.printBelow;
+  stamp.renderOrder=print;if(photo)photo.renderOrder=print;
+  printSide(THREE.DoubleSide);
+ }
+ function printSide(side){for(const m of [stampMaterial,photo?.material])if(m&&m.side!==side){m.side=side;m.needsUpdate=true;}}
  controls.addEventListener('change',request);
  const noteInteraction=()=>{if(!interacted){interacted=true;element.classList.add('has-interacted');}};
  controls.addEventListener('start',()=>{tween=null;setPressedView(null);noteInteraction();if(pointers.size)holdSpin(true);});
@@ -281,7 +301,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   state.seamRadius=seamRadius;state.shape=shape;state.profile=overmold?profile:{...profile,rim:null,seamRadius:null};state.profileWidth=0;
   applyMaterials(overmold,band,halo);
   geometry.computeBoundingBox();const box=geometry.boundingBox;
-  body.geometry.dispose();body.geometry=geometry;
+  body.geometry.dispose();body.geometry=geometry;for(const mesh of clearList)mesh.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
   stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
   const finish=style?.finish?.id||'flat';
@@ -292,7 +312,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
    request();
   }});stampMaterial.needsUpdate=true;
   // Centre the disc on the orbit target.
-  discGroup.position.y=-(box.min.y+box.max.y)/2;
+  discGroup.position.y=-(box.min.y+box.max.y)/2;state.centre=(box.min.y+box.max.y)/2;
   state.radius=shape.diameter/2;state.frameRadius=Math.max(state.radius,FRAME_DIAMETER/2);state.thickness=box.max.y-box.min.y;
  }
 
@@ -314,16 +334,18 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   // A personal stamp style only reaches here for the player's own disc; neutral views pass none. A colour asset keeps
   // its own colours: its finish is a sheen (stamp.mjs colorStyle).
   const style=photoURL?null:look?.color?colorStyle(props.stampStyle):props.stampStyle||null;
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id]]);
+  const clear=isClear(props.finish);
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id],clear]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
   const sourceOf=p=>JSON.stringify([p?.model,p?.specs,p?.flight]);
   const discChanged=state.props?.mold!==props.mold||sourceOf(state.props)!==sourceOf(props);
-  state.key=key;state.props=props;state.source=source;state.overmold=overmold;state.colors=colors;state.band=band;state.halo=halo;
+  state.key=key;state.props=props;state.source=source;state.clear=clear;state.overmold=overmold;state.colors=colors;state.band=band;state.halo=halo;
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
   build(shape,props.mold,color,overmold,asset,placement,band,halo,style);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
+  if(clear){clearPlate.paint(color,plastic);if(band){clearBand.paint(band,plastic);clearHalo.paint(band,plastic);}repaintBackdrop();}
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
   if(photoURL){photo=photoSurface(shape,photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   if(overmold||band){rimMaterial.color.set(overmold?colors.rim:band);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
@@ -340,7 +362,15 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
 
  // Which materials the mesh wears: the plastic ones, or clay. Neither set is modified by the other.
  function applyMaterials(overmold=state.overmold,band=state.band,halo=state.halo){
-  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):(overmold||band?[bodyMaterial,halo?haloRimMaterial:rimMaterial]:bodyMaterial);
+  const clear=state.clear&&!state.clay;
+  body.material=state.clay?(overmold?[clayMaterial,clayRimMaterial]:clayMaterial):clear?(overmold?[none,rimMaterial]:none):(overmold||band?[bodyMaterial,halo?haloRimMaterial:rimMaterial]:bodyMaterial);
+  // The clear passes after the backdrop: the plate's, with the band's in its group (an overmold's opaque rim: none).
+  clearList.forEach((mesh,i)=>{
+   mesh.visible=clear;if(!clear||!i)return;
+   const wall=(i-1)>>1,kind=(i-1)&1?'shine':'filter',plate=clearPlate.walls[wall][kind];
+   mesh.material=overmold?[plate,none]:band?[plate,(halo?clearHalo:clearBand).walls[wall][kind]]:plate;
+  });
+  if(!state.clear){stamp.renderOrder=0;if(photo)photo.renderOrder=0;printSide(THREE.FrontSide);}
   stamp.visible=!state.clay&&!photo?.userData.photoReady;
   if(photo)photo.visible=!state.clay&&!!photo.userData.photoReady;
  }
@@ -469,9 +499,12 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   e.preventDefault();tween=null;setPressedView(null);noteInteraction();placeCamera(s);request();
  });
 
- function attach(host){if(element.parentNode!==host)host.appendChild(element);resize();request();}
+ // A clear disc filters the page behind it: its colour, read again whenever the host or the theme changes.
+ const repaintBackdrop=()=>{if(state.clear){backdrop.color.set(pageColor(viewport));page.value.copy(backdrop.color);}};
+ function attach(host){if(element.parentNode!==host)host.appendChild(element);repaintBackdrop();resize();request();}
  const themeChanged=()=>{
   if(state.props)update({...state.props,hand:state.hand});
+  repaintBackdrop();
   // Paint before a theme View Transition captures its new snapshot (rAF is paused there).
   if(!disposed&&size.w)renderer.render(scene,camera);
   request();
@@ -485,7 +518,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   window.removeEventListener('atlas-theme-change',themeChanged);
   disposed=true;cancelAnimationFrame(frame);observer.disconnect();seen.disconnect();controls.dispose();
   photo?.userData.disposePhoto();
-  body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();clayMaterial.dispose();clayRimMaterial.dispose();matcap.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
+  body.geometry.dispose();stamp.geometry.dispose();bodyMaterial.dispose();rimMaterial.dispose();clayMaterial.dispose();clayRimMaterial.dispose();for(const part of [clearPlate,clearBand,clearHalo])part.dispose();backdrop.dispose();none.dispose();matcap.dispose();stampMaterial.map?.dispose();stampMaterial.dispose();
   envTexture.dispose();renderer.dispose();renderer.forceContextLoss();element.remove();
  }
  setTilt(0);
