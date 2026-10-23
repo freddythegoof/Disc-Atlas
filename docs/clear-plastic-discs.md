@@ -247,6 +247,15 @@ The browser suite now switches theme with the list and Lost open (no reload) and
 Lost disc against a fresh load in that theme. Both checks fail without their fixes. Opaque renders and extraction are
 still identical to main.
 
+Codex's re-review (df1a234) found one more, also real and fixed:
+4. **A make read the finish late.** A one-click make outlives its sheet (v3.1), but it asked the sheet for the finish
+   only after fetching and decoding the photo. If you started a make on a clear disc, closed the sheet and opened a disc
+   with the other finish, the asset came out in the wrong mode. Both make paths now record the finish when the make
+   starts: the one-click job, next to its plate, and the camera-original make, next to its look. The suite starts a make
+   on the clear Raptor with its photo held back, moves the sheet to an opaque disc, releases the photo, and checks the
+   mode the extraction actually ran in. It fails on the old code. (`photo-editor-races`' thumbnail sandbox recorded the
+   last listener added as the photo listener; its stub now keys listeners by event type.)
+
 ## Left undone, on purpose
 
 - **The atlas perf gate was not run.** Its thresholds are untouched, catalog discs never take the clear path, and the

@@ -16,7 +16,15 @@ fs.mkdirSync(OUT,{recursive:true});
 const photo=fs.readFileSync(fs.existsSync(RAPTOR)?RAPTOR:'tests/fixtures/stamped-disc.webp');
 const check=label=>console.log('ok -',label);
 const h=await startHarness({port:Number(process.env.CLEAR_PORT||8873),state:'work/clear-plastic-discs/d1'});
-const {page,base,errors}=h;
+const {page,base,errors,context}=h;
+// Every stamp extraction, with the mode it ran in (section 7): extract() announces its `clear` flag on a channel the page
+// hears, whether it runs in the worker or inline.
+const SIGNATURE='export function extract(data,size,plate,{color=false,stored=false,clear=false}={}){';
+await context.route(/\/disc-stamp-worker\.mjs(\?.*)?$/,async route=>{
+ const body=await (await route.fetch()).text();if(!body.includes(SIGNATURE))throw Error('extract() signature moved');
+ await route.fulfill({contentType:'text/javascript',body:body.replace(SIGNATURE,SIGNATURE+"new BroadcastChannel('clear-test').postMessage({clear});")});
+});
+await context.addInitScript(()=>{window.__makes=[];new BroadcastChannel('clear-test').onmessage=e=>window.__makes.push(e.data);});
 const wait=ms=>page.waitForTimeout(ms);
 try{
  await h.signIn();
@@ -158,6 +166,27 @@ try{
  assert.deepEqual(lostLive,lostFresh,`live ${lostLive} matches a fresh Midnight load ${lostFresh}`);
  assert.notDeepEqual(lostLight,lostLive,'and differs from light');
  check('Lost repaints a clear disc on a theme change');
+
+ // 7. A make outlives its sheet (photo stamps v3.1): one started on a clear disc keeps the clean mode though the sheet
+ // has moved on to an opaque disc by the time the photo arrives (Codex P2 on PR #44). The photo is held back until then.
+ await page.evaluate(async([id,bytes])=>{
+  const r=await fetch('/api/bag/discs/'+id+'/photo',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'image/webp','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken},body:new Uint8Array(bytes)});
+  if(!r.ok)throw Error(await r.text());
+ },[undertaker.id,[...photo]]);
+ let release;const held=new Promise(r=>{release=r;}),RAPTOR_PHOTO=new RegExp('/api/bag/discs/'+raptor.id+'/photo\\?');
+ const timeline=[];page.on('console',m=>timeline.push('console '+m.type()+' '+m.text().slice(0,120)));
+ await page.route(RAPTOR_PHOTO,async route=>{timeline.push('photo requested '+route.request().url().slice(-50));await held;timeline.push('photo released');await route.continue();});
+ await openBag();await page.evaluate(()=>{window.__makes.length=0;});
+ await edit(raptor.id);await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}).click();
+ await page.keyboard.press('Escape');await page.waitForSelector('#addDiscDialog:not([open])');
+ await edit(undertaker.id);assert.equal(await chosen(),'opaque','the sheet now shows an opaque disc');
+ timeline.push('stamp before release: '+await page.evaluate(id=>fetch('/api/bag/stamps',{credentials:'same-origin'}).then(r=>r.json()).then(d=>d.stamps.some(s=>s.disc_id===id)),raptor.id));
+ release();
+ await page.waitForFunction(id=>fetch('/api/bag/stamps',{credentials:'same-origin'}).then(r=>r.json()).then(d=>d.stamps.some(s=>s.disc_id===id)),raptor.id,{timeout:240000,polling:1000});
+ await page.unroute(RAPTOR_PHOTO);await page.keyboard.press('Escape');
+ await page.waitForFunction(()=>window.__makes.length>0,null,{timeout:5000}).catch(()=>{});
+ assert.deepEqual(await page.evaluate(()=>window.__makes),[{clear:true}],'the clear disc\'s make ran in the clean mode '+JSON.stringify(timeline));
+ check('a make keeps the finish it started with, after the sheet moves to another disc');
 
  assert.deepEqual(errors,[],'no page errors');
  console.log('clear-plastic-browser: all checks passed');

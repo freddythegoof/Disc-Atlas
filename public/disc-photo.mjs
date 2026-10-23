@@ -423,9 +423,10 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
  // current: the saved photo's URL. used: the photo prepared in this sheet {bitmap,options,blob,color,photoRimColor,bandColor,haloModel,mode,url}.
  // draft: what the aligner is working on {bitmap,options,mode}. levelLines: the level guide is showing.
  // owned: the saved photo's disc and version {id,key}, which a game asset belongs to (photo-stamps.mjs).
- // making: the look a game asset is being made for ('color' or 'asset'); one read makes both.
- // makingNow: a one-click make from the stored photo in progress {target, look} (v3.1); it outlives the sheet.
- let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='color';
+ // making: the look a game asset is being made for ('color' or 'asset'); one read makes both. makingClear: whether that
+ // disc was Clear when the make started (docs/clear-plastic-discs.md).
+ // makingNow: a one-click make from the stored photo in progress {target, look, plate, clear} (v3.1); it outlives the sheet.
+ let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='color',makingClear=false;
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -504,17 +505,18 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
  // The look: an existing asset switches at once. The first time, one click makes it from the photo the disc already has
  // (v3.1, docs/photo-stamp-one-click.md): its stored texture, read with the level framing. The camera original is an
  // option (finer detail when zoomed), never a step: framed and read in the aligner as before.
- const pickOriginal=look=>{if(owned&&!busy&&!makingNow){making=look;q('.bag-photo-asset-file').click();}};
+ // The disc's finish is read once, when a make starts (a make outlives the sheet, which may by then show another disc).
+ const pickOriginal=look=>{if(owned&&!busy&&!makingNow){making=look;makingClear=clear();q('.bag-photo-asset-file').click();}};
  const makeFromPhoto=async look=>{
   if(!owned||!current||busy||makingNow)return;
-  const target=owned,url=current,job=makingNow={target,look,plate},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
+  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear()},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
   const step=name=>status('Making the game asset: '+MAKE_STEPS[name]);
   renderSheet();step('open');
   try{
    const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout?.(60000)}).catch(()=>null);
    if(!response?.ok)throw Error('Your saved photo could not open. Check your connection and try again.');
    const image=await decodePhoto(await response.blob());let asset;
-   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:clear(),stage:step});}
+   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:job.clear,stage:step});}
    finally{image.close();}
    step('save');
    await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
@@ -555,7 +557,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
    const target=owned,step=name=>{if(id===serial)dq('.photo-aligner-status').textContent='Making the game asset: '+MAKE_STEPS[name];};
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-    const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:clear(),stage:step}),look=making;if(id!==serial)return;
+    const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:makingClear,stage:step}),look=making;if(id!==serial)return;
     step('save');
     await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');if(id!==serial)return;
     closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.';renderSheet();

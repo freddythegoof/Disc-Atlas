@@ -204,7 +204,7 @@ test('photo readiness redraws only intersecting thumbnails with the matching URL
   document:{createElement:()=>({style:{},setAttribute(){},getContext:()=>({drawImage(){}})})},
   // Every photo here is still loading, so each render returns its placeholder.
   getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return {canvas:{},px:64,fill:.9,pending:true};}}),
-  window:{addEventListener:(_type,fn)=>onPhoto=fn,removeEventListener(){}},
+  window:{addEventListener:(type,fn)=>{if(type==='atlas-photo-ready')onPhoto=fn;},removeEventListener(){}},
   requestAnimationFrame:fn=>{frames.set(++nextFrame,fn);return nextFrame;},
   cancelAnimationFrame:id=>frames.delete(id),
   IntersectionObserver:class{constructor(fn){observer=fn;}observe(){}unobserve(){}disconnect(){}},
@@ -238,7 +238,7 @@ test('finished thumbnails stop being observed; only a loading photo stays watche
  const context={...stampStubs,
   performance:{now:()=>0},document:{createElement:canvas},
   getAtlasArt:async()=>({render:disc=>{rendered.push(disc.id);return {canvas:canvas(),px:64,fill:.9,pending:!!disc.photoURL&&!ready};}}),
-  window:{addEventListener:(_type,fn)=>onPhoto=fn,removeEventListener(){}},
+  window:{addEventListener:(type,fn)=>{if(type==='atlas-photo-ready')onPhoto=fn;},removeEventListener(){}},
   requestAnimationFrame:fn=>{frames.set(++nextFrame,fn);return nextFrame;},cancelAnimationFrame:id=>frames.delete(id),
   IntersectionObserver:class{constructor(fn){observer=fn;}observe(){}unobserve(el){unobserved.push(el.id);}disconnect(){}},
  };
