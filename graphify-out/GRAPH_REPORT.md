@@ -1,17 +1,17 @@
 # Graph Report - clear-stamp-clean  (2026-10-23)
 
 ## Corpus Check
-- 456 files · ~5,657,446 words
+- 456 files · ~5,657,838 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 314 file(s) not represented in the graph (top: .log 239, .gz 23, .css 16)
 
 ## Summary
-- 3046 nodes · 6485 edges · 176 communities (143 shown, 33 thin omitted)
+- 3046 nodes · 6488 edges · 176 communities (143 shown, 33 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 248 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2dbe475f`
+- Built from commit: `69742be2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -785,7 +785,7 @@ Nodes (5): at(), disc(), extract(), mean(), sharp
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `jose` connect `public.mjs` to `package.json`, `workers/auth.mjs`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+  _High betweenness centrality (0.058) - this node is a cross-community bridge._
 - **Are the 13 inferred relationships involving `createDiscViewer()` (e.g. with `applyPose()` and `attach()`) actually correct?**
   _`createDiscViewer()` has 13 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react` to the rest of the system?**
