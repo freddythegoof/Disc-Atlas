@@ -373,3 +373,22 @@ baseline tree `work/clear-plastic-true-color/baseline`, a detached checkout of `
 
 **Still Freddy's:** the two constants, from the sheets; a second clear-disc photo for the suite's `SECOND_PHOTO`
 (the Destroyer and DD3 on this Mac are opaque Star plastic); and the deploy order, 0015 remotely before the Worker.
+
+### Codex review on PR #46 (fixed)
+
+Codex reviewed the PR as it opened and left two findings. Both were checked in the source and were real: §4.3 named
+Storage, Lost and My Map among the surfaces, but the build had plumbed `bag3d/viewer.mjs` and the thumbnails, and
+those three scenes take other paths.
+1. **My Map** draws a bagged disc from `my-bag.js` `publishBagColors()` through `atlas-map.js` `photoDisc()`, which
+   carried colours, photos, Halo data and the finish, not the true colour. Both now carry it (`mapTrueColors`, in the
+   map's invalidation key), so a clear disc on My Map wears the same tint as its list thumbnail and its viewer.
+2. **Storage and Lost** draw through `collection-scenes.js` → `collection3d/racks.mjs` or `graveyard.mjs` →
+   `collection3d/stage.mjs` `discModel()`, which painted the clear walls with the plate colour and gave `photoSurface`
+   neither `clear` nor `tint`: the pulled Storage disc and a Lost disc kept the streak and the pale tint. The adapters
+   now pass `trueColor`; `discModel` paints the walls through `clearTint()` and cuts and retints the photo; the racked
+   copies (instanced, one shared part) keep their tint as the instance colour and take a batch of their own,
+   `'|clear:true'`, on a second shared part read with the true colour's exponent.
+
+The suite gained the checks: My Map's adapter returns the bagged copy's true colour; Storage racks three batches for
+an opaque Raptor, a clear one and a clear one with a true colour; the pulled Storage disc shows no streak and wears
+the true colour (its plate against the copy without one).

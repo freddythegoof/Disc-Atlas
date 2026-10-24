@@ -13,7 +13,7 @@ import {photoSurface} from '../disc3d/photo.mjs';
 import {photoStampFor,photoLooksKey} from '../disc3d/photo-stamps.mjs';
 import {parseHalo} from '../disc3d/halo.mjs';
 import {haloCoord,haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
-import {isClear,clearPart,clearRig,CLEAR_ORDER} from '../disc3d/clear.mjs';
+import {isClear,clearTint,clearPart,clearRig,CLEAR_ORDER} from '../disc3d/clear.mjs';
 import {stampTexture,stampGeometry,stampMaterial,catalogStampAsset,catalogStampPlacement,colorStyle} from '../disc3d/stamp.mjs';
 
 export const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -127,11 +127,14 @@ export const stampStyleKey=()=>{const s=personalStampStyle(),looks=photoLooksKey
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
 // A clear copy (`finish` 'clear', disc3d/clear.mjs) filters what is behind it: `walls` 2 (the pulled disc) shows its
 // underside through the top, 1 (small) the front wall only. Its page colour is set by paintClear().
-export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,walls=2,onChange=()=>{},stamp=true}={}){
+// `trueColor`: the plastic's true colour from the copy's photo (docs/clear-plastic-true-color.md), worn by a clear copy's
+// walls and its photo's plastic; the photo of a clear copy is cut at its own plate edge.
+export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,trueColor=null,walls=2,onChange=()=>{},stamp=true}={}){
  // The game-asset look: the extracted stamp on the stamp mesh, and no photo.
  const look=photoStampFor(photoURL);if(look)photoURL=null;
  const twoTone=!!haloBand&&!!parseHalo(haloModel);
  const entry=discParts(d,undefined,!!haloBand,twoTone),colors=discColors(entry,color,rimColor,haloBand),group=new THREE.Group();
+ const tint=clearTint(finish,colors.plate,trueColor,{overmold:entry.overmold});
  const plate=new THREE.Mesh(entry.plate,discMaterial(colors.plate));group.add(plate);
  const twoToned=material=>{if(entry.halo){const uniforms=haloUniforms();setHalo(uniforms,haloModel);patchHalo(material,uniforms);}return material;};
  let rim=null;
@@ -146,12 +149,12 @@ export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,fin
    if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}onChange();
   }});
  }
- if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,like:plate.material,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
+ if(photoURL){const photo=photoSurface(entry.shape,photoURL,{overmold:entry.overmold,size:512,like:plate.material,clear:isClear(finish),tint:tint.sampled?tint.tint:null,onChange:p=>{if(ink)ink.visible=!p.userData.photoReady;onChange();}});photo.geometry.translate(0,-entry.centre,0);photo.geometry.scale(.01,.01,.01);group.add(photo);}
  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
  group.userData.parts=entry;
  if(isClear(finish)){
   // The plate's passes, and a band's (an overmold's rim piece stays opaque); the print over both walls.
-  const platePart=clearPart(()=>discMaterial(),{walls});platePart.paint(colors.plate);
+  const platePart=clearPart(()=>discMaterial(),{walls});platePart.paint(tint.tint,{},{exponent:tint.exponent});
   const rigs=[clearRig(plate,{plate:platePart})];
   if(rim&&!entry.overmold){const band=clearPart(()=>twoToned(discMaterial()),{walls,page:platePart.page});band.paint(colors.rim);rigs.push(clearRig(rim,{plate:band}));}
   for(const rig of rigs)rig.walls(walls);

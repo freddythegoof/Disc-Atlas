@@ -68,11 +68,12 @@ function showDemo(){if(isDemo() && items!==DEMO_DISCS){items=DEMO_DISCS;settings
 const name = d => d?.catalogName || d?.name || 'Catalog mold unavailable';
 // The atlas shows the signed-in player's bag in its own colors: one color per mold, from its
 // first copy in bag order. Storage discs are not in the bag.
-let bagColorMap=new Map(),bagRimColorMap=new Map(),bagPhotoMap=new Map(),bagHaloMap=new Map(),bagHaloModelMap=new Map(),bagFinishMap=new Map(),bagColorKey='[]';
+let bagColorMap=new Map(),bagRimColorMap=new Map(),bagPhotoMap=new Map(),bagHaloMap=new Map(),bagHaloModelMap=new Map(),bagFinishMap=new Map(),bagTrueColorMap=new Map(),bagColorKey='[]';
 function publishBagColors(){
- const bagged=account?.user?items.filter(i=>i.in_bag!==false && i.status!=='lost' && mold(i.mold_id)).sort(bagComparator(settings.sort_mode,mold)):[],next=new Map(),rims=new Map(),photos=new Map(),halos=new Map(),models=new Map(),finishes=new Map();
- for(const i of bagged)if(!next.has(i.mold_id)){next.set(i.mold_id,i.color||'#e6c668');rims.set(i.mold_id,bagRimColor(i));photos.set(i.mold_id,photoURL(i));if(haloBand(i))halos.set(i.mold_id,haloBand(i));if(haloModel(i))models.set(i.mold_id,haloModel(i));if(i.finish==='clear')finishes.set(i.mold_id,'clear');}
- const key=JSON.stringify([[...next],[...rims],[...photos],[...halos],[...models],[...finishes]]);if(key===bagColorKey)return;bagColorKey=key;bagColorMap=next;bagRimColorMap=rims;bagPhotoMap=photos;bagHaloMap=halos;bagHaloModelMap=models;bagFinishMap=finishes;
+ const bagged=account?.user?items.filter(i=>i.in_bag!==false && i.status!=='lost' && mold(i.mold_id)).sort(bagComparator(settings.sort_mode,mold)):[],next=new Map(),rims=new Map(),photos=new Map(),halos=new Map(),models=new Map(),finishes=new Map(),trueColors=new Map();
+ // A clear copy's true colour from its photo (docs/clear-plastic-true-color.md) goes to My Map with its finish.
+ for(const i of bagged)if(!next.has(i.mold_id)){next.set(i.mold_id,i.color||'#e6c668');rims.set(i.mold_id,bagRimColor(i));photos.set(i.mold_id,photoURL(i));if(haloBand(i))halos.set(i.mold_id,haloBand(i));if(haloModel(i))models.set(i.mold_id,haloModel(i));if(i.finish==='clear'){finishes.set(i.mold_id,'clear');if(i.photo_true_color)trueColors.set(i.mold_id,i.photo_true_color);}}
+ const key=JSON.stringify([[...next],[...rims],[...photos],[...halos],[...models],[...finishes],[...trueColors]]);if(key===bagColorKey)return;bagColorKey=key;bagColorMap=next;bagRimColorMap=rims;bagPhotoMap=photos;bagHaloMap=halos;bagHaloModelMap=models;bagFinishMap=finishes;bagTrueColorMap=trueColors;
  window.dispatchEvent(new CustomEvent('atlas-bag-change'));
 }
 const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail,deselect:closeBagDetail});
@@ -616,7 +617,7 @@ window.addEventListener('atlas-palette-change',()=>{
  const list=$('#myBagContents');if(list?.querySelector('[data-disc-thumbnail]'))window.DiscThumbnails.observe(list,mold,{personal:true});
  if(detailPanel.querySelector('.bag-detail-personal [data-disc-thumbnail]'))window.DiscThumbnails.observe(detailPanel,mold,{personal:true});
 });
-window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,mapFinishes:()=>bagFinishMap,
+window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,mapFinishes:()=>bagFinishMap,mapTrueColors:()=>bagTrueColorMap,
  // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
  scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;},get album(){return gallery.viewer||null;}}};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

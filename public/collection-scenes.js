@@ -132,7 +132,7 @@ export class StorageScene extends CollectionScene{
   if(focused)this.card.querySelector(`[data-storage-action="${focused}"]`)?.focus({preventScroll:true});
  }
  draw(viewer){
-  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:bagRimColor(i),haloBand:haloBand(i),haloModel:haloModel(i),finish:i.finish,photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d)};}));
+  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:bagRimColor(i),haloBand:haloBand(i),haloModel:haloModel(i),finish:i.finish,trueColor:i.photo_true_color||null,photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d)};}));
   if(this.picked&&viewer.state.pulled!==this.picked)viewer.pull(this.picked);
   if(!this.picked&&viewer.state.pulled)viewer.putBack();
  }
@@ -214,7 +214,7 @@ export class LostScene extends CollectionScene{
   if(focused)this.card.querySelector(focused==='found'?'[data-grave-found]':`[data-grave-step="${focused}"]`)?.focus({preventScroll:true});
  }
  draw(viewer){
-  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:bagRimColor(i),haloBand:haloBand(i),haloModel:haloModel(i),finish:i.finish,photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d),lines:this.lines(i)};}));
+  viewer.update(this.items.map(i=>{const d=this.lookup(i.mold_id);return {id:i.id,d,color:i.color,rimColor:bagRimColor(i),haloBand:haloBand(i),haloModel:haloModel(i),finish:i.finish,trueColor:i.photo_true_color||null,photoURL:i.texture_key?'/api/bag/discs/'+encodeURIComponent(i.id)+'/photo?v='+encodeURIComponent(i.texture_key):null,name:this.name(d),lines:this.lines(i)};}));
   viewer.select(this.selected);this.placeTargets();
  }
 }

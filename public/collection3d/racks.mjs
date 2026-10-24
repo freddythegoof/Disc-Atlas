@@ -13,7 +13,7 @@
 // bag's timing), wearing its generic name stamp; tapping it again, or empty space, puts it back. The pulled
 // disc and the hovered one carry a billboard name tag that stays readable while the racks turn.
 import {THREE,SceneView,discParts,discColors,discMaterial,discModel,paintClear,stampStyleKey,contactShadow,disposeObject,reduced,ease} from './stage.mjs';
-import {isClear,clearPart,clearBackdrop,pageColor,CLEAR_ORDER} from '../disc3d/clear.mjs';
+import {isClear,clearTint,clearPart,clearBackdrop,pageColor,CLEAR,CLEAR_ORDER} from '../disc3d/clear.mjs';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {discPose,TOTAL_MS} from './rack-motion.mjs';
@@ -99,7 +99,10 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  const material=discMaterial('#ffffff');
  // Clear copies (disc3d/clear.mjs) rack in batches of their own: the plate (and a band) hidden but still picked, and
  // the front wall's passes drawn on the same instances, tinted by each copy's own colour. One set for every batch.
- const hidden=Object.assign(material.clone(),{visible:false}),rackClear=clearPart(()=>discMaterial('#ffffff'),{walls:1}),rackBackdrop=clearBackdrop();
+ // Racked clear copies share one part (their tint is the instance colour); copies with their photo's true colour
+ // (docs/clear-plastic-true-color.md) share another, read with the true colour's exponent, in batches of their own.
+ const hidden=Object.assign(material.clone(),{visible:false}),rackClear=clearPart(()=>discMaterial('#ffffff'),{walls:1}),rackClearTrue=clearPart(()=>discMaterial('#ffffff'),{walls:1,page:rackClear.page}),rackBackdrop=clearBackdrop();
+ rackClearTrue.paint('#ffffff',{},{exponent:CLEAR.trueDensity});
  const paintPage=()=>{const color=pageColor(host);rackBackdrop.color.set(color);rackClear.page.value.copy(rackBackdrop.color);for(const o of outs.values())if(o.proxy)paintClear(o.proxy,color);};
  view=new SceneView(host,{label:'Storage racks',yaw:.32,pitch:.2,yawLimit:.95,maxZoom:4,
   onTap:(p)=>tap(p),onHover:p=>hover(p),onCamera});
@@ -128,18 +131,18 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   rackGroups.forEach((group,i)=>group.position.x=rackX(i,n));
   shadow.scale.set(rowWidth(n)+.45,.75,1);
  }
- // `key`: the parts' key, with '|clear' for a batch of clear copies.
- const batchKey=(entry,finish)=>entry.key+(isClear(finish)?'|clear':'');
+ // `key`: the parts' key, with '|clear' for a batch of clear copies, '|clear:true' for clear copies with a true colour.
+ const batchKey=(entry,finish,trueColor)=>entry.key+(isClear(finish)?(clearTint(finish,'',trueColor,{overmold:entry.overmold}).sampled?'|clear:true':'|clear'):'');
  function dropBatch(batch){for(const mesh of [batch.plate,batch.rim,...batch.passes])if(mesh){discRoot.remove(mesh);mesh.dispose();}}
  function batchFor(entry,needed,key=entry.key){
   let batch=batches.get(key);
   if(batch&&batch.capacity>=needed)return batch;
-  const capacity=Math.max(4,2**Math.ceil(Math.log2(needed))),clear=key!==entry.key;
+  const capacity=Math.max(4,2**Math.ceil(Math.log2(needed))),clear=key!==entry.key,part=key.endsWith('|clear:true')?rackClearTrue:rackClear;
   if(batch)dropBatch(batch);
   const make=(geometry,m=material)=>{const mesh=new THREE.InstancedMesh(geometry,m,capacity);mesh.castShadow=m.visible;mesh.receiveShadow=true;mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.count=0;mesh.userData.sharedGeometry=true;discRoot.add(mesh);return mesh;};
   batch={entry,capacity,clear,plate:make(entry.plate,clear?hidden:material),rim:entry.rim?make(entry.rim,clear&&!entry.overmold?hidden:material):null,ids:[],passes:[]};
   // The passes share their piece's instance matrices and colours (synced in update; the backdrop takes no colour).
-  if(clear)for(const piece of [batch.plate,!entry.overmold&&batch.rim].filter(Boolean))for(const [m,order] of [[rackBackdrop,CLEAR_ORDER.backdrop],[rackClear.walls[0].filter,CLEAR_ORDER.front],[rackClear.walls[0].shine,CLEAR_ORDER.front+.5]]){
+  if(clear)for(const piece of [batch.plate,!entry.overmold&&batch.rim].filter(Boolean))for(const [m,order] of [[rackBackdrop,CLEAR_ORDER.backdrop],[part.walls[0].filter,CLEAR_ORDER.front],[part.walls[0].shine,CLEAR_ORDER.front+.5]]){
    const pass=make(piece.geometry,m);pass.castShadow=pass.receiveShadow=false;pass.renderOrder=order;pass.raycast=()=>{};pass.userData.piece=piece;batch.passes.push(pass);
   }
   batches.set(key,batch);return batch;
@@ -169,7 +172,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   for(const batch of batches.values())batch.ids=[];
   if(entries.some(e=>isClear(e.finish)))paintPage();
   const needs=new Map();
-  for(const e of entries){const entry=discParts(e.d,undefined,!!e.haloBand);e.parts=entry;e.batch=batchKey(entry,e.finish);needs.set(e.batch,(needs.get(e.batch)||0)+1);}
+  for(const e of entries){const entry=discParts(e.d,undefined,!!e.haloBand);e.parts=entry;e.batch=batchKey(entry,e.finish,e.trueColor);needs.set(e.batch,(needs.get(e.batch)||0)+1);}
   for(const [key,n] of needs)batchFor(entries.find(e=>e.batch===key).parts,n,key);
   entries.forEach((e,i)=>{
    const entry=e.parts,batch=batches.get(e.batch),place=restOf(i,entry);
@@ -178,10 +181,10 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
    // A new disc slides in from the front of its slot.
    if(!r){r={id:e.id,lift:0,liftGoal:0,current:animate?[target[0],target[1]+.03,target[2]+.36]:[...target]};records.set(e.id,r);r.fresh=animate;}
    const moved=r.to&&(r.to.some((v,k)=>Math.abs(v-target[k])>1e-6)||r.entry?.key!==entry.key);
-   Object.assign(r,{entry,batch:e.batch,finish:e.finish,name:e.name,d:e.d,photoURL:e.photoURL,haloModel:e.haloModel||null,index:batch.ids.length,rack:place.rack,slot:place.slot,bayX:place.bayX,to:target,colors:discColors(entry,e.color,e.rimColor,e.haloBand)});
+   Object.assign(r,{entry,batch:e.batch,finish:e.finish,trueColor:e.trueColor||null,name:e.name,d:e.d,photoURL:e.photoURL,haloModel:e.haloModel||null,index:batch.ids.length,rack:place.rack,slot:place.slot,bayX:place.bayX,to:target,colors:discColors(entry,e.color,e.rimColor,e.haloBand)});
    if(r.fresh||(moved&&animate)){r.from=[...r.current];r.t0=now;r.fresh=false;}else if(!r.t0)r.current=[...target];
    batch.ids.push(e.id);seen.add(e.id);
-   batch.plate.setColorAt(r.index,color.set(r.colors.plate));if(batch.rim)batch.rim.setColorAt(r.index,color.set(r.colors.rim));
+   batch.plate.setColorAt(r.index,color.set(clearTint(r.finish,r.colors.plate,r.trueColor,{overmold:r.entry.overmold}).tint));if(batch.rim)batch.rim.setColorAt(r.index,color.set(r.colors.rim));
   });
   for(const id of [...records.keys()])if(!seen.has(id))records.delete(id);
   for(const [key,batch] of batches){
@@ -203,8 +206,8 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  const pulledTarget=r=>{const s=pulledSpot(r.to,{bayX:r.bayX});return s;};
  function restyle(p,r){
   // A recolour or a new mold while out: rebuild the proxy in place.
-  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL,stampStyleKey(),isClear(r.finish)]);if(p.key===key)return;
-  const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,finish:r.finish,onChange:()=>view.request()});
+  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL,stampStyleKey(),isClear(r.finish),r.trueColor]);if(p.key===key)return;
+  const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,finish:r.finish,trueColor:r.trueColor,onChange:()=>view.request()});
   paintClear(next,pageColor(host));
   if(p.proxy){next.position.copy(p.proxy.position);next.quaternion.copy(p.proxy.quaternion);discRoot.remove(p.proxy);disposeObject(p.proxy);}
   p.proxy=next;p.key=key;discRoot.add(next);
@@ -290,6 +293,6 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
   get state(){return {racks:count,discs:records.size,pulled:pulledId(),moving:[...outs.values()].some(o=>o.progress!==o.goal)||[...records.values()].some(r=>r.t0),batches:batches.size,focus,zoom:view.zoom,quality:view.stage.quality,frames:view.frames||0};},
   get info(){const i=view.stage.renderer.info.render;return {calls:i.calls,triangles:i.triangles};},
   get size(){return {...view.size};},
-  dispose(){for(const b of batches.values())dropBatch(b);for(const id of [...outs.keys()])drop(id);view.dispose();material.dispose();hidden.dispose();rackClear.dispose();rackBackdrop.dispose();},
+  dispose(){for(const b of batches.values())dropBatch(b);for(const id of [...outs.keys()])drop(id);view.dispose();material.dispose();hidden.dispose();rackClear.dispose();rackClearTrue.dispose();rackBackdrop.dispose();},
  };
 }

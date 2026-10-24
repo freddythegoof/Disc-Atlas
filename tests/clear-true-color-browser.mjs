@@ -61,6 +61,15 @@ async function read(file){
   return {sectors:medians,median:hex(all.map(med))};};
  return {plate,streak,sectors,ring,extent:{cx,cy,rx,ry}};
 }
+// A Storage screenshot holds the rack too (black steel, orange rails): the pulled blue disc's plate is the most common
+// blue (hue 185–240°) in the central 40% × 50% of the image, and the streak class is counted there.
+async function readCentre(file){
+ const {data,info}=await sharp(file).removeAlpha().raw().toBuffer({resolveWithObject:true});const W=info.width,H=info.height;
+ const bins=new Map();let streak=0;
+ for(let j=Math.floor(H*.25);j<H*.75;j++)for(let i=Math.floor(W*.3);i<W*.7;i++){const k=(j*W+i)*3;const [h,s,v]=hsv(data[k],data[k+1],data[k+2]);if(s<.45||v<.3||h<185||h>240)continue;if(h>=215&&h<=225&&s>=.5)streak++;const key=(data[k]>>4)<<8|(data[k+1]>>4)<<4|data[k+2]>>4;let b=bins.get(key);if(!b)bins.set(key,b=[0,0,0,0]);b[0]++;b[1]+=data[k];b[2]+=data[k+1];b[3]+=data[k+2];}
+ let best=null;for(const b of bins.values())if(!best||b[0]>best[0])best=b;
+ return {plate:best?hex([best[1]/best[0],best[2]/best[0],best[3]/best[0]]):'#000000',streak};
+}
 const sheet=async(out,tile,items)=>{
  const tiles=await Promise.all(items.map(async it=>{const b=await sharp(it.file).extract({left:180,top:120,width:1640,height:980}).resize({width:tile}).png().toBuffer();const m=await sharp(b).metadata();return {b,h:m.height,caption:it.caption};}));
  const h=Math.max(...tiles.map(t=>t.h)),H=h+44,esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -83,14 +92,15 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second}){
    {...RAPTOR_SEED,finish:'clear',notes:'raptor-true'},
    {...RAPTOR_SEED,finish:'opaque',notes:'raptor-opaque'},
    {mold_id:'7446eb39abe5',plastic:'Z',wear:8,weight_g:177,color:'#b99bdd',finish:'clear',notes:'buzzz'},
-   {...RAPTOR_SEED,finish:'clear',notes:'raptor-sheet'}
+   {...RAPTOR_SEED,finish:'clear',notes:'raptor-sheet'},
+   {...RAPTOR_SEED,finish:'clear',in_bag:true,notes:'raptor-bag'}
   ];
   if(second)seeds.push({mold_id:second.mold,plastic:'Champion',wear:9,weight_g:175,color:second.color,finish:'clear',in_bag:false,notes:'second-null'},{mold_id:second.mold,plastic:'Champion',wear:9,weight_g:175,color:second.color,finish:'clear',in_bag:false,notes:'second-true'});
   await h.seedBag(seeds);
   const all=await page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs);
   const idOf=note=>all.find(d=>d.notes===note).id;
   const put=async(note,file,color)=>{await page.evaluate(async([id,bytes,color])=>{const r=await fetch('/api/bag/discs/'+id+'/photo',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'image/webp','X-Atlas-Photo-True-Color':color||'','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken},body:new Uint8Array(bytes)});if(!r.ok)throw Error(await r.text());},[idOf(note),[...fs.readFileSync(file)],color]);};
-  await put('raptor-null',photo,null);await put('raptor-true',photo,trueColor);await put('raptor-opaque',photo,trueColor);
+  await put('raptor-null',photo,null);await put('raptor-true',photo,trueColor);await put('raptor-opaque',photo,trueColor);await put('raptor-bag',photo,trueColor);
   if(second){await put('second-null',second.file,null);await put('second-true',second.file,second.trueColor);}
   const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=5);};
   const theme=async scheme=>{await page.emulateMedia({colorScheme:scheme});await page.waitForFunction(t=>document.documentElement.dataset.theme===t,scheme==='dark'?'midnight':'light');await wait(400);};
@@ -119,6 +129,19 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second}){
   await shots('raptor-opaque','opaque',{schemes:['light'],views:['angle7']});
   await shots('buzzz','buzzz',{schemes:['light'],views:['angle7']});
   if(second){await shots('second-null','second-null',{schemes:['light'],views:['angle7','top']});await shots('second-true','second-true',{schemes:['light'],views:['angle7','top']});}
+  // Storage (collection3d): a clear copy with a true colour racks in its own batch and comes out of the rack in it; My
+  // Map's adapter carries the bagged copy's true colour.
+  await theme('light');await openBag();
+  result.mapTrueColor=await page.evaluate(mold=>window.BagApp.mapTrueColors().get(mold)||null,MOLD);
+  await page.locator('#myBagViews [data-bag-view="storage"]').click();
+  await page.locator('#storageScene[data-engine="ready"]').waitFor({timeout:30000});await wait(1200);
+  result.storageBatches=await page.evaluate(()=>window.BagApp.scenes.storage.state.batches);
+  result.shots.storage={};
+  for(const note of ['raptor-null','raptor-true']){
+   await page.evaluate(id=>window.BagApp.scenes.storage.pull(id),idOf(note));await wait(3000);
+   const box=await page.locator('#storageScene').boundingBox();
+   const file=`${out}/storage-${note}.png`;fs.writeFileSync(file,await page.screenshot({clip:{x:0,y:Math.max(0,box.y),width:1440,height:Math.min(1000-Math.max(0,box.y),box.height)}}));result.shots.storage[note]=file;
+  }
   // The sheet: Use photo stores the true colour and says so (the sheet's own flow, the aligner's default framing).
   if(sheetPhoto){
    await openBag();await page.locator(`[data-bag-edit="${idOf('raptor-sheet')}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');
@@ -208,6 +231,16 @@ if(haveRaptor&&TRUE){
  assert.match(after.sheetHint,/true colour from the rim/,after.sheetHint);
  assert.equal(after.thumbnailTrueColor,TRUE,'the row thumbnail carries it');
  check(`the sheet: Use photo stored ${after.sheetDisc.photo_true_color}, "${after.sheetHint}"`);
+ // Storage and My Map (Codex's two findings on PR #46): the true colour reaches the rack batches, the pulled disc and the
+ // map adapter. The pulled disc is read as the pop-out is (its plate the most common colour of the disc's middle).
+ assert.equal(after.mapTrueColor,TRUE,'My Map gets the bagged copy\'s true colour');
+ assert.equal(after.storageBatches,3,'a clear copy with a true colour racks in its own batch (opaque, clear, clear with a true colour)');
+ const stNull=await readCentre(after.shots.storage['raptor-null']),stTrue=await readCentre(after.shots.storage['raptor-true']);
+ // (The streak class is the band's hue against today's plate; a plate in the true colour sits in that hue itself, so the
+ // class is read on the copy without a true colour only.)
+ assert.ok(stNull.streak<500,`no streak on the pulled Storage disc (${stNull.streak})`);
+ assert.ok(lab(stNull.plate)[0]-lab(stTrue.plate)[0]>=15,`the pulled Storage disc wears the true colour: ${stTrue.plate} against ${stNull.plate}`);
+ check(`Storage: pulled ${stNull.plate} → ${stTrue.plate}, ${after.storageBatches} batches; My Map ${after.mapTrueColor}`);
 }else console.log('skip - true-colour checks (no rim band in the fixture)');
 
 // 5. The fences, against the baseline tree.
