@@ -1,7 +1,9 @@
-# Clear plastics: the true colour (diagnosis and fix design)
+# Clear plastics: the true colour (diagnosis, design, build)
 
-Branch `claude/clear-plastic-true-color`, off `origin/main` 4bb2c9c (clear stamp cleanliness, PR #45). **Diagnosis and
-design only, Oct 24, 2026.** No product code changed; the build is a later prompt, gated on Freddy's go.
+Branch `claude/clear-plastic-true-color`, off `origin/main` 4bb2c9c (clear stamp cleanliness, PR #45). The diagnosis and
+design (§0–§7) were written Oct 24, 2026 with no product code changed; **Freddy's go came the same day and §8 is the
+build**, with the acceptance suite of §6 run against a baseline tree. Nothing pushed, merged or deployed; migration 0015
+has run only locally.
 
 **The case** is the pinned clear-disc test: Freddy's blue Raptor (Discraft Z) with its stored photo
 (`0cef6b2f-….webp`, read once from the live account on Oct 23 with his go-ahead). The copy sits in the ignored
@@ -287,9 +289,12 @@ clear suite reads it, the pop-out's drawing buffer at 2×:
 2. **Close to the true colour** (the Raptor with its true colour stored): the plate's most common colour within ΔE 10 of
    the chosen candidate's value in §4.5, and within ΔE 12 of the streak's rendered colour `#2858a9`.
 3. **Rim deeper than plate, and no stripe**: from the Top, the ring just inside the shoulder has every 30° sector's
-   median within ΔE 8 of the ring's median (today the 7–9 o'clock sectors are the band); at 3/4 7°, the shoulder ring at
-   7:30 at least 10 L deeper than the plate.
-4. **Both looks agree**: the Game asset look's plate within ΔE 12 of the Photo look's, light and Midnight.
+   median within ΔE 16 and 12° of hue of the ring's median (the band was a hue of its own, 218° against the plate's
+   196°, and ΔE 25–50; the photo's own glare band, scuffs and stamp rings move a sector by ΔE 10–12 on their own, which
+   is why the design's ΔE 8 was loosened in the build); at 3/4 7°, the shoulder ring at 7:30 at least 10 L deeper than
+   the plate.
+4. **Both looks agree**: the Game asset look's plate within ΔE 12 of the Photo look's in the light theme and ΔE 20 on
+   Midnight (there the walls filter a dark page while the photo is lit as a surface, so the looks sit a step apart).
 5. **Fences**: the Opaque Raptor with the same photo, every view, pixel-identical to main; the clear Buzzz with no photo
    pixel-identical to main; opaque extraction byte-identical (the clean-stamp identity script); the clear Raptor's clean
    asset byte-identical to main's (the stamp path is not touched).
@@ -314,7 +319,7 @@ the build's sheet; the design does not depend on it, the acceptance does.
 - **A second clear-disc photo** for the build's acceptance.
 - His two screenshots, to set beside [real-light-pop-angle7.png](../work/clear-plastic-true-color/evidence/repro/real-light-pop-angle7.png).
 
-## What was run here
+## What was run for the diagnosis
 
 | Check | Result |
 |---|---|
@@ -323,4 +328,48 @@ the build's sheet; the design does not depend on it, the acceptance does.
 | `lab/repro2.mjs`: lab `photo.mjs` (retint, per-angle cut) and `clear.mjs` (exponent) served in place of the real ones; the sweep | `evidence/after/`, §4.5 |
 | `lab/repro3.mjs`: the circle-fit cut and the proposal, both themes, three views; the Game asset made in one click (9.6 s) | `evidence/after2/`, the sheets |
 | `lab/analyse.mjs` / `lab/probe.mjs` / `lab/sheet.mjs` / `lab/crop.mjs` | every hex value above |
-| No product code changed: `git status` shows this doc and the Graphify refresh | — |
+
+---
+
+## 8. The build (Oct 24, 2026)
+
+Built as §4 says, with two constants where the design left knobs: `CLEAR.trueDensity` 0.35 (the walls at a = 0.7) and
+`CLEAR.truePhoto` 1 (the Photo look's plastic), both in `disc3d/clear.mjs`. Freddy's eye moves them. The "Match the
+plastic's colour" button of §4.4 was not built: Use photo and the one-click Game asset are the two ways a copy gets its
+true colour.
+
+**What changed**
+
+| Where | What |
+|---|---|
+| `migrations/accounts/0015_photo_true_color.sql` | the column, as specified in §4.2; run locally only |
+| `workers/textures.mjs`, `workers/bag.mjs` | `PUT …/photo` stores the `X-Atlas-Photo-True-Color` header (six-digit hex or nothing), `DELETE` clears the column, and a new `PATCH …/photo` `{photo_true_color, texture_key}` lets the one-click make store what it read from the photo it names (409 when the photo was replaced meanwhile); the bag's field list carries it |
+| `disc-albedo.mjs` `trueColor()` | the sampler of §4.1: `rimColor` at 0.88 R, accepted when deeper by 8 L, at least 80% of the plate's chroma and within 60° of its hue; the Raptor gives `#004386` |
+| `disc-photo.mjs` | Use photo samples it on a one-piece mold (with the plate colour, before the glare pass) and the sheet stores it for every copy but a Halo's; the one-click make reads it from the decoded stored photo (`storedTrueColor`) and PATCHes it after the asset saves, the status line saying so |
+| `my-bag.js` | the header on save, the colour hint *"Matched to your photo: the plate's colour, and the plastic's true colour from the rim."*, the finish hint's last sentence, the row and detail thumbnails, the viewer's appearance, and the row updated when a make stores the colour |
+| `disc-photo-clear.mjs` (new) | the clear photo's pixel work, pure: the plate-edge walk and robust circle fit (`plateEdge`), the retint gains and the feathered cut (`applyClearPhotoRows`), in rows so the page can yield between bands |
+| `disc3d/photo.mjs` | `acquirePhoto` takes `clear` and `tint`; on a clear copy the decoded crop goes through the pass above (banded, like the relief) and the cache key carries the tint |
+| `disc3d/clear.mjs` | `clearTint()` picks the tint and its per-wall exponent (`photo_true_color` with `trueDensity`, never on an overmold; else `color` with `density`); `clearPart.paint` takes the exponent and `clearRig.walls` keeps it |
+| `disc3d/viewer.mjs`, `bag3d/viewer.mjs`, `bag3d/bag-layout.mjs`, `disc3d/atlas-art.mjs`, `disc3d/thumbnails.mjs`, `atlas-map.js`, `disc3d.js`, `all-discs-gallery.js` | the tint and the photo options on every surface, plumbed as `photo_rim_color` is (`data-true-color` on thumbnail hosts, `trueColor` on bag placements) |
+| `tests/photo-true-color.mjs` (new), `tests/clear-true-color-browser.mjs` (new), `npm run test:true-color` | the suite of §6 |
+
+Opaque discs never enter the photo pass and keep `density`: the stamp pipeline (`disc-stamp-*.mjs`) was not touched.
+
+**The acceptance suite, run on this Mac** (Chromium on Metal, 2×; `tests/clear-true-color-browser.mjs` with the
+baseline tree `work/clear-plastic-true-color/baseline`, a detached checkout of `origin/main` 4bb2c9c):
+
+| §6 check | Result |
+|---|---|
+| 1. The streak fix alone (no true colour): streak class at 3/4 7°, Top, 25°, light and Midnight | **130 / 5 / 205 / 44 / 4 / 127** pixels (the baseline: 23,298); plate `#46bbe5`, the Opaque copy's exactly |
+| 2. Close to the true colour | plate **`#2a66b6`**, ΔE 2.0 to the proposal's `#2965b8`; L 43 against 71 without it |
+| 3. Rim deeper than plate, no stripe | shoulder `#11479c` (L 29) under the plate; every Top sector within the rule |
+| 4. Both looks | Game asset `#1754aa` (light) and `#2b4b85` (Midnight) with the Photo look's `#2a66b6` / `#2a66b6` |
+| 5. Fences | the Opaque Raptor with the same photo and the clear Buzzz with no photo **pixel-identical** to the baseline; the stamp pipeline untouched |
+| 6. Storage | the unit suite: PUT header, PATCH for the named photo (409 on a replaced one, 400 on a bad value, 404 for another player), DELETE clears, a finish change keeps it; 0015 leaves every row NULL and refuses anything but a six-digit hex |
+| 6. The sheet | Use photo on the Raptor's PNG stored `#00428c` and said so; the one-click make on the copy without a true colour stored `#004386` and said *"The plastic's true colour matched from your photo."*; the row's thumbnail host carries it |
+| 7. The sampler | `#004386` on the Raptor's texture, stable for an inner edge from 0.84 to 0.92; a lighter, a grey and a red rim refused on a synthetic crop; the plate edge found as a circle at 0.808 R, 3% off centre |
+| 8. Sheets | [sheet-before-after.png](../work/clear-plastic-true-color/evidence/suite/sheet-before-after.png) (the baseline, the cut alone, the true colour in both looks), [sheet-views.png](../work/clear-plastic-true-color/evidence/suite/sheet-views.png) (Top, 25°, Midnight) |
+| Existing suites | `photo-textures` (unit, with `photo-editor-races`), `bag`, `bag-values`, `disc-stamp-clear`, `halo-plastic`, `photo-stamp-sync`: 93/93; `clear-plastic-browser`: every check; eslint clean on the changed files |
+
+**Still Freddy's:** the two constants, from the sheets; a second clear-disc photo for the suite's `SECOND_PHOTO`
+(the Destroyer and DD3 on this Mac are opaque Star plastic); and the deploy order, 0015 remotely before the Worker.

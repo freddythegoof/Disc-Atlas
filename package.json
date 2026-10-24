@@ -62,6 +62,7 @@
     "test:photo-rim": "node tests/photo-rim-color-browser.mjs",
     "test:clear": "node tests/clear-plastic-browser.mjs",
     "test:clear-stamp": "node --test tests/disc-stamp-clear.mjs",
+    "test:true-color": "node --test tests/photo-true-color.mjs && node tests/clear-true-color-browser.mjs",
     "test:photo-level": "node tests/photo-stamp-level-browser.mjs",
     "test:photo-stamp-sync": "node --test tests/photo-stamp-sync.mjs && node tests/photo-stamp-sync-browser.mjs && node tests/photo-stamp-stall-browser.mjs && PHOTO_STAMP_ENGINE=chromium node tests/photo-stamp-stall-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",

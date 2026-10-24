@@ -23,9 +23,19 @@ import * as THREE from 'three';
 
 export const isClear=finish=>finish==='clear';
 // density: the exponent on the picked colour for one wall square on (.5: two walls make the picked colour).
-// scatter: the share of ordinary diffuse light the plastic still shows (a little haze; the shape reads in the dark).
-// glow: light piped to the rim, as a share of the tint. minCos: the most grazing path counted (keeps the edge finite).
-export const CLEAR={density:.5,scatter:.12,glow:.35,minCos:.06};
+// trueDensity: the exponent per wall when the colour is the plastic's true colour (docs/clear-plastic-true-color.md),
+// sampled from the photo's rim band: the flat of the plate shows a step lighter than it (.35: two walls make T^0.7), the
+// shoulder and rim deepen to it and past it. truePhoto: the exponent the Photo look's plastic takes toward it (1: the
+// photo's plate, lit as a surface, lands where the walls do). scatter: the share of ordinary diffuse light the plastic
+// still shows (a little haze; the shape reads in the dark). glow: light piped to the rim, as a share of the tint. minCos:
+// the most grazing path counted (keeps the edge finite).
+export const CLEAR={density:.5,trueDensity:.35,truePhoto:1,scatter:.12,glow:.35,minCos:.06};
+// The tint a clear part wears: the plastic's true colour when the copy has one (never on an overmold, whose photo shows
+// only its opaque rim piece), else the disc's colour. `exponent`: the per-wall exponent that goes with it.
+export function clearTint(finish,color,trueColor,{overmold=false}={}){
+ const sampled=isClear(finish)&&!overmold&&/^#[0-9a-f]{6}$/i.test(trueColor||'')?trueColor.toLowerCase():null;
+ return sampled?{tint:sampled,exponent:CLEAR.trueDensity,sampled:true}:{tint:color,exponent:CLEAR.density,sampled:false};
+}
 
 const num=v=>Number(v).toFixed(4);
 const defines=()=>`#define CLEAR_SCATTER ${num(CLEAR.scatter)}\n#define CLEAR_GLOW ${num(CLEAR.glow)}\n#define CLEAR_MIN_COS ${num(CLEAR.minCos)}\n`;
@@ -81,9 +91,10 @@ export function clearPart(base=()=>new THREE.MeshPhysicalMaterial(),{walls=2,pag
  // The exponent per wall drawn, shared by the part's passes; a rig drawing one wall of two raises it (clearRig walls).
  const density={value:CLEAR.density*(2/sides.length)};
  const list=sides.map(side=>({filter:pass(base(),'filter',side,null,density),shine:pass(base(),'shine',side,page,density)}));
- return {walls:list,page,density,materials:list.flatMap(w=>[w.filter,w.shine]),
-  // The plastic: colour (the tint) and the finish's roughness and clear coat.
-  paint(color,plastic={}){for(const m of this.materials){m.color.set(color);Object.assign(m,plastic);m.needsUpdate=true;}},
+ return {walls:list,page,density,exponent:CLEAR.density,drawn:sides.length,materials:list.flatMap(w=>[w.filter,w.shine]),
+  // The plastic: colour (the tint), the finish's roughness and clear coat, and the exponent per wall the colour is read
+  // with (`exponent`: CLEAR.density for a picked colour, CLEAR.trueDensity for the plastic's true colour).
+  paint(color,plastic={},{exponent=CLEAR.density}={}){this.exponent=exponent;this.density.value=exponent*(2/this.drawn);for(const m of this.materials){m.color.set(color);Object.assign(m,plastic);m.needsUpdate=true;}},
   dispose(){for(const m of this.materials)m.dispose();}};
 }
 // The backdrop pass: the page's colour, only where nothing is drawn yet.
@@ -135,7 +146,7 @@ export function clearRig(mesh,{plate,band=null,overmold=false}){
  hide();
  const rig={meshes,backdrop,materials:[...plate.materials,...band?.materials??[]],
   sync(){hide();for(const m of meshes)m.geometry=mesh.geometry;},
-  walls(n){meshes.forEach(m=>{if(/^clear-back-/.test(m.name))m.visible=n===2;});for(const part of [plate,band])if(part)part.density.value=CLEAR.density*(2/n);},
+  walls(n){meshes.forEach(m=>{if(/^clear-back-/.test(m.name))m.visible=n===2;});for(const part of [plate,band])if(part){part.drawn=n;part.density.value=part.exponent*(2/n);}},
   page(color){backdrop.color.set(color);plate.page.value.copy(backdrop.color);if(band)band.page.value.copy(backdrop.color);},
   dispose(){for(const m of meshes)mesh.remove(m);plate.dispose();band?.dispose();backdrop.dispose();none.dispose();}};
  rig.walls(1);

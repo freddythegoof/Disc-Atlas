@@ -11,7 +11,7 @@ import {DETAIL,detailSegments,detailPixelRatio,photoTier,PHOTO_TIERS} from '../d
 import {overmoldColors} from '../disc3d/overmold.mjs';
 import {parseHalo} from '../disc3d/halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from '../disc3d/halo-shader.mjs';
-import {isClear,clearPart,clearRig,pageColor,CLEAR_ORDER} from '../disc3d/clear.mjs';
+import {isClear,clearTint,clearPart,clearRig,pageColor,CLEAR_ORDER} from '../disc3d/clear.mjs';
 import { bagLayout, GLB_ACCENT_POSE, MAIN, TOP, FRONT, DISC, BAG_BOX, STAGE, stageMode, scatterFrame } from './bag-layout.mjs';
 import {desktopPulledLayout,phonePulledFit,phonePulledLayout,PHONE_PULLED_COUNT,PHONE_PULLED_MAX,PULLED_SIZE_MS,PULLED_SPACE} from './pulled-sizing.mjs';
 export { parseDiscParams } from './disc-state.mjs';
@@ -538,11 +538,15 @@ export async function mountBag(container, {
     return false;
   };
   const detailMaterial = color => new THREE.MeshPhysicalMaterial({ color, ...PLASTICS.premium, envMap: environment.texture, envMapIntensity: DETAIL.environment / renderer.toneMappingExposure });
+  // A clear copy's photo is cut at its plate edge and, with the plastic's true colour, retinted (disc3d/photo.mjs).
+  const clearPhotoOptions = (placement, overmold) => { const clear = isClear(placement.finish); const tint = clearTint(placement.finish, placement.color, placement.trueColor, { overmold }); return { clear, tint: tint.sampled ? tint.tint : null }; };
   // A clear copy's passes, lit as a pulled disc's premium plate is (its band's with the copy's own Halo uniforms).
   const clearDisc = (mesh, placement, { overmold, band, halo }) => {
     const base = () => detailMaterial(new THREE.Color()), colors = overmold ? overmoldColors(placement.color, { rim: placement.rimColor }) : null;
     const plate = clearPart(base), rim = band ? clearPart(halo ? () => paintHalo(base(), placement.haloModel) : base, { page: plate.page }) : null;
-    plate.paint(colors ? colors.plate : placement.color || '#e6c668', PLASTICS.premium); rim?.paint(placement.haloBand, PLASTICS.premium);
+    // The plastic's true colour, when the copy has one (docs/clear-plastic-true-color.md).
+    const tint = clearTint(placement.finish, colors ? colors.plate : placement.color || '#e6c668', placement.trueColor, { overmold });
+    plate.paint(tint.tint, PLASTICS.premium, { exponent: tint.exponent }); rim?.paint(placement.haloBand, PLASTICS.premium);
     const rig = clearRig(mesh, { plate, band: rim, overmold }); rig.page(pageColor(container));
     return rig;
   };
@@ -640,7 +644,7 @@ export async function mountBag(container, {
     const { detail } = record, rank = size => size ?? Infinity;
     if (!holding && placement.photoURL && (detail.tier === undefined || rank(tier) > rank(detail.tier))) {
       detail.tier = tier;
-      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, like: detail.materials[0], relief: true, ...(tier ? { size: tier } : {}), onChange: () => {
+      const photo = platePhoto(detail.parts, placement.photoURL, { overmold: detail.parts.overmold, like: detail.materials[0], relief: true, ...clearPhotoOptions(placement, detail.parts.overmold), ...(tier ? { size: tier } : {}), onChange: () => {
         if (record.detail !== detail) return;
         // A decode started before a new click may finish during its glide. Keep
         // the current tier visible, and retain both handles until motion settles.
@@ -705,7 +709,7 @@ export async function mountBag(container, {
       else if(band){const rim=discTemplate.clone();rim.color.set(placement.haloBand);if(halo)paintHalo(rim,placement.haloModel);material=[material,rim];}
       const mesh = new THREE.Mesh(geometry, material);
       // The bag's own photo. If it arrives after a pulled disc's detail photo, it stays hidden behind it.
-      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
+      if(parts&&placement.photoURL)mesh.add(platePhoto(parts,placement.photoURL,{overmold,size:256,like:[material].flat()[0],...clearPhotoOptions(placement,overmold),onChange:()=>{const record=records.get(placement.key);if(record?.mesh===mesh)showPhotos(record);invalidate();}}));
       // A clear copy (disc3d/clear.mjs): the front wall in its pocket, both walls once out large; its print on top.
       const clear=parts&&!placement.empty&&isClear(placement.finish)?clearDisc(mesh,placement,{overmold,band,halo}):null;
       if(clear)for(const child of mesh.children)if(child.userData.disposePhoto)child.renderOrder=CLEAR_ORDER.printAbove;

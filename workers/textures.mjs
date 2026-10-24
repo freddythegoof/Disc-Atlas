@@ -65,7 +65,7 @@ export function validateProcessedWebP(bytes,{min=128,max=MAX_SIDE,what='processe
 }
 export async function photoRoute(request,env,user,id){
  const method=request.method;
- if(!['GET','PUT','DELETE'].includes(method))return json({error:'Method not allowed.'},405);
+ if(!['GET','PUT','PATCH','DELETE'].includes(method))return json({error:'Method not allowed.'},405);
  if(method!=='GET'&&(request.headers.get('Origin')!==new URL(request.url).origin||request.headers.get('X-Atlas-CSRF')!==user.csrf_token))return json({error:'Refresh the page and try again.'},403);
  const row=await env.DB.prepare('SELECT texture_key FROM bag_discs WHERE user_id=? AND id=?').bind(user.id,id).first();
  if(!row)return json({error:'Saved disc not found.'},404);
@@ -75,13 +75,27 @@ export async function photoRoute(request,env,user,id){
   return object?new Response(object.body,{headers:{'Content-Type':'image/webp','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Cross-Origin-Resource-Policy':'same-origin'}}):json({error:'Photo not found.'},404);
  }
  if(method==='DELETE'){
-  await env.DB.prepare('UPDATE bag_discs SET texture_key=NULL,photo_rim_color=NULL,photo_halo=NULL WHERE user_id=? AND id=?').bind(user.id,id).run();
-  await cleanupTextures(env);return json({texture_key:null,photo_rim_color:null,photo_halo:null});
+  await env.DB.prepare('UPDATE bag_discs SET texture_key=NULL,photo_rim_color=NULL,photo_halo=NULL,photo_true_color=NULL WHERE user_id=? AND id=?').bind(user.id,id).run();
+  await cleanupTextures(env);return json({texture_key:null,photo_rim_color:null,photo_halo:null,photo_true_color:null});
+ }
+ // The plastic's true colour (docs/clear-plastic-true-color.md): sampled from the photo's rim band, stored beside the
+ // photo. A six-digit hex or nothing.
+ const hex=v=>v==null||v===''?null:/^#[0-9a-fA-F]{6}$/.test(v)?v.toLowerCase():undefined;
+ if(method==='PATCH'){
+  // The one-click game asset (disc-photo.mjs) reads the stored photo and matches the true colour from it; it names
+  // the photo it read, so a photo replaced meanwhile is never given another photo's colour.
+  let data;try{data=JSON.parse(await request.text());if(!data||typeof data!=='object'||Array.isArray(data))throw 0;}catch{return json({error:'Send the photo’s true colour.'},400);}
+  const trueColor=hex(data.photo_true_color);
+  if(trueColor===undefined||typeof data.texture_key!=='string')return json({error:'Send a six-digit hex true colour and the photo it was read from.'},400);
+  const result=await env.DB.prepare('UPDATE bag_discs SET photo_true_color=? WHERE user_id=? AND id=? AND texture_key=?').bind(trueColor,user.id,id,data.texture_key).run();
+  return result.meta.changes?json({photo_true_color:trueColor}):json({error:'This disc’s photo changed. Make the game asset again.'},409);
  }
  // Same trust boundary as other appearance fields: accept only a plain six-digit hex.
  const supplied=request.headers.get('X-Atlas-Photo-Rim-Color');
  if(supplied && !/^#[0-9a-fA-F]{6}$/.test(supplied))return json({error:'Choose a six-digit hex photo rim color.'},400);
  const photoRimColor=supplied?.toLowerCase()||null;
+ const photoTrueColor=hex(request.headers.get('X-Atlas-Photo-True-Color'));
+ if(photoTrueColor===undefined)return json({error:'Choose a six-digit hex true colour.'},400);
  // A Halo band's two colours (public/disc3d/halo.mjs): the wash and 16 front radii, '#' + 38 hex, or nothing.
  const halo=request.headers.get('X-Atlas-Photo-Halo');
  if(halo && !/^#[0-9a-fA-F]{38}$/.test(halo))return json({error:'Send the Halo band as # and 38 hex digits.'},400);
@@ -91,10 +105,10 @@ export async function photoRoute(request,env,user,id){
  await env.DB.prepare('INSERT INTO texture_cleanup(key,not_before) VALUES (?,?)').bind(key,expires).run();
  await env.TEXTURES.put(key,bytes,{httpMetadata:{contentType:'image/webp',cacheControl:'private, no-store'}});
  const results=await env.DB.batch([
-  env.DB.prepare('UPDATE bag_discs SET texture_key=?,photo_rim_color=?,photo_halo=? WHERE user_id=? AND id=? AND texture_key IS ? AND EXISTS (SELECT 1 FROM texture_cleanup WHERE key=? AND not_before>?)').bind(key,photoRimColor,photoHalo,user.id,id,row.texture_key,key,Math.floor(Date.now()/1000)),
+  env.DB.prepare('UPDATE bag_discs SET texture_key=?,photo_rim_color=?,photo_halo=?,photo_true_color=? WHERE user_id=? AND id=? AND texture_key IS ? AND EXISTS (SELECT 1 FROM texture_cleanup WHERE key=? AND not_before>?)').bind(key,photoRimColor,photoHalo,photoTrueColor,user.id,id,row.texture_key,key,Math.floor(Date.now()/1000)),
   env.DB.prepare('DELETE FROM texture_cleanup WHERE key=? AND EXISTS (SELECT 1 FROM bag_discs WHERE texture_key=?)').bind(key,key),
   env.DB.prepare('UPDATE texture_cleanup SET not_before=0 WHERE key=?').bind(key),
  ]);
  await cleanupTextures(env);
- return results[0].meta.changes?json({texture_key:key,photo_rim_color:photoRimColor,photo_halo:photoHalo}):json({error:'This disc changed. Try saving its photo again.'},409);
+ return results[0].meta.changes?json({texture_key:key,photo_rim_color:photoRimColor,photo_halo:photoHalo,photo_true_color:photoTrueColor}):json({error:'This disc changed. Try saving its photo again.'},409);
 }
