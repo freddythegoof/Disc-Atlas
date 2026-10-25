@@ -34,7 +34,7 @@ export function createBag(auth) {
    if (!root && !collection && !single && !order) return json({error:'Not found.'},404);
    if (!(root ? ['GET','PUT','PATCH'] : order?['PUT']:collection ? ['GET','POST'] : ['GET','PUT','PATCH','DELETE']).includes(method)) return json({error:'Method not allowed.'},405);
    if (method !== 'GET' && (request.headers.get('Origin') !== new URL(request.url).origin || request.headers.get('X-Atlas-CSRF') !== user.csrf_token)) return json({error:'Refresh the page and try again.'},403);
-   const fields='id,mold_id,plastic,wear,weight_g,notes,color,rim_color,finish,photo_rim_color,photo_halo,texture_key,in_bag,pocket,stability_bias,sort_order,added_at,status,lostDate,lostCourse,lostHole,lostStory';
+   const fields='id,mold_id,plastic,wear,weight_g,notes,color,rim_color,finish,photo_rim_color,photo_halo,photo_true_color,texture_key,in_bag,pocket,stability_bias,sort_order,added_at,status,lostDate,lostCourse,lostHole,lostStory';
    const physical=row=>row?{...row,in_bag:!!row.in_bag}:row;
    const list = async () => (await env.DB.prepare(`SELECT ${fields} FROM bag_discs WHERE user_id=? ORDER BY added_at,id`).bind(user.id).all()).results.map(physical);
    const settings = async () => await env.DB.prepare('SELECT bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,rack_style,updated_at FROM bags WHERE user_id=?').bind(user.id).first() || {bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed',rack_style:null,updated_at:null};

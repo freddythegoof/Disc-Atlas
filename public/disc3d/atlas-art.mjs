@@ -32,7 +32,7 @@ import {catalogStampAsset,catalogStampPlacement,stampTexture,stampGeometry,stamp
 import {LODS,ORDER,lodFor} from './lod.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
-import {isClear,clearPart,clearBackdrop,clearMeshes,pageColor,CLEAR_ORDER} from './clear.mjs';
+import {isClear,clearTint,clearPart,clearBackdrop,clearMeshes,pageColor,CLEAR_ORDER} from './clear.mjs';
 // Levels of detail by size on screen (lod.mjs): the thresholds, and the hysteresis a moving camera needs.
 export {LODS,lodFor};
 
@@ -125,11 +125,16 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // Decoded photos stay live for a few discs (least recently drawn first out), so a disc changing level
  // draws its photo at once instead of fetching and decoding it again for every level.
  const PHOTOS_LIVE=8;
+ // A clear copy's photo is its own image: cut at its plate edge and, with the plastic's true colour, retinted
+ // (disc3d/photo.mjs), so it is kept apart from the same photo on an opaque copy.
+ const photoKeyOf=(d,s)=>{const {clear,tint}=photoOptions(d,s);return d.photoURL+(clear?'|clear:'+(tint||''):'');};
+ const photoOptions=(d,s)=>{const clear=isClear(d.finish);const t=clearTint(d.finish,'',d.trueColor,{overmold:s.overmold});return {clear,tint:t.sampled?t.tint:null};};
  const photoOf=(d,s)=>{
   if(!d.photoURL)return null;
-  let photo=photos.get(d.photoURL);
-  if(photo){photos.delete(d.photoURL);photos.set(d.photoURL,photo);return photo;}
-  photo=photoSurface(s.shape,d.photoURL,{overmold:s.overmold,size:256,like:plateMaterial,onChange:()=>window.dispatchEvent(new CustomEvent('atlas-photo-ready',{detail:{url:d.photoURL}}))});photos.set(d.photoURL,photo);
+  const key=photoKeyOf(d,s);
+  let photo=photos.get(key);
+  if(photo){photos.delete(key);photos.set(key,photo);return photo;}
+  photo=photoSurface(s.shape,d.photoURL,{overmold:s.overmold,size:256,like:plateMaterial,...photoOptions(d,s),onChange:()=>window.dispatchEvent(new CustomEvent('atlas-photo-ready',{detail:{url:d.photoURL}}))});photos.set(key,photo);
   // A photo still loading is never evicted: with more photos on screen than live slots, evicting them
   // would restart every load forever.
   for(const [url,old] of photos){if(photos.size<=PHOTOS_LIVE)break;if(old.userData.photoReady||old.userData.photoFailed){photos.delete(url);old.userData.disposePhoto();}}
@@ -162,7 +167,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(lightTheme()?undefined:'#ffffff')}):
   {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
-  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'')+(isClear(d.finish)?'|clear:'+clearOf(d):'');
+  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'')+(isClear(d.finish)?'|clear:'+clearOf(d)+'|'+(d.trueColor||''):'');
  // A photo disc its owner switched to the game-asset look (photo-stamps.mjs) is drawn as a stamped disc: no photo,
  // its extracted stamp where stock art goes (markers from medium size up, as stock stamps are). A colour asset keeps its
  // own colours: its finish is a sheen (stamp.mjs colorStyle).
@@ -198,7 +203,9 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   plateMaterial.color.set(c.plate);if(split)band.color.set(c.rim);if(c.halo)setHalo(haloRim,c.halo);
   const clear=isClear(d.finish);
   if(clear){
-   clearPaper.color.set(clearOf(d));clearPlate.page.value.copy(clearPaper.color);clearPlate.paint(c.plate,PLASTICS.premium);
+   // The plastic's true colour, when the copy has one (docs/clear-plastic-true-color.md).
+   const tint=clearTint(d.finish,c.plate,d.trueColor,{overmold:s.overmold});
+   clearPaper.color.set(clearOf(d));clearPlate.page.value.copy(clearPaper.color);clearPlate.paint(tint.tint,PLASTICS.premium,{exponent:tint.exponent});
    const bandPart=c.halo?clearHalo:clearBand;if(split&&!s.overmold)bandPart.paint(c.rim,PLASTICS.premium);
    mesh.material=split?[none,s.overmold?rimMaterial:none]:none;
    clearList.forEach((m,i)=>{m.geometry=mesh.geometry;if(i){const kind=(i-1)&1?'shine':'filter';m.material=split?[clearPlate.walls[0][kind],s.overmold?none:bandPart.walls[0][kind]]:clearPlate.walls[0][kind];}});

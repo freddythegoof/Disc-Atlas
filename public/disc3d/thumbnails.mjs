@@ -27,7 +27,7 @@ export function observeThumbnails(root,lookup,{personal=false}={}){
     const d=lookup(host.dataset.discThumbnail);if(!d)continue;
     const size=host.getBoundingClientRect().width,plate=host.dataset.plateColor,rim=host.dataset.rimColor||undefined;
     // A clear copy (disc3d/clear.mjs) filters the row's own background.
-    const clear=host.dataset.finish==='clear'?{finish:'clear',page:pageColor(host.parentElement)}:null;
+    const clear=host.dataset.finish==='clear'?{finish:'clear',page:pageColor(host.parentElement),trueColor:host.dataset.trueColor||null}:null;
     const entry=art.render({...d,photoURL:host.dataset.photoUrl||null,haloBand:host.dataset.haloBand||null,haloModel:host.dataset.haloModel||null,...clear},plate,size,rim);
     // A photo disc in its game-asset look (photo-stamps.mjs): the disc bare (atlas-art drops the photo) under its stamp.
     const look=photoStampFor(host.dataset.photoUrl),asset=look?look.asset:host.dataset.photoUrl?null:catalogStampAsset(d);

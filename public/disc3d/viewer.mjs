@@ -44,7 +44,7 @@ import {isOvermold,overmoldColors,bagRimColor,lightTheme} from './overmold.mjs';
 import {parseHalo} from './halo.mjs';
 import {haloUniforms,setHalo,patchHalo} from './halo-shader.mjs';
 import {DETAIL,detailPixelRatio} from './quality.mjs';
-import {isClear,clearPart,clearPage,clearBackdrop,clearMeshes,pageColor,CLEAR_ORDER} from './clear.mjs';
+import {isClear,clearTint,clearPart,clearPage,clearBackdrop,clearMeshes,pageColor,CLEAR_ORDER} from './clear.mjs';
 
 const DEG=Math.PI/180;
 // Camera elevations measured from straight above. The 3/4 view is the default: from behind and above,
@@ -335,7 +335,10 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   // its own colours: its finish is a sheen (stamp.mjs colorStyle).
   const style=photoURL?null:look?.color?colorStyle(props.stampStyle):props.stampStyle||null;
   const clear=isClear(props.finish);
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id],clear]);
+  // The plastic's true colour (docs/clear-plastic-true-color.md): a clear copy's walls wear it, and its photo is retinted
+  // toward it; an overmold's core keeps the plate colour.
+  const tint=clearTint(props.finish,color,props.photo_true_color,{overmold});
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id],clear,tint.tint]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
@@ -345,9 +348,10 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
   build(shape,props.mold,color,overmold,asset,placement,band,halo,style);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
-  if(clear){clearPlate.paint(color,plastic);if(band){clearBand.paint(band,plastic);clearHalo.paint(band,plastic);}repaintBackdrop();}
-  // The photo wears the plate's own plastic, so the scene shades it like the disc around it.
-  if(photoURL){photo=photoSurface(shape,photoURL,{overmold,like:bodyMaterial,relief:true,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
+  if(clear){clearPlate.paint(tint.tint,plastic,{exponent:tint.exponent});if(band){clearBand.paint(band,plastic);clearHalo.paint(band,plastic);}repaintBackdrop();}
+  // The photo wears the plate's own plastic, so the scene shades it like the disc around it. On a clear copy it ends at
+  // its own plate edge, and takes the plastic's true colour when the copy has one (photo.mjs).
+  if(photoURL){photo=photoSurface(shape,photoURL,{overmold,like:bodyMaterial,relief:true,clear,tint:tint.sampled?tint.tint:null,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   if(overmold||band){rimMaterial.color.set(overmold?colors.rim:band);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
   if(halo){setHalo(haloRim,halo);haloRimMaterial.color.set(band);Object.assign(haloRimMaterial,plastic);haloRimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.

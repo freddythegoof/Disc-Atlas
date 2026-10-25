@@ -28,7 +28,7 @@ const finishChoice=()=>$('#addDiscForm input[name="bagFinish"]:checked')?.value|
 function updateFinishHint(){
  const photo=!!editing?.texture_key||photoEditor.changed;
  $('#bagFinishHint').textContent=finishChoice()==='clear'&&photo
-  ?'Your photo was taken on a surface, which shows through the plastic in it, with the stamp’s shadow. The photo stays as it was taken. Game asset keeps just the stamp: after changing the finish, make it again.'
+  ?'Your photo was taken on a surface, which shows through the plastic in it, with the stamp’s shadow. The photo stays as it was taken. Game asset keeps just the stamp: after changing the finish, make it again. Making it also matches the plastic’s true colour from the rim in your photo.'
   :'Clear is see-through plastic tinted by the disc color, like Champion, Z or Opto.';
 }
 $('#addDiscForm').addEventListener('change',event=>{if(event.target.name==='bagFinish')updateFinishHint();});
@@ -37,14 +37,24 @@ function matchPhotoColor(color){
  const input=$('#bagDiscColor');
  if(color){
   colorBeforePhoto??={color:input.value,customized:colorCustomized};
-  input.value=color;photoColor=input.value;colorCustomized=true;colorHint().textContent='Matched to your photo.';
+  // The plastic's true colour, from the rim band (docs/clear-plastic-true-color.md), is stored with the photo and worn
+  // by a clear copy; the disc's colour stays the plate's.
+  input.value=color;photoColor=input.value;colorCustomized=true;colorHint().textContent=photoEditor.photoTrueColor&&!isHalo(plasticChoice())?'Matched to your photo: the plate’s colour, and the plastic’s true colour from the rim.':'Matched to your photo.';
  }else{
   if(colorBeforePhoto&&input.value===photoColor){input.value=colorBeforePhoto.color;colorCustomized=colorBeforePhoto.customized;}
   colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';
  }
  updateRimColor();
 }
-const photoEditor=createPhotoEditor($('#bagPhoto'),{onColor:matchPhotoColor,clear:()=>finishChoice()==='clear'});
+const plasticChoice=()=>$('#bagPlastic').value==='__other'?$('#bagPlasticOther').value:$('#bagPlastic').value;
+// The one-click game asset matched and saved the plastic's true colour: the row wears it at once.
+function keepTrueColor(id,key,color){
+ items=items.map(i=>i.id===id&&i.texture_key===key?{...i,photo_true_color:color}:i);
+ if(editing?.id===id&&editing.texture_key===key)editing={...editing,photo_true_color:color};
+ if(detailItem?.id===id&&detailItem.texture_key===key)detailItem={...detailItem,photo_true_color:color};
+ render();
+}
+const photoEditor=createPhotoEditor($('#bagPhoto'),{onColor:matchPhotoColor,clear:()=>finishChoice()==='clear',halo:()=>isHalo(plasticChoice()),onTrueColor:keepTrueColor});
 $('#addDiscDialog').addEventListener('close',()=>{discEditSequence++;photoEditor.reset(null);colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';});
 const pendingPockets=new Map();
 const pendingFound=new Set();
@@ -58,11 +68,12 @@ function showDemo(){if(isDemo() && items!==DEMO_DISCS){items=DEMO_DISCS;settings
 const name = d => d?.catalogName || d?.name || 'Catalog mold unavailable';
 // The atlas shows the signed-in player's bag in its own colors: one color per mold, from its
 // first copy in bag order. Storage discs are not in the bag.
-let bagColorMap=new Map(),bagRimColorMap=new Map(),bagPhotoMap=new Map(),bagHaloMap=new Map(),bagHaloModelMap=new Map(),bagFinishMap=new Map(),bagColorKey='[]';
+let bagColorMap=new Map(),bagRimColorMap=new Map(),bagPhotoMap=new Map(),bagHaloMap=new Map(),bagHaloModelMap=new Map(),bagFinishMap=new Map(),bagTrueColorMap=new Map(),bagColorKey='[]';
 function publishBagColors(){
- const bagged=account?.user?items.filter(i=>i.in_bag!==false && i.status!=='lost' && mold(i.mold_id)).sort(bagComparator(settings.sort_mode,mold)):[],next=new Map(),rims=new Map(),photos=new Map(),halos=new Map(),models=new Map(),finishes=new Map();
- for(const i of bagged)if(!next.has(i.mold_id)){next.set(i.mold_id,i.color||'#e6c668');rims.set(i.mold_id,bagRimColor(i));photos.set(i.mold_id,photoURL(i));if(haloBand(i))halos.set(i.mold_id,haloBand(i));if(haloModel(i))models.set(i.mold_id,haloModel(i));if(i.finish==='clear')finishes.set(i.mold_id,'clear');}
- const key=JSON.stringify([[...next],[...rims],[...photos],[...halos],[...models],[...finishes]]);if(key===bagColorKey)return;bagColorKey=key;bagColorMap=next;bagRimColorMap=rims;bagPhotoMap=photos;bagHaloMap=halos;bagHaloModelMap=models;bagFinishMap=finishes;
+ const bagged=account?.user?items.filter(i=>i.in_bag!==false && i.status!=='lost' && mold(i.mold_id)).sort(bagComparator(settings.sort_mode,mold)):[],next=new Map(),rims=new Map(),photos=new Map(),halos=new Map(),models=new Map(),finishes=new Map(),trueColors=new Map();
+ // A clear copy's true colour from its photo (docs/clear-plastic-true-color.md) goes to My Map with its finish.
+ for(const i of bagged)if(!next.has(i.mold_id)){next.set(i.mold_id,i.color||'#e6c668');rims.set(i.mold_id,bagRimColor(i));photos.set(i.mold_id,photoURL(i));if(haloBand(i))halos.set(i.mold_id,haloBand(i));if(haloModel(i))models.set(i.mold_id,haloModel(i));if(i.finish==='clear'){finishes.set(i.mold_id,'clear');if(i.photo_true_color)trueColors.set(i.mold_id,i.photo_true_color);}}
+ const key=JSON.stringify([[...next],[...rims],[...photos],[...halos],[...models],[...finishes],[...trueColors]]);if(key===bagColorKey)return;bagColorKey=key;bagColorMap=next;bagRimColorMap=rims;bagPhotoMap=photos;bagHaloMap=halos;bagHaloModelMap=models;bagFinishMap=finishes;bagTrueColorMap=trueColors;
  window.dispatchEvent(new CustomEvent('atlas-bag-change'));
 }
 const scene=new BagScene($('#bagScene'),{lookup:mold,inspect:openBagDetail,deselect:closeBagDetail});
@@ -105,12 +116,12 @@ function bagDetailMarkup(d){
  const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;if(!active || !item)return '';
  const rated=d.speed!=null,index=rated?Math.max(0,Math.min(100,50+10*(d.turn+d.fade))):null;
  const shift=mapOpen && rated?moldShifts(bagged().filter(i=>i.mold_id===d.id)).get(d.id):0,personal=Math.round(Math.max(0,Math.min(100,index+shift)));
- return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading">${window.DiscThumbnails.markup(d,item.color||'#e6c668',bagRimColor(item),photoURL(item),haloBand(item),haloModel(item),item.finish)}<div><h3 id="bagDetailTitle">${isDemo()?'Sample disc':'Your disc'}</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}${shift && personal!==index?`<div><dt>On your map</dt><dd>Stability ${personal} · consensus ${index}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide bag-detail-atlas" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button>${isDemo()?'':`<button type="button" class="wide bag-detail-edit" data-bag-detail-edit="${esc(item.id)}">Edit disc</button>`}</div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
+ return `<section class="bag-detail-personal" aria-labelledby="bagDetailTitle"><div class="bag-detail-heading">${window.DiscThumbnails.markup(d,item.color||'#e6c668',bagRimColor(item),photoURL(item),haloBand(item),haloModel(item),item.finish,item.photo_true_color)}<div><h3 id="bagDetailTitle">${isDemo()?'Sample disc':'Your disc'}</h3><span>${item.in_bag===false?'In Storage':pocketLabel(item.pocket)}</span></div></div><dl class="bag-detail-facts"><div><dt>Plastic</dt><dd>${esc(item.plastic)}</dd></div><div><dt>Weight</dt><dd>${item.weight_g} g</dd></div><div><dt>Wear</dt><dd>${item.wear}/10 · ${wearLabel(item.wear)}</dd></div>${item.stability_bias?`<div><dt>This copy</dt><dd>${stabilityBiasLabel(item.stability_bias)}</dd></div>`:''}${shift && personal!==index?`<div><dt>On your map</dt><dd>Stability ${personal} · consensus ${index}</dd></div>`:''}</dl><h4>Personal notes</h4>${item.notes?`<p class="bag-detail-notes">${esc(item.notes)}</p>`:'<p class="bag-detail-notes is-empty">No notes yet.</p>'}<div class="bag-detail-actions"><button type="button" class="wide bag-detail-atlas" data-show-on-atlas="${esc(d.id)}" ${rated?'':'disabled aria-describedby="bagDetailUnmapped"'}>Show on Atlas ↗</button>${isDemo()?'':`<button type="button" class="wide bag-detail-edit" data-bag-detail-edit="${esc(item.id)}">Edit disc</button>`}</div>${rated?'':'<p id="bagDetailUnmapped" class="micro">Not on the map yet: this mold has no flight ratings.</p>'}</section>`;
 }
 function detailAppearance(d){
  const item=detailItem?.mold_id===d.id?detailItem:mapOpen?bagged().find(i=>i.mold_id===d.id):null;
  if(active&&item)window.DiscThumbnails.observe(detailPanel,mold,{personal:true});
- return active && item?{finish:item.finish,photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,haloBand:haloBand(item),haloModel:haloModel(item),color:item.color,colors:{plate:item.color,rim:item.rim_color || undefined}}:{};
+ return active && item?{finish:item.finish,photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,photo_true_color:item.photo_true_color,haloBand:haloBand(item),haloModel:haloModel(item),color:item.color,colors:{plate:item.color,rim:item.rim_color || undefined}}:{};
 }
 detailPanel.addEventListener('click',event=>{
  const show=event.target.closest('[data-show-on-atlas]'),edit=event.target.closest('[data-bag-detail-edit]');
@@ -202,7 +213,7 @@ function render() {
   return `<section class="my-bag-group ${ordered?'bag-ordered-list':''}" style="--bag-class:var(--${key==='unknown'?'muted':key})" aria-label="${label}">${ordered?'':`<div class="bag-group-heading"><h2>${label}</h2><span>${rows.length}</span></div>`}${rows.map(i=>{
    const d=mold(i.mold_id), rated=d?.speed!=null, index=rated?Math.max(0,Math.min(100,50+10*(d.turn+d.fade))):null;
    const manual=ordered && settings.sort_mode==='custom',position=rows.indexOf(i);
-   return `<article class="my-bag-disc" data-disc-id="${i.id}">${window.DiscThumbnails.markup(d,i.color||'#e6c668',bagRimColor(i),photoURL(i),haloBand(i),haloModel(i),i.finish)}<div class="my-bag-disc-copy"><button class="my-bag-disc-name" data-bag-inspect="${esc(i.id)}" ${d?'':'disabled'}>${esc(name(d))}</button><span class="my-bag-brand">${esc(d?.brand || 'Saved disc')}</span><div class="my-bag-disc-details"><span>${esc(i.plastic)}</span><span>${i.weight_g} g</span><span class="wear-badge" data-beat="${i.wear<=2}">${i.wear}/10 · ${wearLabel(i.wear)}</span>${demo?`<span class="bag-pocket-text">${i.in_bag===false?'Storage':pocketLabel(i.pocket)}</span>`:`<label class="bag-pocket-inline"><span class="bag-sr">Pocket for ${esc(name(d))}</span><span class="dd-select dd-select-sm"><select data-bag-pocket="${i.id}" ${ordering||pendingPockets.has(i.id)?'disabled':''}>${POCKETS.map(([value,label])=>`<option value="${value}"${(pendingPockets.get(i.id) ?? i.pocket)===value?' selected':''}>${label}</option>`).join('')}</select>${window.DropdownIndicator.indicator('sm')}</span></label>`}${i.stability_bias?`<span class="bag-bias-label">${stabilityBiasLabel(i.stability_bias)}</span>`:''}</div>${i.notes?`<p class="my-bag-notes">${esc(i.notes)}</p>`:''}</div><div class="bag-consensus"><strong>${rated?[d.speed,d.glide,d.turn,d.fade].join(' / '):'Unrated'}</strong><small>${rated?'Consensus · stability '+index+'/100':'Consensus unavailable'}</small></div>${demo?'':`<div class="my-bag-disc-actions"><button type="button" data-bag-move="${i.id}" aria-label="${i.in_bag===false?'Bag':'Store'} ${esc(name(d))}">${i.in_bag===false?'Move to bag':'Store'}</button><button type="button" data-bag-edit="${i.id}" aria-label="Edit ${esc(name(d))}">Edit</button>${i.in_bag!==false?`<button type="button" data-bag-lost="${i.id}" aria-label="Mark ${esc(name(d))} lost">Lost</button>`:''}<button type="button" data-bag-remove="${i.id}" aria-label="Remove ${esc(name(d))}">Remove</button></div>`}${manual?`<div class="bag-reorder-controls"><button type="button" data-bag-drag="${i.id}" aria-label="Drag ${esc(name(d))} to reorder" aria-describedby="bagSortHint" ${ordering?'disabled':''}>⠿</button><button type="button" data-bag-earlier="${i.id}" aria-label="Move ${esc(name(d))} earlier" ${ordering||position===0?'disabled':''}>↑</button><button type="button" data-bag-later="${i.id}" aria-label="Move ${esc(name(d))} later" ${ordering||position===rows.length-1?'disabled':''}>↓</button></div>`:''}</article>`;
+   return `<article class="my-bag-disc" data-disc-id="${i.id}">${window.DiscThumbnails.markup(d,i.color||'#e6c668',bagRimColor(i),photoURL(i),haloBand(i),haloModel(i),i.finish,i.photo_true_color)}<div class="my-bag-disc-copy"><button class="my-bag-disc-name" data-bag-inspect="${esc(i.id)}" ${d?'':'disabled'}>${esc(name(d))}</button><span class="my-bag-brand">${esc(d?.brand || 'Saved disc')}</span><div class="my-bag-disc-details"><span>${esc(i.plastic)}</span><span>${i.weight_g} g</span><span class="wear-badge" data-beat="${i.wear<=2}">${i.wear}/10 · ${wearLabel(i.wear)}</span>${demo?`<span class="bag-pocket-text">${i.in_bag===false?'Storage':pocketLabel(i.pocket)}</span>`:`<label class="bag-pocket-inline"><span class="bag-sr">Pocket for ${esc(name(d))}</span><span class="dd-select dd-select-sm"><select data-bag-pocket="${i.id}" ${ordering||pendingPockets.has(i.id)?'disabled':''}>${POCKETS.map(([value,label])=>`<option value="${value}"${(pendingPockets.get(i.id) ?? i.pocket)===value?' selected':''}>${label}</option>`).join('')}</select>${window.DropdownIndicator.indicator('sm')}</span></label>`}${i.stability_bias?`<span class="bag-bias-label">${stabilityBiasLabel(i.stability_bias)}</span>`:''}</div>${i.notes?`<p class="my-bag-notes">${esc(i.notes)}</p>`:''}</div><div class="bag-consensus"><strong>${rated?[d.speed,d.glide,d.turn,d.fade].join(' / '):'Unrated'}</strong><small>${rated?'Consensus · stability '+index+'/100':'Consensus unavailable'}</small></div>${demo?'':`<div class="my-bag-disc-actions"><button type="button" data-bag-move="${i.id}" aria-label="${i.in_bag===false?'Bag':'Store'} ${esc(name(d))}">${i.in_bag===false?'Move to bag':'Store'}</button><button type="button" data-bag-edit="${i.id}" aria-label="Edit ${esc(name(d))}">Edit</button>${i.in_bag!==false?`<button type="button" data-bag-lost="${i.id}" aria-label="Mark ${esc(name(d))} lost">Lost</button>`:''}<button type="button" data-bag-remove="${i.id}" aria-label="Remove ${esc(name(d))}">Remove</button></div>`}${manual?`<div class="bag-reorder-controls"><button type="button" data-bag-drag="${i.id}" aria-label="Drag ${esc(name(d))} to reorder" aria-describedby="bagSortHint" ${ordering?'disabled':''}>⠿</button><button type="button" data-bag-earlier="${i.id}" aria-label="Move ${esc(name(d))} earlier" ${ordering||position===0?'disabled':''}>↑</button><button type="button" data-bag-later="${i.id}" aria-label="Move ${esc(name(d))} later" ${ordering||position===rows.length-1?'disabled':''}>↓</button></div>`:''}</article>`;
   }).join('')}</section>`;
  }).join('');
  $('#myBagContents').innerHTML=`<section id="bagLineup" aria-labelledby="bagLineupTitle" ${listView==='bag'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagLineupTitle">Bag</h2><span>${count} ${count===1?'disc':'discs'} for the round</span></div>${count?grouped(bagged,true):'<div id="myBagEmpty" class="my-bag-empty"><h3>Your bag is empty.</h3><p>Add a disc from the Directory, or bring one over from Storage.</p><button id="emptyBagDirectory" class="pill-button primary" type="button">Explore the Directory ↗</button></div>'}</section><section id="bagStorage" aria-labelledby="bagStorageTitle" ${listView==='storage'?'':'hidden'}><div class="bag-section-heading"><h2 id="bagStorageTitle">Storage</h2><span>${stored.length} ${stored.length===1?'disc':'discs'} off the course</span></div><p class="bag-storage-note">The backups, the experiments, the ones waiting for their next round.</p>${stored.length?grouped(stored):'<div id="bagStorageEmpty" class="bag-storage-empty"><p>No discs in Storage yet. Tap Store on a disc to give it a rest.</p></div>'}</section>${demo?'':memorialWall()}`;
@@ -240,7 +251,7 @@ function syncMyMap(){
  $('#myMapNote').textContent=unrated && rated.length?`${unrated} ${unrated===1?'disc in your bag has':'discs in your bag have'} no flight ratings yet, so ${unrated===1?'it isn’t':'they aren’t'} plotted.`:'';
  if(!rated.length){myMapKey='';hideMyMap();return;}
  if(detailPanel.parentNode!==$('#myBagView'))$('#myBagView').append(detailPanel);
- const key=JSON.stringify([rated.map(d=>d.id),[...shifts],copies.map(i=>[i.id,i.mold_id,i.color,i.rim_color,i.photo_rim_color,i.photo_halo,i.texture_key,i.plastic,i.finish])]);
+ const key=JSON.stringify([rated.map(d=>d.id),[...shifts],copies.map(i=>[i.id,i.mold_id,i.color,i.rim_color,i.photo_rim_color,i.photo_halo,i.photo_true_color,i.texture_key,i.plastic,i.finish])]);
  if(key===myMapKey && myMap && !$('#mapWrap').hidden)return;myMapKey=key;
  showMyMap({ids:new Set(rated.map(d=>d.id)),positions:personalPositions(window.AtlasLayout,rated,shifts),shifts},$('#myMapHost'));
 }
@@ -318,7 +329,9 @@ $('#addDiscForm').addEventListener('submit',async event=>{
   const value=validateDiscDetails({mold_id:$('#addDiscId').value,plastic:$('#bagPlastic').value==='__other'?$('#bagPlasticOther').value:$('#bagPlastic').value,wear:Number($('#bagWear').value),weight_g:Number($('#bagWeight').value),notes:$('#bagNotes').value,color:$('#bagDiscColor').value,rim_color:rimCustomized && !$('#bagRimColorField').hidden?$('#bagRimColor').value:null,finish:finishChoice(),in_bag:$('#bagDestination').value==='bag',pocket:$('#bagPocket').value,stability_bias:$('#bagStabilityBias').value || null,...memorial},mold($('#addDiscId').value),plastics);
   // An overmold's rim sample, or a Halo copy's band (disc3d/halo.mjs): the same photo_rim_color slot.
   const photoChanged=photoEditor.changed,photoRimColor=photoEditor.photoRimColor||(isHalo(value.plastic)?photoEditor.bandColor:null),
-   photoHalo=!photoEditor.photoRimColor&&isHalo(value.plastic)?photoEditor.haloModel:null,photo=photoChanged?await photoEditor.value():undefined;
+   photoHalo=!photoEditor.photoRimColor&&isHalo(value.plastic)?photoEditor.haloModel:null,photo=photoChanged?await photoEditor.value():undefined,
+   // The plastic's true colour (docs/clear-plastic-true-color.md): a one-piece mold's rim band, never a Halo copy's dye.
+   photoTrueColor=isHalo(value.plastic)?null:photoEditor.photoTrueColor;
   if(epoch!==generation||operation!==discEditSequence)throw new DOMException('Editor changed','AbortError');
   const result=await api('/discs'+(edited?'/'+edited.id:''),edited?'PUT':'POST',value);
   if(operation!==discEditSequence){void loadBag();return;}
@@ -327,11 +340,11 @@ $('#addDiscForm').addEventListener('submit',async event=>{
   if(photoChanged){
    editing=result.disc;
    // A dropped connection or an edge error page (not JSON) still reports that the disc itself saved.
-   const r=await fetch('/api/bag/discs/'+result.disc.id+'/photo',{method:photo?'PUT':'DELETE',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'image/webp','X-Atlas-Photo-Rim-Color':photoRimColor||'','X-Atlas-Photo-Halo':photoHalo||'','X-Atlas-CSRF':account?.csrfToken||''},...(photo?{body:photo}:{})}).catch(()=>null);
+   const r=await fetch('/api/bag/discs/'+result.disc.id+'/photo',{method:photo?'PUT':'DELETE',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'image/webp','X-Atlas-Photo-Rim-Color':photoRimColor||'','X-Atlas-Photo-Halo':photoHalo||'','X-Atlas-Photo-True-Color':photoTrueColor||'','X-Atlas-CSRF':account?.csrfToken||''},...(photo?{body:photo}:{})}).catch(()=>null);
    const data=r?await r.json().catch(()=>({})):{};if(epoch!==generation)throw new DOMException('Account changed','AbortError');
    if(operation!==discEditSequence){void loadBag();return;}
    if(!r?.ok){void loadBag();throw Error('Disc saved. '+(data.error||'Its photo could not save; try again.'));}
-   result.disc.texture_key=data.texture_key;result.disc.photo_rim_color=data.photo_rim_color;result.disc.photo_halo=data.photo_halo??null;
+   result.disc.texture_key=data.texture_key;result.disc.photo_rim_color=data.photo_rim_color;result.disc.photo_halo=data.photo_halo??null;result.disc.photo_true_color=data.photo_true_color??null;
   }
   items=items.some(i=>i.id===result.disc.id)?items.map(i=>i.id===result.disc.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();
   // An edited row is re-rendered, so explicitly restore keyboard focus to its new button.
@@ -604,7 +617,7 @@ window.addEventListener('atlas-palette-change',()=>{
  const list=$('#myBagContents');if(list?.querySelector('[data-disc-thumbnail]'))window.DiscThumbnails.observe(list,mold,{personal:true});
  if(detailPanel.querySelector('.bag-detail-personal [data-disc-thumbnail]'))window.DiscThumbnails.observe(detailPanel,mold,{personal:true});
 });
-window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,mapFinishes:()=>bagFinishMap,
+window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,mapFinishes:()=>bagFinishMap,mapTrueColors:()=>bagTrueColorMap,
  // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
  scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;},get album(){return gallery.viewer||null;}}};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

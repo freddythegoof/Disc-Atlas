@@ -1,5 +1,5 @@
 // Photos never leave the browser until reduced to a bounded, metadata-free circular WebP.
-import {delightPixels,rimColor,bandColor,bandModel} from './disc-albedo.mjs';
+import {delightPixels,rimColor,bandColor,bandModel,plateColor,trueColor} from './disc-albedo.mjs';
 import {encodeHalo} from './disc3d/halo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
@@ -126,15 +126,28 @@ export function photoCanvas(image,options={},size=PHOTO_SIZE,limit=2048){
 export function albedoCanvas(image,options={},size=PHOTO_SIZE){
  const canvas=photoCanvas(image,options,size),ctx=canvas.getContext('2d'),pixels=ctx.getImageData(0,0,size,size);
  // The rim, like the plate colour, is measured before the glare pass: matched colours never depend on it.
- const {color,rim=null,band=null,halo=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null,bandInner:options.bandInner||null});ctx.putImageData(pixels,0,0);
- return {canvas,color,photoRimColor:rim,bandColor:band,haloModel:encodeHalo(halo)};
+ const {color,rim=null,band=null,halo=null}=delightPixels(pixels.data,size,{rimInner:options.rimInner||null,bandInner:options.bandInner||null});
+ // The plastic's true colour (disc-albedo.mjs trueColor), a one-piece mold's rim band, read with the plate colour, before
+ // the glare pass as the others are. The sheet stores it for every copy but a Halo's (my-bag.js).
+ const photoTrueColor=options.rimInner||options.trueColor===false?null:trueColor(pixels.data,size,color);
+ ctx.putImageData(pixels,0,0);
+ return {canvas,color,photoRimColor:rim,bandColor:band,haloModel:encodeHalo(halo),photoTrueColor};
 }
 // A saved texture turned for levelling: resampled only, and its rim measured again as on its first save.
 function levelCanvas(image,options,size){
  const canvas=photoCanvas(image,options,size);
- const data=options.rimInner||options.bandInner?canvas.getContext('2d').getImageData(0,0,size,size).data:null;
+ const data=options.rimInner||options.bandInner||options.trueColor!==false?canvas.getContext('2d').getImageData(0,0,size,size).data:null;
  const halo=options.bandInner?bandModel(data,size,options.bandInner):null;
- return {canvas,color:null,photoRimColor:options.rimInner?rimColor(data,size,options.rimInner):null,bandColor:options.bandInner?(halo?halo.dye:bandColor(data,size,options.bandInner)):null,haloModel:encodeHalo(halo)};
+ return {canvas,color:null,photoRimColor:options.rimInner?rimColor(data,size,options.rimInner):null,bandColor:options.bandInner?(halo?halo.dye:bandColor(data,size,options.bandInner)):null,haloModel:encodeHalo(halo),
+  photoTrueColor:options.rimInner||options.trueColor===false?null:trueColor(data,size,plateColor(data,size))};
+}
+// The true colour read from a stored texture's pixels (the one-click game asset, which has them decoded): a one-piece
+// mold's rim band against its plate colour.
+export function storedTrueColor(image){
+ const size=Math.min(PHOTO_SIZE,image.width),canvas=document.createElement('canvas');canvas.width=canvas.height=size;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,size,size);
+ try{const data=ctx.getImageData(0,0,size,size).data;return trueColor(data,size,plateColor(data,size));}
+ finally{canvas.width=canvas.height=0;}
 }
 let canvasWebP,webpModule;
 const canvasBlob=(canvas,quality)=>new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
@@ -160,19 +173,19 @@ async function fallbackWebP(canvas,quality){
 // resampled (no second delighting) and no plate colour is measured. Its rim is sampled again, as it was when
 // first saved, so levelling keeps the matched rim. It never encodes larger than the source.
 export async function preparePhoto(image,options={},{albedo=true}={}){
- let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null,band=null,halo=null;
+ let native=await supportsCanvasWebP(),encoded=0,empty=0,photoRimColor=null,band=null,halo=null,photoTrueColor=null;
  const sizes=albedo?[1024,768,512]:[1024,768,512].filter(size=>size<=Math.max(512,image.width));
  for(const size of sizes){
-  const first=size===sizes[0],crop=first?options:{...options,rimInner:null,bandInner:null};
-  const {canvas,color,photoRimColor:sample,bandColor:bandSample,haloModel:haloSample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
-  if(first){photoRimColor=sample;band=bandSample;halo=haloSample;}
+  const first=size===sizes[0],crop=first?options:{...options,rimInner:null,bandInner:null,trueColor:false};
+  const {canvas,color,photoRimColor:sample,bandColor:bandSample,haloModel:haloSample,photoTrueColor:trueSample}=albedo?albedoCanvas(image,crop,size):levelCanvas(image,crop,size);
+  if(first){photoRimColor=sample;band=bandSample;halo=haloSample;photoTrueColor=trueSample;}
   try{
    for(const quality of [.86,.72,.56,.4]){
     let blob=native===false?await fallbackWebP(canvas,quality):await canvasBlob(canvas,quality);
     // A null result is an encode failure, not evidence that WebP is unsupported.
     if(blob&&blob.type!=='image/webp'){native=false;blob=await fallbackWebP(canvas,quality);}
     if(!blob){empty++;continue;}
-    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor,bandColor:band,haloModel:halo};
+    encoded++;if(blob.size<=PHOTO_BYTES)return {blob,color,photoRimColor,bandColor:band,haloModel:halo,photoTrueColor};
    }
   }finally{canvas.width=canvas.height=0;}
  }
@@ -394,7 +407,10 @@ let sourceChooserId=0;
 // The style a disc wore before it went back to Photo this visit, so Game asset returns to it rather than the default.
 const lastStyle=new Map();
 // `clear()`: whether the sheet has the disc as clear plastic now; a game asset is then made in the clean stamp mode.
-export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
+// `halo()`: whether the sheet has the disc as a Halo copy (its outer band is the dye, not the plastic's true colour).
+// `onTrueColor(id,key,color)`: the one-click make matched the plastic's true colour from the stored photo and saved it
+// (docs/clear-plastic-true-color.md); the sheet carries it to the disc's row.
+export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>false,onTrueColor=()=>{}}={}){
  root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>'+LOOK('photoLook-'+(++lookGroupId))+'<p class="bag-photo-status" role="status"></p>';
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
@@ -509,18 +525,25 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
  const pickOriginal=look=>{if(owned&&!busy&&!makingNow){making=look;makingClear=clear();q('.bag-photo-asset-file').click();}};
  const makeFromPhoto=async look=>{
   if(!owned||!current||busy||makingNow)return;
-  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear()},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
+  // The plastic's true colour is read from the same decoded photo on a one-piece mold that is not a Halo copy
+  // (docs/clear-plastic-true-color.md): a disc on Clear wears it from this click on; a disc on Opaque keeps it for later.
+  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear(),trueColor:!rimInner&&!halo()},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
   const step=name=>status('Making the game asset: '+MAKE_STEPS[name]);
   renderSheet();step('open');
   try{
    const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout?.(60000)}).catch(()=>null);
    if(!response?.ok)throw Error('Your saved photo could not open. Check your connection and try again.');
-   const image=await decodePhoto(await response.blob());let asset;
-   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:job.clear,stage:step});}
+   const image=await decodePhoto(await response.blob());let asset,matched=null;
+   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));if(job.trueColor)matched=storedTrueColor(image);asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:job.clear,stage:step});}
    finally{image.close();}
    step('save');
    await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
-   status(look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.');
+   let kept=false;
+   if(matched){
+    const r=await within(fetch('/api/bag/discs/'+encodeURIComponent(target.id)+'/photo',{method:'PATCH',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount?.current?.csrfToken||''},body:JSON.stringify({photo_true_color:matched,texture_key:target.key})}).catch(()=>null),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
+    if(r?.ok){kept=true;onTrueColor(target.id,target.key,matched);}
+   }
+   status((look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.')+(kept?' The plastic’s true colour matched from your photo.':''));
   }catch(e){status(e?.message?.startsWith('Choose')?'Your saved photo could not open. Try again.':e?.message||'The game asset could not be made. Try again.');}
   finally{if(makingNow===job)makingNow=null;renderSheet();}
  };
@@ -569,8 +592,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
    // Levelling only resamples the saved texture; it keeps the disc's colour as it is.
    // An overmold's rim piece (rimColor) or, on a one-piece mold, the outer band a Halo copy would show
    // (bandColor, kept apart so only a Halo copy ever stores it; see the bandColor getter).
-   const level=mode==='level',{blob,color,photoRimColor,bandColor,haloModel}=await preparePhoto(bitmap,{...options,rimInner,bandInner},{albedo:!level});if(id!==serial)return;
-   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,haloModel,mode,url:URL.createObjectURL(blob)};
+   const level=mode==='level',{blob,color,photoRimColor,bandColor,haloModel,photoTrueColor}=await preparePhoto(bitmap,{...options,rimInner,bandInner},{albedo:!level});if(id!==serial)return;
+   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,haloModel,photoTrueColor,mode,url:URL.createObjectURL(blob)};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
    draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();if(!level)onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
@@ -649,6 +672,9 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false}={}){
   get bandColor(){return used?.bandColor??null;},
   // The band's two-colour model (disc3d/halo.mjs encodeHalo), stored with bandColor for a Halo copy only.
   get haloModel(){return used?.haloModel??null;},
+  // The plastic's true colour from the prepared photo's rim band (one-piece molds; disc-albedo.mjs trueColor), stored as
+  // photo_true_color for every copy but a Halo's, whose band is the dye.
+  get photoTrueColor(){return used?.photoTrueColor??null;},
   async value(){if(busy)throw Error('Wait for the photo to finish.');return used?used.blob:null;},
   // For tests: the aligner and what it is working on.
   debug:{dialog,get draft(){return draft;},get used(){return used;}}};
