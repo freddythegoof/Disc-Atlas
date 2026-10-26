@@ -494,3 +494,221 @@ Each step names the acceptance measurement; "hands" means Freddy's ten-second ch
 - Whether the perf gate should grow a gesture-driven, frame-interval mode (separate from this build).
 - B6: a one-time check of the PC's active WebGL adapter before the build starts, since a yes changes the
   order (an adapter fix would come first).
+
+## 11. The build (Opus, October 26, 2026)
+
+Branch `claude/atlas-smoothness`, worktree `.claude/worktrees/atlas-smoothness`, off `main` at `fdde447` (PR #47's
+merge; it touched no atlas file, so every line reference above still holds). Local only: no push, no PR, no deploy.
+Sol's parked PC worktree (`codex/atlas-zoom-smoothness`) was not touched. Freddy's three rulings are law here:
+CLEAN governs frames in motion (1), the mid-gesture gate counts visible change (2), a cold reveal may hold the
+close-up invisibly (3).
+
+### 11.1 Step 0
+
+- **WebGL adapter.** The art renderer asks for `powerPreference: 'low-power'` (`public/disc3d/atlas-art.mjs:51`). The
+  harness's context on this Mac reports `ANGLE (Apple, ANGLE Metal Renderer: Apple M4)`: hardware, not software and
+  not integrated-versus-discrete (the M4 has one GPU). The PC is Freddy's glance: the probe prints the same line
+  (`adapter …`) on any machine, or `chrome://gpu` shows it; it should name the RTX 3070.
+- **Gate honesty.** `tests/atlas-3d-perf.mjs` assigns `zoom` and `pan` each frame (lines 89–93). It cannot drive the
+  spring, so it never ran the code path this build changes. It was not used to certify anything here and was not
+  changed. The new probe below replaces it for this arc.
+
+### 11.2 The measurement (ruling 2)
+
+`tests/atlas-visible-change.mjs` is the counter; `tests/atlas-gesture-probe.mjs` drives it. Gestures go through the real
+input path (Playwright wheel and pointer events, so the spring, the level hold and the art clock all run as under a
+hand): a single PC notch (`deltaY` ±100) in and out, doubles 60 ms apart, a nudge roll (three in at 150 ms, two out, ×3),
+trackpad-fine deltas (20 × 6 px at 16 ms, and a long pinch of 40), a drag and a flick, a long roll (12 notches in, 12
+out), notches with the
+pointer resting on a curated disc, and the intro cold (fresh context, empty cache, 20 Mbps / 40 ms link) and warm.
+
+Each frame it records what the previous frame put on screen and counts, away from the viewport's edges (a pan
+bringing discs in is not the field changing): a disc **appearing** or **vanishing**, a disc **hopping** (its drawn spot
+starting to move to another rest spot), a drawn spot **jumping**, a name **cut** (or faded), an image **swapped**
+(or crossfaded). Each event is `abrupt` or not: a cut, a snap or a swap is abrupt, a fade or an eased move is not.
+It also records frame intervals (rAF timestamps, not `draw()` time), main-thread curate time, renders and evictions,
+and for the intro the marks (art ready, fonts, level 0 prepared, hold, landing, settle) and long tasks attributed to
+renders, worker hydration and label measuring.
+
+A gesture runs from its first input to the last frame whose camera still moves on screen (0.75 px a frame, 45 px/s);
+its events are **mid-gesture**. After it, events group into **bursts** (within 150 ms of each other): the first is
+the swap the hand expects; any later one is a **late pop**.
+
+The gate (`--assert`, ruling 2), on every gesture: nothing abrupt, mid-gesture or after; no disc hops mid-gesture. On
+the ordinary gestures, those within the held level's reach (single and double notches, the nudge roll, the short
+trackpad pinch, drag): no disc appears or vanishes mid-gesture, and the gesture ends in at most one burst. The long
+roll, the long pinch and the intro may crossfade levels mid-flight (ruling 1 licenses it); they are held to nothing
+abrupt and no hops. A pin letting go (the pin rule's own timing) is recorded as `unpin` and kept out of the bursts. `tests/atlas-3d-browser.mjs`'s mid-gesture
+checks now count the same visible change; render changes print as diagnostics.
+
+### 11.3 What changed
+
+All in `public/atlas-map.js` unless named.
+
+1. **The level swaps when the motion looks still** (`cameraLooksStill`): under 3 px of travel left and 45 px/s at
+   the viewport's farthest corner, the threshold the probe uses for "moving". That is about 0.35 s after a notch, in
+   the spring's tail, instead of at its epsilon. The art's levels of detail are looked at again in the same frame as
+   the swap (`artZooming` also waits while a swap is due), so the post-gesture cascade (epsilon wait, then 180 ms,
+   then the art wave) is one change. The pointer hold (`levelHeld`) is unchanged.
+2. **Every art change crossfades.** A canvas disc whose image changes (another level of detail, a finished photo or
+   stamp, a stand-in giving way) fades from the old image over `ART_FADE`, including mid fade-in from the orb. A
+   curated disc's replacement render fades in over the old one, which goes once covered.
+3. **The field is frozen while the camera moves.**
+   - A level is laid out once, at its floor, as the worker already does; the per-frame curate at the live zoom is
+     gone. Curate runs on the main thread only for what shapes the layout (a new selection, the chrome at 1×), and
+     those in-place re-layouts now present as a regroup (fades and eases), not cuts.
+   - The held level carries the camera past its own range: two notches out (1.36×, where names start to yield) and
+     three in (1.6×, where the field only spreads). Farther, a long roll or the intro changes level mid-flight, as a
+     crossfade, to the destination's level when it is prepared and in reach, else the live zoom's.
+   - While it moves, a kept disc keeps the spot it is drawn at; it eases to its new rest spot (~180 ms) in the swap at
+     stillness. Curated markers now ease in JS with the camera (`placeMarker`); the regroup's CSS transform
+     transition, which made markers trail a moving camera, is gone (`public/cosmic.css`).
+   - Names that the frozen layout brings onto a disc or another name past its range fade out (`yieldNames`; discs
+     always win, then curate's order) and fade back when clear. A name a marker no longer carries fades rather than
+     cuts (`is-label-out`). A faded name is not a click target.
+   - Markers the regroup's 8-a-frame budget reaches later still follow the camera (they froze, then jumped).
+   - Pins let go only while the camera looks still.
+   - A still camera that the pointer hold keeps on a level past its range for more than 300 ms lays that level out
+     once at where it lands, through the same fades, so the resting map stays clean during a long hold (a short one,
+     the pointer settling, just waits for the swap).
+   - A disc a pin brings back inside the map outside a regroup fades in.
+   - Fades step by the time since the last frame, capped at 50 ms (`FADE_FRAME`). Before, a map left idle (the
+     pointer hold draws nothing) finished every fade in its first frame back: an abrupt swap.
+4. **Hygiene.** The chrome's boxes are measured once per map size, not per wheel event; per-marker class and
+   custom-property writes happen only when they change; `.marker-name` is cached; `closeCluster` runs only when
+   something is open; `discArt` finds a cached image with one key (`atlasArt.lookup`, `public/disc3d/atlas-art.mjs`).
+   **Input shaping is opt-in for an A/B:** `?wheel=glide` (or localStorage `atlas-wheel` = `glide`) gives a notched
+   mouse wheel a slower zoom spring (0.5 s against 0.35 s), so a roll blends into one flight. Off by default;
+   trackpads never. **Not done:** the DPR 2 image budget (diagnosis F6): evictions measured 0 in every gesture at
+   DPR 2, so there was no evidence to act on.
+5. **The intro.**
+   - **The invisible hold (ruling 3).** From the first paint, the close-up holds until the 3D art has drawn what is on
+     screen, the fonts are in, any label re-measure is done and the pull-back's levels are prepared, at most
+     `INTRO_HOLD_MAX` 1.2 s. It never freezes: the camera is already leaving, creeping back from the Destroyer at
+     2.5 % of its zoom a second, and the pull-back carries on from that speed with no still breath between (the creep
+     is the opening beat). The zoom only ever falls (the intro units' "pull-back never reverses" holds). Ready at the
+     first paint, there is no hold and the breath and pull-back run as before. Once per session, interruptible,
+     reduced motion at rest, `settleAtlas()` and the resting frame are untouched (settle also waits for markers
+     easing, with its other "never mid-fade" guards).
+   - Every level the pull-back passes through is prepared by the worker and drawn ahead (`warmArt`) during the hold,
+     so each level change on the way is one crossfade and the landing finds level 0 ready.
+   - No 250 ms first-fill frame during the intro; the renders take the normal budget and crossfade in.
+   - A font finishing mid-reveal no longer re-measures every label in flight: it runs in the hold (which waits for it)
+     or at rest, and invalidates the layout only if a box changed.
+   - The stamp and Halo programs are compiled at setup with the plate's. A compare of the renderer's programs after
+     setup and after the map drew shows none compiled later.
+
+### 11.4 What the counters say
+
+Main (`fdde447`'s `public/` and `web/`, exported untouched) against the build, under the same final probe, both on
+this M4 at 1440 × 900. Each cell totals the gesture's repetitions and reads baseline → build. "Appear/vanish" counts
+faded ones too (ruling 2 counts them; the build's are the long flights' mid-flight crossfades). Frame timing comes from
+a machine at load 2–3.8 with other sessions running: the intervals are listed, not certified.
+
+**DPR 1 (the PC's density)**
+
+| Gesture (reps) | Abrupt mid-gesture | Appear/vanish mid-gesture | Hops mid-gesture | Abrupt after | Gestures with a late pop | Swap after input (ms, mean) | Latest late pop (ms) | Main-thread curate (ms) | Long frames |
+|---|---|---|---|---|---|---|---|---|---|
+| notch-in (3) | 119 → **0** | 134 → **0** | 57 → **0** | 73 → **0** | 1 → **0** | 489 → **381** | 630 → **–** | 9.5 → **0** | 1 → **0** |
+| notch-out (3) | 168 → **0** | 150 → **0** | 72 → **0** | 147 → **0** | 1 → **0** | 356 → **390** | 2097 → **–** | 28.7 → **0** | 0 → **0** |
+| double-in (2) | 285 → **0** | 243 → **0** | 115 → **0** | 88 → **0** | 1 → **0** | 1232 → **391** | 2114 → **–** | 22.5 → **0** | 0 → **0** |
+| double-out (2) | 276 → **0** | 196 → **0** | 126 → **0** | 99 → **0** | 2 → **0** | 381 → **407** | 2148 → **–** | 38.7 → **0** | 0 → **0** |
+| nudge-roll (6) | 1166 → **0** | 782 → **0** | 529 → **0** | 137 → **0** | 2 → **0** | 425 → **557** | 681 → **–** | 146 → **0** | 0 → **0** |
+| trackpad (2) | 220 → **0** | 181 → **0** | 109 → **0** | 8 → **0** | 0 → **0** | 265 → **382** | – → **–** | 33.5 → **0** | 0 → **0** |
+| trackpad-long (2) | 646 → **0** | 440 → **52** | 329 → **0** | 3 → **0** | 0 → **0** | 200 → **373** | – → **–** | 110.8 → **0** | 0 → **0** |
+| drag (2) | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | – → **–** | – → **–** | 0 → **0** | 0 → **0** |
+| long-roll (2) | 1227 → **0** | 880 → **526** | 497 → **0** | 44 → **0** | 2 → **0** | 349 → **407** | 799 → **–** | 159.3 → **0** | 0 → **0** |
+| on-disc (2) | 142 → **0** | 148 → **0** | 52 → **0** | 98 → **0** | 2 → **0** | 398 → **382** | 1798 → **–** | 17.6 → **0** | 0 → **0** |
+
+| Intro | Hold (ms) | Pull-back starts (ms) | Abrupt during flight | Hops during flight | Abrupt after landing | Pull-back long frames / worst (ms) | Long tasks in the window |
+|---|---|---|---|---|---|---|---|
+| cold | 0 → **367** | 0 → **367** | 174 → **0** | 60 → **0** | 19 → **0** | 0 / 17 → **0 / 17** | -9ms:101 → **2ms:91** |
+| warm | 0 → **333** | 0 → **333** | 178 → **0** | 62 → **0** | 17 → **0** | 0 / 17 → **0 / 17** | -13ms:51 → **-11ms:56** |
+
+**DPR 2 (the Mac's density)**
+
+| Gesture (reps) | Abrupt mid-gesture | Appear/vanish mid-gesture | Hops mid-gesture | Abrupt after | Gestures with a late pop | Swap after input (ms, mean) | Latest late pop (ms) | Main-thread curate (ms) | Long frames |
+|---|---|---|---|---|---|---|---|---|---|
+| notch-in (3) | 36 → **0** | 58 → **0** | 15 → **0** | 35 → **0** | 1 → **0** | 331 → **330** | 581 → **–** | 8.8 → **0** | 1 → **1** |
+| notch-out (3) | 67 → **0** | 51 → **0** | 33 → **0** | 48 → **0** | 1 → **0** | 315 → **347** | 2048 → **–** | 17 → **0** | 0 → **0** |
+| double-in (2) | 126 → **0** | 111 → **0** | 52 → **0** | 52 → **0** | 1 → **0** | 315 → **331** | 2014 → **–** | 9.4 → **0** | 0 → **0** |
+| double-out (2) | 113 → **0** | 58 → **0** | 72 → **0** | 44 → **0** | 1 → **0** | 331 → **364** | 648 → **–** | 31 → **0** | 0 → **0** |
+| nudge-roll (6) | 750 → **0** | 544 → **0** | 372 → **0** | 75 → **0** | 1 → **0** | 294 → **498** | 616 → **–** | 85.7 → **0** | 0 → **0** |
+| trackpad (2) | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | – → **–** | – → **–** | 0 → **0** | 0 → **0** |
+| trackpad-long (2) | 238 → **0** | 188 → **0** | 122 → **0** | 11 → **0** | 0 → **0** | 114 → **323** | – → **–** | 62.3 → **0** | 0 → **0** |
+| drag (2) | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | – → **–** | – → **–** | 0 → **0** | 0 → **0** |
+| long-roll (2) | 952 → **0** | 699 → **345** | 498 → **0** | 67 → **0** | 1 → **0** | 465 → **316** | 548 → **–** | 119.5 → **0** | 0 → **0** |
+| on-disc (2) | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | 0 → **0** | – → **–** | – → **–** | 0 → **0** | 0 → **0** |
+
+| Intro | Hold (ms) | Pull-back starts (ms) | Abrupt during flight | Hops during flight | Abrupt after landing | Pull-back long frames / worst (ms) | Long tasks in the window |
+|---|---|---|---|---|---|---|---|
+| cold | 0 → **367** | 0 → **367** | 174 → **0** | 64 → **0** | 19 → **0** | 1 / 33 → **0 / 17** | 6ms:101 → **-7ms:97** |
+| warm | 0 → **367** | 0 → **367** | 185 → **0** | 60 → **0** | 19 → **0** | 0 / 17 → **0 / 17** | -12ms:51 → **1ms:53** |
+
+Reading it:
+
+- **Mid-gesture.** Every ordinary gesture (notches, doubles, the nudge roll, trackpad, drag) goes from tens to hundreds
+  of abrupt changes and hops to **none**, and no disc appears or vanishes while the camera moves. The long roll and
+  the long trackpad pinch still change level mid-flight (52 to 526 discs fading in or out over 12-notch rolls): all
+  fades, no hop, nothing abrupt.
+- **After the hand stops.** No late pop in any gesture; the baseline had them up to 2.1 s after the input. The swap
+  lands as one burst, on average 0.33–0.41 s after the last notch (the nudge roll's mean includes repetitions the
+  pointer's 220 ms settle kept a beat longer).
+- **Main-thread curate during gestures** goes from 8–160 ms per gesture to 0. Frame intervals on this machine were
+  already clean in both builds (one 33 ms frame on each side, in different gestures); the lag mechanism (diagnosis
+  B1) is removed, whatever it cost on the PC.
+- **The intro.** The pull-back has nothing abrupt, no hop and nothing popping after the landing (baseline: about 175
+  abrupt changes in flight and 19 after landing). The hold measured 333–367 ms, cold and warm, the close-up creeping
+  back meanwhile; the pull-back's frames show no long frame, worst 17 ms. The one long task (90–100 ms, the first
+  renders and the first label measure) sits at the first paint, before the camera moves.
+- **The pointer hold** is still law. On these runs it never delayed a swap into a second burst. When it does (the
+  pointer resting on a readable disc), the swap lands up to 2.4 s later as one crossfade, and the resting map is
+  re-laid out once after 300 ms so it rests clean meanwhile.
+
+### 11.5 Suites
+
+All on the final tree, this Mac, `--enable-gpu`, one after another.
+
+| Suite | Result |
+| --- | --- |
+| Gesture gate (`tests/atlas-gesture-probe.mjs --assert`), DPR 1 and 2 | pass, pass |
+| Organic, depth (their raster checks were reported red on the PC) | pass, pass (both green here; nothing chased) |
+| 3D (mid-gesture checks now count visible change) | pass |
+| Persist (readable = clickable, the hold and pins) | pass |
+| Intro, strict resting frame 0 px | pass (pixel-equivalent on desktop and phone) |
+| Stamps, My Map, lens corner, Apple design | pass |
+| Units (`node --test`, 312) | 304 pass, 2 skipped, 6 fail: the six `*-evidence.mjs` scripts read gitignored `work/` evidence, and all six fail identically on untouched `main` |
+| Perf gate (`atlas-3d-perf.mjs`) | not run: it cannot drive the spring (11.1), and the machine was not quiet |
+
+Test changes, none loosening a margin: the 3D suite's mid-gesture assertions count visible change (ruling 2), and its
+settle waits on the camera's stillness instead of the removed `artZoom` clock; the intro suite times the reveal from
+the hold's end (same 1.2–1.8 s bounds), steps through the hold explicitly in its frozen proof frames, and asserts the
+hold never passes its cap.
+
+### 11.6 Decisions for Freddy
+
+1. **The pointer hold.** With the pointer resting on a readable disc, the level still waits up to 2.4 s (law,
+   `AtlasTargets.HOLD.hover`), then crossfades. Pins already keep the disc under the pointer. If his hands call that
+   late fade a pop, the hold can give way to pins alone at stillness; that changes landed law, so it is his call.
+2. **The reach.** Two notches out and three in carry one field; beyond that the level crossfades mid-flight. A larger
+   outward reach means fewer mid-flight fades on long zoom-outs but a denser field mid-flight (names fade where they
+   meet; discs can touch in a deep complete view).
+3. **The wheel glide A/B.** `?wheel=glide` on the PC's notched mouse: keep it as the default, or drop it.
+4. **The intro's creep** (2.5 % of zoom a second while held): its rate, and whether it should also run on a warm open
+   that needs no hold.
+5. **My Map is not in this build.** It still re-promotes labels at the live zoom on every camera frame
+   (`AtlasGroups.promote`); the same freeze applies there if he wants it.
+
+### 11.7 For his hands (falsifiable in ten seconds)
+
+PC first, then the Mac. The preview serves this worktree as the browser suites do (signed out, backend excluded) at
+http://127.0.0.1:8870/; `HOST=0.0.0.0` on the preview server opens it to another machine on the network.
+
+- Nudge the wheel one or two notches in and out, anywhere: while it moves, no disc or name appears, disappears or
+  jumps against its neighbours. When it stops, at most one soft change, within about a third of a second, and
+  nothing after it.
+- Roll the wheel hard across many levels: discs fade in and out as you fly; none snaps or hops.
+- Open it cold in a fresh window: the close-up is never still (it is already drifting back), and the pull-back flies
+  without a stall.
+
+If any of that fails, the counters measured the wrong thing again, and his hands win.
