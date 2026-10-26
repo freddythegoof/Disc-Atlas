@@ -186,6 +186,11 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   if(d.photoURL||asset)for(const level of order){const e=touch(keyOf(d,level,c,asset)+'|pending');if(e)return e;}
   return null;
  }
+ // The image at exactly the level asked for, or null (then get() looks further): the atlas's hot path, one key.
+ function lookup(d,color,size,rim,lod=lodFor(size),official=false){
+  d=asLook(d);const s=shapeOf(d);if(!s)return null;
+  return touch(keyOf(d,lod,colorsOf(s,color,rim,d.haloBand,d.haloModel),stampAssetOf(d,lod,official)));
+ }
  function has(d,color,size,rim,lod=lodFor(size),official=false){
   d=asLook(d);const s=shapeOf(d);if(!s)return true;
   return images.has(keyOf(d,lod,colorsOf(s,color,rim,d.haloBand,d.haloModel),stampAssetOf(d,lod,official)));
@@ -243,7 +248,17 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  // enough for the browser to put on the GPU, which takes a moment to set up.
  await yieldTask();
  const {geometry:warmGeometry}=discGeometry(normalizeShape({}),{segments:8,detail:.3,overmold:true});mesh.geometry=warmGeometry;
- for(const m of [plateMaterial,[plateMaterial,rimMaterial]]){mesh.material=m;await renderer.compileAsync(scene,camera);renderer.setViewport(0,0,8,8);renderer.render(scene,camera);}
+ for(const m of [plateMaterial,[plateMaterial,rimMaterial],[plateMaterial,haloRimMaterial]]){mesh.material=m;await renderer.compileAsync(scene,camera);renderer.setViewport(0,0,8,8);renderer.render(scene,camera);}
+ // The catalog stamp's program too (a mapped layer over the plate): the first stamped Discraft disc on screen would
+ // otherwise link it in the middle of the intro (docs/atlas-smoothness-diagnosis.md, C3). Same texture colour space as
+ // a real stamp (stamp.mjs), so the program it compiles is the one a stamp uses.
+ {
+  const ink=document.createElement('canvas');ink.width=ink.height=4;
+  const warmInk=new THREE.CanvasTexture(ink);warmInk.colorSpace=THREE.SRGBColorSpace;
+  mesh.material=plateMaterial;stampMesh.geometry=warmGeometry;plainStamp.map=warmInk;plainStamp.needsUpdate=true;scene.add(stampMesh);
+  await renderer.compileAsync(scene,camera);renderer.setViewport(0,0,8,8);renderer.render(scene,camera);
+  scene.remove(stampMesh);plainStamp.map=null;plainStamp.needsUpdate=true;stampMesh.geometry=new THREE.BufferGeometry();warmInk.dispose();
+ }
  warmGeometry.dispose();mesh.geometry=new THREE.BufferGeometry();mesh.material=plateMaterial;
  const probe=document.createElement('canvas');probe.width=probe.height=side;probe.getContext('2d').drawImage(canvas,0,0);
  function dispose(){
@@ -252,7 +267,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   for(const ink of stamps.values())ink.dispose();stamps.clear();plainStamp.dispose();for(const m of foils.values())m.dispose();foils.clear();stampMesh.geometry.dispose();
   plateMaterial.dispose();rimMaterial.dispose();haloRimMaterial.dispose();for(const part of [clearPlate,clearBand,clearHalo])part.dispose();clearPaper.dispose();none.dispose();envTexture.dispose();renderer.dispose();
  }
- return {get,has,render,lodFor,stats,dispose,dpr,
+ return {get,has,lookup,render,lodFor,stats,dispose,dpr,
   // For tests and tuning.
   debug:{renderer,scene,camera,key,fill,slope,slopePower,plateMaterial,rimMaterial,haloRim,shapeOf,images,geometries}};
 }

@@ -17,6 +17,7 @@ import http from 'node:http';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
+import {pageProbe,summarize} from './atlas-visible-change.mjs';
 
 const dir='outputs/atlas-3d';
 fs.rmSync(dir,{recursive:true,force:true});fs.mkdirSync(dir,{recursive:true});
@@ -57,8 +58,8 @@ async function open(viewport,{flat=false,noWebGL=false}={}){
 async function settled(page){
  await page.waitForFunction(()=>!cameraTween&&groupCache&&groupCache.items===filtered&&groupCache.level===AtlasGroups.level(zoom,groupCache.level)&&
   !document.querySelector('#mapMarkers').classList.contains('is-regrouping')&&!document.querySelector('.marker-position.is-retiring,.marker-position.is-new'));
- // The camera and art have separate settle clocks; wait for both, not a wall-clock guess.
- await page.waitForFunction(()=>zoom===artZoom&&performance.now()-artZoomAt>=ART_SETTLE);
+ // The art's levels of detail are looked at again on the camera's own stillness (cameraLooksStill), not a wall-clock guess.
+ await page.waitForFunction(()=>!artZooming());
  await page.evaluate(()=>draw());
  await page.waitForFunction(()=>mapGaps.every(g=>g.on&&g.art===1&&g.rest&&g.strength===(g.named?AtlasGroups.gapLabelAlpha(zoom,g.tier):0))&&mapArt.pending===0&&
   mapGaps.every(g=>!g.drawn||mapArt.state!=='ready'||g.three===1&&g.lod===g.want)&&!document.querySelector('.disc-art-3d.is-arriving'));
@@ -288,26 +289,41 @@ try{
    minis:mapGaps.filter(g=>g.drawn&&g.tier==='mini'&&g.lod).length,sizes:[...new Set(mapGaps.filter(g=>g.drawn&&g.tier==='mini').map(g=>g.lod))]}));
   const start=await reading();
   assert.ok(start.minis>20&&start.sizes.length===1,`zoom: minis on screen at the threshold (${start.minis}, ${start.sizes})`);
-  // Nudges in and out of a couple of percent, each left to settle: the minis sit on their threshold and none flips.
-  for(let i=0;i<14;i++){await page.mouse.wheel(0,i%2?9:-9);await page.waitForTimeout(320);}
-  const nudged=await reading();
-  assert.equal(nudged.changes,0,`zoom: minis hovering at the 24px threshold keep their render through ${14} settled nudges (${JSON.stringify(await page.evaluate(()=>__changes.slice(0,3)))})`);
-  // The same nudges back to back, as a wheel delivers them: nothing is drawn again mid-gesture either.
-  for(let i=0;i<14;i++){await page.mouse.wheel(0,i%2?9:-9);await page.waitForTimeout(30);}
-  assert.equal((await reading()).changes,0,'zoom: rapid nudges at the threshold change no render');
-  // A steady zoom in across the threshold: the renders hold while it moves, then the settled pass draws the next level once.
+  // Ruling 2 (Oct 26, 2026): what is asserted mid-gesture is what the eye catches (tests/atlas-visible-change.mjs): no
+  // disc appears, vanishes or hops to another rest spot, and nothing changes abruptly. Render changes are printed as
+  // diagnostics only.
+  await page.evaluate(pageProbe);await page.waitForTimeout(100);
+  const visible=async(label,run,{flight=false}={})=>{
+   await page.evaluate(()=>__probe.start());const renders=(await reading()).changes;
+   await run();await settled(page);await page.waitForTimeout(300);
+   const s=summarize(await page.evaluate(()=>__probe.stop()));
+   console.log('diagnostic -',label,'render changes',(await reading()).changes-renders,JSON.stringify(s.gestures.map(x=>({mid:x.mid,post:x.post,bursts:x.bursts}))));
+   for(const x of s.gestures){
+    assert.equal(x.mid.abrupt+x.post.abrupt,0,`zoom: ${label}: nothing changes abruptly ${JSON.stringify(x.mid)} ${JSON.stringify(x.samples.mid)}`);
+    const hops=['marker:hop','gap:hop','marker:jump!'].reduce((n,k)=>n+(x.mid[k]||0),0);
+    assert.equal(hops,0,`zoom: ${label}: no disc hops mid-gesture ${JSON.stringify(x.mid)}`);
+    if(!flight){const seen=['marker:appear','marker:vanish','gap:appear','gap:vanish'].reduce((n,k)=>n+(x.mid[k]||0),0);assert.equal(seen,0,`zoom: ${label}: no disc appears or vanishes mid-gesture ${JSON.stringify(x.mid)} ${JSON.stringify(x.samples.mid)}`);}
+   }
+  };
+  // Nudges in and out of a couple of percent, each left to settle, then back to back as a wheel delivers them.
+  await visible('settled nudges at the threshold',async()=>{for(let i=0;i<14;i++){await page.mouse.wheel(0,i%2?9:-9);await page.waitForTimeout(320);}});
+  await visible('rapid nudges at the threshold',async()=>{for(let i=0;i<14;i++){await page.mouse.wheel(0,i%2?9:-9);await page.waitForTimeout(30);}});
+  // A steady zoom in across the threshold: the field holds while it moves, then the settled pass draws the next level once.
   const before=await reading();
-  for(let i=0;i<40&&await page.evaluate(()=>AtlasGroups.gapSize(zoom,'mini'))<31;i++){await page.mouse.wheel(0,-15);await page.waitForTimeout(25);}
-  const during=await page.evaluate(()=>({changes:__changes.length,size:AtlasGroups.gapSize(zoom,'mini')}));
+  let during;
+  await visible('a steady zoom in across the threshold',async()=>{
+   for(let i=0;i<40&&await page.evaluate(()=>AtlasGroups.gapSize(zoom,'mini'))<31;i++){await page.mouse.wheel(0,-15);await page.waitForTimeout(25);}
+   during=await page.evaluate(()=>({changes:__changes.length,size:AtlasGroups.gapSize(zoom,'mini')}));
+  });
   assert.ok(during.size>24*1.18&&during.size<24*1.5,`zoom: the gesture took minis past the margin (${during.size.toFixed(1)}px)`);
-  assert.equal(during.changes,before.changes,'zoom: renders hold while the zoom is moving '+JSON.stringify(await page.evaluate(()=>({size:AtlasGroups.gapSize(zoom,'mini'),c:__changes.slice(0,3)}))));
+  console.log('diagnostic - render changes while the zoom moved:',during.changes-before.changes);
   await settled(page);
   // Any stand-in has given way to the disc's own render at its decided level.
   await page.waitForFunction(()=>mapGaps.every(g=>!g.drawn||!g.want||g.lod===g.want));
   const after=await page.evaluate(()=>({changes:__changes.slice(),minis:mapGaps.filter(g=>g.drawn&&g.tier==='mini'&&g.lod).map(g=>g.lod)}));
   assert.ok(after.changes.length>0&&after.changes.every(c=>c.from==='low'&&c.to==='mid'&&c.key.endsWith('|mini'))&&after.minis.length>20&&after.minis.every(l=>l==='mid'),'zoom: once settled, the minis that outgrew the margin move up a level, once '+JSON.stringify({changes:after.changes.slice(0,4),minis:[...new Set(after.minis)]}));
   assert.equal(new Set(after.changes.map(c=>c.key)).size,after.changes.length,'zoom: no disc changes level twice');
-  check(`zoom: minis at their 24px threshold keep their render through ${28} nudges, hold it through a zoom in progress and change level once when it settles`);
+  check(`zoom: nothing visibly changes mid-gesture through ${28} nudges at the minis' 24px threshold or a zoom across it, and the minis change level once when it settles`);
   await page.context().close();
  }
 

@@ -348,7 +348,9 @@ body[data-view="list"] .graph-dock{background:none}
 
 /* Regrouped discs settle into their new density while the camera stays responsive. */
 #mapMarkers .marker-position{transition:opacity var(--dur-ui) ease-out}
-#mapMarkers .marker-position.is-updating{transition:transform var(--dur-ui) ease-out,opacity var(--dur-ui) ease-out}
+/* A kept disc's move to its new rest spot is eased in atlas-map.js (renderMarkers), frame by frame with the camera, so it
+   never trails a moving camera the way a transform transition would; only its opacity transitions here. */
+#mapMarkers .marker-position.is-updating{transition:opacity var(--dur-ui) ease-out}
 #mapMarkers .marker-position.is-new,#mapMarkers .marker-position.is-retiring{opacity:0;pointer-events:none}
 #mapMarkers .is-updating .marker-stack{display:block;opacity:1;transition:opacity var(--dur-ui) ease-out,scale var(--dur-ui) ease-out}
 #mapMarkers .is-updating .is-dot .marker-stack{opacity:0;scale:.25}
@@ -386,6 +388,9 @@ body[data-view="list"] .graph-dock{background:none}
 :root[data-tone="dark"] #mapMarkers .clean-disc.has-3d{box-shadow:0 7px 15px #0007,0 0 24px color-mix(in srgb,var(--disc-color) 13%,transparent)}
 #mapMarkers .clean-disc.has-3d::after{display:none}
 #mapMarkers .disc-art-3d{position:absolute;display:block;pointer-events:none}
+/* A name fades rather than cuts (ruling 1, Oct 26, 2026): one its marker no longer carries in a new set (is-label-out),
+   or one a camera past its level's range brought onto a disc or a name (is-label-yield, atlas-map.js yieldNames). */
+#mapMarkers .atlas-marker.is-label-out .marker-name,#mapMarkers .atlas-marker.is-label-yield .marker-name{opacity:0!important}
 #mapMarkers .disc-art-3d.is-arriving{animation:disc-3d-arrive .18s ease-out}
 #mapMarkers .map-dot.has-3d{background:none;border-color:transparent;box-shadow:none}
 @keyframes disc-3d-arrive{from{opacity:0}to{opacity:1}}
