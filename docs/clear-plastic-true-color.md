@@ -3,7 +3,8 @@
 Branch `claude/clear-plastic-true-color`, off `origin/main` 4bb2c9c (clear stamp cleanliness, PR #45). The diagnosis and
 design (§0–§7) were written Oct 24, 2026 with no product code changed; **Freddy's go came the same day and §8 is the
 build**, with the acceptance suite of §6 run against a baseline tree. Nothing pushed, merged or deployed; migration 0015
-has run only locally.
+has run only locally. **§9 (Oct 25)** is the live failure after PR #46 landed: a different photo, the edge walk that
+took a dark surface for the plate, and the refusal the sheet never said.
 
 **The case** is the pinned clear-disc test: Freddy's blue Raptor (Discraft Z) with its stored photo
 (`0cef6b2f-….webp`, read once from the live account on Oct 23 with his go-ahead). The copy sits in the ignored
@@ -392,3 +393,161 @@ those three scenes take other paths.
 The suite gained the checks: My Map's adapter returns the bagged copy's true colour; Storage racks three batches for
 an opaque Raptor, a clear one and a clear one with a true colour; the pulled Storage disc shows no streak and wears
 the true colour (its plate against the copy without one).
+
+---
+
+## 9. The live divergence (Oct 25, 2026)
+
+Branch `claude/clear-true-color-live-divergence`, off `origin/main` 86e9d72 (PR #46 merged, Worker `d41d7ccb`).
+Freddy's live check failed. Refresh and *Make again* left the streak. He then deleted the photo and used **Use photo**
+again: a new bright blue band low on the rim at about 5 o'clock, and the plate still pale in the Photo look. His
+screenshot was not in the session; the render below matches his words. The lab, the scripts and the renders are in the
+ignored `work/clear-true-color-live/` of this branch's checkout.
+
+### 9.1 What was read, and what was not the cause
+
+| Check | Result |
+|---|---|
+| **Bundle** (`disc-photo.mjs`, `disc-photo-clear.mjs`, `disc-albedo.mjs`, `disc3d/photo.mjs`, `disc3d/clear.mjs`, `my-bag.js` from the edge) | byte-identical to 86e9d72; `max-age=0, must-revalidate` with ETags. **The bundle is not the story.** |
+| **The copy** (`b70f4572…`, one read-only `SELECT` on the remote D1, Oct 25) | finish `clear`; `color` **`#537b80`**; `photo_true_color` **NULL**; `texture_key` **`71c60188-….webp`**, a new photo |
+| **Its stamp row** (`bag_photo_stamps`, same read) | for `71c60188`, look `color`, updated **2026-10-25 02:31 UTC** (22:31 EDT Oct 24, about 70 minutes after the deploy): the re-submit and a Full-color make on the new photo |
+| **The new photo** (one read-only R2 GET of `71c60188-….webp` into `work/`) | the upload pipeline's real output on what Freddy submitted |
+
+That one datum decides it: **NULL**. The tint never engaged because nothing was stored, and nothing was stored because
+the sampler refused (§9.3). The PUT and the PATCH are not involved: a refusal sends an empty header and skips the
+PATCH, as designed.
+
+**Not the old photo, re-processed.** The new texture is a **different photograph** of the same disc. The plate reads
+grey because a dark surface shows through it, not the white table of the first photo. A fingertip sits on the rim at 7:30
+and the underside print shows through the plate at 4–5 o'clock. The rim catches the light (lighter cyan, not the deep
+royal blue). Use photo's front half (`photoCanvas`, `delightPixels`, `plateColor`) was last changed on Oct 18; PR #44–#46 did
+not touch it. Running the real Use photo (the sheet, the aligner's default framing) on the new texture in the harness
+reproduces the live copy: `color` `#547b80` (ΔE 0.3 to the live `#537b80`), no true colour, and the hint *"Matched to
+your photo."* Running it on the first photo's processed texture (`raptor.png`) stores `#00428c`.
+
+**Step 1 (Make again on the first photo) is not on file.** The DELETE cleared the column, and the first texture is no
+longer referenced. On 86e9d72 the harness renders that photo with the cut in place (streak class 130), so whether that
+make stored a colour, and what Freddy saw, cannot be read back now.
+
+### 9.2 Both inputs, measured
+
+`work/clear-true-color-live/lab/measure.mjs`, `fitcheck.mjs`: the sampler and the plate-edge fit on (a) the lab's
+input, the stored texture `0cef6b2f` of the first photo, and (b) the live input, the stored texture `71c60188` of the
+re-submit, each with the plate colour Use photo wrote for it.
+
+| | (a) first photo, `0cef6b2f` | (b) live photo, `71c60188` |
+|---|---|---|
+| Plate `P` (Lab L, C, h) | `#0984a8` (51, 32, 239°) | `#537b80` (49, 15, 210°): grey, the dark surface through the plate |
+| Rim at 0.88 R (Lab L, C, h) | `#004386` (29, 44, 283°) | `#0198e1` (60, 47, 261°): the rim lit, lighter than the plate |
+| Rim deeper than plate (≥ 8 L) | **+22.4 pass** | **−10.8 FAIL**, by 18.8 L |
+| Chroma (≥ 0.8×) | 1.36× pass | 3.23× pass |
+| Hue turn (≤ 60°) | 44° pass | 52° pass |
+| `trueColor()` | `#004386` | **null** |
+| Edge walk: points at the crop's edge (r > 0.96) | 19 of 252 (12–2 o'clock: glare on the rim reads as the plate) | **115 of 256** (11 to 4 o'clock and a few at 5–6: the dark surface outside the disc reads as the plate, ΔE < 16 to the grey `P`) |
+| First circle, then the robust pass | (0.027, −0.014) r 0.808; 66 of 252 within 1.2% of R: **the pass gives up** and keeps the unfiltered fit | (0.108, −0.016) r 0.896; 67 of 256 within: the pass gives up |
+| `plateEdge()` | the unfiltered circle above | **null**: the circle reaches the crop's edge (r + offset 1.005 > 0.975), so nothing is cut |
+
+### 9.3 The divergence, named
+
+The front half of the pipeline is not the gap. **The input photograph is.** It differs from the lab's in the way §4.1
+named as a refusal: *"a photo on a dark table where the rim catches the light."* That breaks two things on the way:
+
+1. **The cut (a defect, fixed).** `plateEdge()` walked in from the crop's edge and took the first six samples of
+   the plate's colour as the plate. Over a dark surface the surface outside the disc *is* the plate's colour (the clear
+   plate shows that surface). On the right half of the live crop the walk stopped at the crop's edge, the circle went
+   to the edge, and `plateEdge()` returned null. With no cut, the photo is drawn out to the shoulder `Rs` all round,
+   and the rim band, lit, lands on the shoulder as a saturated azure ring, brightest low on the front. That is
+   Freddy's band at 5 o'clock. Pop-out, light: **46,885** pixels of saturated blue (hue 190–235°, s ≥ 0.5) at 3/4 7°
+   and **46,159** from the Top (`evidence/before/`). The same walk had a smaller version of this on the lab photo:
+   19 glare points at the crop's edge broke the robust pass. **§4.3 and §8's "252 of 256 kept" were wrong**: `kept`
+   reports every point when the pass gives up. The 0.808 R circle, 3% off centre, was the unfiltered fit.
+2. **The colour (by design, now said).** The rim is 10.8 L *lighter* than the plate, so `trueColor()` refuses it.
+   That refusal is right: the lit rim `#0198e1` is ΔE 35.5 from the first photo's true colour `#004386` and ΔE 24.5
+   from the proposal's plate `#2965b8`. Taking it would tint the disc a colour the plastic is not. This photo does not
+   carry the true colour; the fallback (the matched plate colour) is the honest render. What was wrong is that **it
+   was silent**: the sheet said *"Matched to your photo."* on a Clear copy, and the make said nothing about the colour,
+   though the finish hint promises the make "also matches the plastic's true colour".
+
+### 9.4 The fix
+
+| Where | What |
+|---|---|
+| `disc-photo-clear.mjs` `plateEdge()` | the walk counts the plate only **after crossing the rim band**: six samples in a row unlike the plate before the six like it. No constant moved. Live photo: circle (0.000, 0.010) r **0.805**, 168 of 256 kept; lab photo: (−0.001, 0.010) r **0.792**, 155 of 252 kept. On both, the robust pass now runs (residual median 0.0046 R) |
+| `disc-albedo.mjs` | `trueColorRead()` returns the colour with its refusal: `shallow` (the rim not deeper than the plate), `colour` (not the plate's colour seen thicker) or `unread` (no rim band). `trueColor()` is `trueColorRead().color`, so it is unchanged |
+| `disc-photo.mjs`, `my-bag.js` | Use photo carries the refusal to the sheet. On a Clear copy the colour hint says *"Matched to your photo: the plate's colour. The rim reads no deeper than the plate in this photo, as it does over a dark surface, so the plastic's true colour was not matched: a photo on a light surface gives it."* The one-click make adds *"The plastic's true colour could not be read from the rim in this photo: a photo on a light surface gives it."*, and *"…could not be saved: make it again to retry."* when the colour was read but the PATCH failed |
+
+Untouched: the acceptance rule, `CLEAR.trueDensity` 0.35 and `CLEAR.truePhoto` 1, the fallback for a refused photo,
+the stamp pipeline (`disc-stamp-*.mjs`), opaque discs (they never enter `plateEdge`), the Worker, and the schema (no
+migration).
+
+### 9.5 After, through the real flow
+
+Pop-out viewer, light, 2×, on throwaway harness copies (`work/clear-true-color-live/lab/probe.mjs`). The same script ran
+in a detached checkout of 86e9d72 (`evidence/main/`) and on this branch (`evidence/fix/`). "Blue" is the live band's
+class (hue 190–235°, s ≥ 0.5, v ≥ 0.3); "streak" is §1's class (215–225°).
+
+| Render | main 86e9d72 | this branch |
+|---|---|---|
+| Live photo, no true colour, 3/4 7° | plate `#77a9ac`, **blue 46,885** | plate `#77a9ac`, **blue 9,566** (what is left is the photo's own cyan glints inside the plate) |
+| Live photo, Top | blue **46,159**, an azure ring round the plate | blue **641** |
+| First photo, no true colour, 3/4 7° / Top | streak 130 / 5 | streak 130 / 1, plate `#46bbe5` as before |
+| First photo, true colour (the suite's copy), 3/4 7° | plate `#2a66b6` | plate **`#2a66b6`** (ΔE 2.0 to the proposal), shoulder `#0b4093` |
+| Use photo on the live photo: hint | *"Matched to your photo."* | *"Matched to your photo: the plate's colour. The rim reads no deeper than the plate in this photo, as it does over a dark surface, so the plastic's true colour was not matched: a photo on a light surface gives it."* |
+| Use photo on the live photo: stored | `color` `#547b80`, no true colour | the same |
+| The make on the live photo: status | *"Full-color asset made. Saved to your account."* | *"Full-color asset made. Saved to your account. The plastic's true colour could not be read from the rim in this photo: a photo on a light surface gives it."* |
+| Use photo on the first photo (`raptor.png`), then the Photo look at 3/4 7° | stores `#00428c` | stores `#00428c`; plate **`#3666ba`**, ΔE 3.4 to the suite's `#2a66b6` and 2.0 to the proposal (Top `#4a73c5`) |
+
+Sheets: [sheet-live-before-after.png](../work/clear-true-color-live/evidence/sheet-live-before-after.png),
+[sheet-wording.png](../work/clear-true-color-live/evidence/sheet-wording.png) (the sheet and the make's status, main and
+branch), [sheet-first-photo.png](../work/clear-true-color-live/evidence/sheet-first-photo.png).
+
+**Against the brief's acceptance.** The streak class on the live photo is back at suite levels. **The plate is not in
+the true-colour family on the live photo, and this branch does not make it so**: that photo carries no defensible true
+colour (§9.3), and the fences keep the fallback for a photo that genuinely refuses. Through the real Use photo flow on
+the first photo (white table) the true colour is matched and the plate renders `#3666ba` (ΔE 3.4 to `#2a66b6`). The first photo's *original*
+is not on this Mac; its processed texture, used as the photo, is what the harness submits.
+
+### 9.6 The suite
+
+- `tests/photo-true-color.mjs`: a synthetic clear disc over a dark surface (grey plate, lit rim, the surface showing at
+  the crop's edge on one side). It always runs, fails on 86e9d72 (`plateEdge` null) and passes here. The live texture
+  `raptor-71c60188.webp` runs beside the first photo when it sits in `work/clear-plastic-true-color/input/` (refusal
+  `shallow`, circle 0.805 R, robust pass held). The first photo's circle check was restated against the robust fit
+  (0.792 R, centred, the pass ran) instead of the unfiltered one.
+- `tests/clear-true-color-browser.mjs`: **check 8, the live photo**: blue class under 2,000 from the Top and 15,000 at
+  3/4 7°; Use photo and the make store no true colour, and say why. Two changes to existing checks, both stated in the
+  test:
+  - **Check 3's shoulder ring** moved from 0.72–0.78 to 0.78–0.84 of the disc's extent. The old ring sat where the
+    unfiltered circle ended the photo at 7:30 (0.78 R). With the robust fit the photo reaches its own edge there
+    (about 0.80 R), and the old ring now holds the photo (L 35 against the plate's 43). From 0.78 out the walls read
+    the same median colour on both trees (`#0b4093`, L 29). The 10 L threshold did not move.
+  - **The baseline probe** calls `mapTrueColors` only when the tree has it: on 86e9d72 the fence run against the
+    pre-#46 baseline stopped there, since the call came with PR #46's Codex fix after the suite's own baseline run.
+  - **The suite now exits.** `probe()` closed the harness with `h.close()`, which is the browser's close: the local
+    `wrangler dev` server was never stopped, so the suite sat after its last line with every check done, and the
+    baseline probe (which ends with `process.exit`) left its server running. It now calls `h.stop()`. The PR #46
+    session's runs left three such servers on ports 8878–8880 (still running from Oct 24, cwd that branch's worktree).
+
+### 9.7 Left for Freddy
+
+- **His Raptor's colour.** His copy holds the live photo, which carries no true colour; this branch does not change
+  that, and his copy was only read. A photo of the disc on a light surface (white paper or a table, the shot the
+  first photo was), through Use photo, matches it, and the sheet now says so either way. Nothing was re-submitted or
+  re-made on his account.
+- **Step 1.** Whether the Make again on the first photo stored a colour cannot be read back (§9.1). If the streak he
+  saw then was the first photo's, it does not reproduce on 86e9d72 in the harness.
+- **The lab photo's circle.** It moved from the unfiltered (0.027, −0.014) r 0.808 to the robust (−0.001, 0.010) r
+  0.792. The streak class, the plate and the walls read as before; from the Top the photo now ends on a centred circle,
+  and the shoulder ring is even all round where it was wider on the left.
+- **The three servers on 8878–8880** from the PR #46 session can be stopped; they hold nothing.
+- The PR, the merge and the deploy are his. No migration; the Worker is unchanged, only public files and tests.
+
+**What was run on this branch (Oct 25–26, Chromium on Metal, 2×)**
+
+| Suite | Result |
+|---|---|
+| `npm run test:true-color` (fresh shots, baseline 4bb2c9c) | unit 7/7; browser: every check of §8 (streak 130/1/205/44/1/127, plate `#2a66b6`, shoulder `#0b4093`, both looks, the sheet `#00428c`, Storage and My Map) plus check 8 (live photo: blue 9,566/641, no true colour, both messages); fences: Opaque Raptor and clear Buzzz pixel-identical; exit 0 in 4 min |
+| `tests/photo-true-color.mjs` against 86e9d72's `disc-photo-clear.mjs` | the three edge tests fail (`plateEdge` null on the dark surface and on the live photo; the first photo's unfiltered circle), as a regression test should |
+| `tests/clear-plastic-browser.mjs` | every check |
+| `photo-textures`, `photo-math`, `photo-albedo`, `photo-editor-races`, `disc-stamp-clear`, `bag`, `bag-values`, `halo-plastic`, `photo-stamp-sync` (unit) | 93/93 |
+| eslint on the changed files | clean |

@@ -11,7 +11,10 @@
 //  5. the fences, against a baseline tree (--baseline <dir>, default work/clear-plastic-true-color/baseline when it
 //     exists): the Opaque copy with the same photo and the clear Buzzz with no photo are pixel-identical;
 //  6. storage through the sheet: Use photo stores the true colour and says so;
-//  7. before/after sheets with the hex values printed, in work/clear-plastic-true-color/evidence/suite/.
+//  7. before/after sheets with the hex values printed, in work/clear-plastic-true-color/evidence/suite/;
+//  8. the live photo (§9): the Raptor's photo as the real upload pipeline stored it after Freddy's Oct 24 re-submit, a
+//     shot over a dark surface: the plate edge is found past the rim (no band of the rim's colour at the Top), the rim
+//     gives no true colour, and the sheet and the make say why. Skipped when that photo is not in work/.
 // Photos are the player's and are never committed: the Raptor's own photo is used when it sits in the ignored
 // work/clear-plastic-true-color/input/ (else the committed stamped-disc fixture, which has no rim band: the true-colour
 // checks are then skipped and said so). SECOND_PHOTO=<webp> SECOND_MOLD=<id> adds another clear disc to the sheets.
@@ -25,6 +28,8 @@ import {fileURLToPath} from 'node:url';
 const sharp=createRequire(import.meta.url)('sharp');
 const SELF=fileURLToPath(import.meta.url);
 const RAPTOR='work/clear-plastic-true-color/input/raptor-0cef6b2f.webp',RAPTOR_PNG='work/clear-plastic-true-color/input/raptor.png',FIXTURE='tests/fixtures/stamped-disc.webp';
+// The live copy's photo and the plate colour Use photo matched from it (docs/clear-plastic-true-color.md §9).
+const LIVE='work/clear-plastic-true-color/input/raptor-71c60188.webp',LIVE_COLOR='#537b80';
 const OUT='work/clear-plastic-true-color/evidence/suite';
 const MOLD='35a861477cf9',RAPTOR_SEED={mold_id:MOLD,plastic:'Z',wear:10,weight_g:174,color:'#0984a8',in_bag:false};
 const PROPOSAL={plate:'#2965b8',streak:'#2858a9'};
@@ -42,6 +47,7 @@ const med=a=>{const s=[...a].sort((x,y)=>x-y);return s.length?s[s.length>>1]:NaN
 // The disc: pixels with some saturation (the stage behind it is near grey in both themes). The plate: the most common
 // colour inside 45% of the disc's extent (the stamp and glare lose the vote). The streak class: the rim band's rendered
 // colour, hue 215–225°, saturation ≥ .5, value ≥ .3, which neither today's plate (196°) nor its shoulder (204°) has.
+// The blue class (§9): any saturated blue, hue 190–235°, for the live photo, whose rim band renders azure over a grey plate.
 async function read(file){
  const {data,info}=await sharp(file).removeAlpha().raw().toBuffer({resolveWithObject:true});const W=info.width,H=info.height;
  // (The pop-out's spin button at the top left is coloured too: left out of the disc's extent.)
@@ -52,14 +58,14 @@ async function read(file){
  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const u=(i-cx)/rx,v=(j-cy)/ry;if(u*u+v*v>.45*.45)continue;const k=(j*W+i)*3;const key=(data[k]>>4)<<8|(data[k+1]>>4)<<4|data[k+2]>>4;let b=bins.get(key);if(!b)bins.set(key,b=[0,0,0,0]);b[0]++;b[1]+=data[k];b[2]+=data[k+1];b[3]+=data[k+2];}
  let best=null;for(const b of bins.values())if(!best||b[0]>best[0])best=b;
  const plate=hex([best[1]/best[0],best[2]/best[0],best[3]/best[0]]);
- let streak=0;const sectors=new Array(12).fill(0);
- for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=(j*W+i)*3;const [h,s,v]=hsv(data[k],data[k+1],data[k+2]);if(h>=215&&h<=225&&s>=.5&&v>=.3){streak++;const a=(Math.atan2((j-cy)/ry,(i-cx)/rx)*180/Math.PI+90+360)%360;sectors[Math.floor(a/30)%12]++;}}
+ let streak=0,blue=0;const sectors=new Array(12).fill(0);
+ for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=(j*W+i)*3;const [h,s,v]=hsv(data[k],data[k+1],data[k+2]);if(h>=190&&h<=235&&s>=.5&&v>=.3)blue++;if(h>=215&&h<=225&&s>=.5&&v>=.3){streak++;const a=(Math.atan2((j-cy)/ry,(i-cx)/rx)*180/Math.PI+90+360)%360;sectors[Math.floor(a/30)%12]++;}}
  // A ring's median colour per 30° sector, r in [lo,hi) of the extent.
  const ring=(lo,hi)=>{const px=Array.from({length:12},()=>[[],[],[]]);
   for(let j=0;j<H;j++)for(let i=0;i<W;i++){const u=(i-cx)/rx,v=(j-cy)/ry,r=Math.hypot(u,v);if(r<lo||r>=hi)continue;const a=(Math.atan2(v,u)*180/Math.PI+90+360)%360,s=Math.floor(a/30)%12,k=(j*W+i)*3;for(let c=0;c<3;c++)px[s][c].push(data[k+c]);}
   const medians=px.map(p=>p[0].length?hex(p.map(med)):null),all=[[],[],[]];for(const p of px)for(let c=0;c<3;c++)all[c].push(...p[c]);
   return {sectors:medians,median:hex(all.map(med))};};
- return {plate,streak,sectors,ring,extent:{cx,cy,rx,ry}};
+ return {plate,streak,blue,sectors,ring,extent:{cx,cy,rx,ry}};
 }
 // A Storage screenshot holds the rack too (black steel, orange rails): the pulled blue disc's plate is the most common
 // blue (hue 185–240°) in the central 40% × 50% of the image, and the streak class is counted there.
@@ -80,7 +86,7 @@ const sheet=async(out,tile,items)=>{
 // ---- the probe: one tree, one browser, every shot ----
 // Run in this checkout, and in the baseline checkout for the fences and the "before" tiles. Writes <out>/<tag>-<scheme>-<view>.png
 // and <out>/probe.json.
-async function probe({out,photo,port,trueColor,sheetPhoto,second}){
+async function probe({out,photo,port,trueColor,sheetPhoto,second,live}){
  const {startHarness}=await import('./display-harness.mjs');
  fs.mkdirSync(out,{recursive:true});
  const h=await startHarness({port,state:out+'/d1',deviceScaleFactor:2});
@@ -95,6 +101,7 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second}){
    {...RAPTOR_SEED,finish:'clear',notes:'raptor-sheet'},
    {...RAPTOR_SEED,finish:'clear',in_bag:true,notes:'raptor-bag'}
   ];
+  if(live)seeds.push({...RAPTOR_SEED,color:LIVE_COLOR,finish:'clear',notes:'live-null'},{...RAPTOR_SEED,color:LIVE_COLOR,finish:'clear',notes:'live-sheet'});
   if(second)seeds.push({mold_id:second.mold,plastic:'Champion',wear:9,weight_g:175,color:second.color,finish:'clear',in_bag:false,notes:'second-null'},{mold_id:second.mold,plastic:'Champion',wear:9,weight_g:175,color:second.color,finish:'clear',in_bag:false,notes:'second-true'});
   await h.seedBag(seeds);
   const all=await page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs);
@@ -102,6 +109,7 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second}){
   const put=async(note,file,color)=>{await page.evaluate(async([id,bytes,color])=>{const r=await fetch('/api/bag/discs/'+id+'/photo',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'image/webp','X-Atlas-Photo-True-Color':color||'','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken},body:new Uint8Array(bytes)});if(!r.ok)throw Error(await r.text());},[idOf(note),[...fs.readFileSync(file)],color]);};
   await put('raptor-null',photo,null);await put('raptor-true',photo,trueColor);await put('raptor-opaque',photo,trueColor);await put('raptor-bag',photo,trueColor);
   if(second){await put('second-null',second.file,null);await put('second-true',second.file,second.trueColor);}
+  if(live)await put('live-null',live,null);
   const openBag=async()=>{await page.goto(base+'/?bag=1');await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length>=5);};
   const theme=async scheme=>{await page.emulateMedia({colorScheme:scheme});await page.waitForFunction(t=>document.documentElement.dataset.theme===t,scheme==='dark'?'midnight':'light');await wait(400);};
   const tilt=async(root,deg)=>{await page.evaluate(([sel,deg])=>{const i=document.querySelector(sel+' [data-disc3d-tilt]');i.value=String(deg);i.dispatchEvent(new Event('input',{bubbles:true}));},[root,deg]);await wait(900);};
@@ -129,10 +137,12 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second}){
   await shots('raptor-opaque','opaque',{schemes:['light'],views:['angle7']});
   await shots('buzzz','buzzz',{schemes:['light'],views:['angle7']});
   if(second){await shots('second-null','second-null',{schemes:['light'],views:['angle7','top']});await shots('second-true','second-true',{schemes:['light'],views:['angle7','top']});}
+  if(live)await shots('live-null','live',{schemes:['light'],views:['angle7','top']});
   // Storage (collection3d): a clear copy with a true colour racks in its own batch and comes out of the rack in it; My
   // Map's adapter carries the bagged copy's true colour.
   await theme('light');await openBag();
-  result.mapTrueColor=await page.evaluate(mold=>window.BagApp.mapTrueColors().get(mold)||null,MOLD);
+  // (The baseline tree, from before PR #46, has no mapTrueColors: it is only asked for the fence shots.)
+  result.mapTrueColor=await page.evaluate(mold=>window.BagApp.mapTrueColors?.().get(mold)||null,MOLD);
   await page.locator('#myBagViews [data-bag-view="storage"]').click();
   await page.locator('#storageScene[data-engine="ready"]').waitFor({timeout:30000});await wait(1200);
   result.storageBatches=await page.evaluate(()=>window.BagApp.scenes.storage.state.batches);
@@ -142,28 +152,37 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second}){
    const box=await page.locator('#storageScene').boundingBox();
    const file=`${out}/storage-${note}.png`;fs.writeFileSync(file,await page.screenshot({clip:{x:0,y:Math.max(0,box.y),width:1440,height:Math.min(1000-Math.max(0,box.y),box.height)}}));result.shots.storage[note]=file;
   }
-  // The sheet: Use photo stores the true colour and says so (the sheet's own flow, the aligner's default framing).
-  if(sheetPhoto){
-   await openBag();await page.locator(`[data-bag-edit="${idOf('raptor-sheet')}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');
-   await page.setInputFiles('#addDiscDialog .bag-photo-file',sheetPhoto);
+  const discOf=async note=>(await page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs)).find(d=>d.notes===note);
+  // Use photo in the sheet's own flow (the aligner's default framing): what the colour hint says and what was stored.
+  const submitPhoto=async(note,file)=>{
+   await openBag();await page.locator(`[data-bag-edit="${idOf(note)}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');
+   await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
    await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
    await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
-   result.sheetHint=await page.evaluate(()=>document.querySelector('#bagDiscColor').closest('label').querySelector('small').textContent);
+   const hint=await page.evaluate(()=>document.querySelector('#bagDiscColor').closest('label').querySelector('small').textContent);
    await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
-   result.sheetDisc=(await page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs)).find(d=>d.notes==='raptor-sheet');
-  }
+   return {hint,disc:await discOf(note)};
+  };
+  // The one-click Game asset: its status line and what it stored.
+  const make=async note=>{
+   await openBag();await page.locator(`[data-bag-edit="${idOf(note)}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');
+   await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}).click();
+   await page.waitForFunction(()=>/^(?!Making the game asset)\S/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:240000});
+   const status=await page.locator('#addDiscDialog .bag-photo-status').textContent();
+   await page.keyboard.press('Escape');await page.waitForSelector('#addDiscDialog:not([open])',{state:'attached'});
+   return {status,disc:await discOf(note)};
+  };
+  // The sheet: Use photo stores the true colour and says so.
+  if(sheetPhoto)({hint:result.sheetHint,disc:result.sheetDisc}=await submitPhoto('raptor-sheet',sheetPhoto));
   // The one-click Game asset on the copy without a true colour: the make matches and stores it, and says so.
-  await openBag();await page.locator(`[data-bag-edit="${idOf('raptor-null')}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');
-  await page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'}).click();
-  await page.waitForFunction(()=>/^(?!Making the game asset)\S/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:240000});
-  result.makeStatus=await page.locator('#addDiscDialog .bag-photo-status').textContent();
-  await page.keyboard.press('Escape');await page.waitForSelector('#addDiscDialog:not([open])',{state:'attached'});
-  result.madeDisc=(await page.evaluate(async()=>(await (await fetch('/api/bag',{credentials:'same-origin'})).json()).discs)).find(d=>d.notes==='raptor-null');
+  ({status:result.makeStatus,disc:result.madeDisc}=await make('raptor-null'));
+  // The live photo: Use photo and the make store no true colour, and say why.
+  if(live){result.live={sheet:await submitPhoto('live-sheet',live),make:await make('live-null')};}
   await shots('raptor-null','asset',{views:['angle7']});
   // The row thumbnail and the bag's pulled disc draw too (no crash, the clear passes on): the list's thumbnail host carries the colour.
   await openBag();
   result.thumbnailTrueColor=await page.evaluate(id=>document.querySelector(`[data-disc-id="${id}"] [data-disc-thumbnail]`)?.dataset.trueColor||null,idOf('raptor-true'));
- }finally{await h.close();}
+ }finally{await h.stop();}
  fs.writeFileSync(out+'/probe.json',JSON.stringify(result,null,1));
  return result;
 }
@@ -180,13 +199,15 @@ const {trueColor,plateColor}=await import('../public/disc-albedo.mjs');
 const sampleOf=async file=>{const {data,info}=await sharp(file).ensureAlpha().raw().toBuffer({resolveWithObject:true});const d=new Uint8ClampedArray(data.buffer,data.byteOffset,data.length);return trueColor(d,info.width,plateColor(d,info.width));};
 const TRUE=await sampleOf(photo);
 console.log(haveRaptor?`the Raptor's photo; true colour ${TRUE}`:'no Raptor photo in work/: the fixture, which has no rim band (true-colour checks skipped)');
+const live=haveRaptor&&fs.existsSync(LIVE)?LIVE:null;
+if(!live)console.log('no live photo in work/: the live-photo checks are skipped');
 const second=process.env.SECOND_PHOTO?{file:process.env.SECOND_PHOTO,mold:process.env.SECOND_MOLD||'3d60892b6812',color:process.env.SECOND_COLOR||'#70b7cd',trueColor:await sampleOf(process.env.SECOND_PHOTO)}:null;
 if(second)console.log('second disc',second.mold,'true colour',second.trueColor);
 fs.mkdirSync(OUT,{recursive:true});
 const check=label=>console.log('ok -',label);
 
 // TRUE_COLOR_REUSE=1 reads the last run's shots instead of taking them again (iterating on the checks).
-const after=process.env.TRUE_COLOR_REUSE&&fs.existsSync(OUT+'/after/probe.json')?JSON.parse(fs.readFileSync(OUT+'/after/probe.json','utf8')):await probe({out:OUT+'/after',photo,port:Number(process.env.TRUE_COLOR_PORT||8884),trueColor:TRUE,sheetPhoto:haveRaptor&&fs.existsSync(RAPTOR_PNG)?RAPTOR_PNG:'tests/fixtures/disc-photo.png',second});
+const after=process.env.TRUE_COLOR_REUSE&&fs.existsSync(OUT+'/after/probe.json')?JSON.parse(fs.readFileSync(OUT+'/after/probe.json','utf8')):await probe({out:OUT+'/after',photo,port:Number(process.env.TRUE_COLOR_PORT||8884),trueColor:TRUE,sheetPhoto:haveRaptor&&fs.existsSync(RAPTOR_PNG)?RAPTOR_PNG:'tests/fixtures/disc-photo.png',second,live});
 assert.deepEqual(after.errors,[],'no page errors');
 const S=after.shots;
 const nullShots={},trueShots={};
@@ -208,7 +229,9 @@ if(haveRaptor&&TRUE){
  assert.ok(lab(nullPlate)[0]-lab(plate)[0]>=25,`far deeper than without it: L ${lab(plate)[0].toFixed(0)} against ${lab(nullPlate)[0].toFixed(0)}`);
  check(`true colour: plate ${plate} (ΔE ${dE(plate,PROPOSAL.plate).toFixed(1)} to ${PROPOSAL.plate}), without it ${nullPlate}`);
  // 3. Rim deeper than plate, no stripe. From the Top the ring just inside the shoulder (0.72–0.78 of the extent) is one
- // colour round the disc; at 3/4 7° the shoulder at 7:30 (the 7–9 o'clock sectors at 0.72–0.78) is deeper than the plate.
+ // colour round the disc; at 3/4 7° the shoulder at 7:30 (the 7–9 o'clock sectors at 0.78–0.84) is deeper than the plate.
+ // (It was read at 0.72–0.78, where the photo's cut used to end at 7:30: once the plate-edge circle was fitted robustly
+ // (§9) the photo reaches its own edge there, and that ring holds the photo. From 0.78 out the walls are as they were.)
  // The photo's own content (its glare band, scuffs, the stamp's rings) moves a sector by ΔE 10–12 on its own; the band
  // was a hue of its own (218° against the plate's 196°) and ΔE 25–50. So: every sector within ΔE 16 of the ring's
  // median and within 12° of its hue.
@@ -217,7 +240,7 @@ if(haveRaptor&&TRUE){
   const ring=shots['light-top'].ring(.72,.78),off=ring.sectors.map(s=>s?dE(s,ring.median):0),hues=ring.sectors.map(s=>s?turn(hueOf(s),hueOf(ring.median)):0);
   assert.ok(Math.max(...off)<=16&&Math.max(...hues)<=12,`${tag}, Top: every sector of the plate-edge ring within ΔE 16 and 12° of hue of its median (max ΔE ${Math.max(...off).toFixed(1)}, ${Math.max(...hues).toFixed(0)}°: ${ring.sectors.join(' ')})`);
  }
- const shoulder=trueShots['light-angle7'].ring(.72,.78),lowerLeft=hex([7,8].map(s=>bytes(shoulder.sectors[s])).reduce((a,b)=>a.map((v,i)=>(v+b[i])/2)));
+ const shoulder=trueShots['light-angle7'].ring(.78,.84),lowerLeft=hex([7,8].map(s=>bytes(shoulder.sectors[s])).reduce((a,b)=>a.map((v,i)=>(v+b[i])/2)));
  assert.ok(lab(plate)[0]-lab(lowerLeft)[0]>=10,`the shoulder deeper than the plate: ${lowerLeft} against ${plate}`);
  check(`rim deeper than plate: shoulder ${lowerLeft}, plate ${plate}; Top ring uniform`);
  // 4. Both looks agree, and the make stored the colour.
@@ -242,6 +265,23 @@ if(haveRaptor&&TRUE){
  assert.ok(lab(stNull.plate)[0]-lab(stTrue.plate)[0]>=15,`the pulled Storage disc wears the true colour: ${stTrue.plate} against ${stNull.plate}`);
  check(`Storage: pulled ${stNull.plate} → ${stTrue.plate}, ${after.storageBatches} batches; My Map ${after.mapTrueColor}`);
 }else console.log('skip - true-colour checks (no rim band in the fixture)');
+
+// 8. The live photo (§9). Before the fix the walk took the dark surface at the crop's edge for the plate and cut nothing:
+// 46,885 pixels of the blue class at 3/4 7° and 46,159 from the Top, the rim band drawn round the plate. What is left at
+// 3/4 is the photo's own glints inside the plate.
+let liveShots=null;
+if(live){
+ liveShots={angle7:await read(S.live['light-angle7']),top:await read(S.live['light-top'])};
+ assert.ok(liveShots.top.blue<2000,`live photo, Top: no rim band round the plate (${liveShots.top.blue} pixels of the blue class)`);
+ assert.ok(liveShots.angle7.blue<15000,`live photo, 3/4 7°: no rim band (${liveShots.angle7.blue} pixels of the blue class)`);
+ const {sheet:ls,make:lm}=after.live;
+ assert.equal(ls.disc.photo_true_color,null,'Use photo stores no true colour from a rim lighter than the plate');
+ assert.ok(dE(ls.disc.color,LIVE_COLOR)<3,`Use photo matched the live copy's plate colour: ${ls.disc.color}`);
+ assert.match(ls.hint,/no deeper than the plate/,ls.hint);
+ assert.equal(lm.disc.photo_true_color,null,'the make stores none either');
+ assert.match(lm.status,/could not be read from the rim in this photo: a photo on a light surface gives it/,lm.status);
+ check(`live photo: blue class ${liveShots.angle7.blue}/${liveShots.top.blue} pixels (3/4 7°/Top; before the fix 46,885/46,159); plate ${liveShots.angle7.plate}; Use photo stored ${ls.disc.color} and no true colour, "${ls.hint}"; the make: "${lm.status}"`);
+}
 
 // 5. The fences, against the baseline tree.
 let baseline=null;const flag=process.argv.indexOf('--baseline');
@@ -274,4 +314,5 @@ if(second){
  assert.ok(sn.streak<500&&st.streak<500,'the second disc shows no streak');
  check(`second disc: plate ${sn.plate} → ${st.plate}`);
 }
+if(liveShots)await sheet(OUT+'/sheet-live.png',660,[{file:S.live['light-angle7'],caption:cap('Live photo, 3/4 7°',liveShots.angle7)+` · blue ${liveShots.angle7.blue}`},{file:S.live['light-top'],caption:cap('Live photo, Top',liveShots.top)+` · blue ${liveShots.top.blue}`}]);
 console.log('sheets in',OUT);

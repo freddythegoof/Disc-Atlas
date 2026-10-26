@@ -5,7 +5,7 @@
 //    the plate in the photo ends short of that and off centre (the shot is a little off axis, or centred on the rim's
 //    outer edge, as the aligner asks): the photo's rim band would land on the model's shoulder as a crescent, and on a
 //    clear disc that band is the rim's deep colour lit as a surface: a streak. So at 256 angles the crop is walked
-//    inward from its edge until six samples in a row are the plate's colour, a circle is fitted to those points (the
+//    inward from its edge, across the rim band, until six samples in a row are the plate's colour, a circle is fitted to those points (the
 //    plate edge of a disc is a circle, moved by the shot; a per-angle edge notches where a glare band crosses it), and
 //    the alpha fades to nothing over 2% of R outside it. The clear walls show through there in the tint's own deepening.
 // 2. With the plastic's true colour `tint`, the plate is retinted toward it: every texel within ΔE 10 of the photo's
@@ -46,12 +46,16 @@ export function plateEdge(data,size,plate){
  const [pr,pg,pb]=hexBytes(plate),P=labOf(pr,pg,pb),A=EDGE.angles,points=[];
  const dE=k=>{const l=labOf(data[k],data[k+1],data[k+2]);return Math.hypot(l[0]-P[0],l[1]-P[1],l[2]-P[2]);};
  for(let a=0;a<A;a++){
-  const th=a/A*2*Math.PI,cs=Math.cos(th),sn=Math.sin(th);let run=0;
+  // The plate counts only once the walk has crossed the rim band (six samples in a row unlike the plate): over a dark
+  // surface the background outside the disc reads as the plate does (the clear plate shows that surface), and a walk
+  // that stopped there put the circle at the crop's edge and cut nothing (docs/clear-plastic-true-color.md §9).
+  const th=a/A*2*Math.PI,cs=Math.cos(th),sn=Math.sin(th);let run=0,band=0;
   for(let r=EDGE.from;r>EDGE.to;r-=2/size){
    const x=Math.floor((1+r*cs)*size/2),y=Math.floor((1+r*sn)*size/2);if(x<0||y<0||x>=size||y>=size)continue;
    const k=(y*size+x)*4;
    if(data[k+3]<250){run=0;continue;}
-   if(dE(k)<EDGE.within){if(++run>=EDGE.run){const edge=r+EDGE.run*2/size;points.push([edge*cs,edge*sn]);break;}}else run=0;
+   if(dE(k)<EDGE.within){if(band>=EDGE.run&&++run>=EDGE.run){const edge=r+EDGE.run*2/size;points.push([edge*cs,edge*sn]);break;}if(band<EDGE.run)band=0;}
+   else{run=0;band++;}
   }
  }
  if(points.length<A/2)return null;

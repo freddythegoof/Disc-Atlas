@@ -32,6 +32,16 @@ function updateFinishHint(){
   :'Clear is see-through plastic tinted by the disc color, like Champion, Z or Opto.';
 }
 $('#addDiscForm').addEventListener('change',event=>{if(event.target.name==='bagFinish')updateFinishHint();});
+// What Use photo matched. On a clear copy whose photo gives no true colour the hint says why, so a pale tint is not a
+// silent surprise (docs/clear-plastic-true-color.md §9).
+function photoColorHint(){
+ if(isHalo(plasticChoice()))return 'Matched to your photo.';
+ if(photoEditor.photoTrueColor)return 'Matched to your photo: the plate’s colour, and the plastic’s true colour from the rim.';
+ const refused=finishChoice()==='clear'&&photoEditor.trueColorRefused;
+ return refused==='shallow'?'Matched to your photo: the plate’s colour. The rim reads no deeper than the plate in this photo, as it does over a dark surface, so the plastic’s true colour was not matched: a photo on a light surface gives it.'
+  :refused?'Matched to your photo: the plate’s colour. The rim in this photo does not read as the plate’s plastic seen thicker, so the plastic’s true colour was not matched.'
+  :'Matched to your photo.';
+}
 function matchPhotoColor(color){
  updateFinishHint();
  const input=$('#bagDiscColor');
@@ -39,7 +49,7 @@ function matchPhotoColor(color){
   colorBeforePhoto??={color:input.value,customized:colorCustomized};
   // The plastic's true colour, from the rim band (docs/clear-plastic-true-color.md), is stored with the photo and worn
   // by a clear copy; the disc's colour stays the plate's.
-  input.value=color;photoColor=input.value;colorCustomized=true;colorHint().textContent=photoEditor.photoTrueColor&&!isHalo(plasticChoice())?'Matched to your photo: the plate’s colour, and the plastic’s true colour from the rim.':'Matched to your photo.';
+  input.value=color;photoColor=input.value;colorCustomized=true;colorHint().textContent=photoColorHint();
  }else{
   if(colorBeforePhoto&&input.value===photoColor){input.value=colorBeforePhoto.color;colorCustomized=colorBeforePhoto.customized;}
   colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';
