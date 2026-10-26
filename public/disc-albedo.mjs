@@ -373,12 +373,17 @@ export function plateColor(data,size,plate=.78){
 // keeps its matched plate colour. Overmolds (the rim piece is opaque) and Halo copies (the band is the dye) never call
 // this: their photo does not show the core's colour.
 export const TRUE_COLOR_INNER=.88;
-export function trueColor(data,size,plate,{inner=TRUE_COLOR_INNER}={}){
- if(!/^#[0-9a-f]{6}$/i.test(plate||''))return null;
- const rim=rimColor(data,size,inner);if(!rim)return null;
+// The read with its refusal, so the sheet can say why a clear copy got no true colour: `refused` is 'shallow' when the
+// rim is not deeper than the plate (most often a dark surface under the disc), 'colour' when it is not the plate's
+// colour seen thicker, 'unread' when there is no rim band to read.
+export function trueColorRead(data,size,plate,{inner=TRUE_COLOR_INNER}={}){
+ if(!/^#[0-9a-f]{6}$/i.test(plate||''))return {color:null,refused:'unread'};
+ const rim=rimColor(data,size,inner);if(!rim)return {color:null,refused:'unread'};
  const P=labOf(hexLinear(plate)),T=labOf(hexLinear(rim));
  const chroma=l=>Math.hypot(l[1],l[2]),hue=l=>Math.atan2(l[2],l[1])*180/Math.PI;
  const turn=Math.abs(((hue(T)-hue(P))%360+540)%360-180);
- return P[0]-T[0]>=8&&chroma(T)>=.8*chroma(P)&&turn<=60?rim:null;
+ if(P[0]-T[0]<8)return {color:null,refused:'shallow'};
+ return chroma(T)>=.8*chroma(P)&&turn<=60?{color:rim,refused:null}:{color:null,refused:'colour'};
 }
+export const trueColor=(data,size,plate,options)=>trueColorRead(data,size,plate,options).color;
 const hexLinear=h=>[1,3,5].map(i=>toLinear[parseInt(h.slice(i,i+2),16)]);

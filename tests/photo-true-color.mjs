@@ -7,7 +7,7 @@ import {test} from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
-import {trueColor,plateColor,rimColor} from '../public/disc-albedo.mjs';
+import {trueColor,trueColorRead,plateColor,rimColor} from '../public/disc-albedo.mjs';
 import {clearPhotoPixels,plateEdge,planClearPhoto,EDGE} from '../public/disc-photo-clear.mjs';
 import {createBag} from '../workers/bag.mjs';
 
@@ -78,8 +78,43 @@ test('a clear photo ends at its own plate edge, a circle fitted through the glar
  const flat=new Uint8ClampedArray(size*size*4).fill(255);assert.equal(planClearPhoto(flat,size,{}).circle,null);
 });
 
+// A clear disc photographed over a dark surface (docs/clear-plastic-true-color.md §9): the plate shows the surface and
+// reads grey, the rim catches the light and reads lighter than the plate, and the disc sits off the crop's centre so a
+// sliver of the surface shows inside the crop on one side, the plate's own colour within ΔE 16.
+const GREY_PLATE='#537b80',LIT_RIM='#0198e1',SURFACE='#4c7276';
+function darkSurface(size=1024){
+ const d=new Uint8ClampedArray(size*size*4);
+ const put=(k,h)=>{const [r,g,b]=bytes(h);d[k]=r;d[k+1]=g;d[k+2]=b;d[k+3]=255;};
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+  const u=(x+.5)/size*2-1,v=(y+.5)/size*2-1,k=(y*size+x)*4;
+  if(Math.hypot(u,v)>1)continue;
+  put(k,Math.hypot(u+.05,v)>.99?SURFACE:Math.hypot(u,v-.01)<.805?GREY_PLATE:LIT_RIM);
+  if(Math.abs(v+.1)<.07&&Math.abs(u)<.35)put(k,RED);
+ }
+ return d;
+}
+
+test('over a dark surface the plate edge is still found, past the rim, and the rim gives no true colour',()=>{
+ const size=1024,d=darkSurface(size);
+ assert.equal(dE(SURFACE,GREY_PLATE)<16,true,'the surface reads as the plate does');
+ // The walk counts the plate only after crossing the rim band: the surface at the crop's edge is not the plate.
+ const circle=plateEdge(d,size,GREY_PLATE);
+ assert.ok(circle&&Math.abs(circle.rho-.805)<.01&&Math.abs(circle.cx)<.01&&Math.abs(circle.cy-.01)<.01,JSON.stringify(circle));
+ assert.ok(circle.kept>=EDGE.angles*.9,`most angles fit the circle (${circle.kept})`);
+ clearPhotoPixels(d,size,{});
+ assert.equal(at(d,size,.9,0).alpha,0);assert.equal(at(d,size,-.9,0).alpha,0);assert.equal(at(d,size,.5,0).alpha,255);
+ // The rim reads lighter than the plate: refused, and the refusal says so.
+ assert.deepEqual(trueColorRead(darkSurface(size),size,GREY_PLATE),{color:null,refused:'shallow'});
+ assert.equal(trueColorRead(synthetic(),1024,PLATE).refused,null);
+ assert.equal(trueColorRead(synthetic(1024,{rim:'#8a2020'}),1024,PLATE).refused,'colour');
+ assert.equal(trueColorRead(d,size,null).refused,'unread');
+});
+
 const RAPTOR='work/clear-plastic-true-color/input/raptor-0cef6b2f.webp';
-test('the Raptor\'s own photo: the rim band is #004386 and the plate edge is a circle at 0.81 R, 3% off centre',{skip:!fs.existsSync(RAPTOR)&&'the Raptor photo is not in work/'},async()=>{
+// The robust pass holds: the glare on the rim at 12-1 o'clock matches the plate at the crop's edge, and before the walk
+// had to cross the rim those points pulled the first circle so far that the pass gave up (66 of 252 within 1.2% of R)
+// and kept the unfiltered fit (0.808 R, 3% off centre; §9).
+test('the Raptor\'s own photo: the rim band is #004386 and the plate edge is a circle at 0.79 R',{skip:!fs.existsSync(RAPTOR)&&'the Raptor photo is not in work/'},async()=>{
  const sharp=createRequire(import.meta.url)('sharp');
  const {data,info}=await sharp(RAPTOR).ensureAlpha().raw().toBuffer({resolveWithObject:true});
  const d=new Uint8ClampedArray(data.buffer,data.byteOffset,data.length),size=info.width;
@@ -87,7 +122,23 @@ test('the Raptor\'s own photo: the rim band is #004386 and the plate edge is a c
  assert.equal(trueColor(d,size,plate),'#004386');
  for(const inner of [.84,.92])assert.ok(dE(rimColor(d,size,inner),'#004386')<6,'not sensitive to where the band starts: '+rimColor(d,size,inner));
  const circle=plateEdge(d,size,plate);
- assert.ok(Math.abs(circle.rho-.808)<.012&&Math.hypot(circle.cx,circle.cy)>.02&&Math.hypot(circle.cx,circle.cy)<.045,JSON.stringify(circle));
+ assert.ok(Math.abs(circle.rho-.792)<.012&&Math.hypot(circle.cx,circle.cy)<.02,JSON.stringify(circle));
+ assert.ok(circle.kept>=EDGE.angles/2&&circle.kept<circle.points,`the robust pass ran (${circle.kept} of ${circle.points})`);
+});
+
+// The live copy's photo after Freddy's Oct 24 re-submit (§9), read once from his account: the real upload pipeline's
+// output on a shot over a dark surface. The edge walk took the surface at the crop's right edge for the plate, so the
+// circle reached the crop's edge and nothing was cut; and the rim reads lighter than the plate, so no true colour.
+const LIVE='work/clear-plastic-true-color/input/raptor-71c60188.webp';
+test('the Raptor\'s live photo: no true colour (the rim reads lighter), and the plate edge found past the rim',{skip:!fs.existsSync(LIVE)&&'the live photo is not in work/'},async()=>{
+ const sharp=createRequire(import.meta.url)('sharp');
+ const {data,info}=await sharp(LIVE).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+ const d=new Uint8ClampedArray(data.buffer,data.byteOffset,data.length),size=info.width;
+ const plate=plateColor(d,size);assert.equal(plate,'#537b80');
+ assert.deepEqual(trueColorRead(d,size,plate),{color:null,refused:'shallow'});
+ const circle=plateEdge(d,size,plate);
+ assert.ok(circle&&Math.abs(circle.rho-.805)<.012&&Math.hypot(circle.cx,circle.cy)<.02,JSON.stringify(circle));
+ assert.ok(circle.kept>=EDGE.angles/2,`the robust pass ran (${circle.kept} of ${circle.points})`);
 });
 
 test('migration 0015 leaves every copy without a true colour and accepts only a six-digit hex',()=>{
