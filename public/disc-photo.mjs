@@ -4,15 +4,19 @@ import {encodeHalo} from './disc3d/halo.mjs';
 import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
 import {photoLook,setPhotoLook,savePhotoStamp} from './disc3d/photo-stamps.mjs';
+import {registration,throughH,CENTRE_CAP,STRETCH_CAP} from './disc-register.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
 // `angle` only orients that tilt correction (with aspect 1 and no perspective it moves nothing). `rotate`
 // levels the stamp: the crop turns by that many degrees, clockwise as seen in the aligner. At 0 it is skipped
 // outright, so an unrotated crop is the same arithmetic, and the same bytes, as before it existed.
-export function photoPoint(x,y,{width,height,scale=.94,aspect=1,perspective=0,angle=0,cx=.5,cy=.5,rotate=0}){
+// `H` (docs/photo-adder-rework.md): a registration from disc-register.mjs, the unit disc onto the photo in shares of its
+// width and height; it replaces the framing options (rotate still applies first).
+export function photoPoint(x,y,{width,height,scale=.94,aspect=1,perspective=0,angle=0,cx=.5,cy=.5,rotate=0,H=null}){
  const inside=x*x+y*y<=1;
  if(rotate){const t=rotate*Math.PI/180,c=Math.cos(t),s=Math.sin(t);[x,y]=[x*c+y*s,y*c-x*s];}
+ if(H){const d=H[6]*x+H[7]*y+H[8];return {x:(H[0]*x+H[1]*y+H[2])/d*width,y:(H[3]*x+H[4]*y+H[5])/d*height,inside};}
  const r=Math.min(width,height)*scale/2,a=angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a),u=x*c+y*s,v=-x*s+y*c,k=1+perspective*v;
  return {x:cx*width+(u*c-v*aspect*s)*r/k,y:cy*height+(u*s+v*aspect*c)*r/k,inside};
 }
@@ -220,6 +224,20 @@ function extractStamp(pixels,size,plate,color=false,stored=false,clear=false){
   worker.postMessage({pixels:pixels.buffer,size,plate,color,stored,clear});
  }),MAKE_LIMITS.extract,slow).catch(error=>{worker.terminate();throw error;});
 }
+// The one-dot aligner's automatic fit (docs/photo-adder-rework.md; disc-register.mjs autoRegister) on the photo's
+// working copy, off the page's thread like the extraction, since each candidate centre's stamp is read. Bounded: a
+// device that cannot finish it frames the photo by hand.
+export const FIT_LIMIT=60000;
+function fitDisc(image,plate){
+ const {data,w,h}=workingCopy(image);
+ const inline=()=>import('./disc-stamp-worker.mjs').then(m=>m.register(data,w,h,plate));
+ let worker;try{worker=new Worker(new URL('./disc-stamp-worker.mjs',import.meta.url),{type:'module'});}catch{return within(inline(),FIT_LIMIT,'slow');}
+ return within(new Promise((resolve,reject)=>{
+  worker.onmessage=({data:m})=>{worker.terminate();if(m.error)reject(Error(m.error));else resolve(m.result);};
+  worker.onerror=event=>{event.preventDefault?.();worker.terminate();inline().then(resolve,reject);};
+  worker.postMessage({pixels:data,plate,register:{w,h}});
+ }),FIT_LIMIT,'slow').catch(error=>{worker.terminate();throw error;});
+}
 // v2 (docs/photo-stamp-color-assets.md): with `color`, the same read also gives the full-colour asset (`color`: its blob
 // and placement), the stamp's own colours flattened like print (disc-stamp-color.mjs). The one-ink asset is made
 // exactly as without it.
@@ -337,7 +355,9 @@ function previewInto(canvas,image,options,size){
 // circle (the crop's edge) and the flight-plate circle. Outside the rim is dimmed: that part is cut off.
 // `level` adds level lines: amber horizontals edge to edge (past the rim, so a long stamp edge or a line of
 // text can be laid along one), denser than the grid so one always sits near the stamp.
-function drawGuides(canvas,size,plate,level=false){
+// `fitted` (docs/photo-adder-rework.md): the one-dot aligner's guides. The cross is the instrument, so it runs edge to
+// edge of the frame and nothing competes with it: no grid, no labels; the rim and plate rings stay.
+function drawGuides(canvas,size,plate,level=false,fitted=false){
  if(canvas.width!==size)canvas.width=canvas.height=size;
  const g=canvas.getContext('2d'),c=size/2,R=c/VIEW,u=size/400,TAU=Math.PI*2;
  g.clearRect(0,0,size,size);
@@ -348,14 +368,18 @@ function drawGuides(canvas,size,plate,level=false){
   g.lineWidth=(width+2)*u;g.strokeStyle=`rgba(0,0,0,${alpha*.45})`;g.beginPath();path();g.stroke();
   g.lineWidth=width*u;g.strokeStyle=`rgba(255,255,255,${alpha})`;g.beginPath();path();g.stroke();
  };
- g.save();g.beginPath();g.arc(c,c,R,0,TAU);g.clip();
- for(let k=-3;k<=3;k++){if(!k)continue;const v=c+k*R/4;stroke(()=>{g.moveTo(v,c-R);g.lineTo(v,c+R);g.moveTo(c-R,v);g.lineTo(c+R,v);},.75,.28);}
- g.restore();
- stroke(()=>{g.moveTo(c-R,c);g.lineTo(c+R,c);g.moveTo(c,c-R);g.lineTo(c,c+R);},1.25,.85);
+ if(!fitted){
+  g.save();g.beginPath();g.arc(c,c,R,0,TAU);g.clip();
+  for(let k=-3;k<=3;k++){if(!k)continue;const v=c+k*R/4;stroke(()=>{g.moveTo(v,c-R);g.lineTo(v,c+R);g.moveTo(c-R,v);g.lineTo(c+R,v);},.75,.28);}
+  g.restore();
+ }
+ const reach=fitted?c:R;
+ stroke(()=>{g.moveTo(c-reach,c);g.lineTo(c+reach,c);g.moveTo(c,c-reach);g.lineTo(c,c+reach);},fitted?1.5:1.25,fitted?.95:.85);
  stroke(()=>g.arc(c,c,R*plate,0,TAU),1.5,.9,[7,5]);
  stroke(()=>g.arc(c,c,R,0,TAU),2.25);
  stroke(()=>g.arc(c,c,10*u,0,TAU),1.5);
  g.setLineDash([]);g.fillStyle='#fff';g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=1.5*u;g.beginPath();g.arc(c,c,3.2*u,0,TAU);g.fill();g.stroke();
+ if(fitted)return;
  g.font=`600 ${11*u}px system-ui,sans-serif`;g.textAlign='center';g.lineWidth=3*u;g.strokeStyle='rgba(0,0,0,.6)';g.fillStyle='#fff';
  // RIM just outside its ring at upper right, FLIGHT PLATE just inside its own at upper left, so the two
  // never collide however close a mold's plate edge sits to its rim.
@@ -379,9 +403,19 @@ const levelOptions=image=>({...DEFAULTS,scale:1,cx:.5-.5/image.width,cy:.5-.5/im
 const degrees=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'°';
 // Lucide's rotate-ccw and rotate-cw.
 const TURN={ccw:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',cw:'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'};
-const LEVEL='<div class="photo-aligner-level" role="group" aria-label="Level the stamp"><button type="button" data-rotate="-1" aria-label="Rotate 1 degree counterclockwise">'+TURN.ccw+'1°</button><button type="button" data-rotate="-0.1" aria-label="Rotate 0.1 degree counterclockwise">'+TURN.ccw+'0.1°</button><output class="photo-aligner-angle" aria-label="Rotation">0.0°</output><button type="button" data-rotate="0.1" aria-label="Rotate 0.1 degree clockwise">0.1°'+TURN.cw+'</button><button type="button" data-rotate="1" aria-label="Rotate 1 degree clockwise">1°'+TURN.cw+'</button><button type="button" data-rotate-zero aria-label="Reset rotation to 0 degrees">0°</button><button type="button" data-level-lines aria-pressed="false">Level lines</button></div>';
+const LEVEL='<div class="photo-aligner-level" role="group" aria-label="Level the stamp"><button type="button" data-rotate="-1" aria-label="Rotate 1 degree counterclockwise">'+TURN.ccw+'1°</button><button type="button" data-rotate="-0.1" aria-label="Rotate 0.1 degree counterclockwise">'+TURN.ccw+'0.1°</button><output class="photo-aligner-angle" aria-label="Rotation">0.0°</output><button type="button" data-rotate="0.1" aria-label="Rotate 0.1 degree clockwise">0.1°'+TURN.cw+'</button><button type="button" data-rotate="1" aria-label="Rotate 1 degree clockwise">1°'+TURN.cw+'</button><button type="button" data-rotate-zero aria-label="Reset rotation to 0 degrees">0°</button><button type="button" data-rotate-auto aria-label="Back to the automatic level">Auto</button><button type="button" data-level-lines aria-pressed="false">Level lines</button></div>';
 const TEXT={frame:['Center the disc','Drag until the disc’s edge sits on the outer ring and its center on the crosshair.'],level:['Level the stamp','Turn the photo until the stamp runs along a level line. Only the angle changes.'],
- asset:['Frame the original','Center the disc and level its stamp, as for its photo. The game asset is read from this original at full detail.']};
+ asset:['Frame the original','Center the disc and level its stamp, as for its photo. The game asset is read from this original at full detail.'],
+ // The one-dot aligner (docs/photo-adder-rework.md): the fit is done; the cross is for checking it.
+ fitted:['Check it against the cross','The disc is fitted to the ring. If its middle is off the cross, drag it there or tap it; turn it level with the buttons.']};
+// What the automatic fit did, in plain words, and why it handed a photo to the manual aligner (disc-register.mjs caps).
+const FIT_WORDS={finding:'Finding the disc’s edge…',
+ fitted:(level)=>'Fitted to the disc’s edge and centred. '+(level?'Levelled by '+level+'. ':'This stamp has no straight edge to level by: turn it against the cross if it needs it. ')+'Check it against the cross.',
+ rim:'The disc’s edge didn’t show clearly enough in this photo to fit it, so it’s framed by hand: drag and pinch until the edge sits on the ring, or use the sliders.',
+ squash:squash=>'This photo was taken too far off square: the disc looks '+Math.round(squash*100)+'% as wide one way as the other, and straightening it would stretch the stamp. It’s framed by hand instead, or take the photo from straight above.',
+ slow:'Finding the disc’s edge took too long on this device, so it’s framed by hand: drag and pinch until the edge sits on the ring.',
+ cap:'That’s as far as this photo’s angle allows: past it, the stamp would be stretched. If the middle still looks off, frame it by hand.',
+ manual:'Framed by hand: drag and pinch until the disc’s edge sits on the ring and its middle on the cross.'};
 // Photo stamps (docs/photo-stamp-assets.md): a saved photo can also be worn as a game asset, its stamp drawn in the
 // player's ink and finish. Like the rest of Appearance it is a display choice: it applies at once, without Save, and the
 // photo on the account is untouched.
@@ -394,10 +428,14 @@ let lookGroupId=0;
 const MAKE_STEPS={open:'opening your photo…',extract:'finding the stamp…',ink:'drawing it in one ink…',color:'drawing it in full color…',save:'saving to your account…'};
 // Full colour is the game asset's default style (docs/spin-color-default.md): Game asset lands on it, and One ink is the
 // alternate style beside it. A look already saved is never changed by the default.
+// A new photo's game asset is made in the sheet (docs/photo-adder-rework.md) and saved with the photo.
+const PENDING_NOTE={color:'Game asset in full color, made from this photo. It’s saved to your account with the photo when you save the disc.',
+ asset:'Game asset in one ink, your stamp ink and finish, made from this photo. It’s saved to your account with the photo when you save the disc.',
+ photo:'The photo as it is. Choose Game asset any time to make one from it.'};
 const LOOK_NOTE={photo:'Game asset draws this disc’s stamp from its photo in full color, with the photo’s glare left out. Saved to your account, on every device; the photo stays saved.',
  asset:'One ink draws this disc’s stamp from its photo, in your stamp ink and finish, with the photo’s glare left out. Saved to your account, on every device; the photo stays saved.',
  color:'Full color keeps the stamp’s own colors from its photo, with the photo’s glare left out, so your stamp ink doesn’t apply; a foil finish adds only a light sheen. Saved to your account, on every device; the photo stays saved.'};
-const LOOK=name=>'<div class="bag-photo-look" hidden><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="game">Game asset</label></div><div class="bag-photo-look-row bag-photo-look-style" role="radiogroup" aria-label="Game asset style" hidden><span class="bag-photo-look-title" aria-hidden="true">Style</span><label><input type="radio" name="'+name+'-style" value="color">Full color</label><label><input type="radio" name="'+name+'-style" value="asset">One ink</label></div><small class="bag-photo-look-note">'+LOOK_NOTE.photo+'</small><button type="button" class="bag-photo-asset-make" hidden>Make again</button><button type="button" class="bag-photo-asset-original">Use a higher-resolution original instead</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
+const LOOK=name=>'<div class="bag-photo-look" hidden><canvas class="bag-photo-preview" width="320" height="320" role="img" aria-label="How this disc will look" hidden></canvas><div class="bag-photo-look-row" role="radiogroup" aria-label="How this disc looks"><span class="bag-photo-look-title" aria-hidden="true">Look</span><label><input type="radio" name="'+name+'" value="photo" checked>Photo</label><label><input type="radio" name="'+name+'" value="game">Game asset</label></div><div class="bag-photo-look-row bag-photo-look-style" role="radiogroup" aria-label="Game asset style" hidden><span class="bag-photo-look-title" aria-hidden="true">Style</span><label><input type="radio" name="'+name+'-style" value="color">Full color</label><label><input type="radio" name="'+name+'-style" value="asset">One ink</label></div><small class="bag-photo-look-note">'+LOOK_NOTE.photo+'</small><button type="button" class="bag-photo-asset-make" hidden>Make again</button><button type="button" class="bag-photo-asset-original">Use a higher-resolution original instead</button><input class="bag-photo-asset-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden></div>';
 
 // The sheet shows the photo and its actions; choosing a photo opens the aligner, a large pop-out with
 // guides. Use photo prepares the upload there (lighting removed, plate colour measured) and returns to
@@ -415,7 +453,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
- dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div>'+LEVEL+'<p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><details class="photo-aligner-adjust"><summary>'+(window.DropdownIndicator?.indicator('lg')||'')+'Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
+ dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div>'+LEVEL+'<p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><button type="button" class="photo-aligner-manual" hidden>Frame it by hand instead</button><details class="photo-aligner-adjust"><summary>'+(window.DropdownIndicator?.indicator('lg')||'')+'Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
  document.body.append(dialog);
  const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame'),stage=dq('.photo-aligner-stage');
  const choose=q('.bag-photo-choose'),sources=q('.bag-photo-source-menu');
@@ -442,6 +480,9 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  // making: the look a game asset is being made for ('color' or 'asset'); one read makes both. makingClear: whether that
  // disc was Clear when the make started (docs/clear-plastic-discs.md).
  // makingNow: a one-click make from the stored photo in progress {target, look, plate, clear} (v3.1); it outlives the sheet.
+ // One-dot aligner (docs/photo-adder-rework.md): draft.fit {disc, w, h, centre, auto} once the rim is fitted (the dot is
+ // `centre`, `auto` the automatic level), draft.manual when the photo is framed by hand. used.asset: the new photo's game
+ // asset, made in this sheet {look, clear, state ('making', 'made', 'failed'), result, error, promise}.
  let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='color',makingClear=false;
  const pointers=new Map();
  const clearGesture=()=>{
@@ -457,9 +498,19 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   q('.bag-photo-adjust').hidden=!used;q('.bag-photo-remove').hidden=!src;
   // A saved photo can be levelled again without the original (it was never uploaded): its own texture.
   q('.bag-photo-level').hidden=!(current&&!used&&!removed);
-  // The look belongs to the saved photo, so it shows only while that photo is the one in the sheet.
-  const look=q('.bag-photo-look'),shown=!!(owned&&current&&!used&&!removed);look.hidden=!shown;
-  if(shown){
+  // The look belongs to the saved photo, so it shows only while that photo is the one in the sheet; or to the new photo,
+  // whose game asset this sheet made (Part B, docs/photo-adder-rework.md).
+  const pending=!!(used?.asset&&!removed),look=q('.bag-photo-look'),shown=pending||!!(owned&&current&&!used&&!removed);look.hidden=!shown;
+  q('.bag-photo-preview').hidden=!pending;
+  if(pending){
+   const a=used.asset,want=a.look,noColor=a.state==='made'&&!a.result.color;
+   for(const input of look.querySelectorAll('input[type="radio"]')){input.checked=input.value===want||input.value==='game'&&want!=='photo';input.toggleAttribute('aria-disabled',input.value==='color'&&noColor);}
+   q('.bag-photo-look-style').hidden=want==='photo';look.removeAttribute('aria-busy');
+   q('.bag-photo-asset-make').hidden=true;q('.bag-photo-asset-original').hidden=true;
+   for(const b of look.querySelectorAll('button'))b.removeAttribute('aria-disabled');
+   q('.bag-photo-look-note').textContent=PENDING_NOTE[want];drawPreview();
+  }else if(shown){
+   q('.bag-photo-asset-original').hidden=false;
    // While this disc's asset is being made, its row shows the look asked for and waits.
    const state=photoLook(owned.id,owned.key),wait=makingNow&&makingNow.target.id===owned.id&&makingNow.target.key===owned.key,want=wait?makingNow.look:state.look;
    // Marked, not disabled: a disabled control that has focus swallows keys, and Escape must still close the sheet.
@@ -473,19 +524,61 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  const size=low=>Math.max(64,Math.min(low?360:720,Math.round(frame.clientWidth*Math.min(devicePixelRatio||1,2))));
  const paint=(low=false)=>{
   cancelAnimationFrame(frameId);frameId=requestAnimationFrame(()=>{
-   if(!draft)return;const n=size(low);previewInto(view,draft.bitmap,draft.options,n);drawGuides(guides,n,plate,levelLines);
+   if(!draft)return;const n=size(low),fitted=dialog.dataset.fit==='fitted'||dialog.dataset.fit==='finding';previewInto(view,draft.bitmap,draft.options,n);drawGuides(guides,n,plate,levelLines&&!fitted,fitted);
    clearTimeout(settle);if(low)settle=setTimeout(()=>paint(false),140);
   });
  };
  const showAngle=()=>{dq('.photo-aligner-angle').value=degrees(draft.options.rotate);};
  const sync=()=>{for(const el of dialog.querySelectorAll('[data-photo]'))el.value=draft.options[el.dataset.photo];showAngle();};
- // mode 'frame' (a new photo: everything adjustable) or 'level' (a saved photo: the angle only).
- const openAligner=(bitmap,options,mode='frame')=>{
-  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options},mode};sync();
-  dialog.dataset.mode=mode;[dq('h2').textContent,dq('.photo-aligner-tip').textContent]=TEXT[mode];dq('[data-aligner-confirm]').textContent=mode==='asset'?'Make game asset':'Use photo';
+ // mode 'frame' (a new photo: everything adjustable) or 'level' (a saved photo: the angle only), or 'asset' (an
+ // original read for a game asset). A new photo and an original are fitted to their rim first (docs/photo-adder-rework.md):
+ // `state` {fit, manual} reopens one as it was left.
+ const openAligner=(bitmap,options,mode='frame',state=null)=>{
+  closeSources();clearGesture();draft={bitmap,options:{...DEFAULTS,...options},mode,fit:state?.fit?{...state.fit}:null,manual:!!state?.manual};sync();
+  dialog.dataset.mode=mode;dq('[data-aligner-confirm]').textContent=mode==='asset'?'Make game asset':'Use photo';
   dq('.photo-aligner-status').textContent='';dq('[data-aligner-confirm]').disabled=false;
-  if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});paint();
+  if(!dialog.open)dialog.showModal();view.focus({preventScroll:true});
+  if(mode==='level')setFit('');else if(draft.manual)setFit('manual');else if(draft.fit)setFit('fitted');else findFit(draft);
+  paint();
  };
+ // The aligner's state: '' (levelling a saved photo), 'finding' (the fit is running), 'fitted' (the cross and the dot)
+ // or 'manual' (today's aligner: drag, pinch and the sliders).
+ const setFit=state=>{
+  dialog.dataset.fit=state;const fitted=state==='fitted';
+  [dq('h2').textContent,dq('.photo-aligner-tip').textContent]=fitted?TEXT.fitted:TEXT[draft?.mode||'frame'];
+  dq('.photo-aligner-manual').hidden=!fitted;dq('[data-aligner-confirm]').disabled=state==='finding';
+ };
+ const findFit=job=>{
+  setFit('finding');dq('.photo-aligner-status').textContent=FIT_WORDS.finding;
+  fitDisc(job.bitmap,plate).then(result=>{
+   if(draft!==job)return;
+   if(result.refused){toManual(job,result.refused==='squash'?FIT_WORDS.squash(result.squash):FIT_WORDS.rim);return;}
+   const {w,h}=workingCopy(job.bitmap);
+   job.fit={disc:result.disc,w,h,centre:result.centre,auto:result.rotate};
+   job.options={...DEFAULTS,H:result.registration.H,rotate:result.rotate};sync();setFit('fitted');
+   dq('.photo-aligner-status').textContent=FIT_WORDS.fitted(result.rotate?degrees(result.rotate):null);paint();
+  },error=>{if(draft===job)toManual(job,error?.message==='slow'?FIT_WORDS.slow:FIT_WORDS.rim);});
+ };
+ // To today's aligner, as it was (its own default framing), for this photo only, saying why.
+ const toManual=(job,words)=>{
+  clearGesture();job.manual=true;job.options={...DEFAULTS};
+  sync();setFit('manual');dq('.photo-aligner-status').textContent=words;paint();
+ };
+ // The fitted aligner moves the disc's middle, never its rim: `to` (photo pixels) becomes the centre unless the photo's
+ // angle cannot allow it (disc-register.mjs caps), where it stops as far as allowed and says so.
+ const turnPoint=(x,y,rotate)=>{if(!rotate)return [x,y];const t=rotate*Math.PI/180,c=Math.cos(t),s=Math.sin(t);return [x*c+y*s,y*c-x*s];};
+ const centreAt=(x,y,H=draft.options.H,rotate=draft.options.rotate)=>{const [u,v]=turnPoint(x,y,rotate);return throughH(H,u,v,draft.fit.w,draft.fit.h);};
+ const allowed=r=>r&&r.offset<=CENTRE_CAP&&r.stretch<=STRETCH_CAP;
+ const moveCentre=to=>{
+  const f=draft.fit,from=f.centre;let reg=registration(f.disc,to,f.w,f.h),capped=!allowed(reg);
+  if(capped){
+   let lo=0,hi=1;for(let k=0;k<20;k++){const m=(lo+hi)/2;if(allowed(registration(f.disc,{x:from.x+(to.x-from.x)*m,y:from.y+(to.y-from.y)*m},f.w,f.h)))lo=m;else hi=m;}
+   to={x:from.x+(to.x-from.x)*lo,y:from.y+(to.y-from.y)*lo};reg=registration(f.disc,to,f.w,f.h);
+  }
+  if(allowed(reg)){f.centre=to;draft.options.H=reg.H;}
+  dq('.photo-aligner-status').textContent=capped?FIT_WORDS.cap:'';
+ };
+ const fittedNow=()=>!!(draft?.fit&&!draft.manual&&dialog.dataset.fit==='fitted');
  const closeAligner=()=>{serial++;busy=false;releaseDraft();if(dialog.open)dialog.close();};
  dialog.addEventListener('close',()=>{if(draft){serial++;busy=false;releaseDraft();}});
  new ResizeObserver(()=>{if(draft){reanchor();paint();}}).observe(frame);
@@ -500,7 +593,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   if(source){closeSources(true);q('[data-photo-input="'+source.dataset.photoSource+'"]').click();}
   else if(e.target.closest('[data-photo-source-cancel]'))closeSources(true);
  };
- q('.bag-photo-adjust').onclick=()=>{if(used)openAligner(used.bitmap,used.options,used.mode);};
+ q('.bag-photo-adjust').onclick=()=>{if(used)openAligner(used.bitmap,used.options,used.mode,{fit:used.fit,manual:used.manual});};
+ dq('.photo-aligner-manual').onclick=()=>{if(draft&&!busy)toManual(draft,FIT_WORDS.manual);};
  q('.bag-photo-level').onclick=async()=>{
   if(!current||busy)return;const id=++serial;busy=true;q('.bag-photo-status').textContent='Opening your photo…';
   try{
@@ -553,7 +647,15 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   finally{if(makingNow===job)makingNow=null;renderSheet();}
  };
  q('.bag-photo-look').addEventListener('change',e=>{
-  if(!owned||e.target.type!=='radio')return;
+  if(e.target.type!=='radio')return;
+  // A new photo's look is chosen here and saved with it.
+  if(used?.asset&&!removed){
+   const a=used.asset,noColor=a.state==='made'&&!a.result.color;
+   a.look=e.target.value==='photo'?'photo':e.target.value==='asset'||noColor&&e.target.value!=='photo'?'asset':'color';
+   if(e.target.value==='color'&&noColor)q('.bag-photo-status').textContent='This stamp is too detailed to keep in full color, so it’s in one ink.';
+   renderSheet();return;
+  }
+  if(!owned)return;
   // While an asset is being made the row waits: a choice made meanwhile is put back.
   if(makingNow){if(makingNow.target.id!==owned.id||makingNow.target.key!==owned.key)q('.bag-photo-status').textContent='Another disc’s game asset is being made. Try again when it’s done.';renderSheet();return;}
   const state=photoLook(owned.id,owned.key),disc=owned.id+'/'+owned.key;
@@ -598,10 +700,59 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
    // An overmold's rim piece (rimColor) or, on a one-piece mold, the outer band a Halo copy would show
    // (bandColor, kept apart so only a Halo copy ever stores it; see the bandColor getter).
    const level=mode==='level',{blob,color,photoRimColor,bandColor,haloModel,photoTrueColor,trueColorRefused}=await preparePhoto(bitmap,{...options,rimInner,bandInner},{albedo:!level});if(id!==serial)return;
-   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,haloModel,photoTrueColor,trueColorRefused,mode,url:URL.createObjectURL(blob)};
+   const previous=used;used={bitmap,options:{...options},blob,color,photoRimColor,bandColor,haloModel,photoTrueColor,trueColorRefused,mode,url:URL.createObjectURL(blob),fit:draft.fit,manual:draft.manual};
    if(previous){URL.revokeObjectURL(previous.url);if(previous.bitmap!==bitmap)previous.bitmap.close();}
-   draft=null;removed=false;changed=true;busy=false;dialog.close();renderSheet();if(!level)onColor(color);
+   draft=null;removed=false;changed=true;busy=false;dialog.close();
+   // Part B (docs/photo-adder-rework.md): a new photo's game asset is made now, from this original and this framing, and
+   // shown here; Save keeps it with the photo. The one-click make's engine, read from the original at full detail.
+   if(!level)makePending(used,previous?.asset?.look);
+   renderSheet();if(!level)onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
+ };
+ // The new photo's game asset: made once its photo is prepared, again if the finish changes to or from Clear before Save.
+ // `look` starts on Full color (docs/spin-color-default.md); a stamp too detailed for colour lands on One ink.
+ const makePending=(job,look=job.asset?.look||'color')=>{
+  look||='color';
+  const asset={look,clear:clear(),state:'making',result:null,error:null};job.asset=asset;
+  const status=text=>{if(used===job&&job.asset===asset)q('.bag-photo-status').textContent=text;};
+  asset.promise=(async()=>{
+   try{
+    await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));status('Making the game asset: '+MAKE_STEPS.extract);
+    asset.result=await photoStampAsset(job.bitmap,job.options,{plate,color:true,clear:asset.clear,stage:name=>status('Making the game asset: '+MAKE_STEPS[name])});
+    asset.state='made';if(!asset.result.color&&asset.look==='color')asset.look='asset';
+    status(asset.result.color?'Game asset made. It’s saved with the photo when you save this disc.':'Game asset made in one ink: this stamp is too detailed to keep in full color. It’s saved with the photo when you save this disc.');
+   }catch(e){asset.state='failed';asset.error=e?.message||'The game asset could not be made.';asset.look='photo';status(asset.error+' The photo still saves; choose Game asset after saving to try again.');}
+   if(used===job&&job.asset===asset)renderSheet();
+   return asset;
+  })();
+ };
+ // The preview: the disc as it will look, a faint cross over it to judge the stamp's centring by.
+ let previewSerial=0;const previewImages=new Map();
+ const imageOf=blob=>{if(!previewImages.has(blob))previewImages.set(blob,createImageBitmap(blob).catch(()=>null));return previewImages.get(blob);};
+ const drawPreview=async()=>{
+  const canvas=q('.bag-photo-preview'),job=used,a=job?.asset,id=++previewSerial;if(!a||removed)return;
+  const S=canvas.width,c=S/2,Rd=c-6,g=canvas.getContext('2d'),photo=a.look==='photo'||a.state!=='made';
+  const art=photo?await imageOf(job.blob):await imageOf(a.look==='color'?a.result.color.blob:a.result.blob);if(id!==previewSerial)return;
+  g.clearRect(0,0,S,S);g.save();g.beginPath();g.arc(c,c,Rd,0,2*Math.PI);g.clip();
+  if(photo){if(art)g.drawImage(art,c-Rd,c-Rd,2*Rd,2*Rd);}
+  else{
+   g.fillStyle=job.color||'#9aa3ad';g.fillRect(0,0,S,S);
+   const p=a.look==='color'?a.result.color.placement:a.result.placement,half=Rd*p.diameterFraction/p.assetInkFraction;
+   if(a.look==='color'){if(art)g.drawImage(art,c-half,c-half,2*half,2*half);}
+   else if(art){
+    // One ink: the asset's design in the player's ink (or a contrasting one), a layered asset's lines and solids full and
+    // its fills at a tint, as the stamp path draws them.
+    const off=document.createElement('canvas');off.width=art.width;off.height=art.height;const o=off.getContext('2d');o.drawImage(art,0,0);
+    if(a.result.layered){const d=o.getImageData(0,0,off.width,off.height);for(let k=0;k<d.data.length;k+=4){d.data[k+3]=Math.max(d.data[k+1],d.data[k+2],d.data[k]*.42);}o.putImageData(d,0,0);}
+    const n=parseInt((job.color||'#9aa3ad').slice(1),16),light=(.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))>140;
+    o.globalCompositeOperation='source-in';o.fillStyle=window.DisplayPalette?.stampStyle?.()?.ink||(light?'#16181d':'#f4f4f2');o.fillRect(0,0,off.width,off.height);
+    g.drawImage(off,c-half,c-half,2*half,2*half);off.width=off.height=0;
+   }
+  }
+  g.restore();
+  g.lineWidth=2;g.strokeStyle='rgba(0,0,0,.35)';g.beginPath();g.arc(c,c,Rd,0,2*Math.PI);g.stroke();
+  g.lineWidth=1.5;g.strokeStyle='rgba(255,255,255,.55)';g.beginPath();g.moveTo(c-Rd,c);g.lineTo(c+Rd,c);g.moveTo(c,c-Rd);g.lineTo(c,c+Rd);g.stroke();
+  canvas.setAttribute('aria-label',photo?'How this disc will look: its photo':'How this disc will look: its game asset in '+(a.look==='color'?'full color':'one ink'));
  };
  dialog.addEventListener('input',e=>{if(draft&&!busy&&e.target.dataset.photo){draft.options[e.target.dataset.photo]=+e.target.value;showAngle();reanchor();paint(true);}});
  // Levelling: nudges of 0.1° and 1°, a snap back to exactly 0°, and the level lines (chrome only).
@@ -610,35 +761,52 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   const button=e.target.closest('button');if(!button||!draft)return;
   if(button.dataset.rotate)turn(draft.options.rotate+ +button.dataset.rotate);
   else if('rotateZero' in button.dataset)turn(0);
+  else if('rotateAuto' in button.dataset)turn(draft.fit?.auto||0);
   else if('levelLines' in button.dataset){levelLines=!levelLines;button.setAttribute('aria-pressed',String(levelLines));paint();}
  };
  const clamp=v=>Math.max(0,Math.min(1,v));
  view.onkeydown=e=>{
   if(!draft||busy)return;const o=draft.options,step=e.shiftKey?.05:.01;
   if(e.code==='BracketLeft'||e.code==='BracketRight'){e.preventDefault();turn(o.rotate+(e.code==='BracketLeft'?-1:1)*(e.shiftKey?1:.1));return;}
-  if(draft.mode==='level')return;
+  if(draft.mode==='level'||dialog.dataset.fit==='finding')return;
   const delta={ArrowLeft:[step,0],ArrowRight:[-step,0],ArrowUp:[0,step],ArrowDown:[0,-step]}[e.key];
+  // Fitted: the arrows move the disc the way they point, its rim staying on the ring.
+  if(fittedNow()){if(delta){e.preventDefault();moveCentre(centreAt(delta[0]*(e.shiftKey?.4:.5),delta[1]*(e.shiftKey?.4:.5)));paint(true);}return;}
   if(delta){e.preventDefault();o.cx=clamp(o.cx+delta[0]);o.cy=clamp(o.cy+delta[1]);reanchor();paint(true);return;}
   if(e.key==='+'||e.key==='='||e.key==='-'){e.preventDefault();o.scale=Math.max(.3,Math.min(1,o.scale+(e.key==='-'?.01:-.01)));reanchor();sync();paint(true);}
  };
- view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy||draft.mode==='level')return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);},{passive:false});
+ view.addEventListener('wheel',e=>{if(!draft)return;e.preventDefault();if(busy||draft.mode==='level'||dialog.dataset.fit!=='manual')return;const o=draft.options;o.scale=Math.max(.3,Math.min(1,o.scale*Math.exp(e.deltaY*.0012)));reanchor();sync();paint(true);},{passive:false});
  const midpoint=points=>points.length===1?points[0]:{x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};
  const distance=points=>points.length<2?0:Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y);
  const atMidpoint=(point,options,rect,w,h)=>photoPoint(((point.x-rect.left)/rect.width*2-1)*VIEW,((point.y-rect.top)/rect.height*2-1)*VIEW,{...options,width:w,height:h});
+ const cropAt=(point,rect)=>[((point.x-rect.left)/rect.width*2-1)*VIEW,((point.y-rect.top)/rect.height*2-1)*VIEW];
  const reanchor=()=>{
   if(!draft||!pointers.size){gesture=null;return;}
+  if(fittedNow()){
+   // Fitted: one finger drags the disc's middle (the photo follows it under the cross), two turn it; a tap is "here".
+   const points=[...pointers.values()].slice(0,2),rect=view.getBoundingClientRect();
+   gesture={fitted:true,rect,H:draft.options.H,rotate:draft.options.rotate,start:cropAt(midpoint(points),rect),at:performance.now(),travel:0,
+    twist:points.length>1?Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x):null,count:points.length};
+   return;
+  }
   const points=[...pointers.values()].slice(0,2),mid=midpoint(points),rect=view.getBoundingClientRect(),{w,h}=workingCopy(draft.bitmap),options={...draft.options};
   gesture={mid,rect,w,h,options,span:frame.clientWidth/VIEW,distance:distance(points),source:atMidpoint(mid,options,rect,w,h)};
  };
  // Gesture state belongs to this editor, never to its preview/guide canvases' pixels.
  view.onpointerdown=e=>{
-  if(!draft||busy||e.button!==0)return;e.preventDefault();if(draft.mode==='level')return;
+  if(!draft||busy||e.button!==0)return;e.preventDefault();if(draft.mode==='level'||dialog.dataset.fit==='finding')return;
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});view.setPointerCapture(e.pointerId);reanchor();
  };
  view.onpointermove=e=>{
   if(!gesture||!draft||busy||!pointers.has(e.pointerId))return;e.preventDefault();
-  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const last=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   const points=[...pointers.values()].slice(0,2),mid=midpoint(points),o=draft.options,g=gesture;
+  if(g.fitted){
+   g.travel+=Math.hypot(e.clientX-last.x,e.clientY-last.y);
+   if(points.length>1&&g.twist!==null){o.rotate=Math.max(-180,Math.min(180,Math.round((g.rotate+(Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x)-g.twist)*180/Math.PI)*10)/10));showAngle();}
+   else if(g.count===1&&g.travel>4){const [x,y]=cropAt(mid,g.rect);moveCentre(centreAt(g.start[0]-x,g.start[1]-y,g.H,g.rotate));}
+   paint(true);return;
+  }
   if(points.length===1){
    // Preserve the existing mouse/single-finger pan semantics.
    const radius=Math.min(g.w,g.h)*g.options.scale;
@@ -651,7 +819,10 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   paint(true);
  };
  view.onpointerup=view.onpointercancel=view.onlostpointercapture=e=>{
-  if(!pointers.delete(e.pointerId))return;reanchor();
+  const g=gesture;if(!pointers.delete(e.pointerId))return;
+  // A tap on the fitted photo: that point is the disc's middle.
+  if(g?.fitted&&g.count===1&&e.type==='pointerup'&&g.travel<=4&&performance.now()-g.at<400){const [x,y]=cropAt({x:e.clientX,y:e.clientY},g.rect);moveCentre(centreAt(x,y));paint(true);}
+  reanchor();
   if(view.hasPointerCapture(e.pointerId))view.releasePointerCapture(e.pointerId);
  };
  // Safari's legacy gesture/double-tap handling must not steal a captured stage gesture.
@@ -664,13 +835,13 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  dialog.addEventListener('dblclick',e=>{if(stage.contains(e.target))prevent(e);});
 
  const reset=(item,mold)=>{
-  closeSources();serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();
+  closeSources();serial++;busy=false;if(dialog.open)dialog.close();releaseDraft();releaseUsed();previewImages.clear();
   current=photoURL(item);owned=item?.id&&item?.texture_key?{id:String(item.id),key:item.texture_key}:null;removed=false;changed=false;plate=plateRatio(mold);
   rimInner=mold&&isOvermold({...mold,record:mold.name})?plate:null;bandInner=rimInner?null:bandRatio(mold);
   q('.bag-photo-status').textContent='';renderSheet();
  };
  reset(null);
- return {reset,get changed(){return changed||busy;},
+ const editor={reset,get changed(){return changed||busy;},
   get photoRimColor(){return used?.photoRimColor??null;},
   // The prepared photo's outer band (one-piece molds only). The sheet stores it as photo_rim_color only for a
   // Halo copy (disc3d/halo.mjs), since only the sheet knows the plastic at save time.
@@ -683,6 +854,23 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   // Why the prepared photo gave none (disc-albedo.mjs trueColorRead): 'shallow', 'colour', 'unread', or null.
   get trueColorRefused(){return used?.trueColorRefused??null;},
   async value(){if(busy)throw Error('Wait for the photo to finish.');return used?used.blob:null;},
+  // Part B (docs/photo-adder-rework.md): once the photo is saved as `key`, its game asset is saved with it, in the look
+  // chosen here: the make is waited for (each step is bounded), made again first if the finish changed to or from Clear.
+  // Photo keeps the photo alone, as before this sheet made assets. Resolves to the look kept, or null with no new photo;
+  // rejects with the reason the asset could not be kept.
+  async keepAsset(id,key){
+   const job=used;if(!job?.asset||removed)return null;
+   if(job.asset.look==='photo')return 'photo';
+   if(job.asset.state!=='failed'&&job.asset.clear!==clear())makePending(job);
+   const asset=await job.asset.promise;
+   if(asset.look==='photo')return 'photo';
+   if(asset.state!=='made')throw Error(asset.error);
+   await within(savePhotoStamp(String(id),key,{...asset.result,look:asset.look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
+   return asset.look;
+  },
   // For tests: the aligner and what it is working on.
   debug:{dialog,get draft(){return draft;},get used(){return used;}}};
+ // Browser suites read the aligner's state from its dialog (tests/photo-adder-rework-browser.mjs).
+ dialog.editorDebug=editor.debug;
+ return editor;
 }

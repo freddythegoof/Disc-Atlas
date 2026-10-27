@@ -12,6 +12,8 @@
 //    matched rim colour included.
 // Shots and numbers: docs/photo-stamp-orientation/. Run: PLAYWRIGHT_MODULE=<playwright> node tests/photo-stamp-level-browser.mjs
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner (tests/photo-flow.mjs).
+import {frameByHand} from './photo-flow.mjs';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -118,7 +120,7 @@ try{
  }
  await tab.setViewportSize({width:412,height:915});
  await tab.evaluate(()=>{window.colors=[];window.editor=photo.createPhotoEditor(document.querySelector('#editor'),{onColor:c=>colors.push(c)});});
- await tab.locator('.bag-photo-file').setInputFiles(fixture);await tab.locator('.photo-aligner[open]').waitFor();
+ await tab.locator('.bag-photo-file').setInputFiles(fixture);await tab.locator('.photo-aligner[open]').waitFor();await frameByHand(tab);
  const crooked=await tab.evaluate(async()=>{const {blob}=await photo.preparePhoto(editor.debug.draft.bitmap,editor.debug.draft.options);return {angle:await textureAngle(blob),url:await upload(blob,'b0.webp')};});
  near(crooked.angle,-3,.2,'crooked photo: texture before levelling');
  const rotate=()=>tab.evaluate(()=>editor.debug.draft.options.rotate),readout=()=>tab.locator('.photo-aligner-angle').textContent();

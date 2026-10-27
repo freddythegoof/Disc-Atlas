@@ -356,10 +356,19 @@ $('#addDiscForm').addEventListener('submit',async event=>{
    if(!r?.ok){void loadBag();throw Error('Disc saved. '+(data.error||'Its photo could not save; try again.'));}
    result.disc.texture_key=data.texture_key;result.disc.photo_rim_color=data.photo_rim_color;result.disc.photo_halo=data.photo_halo??null;result.disc.photo_true_color=data.photo_true_color??null;
   }
+  // A new photo's game asset, made in this sheet (docs/photo-adder-rework.md), is kept with the photo just saved. If it
+  // cannot be, the disc and its photo stay saved and the status says why.
+  let assetNote='';
+  if(photoChanged&&photo){
+   $('#addDiscStatus').textContent='Saving the game asset…';
+   await photoEditor.keepAsset(result.disc.id,result.disc.texture_key).catch(error=>{assetNote=' Its game asset could not be saved: '+(error?.message||'try again.')+' Choose Game asset in its sheet to make it again.';});
+   if(epoch!==generation)throw new DOMException('Account changed','AbortError');
+   if(operation!==discEditSequence){void loadBag();return;}
+  }
   items=items.some(i=>i.id===result.disc.id)?items.map(i=>i.id===result.disc.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();
   // An edited row is re-rendered, so explicitly restore keyboard focus to its new button.
   if(active && edited)$(`[data-bag-edit="${edited.id}"]`)?.focus({preventScroll:true});
-  status(edited?'Disc updated.':result.disc.status==='lost'?`${name(mold(result.disc.mold_id))} has a headstone in Lost.`:result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.');
+  status((edited?'Disc updated.':result.disc.status==='lost'?`${name(mold(result.disc.mold_id))} has a headstone in Lost.`:result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.')+assetNote);
  } catch(error) {if(error.name!=='AbortError'&&operation===discEditSequence)$('#addDiscStatus').textContent=error.message;}
  finally {if(epoch===generation&&operation===discEditSequence)button.disabled=false;}
 });

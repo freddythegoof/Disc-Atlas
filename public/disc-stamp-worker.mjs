@@ -5,6 +5,7 @@ import {extractPhotoStamp} from './disc-stamp-extract.mjs';
 import {extractStampColor} from './disc-stamp-color.mjs';
 import {delightStamp} from './disc-stamp-delight.mjs';
 import {unshadow,shoulder} from './disc-stamp-clear.mjs';
+import {autoRegister,inkBounds} from './disc-register.mjs';
 
 // `stored`: the crop is the site's stored texture (the one-click path, docs/photo-stamp-one-click.md), not an original.
 // `clear`: the disc is clear plastic (docs/clear-plastic-discs.md): its stamp's shadow on the surface under it shows
@@ -42,7 +43,14 @@ export function extract(data,size,plate,{color=false,stored=false,clear=false}={
  }
  return {plateColor,light:light.stats,...shadow&&{shadow},...stamp,...color&&{color:colour}};
 }
-if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=({data:{pixels,size,plate,color,stored,clear}})=>{
+// One-dot registration (docs/photo-adder-rework.md): the aligner's automatic fit, here so the page stays responsive while
+// each candidate centre's stamp is read. `register`: the photo's working copy (w × h RGBA) and the mold's plate.
+export function register(pixels,w,h,plate){
+ // A candidate whose crop shows too little to read gives no answer, not a failure.
+ return autoRegister(pixels,w,h,{plate,readInk:(crop,size)=>{try{const b=inkBounds(extract(crop,size,plate).alpha,size);return b&&{x:b.dx/(size/2),y:b.dy/(size/2)};}catch{return null;}}});
+}
+if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=async({data:{pixels,size,plate,color,stored,clear,register:fit}})=>{
+ if(fit){try{self.postMessage({result:await register(new Uint8ClampedArray(pixels),fit.w,fit.h,plate)});}catch(error){self.postMessage({error:error.message});}return;}
  try{const result=extract(new Uint8ClampedArray(pixels),size,plate,{color,stored,clear});self.postMessage({result},[result.alpha.buffer,...result.layers?Object.values(result.layers).map(v=>v.buffer):[],...result.color?[result.color.rgba.buffer]:[]]);}
  catch(error){self.postMessage({error:error.message});}
 };

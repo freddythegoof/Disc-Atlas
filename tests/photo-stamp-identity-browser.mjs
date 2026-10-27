@@ -18,6 +18,8 @@ const SELF=fileURLToPath(import.meta.url),WORK=path.resolve('work/photo-stamp-co
 
 if(process.argv[2]==='--probe'){
  const {startHarness}=await import('./display-harness.mjs');
+ // docs/photo-adder-rework.md: the photo goes through today's aligner and is saved wearing Photo, in either tree.
+ const {frameByHand,keepPhotoLook}=await import('./photo-flow.mjs');
  const [,, ,out,photoFile,port]=process.argv;
  const h=await startHarness({port:Number(port),state:'work/photo-stamp-identity/d1'});
  const {page,base,errors}=h,wait=ms=>page.waitForTimeout(ms);
@@ -30,16 +32,16 @@ if(process.argv[2]==='--probe'){
   const disc=(await items()).find(i=>i.mold_id==='3d60892b6812');
   const edit=async()=>{await page.locator(`[data-bag-edit="${disc.id}"]`).evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');};
   await edit();await page.setInputFiles('#addDiscDialog .bag-photo-file',photoFile);
-  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
+  await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
-  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
+  await keepPhotoLook(page);await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
   const key=(await items()).find(i=>i.id===disc.id).texture_key,url='/api/bag/discs/'+encodeURIComponent(disc.id)+'/photo?v='+encodeURIComponent(key);
   // The one-ink game asset, made through the sheet from the same original.
   // (v3.1: through the camera original, the quiet option, on a tree that has it; the radio itself on one that does not.)
   await edit();const chooser=page.waitForEvent('filechooser');
   const original=page.locator('#addDiscDialog .bag-photo-asset-original');
   await ((await original.count())?original:page.locator('#addDiscDialog .bag-photo-look label',{hasText:'Game asset'})).click();await (await chooser).setFiles(photoFile);
-  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
+  await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   // (Full-color on a tree where a new asset lands on it, docs/spin-color-default.md; the looks are set below either way.)
   await page.waitForFunction(()=>/asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
   await page.keyboard.press('Escape');

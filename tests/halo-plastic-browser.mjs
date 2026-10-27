@@ -22,6 +22,8 @@
 // same on both sides of the band-sampling fix, so every surface must match it pixel for pixel (GPU tolerance).
 // PR #23's own before/after (main without Halo) is recorded in docs/halo-plastic.md.
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
@@ -313,8 +315,8 @@ try{
  await edit();await page.locator('#bagPlastic').selectOption('Halo Star');disc=await save();
  assert.deepEqual(await viewerBand(),{band:disc.photo_rim_color,multi:true},'back on Halo Star, its band returns');
  await edit();await page.locator('.bag-photo-file').setInputFiles({name:'destroyer.png',mimeType:'image/png',buffer:destroyerHalo});
- await page.locator('.photo-aligner[open]').waitFor();await page.locator('[data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});
- disc=await save();metrics.replaced=disc.photo_rim_color;assert.ok(dist(disc.photo_rim_color,BAND)<48,'replacing the photo re-samples the band');
+ await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);await page.locator('[data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});
+ await keepPhotoLook(page);disc=await save();metrics.replaced=disc.photo_rim_color;assert.ok(dist(disc.photo_rim_color,BAND)<48,'replacing the photo re-samples the band');
  await edit();await page.locator('.bag-photo-remove').click();disc=await save();
  assert.equal(disc.texture_key,null);assert.equal(disc.photo_rim_color,null,'removing the photo clears the band');
 

@@ -1,6 +1,8 @@
 // Shared by the photo-edge suites (docs/photo-edge-revert.md): the fixtures, the editor upload, and the
 // reference tree a run can draw through first.
 import fs from 'node:fs';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import path from 'node:path';
 
 // Molds by catalog id: Wraith (one piece), Thunderbird (one piece, the clean control), Pixel (overmold control).
@@ -52,7 +54,7 @@ export async function addDisc(page,dir,{mold,photo,framing,type='image/png',plas
  await page.evaluate(({mold,destination})=>{const d=discs.find(d=>d.id===mold);if(!d)throw Error('Missing mold '+mold);return BagApp.add(d,null,destination);},{mold,destination});
  await page.locator('#addDiscDialog').waitFor();
  if(plastic)await page.locator('#bagPlastic').selectOption(plastic);
- await page.locator('.bag-photo-file').setInputFiles({name:'photo.'+type.split('/')[1],mimeType:type,buffer:photo});await page.locator('.photo-aligner[open]').waitFor();
+ await page.locator('.bag-photo-file').setInputFiles({name:'photo.'+type.split('/')[1],mimeType:type,buffer:photo});await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);
  if(framing){
   await page.evaluate(scale=>{const el=document.querySelector('.photo-aligner [data-photo="scale"]');el.value=scale;el.dispatchEvent(new Event('input',{bubbles:true}));},framing.scale);
   await page.locator('.photo-aligner-view').focus();
@@ -60,7 +62,7 @@ export async function addDisc(page,dir,{mold,photo,framing,type='image/png',plas
   await press(framing.cx>.5?'ArrowLeft':'ArrowRight',Math.round(Math.abs(framing.cx-.5)/.01));await press(framing.cy>.5?'ArrowUp':'ArrowDown',Math.round(Math.abs(framing.cy-.5)/.01));
  }
  await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();
- await page.locator('#saveDisc').click();
+ await keepPhotoLook(page);await page.locator('#saveDisc').click();
  await page.locator('#addDiscDialog').waitFor({state:'hidden'}).catch(async e=>{await page.screenshot({path:`${dir}/failure-add.png`});throw Error(e.message+' | Dialog: '+await page.locator('#addDiscDialog').innerText());});
 }
 // EDGE_REFERENCE=<checkout>: a scratch checkout of another commit, built (node scripts/build-workers.mjs), whose

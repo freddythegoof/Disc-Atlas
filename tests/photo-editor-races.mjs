@@ -36,7 +36,7 @@ function editorFixture({photoValue=async()=> 'processed-photo',upload=async()=>p
   DOMException,generation:0,discEditSequence:0,
   account:{user:{id:'owner-a'},csrfToken:'owner-a-token'},
   editing:null,items:[],loading:false,active:false,plastics:{},rimCustomized:false,
-  photoEditor:{changed:true,value:photoValue,reset(){}},
+  photoEditor:{changed:true,value:photoValue,reset(){},async keepAsset(){return null;}},
   colorHint:()=>({textContent:''}),colorBeforePhoto:null,photoColor:null,
   mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),isHalo,finishChoice:()=>'opaque',
   render(){counts.renders++;},status(){},loadBag(){counts.refreshes++;},name:()=> 'Disc',
@@ -250,4 +250,19 @@ test('finished thumbnails stop being observed; only a loading photo stays watche
  ready=true;rendered.length=0;onPhoto({detail:{url:'photo-a'}});await flush();
  assert.deepEqual(rendered,['loading']);assert.deepEqual(unobserved,['plain','loading'],'the photo row is released once finished');
  rendered.length=0;onPhoto({detail:{url:'photo-a'}});await flush();assert.deepEqual(rendered,[],'released rows do no further work');
+});
+
+// docs/photo-adder-rework.md: a new photo's game asset, made in the sheet, is kept once the photo is saved, under the key
+// the upload returned; if it cannot be, the disc and its photo stay saved and the status says why.
+test('the game asset made in the sheet is kept with the photo just saved, and its failure never undoes the save',async()=>{
+ const kept=[],f=editorFixture();let said='';
+ f.context.photoEditor.keepAsset=async(id,key)=>{kept.push([id,key]);return 'color';};f.context.status=text=>{said=text;};
+ await f.submit();
+ assert.deepEqual(kept,[['saved-disc','saved-photo.webp']],'kept under the saved key, after the upload');
+ assert.equal(f.counts.closes,1);assert.equal(said,'Disc added to Storage.');
+ const g=editorFixture();let told='';
+ g.context.photoEditor.keepAsset=async()=>{throw Error('No stamp showed up on this photo.');};g.context.status=text=>{told=text;};
+ await g.submit();
+ assert.equal(g.context.items[0].texture_key,'saved-photo.webp','the photo stays saved');assert.equal(g.counts.closes,1);
+ assert.match(told,/^Disc added to Storage\. Its game asset could not be saved: No stamp showed up on this photo\./);
 });

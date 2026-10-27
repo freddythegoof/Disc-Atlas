@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {startHarness} from './display-harness.mjs';
+import {keepPhotoLook} from './photo-flow.mjs';
 const sharp=createRequire(import.meta.url)('sharp');
 
 // A teal disc filling the aligner's default framing (scale .94) of a 1600 x 2000 photo, with a single-ink stamp.
@@ -35,12 +36,14 @@ try{
  const closeSheet=async()=>{await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'));};
  const lookRow=()=>page.locator('#addDiscDialog .bag-photo-look');
 
- // No photo yet: no Look row. A photo chosen but not saved: still none (the asset belongs to a saved photo).
+ // No photo yet: no Look row. A photo chosen but not saved (docs/photo-adder-rework.md): its game asset is made in the
+ // sheet and its Look row stands on Game asset; this suite's photo is saved wearing Photo, as photos were before.
  await edit();assert.equal(await lookRow().isHidden(),true,'no photo, no look');
  await page.setInputFiles('#addDiscDialog .bag-photo-file',first);
  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
  await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
- assert.equal(await lookRow().isHidden(),true,'an unsaved photo has no look yet');
+ assert.equal(await page.locator('#addDiscDialog .bag-photo-look input[value="game"]').isChecked(),true,'a new photo lands on Game asset');
+ await keepPhotoLook(page);
  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
  const saved=(await items()).find(i=>i.id===disc.id),url='/api/bag/discs/'+encodeURIComponent(disc.id)+'/photo?v='+encodeURIComponent(saved.texture_key);
  const routeHash=()=>page.evaluate(async url=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await (await fetch(url,{credentials:'same-origin'})).arrayBuffer()))).join(','),url);
@@ -67,7 +70,8 @@ try{
  await page.locator('#addDiscDialog .bag-photo-asset-original').click();
  await (await chooser).setFiles(first);
  await page.waitForSelector('dialog.photo-aligner[open]');
- assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
+ await page.waitForFunction(()=>document.querySelector('dialog.photo-aligner')?.dataset.fit==='fitted',null,{timeout:90000});
+ assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Check it against the cross','the original is fitted like a new photo');
  assert.equal(await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').textContent(),'Make game asset');
  await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
  await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
@@ -133,14 +137,18 @@ try{
  await inspect();await page.waitForFunction(()=>Disc3D.viewer.debug.photo?.userData.photoReady,null,{timeout:30000});
  await page.unroute('**/stamp/ink?*');
 
- // A replaced photo is a new version: the look returns to Photo, and the Look row offers a new asset.
+ // A replaced photo is a new version (docs/photo-adder-rework.md): its own game asset is made in the sheet and saved
+ // under its key with it, in Full color; the old version's asset goes.
  await edit();await page.setInputFiles('#addDiscDialog .bag-photo-file',second);
  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
- await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
+ await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:90000});
+ await page.waitForFunction(()=>/^Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});
  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
  const replaced=(await items()).find(i=>i.id===disc.id);assert.notEqual(replaced.texture_key,saved.texture_key);
- assert.deepEqual(await page.evaluate(([id,key])=>import('/disc3d/photo-stamps.mjs').then(m=>m.photoLook(id,key)),[disc.id,replaced.texture_key]),{available:false,look:'photo'});
- await edit();assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isHidden(),true);
+ const now=await page.evaluate(([id,key])=>import('/disc3d/photo-stamps.mjs').then(m=>m.photoLook(id,key)),[disc.id,replaced.texture_key]);
+ assert.equal(now.available,true);assert.equal(now.look,'color');
+ assert.deepEqual(await page.evaluate(([id,key])=>import('/disc3d/photo-stamps.mjs').then(m=>m.photoLook(id,key)),[disc.id,saved.texture_key]),{available:false,look:'photo'},'the old version’s asset is gone');
+ await edit();assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-make').isVisible(),true);
  assert.equal(await page.locator('#addDiscDialog .bag-photo-asset-original').textContent(),'Use a higher-resolution original instead');await closeSheet();
 
  assert.deepEqual(errors,[]);

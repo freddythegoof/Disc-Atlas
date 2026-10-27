@@ -19,6 +19,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {startHarness} from './display-harness.mjs';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 const sharp=createRequire(import.meta.url)('sharp');
 
 // A teal disc filling the aligner's default framing of a 1600 x 2000 photo, with an outlined print (a ring, a bar, a
@@ -51,9 +53,9 @@ try{
  const closeSheet=async()=>{await page.evaluate(()=>{window.__sheetClosed=new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true}));});await page.keyboard.press('Escape');await page.evaluate(()=>window.__sheetClosed);};
  const savePhoto=async(id,file)=>{
   await edit(id);await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
-  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
+  await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
-  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
+  await keepPhotoLook(page);await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
   return (await items()).find(i=>i.id===id);
  };
  const photoHash=(id,key)=>page.evaluate(async url=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await (await fetch(url,{credentials:'same-origin'})).arrayBuffer()))).join(','),'/api/bag/discs/'+encodeURIComponent(id)+'/photo?v='+encodeURIComponent(key));
@@ -152,7 +154,7 @@ try{
  await edit(A);const original=page.locator('#addDiscDialog .bag-photo-asset-original');
  assert.equal(await original.textContent(),'Use a higher-resolution original instead');
  const chooser=page.waitForEvent('filechooser');await press(original);await (await chooser).setFiles(first);
- await page.waitForSelector('dialog.photo-aligner[open]');
+ await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);
  assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
  const revBefore=(await stamp(A)).rev;await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
  await page.waitForFunction(()=>/Game asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:180000});

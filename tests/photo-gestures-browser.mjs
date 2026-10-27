@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner (tests/photo-flow.mjs).
+import {frameByHand} from './photo-flow.mjs';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {photoHarness,playwright} from './photo-harness.mjs';
@@ -17,7 +19,7 @@ try{
     const {createPhotoEditor}=await import('/disc-photo.mjs');window.editor=createPhotoEditor(document.querySelector('#editor'));
    });
    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));
-   await page.locator('.photo-aligner[open]').waitFor();
+   await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);
    await page.evaluate(()=>{
     window.events=[];
     const view=document.querySelector('.photo-aligner-view');
@@ -78,7 +80,7 @@ try{
     await touch('touchStart',[point(1,0)]);await touch('touchMove',[point(1,10)]);await touch('touchEnd',[]);
     await page.keyboard.press('Escape'); // Cancel and start fresh so desktop expectations stay literal.
     await page.waitForFunction(()=>editor.debug.draft===null);
-    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();
+    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);
     await page.locator('.photo-aligner-adjust summary').click();
     const view=page.locator('.photo-aligner-view');await view.focus();await page.keyboard.press('ArrowRight');await page.keyboard.press('+');
     await page.evaluate(()=>document.querySelector('.photo-aligner-view').dispatchEvent(new WheelEvent('wheel',{deltaY:50,cancelable:true})));
@@ -90,7 +92,7 @@ try{
    }
    if(scenario==='reset'){
     await touch('touchStart',[point(1,0)]);await touch('touchMove',[point(1,20)]);await page.evaluate(()=>editor.reset(null));await touch('touchEnd',[]);
-    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();
+    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);
     await touch('touchStart',[point(4,0)]);await touch('touchMove',[point(4,10)]);const reset=await snap('new draft drag after reset');await touch('touchEnd',[]);
     if(!characterize)near(reset.cx,.5-10*k*.94,'reset cx');
    }

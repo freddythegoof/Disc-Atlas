@@ -1,5 +1,7 @@
 // Real local D1 + the existing signed Google fixture; no live account is touched.
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
@@ -63,8 +65,8 @@ try {
  const apply=async(bytes)=>{
   await page.locator(`[data-bag-edit="${disc.id}"]`).click();
   await page.locator('.bag-photo-file').setInputFiles({name:'synthetic-pixel.png',mimeType:'image/png',buffer:bytes});
-  await page.locator('.photo-aligner[open]').waitFor();await page.locator('[data-aligner-confirm]').click();
-  await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
+  await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);await page.locator('[data-aligner-confirm]').click();
+  await page.locator('.photo-aligner').waitFor({state:'hidden'});await keepPhotoLook(page);await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
   return (await api('/discs/'+disc.id)).disc;
  };
  await refresh();await page.setViewportSize({width:390,height:844});

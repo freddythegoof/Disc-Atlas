@@ -13,6 +13,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {startHarness} from './display-harness.mjs';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 const sharp=createRequire(import.meta.url)('sharp');
 
 const DIR='work/photo-stamp-server-sync/synthetic';fs.mkdirSync(DIR,{recursive:true});
@@ -50,9 +52,9 @@ const on=device=>{
  const closeSheet=async()=>{await page.evaluate(()=>{window.__sheetClosed=new Promise(r=>document.querySelector('#addDiscDialog').addEventListener('close',()=>setTimeout(r),{once:true}));});await page.keyboard.press('Escape');await page.evaluate(()=>window.__sheetClosed);};
  const savePhoto=async(id,file)=>{
   await edit(id);await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
-  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
+  await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
-  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
+  await keepPhotoLook(page);await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
   return (await items()).find(i=>i.id===id);
  };
  // Full color through the sheet. v3.1 (docs/photo-stamp-one-click.md): one tap, from the photo the disc already has; no
