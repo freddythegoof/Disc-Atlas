@@ -41,7 +41,7 @@ async function open(device,{reduced=false,freeze=false,baseline=false,seen=false
    };
    const realSettle=settleAtlas;settleAtlas=function(){const done=realSettle();if(done)window.settles=(window.settles||0)+1;return done;};
    const realFocus=focusFeatured;focusFeatured=function(){window.presentationRequested??=performance.now();return realFocus();};
-   const realStep=stepCamera;stepCamera=function(now){${freeze?"if(!window.manualIntroStep)return;":''}const intro=!!atlasIntro,first=atlasIntro?.at===null;realStep(now);if(first&&atlasIntro)window.introMeasurement.at=atlasIntro.at;if(intro&&!atlasIntro&&window.introMeasurement)window.introMeasurement.elapsed=now-window.introMeasurement.at;};
+   const realStep=stepCamera;stepCamera=function(now){${freeze?"if(!window.manualIntroStep)return;":''}const intro=!!atlasIntro,first=atlasIntro?.at===null;realStep(now);if(first&&atlasIntro)window.introMeasurement.shown=window.introMeasurement.at=atlasIntro.at;if(atlasIntro&&!atlasIntro.holding&&window.introMeasurement){window.introMeasurement.at=atlasIntro.at;window.introMeasurement.hold=atlasIntro.hold;}if(intro&&!atlasIntro&&window.introMeasurement)window.introMeasurement.elapsed=now-window.introMeasurement.at;};
    const realDraw=draw;draw=function(){realDraw();if(typeof view!=='undefined'&&view==='map'&&mapClusters.length&&!window.firstAtlasQueued){window.firstAtlasQueued=true;requestAnimationFrame(()=>{window.firstAtlasFrame=performance.now();window.firstAtlasZoom=zoom;});}};
   `;
   await route.fulfill({body:fs.readFileSync('public/atlas-map.js','utf8')+instrument,contentType:'application/javascript'});
@@ -67,7 +67,10 @@ try{
  for(const device of ['desktop','phone']){
   const page=await open(device);await settle(page);
   const end=await page.evaluate(camera),timing=await page.evaluate(()=>({...window.introMeasurement,firstFrame:window.firstAtlasFrame}));
+  // Ruling 3 (Oct 26, 2026): a cold open may hold the close-up first, at most INTRO_HOLD_MAX; the reveal itself is timed
+  // from the hold's end (introMeasurement.at follows atlasIntro.at there), against the same bounds as before.
   assert.ok(timing.elapsed>=1200&&timing.elapsed<=1800,JSON.stringify({...timing,stop:await page.evaluate(()=>window.introStopStack)}));
+  assert.ok((timing.hold??0)<=await page.evaluate(()=>INTRO_HOLD_MAX),'The hold never runs past its cap '+JSON.stringify(timing));
   const calm=await open(device,{reduced:true});await settle(calm);
   assert.deepEqual(await calm.evaluate(camera),end,'Completed camera equals the no-animation camera');
   assert.equal(await calm.evaluate(()=>window.introMeasurement),undefined,'Reduced motion never starts an intro');
@@ -110,7 +113,13 @@ try{
   const frames=[];
   for(const [name,ms] of [['start',0],['mid',400],['end',1580]]){
    await proof.evaluate(ms=>{window.manualIntroStep=true;stepCamera(window.introMeasurement.at+ms);draw();window.manualIntroStep=false;},ms);
-   if(name==='start')assert.equal(await proof.evaluate(()=>zoom),device==='phone'?4:2.8,'Start is the original Destroyer zoom');
+   if(name==='start'){
+    assert.equal(await proof.evaluate(()=>zoom),device==='phone'?4:2.8,'Start is the original Destroyer zoom');
+    // A frozen clock never lets the art finish drawing, so the hold runs to its cap: step there, and time the
+    // pull-back's frames from where it starts (ruling 3).
+    await proof.evaluate(()=>{window.manualIntroStep=true;if(atlasIntro?.holding)stepCamera(window.introMeasurement.shown+INTRO_HOLD_MAX);draw();window.manualIntroStep=false;});
+    assert.equal(await proof.evaluate(()=>atlasIntro&&!atlasIntro.holding),true,'The hold ends at its cap');
+   }
    if(name==='end'){await proof.evaluate(()=>{window.manualIntroStep=true;scheduleMapDraw=window.resumeDraw;scheduleMapDraw();});await settle(proof);}
    await proof.screenshot({path:`${out}/${device}-${name}.png`});frames.push({name,ms,...await proof.evaluate(camera)});
   }

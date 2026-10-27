@@ -73,9 +73,27 @@ function measureFullLabels(items){
 // after fonts.ready, so measure again whenever any font finishes loading. The canvas's small names
 // (gapName) were set in whatever face had loaded: `gapNameFonts` marks them for drawing again.
 let gapNameFonts=0;
-const remeasureLabels=()=>{fullLabelFootprints.clear();gapTypes.clear();groupContext=null;gapNameFonts++;scheduleMapDraw();};
+// Measuring every label is a long task, so it never runs while the camera flies: it waits until the camera is still,
+// or for a cold intro's hold, where the close-up barely moves and the hold waits for it (draw runs it). When the new face
+// leaves every box as it was, nothing is laid out again; only the canvas's names are set again in it.
+let remeasureDue=false;
+const remeasureLabels=()=>{
+ if(atlasIntro?!atlasIntro.holding:!cameraLooksStill()){remeasureDue=true;scheduleMapDraw();return;}
+ remeasureDue=false;
+ const items=groupContext?.items;
+ if(items&&fullLabelFootprints.size){
+  const before=new Map(fullLabelFootprints),box=(a,b)=>a&&b&&a.x===b.x&&a.y===b.y&&a.w===b.w&&a.h===b.h;
+  fullLabelFootprints.clear();gapTypes.clear();measureFullLabels(items);
+  if([...fullLabelFootprints].every(([k,f])=>{const o=before.get(k);return box(o,f)&&o.radius===f.radius&&box(o.satellite,f.satellite);})){
+   fullLabelFootprints.clear();for(const [k,f] of before)fullLabelFootprints.set(k,f);
+   gapNameFonts++;scheduleMapDraw();return;
+  }
+ }
+ fullLabelFootprints.clear();gapTypes.clear();groupContext=null;gapNameFonts++;scheduleMapDraw();
+};
 document.fonts.ready.then(remeasureLabels);document.fonts.addEventListener?.('loadingdone',remeasureLabels);
-function measureMap(){mapViewport=canvas.getBoundingClientRect();mapChrome=null;}
+// The chrome's boxes (measureChrome) stay while the map keeps its size: a wheel measures the map on every event.
+function measureMap(){const was=mapViewport;mapViewport=canvas.getBoundingClientRect();if(!was||was.width!==mapViewport.width||was.height!==mapViewport.height||was.left!==mapViewport.left||was.top!==mapViewport.top)mapChrome=null;}
 // The chrome over the map in map pixels. The organic overview keeps every disc and name clear of it at
 // 1x; deeper in, discs run on under it to the map's edges as before.
 let mapChrome=null;
@@ -94,9 +112,28 @@ function measureChrome(){
 function organicAtlas(){return !myMap;}
 function immersiveMap(){return !document.body.classList.contains('my-bag-mode');}
 // Curate options for a level at the current zoom (AtlasGroups.organicOptions), with the chrome measured here.
+// A level is laid out once, at its floor (as the worker does), and kept whatever the camera does: a moving camera never
+// lays the field out again (ruling 1, Oct 26, 2026). Past the level's range its names fade where they meet
+// (yieldNames) until the level changes. One case lays it out at the live zoom: a still camera that the pointer hold
+// (levelHeld) or a pending worker keeps on a level whose range it has left. The resting map stays clean (it would
+// otherwise rest crowded), once, and its changes ease and fade like a swap's.
 function organicOptions(area,w,h,cache,first=null){
  if(!mapChrome)measureChrome();
- return {...window.AtlasGroups.organicOptions({area,width:w,height:h,level:cache.level,zoom,extent:cache.extent,chrome:mapChrome||[]}),first};
+ return {...window.AtlasGroups.organicOptions({area,width:w,height:h,level:cache.level,zoom:layoutZoom(cache),extent:cache.extent,chrome:mapChrome||[]}),first};
+}
+// The zoom a level is laid out at: its floor, or (still, and held past its range longer than LAYOUT_HELD ms: the
+// pointer resting on a disc) where the camera lands, its spring's tail still creeping after it looks still, so it
+// happens once. A short hold (the pointer settling) just waits for the swap. It changes only while the camera is
+// still; a camera that moves again keeps whichever layout is showing.
+const LAYOUT_HELD=300;let layoutTimer=0;
+function layoutZoom(cache){
+ const {floor,top}=AtlasGroups.organicRange(cache.level);
+ if(!cameraLooksStill())return cache.layoutAt??floor;
+ const rest=cameraTween&&cameraDestination?cameraDestination.zoom:zoom;
+ if(rest>=floor&&rest<=top)return cache.layoutAt=floor;
+ const held=swapDueAt?performance.now()-swapDueAt:0;
+ if(held<LAYOUT_HELD){clearTimeout(layoutTimer);layoutTimer=setTimeout(scheduleMapDraw,LAYOUT_HELD-held+10);return cache.layoutAt??floor;}
+ return cache.layoutAt=rest;
 }
 // The selected disc's group: the curate walk places it first when it would otherwise be hidden.
 function selectedGroup(groups){return selected?groups.find(g=>g.members.includes(selected)||g.members.includes(selected.id)):null;}
@@ -116,7 +153,8 @@ function markerLabel(g,f){
 function dotArtRadius(){return AtlasGroups.gapSize(zoom,'small')/2;}
 function markerTarget(g){
  const f=groupCache.footprints.get(g.key);
- return {kind:'marker',ref:g,x:g.x,y:g.y,r:g.large?(f?.radius??34)*mapMarkerScale()+8:organicAtlas()?dotArtRadius()+6:22,label:markerLabel(g,f)};
+ // A name faded out for a collision (yieldNames) can't be read, so it isn't a target.
+ return {kind:'marker',ref:g,x:g.x,y:g.y,r:g.large?(f?.radius??34)*mapMarkerScale()+8:organicAtlas()?dotArtRadius()+6:22,label:labelYield.has(g.key)?null:markerLabel(g,f)};
 }
 function gapTarget(e){return {kind:'gap',ref:e,x:e.x,y:e.y,r:Math.max(e.size/2+6,12),label:e.strength>=AtlasTargets.READABLE&&e.box?e.box:null};}
 function mapTargets(){
@@ -140,7 +178,7 @@ function levelHeld(wanted){
 // press keeps it) and fades as a regroup's retiring discs do. `place` is buildClusters' own, so a pin follows the
 // camera like any disc.
 function keepPinned(result,place){
- const now=performance.now(),P=AtlasTargets.PIN,live=new Set(result.map(g=>g.key)),pointing=pointerAt.inside||pointerAt.pressed;
+ const now=performance.now(),P=AtlasTargets.PIN,live=new Set(result.map(g=>g.key)),pointing=pointerAt.inside||pointerAt.pressed,still=cameraLooksStill();
  if(pointing)for(const g of mapClusters){
   if(live.has(g.key)||markerPins.has(g.key)||!markerLabel(g,groupCache.footprints.get(g.key)))continue;
   if(AtlasTargets.reach(markerTarget(g),pointerAt.x,pointerAt.y,P.slack))markerPins.set(g.key,{g:{...g,joined:null,leader:null,pinned:true},since:now,away:0});
@@ -150,9 +188,47 @@ function keepPinned(result,place){
   if(!entry){markerPins.delete(key);continue;}
   if(pointing&&AtlasTargets.reach(markerTarget(entry),pointerAt.x,pointerAt.y,P.slack))pin.away=0;
   else if(!pin.away)pin.away=now;
-  if(now-pin.since>P.max||pin.away&&now-pin.away>P.leave&&!pointerAt.pressed){markerPins.delete(key);continue;}
+  // A pin lets go only while the camera looks still: never mid-flight (ruling 1).
+  if(still&&(now-pin.since>P.max||pin.away&&now-pin.away>P.leave&&!pointerAt.pressed)){markerPins.delete(key);continue;}
   result.push(entry);
  }
+}
+// Fade-only collisions (ruling 1, Oct 26, 2026). A level's rest spots keep every disc and name clear across its own
+// range (AtlasGroups.organicRange). Past it (a camera flying on, or held there while the pointer reaches for a disc)
+// true points draw together while names keep their pixels, so a name can come onto a disc or another name. It fades
+// out until it is clear again (YIELD_CLEAR px of room, so one at the edge doesn't flicker); no disc moves, appears or
+// goes. Discs always win over names, and an earlier disc's name (curate's order) over a later one's. `labelYield`:
+// curated and dot names (renderMarkers fades them); `gapYield`: the canvas's names (drawGaps), which also yield to
+// every name on the DOM layer. Inside the range nothing yields.
+const labelYield=new Set(),gapYield=new Set(),YIELD_CLEAR=4;
+let yieldGrid=null;
+function nameGrid(){
+ const cell=128,map=new Map(),K=1<<16,cells=(b,f)=>{for(let i=Math.floor(b.x/cell);i<=Math.floor((b.x+b.w)/cell);i++)for(let j=Math.floor(b.y/cell);j<=Math.floor((b.y+b.h)/cell);j++)f(i*K+j);};
+ return {
+  put(b){cells(b,k=>{let l=map.get(k);if(!l)map.set(k,l=[]);l.push(b);});},
+  hits(b,pad){let hit=false;cells({x:b.x-pad,y:b.y-pad,w:b.w+pad*2,h:b.h+pad*2},k=>{if(!hit)for(const o of map.get(k)||[])if(o.owner!==b.owner&&b.x-pad<o.x+o.w&&b.x+b.w+pad>o.x&&b.y-pad<o.y+o.h&&b.y+b.h+pad>o.y){hit=true;break;}});return hit;},
+ };
+}
+function yieldNames(){
+ yieldGrid=null;
+ const range=organicAtlas()&&groupCache?AtlasGroups.organicRange(groupCache.level):null;
+ if(!range||zoom>=range.floor&&zoom<=range.top){labelYield.clear();gapYield.clear();return;}
+ const grid=nameGrid(),scale=mapMarkerScale(),named=[];
+ for(const raw of mapClusters){
+  // Where it is drawn: a kept disc can still be at its old rest spot (renderMarkers' placeMarker).
+  const node=markerNodes.get(raw.key),g=node?.off?{...raw,x:raw.x-(raw.markerOffset?.x||0)+node.off.x,y:raw.y-(raw.markerOffset?.y||0)+node.off.y}:raw;
+  const f=groupCache.footprints.get(g.key),r=g.large?(f?.radius??34)*scale:dotArtRadius();
+  grid.put({x:g.x-r,y:g.y-r,w:2*r,h:2*r,owner:g.key});
+  const label=(g.large||g.gapLabel)&&markerLabel(g,f);
+  if(label)named.push([g.key,label]);
+ }
+ for(const [key,label] of named){
+  const box={...label,owner:key};
+  if(grid.hits(box,labelYield.has(key)?YIELD_CLEAR:0))labelYield.add(key);
+  else{labelYield.delete(key);grid.put(box);}
+ }
+ for(const key of labelYield)if(!named.some(([k])=>k===key))labelYield.delete(key);
+ yieldGrid=grid;
 }
 function cancelRegroup(){
  regroupToken++;clearTimeout(retirementTimer);cancelAnimationFrame(retirementFrame);
@@ -200,11 +276,25 @@ function prepareZoomLevel(nextZoom){
  const level=AtlasGroups.level(nextZoom,groupCache?.level);
  if(level!==groupCache?.level){const {items,w,h,immersive}=groupContext;prepareGroups(level,items,w,h,immersive);}
 }
+// How far a level's layout carries a moving camera past its own range (AtlasGroups.organicRange), so a gesture keeps
+// one field from start to stop. Out (below its floor) true points draw together and names start to yield, so it
+// carries two wheel notches (1.35x) and no more; in (past its top) the field only spreads apart, so it carries three
+// (1.56x).
+const LEVEL_REACH={out:1.36,in:1.6};
+function levelReaches(level,z){const {floor,top}=AtlasGroups.organicRange(level);return z>=floor/LEVEL_REACH.out&&z<=top*LEVEL_REACH.in;}
+// The level a camera flying past its held one changes to: the destination's when prepared and in reach, else the
+// live zoom's. Neither prepared yet: the held level stays, and the live zoom's is asked for.
+function flightLevel(items,w,h,immersive){
+ const live=AtlasGroups.level(zoom,groupCache.level),dest=cameraDestination?AtlasGroups.level(cameraDestination.zoom):null;
+ for(const l of [dest,live])if(l!=null&&l!==groupCache.level&&preparedGroups.has(l)&&levelReaches(l,zoom))return l;
+ if(groupWorker)prepareGroups(live,items,w,h,immersive);
+ return groupCache.level;
+}
 function buildClusters(items,w,h){
  const immersive=immersiveMap(),area=window.AtlasLayout.bounds(w,h,immersive);
  const changed=!groupContext||groupContext.items!==items||groupContext.w!==w||groupContext.h!==h||groupContext.immersive!==immersive;
  if(changed){
-  cancelRegroup();
+  cancelRegroup();mapChrome=null;
   for(const node of markerNodes.values()){node.position.classList.remove('is-new','is-retiring');node.position.inert=false;}
   markerPins.clear();gapPins.clear();
   groupRevision++;groupContext={items,w,h,immersive,footprints:measureFullLabels(items)};preparedGroups.clear();pendingGroups.clear();
@@ -215,6 +305,8 @@ function buildClusters(items,w,h){
    groupCache.footprints=footprints;
   }
   ensureGroupWorker();
+  // A held intro's pull-back levels are prepared again for the new context (fonts arriving re-measured the labels).
+  if(atlasIntro?.holding)for(const l of atlasIntro.levels)prepareGroups(l,items,w,h,immersive);
   // The initial map has no previous frame to retain. Later filter/size changes
   // use the same worker and staged swap as zoom changes, even at the same level.
   if(!groupCache||!hasPaintedMarkers){
@@ -223,9 +315,16 @@ function buildClusters(items,w,h){
    preparedGroups.set(initial,groupCache);
   }
  }
- // Keep the current map intact while a different density is prepared in a worker.
+ // Keep the current map intact while a different density is prepared in a worker. The level changes once the
+ // camera looks still (and the pointer isn't reaching for a disc, levelHeld), as one crossfade. A camera that flies
+ // far past the held level (a long roll, the intro's pull-back) changes it mid-flight, also as a crossfade.
  const wanted=AtlasGroups.level(zoom,groupCache?.level);
- const level=groupCache&&(cameraTween||mapDrag||levelHeld(wanted))?groupCache.level:wanted;
+ let level=groupCache.level;
+ if(cameraLooksStill()){if(!levelHeld(wanted))level=wanted;}
+ else if(!levelReaches(groupCache.level,zoom))level=flightLevel(items,w,h,immersive);
+ // A swap still due (the pointer hold, or the worker preparing it) keeps the art's levels of detail waiting too, so
+ // the level and the art change in the same frame: one burst, not two a beat apart.
+ swapDue=level!==wanted||!preparedGroups.has(level)&&level!==groupCache.level;
  const contextPending=groupCache.items!==items||groupCache.w!==w||groupCache.h!==h||groupCache.immersive!==immersive;
  let appliedContext=false;
  if(contextPending||level!==groupCache.level){
@@ -247,13 +346,15 @@ function buildClusters(items,w,h){
  groupCache.organicFirst=first?.key;
  if(groupCache.prominenceZoom!==prominence){
   if(organic){
-   // A camera between levels (a tween still showing this one) is laid out on every frame: tier 2 then
-   // keeps the level's own small discs where they stay clear instead of walking the catalog again.
-   const between=options.zoom!==AtlasGroups.organicRange(groupCache.level).floor&&groupCache.levelGaps;
-   const {gaps}=window.AtlasGroups.curate(groupCache.groups,groupCache.footprints,options.zoom,2**(groupCache.level/3),{...options,points:groupCache.points,gapsFrom:between||null});
-   if(!between)groupCache.levelGaps=gaps;
+   // Only what shapes the layout (the selection, the chrome at 1x) lays it out again here; the camera never does.
+   const shown=groupCache.prominenceZoom!=null&&hasPaintedMarkers;
+   const {gaps}=window.AtlasGroups.curate(groupCache.groups,groupCache.footprints,options.zoom,2**(groupCache.level/3),{...options,points:groupCache.points});
+   groupCache.levelGaps=gaps;
    groupCache.gaps=hydrateGaps(gaps,groupCache.byId);
-   if(!between)warmGapNames(groupCache.gaps);
+   warmGapNames(groupCache.gaps);
+   // Laid out again in place (a new selection, a held camera's rest): the markers change as a regroup's do, new ones
+   // fading in, dropped ones fading out, kept ones easing to their new spots (ruling 1).
+   if(shown&&!regrouping){cancelRegroup();regrouping=true;$('#mapMarkers').classList.add('is-regrouping');}
   }
   else{
    const satellites=zoom>=7?new Map([...groupCache.footprints].map(([key,f])=>[key,f.satellite])):undefined;
@@ -331,7 +432,26 @@ function presentAtlas(){
  focusFeatured();
  tweenCamera(target);
  const token=(name,fallback)=>(window.AtlasMotion.token?.(name,fallback)??fallback)*1000;
- atlasIntro={at:null,breath:token('--dur-ui',.18),duration:token('--dur-surface',.28)*5};
+ // Every level the pull-back passes through is prepared (the worker) and drawn ahead (warmArt) before it starts, so
+ // each change on the way is one crossfade and the landing finds its level ready.
+ const levels=[],groups=window.AtlasGroups;if(groups)for(let l=groups.level(target.zoom);l<(groupCache?.level??0);l++)levels.push(l);
+ atlasIntro={at:null,breath:token('--dur-ui',.18),duration:token('--dur-surface',.28)*5,holding:true,hold:0,levels};
+ if(groupContext){const {items,w,h,immersive}=groupContext;for(const l of levels)prepareGroups(l,items,w,h,immersive);}
+}
+// A cold open may hold the close-up, invisibly (ruling 3, Oct 26, 2026): until the 3D art has drawn what is on screen,
+// the fonts are in and the pull-back's levels are prepared, for at most INTRO_HOLD_MAX ms from the first paint. While it
+// holds, the camera is already leaving: a slow creep back from the featured disc (INTRO_CREEP of its zoom a second), so
+// the close-up is never a frozen frame, and the pull-back carries on from the creep's speed, with no still breath
+// between them (the creep was the opening beat). Ready at the first paint (a warm open), there is no hold or creep and
+// the breath and pull-back run as they always did. Either way the zoom only ever falls.
+const INTRO_HOLD_MAX=1200,INTRO_CREEP=.025;
+let artDrawn=false;
+function introReady(){
+ const art=artState==='ready'?artDrawn&&!artPending:artState!=='loading';
+ return art&&document.fonts?.status!=='loading'&&!remeasureDue&&(!groupWorker||!!groupContext&&atlasIntro.levels.every(l=>preparedGroups.has(l)));
+}
+function introCreep(now,from=atlasIntro.from,t=(now-atlasIntro.shown)/1000){
+ const c=zoomDestination(from.zoom*Math.exp(-INTRO_CREEP*t),atlasIntro.anchor,from);zoom=c.zoom;pan.x=c.x;pan.y=c.y;return c;
 }
 function catchAtlasIntro(event){
  // Input before the rest settles: the map is the player's, as it is after any open.
@@ -354,7 +474,7 @@ function settleAtlas(){
  // A camera moving again (a search's fly-to, a drag) is no longer the presentation's rest.
  if(cameraTween||mapDrag){atlasSettling=false;return false;}
  if(pointerAt.inside||pointerAt.pressed||markerPins.size||gapPins.size||$('#mapMarkers').contains(document.activeElement))return false;
- if(artState==='loading'||document.fonts.status!=='loaded'||regrouping||retirementTimer||retirementFrame||gapsMoving||artPending||$('#mapMarkers').querySelector('.is-new,.is-retiring,.is-arriving')){
+ if(artState==='loading'||document.fonts.status!=='loaded'||regrouping||retirementTimer||retirementFrame||gapsMoving||markersEasing||artPending||$('#mapMarkers').querySelector('.is-new,.is-retiring,.is-arriving')){
   clearTimeout(settleTimer);settleTimer=setTimeout(scheduleMapDraw,ART_SETTLE);return false;
  }
  atlasSettling=false;
@@ -374,11 +494,13 @@ function draw(){
  // Fonts/worker callbacks can schedule a frame before app.js has initialized.
  if(typeof view==='undefined'||view!=='map')return;
  if(!mapViewport)measureMap();const {width:w,height:h}=mapViewport;if(!w||!h)return;
+ if(remeasureDue&&(atlasIntro?atlasIntro.holding:cameraLooksStill()))remeasureLabels();
  artFrame();
  const dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.font='12px DM Sans, sans-serif';}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
  const immersive=immersiveMap();
  const area=window.AtlasLayout.bounds(w,h,immersive),plotBottom=h-(immersive?(w<700?155:110):16);
  mapClusters=buildClusters(filtered,w,h);
+ yieldNames();
  const x=s=>area.left+(s/100)*area.width*zoom+pan.x,y=s=>area.bottom-((s-1)/14)*area.height*zoom+pan.y;
  ctx.lineWidth=1;
  ctx.globalAlpha=Math.min(.65,.16+(zoom-1)*.13);
@@ -407,7 +529,7 @@ function draw(){
  renderMarkers();drawSatelliteLeaders();drawCompareHighlights();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
  // Discs still waiting for their 3D render get another frame's budget.
- if(atlasArt&&mapClusters.length)artFirst=false;
+ if(atlasArt&&mapClusters.length){artFirst=false;artDrawn=true;}
  if(artPending)scheduleMapDraw();
  // Pins let go when the pointer has been away a while: look again.
  if(markerPins.size||gapPins.size){clearTimeout(pinTimer);pinTimer=setTimeout(scheduleMapDraw,120);}
@@ -439,6 +561,8 @@ function drawCompareHighlights(){
 // name and manufacturer. Their set follows the level; a disc or name that joins or leaves fades over
 // GAP_FADE ms instead of popping, and a name's strength follows its disc's size on screen.
 const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let gapClock=0,mapGaps=[],gapsMoving=false;
+// A curated disc kept across a set change eases to its new rest spot over MARKER_EASE ms (a regroup's own duration).
+const MARKER_EASE=180,FADE_FRAME=50;let markersEasing=false;
 // Plan 16: on the main Atlas every disc is its 3D model seen from straight above, lying on the ground
 // (disc3d/atlas-art.mjs): each mold's own shape, overmolds in two colours, rendered once per disc and size
 // and drawn where the 2D orb was. Curated discs and dots carry the render in their DOM art; small discs and
@@ -447,12 +571,12 @@ const GAP_FADE=180,gapFade=new Map(),gapSprites=new Map(),gapNames=new Map();let
 // its render shows the orb, then crossfades over ART_FADE ms. Without WebGL the orbs stay.
 // window.ATLAS_3D_OFF (set before load) keeps the orbs too, for comparison.
 const ART_BUDGET=6,ART_FIRST_BUDGET=250,ART_FADE=180;
-// While the zoom is changing, a canvas disc keeps the level of detail it has (a size crossing a threshold
-// back and forth would otherwise redraw it at each nudge, and show a stand-in scaled from another level
-// meanwhile); it is looked at again once the zoom has been still for ART_SETTLE ms. A level also holds
-// across a threshold by a margin (disc3d/lod.mjs), so a size hovering there doesn't flip it either.
+// While the camera moves, a canvas disc keeps the level of detail it has (a size crossing a threshold back and
+// forth would otherwise redraw it at each nudge); it is looked at again once the camera looks still. A level also
+// holds across a threshold by a margin (disc3d/lod.mjs), so a size hovering there doesn't flip it either. ART_SETTLE
+// paces a waiting rest (settleAtlas).
 const ART_SETTLE=180;
-let atlasArt=null,artState='off',artDeadline=0,artFirst=true,artPending=0,artZoom=0,artZoomAt=0,artZoomTimer=0;
+let atlasArt=null,artState='off',artDeadline=0,artFirst=true,artPending=0;
 // For tests: the art's state ('off', 'loading', 'ready' or 'failed'), the last frame's waiting discs and
 // the renderer's own counts.
 const mapArt={get state(){return artState;},get pending(){return artPending;},get stats(){return atlasArt?.stats||null;},get lods(){return atlasArt?.lodFor;}};
@@ -468,22 +592,21 @@ function loadAtlasArt(){
   if(!/^Software WebGL/.test(err?.message))console.warn('3D atlas discs unavailable; keeping the 2D discs.',err);
  });
 }
-function artFrame(){artDeadline=performance.now()+(artFirst&&atlasArt?ART_FIRST_BUDGET:ART_BUDGET);artPending=0;}
-// True while the zoom is moving; draws once more when it has settled to look at the levels again.
-function artZooming(){
- const now=performance.now();
- if(zoom!==artZoom){
-  const first=!artZoom;artZoom=zoom;
-  if(!first){artZoomAt=now;clearTimeout(artZoomTimer);artZoomTimer=setTimeout(scheduleMapDraw,ART_SETTLE+20);}
- }
- return now-artZoomAt<ART_SETTLE;
-}
+// The map's first frame with the renderer ready fills it in one go (ART_FIRST_BUDGET), except during the intro, whose
+// camera is moving or about to: there the renders take the normal budget a frame and arrive by crossfade.
+function artFrame(){artDeadline=performance.now()+(artFirst&&atlasArt&&!atlasIntro?ART_FIRST_BUDGET:ART_BUDGET);artPending=0;}
+// True while the camera moves: the art's levels of detail are looked at again the moment it looks still, together
+// with the grouping level (cameraLooksStill), so a gesture ends in one change rather than two a beat apart.
+let swapDue=false;
+function artZooming(){return !cameraLooksStill()||swapDue;}
 // A disc's render for `size` px on screen: cached, or drawn now while the frame's budget lasts. Null while
 // it must wait (it counts as pending, and the frame asks for another). A cached render of another size
 // stands in until its own is drawn.
 function discArt(d,color,size,lod){
  if(!atlasArt)return null;
  const rim=mapRimColor(d);d=photoDisc(d);
+ // Cached at its level (the common case): one key, built once.
+ const hit=atlasArt.lookup?.(d,color,size,rim,lod,true);if(hit)return hit;
  if(!atlasArt.has(d,color,size,rim,lod,true)){
   if(performance.now()<artDeadline)atlasArt.render(d,color,size,rim,lod,true);
   else artPending++;
@@ -514,8 +637,9 @@ function mapRimColor(d){return myMap||activeLens()!=='default'?window.BagApp?.ma
 // full size, its small discs and minis at the size they reach at the level's top.
 function warmArt(prepared){
  if(!atlasArt||!organicAtlas()||!prepared||!window.requestIdleCallback)return;
- // Only the levels next to the camera's: a zoom passes through them next.
- if(groupCache&&Math.abs(prepared.level-groupCache.level)>1)return;
+ // Only the levels next to the camera's: a zoom passes through them next. The intro's pull-back passes through all of
+ // its levels, so they are all drawn ahead while its close-up shows.
+ if(groupCache&&Math.abs(prepared.level-groupCache.level)>1&&!atlasIntro?.levels?.includes(prepared.level))return;
  const {top}=AtlasGroups.organicRange(prepared.level);
  const list=[...prepared.groups.filter(g=>!g.hidden&&g.lead).map(g=>[g.lead,AtlasGroups.GAP.disc*AtlasGroups.artRoom(9)]),
   ...(prepared.gaps||[]).filter(g=>g.d).map(g=>[g.d,AtlasGroups.gapSize(top,g.tier)])];
@@ -538,19 +662,25 @@ function syncMarkerArt(node,d,color,dot=false){
   return;
  }
  if(node.art3d===entry.canvas)return;
- node.art3d?.remove();node.art3d=entry.canvas;
+ // A render replacing another (a finished photo or stamp, a recolour) fades in over it, as one arriving over the
+ // orb does; the one it replaces goes once it is covered (ruling 1: no image swaps abruptly).
+ const old=node.art3d;
+ if(node.artOld&&node.artOld!==entry.canvas)node.artOld.remove();
+ node.artOld=null;node.art3d=entry.canvas;
  const c=entry.canvas,pad=((1/entry.fill-1)/2*100).toFixed(3)+'%',size=(100/entry.fill).toFixed(3)+'%';
  c.className='disc-art-3d';c.setAttribute('aria-hidden','true');
  Object.assign(c.style,{left:'-'+pad,top:'-'+pad,width:size,height:size});
- const fade=node.artWaited&&!host.classList.contains('has-3d')&&window.AtlasMotion?.enabled();
+ const fade=window.AtlasMotion?.enabled()&&(old||node.artWaited&&!host.classList.contains('has-3d'));
  host.append(c);
  if(fade){
+  if(old&&old!==c)node.artOld=old;
   c.classList.add('is-arriving');clearTimeout(node.artTimer);
-  node.artTimer=setTimeout(()=>{c.classList.remove('is-arriving');if(node.art3d===c)host.classList.add('has-3d');},ART_FADE);
- }else host.classList.add('has-3d');
+  node.artTimer=setTimeout(()=>{c.classList.remove('is-arriving');if(node.art3d===c){host.classList.add('has-3d');node.artOld?.remove();node.artOld=null;}},ART_FADE);
+ }else{if(old&&old!==c)old.remove();host.classList.add('has-3d');}
  node.artWaited=false;
 }
 function dropMarkerArt(node){
+ node.artOld?.remove();node.artOld=null;
  if(!node.art3d)return;
  node.art3d.remove();node.art3d=null;clearTimeout(node.artTimer);node.discArt?.classList.remove('has-3d');
 }
@@ -626,8 +756,10 @@ function drawGaps(area,w,h){
  mapGaps=[];
  const list=organicAtlas()&&groupCache.gaps||[],now=performance.now(),animate=gapClock&&window.AtlasMotion?.enabled();
  gapNameBudget=6;let waiting=false;
- const zooming=artZooming();
- const step=animate?Math.min(1,(now-gapClock)/GAP_FADE):1;gapClock=now;
+ const zooming=artZooming(),still=!zooming;
+ // A frame's step of every fade, from the time since the last frame, capped at FADE_FRAME: a map left idle a while (a
+ // pointer hold, a tab in the background) resumes its fades where they were rather than finishing them in one frame.
+ const step=animate?Math.min(1,Math.min(FADE_FRAME,now-gapClock)/GAP_FADE):1;gapClock=now;
  for(const e of gapFade.values())e.on=false;
  for(const g of list){
   // One entry per disc and tier: a disc that changes tier across a level swap fades out as one and in as the other.
@@ -647,12 +779,14 @@ function drawGaps(area,w,h){
  // its rest spot), box (its name's box), paint (its sprite's box, shadows and all), drawn (on screen), lod (its
  // 3D render's level of detail, null while it shows the orb) and three (how far its render has faded in).
  for(const [key,e] of gapFade){
-  e.art=toward(e.art,e.on?1:0,step);const shown=e.label=toward(e.label,e.on&&e.named?1:0,step);
-  // A disc that stays across a level swap eases to its new rest spot (a few px at most).
-  e.ox=toward(e.ox,e.tx,step*12);e.oy=toward(e.oy,e.ty,step*12);
+  const wantName=e.on&&e.named&&!gapYield.has(key)?1:0;
+  e.art=toward(e.art,e.on?1:0,step);const shown=e.label=toward(e.label,wantName,step);
+  // A disc that stays across a level swap eases to its new rest spot (a few px at most), once the camera looks still
+  // (a level changed mid-flight waits, as a curated disc does).
+  if(still){e.ox=toward(e.ox,e.tx,step*12);e.oy=toward(e.oy,e.ty,step*12);}
   if(!e.on&&!e.art){gapFade.delete(key);continue;}
   e.rest=e.ox===e.tx&&e.oy===e.ty;
-  if(e.art!==(e.on?1:0)||shown!==(e.on&&e.named?1:0)||!e.rest)moving=true;
+  if(e.art!==(e.on?1:0)||shown!==wantName||!e.rest)moving=true;
   const x=area.left+e.pos.x*area.width*zoom+pan.x+e.ox,y=area.bottom-e.pos.y*area.height*zoom+pan.y+e.oy;
   const {size,strength,drop}=look[e.tier],reach=size*(.5+SPRITE_PAD);
   e.x=x;e.y=y;e.size=size;e.name=e.d.catalogName||e.d.name;e.box=null;e.drawn=false;e.paint={x:x-reach,y:y-reach,w:reach*2,h:reach*2};
@@ -664,15 +798,22 @@ function drawGaps(area,w,h){
   // Its 3D render over its drop shadows; the orb while the render waits, crossfading when it arrives.
   e.want=atlasArt?.lodFor(size,e.want,zooming)||null;
   const color=discColor(e.d),art=discArt(e.d,color,size,e.want);
-  if(!art)e.three=0;
+  if(!art){e.three=0;e.from=null;}
   else if(e.three==null)e.three=1;
   else if(e.three<1){e.three=animate?Math.min(1,e.three+step*GAP_FADE/ART_FADE):1;moving=true;}
+  // Any other change of image (another level of detail, a finished photo or stamp) crossfades from the one drawn
+  // over ART_FADE: nothing on the field changes abruptly, moving or not (ruling 1, Oct 26, 2026). `xf` is how far.
+  if(art&&e.img&&e.img!==art.canvas){e.from={canvas:e.img,fill:e.fill};e.xf=0;}
+  if(e.from){e.xf=animate?Math.min(1,e.xf+step*GAP_FADE/ART_FADE):1;if(e.xf<1)moving=true;}
   e.lod=art?.lod||null;
   if(e.three<1){ctx.globalAlpha=e.art*depth*(1-e.three);ctx.drawImage(gapSprite(color),x-reach,y-reach,reach*2,reach*2);}
   if(art&&e.three>0){
    ctx.globalAlpha=e.art*depth*e.three;ctx.drawImage(gapSprite(color,true),x-reach,y-reach,reach*2,reach*2);
+   if(e.from&&e.xf<1){const f=size/e.from.fill;ctx.drawImage(e.from.canvas,x-f/2,y-f/2,f,f);ctx.globalAlpha*=e.xf;}
    const s=size/art.fill;ctx.drawImage(art.canvas,x-s/2,y-s/2,s,s);
   }
+  if(e.from&&e.xf>=1)e.from=null;
+  e.img=art?.canvas||null;e.fill=art?.fill;
   const f=groupCache.footprints.get(e.id);
   if(f){
    // A curated name's box, raised to hang as far below this disc as a curated name hangs below its art.
@@ -686,13 +827,26 @@ function drawGaps(area,w,h){
   }
   e.drawn=true;
  }
+ // Canvas names that a camera past the level's range brought onto a disc or a name fade, from the next frame
+ // (yieldNames): every disc's art first, then the names in the level's order.
+ if(yieldGrid){
+  for(const e of mapGaps)if(e.drawn)yieldGrid.put({x:e.x-e.size/2,y:e.y-e.size/2,w:e.size,h:e.size,owner:e.id});
+  for(const e of mapGaps){
+   const key=e.id+'|'+e.tier;
+   if(!e.drawn||!e.box||!e.on||!e.named){gapYield.delete(key);continue;}
+   const box={...e.box,owner:e.id};
+   if(yieldGrid.hits(box,gapYield.has(key)?YIELD_CLEAR:0)){if(!gapYield.has(key)){gapYield.add(key);moving=true;}}
+   else{if(gapYield.delete(key))moving=true;yieldGrid.put(box);}
+  }
+ }
+ else if(gapYield.size){gapYield.clear();moving=true;}
  ctx.globalAlpha=1;gapsMoving=moving||waiting;
  if(moving||waiting)scheduleMapDraw();
 }
 // A small disc or mini with a readable name that a new set would fade out stays while the pointer is on or
 // near it (markers' keepPinned does the same for the DOM's): its entry holds `on`, drawn where it was.
 function keepPinnedGaps(now,listed){
- const P=AtlasTargets.PIN,pointing=pointerAt.inside||pointerAt.pressed;
+ const P=AtlasTargets.PIN,pointing=pointerAt.inside||pointerAt.pressed,still=cameraLooksStill();
  // Not a disc the new set still lists (in another tier it crossfades) or has made a curated disc.
  const shown=id=>listed.has(id)||mapClusters.some(g=>g.key===id);
  if(pointing)for(const [key,e] of gapFade){
@@ -704,7 +858,7 @@ function keepPinnedGaps(now,listed){
   if(!e||e.on||!e.drawn||shown(e.id)){gapPins.delete(key);continue;}
   if(pointing&&AtlasTargets.reach(gapTarget(e),pointerAt.x,pointerAt.y,P.slack))pin.away=0;
   else if(!pin.away)pin.away=now;
-  if(now-pin.since>P.max||pin.away&&now-pin.away>P.leave&&!pointerAt.pressed){gapPins.delete(key);continue;}
+  if(still&&(now-pin.since>P.max||pin.away&&now-pin.away>P.leave&&!pointerAt.pressed)){gapPins.delete(key);continue;}
   e.on=true;
  }
 }
@@ -754,13 +908,43 @@ function renderMarkers(){
  const current=new Map(mapClusters.map(g=>[g.key,g]));
  for(const [key,node] of markerNodes){
   const g=current.get(key);
-  const visible=g&&(g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7)&&node.groupVersion===groupCache&&node.mapX===g.x&&node.mapY===g.y;
-  node.querySelector('.marker-name').style.visibility=visible?'':'hidden';
-  // Drop an obsolete automatic label immediately, including budgeted updates.
-  if(node.classList.contains('is-satellite')&&(!g?.satellite||!visible)){
-   node.querySelector('.marker-name').style.visibility='hidden';
-  }
+  // A name the marker no longer carries in this set (a regroup's budget reaches it in a frame or two, or it is
+  // retiring) fades out, and fades back once updated: names cross-fade rather than cut (ruling 1, Oct 26, 2026).
+  const stale=!g||node.groupVersion!==groupCache;
+  if(node.labelOut!==stale){node.classList.toggle('is-label-out',stale);node.labelOut=stale;}
+  // My Map's automatic satellite names still drop at once (they never fade).
+  if(node.classList.contains('is-satellite')&&(!g?.satellite||stale||!(g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7))){node.nameEl.style.visibility='hidden';node.nameShown=false;}
  }
+ // A marker's drawn spot: the camera's placing of its point, plus its rest offset, eased from the one it had when a
+ // set change keeps the disc but rests it elsewhere (it travels there over MARKER_EASE ms rather than jumping;
+ // ruling 1). A disc whose point itself moved (a filter's spread) travels from where it was drawn.
+ // While the camera moves, a kept disc keeps the spot it is drawn at (a level changed mid-flight rests it elsewhere):
+ // it moves there once the camera looks still, with the swap's other changes.
+ const still=cameraLooksStill();
+ // A move runs MARKER_EASE ms (ease-out) from wherever it is drawn when its rest spot changes, and lands exactly.
+ const area=window.AtlasLayout.bounds(mapViewport.width,mapViewport.height,immersiveMap());
+ const placeMarker=(node,g)=>{
+  const dx=g.markerOffset?.x||0,dy=g.markerOffset?.y||0,px=g.x-dx,py=g.y-dy;
+  if(!node.off)node.off={x:dx,y:dy};
+  // Its point moved: it starts from its old point, placed by this camera (so a camera that jumps at the same time
+  // moves it only by the spread, not across the screen).
+  else if(node.pointX!==g.pos.x||node.pointY!==g.pos.y){node.off={x:node.off.x+(node.pointX-g.pos.x)*area.width*zoom,y:node.off.y-(node.pointY-g.pos.y)*area.height*zoom};node.move=null;}
+  node.pointX=g.pos.x;node.pointY=g.pos.y;
+  if(Math.abs(node.off.x-dx)>.05||Math.abs(node.off.y-dy)>.05){
+   easing=true;
+   if(still){
+    if(!node.move||node.move.x!==dx||node.move.y!==dy)node.move={x:dx,y:dy,from:{...node.off},at:clock};
+    const t=reduced?1:Math.min(1,(clock-node.move.at)/MARKER_EASE),e=1-(1-t)**3;
+    node.off.x=node.move.from.x+(dx-node.move.from.x)*e;node.off.y=node.move.from.y+(dy-node.move.from.y)*e;
+    if(t>=1){node.off.x=dx;node.off.y=dy;node.move=null;}
+   }
+   else node.move=null;
+  }
+  else{node.off.x=dx;node.off.y=dy;node.move=null;}
+  const sx=px+node.off.x,sy=py+node.off.y;
+  if(node.mapX!==sx||node.mapY!==sy){node.position.style.transform='translate3d('+sx.toFixed(2)+'px,'+sy.toFixed(2)+'px,0)';node.mapX=sx;node.mapY=sy;}
+ };
+ const clock=performance.now(),reduced=!window.AtlasMotion?.enabled();let easing=false;
  let updated=0,pendingMarkers=false;
  for(const g of mapClusters){
   live.add(g.key);let node=markerNodes.get(g.key);const lead=g.lead,n=g.members.length,color=filterPending&&node?node.discColor:discColor(lead);
@@ -768,19 +952,22 @@ function renderMarkers(){
   // together with additions so the browser does not repaint a whole level at once.
   // A pinned disc is updated at once: the pointer is on it.
   if(regrouping&&!g.pinned&&(!node||node.groupVersion!==groupCache)){
-   if(updated>=8){pendingMarkers=true;continue;}updated++;
+   // A marker the budget reaches next frame still follows the camera this one (its name already fading out).
+   if(updated>=8){pendingMarkers=true;if(node)placeMarker(node,g);continue;}updated++;
   }
   if(!node){
    node=document.createElement('button');node.type='button';node.dataset.cluster=g.key;node.className='atlas-marker';
    node.innerHTML='<span class="marker-halo"></span><span class="map-dot"></span><span class="marker-zoom"><span class="marker-stack">'+photoMarkup(lead,'stack-0')+'</span></span><span class="cluster-count"></span><span class="marker-name">'+esc(lead.catalogName||lead.name)+'<small>'+esc(lead.brand)+'</small></span>';
    // The camera's art scale sits on .marker-zoom; hover motion (atlas-motion.js) owns .marker-stack's
    // transform inside it, so neither undoes the other.
-   node.art=node.querySelector('.marker-zoom');node.dot=node.querySelector('.map-dot');
+   node.art=node.querySelector('.marker-zoom');node.dot=node.querySelector('.map-dot');node.nameEl=node.querySelector('.marker-name');
    node.querySelector('.disc-art').style.removeProperty('--disc-color');
    node.badge=node.querySelector('.cluster-count');markerNodes.set(g.key,node);node.position=document.createElement('div');node.position.className='marker-position';
    if(regrouping){node.position.classList.add('is-new');node.position.inert=true;}
    node.position.append(node);layer.append(node.position);
-   if(!hasPaintedMarkers)window.AtlasMotion?.enter(node);
+   // A disc arriving inside the map outside a regroup (a pin bringing back one already gone) fades in as a regroup's
+   // do; one the camera brings in past the edges needs no fade (ruling 1).
+   if(!hasPaintedMarkers||!regrouping&&g.x>0&&g.x<mapViewport.width&&g.y>0&&g.y<mapViewport.height)window.AtlasMotion?.enter(node);
    if(regrouping)requestAnimationFrame(()=>requestAnimationFrame(()=>{node.position.classList.remove('is-new');if(!node.position.classList.contains('is-retiring'))node.position.inert=false;}));
   }
   if(node.position.classList.contains('is-retiring')){clearTimeout(node.fadeTimer);node.position.classList.remove('is-retiring');node.position.inert=false;}
@@ -795,20 +982,27 @@ function renderMarkers(){
    node.groupVersion=groupCache;node.brandView=brandView;node.selection=selected;
    node.position.style.zIndex=g.members.includes(selected)?3:g.large?2:1;
   }
-  if(node.mapX!==g.x||node.mapY!==g.y){node.position.style.transform='translate3d('+g.x.toFixed(2)+'px,'+g.y.toFixed(2)+'px,0)';node.mapX=g.x;node.mapY=g.y;}
-  node.querySelector('.marker-name').style.visibility=g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7?'':'hidden';
-  if(node.classList.contains('is-minor-label')&&!g.minorLabel)node.querySelector('.marker-name').style.transition='none';
-  node.classList.toggle('is-minor-label',!!g.minorLabel);
-  node.classList.toggle('is-counted',!!g.complete);
-  node.classList.toggle('is-satellite',!!g.satellite);
-  node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
-  node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
-  node.style.setProperty('--label-nudge-x',(g.nudge?.x||0)+'px');
-  node.style.setProperty('--label-nudge-y',(g.nudge?.y||0)+'px');
+  placeMarker(node,g);
+  const nameShown=g.large||g.minorLabel||satelliteLabelsSuppressed||zoom<7;
+  if(node.nameShown!==nameShown){node.nameEl.style.visibility=nameShown?'':'hidden';node.nameShown=nameShown;}
+  const yielded=labelYield.has(g.key);
+  if(node.labelYield!==yielded){node.classList.toggle('is-label-yield',yielded);node.labelYield=yielded;}
+  if(node.classList.contains('is-minor-label')&&!g.minorLabel)node.nameEl.style.transition='none';
+  // Written only when they change: an unchanged write still restyles the marker, on every frame of a move.
+  const flags=(g.minorLabel?1:0)|(g.complete?2:0)|(g.satellite?4:0);
+  if(node.flagBits!==flags){node.classList.toggle('is-minor-label',!!g.minorLabel);node.classList.toggle('is-counted',!!g.complete);node.classList.toggle('is-satellite',!!g.satellite);node.flagBits=flags;}
+  const offsets=(g.labelOffset?.x||0)+','+(g.labelOffset?.y||0)+','+(g.nudge?.x||0)+','+(g.nudge?.y||0);
+  if(node.labelOffsets!==offsets){
+   node.style.setProperty('--satellite-label-x',(g.labelOffset?.x||0)+'px');
+   node.style.setProperty('--satellite-label-y',(g.labelOffset?.y||0)+'px');
+   node.style.setProperty('--label-nudge-x',(g.nudge?.x||0)+'px');
+   node.style.setProperty('--label-nudge-y',(g.nudge?.y||0)+'px');
+   node.labelOffsets=offsets;
+  }
   // A complete view's dots are its small discs: their names show where curate cleared them (tier 2),
   // at their size's strength. Set per named dot, never on the layer, which would restyle every marker.
   const named=organicAtlas()&&!g.large&&!!g.gapLabel;
-  node.classList.toggle('is-gap-label',named);
+  if(node.gapNamed!==named){node.classList.toggle('is-gap-label',named);node.gapNamed=named;}
   if(named&&node.gapLabel!==gapLabel){node.style.setProperty('--gap-label',gapLabel);node.gapLabel=gapLabel;}
   const selectedScale=g.members.includes(selected)?1.12:1;
   if(node.markerScale!==scaleValue||node.dotSelection!==selectedScale||node.scaleLarge!==g.large){
@@ -820,7 +1014,8 @@ function renderMarkers(){
   }
  }
  if(mapClusters.length)hasPaintedMarkers=true;
- if(pendingMarkers){scheduleMapDraw();return;}
+ markersEasing=easing;
+ if(pendingMarkers||easing){scheduleMapDraw();if(pendingMarkers)return;}
  if(regrouping){
   regrouping=false;
   for(const [key,node] of markerNodes)if(!live.has(key)){
@@ -1010,7 +1205,9 @@ function initAtlasMap(){
   resetEdge();
   const unit=e.deltaMode===1?16:e.deltaMode===2?mapViewport.height:1;
   const delta=Math.max(-600,Math.min(600,(e.deltaY || e.deltaX)*unit));
-  animateZoom(Math.exp(-delta*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top});
+  // A notched mouse wheel (whole steps of 50 px or more, or lines) may glide (WHEEL_GLIDE, opt-in); a trackpad never does.
+  const notched=e.deltaMode===1||e.deltaMode===0&&Math.abs(e.deltaY||e.deltaX)>=50&&Number.isInteger(e.deltaY||e.deltaX);
+  animateZoom(Math.exp(-delta*.0015),{x:e.clientX-mapViewport.left,y:e.clientY-mapViewport.top},{glide:WHEEL_GLIDE&&notched});
  },{passive:false});
  map.addEventListener('keydown',e=>{if(e.target!==map)return;const commands={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]};if(commands[e.key]){e.preventDefault();closeCluster();tweenCamera({zoom:cameraDestination?.zoom??zoom,x:(cameraDestination?.x??pan.x)+commands[e.key][0],y:(cameraDestination?.y??pan.y)+commands[e.key][1]});}else if(e.key==='+'||e.key==='='){e.preventDefault();animateZoom(1.3);}else if(e.key==='-'){e.preventDefault();animateZoom(1/1.3);}});
  window.addEventListener('resize',()=>{stopCamera();closeCluster();});window.addEventListener('scroll',e=>{if(e.target===document)measureMap();if(activeCluster&&!clusterPinned&&!pop.contains(e.target))closeCluster();},true);
@@ -1018,7 +1215,11 @@ function initAtlasMap(){
 let mapMoved=false,mapCaught=false,mapFrame=0,cameraTween=null,cameraDestination=null;
 // One camera spring; cameraTween remains the shared moving/LOD-hold flag for existing callers.
 const CAMERA_AXES=['zoom','x','y'];
-const cameraSpring={velocity:{zoom:0,x:0,y:0},step:{zoom:1,x:0,y:0},at:0,area:null,zooming:false};
+const cameraSpring={velocity:{zoom:0,x:0,y:0},step:{zoom:1,x:0,y:0},at:0,area:null,zooming:false,glide:false};
+// Input shaping, opt-in for an A/B by hand (docs/atlas-smoothness-diagnosis.md F4): `?wheel=glide` or localStorage
+// 'atlas-wheel' = 'glide' gives a notched mouse wheel's zoom a slower spring (WHEEL_GLIDE_PERIOD s, against the usual
+// .35), so each notch is a longer glide and a roll of them blends into one flight. Off by default; trackpads never.
+const WHEEL_GLIDE_PERIOD=.5,WHEEL_GLIDE=(()=>{try{return new URLSearchParams(location.search).get('wheel')==='glide'||localStorage.getItem('atlas-wheel')==='glide';}catch{return false;}})();
 // Reduced motion: no spring, no overshoot; the camera eases to its target over 150 ms (expo-out family) instead of jumping.
 const CALM_CAMERA_MS=150;let cameraEase=null;
 const edgeFeedback={x:0,y:0};let edgeTween=null,edgeReleaseTimer=null;
@@ -1053,6 +1254,20 @@ function panMap(dx,dy){
 }
 function scheduleMapDraw(){if(!mapFrame)mapFrame=requestAnimationFrame(now=>{mapFrame=0;stepCamera(now);draw();if(cameraTween)scheduleMapDraw();});}
 function stopCamera(){cameraTween=null;cameraDestination=null;cameraEase=null;atlasIntro=null;for(const axis of CAMERA_AXES)cameraSpring.velocity[axis]=0;}
+// The camera looks still once what is left of its move, and its speed, are under what the eye follows as motion:
+// STILL.px of travel left and STILL.speed px/s (0.75 px a frame at 60 Hz). The grouping level and the art's levels
+// of detail are looked at again then, in the spring's tail, not when its own number reaches epsilon about a quarter
+// second later (docs/atlas-smoothness-diagnosis.md). A finger on the map, or the intro, is never still.
+const STILL={px:3,speed:45};
+function cameraLooksStill(){
+ if(mapDrag||atlasIntro)return false;
+ if(!cameraTween||!cameraDestination)return true;
+ // A zoom moves the corner farthest from its anchor most: up to the viewport's diagonal times its relative change.
+ const r=mapViewport,reach=Math.hypot(r.width,r.height),v=cameraSpring.velocity,d=cameraDestination;
+ const left=Math.max(Math.abs(d.x-pan.x),Math.abs(d.y-pan.y),Math.abs(d.zoom-zoom)/zoom*reach);
+ const speed=Math.max(Math.hypot(v.x,v.y),Math.abs(v.zoom)/zoom*reach);
+ return left<STILL.px&&speed<STILL.speed;
+}
 function cameraMoving(){
  if(!cameraTween)return false;
  const v=cameraSpring.velocity,r=mapViewport;
@@ -1062,11 +1277,31 @@ function cameraMoving(){
 function stepCamera(now){
  if(!cameraTween)return;
  if(atlasIntro){
-  if(!window.AtlasMotion?.enabled()||atlasIntro.at!==null&&now>=atlasIntro.at+atlasIntro.breath+atlasIntro.duration){
+  if(!window.AtlasMotion?.enabled()||atlasIntro.at!==null&&!atlasIntro.holding&&now>=atlasIntro.at+atlasIntro.breath+atlasIntro.duration){
    zoom=cameraDestination.zoom;pan.x=cameraDestination.x;pan.y=cameraDestination.y;stopCamera();atlasSettling=true;return;
   }
   // Start the clock on the first paint, so startup work cannot eat the close-up.
-  if(atlasIntro.at===null){atlasIntro.at=now;cameraSpring.at=now+atlasIntro.breath;return;}
+  if(atlasIntro.at===null){
+   const i=atlasIntro,area=AtlasLayout.bounds(mapViewport.width,mapViewport.height,immersiveMap()),p=selected&&shownPosition(selected.id);
+   i.at=i.shown=now;i.from={zoom,x:pan.x,y:pan.y};
+   i.anchor=p?{x:area.left+p.x*area.width*zoom+pan.x,y:area.bottom-p.y*area.height*zoom+pan.y}:{x:mapViewport.width/2,y:mapViewport.height/2};
+   if(introReady())i.holding=false;
+   cameraSpring.at=now+i.breath;return;
+  }
+  // The hold (ruling 3): it ends the moment everything is ready, or at INTRO_HOLD_MAX. The pull-back starts there, with
+  // the creep's velocity and no breath, and the landing time with it.
+  if(atlasIntro.holding){
+   const i=atlasIntro;
+   if(introReady()||now-i.shown>=INTRO_HOLD_MAX){
+    i.holding=false;i.hold=Math.round(now-i.shown);i.at=now;
+    if(i.hold){
+     i.breath=0;const here={zoom,x:pan.x,y:pan.y},ahead=zoomDestination(zoom*Math.exp(-INTRO_CREEP*.01),i.anchor,here);
+     cameraSpring.velocity.zoom=(ahead.zoom-here.zoom)/.01;cameraSpring.velocity.x=(ahead.x-here.x)/.01;cameraSpring.velocity.y=(ahead.y-here.y)/.01;
+    }
+    cameraSpring.at=now+i.breath;
+   }
+   else{introCreep(now);return;}
+  }
   if(now<=atlasIntro.at+atlasIntro.breath)return;
  }
  const s=cameraSpring,dt=Math.max(0,(now-s.at)/1000);s.at=now;
@@ -1079,7 +1314,7 @@ function stepCamera(now){
   moving=t<1;
  }else for(const axis of CAMERA_AXES){
   const target=cameraDestination[axis],position=axis==='zoom'?zoom:pan[axis],v=s.velocity[axis];
-  const omega=atlasIntro?12/(atlasIntro.duration/1000):2*Math.PI/(axis==='zoom'||s.zooming ? .35 : .4),d=position-target,c=v+omega*d,e=Math.exp(-omega*dt);
+  const omega=atlasIntro?12/(atlasIntro.duration/1000):2*Math.PI/(axis==='zoom'||s.zooming ? s.glide?WHEEL_GLIDE_PERIOD:.35 : .4),d=position-target,c=v+omega*d,e=Math.exp(-omega*dt);
   let next=target+(d+c*dt)*e,velocity=(v-omega*c*dt)*e;
   const epsilon=axis==='zoom' ? .0001 : .05;
   if(!window.AtlasMotion?.enabled()||Math.abs(next-target)<epsilon&&Math.abs(velocity)<epsilon*10){next=target;velocity=0;}
@@ -1095,14 +1330,14 @@ function stepCamera(now){
  if(!moving&&!atlasIntro)stopCamera();
 }
 // Existing callers keep this entry point; it now retargets the shared spring.
-function tweenCamera(target){
- closeCluster();
+function tweenCamera(target,{glide=false}={}){
+ if(activeCluster||clusterHoverTimer||clusterCloseTimer)closeCluster();
  target=boundedCamera(target);
  if(!window.AtlasMotion?.enabled()&&!window.AtlasMotion?.reduced()){stopCamera();zoom=target.zoom;pan={x:target.x,y:target.y};draw();return;}
  if(!cameraTween)cameraSpring.at=performance.now();
  cameraEase=window.AtlasMotion.enabled()?null:{from:{zoom,x:pan.x,y:pan.y},at:performance.now()};
  cameraSpring.area=AtlasLayout.bounds(mapViewport.width,mapViewport.height,immersiveMap());
- cameraSpring.zooming=target.zoom!==zoom;
+ cameraSpring.zooming=target.zoom!==zoom;cameraSpring.glide=glide;
  cameraDestination=target;cameraTween=cameraSpring;scheduleMapDraw();
 }
 function releaseCamera(velocity){
@@ -1116,7 +1351,7 @@ function releaseCamera(velocity){
  for(const axis of CAMERA_AXES){
   const position=axis==='zoom'?zoom:pan[axis],v=axis==='zoom'?vz:axis==='x'?vx:vy;
   // At a clamped edge, remove outward momentum; elsewhere hand off release velocity.
-  const distance=cameraDestination[axis]-position,omega=2*Math.PI/(axis==='zoom'||cameraSpring.zooming ? .35 : .4);
+  const distance=cameraDestination[axis]-position,omega=2*Math.PI/(axis==='zoom'||cameraSpring.zooming ? cameraSpring.glide?WHEEL_GLIDE_PERIOD:.35 : .4);
   cameraSpring.velocity[axis]=distance*v>0?Math.sign(v)*Math.min(Math.abs(v*1000),omega*Math.abs(distance)):0;
  }
 }
@@ -1130,8 +1365,8 @@ function changeZoom(factor,anchor){
  stopCamera();closeCluster();const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,zoom*factor)),anchor);
  zoom=target.zoom;pan={x:target.x,y:target.y};scheduleMapDraw();
 }
-function animateZoom(factor,anchor){
+function animateZoom(factor,anchor,options){
  const target=zoomDestination(Math.min(MAX_MAP_ZOOM,Math.max(1,(cameraDestination?.zoom??zoom)*factor)),anchor,cameraDestination);
  prepareZoomLevel(target.zoom);
- tweenCamera(target);
+ tweenCamera(target,options);
 }
