@@ -784,9 +784,11 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   if(!draft||!pointers.size){gesture=null;return;}
   if(fittedNow()){
    // Fitted: one finger drags the disc's middle (the photo follows it under the cross), two turn it; a tap is "here".
+   // Once a second finger has landed the touch stays a turn until every finger is up: the last one lifting is not a tap
+   // or a drag. The turn sums each move's step, wrapped to ±180°, so the fingers' line crossing straight left is no jump.
    const points=[...pointers.values()].slice(0,2),rect=view.getBoundingClientRect();
    gesture={fitted:true,rect,H:draft.options.H,rotate:draft.options.rotate,start:cropAt(midpoint(points),rect),at:performance.now(),travel:0,
-    twist:points.length>1?Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x):null,count:points.length};
+    twist:points.length>1?Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x):null,turned:0,count:points.length,multi:points.length>1||!!(gesture?.fitted&&gesture.multi)};
    return;
   }
   const points=[...pointers.values()].slice(0,2),mid=midpoint(points),rect=view.getBoundingClientRect(),{w,h}=workingCopy(draft.bitmap),options={...draft.options};
@@ -803,8 +805,12 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   const points=[...pointers.values()].slice(0,2),mid=midpoint(points),o=draft.options,g=gesture;
   if(g.fitted){
    g.travel+=Math.hypot(e.clientX-last.x,e.clientY-last.y);
-   if(points.length>1&&g.twist!==null){o.rotate=Math.max(-180,Math.min(180,Math.round((g.rotate+(Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x)-g.twist)*180/Math.PI)*10)/10));showAngle();}
-   else if(g.count===1&&g.travel>4){const [x,y]=cropAt(mid,g.rect);moveCentre(centreAt(g.start[0]-x,g.start[1]-y,g.H,g.rotate));}
+   if(points.length>1&&g.twist!==null){
+    const angle=Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x),step=angle-g.twist;
+    g.turned+=step-2*Math.PI*Math.round(step/(2*Math.PI));g.twist=angle;
+    o.rotate=Math.max(-180,Math.min(180,Math.round((g.rotate+g.turned*180/Math.PI)*10)/10));showAngle();
+   }
+   else if(g.count===1&&!g.multi&&g.travel>4){const [x,y]=cropAt(mid,g.rect);moveCentre(centreAt(g.start[0]-x,g.start[1]-y,g.H,g.rotate));}
    paint(true);return;
   }
   if(points.length===1){
@@ -821,7 +827,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  view.onpointerup=view.onpointercancel=view.onlostpointercapture=e=>{
   const g=gesture;if(!pointers.delete(e.pointerId))return;
   // A tap on the fitted photo: that point is the disc's middle.
-  if(g?.fitted&&g.count===1&&e.type==='pointerup'&&g.travel<=4&&performance.now()-g.at<400){const [x,y]=cropAt({x:e.clientX,y:e.clientY},g.rect);moveCentre(centreAt(x,y));paint(true);}
+  if(g?.fitted&&g.count===1&&!g.multi&&e.type==='pointerup'&&g.travel<=4&&performance.now()-g.at<400){const [x,y]=cropAt({x:e.clientX,y:e.clientY},g.rect);moveCentre(centreAt(x,y));paint(true);}
   reanchor();
   if(view.hasPointerCapture(e.pointerId))view.releasePointerCapture(e.pointerId);
  };

@@ -108,7 +108,10 @@ lopsided design like the Pixel's 12% sideways.
 **The aligner, fitted** (`dialog[data-fit="fitted"]`): the cross edge to edge, the centre dot, the rim ring and the
 dashed plate ring; no grid, no labels, no sliders, no Level lines. One finger drags the disc's middle (the photo follows
 the finger under the cross), a tap says "this is the middle", two fingers twist it, the arrow keys nudge, `[` and `]`
-turn; the turn row is ±1°, ±0.1°, the readout and **Auto**. One quiet link, **Frame it by hand instead**, is today's
+turn; the turn row is ±1°, ±0.1°, the readout and **Auto**. The twist adds up each move's step wrapped to ±180°, so
+fingers whose line points straight left never flip it a full turn; and once a second finger lands the touch stays a turn
+until every finger is up, so lifting them one by one is never a tap or a drag of the dot (PR #49 Codex round 2,
+`tests/photo-gestures-browser.mjs` twist-seam and twist-lift). One quiet link, **Frame it by hand instead**, is today's
 aligner for this photo: the one control that is neither the cross nor the flow, kept because a fit that is confidently
 wrong needs a way out (§6.4). While the fit runs (under a second on the Mac) the status says "Finding the disc's edge…"
 and Use photo waits.
@@ -201,7 +204,8 @@ Every suite at its standing baseline (Oct 27, the Mac, Chromium on Metal; WebKit
 | `tests/photo-register.mjs` (new) | 7 / 7: rim with a hand over it, the camera's centres, the homography (centre dot ≤ 1% R, ink lines straight), the affine fit equals the old crop, auto centre ≤ 2% R and level ≤ 0.5°, squash refusal, no-disc refusal |
 | `tests/photo-editor-races.mjs` | 13 / 13 (two new: the asset is kept under the saved key, its failure never undoes the save; a photo replaced mid-save keeps the uploaded photo's own asset) |
 | `tests/photo-adder-rework-browser.mjs` (new) | passes, Chromium desktop and WebKit phone (§5.2) |
-| 21 photo, clear, Halo, edge, gallery and bag browser suites | pass |
+| `tests/photo-gestures-browser.mjs` | 12 / 12 scenarios (two new on the fitted aligner: a twist across the ±180° seam, a turn lifted finger by finger; both fail on the round-1 code) |
+| 20 more photo, clear, Halo, edge, gallery and bag browser suites | pass |
 | `photo-compression-browser`, `photo-editor-contract-browser` | fail **identically on `main` 7039c62** (native WebP bytes; the contract's f31fd41 baseline module) |
 
 **Suites changed, and why.** Fourteen browser suites were written for the old flow: a photo framed at the aligner's
