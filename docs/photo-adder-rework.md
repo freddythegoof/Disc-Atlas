@@ -92,7 +92,8 @@ lopsided design like the Pixel's 12% sideways.
 3. **Where the dot starts** (`autoRegister`): the outline's centre, or one of the two centres a phone camera allows for
    that outline (`poseCentres`, a 25 mm full-frame-equivalent lens, the phone main camera), whichever puts the stamp's
    ink (read by the product's extractor at 384 px) nearest the middle. A camera centre must beat the outline's by 1.5% R:
-   on a disc shot square on they all agree. On the Pixel the chosen centre lands **3.1% R from its gate mark** (the
+   on a disc shot square on they all agree. A centre whose crop the extractor cannot read is out of the comparison, not
+   a perfect score; when none reads, the outline's centre stands (PR #49 Codex round 3). On the Pixel the chosen centre lands **3.1% R from its gate mark** (the
    outline's centre: 11.7% R). In the synthetic suite, with the true lens, 0.1% R.
 4. **Level** (`levelAngle`): the deskew a scanner does, on the stamp's level edges only (baselines, frames, underlines;
    upright strokes are left out because italic type leans them on purpose), within ±8° (a disc photographed by hand is
@@ -201,7 +202,7 @@ Every suite at its standing baseline (Oct 27, the Mac, Chromium on Metal; WebKit
 | Suite | Result |
 |---|---|
 | Unit, `node --test` over every non-browser suite | 332 / 335; the 3 failures are environment-only and fail on `main` too (palette and redesign need a dev server on :5173, prompt-4 needs `outputs/`) |
-| `tests/photo-register.mjs` (new) | 7 / 7: rim with a hand over it, the camera's centres, the homography (centre dot ≤ 1% R, ink lines straight), the affine fit equals the old crop, auto centre ≤ 2% R and level ≤ 0.5°, squash refusal, no-disc refusal |
+| `tests/photo-register.mjs` (new) | 8 / 8: rim with a hand over it, the camera's centres, the homography (centre dot ≤ 1% R, ink lines straight), the affine fit equals the old crop, auto centre ≤ 2% R and level ≤ 0.5°, an unreadable centre never wins (the best readable does, else the outline's; fails on the round-2 code), squash refusal, no-disc refusal |
 | `tests/photo-editor-races.mjs` | 13 / 13 (two new: the asset is kept under the saved key, its failure never undoes the save; a photo replaced mid-save keeps the uploaded photo's own asset) |
 | `tests/photo-adder-rework-browser.mjs` (new) | passes, Chromium desktop and WebKit phone (§5.2) |
 | `tests/photo-gestures-browser.mjs` | 12 / 12 scenarios (two new on the fitted aligner: a twist across the ±180° seam, a turn lifted finger by finger; both fail on the round-1 code) |

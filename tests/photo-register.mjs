@@ -2,7 +2,7 @@
 // discs photographed by a known camera, so every answer has a true value to meet.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {findDisc,poseCentres,registration,cropThrough,levelAngle,autoRegister,throughH,SQUASH_CAP} from '../public/disc-register.mjs';
+import {findDisc,poseCentres,registration,cropThrough,levelAngle,autoRegister,throughH,SQUASH_CAP,CENTRE_CAP,STRETCH_CAP} from '../public/disc-register.mjs';
 import {photoPoint} from '../public/disc-photo.mjs';
 
 // A disc of radius 1 in its own plane, photographed: centre (X, Y, Z) in camera space, tilted by `tilt`° about an axis in
@@ -89,6 +89,21 @@ test('auto: the camera centre that centres the design wins, and the stamp is lev
  // Levelled: the pattern was turned 4°; the crop turned by `rotate` brings its lines level within 0.5°.
  const crop=cropThrough(shot.data,shot.w,shot.h,auto.registration.H,512,auto.rotate),after=levelAngle(crop,512);
  assert.ok(Math.abs(after.rotate)<=.5,'residual tilt '+after.rotate+'° (turned '+auto.rotate+'°)');
+});
+
+test('a centre whose stamp read fails is out of the comparison: the best readable one wins, else the outline’s',async()=>{
+ const shot=photograph({tilt:16,axis:-80,Z:2.6,spin:4}),disc=findDisc(shot.data,shot.w,shot.h),r=Math.sqrt(disc.a*disc.b);
+ // The candidates autoRegister reads, in its order: the outline's centre, then the camera's two within the caps.
+ const eligible=[{x:disc.cx,y:disc.cy},...poseCentres(disc,shot.w,shot.h)].filter(c=>{
+  if(Math.hypot(c.x-disc.cx,c.y-disc.cy)/r>CENTRE_CAP)return false;const reg=registration(disc,c,shot.w,shot.h);return reg&&reg.stretch<=STRETCH_CAP;
+ });
+ assert.equal(eligible.length,3,'the outline’s centre and both camera centres are read');
+ const pick=async reads=>{let n=0;const auto=await autoRegister(shot.data,shot.w,shot.h,{readInk:()=>reads[n++]});assert.equal(n,3,'each candidate read once');return eligible.findIndex(c=>c.x===auto.centre.x&&c.y===auto.centre.y);};
+ // The first camera centre's read fails: it is not a perfect score, so the second (readable, 1% off) wins.
+ assert.equal(await pick([{x:.05,y:0},null,{x:.01,y:0}]),2,'the best readable centre, not the unreadable one');
+ assert.equal(await pick([{x:.02,y:0},null,{x:.01,y:0}]),0,'a camera centre still needs its 1.5% R margin over the outline’s');
+ assert.equal(await pick([null,{x:.03,y:0},{x:.02,y:0}]),2,'an unreadable outline’s centre is out too');
+ assert.equal(await pick([null,null,null]),0,'none readable: the outline’s centre stands');
 });
 
 test('past the squash cap the auto fit refuses, by name',async()=>{

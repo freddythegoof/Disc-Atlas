@@ -463,21 +463,24 @@ export function designCentre(data,size,{plate=.8}={}){
 // and the camera's two) is read for where its stamp lands (`readInk(rgba, size)`: the stamp's offset from the crop's
 // centre in crop radii, or null; the aligner reads with the stamp extractor, off the page's thread; by default
 // designCentre); the one that centres the stamp wins. A camera centre replaces the outline's only when it centres the
-// stamp by more than 1.5% of the radius: on a disc shot square on they all agree.
+// stamp by more than 1.5% of the radius: on a disc shot square on they all agree. A candidate whose read fails (null) is
+// out of the comparison, never a perfect score; when no candidate reads, the outline's centre stands.
 export const INK_READ=384;
 export async function autoRegister(data,w,h,{seed=null,plate=.8,readInk=null}={}){
  const disc=findDisc(data,w,h,{seed});if(!disc)return {refused:'rim'};
  const outline={x:disc.cx,y:disc.cy},r=Math.sqrt(disc.a*disc.b),squash=Math.min(disc.a,disc.b)/Math.max(disc.a,disc.b);
  if(squash<SQUASH_CAP)return {refused:'squash',disc,squash};
  const read=readInk||((crop,size)=>designCentre(crop,size,{plate}));
- let best=null;
+ let best=null,unread=null;
  for(const [i,centre] of [outline,...poseCentres(disc,w,h)].entries()){
   if(Math.hypot(centre.x-disc.cx,centre.y-disc.cy)/r>CENTRE_CAP)continue;
   const reg=registration(disc,centre,w,h);if(!reg||reg.stretch>STRETCH_CAP)continue;
   const d=await read(cropThrough(data,w,h,reg.H,INK_READ),INK_READ);
-  const miss=d?Math.hypot(d.x,d.y):0;
+  if(!d){if(!i)unread={centre,reg,miss:null,i};continue;}
+  const miss=Math.hypot(d.x,d.y);
   if(!best||miss<best.miss-(i&&!best.i?.015:0))best={centre,reg,miss,i};
  }
+ best||=unread;
  if(!best)return {refused:'squash',disc,squash};
  const level=levelAngle(cropThrough(data,w,h,best.reg.H,512),512,{plate});
  return {disc,centre:best.centre,registration:best.reg,rotate:level.confidence>=LEVEL_CONFIDENCE?level.rotate:0,level,camera:best.i>0};
