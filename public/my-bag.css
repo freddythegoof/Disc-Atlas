@@ -593,6 +593,7 @@ body[data-view="bag"] main {display:none!important}
 /* Photo stamps (docs/photo-stamp-assets.md): the saved photo's look, Photo or Game asset, as a segmented pair in the
    sheet's chip family, and the action that reads a game asset from the original. */
 .bag-photo-look{display:grid;gap:8px;margin-top:14px}.bag-photo-look[hidden]{display:none}
+.bag-photo-preview{display:block;justify-self:start;width:160px;height:160px}.bag-photo-preview[hidden]{display:none}
 .bag-photo-look small{font-size:11px;color:var(--muted);line-height:1.5}
 .bag-photo-look-row,.bag-finish-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.bag-photo-look-row[hidden]{display:none}
 .bag-photo-look-title{font-weight:600}
@@ -639,6 +640,13 @@ body[data-view="bag"] main {display:none!important}
 .photo-aligner-sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 28px}
 .photo-aligner-sliders label{display:flex;align-items:center;gap:12px;min-height:36px;font-size:12px;color:var(--muted)}.photo-aligner-sliders input{flex:1;min-width:0}
 .photo-aligner-status{margin:0;text-align:center;font-size:12px}.photo-aligner-status:empty{display:none}
+/* The one-dot aligner (docs/photo-adder-rework.md): fitted, it is the cross and the turn; the sliders are the fallback. */
+.photo-aligner[data-fit="fitted"] .photo-aligner-adjust,.photo-aligner[data-fit="finding"] .photo-aligner-adjust{display:none}
+.photo-aligner[data-fit="fitted"] [data-level-lines],.photo-aligner[data-fit="fitted"] [data-rotate-zero],.photo-aligner:not([data-fit="fitted"]) [data-rotate-auto]{display:none}
+.photo-aligner[data-fit="finding"] .photo-aligner-level{visibility:hidden}
+.photo-aligner[data-fit="fitted"] .photo-aligner-view{cursor:crosshair}.photo-aligner[data-fit="finding"] .photo-aligner-view{cursor:progress}
+.photo-aligner-manual{align-self:center;min-height:32px;padding:0;border:0;background:none;font:inherit;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.photo-aligner-manual:hover{color:var(--text)}.photo-aligner-manual:focus-visible{outline:2px solid var(--lime);outline-offset:2px;border-radius:4px}.photo-aligner-manual[hidden]{display:none}
 .photo-aligner-actions{display:flex;justify-content:flex-end;gap:10px}.photo-aligner-actions .pill-button{min-height:44px;padding:10px 24px}
 @media(max-width:700px){.photo-aligner-sliders{grid-template-columns:1fr;gap:0}.photo-aligner-actions .pill-button{flex:1}.photo-aligner-tip{font-size:11px}}
 @media(max-height:520px){.photo-aligner-tip{display:none}}

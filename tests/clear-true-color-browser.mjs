@@ -20,6 +20,8 @@
 // checks are then skipped and said so). SECOND_PHOTO=<webp> SECOND_MOLD=<id> adds another clear disc to the sheets.
 //   node tests/clear-true-color-browser.mjs [--baseline <dir>]
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -157,10 +159,10 @@ async function probe({out,photo,port,trueColor,sheetPhoto,second,live}){
   const submitPhoto=async(note,file)=>{
    await openBag();await page.locator(`[data-bag-edit="${idOf(note)}"]`).first().evaluate(n=>n.click());await page.waitForSelector('#addDiscDialog[open]');
    await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
-   await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
+   await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
    await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
    const hint=await page.evaluate(()=>document.querySelector('#bagDiscColor').closest('label').querySelector('small').textContent);
-   await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
+   await keepPhotoLook(page);await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
    return {hint,disc:await discOf(note)};
   };
   // The one-click Game asset: its status line and what it stored.

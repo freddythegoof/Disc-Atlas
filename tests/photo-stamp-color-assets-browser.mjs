@@ -9,6 +9,8 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {startHarness} from './display-harness.mjs';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 const sharp=createRequire(import.meta.url)('sharp');
 
 // A teal disc filling the aligner's default framing (scale .94) of a 1600 x 2000 photo, printed in four inks: a blue
@@ -49,9 +51,9 @@ try{
  const look=v=>page.locator(`#addDiscDialog .bag-photo-look input[value="${v}"]`);
  const usePhoto=async file=>{
   await edit();await page.setInputFiles('#addDiscDialog .bag-photo-file',file);
-  await page.waitForSelector('dialog.photo-aligner[open]');await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
+  await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   await page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
-  await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
+  await keepPhotoLook(page);await page.locator('#saveDisc').click();await page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
   return (await items()).find(i=>i.id===disc.id);
  };
  const saved=await usePhoto(first),key=saved.texture_key,url='/api/bag/discs/'+encodeURIComponent(disc.id)+'/photo?v='+encodeURIComponent(key);
@@ -78,7 +80,7 @@ try{
  const chooser=page.waitForEvent('filechooser');
  await page.locator('#addDiscDialog .bag-photo-asset-original').click();
  await (await chooser).setFiles(first);
- await page.waitForSelector('dialog.photo-aligner[open]');
+ await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);
  assert.equal(await page.locator('dialog.photo-aligner[open] h2').textContent(),'Frame the original');
  await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
  await page.waitForFunction(()=>/Full-color asset made/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:120000});

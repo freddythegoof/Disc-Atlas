@@ -19,6 +19,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import {startHarness} from './display-harness.mjs';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 const sharp=createRequire(import.meta.url)('sharp');
 
 const DIR='work/photo-stamp-server-sync/synthetic';fs.mkdirSync(DIR,{recursive:true});
@@ -47,7 +49,7 @@ async function make({init,route,limits,original=false}={}){
   let t;
   if(original){
    const chooser=page.waitForEvent('filechooser');await page.locator('#addDiscDialog .bag-photo-asset-original').click();await (await chooser).setFiles(file);
-   await page.waitForSelector('dialog.photo-aligner[open]');await watch('dialog.photo-aligner[open] .photo-aligner-status');
+   await page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(page);await watch('dialog.photo-aligner[open] .photo-aligner-status');
    t=Date.now();await page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();
   }else{
    let asked=false;page.on('filechooser',()=>{asked=true;});await watch('#addDiscDialog .bag-photo-status');t=Date.now();
@@ -73,9 +75,9 @@ try{
  await ready(h.page);
  disc=await h.page.evaluate(()=>document.querySelector('[data-bag-edit]').dataset.bagEdit);
  await h.page.locator(`[data-bag-edit="${disc}"]`).first().evaluate(n=>n.click());await h.page.waitForSelector('#addDiscDialog[open]');
- await h.page.setInputFiles('#addDiscDialog .bag-photo-file',file);await h.page.waitForSelector('dialog.photo-aligner[open]');
+ await h.page.setInputFiles('#addDiscDialog .bag-photo-file',file);await h.page.waitForSelector('dialog.photo-aligner[open]');await frameByHand(h.page);
  await h.page.locator('dialog.photo-aligner[open] [data-aligner-confirm]').click();await h.page.waitForFunction(()=>!document.querySelector('dialog.photo-aligner[open]'),null,{timeout:60000});
- await h.page.locator('#saveDisc').click();await h.page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
+ await keepPhotoLook(h.page);await h.page.locator('#saveDisc').click();await h.page.waitForFunction(()=>!document.querySelector('#addDiscDialog[open]'),null,{timeout:60000});
  const server=page=>page.evaluate(async id=>{const r=await fetch('/api/bag/stamps');return (await r.json()).stamps.find(s=>s.disc_id===id)||null;},disc);
 
  // No fault: it finishes, and the status named each step on the way (one tap: opening the stored photo first).

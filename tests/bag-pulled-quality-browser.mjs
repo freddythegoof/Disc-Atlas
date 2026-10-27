@@ -2,6 +2,8 @@
 // an upright, face-on stamp. Real local D1 + the signed Google fixture; no live account is touched.
 // A 2× display (Retina) is the case where the canvas cap upscaled large pulled discs.
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
@@ -45,7 +47,7 @@ try{
  const add=async(name,photo)=>{
   await page.evaluate(async name=>{const d=discs.find(d=>d.name===name||d.id===name);if(!d)throw Error('Missing mold '+name);await BagApp.add(d,null,'bag');},name);
   await page.locator('#addDiscDialog').waitFor();
-  if(photo){await page.locator('.bag-photo-file').setInputFiles(photo);await page.locator('.photo-aligner[open]').waitFor();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();}
+  if(photo){await page.locator('.bag-photo-file').setInputFiles(photo);await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();await keepPhotoLook(page);}
   await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  };
  await add('Destroyer',{name:'orientation.png',mimeType:'image/png',buffer:fixture});

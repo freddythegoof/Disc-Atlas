@@ -340,6 +340,9 @@ $('#addDiscForm').addEventListener('submit',async event=>{
   // An overmold's rim sample, or a Halo copy's band (disc3d/halo.mjs): the same photo_rim_color slot.
   const photoChanged=photoEditor.changed,photoRimColor=photoEditor.photoRimColor||(isHalo(value.plastic)?photoEditor.bandColor:null),
    photoHalo=!photoEditor.photoRimColor&&isHalo(value.plastic)?photoEditor.haloModel:null,photo=photoChanged?await photoEditor.value():undefined,
+   // The new photo's game asset, taken with its bytes (docs/photo-adder-rework.md): a photo replaced while this save is in
+   // flight never lends its stamp to the one uploaded.
+   photoAsset=photo?photoEditor.pendingAsset(photo):null,
    // The plastic's true colour (docs/clear-plastic-true-color.md): a one-piece mold's rim band, never a Halo copy's dye.
    photoTrueColor=isHalo(value.plastic)?null:photoEditor.photoTrueColor;
   if(epoch!==generation||operation!==discEditSequence)throw new DOMException('Editor changed','AbortError');
@@ -356,10 +359,19 @@ $('#addDiscForm').addEventListener('submit',async event=>{
    if(!r?.ok){void loadBag();throw Error('Disc saved. '+(data.error||'Its photo could not save; try again.'));}
    result.disc.texture_key=data.texture_key;result.disc.photo_rim_color=data.photo_rim_color;result.disc.photo_halo=data.photo_halo??null;result.disc.photo_true_color=data.photo_true_color??null;
   }
+  // A new photo's game asset, made in this sheet (docs/photo-adder-rework.md), is kept with the photo just saved. If it
+  // cannot be, the disc and its photo stay saved and the status says why.
+  let assetNote='';
+  if(photoAsset){
+   $('#addDiscStatus').textContent='Saving the game asset…';
+   await photoEditor.keepAsset(result.disc.id,result.disc.texture_key,photoAsset).catch(error=>{assetNote=' Its game asset could not be saved: '+(error?.message||'try again.')+' Choose Game asset in its sheet to make it again.';});
+   if(epoch!==generation)throw new DOMException('Account changed','AbortError');
+   if(operation!==discEditSequence){void loadBag();return;}
+  }
   items=items.some(i=>i.id===result.disc.id)?items.map(i=>i.id===result.disc.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();
   // An edited row is re-rendered, so explicitly restore keyboard focus to its new button.
   if(active && edited)$(`[data-bag-edit="${edited.id}"]`)?.focus({preventScroll:true});
-  status(edited?'Disc updated.':result.disc.status==='lost'?`${name(mold(result.disc.mold_id))} has a headstone in Lost.`:result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.');
+  status((edited?'Disc updated.':result.disc.status==='lost'?`${name(mold(result.disc.mold_id))} has a headstone in Lost.`:result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.')+assetNote);
  } catch(error) {if(error.name!=='AbortError'&&operation===discEditSequence)$('#addDiscStatus').textContent=error.message;}
  finally {if(epoch===generation&&operation===discEditSequence)button.disabled=false;}
 });

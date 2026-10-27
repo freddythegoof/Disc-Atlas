@@ -1,5 +1,7 @@
 // Real local D1 + the existing signed Google fixture; no live account is touched.
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
@@ -40,8 +42,8 @@ try {
 
 
  await open('Envy');await page.locator('.bag-photo-file').setInputFiles('tests/fixtures/stamped-disc.webp');
- await page.locator('.photo-aligner[open]').waitFor();await page.locator('.photo-aligner [data-aligner-confirm]').click();
- await page.locator('.photo-aligner').waitFor({state:'hidden'});await save();
+ await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);await page.locator('.photo-aligner [data-aligner-confirm]').click();
+ await page.locator('.photo-aligner').waitFor({state:'hidden'});await keepPhotoLook(page);await save();
  const data=await (await page.request.get(base+'/api/bag')).json(),disc=data.discs[0];
  await page.locator(`[data-disc-id="${disc.id}"] [data-bag-inspect]`).click();await page.waitForFunction(()=>Disc3D.viewer?.debug.photo?.userData.photoReady);
  await page.evaluate(()=>{window.photoPerfProps={...Disc3D.viewer.state.props};});

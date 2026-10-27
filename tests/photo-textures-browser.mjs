@@ -1,5 +1,7 @@
 // Real local D1 + the existing signed Google fixture; no live account is touched.
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner and are saved wearing Photo (tests/photo-flow.mjs).
+import {frameByHand,keepPhotoLook} from './photo-flow.mjs';
 import fs from 'node:fs';
 import https from 'node:https';
 import {createRequire} from 'node:module';
@@ -39,7 +41,7 @@ try {
  const showList=name=>page.locator(`#bagListPicker [data-bag-list="${name}"]`).click();
  const save=async()=>{await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});};
  // Choosing a photo opens the aligner pop-out; Use photo prepares it and returns to the sheet.
- const confirmPhoto=async(adjust)=>{await page.locator('.photo-aligner[open]').waitFor();if(adjust)await adjust();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();};
+ const confirmPhoto=async(adjust)=>{await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);if(adjust)await adjust();await page.locator('.photo-aligner [data-aligner-confirm]').click();await page.locator('.photo-aligner').waitFor({state:'hidden'});await page.locator('.bag-photo-thumb img').waitFor();;await keepPhotoLook(page)};
 
  await open('Envy');await save();
  let data=await (await page.request.get(base+'/api/bag')).json(),disc=data.discs[0];

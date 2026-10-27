@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+// docs/photo-adder-rework.md: this suite's photos go through today's aligner (tests/photo-flow.mjs).
+import {frameByHand} from './photo-flow.mjs';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {photoHarness,playwright} from './photo-harness.mjs';
@@ -11,13 +13,16 @@ try{
  const browser=await playwright.chromium.launch({headless:true});
  try{
   const context=await browser.newContext({viewport:{width:430,height:932},hasTouch:true,isMobile:true});
-  for(const scenario of ['drag','pinch','mid-drag','cancel','partial-cancel','lostcapture','corrected-pinch','bounds','controls','reset'].filter(s=>!selected||s===selected)){
+  for(const scenario of ['drag','pinch','mid-drag','cancel','partial-cancel','lostcapture','corrected-pinch','bounds','controls','reset','twist-seam','twist-lift'].filter(s=>!selected||s===selected)){
    const page=await context.newPage();await page.goto(harness.base);
    await page.evaluate(async()=>{
     const {createPhotoEditor}=await import('/disc-photo.mjs');window.editor=createPhotoEditor(document.querySelector('#editor'));
    });
    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));
+   // The twist scenarios keep the fitted aligner (docs/photo-adder-rework.md): two fingers turn it, a tap moves its dot.
+   const fitted=scenario.startsWith('twist-');
    await page.locator('.photo-aligner[open]').waitFor();
+   if(fitted)await page.waitForFunction(()=>document.querySelector('.photo-aligner').dataset.fit==='fitted',null,{timeout:90000});else await frameByHand(page);
    await page.evaluate(()=>{
     window.events=[];
     const view=document.querySelector('.photo-aligner-view');
@@ -78,7 +83,7 @@ try{
     await touch('touchStart',[point(1,0)]);await touch('touchMove',[point(1,10)]);await touch('touchEnd',[]);
     await page.keyboard.press('Escape'); // Cancel and start fresh so desktop expectations stay literal.
     await page.waitForFunction(()=>editor.debug.draft===null);
-    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();
+    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);
     await page.locator('.photo-aligner-adjust summary').click();
     const view=page.locator('.photo-aligner-view');await view.focus();await page.keyboard.press('ArrowRight');await page.keyboard.press('+');
     await page.evaluate(()=>document.querySelector('.photo-aligner-view').dispatchEvent(new WheelEvent('wheel',{deltaY:50,cancelable:true})));
@@ -90,9 +95,37 @@ try{
    }
    if(scenario==='reset'){
     await touch('touchStart',[point(1,0)]);await touch('touchMove',[point(1,20)]);await page.evaluate(()=>editor.reset(null));await touch('touchEnd',[]);
-    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();
+    await page.locator('.bag-photo-file').setInputFiles(fileURLToPath(new URL('./fixtures/stamped-disc.webp',import.meta.url)));await page.locator('.photo-aligner[open]').waitFor();await frameByHand(page);
     await touch('touchStart',[point(4,0)]);await touch('touchMove',[point(4,10)]);const reset=await snap('new draft drag after reset');await touch('touchEnd',[]);
     if(!characterize)near(reset.cx,.5-10*k*.94,'reset cx');
+   }
+   const turn=async(points,label)=>{await touch('touchMove',points);return snap(label);};
+   if(scenario==='twist-seam'){
+    // The fingers' line points straight left, so atan2 crosses ±180° mid-twist: a 1.9° turn, never a full one.
+    const before=await state(),fixed=point(1,60);
+    await touch('touchStart',[fixed]);await touch('touchStart',[fixed,point(2,-60,2)]);
+    const above=await turn([fixed,point(2,-60,.5)],'above the seam'),below=await turn([fixed,point(2,-60,-2)],'across the seam');await touch('touchEnd',[]);
+    const want=a=>Math.round((before.rotate+a*180/Math.PI)*10)/10;
+    if(!characterize){
+     near(above.rotate,want(Math.atan2(2,120)-Math.atan2(.5,120)),'turn before the seam');
+     near(below.rotate,want(Math.atan2(2,120)+Math.atan2(2,120)),'turn across the seam');
+     assert.deepEqual(below.H,before.H,'a twist never moves the dot');
+    }
+   }
+   if(scenario==='twist-lift'){
+    // Turn, then lift one finger and the other: the last finger up (it barely moved) is the turn ending, not a tap.
+    const before=await state(),first=point(1,-50);
+    await touch('touchStart',[first]);await touch('touchStart',[first,point(2,50)]);
+    const turned=await turn([first,point(2,50,20)],'two-finger turn');
+    await touch('touchEnd',[first]);await touch('touchMove',[point(1,-48,1)]);const lifted=await snap('second finger lifts, first jitters');
+    await touch('touchEnd',[]);const done=await snap('last finger lifts');
+    // A fresh tap afterwards still moves the dot: the turn's history ends with the last finger.
+    await touch('touchStart',[point(3,30,-20)]);await touch('touchEnd',[]);const tapped=await snap('fresh tap');
+    if(!characterize){
+     assert.notEqual(turned.rotate,before.rotate,'two fingers turn it');assert.deepEqual(turned.H,before.H,'the turn keeps the dot');
+     assert.deepEqual(lifted,turned,'the remaining finger neither drags nor turns');assert.deepEqual(done,turned,'lifting the last finger is not a tap');
+     assert.notDeepEqual(tapped.H,done.H,'a later tap moves the dot');
+    }
    }
    const events=await page.evaluate(()=>window.events),record={scenario,rect,snapshots,events};results.push(record);
    if(!characterize){assert.ok(events.filter(e=>e.event==='pointerdown').every(e=>e.captured),'each pointer has capture');const viewport=await page.evaluate(()=>({zoom:visualViewport.scale,scroll:scrollY}));assert.deepEqual(viewport,{zoom:1,scroll:0},'gesture never scrolls or zooms the page');}
@@ -101,5 +134,5 @@ try{
   await context.close();
  }finally{await browser.close();}
  mkdirSync('outputs/photo-phone',{recursive:true});writeFileSync('outputs/photo-phone/gestures-'+(characterize?'before':'after')+'.json',JSON.stringify(results,null,2)+'\n');
- if(!characterize)console.log('PASS: CDP drag, anchored pinch in/out, mid-drag landing/lift, cancel/lostcapture recovery, corrected projection, desktop controls and reset');
+ if(!characterize)console.log('PASS: CDP drag, anchored pinch in/out, mid-drag landing/lift, cancel/lostcapture recovery, corrected projection, desktop controls and reset, fitted twist across the seam and lifted finger by finger');
 }finally{await harness.close();}
