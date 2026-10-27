@@ -340,6 +340,9 @@ $('#addDiscForm').addEventListener('submit',async event=>{
   // An overmold's rim sample, or a Halo copy's band (disc3d/halo.mjs): the same photo_rim_color slot.
   const photoChanged=photoEditor.changed,photoRimColor=photoEditor.photoRimColor||(isHalo(value.plastic)?photoEditor.bandColor:null),
    photoHalo=!photoEditor.photoRimColor&&isHalo(value.plastic)?photoEditor.haloModel:null,photo=photoChanged?await photoEditor.value():undefined,
+   // The new photo's game asset, taken with its bytes (docs/photo-adder-rework.md): a photo replaced while this save is in
+   // flight never lends its stamp to the one uploaded.
+   photoAsset=photo?photoEditor.pendingAsset(photo):null,
    // The plastic's true colour (docs/clear-plastic-true-color.md): a one-piece mold's rim band, never a Halo copy's dye.
    photoTrueColor=isHalo(value.plastic)?null:photoEditor.photoTrueColor;
   if(epoch!==generation||operation!==discEditSequence)throw new DOMException('Editor changed','AbortError');
@@ -359,9 +362,9 @@ $('#addDiscForm').addEventListener('submit',async event=>{
   // A new photo's game asset, made in this sheet (docs/photo-adder-rework.md), is kept with the photo just saved. If it
   // cannot be, the disc and its photo stay saved and the status says why.
   let assetNote='';
-  if(photoChanged&&photo){
+  if(photoAsset){
    $('#addDiscStatus').textContent='Saving the game asset…';
-   await photoEditor.keepAsset(result.disc.id,result.disc.texture_key).catch(error=>{assetNote=' Its game asset could not be saved: '+(error?.message||'try again.')+' Choose Game asset in its sheet to make it again.';});
+   await photoEditor.keepAsset(result.disc.id,result.disc.texture_key,photoAsset).catch(error=>{assetNote=' Its game asset could not be saved: '+(error?.message||'try again.')+' Choose Game asset in its sheet to make it again.';});
    if(epoch!==generation)throw new DOMException('Account changed','AbortError');
    if(operation!==discEditSequence){void loadBag();return;}
   }

@@ -36,7 +36,7 @@ function editorFixture({photoValue=async()=> 'processed-photo',upload=async()=>p
   DOMException,generation:0,discEditSequence:0,
   account:{user:{id:'owner-a'},csrfToken:'owner-a-token'},
   editing:null,items:[],loading:false,active:false,plastics:{},rimCustomized:false,
-  photoEditor:{changed:true,value:photoValue,reset(){},async keepAsset(){return null;}},
+  photoEditor:{changed:true,value:photoValue,reset(){},pendingAsset(){return null;},async keepAsset(){return null;}},
   colorHint:()=>({textContent:''}),colorBeforePhoto:null,photoColor:null,
   mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),isHalo,finishChoice:()=>'opaque',
   render(){counts.renders++;},status(){},loadBag(){counts.refreshes++;},name:()=> 'Disc',
@@ -256,13 +256,36 @@ test('finished thumbnails stop being observed; only a loading photo stays watche
 // the upload returned; if it cannot be, the disc and its photo stay saved and the status says why.
 test('the game asset made in the sheet is kept with the photo just saved, and its failure never undoes the save',async()=>{
  const kept=[],f=editorFixture();let said='';
- f.context.photoEditor.keepAsset=async(id,key)=>{kept.push([id,key]);return 'color';};f.context.status=text=>{said=text;};
+ f.context.photoEditor.pendingAsset=blob=>({blob});
+ f.context.photoEditor.keepAsset=async(id,key,snapshot)=>{kept.push([id,key,snapshot.blob]);return 'color';};f.context.status=text=>{said=text;};
  await f.submit();
- assert.deepEqual(kept,[['saved-disc','saved-photo.webp']],'kept under the saved key, after the upload');
+ assert.deepEqual(kept,[['saved-disc','saved-photo.webp','processed-photo']],'kept under the saved key, after the upload');
  assert.equal(f.counts.closes,1);assert.equal(said,'Disc added to Storage.');
  const g=editorFixture();let told='';
+ g.context.photoEditor.pendingAsset=blob=>({blob});
  g.context.photoEditor.keepAsset=async()=>{throw Error('No stamp showed up on this photo.');};g.context.status=text=>{told=text;};
  await g.submit();
  assert.equal(g.context.items[0].texture_key,'saved-photo.webp','the photo stays saved');assert.equal(g.counts.closes,1);
  assert.match(told,/^Disc added to Storage\. Its game asset could not be saved: No stamp showed up on this photo\./);
+});
+
+// PR #49, Codex round 1: the photo can be replaced or adjusted while its save is in flight. The asset kept is the one
+// taken with the uploaded photo's bytes before the first request, never the one the sheet holds by the time the photo's
+// key comes back, so photo A is never saved with photo B's stamp.
+test('a photo replaced while its save is in flight keeps the uploaded photo’s own asset',async()=>{
+ const upload=deferred(),kept=[],asked=[];
+ const f=editorFixture({photoValue:async()=> 'photo-A',upload:()=>upload.promise});
+ // The editor's live state: photo A with its asset, until the user replaces it mid-save.
+ let live={blob:'photo-A',asset:'stamp-A'};
+ f.context.photoEditor.pendingAsset=blob=>{asked.push({blob,requests:f.calls.length});return live.blob===blob?{blob,asset:live.asset}:null;};
+ f.context.photoEditor.keepAsset=async(id,key,snapshot)=>{kept.push({id,key,snapshot,liveNow:live.asset});return 'color';};
+ const saving=f.submit();
+ await new Promise(r=>setTimeout(r));
+ assert.deepEqual(asked,[{blob:'photo-A',requests:0}],'the asset is taken with the photo, before any save request');
+ assert.equal(f.calls.at(-1)?.body,'photo-A','photo A is uploading');
+ live={blob:'photo-B',asset:'stamp-B'};
+ upload.resolve(photoResponse());await saving;
+ assert.equal(kept.length,1);
+ assert.deepEqual(kept[0].snapshot,{blob:'photo-A',asset:'stamp-A'},'photo A keeps its own stamp');
+ assert.equal(kept[0].key,'saved-photo.webp');assert.equal(kept[0].liveNow,'stamp-B','even though the sheet now holds photo B');
 });

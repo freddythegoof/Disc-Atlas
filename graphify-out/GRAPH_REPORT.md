@@ -1,7 +1,7 @@
 # Graph Report - photo-adder-rework  (2026-10-27)
 
 ## Corpus Check
-- 466 files · ~5,673,896 words
+- 466 files · ~5,674,164 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 314 file(s) not represented in the graph (top: .log 239, .gz 23, .css 16)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7039c62b`
+- Built from commit: `509e15bf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

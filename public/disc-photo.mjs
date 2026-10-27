@@ -711,9 +711,9 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  };
  // The new photo's game asset: made once its photo is prepared, again if the finish changes to or from Clear before Save.
  // `look` starts on Full color (docs/spin-color-default.md); a stamp too detailed for colour lands on One ink.
- const makePending=(job,look=job.asset?.look||'color')=>{
+ const makePending=(job,look=job.asset?.look||'color',isClear=clear())=>{
   look||='color';
-  const asset={look,clear:clear(),state:'making',result:null,error:null};job.asset=asset;
+  const asset={look,clear:isClear,state:'making',result:null,error:null};job.asset=asset;
   const status=text=>{if(used===job&&job.asset===asset)q('.bag-photo-status').textContent=text;};
   asset.promise=(async()=>{
    try{
@@ -854,19 +854,24 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   // Why the prepared photo gave none (disc-albedo.mjs trueColorRead): 'shallow', 'colour', 'unread', or null.
   get trueColorRefused(){return used?.trueColorRefused??null;},
   async value(){if(busy)throw Error('Wait for the photo to finish.');return used?used.blob:null;},
-  // Part B (docs/photo-adder-rework.md): once the photo is saved as `key`, its game asset is saved with it, in the look
-  // chosen here: the make is waited for (each step is bounded), made again first if the finish changed to or from Clear.
-  // Photo keeps the photo alone, as before this sheet made assets. Resolves to the look kept, or null with no new photo;
-  // rejects with the reason the asset could not be kept.
-  async keepAsset(id,key){
-   const job=used;if(!job?.asset||removed)return null;
-   if(job.asset.look==='photo')return 'photo';
-   if(job.asset.state!=='failed'&&job.asset.clear!==clear())makePending(job);
+  // Part B (docs/photo-adder-rework.md): the new photo's game asset, as Save found it. Taken with the photo's bytes, before
+  // the first save request (PR #49, Codex round 1): the photo can be replaced or adjusted while the save is in flight, and
+  // the asset kept must be the uploaded photo's own, in the look and finish chosen when Save was pressed. `blob` is what
+  // value() gave; null when it is not this photo's, or there is no new photo with an asset.
+  pendingAsset(blob){const job=used;return job?.asset&&!removed&&job.blob===blob?{job,blob,look:job.asset.look,clear:clear()}:null;},
+  // Once the photo is saved as `key`, keeps that snapshot's asset with it: the make is waited for (each step is bounded),
+  // made again first if the finish was changed to or from Clear after it started. Photo keeps the photo alone, as before
+  // this sheet made assets. Resolves to the look kept, or null with no snapshot; rejects with why the asset was not kept.
+  async keepAsset(id,key,snapshot){
+   if(!snapshot)return null;const {job}=snapshot;
+   if(snapshot.look==='photo')return 'photo';
+   if(job.asset.state!=='failed'&&job.asset.clear!==snapshot.clear)makePending(job,snapshot.look,snapshot.clear);
    const asset=await job.asset.promise;
-   if(asset.look==='photo')return 'photo';
    if(asset.state!=='made')throw Error(asset.error);
-   await within(savePhotoStamp(String(id),key,{...asset.result,look:asset.look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
-   return asset.look;
+   // A stamp too detailed for full colour was made in one ink only.
+   const look=snapshot.look==='color'&&!asset.result.color?'asset':snapshot.look;
+   await within(savePhotoStamp(String(id),key,{...asset.result,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
+   return look;
   },
   // For tests: the aligner and what it is working on.
   debug:{dialog,get draft(){return draft;},get used(){return used;}}};

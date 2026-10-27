@@ -120,7 +120,10 @@ engine; read at full detail from the original, as "Use a higher-resolution origi
 the photo status ("Making the game asset: finding the stamp…", "…drawing it in full color…"), then shows the result: a
 preview of the disc in its colour wearing the asset, a faint cross over it, and the Look row on Game asset · Full color
 (One ink and Photo choosable before Save). **Save** uploads the photo, gets its key, and keeps the asset under it
-(`photoEditor.keepAsset` → `savePhotoStamp`). Choosing Photo keeps the photo alone, exactly as before; Game asset
+(`photoEditor.keepAsset` → `savePhotoStamp`). What it keeps is a snapshot taken with the photo's bytes before the
+first save request (`pendingAsset`, PR #49 Codex round 1): the photo, its asset, the Look and the finish as Save found
+them, so a photo replaced or adjusted while the save is in flight never lends its stamp to the one uploaded
+(`tests/photo-editor-races.mjs`). Choosing Photo keeps the photo alone, exactly as before; Game asset
 later makes one with the one click. If the finish changed to or
 from Clear before Save, the asset is made again first (a clear disc's asset is the clean stamp, PR #45). If the asset
 cannot be made or saved, the disc and its photo stay saved and the bag's status says why and how to make it again.
@@ -194,9 +197,9 @@ Every suite at its standing baseline (Oct 27, the Mac, Chromium on Metal; WebKit
 
 | Suite | Result |
 |---|---|
-| Unit, `node --test` over every non-browser suite | 331 / 334; the 3 failures are environment-only and fail on `main` too (palette and redesign need a dev server on :5173, prompt-4 needs `outputs/`) |
+| Unit, `node --test` over every non-browser suite | 332 / 335; the 3 failures are environment-only and fail on `main` too (palette and redesign need a dev server on :5173, prompt-4 needs `outputs/`) |
 | `tests/photo-register.mjs` (new) | 7 / 7: rim with a hand over it, the camera's centres, the homography (centre dot ≤ 1% R, ink lines straight), the affine fit equals the old crop, auto centre ≤ 2% R and level ≤ 0.5°, squash refusal, no-disc refusal |
-| `tests/photo-editor-races.mjs` | 12 / 12 (one new: the asset is kept under the saved key; its failure never undoes the save) |
+| `tests/photo-editor-races.mjs` | 13 / 13 (two new: the asset is kept under the saved key, its failure never undoes the save; a photo replaced mid-save keeps the uploaded photo's own asset) |
 | `tests/photo-adder-rework-browser.mjs` (new) | passes, Chromium desktop and WebKit phone (§5.2) |
 | 21 photo, clear, Halo, edge, gallery and bag browser suites | pass |
 | `photo-compression-browser`, `photo-editor-contract-browser` | fail **identically on `main` 7039c62** (native WebP bytes; the contract's f31fd41 baseline module) |
