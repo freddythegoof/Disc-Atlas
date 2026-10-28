@@ -3,6 +3,8 @@ import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import vm from 'node:vm';
 import {isHalo} from '../public/disc3d/halo.mjs';
+import {keepSnapshotAsset} from '../public/disc-photo.mjs';
+import {seeThroughPlastic} from '../public/bag-values.js';
 
 // Exercise the production handler with controlled async boundaries. The DOM and
 // network are doubles; neither save/retry logic nor thumbnail scheduling is copied.
@@ -288,4 +290,53 @@ test('a photo replaced while its save is in flight keeps the uploaded photo’s 
  assert.equal(kept.length,1);
  assert.deepEqual(kept[0].snapshot,{blob:'photo-A',asset:'stamp-A'},'photo A keeps its own stamp');
  assert.equal(kept[0].key,'saved-photo.webp');assert.equal(kept[0].liveNow,'stamp-B','even though the sheet now holds photo B');
+});
+
+// PR #50, Codex round 1: a game asset is made from two inputs besides the photo, the finish and whether the plastic is
+// see-through (a Champion's pen ghost is left out, docs/stamp-look-extraction.md). Both are captured with the photo when
+// Save is pressed. An asset made from other inputs is made again from the captured ones, never from the sheet as it is
+// by the time the photo's key comes back. The keep step is the production one (disc-photo.mjs keepSnapshotAsset).
+function assetJob(inputs){
+ const job={},made=(clear,seeThrough)=>{const asset={clear,seeThrough,state:'made',result:{color:true,madeFor:seeThrough?'see-through':'opaque'}};asset.promise=Promise.resolve(asset);return asset;};
+ job.asset=made(inputs.clear,inputs.seeThrough);
+ const remakes=[];
+ return {job,remakes,remake:(j,snapshot)=>{remakes.push({clear:snapshot.clear,seeThrough:snapshot.seeThrough});j.asset=made(snapshot.clear,snapshot.seeThrough);}};
+}
+test('a plastic switched between Make and Save, or during the save, keeps the asset made for the plastic Save captured',async()=>{
+ // The sheet's live state: the plastic (and finish) the user has chosen right now.
+ let plastic='Star',finish='opaque';
+ const sheet=()=>({clear:finish==='clear',seeThrough:seeThroughPlastic(plastic,finish)});
+ // The asset was made when the photo was prepared, on Star.
+ const made=assetJob(sheet());
+ const upload=deferred(),kept=[];
+ const f=editorFixture({photoValue:async()=> 'photo-A',upload:()=>upload.promise});
+ // The user switches to Proto Glow Champion, then presses Save: the snapshot captures it.
+ plastic='Proto Glow Champion';
+ f.context.photoEditor.pendingAsset=blob=>({job:made.job,blob,look:'color',...sheet()});
+ f.context.photoEditor.keepAsset=(id,key,snapshot)=>keepSnapshotAsset(snapshot,{remake:made.remake,save:async(result,look)=>{kept.push({id,key,look,madeFor:result.madeFor});}});
+ const saving=f.submit();
+ await new Promise(r=>setTimeout(r));
+ // Mid-upload, the user switches back to Star: the sheet no longer says see-through.
+ plastic='Star';
+ upload.resolve(photoResponse());await saving;
+ assert.deepEqual(made.remakes,[{clear:false,seeThrough:true}],'made again once, from the captured plastic, not the live one');
+ assert.deepEqual(kept,[{id:'saved-disc',key:'saved-photo.webp',look:'color',madeFor:'see-through'}],'the asset kept is the Champion one');
+});
+test('an asset already made for the captured plastic and finish is kept as made, whatever the sheet says later',async()=>{
+ for(const inputs of [{clear:false,seeThrough:true},{clear:true,seeThrough:true},{clear:false,seeThrough:false}]){
+  const made=assetJob(inputs),kept=[],before=made.job.asset;
+  const look=await keepSnapshotAsset({job:made.job,blob:'photo-A',look:'color',...inputs},{remake:made.remake,save:async result=>{kept.push(result);}});
+  assert.equal(look,'color');assert.deepEqual(made.remakes,[],'no remake: '+JSON.stringify(inputs));
+  assert.equal(kept[0],before.result,'the asset made is the one kept');
+ }
+ // Either input alone differing makes it again, with both captured values.
+ for(const [madeWith,captured] of [[{clear:false,seeThrough:true},{clear:false,seeThrough:false}],[{clear:false,seeThrough:false},{clear:true,seeThrough:true}],[{clear:true,seeThrough:true},{clear:false,seeThrough:true}]]){
+  const made=assetJob(madeWith);
+  await keepSnapshotAsset({job:made.job,blob:'photo-A',look:'asset',...captured},{remake:made.remake,save:async()=>{}});
+  assert.deepEqual(made.remakes,[captured],JSON.stringify(madeWith)+' saved as '+JSON.stringify(captured));
+ }
+ // A failed make is not retried here: its error is reported, and the photo stays saved.
+ const failed=assetJob({clear:false,seeThrough:false});failed.job.asset.state='failed';failed.job.asset.error='No stamp showed up on this photo.';
+ await assert.rejects(keepSnapshotAsset({job:failed.job,blob:'photo-A',look:'color',clear:false,seeThrough:true},{remake:failed.remake,save:async()=>{}}),/No stamp showed up/);
+ assert.deepEqual(failed.remakes,[]);
 });

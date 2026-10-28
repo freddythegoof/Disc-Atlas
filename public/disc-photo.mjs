@@ -444,6 +444,23 @@ const LOOK=name=>'<div class="bag-photo-look" hidden><canvas class="bag-photo-pr
 let sourceChooserId=0;
 // The style a disc wore before it went back to Photo this visit, so Game asset returns to it rather than the default.
 const lastStyle=new Map();
+// A game asset is made from the photo and two inputs the sheet can change before Save: the finish (Clear makes it in the
+// clean stamp mode) and whether the plastic is see-through (docs/stamp-look-extraction.md). Both are captured when the
+// asset is made and again when Save snapshots it (PR #50, Codex round 1). Once the photo is saved, the snapshot's asset is
+// kept: made again first from the SNAPSHOT's inputs if either differs from what it was made with, never from the sheet as
+// it is by then. `remake(job,snapshot)` starts that make; `save(result,look)` keeps the result. Resolves to the look kept,
+// or null with no snapshot; rejects with why the asset was not kept.
+export async function keepSnapshotAsset(snapshot,{remake,save}){
+ if(!snapshot)return null;const {job}=snapshot;
+ if(snapshot.look==='photo')return 'photo';
+ if(job.asset.state!=='failed'&&(job.asset.clear!==snapshot.clear||job.asset.seeThrough!==snapshot.seeThrough))remake(job,snapshot);
+ const asset=await job.asset.promise;
+ if(asset.state!=='made')throw Error(asset.error);
+ // A stamp too detailed for full colour was made in one ink only.
+ const look=snapshot.look==='color'&&!asset.result.color?'asset':snapshot.look;
+ await save(asset.result,look);
+ return look;
+}
 // `clear()`: whether the sheet has the disc as clear plastic now; a game asset is then made in the clean stamp mode.
 // `halo()`: whether the sheet has the disc as a Halo copy (its outer band is the dye, not the plastic's true colour).
 // `onTrueColor(id,key,color)`: the one-click make matched the plastic's true colour from the stored photo and saved it
@@ -487,7 +504,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  // One-dot aligner (docs/photo-adder-rework.md): draft.fit {disc, w, h, centre, auto} once the rim is fitted (the dot is
  // `centre`, `auto` the automatic level), draft.manual when the photo is framed by hand. used.asset: the new photo's game
  // asset, made in this sheet {look, clear, state ('making', 'made', 'failed'), result, error, promise}.
- let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='color',makingClear=false;
+ let makingNow=null,current=null,used=null,draft=null,removed=false,changed=false,serial=0,busy=false,plate=.8,rimInner=null,bandInner=null,frameId=0,settle=0,gesture=null,levelLines=false,owned=null,making='color',makingClear=false,makingSeeThrough=false;
  const pointers=new Map();
  const clearGesture=()=>{
   const ids=[...pointers.keys()];pointers.clear();gesture=null;
@@ -620,7 +637,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  // (v3.1, docs/photo-stamp-one-click.md): its stored texture, read with the level framing. The camera original is an
  // option (finer detail when zoomed), never a step: framed and read in the aligner as before.
  // The disc's finish is read once, when a make starts (a make outlives the sheet, which may by then show another disc).
- const pickOriginal=look=>{if(owned&&!busy&&!makingNow){making=look;makingClear=clear();q('.bag-photo-asset-file').click();}};
+ const pickOriginal=look=>{if(owned&&!busy&&!makingNow){making=look;makingClear=clear();makingSeeThrough=seeThrough();q('.bag-photo-asset-file').click();}};
  // The make's last words on the true colour. On a clear copy a photo that gives none says so (the finish hint promises
  // the make matches it), as does a colour read but not saved.
  const trueColorLine=(job,matched,kept,refused)=>kept?' The plastic’s true colour matched from your photo.'
@@ -630,14 +647,14 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   if(!owned||!current||busy||makingNow)return;
   // The plastic's true colour is read from the same decoded photo on a one-piece mold that is not a Halo copy
   // (docs/clear-plastic-true-color.md): a disc on Clear wears it from this click on; a disc on Opaque keeps it for later.
-  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear(),trueColor:!rimInner&&!halo()},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
+  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear(),seeThrough:seeThrough(),trueColor:!rimInner&&!halo()},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
   const step=name=>status('Making the game asset: '+MAKE_STEPS[name]);
   renderSheet();step('open');
   try{
    const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout?.(60000)}).catch(()=>null);
    if(!response?.ok)throw Error('Your saved photo could not open. Check your connection and try again.');
    const image=await decodePhoto(await response.blob());let asset,matched=null,refused=null;
-   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));if(job.trueColor)({color:matched,refused}=storedTrueColor(image));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:job.clear,seeThrough:seeThrough(),stage:step});}
+   try{await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));if(job.trueColor)({color:matched,refused}=storedTrueColor(image));asset=await photoStampAsset(image,levelOptions(image),{plate:job.plate,color:true,stored:true,clear:job.clear,seeThrough:job.seeThrough,stage:step});}
    finally{image.close();}
    step('save');
    await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
@@ -691,7 +708,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
    const target=owned,step=name=>{if(id===serial)dq('.photo-aligner-status').textContent='Making the game asset: '+MAKE_STEPS[name];};
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));
-    const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:makingClear,seeThrough:seeThrough(),stage:step}),look=making;if(id!==serial)return;
+    const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:makingClear,seeThrough:makingSeeThrough,stage:step}),look=making;if(id!==serial)return;
     step('save');
     await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');if(id!==serial)return;
     closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.';renderSheet();
@@ -713,16 +730,17 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
    renderSheet();if(!level)onColor(color);
   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e.message;}}
  };
- // The new photo's game asset: made once its photo is prepared, again if the finish changes to or from Clear before Save.
+ // The new photo's game asset: made once its photo is prepared, again if its inputs (the finish, a see-through plastic)
+ // differ from Save's snapshot of them (keepSnapshotAsset).
  // `look` starts on Full color (docs/spin-color-default.md); a stamp too detailed for colour lands on One ink.
- const makePending=(job,look=job.asset?.look||'color',isClear=clear())=>{
+ const makePending=(job,look=job.asset?.look||'color',isClear=clear(),isSeeThrough=seeThrough())=>{
   look||='color';
-  const asset={look,clear:isClear,state:'making',result:null,error:null};job.asset=asset;
+  const asset={look,clear:isClear,seeThrough:isSeeThrough,state:'making',result:null,error:null};job.asset=asset;
   const status=text=>{if(used===job&&job.asset===asset)q('.bag-photo-status').textContent=text;};
   asset.promise=(async()=>{
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));status('Making the game asset: '+MAKE_STEPS.extract);
-    asset.result=await photoStampAsset(job.bitmap,job.options,{plate,color:true,clear:asset.clear,seeThrough:seeThrough(),stage:name=>status('Making the game asset: '+MAKE_STEPS[name])});
+    asset.result=await photoStampAsset(job.bitmap,job.options,{plate,color:true,clear:asset.clear,seeThrough:asset.seeThrough,stage:name=>status('Making the game asset: '+MAKE_STEPS[name])});
     asset.state='made';if(!asset.result.color&&asset.look==='color')asset.look='asset';
     status(asset.result.color?'Game asset made. It’s saved with the photo when you save this disc.':'Game asset made in one ink: this stamp is too detailed to keep in full color. It’s saved with the photo when you save this disc.');
    }catch(e){asset.state='failed';asset.error=e?.message||'The game asset could not be made.';asset.look='photo';status(asset.error+' The photo still saves; choose Game asset after saving to try again.');}
@@ -868,20 +886,13 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   // the first save request (PR #49, Codex round 1): the photo can be replaced or adjusted while the save is in flight, and
   // the asset kept must be the uploaded photo's own, in the look and finish chosen when Save was pressed. `blob` is what
   // value() gave; null when it is not this photo's, or there is no new photo with an asset.
-  pendingAsset(blob){const job=used;return job?.asset&&!removed&&job.blob===blob?{job,blob,look:job.asset.look,clear:clear()}:null;},
-  // Once the photo is saved as `key`, keeps that snapshot's asset with it: the make is waited for (each step is bounded),
-  // made again first if the finish was changed to or from Clear after it started. Photo keeps the photo alone, as before
-  // this sheet made assets. Resolves to the look kept, or null with no snapshot; rejects with why the asset was not kept.
-  async keepAsset(id,key,snapshot){
-   if(!snapshot)return null;const {job}=snapshot;
-   if(snapshot.look==='photo')return 'photo';
-   if(job.asset.state!=='failed'&&job.asset.clear!==snapshot.clear)makePending(job,snapshot.look,snapshot.clear);
-   const asset=await job.asset.promise;
-   if(asset.state!=='made')throw Error(asset.error);
-   // A stamp too detailed for full colour was made in one ink only.
-   const look=snapshot.look==='color'&&!asset.result.color?'asset':snapshot.look;
-   await within(savePhotoStamp(String(id),key,{...asset.result,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
-   return look;
+  pendingAsset(blob){const job=used;return job?.asset&&!removed&&job.blob===blob?{job,blob,look:job.asset.look,clear:clear(),seeThrough:seeThrough()}:null;},
+  // Once the photo is saved as `key`, keeps that snapshot's asset with it (keepSnapshotAsset): the make is waited for
+  // (each step is bounded), made again first if the finish or the plastic's see-through changed after it started. Photo
+  // keeps the photo alone, as before this sheet made assets.
+  keepAsset(id,key,snapshot){
+   return keepSnapshotAsset(snapshot,{remake:(job,s)=>makePending(job,s.look,s.clear,s.seeThrough),
+    save:(result,look)=>within(savePhotoStamp(String(id),key,{...result,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.')});
   },
   // The sheet's stamp ink changed: a One ink preview on screen is drawn again in it.
   restyle(){if(used?.asset&&!q('.bag-photo-preview').hidden)drawPreview();},

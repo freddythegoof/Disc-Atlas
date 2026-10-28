@@ -214,6 +214,12 @@ All of it is in `public/disc-stamp-extract.mjs`, plus a `seeThrough` flag carrie
    are drawn but never change what kind of stamp a disc is. Without this, a worn one-ink test fixture flipped to
    one-ink-from-layered on Clear (0.67 → 0.53 against 0.55). With it, 0.62. The layered status of all three pinned
    discs is unchanged.
+6. **Codex round 1 (P2):** an asset made in the sheet is kept with the photo on Save. It is now made again when
+   **either** input differs from Save's snapshot, the finish or the see-through flag, and both are captured: with the
+   asset when it is made, and in the snapshot when Save is pressed. The remake uses the captured values, never the sheet
+   as it is by then (`disc-photo.mjs` `keepSnapshotAsset`). So a Star photo switched to Proto Glow Champion before Save
+   keeps a Champion asset, and switching back during the upload changes nothing. `tests/photo-editor-races.mjs` has the
+   plastic-switch scenarios, and both fail without the see-through comparison.
 
 ### B.4 The pair gate, on one set of settings
 
