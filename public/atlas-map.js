@@ -14,10 +14,11 @@ function photoMarkup(d,extra=''){
 // `band`: a Halo copy's photographed band colour (disc3d/halo.mjs haloBand), or nothing; `model` its v2 wash and
 // dye front (haloModel), or nothing.
 // `finish`: 'clear' for a clear copy (disc3d/clear.mjs). `trueColor`: the plastic's true colour from its photo, or
-// nothing (docs/clear-plastic-true-color.md).
-function thumbnailMarkup(d,color,rim,photoURL,band,model,finish,trueColor){
+// nothing (docs/clear-plastic-true-color.md). `stamp`: the copy's own stamp ink and finish, or nothing to follow
+// Appearance (docs/stamp-look-extraction.md).
+function thumbnailMarkup(d,color,rim,photoURL,band,model,finish,trueColor,stamp){
  const label=d?d.brand+' '+(d.catalogName||d.name):'Saved disc';
- return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}"${band?` data-halo-band="${esc(band)}"`:''}${model?` data-halo-model="${esc(model)}"`:''}${finish==='clear'?' data-finish="clear"':''}${finish==='clear'&&trueColor?` data-true-color="${esc(trueColor)}"`:''} style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
+ return `<span class="disc-art clean-disc disc-thumbnail" data-disc-thumbnail="${esc(d?.id||'')}" data-plate-color="${esc(color)}" data-photo-url="${esc(photoURL||'')}" data-rim-color="${esc(rim||'')}"${band?` data-halo-band="${esc(band)}"`:''}${model?` data-halo-model="${esc(model)}"`:''}${finish==='clear'?' data-finish="clear"':''}${finish==='clear'&&trueColor?` data-true-color="${esc(trueColor)}"`:''}${stamp?.ink?` data-stamp-ink="${esc(stamp.ink)}"`:''}${stamp?.finish?` data-stamp-finish="${esc(stamp.finish)}"`:''} style="--disc-color:${esc(color)}" role="img" aria-label="${esc(label)}"></span>`;
 }
 function observeDiscThumbnails(root,lookup,options){
  if(window.ATLAS_3D_OFF)return;
@@ -621,7 +622,8 @@ function photoDisc(d){
  const clear=window.BagApp?.mapFinishes?.().get(d.id)==='clear'?{finish:'clear',page:mapPage(),trueColor:window.BagApp?.mapTrueColors?.().get(d.id)||null}:null;
  // The player's own disc on their map wears their stamp appearance. A photo already carries its own stamp, unless its
  // owner switched it to the game-asset look (disc3d/photo-stamps.mjs): only then does atlas-art use the style.
- const stampStyle=photoURL||myColor(d)?window.DisplayPalette?.stampStyle?.():null;
+ // The first copy's own stamp look wins there (docs/stamp-look-extraction.md).
+ const stampStyle=photoURL||myColor(d)?window.DisplayPalette?.stampStyleFor?.(window.BagApp?.mapStamps?.().get(d.id)):null;
  if(photoURL)return {...d,photoURL,...haloBand&&{haloBand},...haloModel&&{haloModel},...stampStyle&&{stampStyle},...clear};
  return stampStyle||clear?{...d,...stampStyle&&{stampStyle},...clear}:d;
 }

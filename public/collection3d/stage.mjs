@@ -120,8 +120,9 @@ export function discMaterial(color='#ffffff'){
  return stage().low?new THREE.MeshStandardMaterial({color,roughness:.38}):new THREE.MeshPhysicalMaterial({color,roughness:.3,clearcoat:.6,clearcoatRoughness:.22});
 }
 // Storage and the graveyard hold only the player's own discs, so their stamps wear the player's stamp
-// appearance (display customization). The key lets a rebuilt disc notice a change of style.
-export const personalStampStyle=()=>window.DisplayPalette?.stampStyle?.()||null;
+// appearance (display customization). The key lets a rebuilt disc notice a change of style. `choice`: the copy's own
+// stamp look (docs/stamp-look-extraction.md), over the setting.
+export const personalStampStyle=(choice=null)=>window.DisplayPalette?.stampStyleFor?.(choice)||null;
 // Photo discs switched to their game-asset look (photo-stamps.mjs) are part of it too.
 export const stampStyleKey=()=>{const s=personalStampStyle(),looks=photoLooksKey();return (s?s.inkId+'/'+s.finish.id:'')+(looks?'|'+looks:'');};
 // One disc as ordinary meshes, with its generic name stamp: the pulled-out rack disc and graveyard discs.
@@ -129,7 +130,7 @@ export const stampStyleKey=()=>{const s=personalStampStyle(),looks=photoLooksKey
 // underside through the top, 1 (small) the front wall only. Its page colour is set by paintClear().
 // `trueColor`: the plastic's true colour from the copy's photo (docs/clear-plastic-true-color.md), worn by a clear copy's
 // walls and its photo's plastic; the photo of a clear copy is cut at its own plate edge.
-export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,trueColor=null,walls=2,onChange=()=>{},stamp=true}={}){
+export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,trueColor=null,walls=2,onChange=()=>{},stamp=true,stampChoice=null}={}){
  // The game-asset look: the extracted stamp on the stamp mesh, and no photo.
  const look=photoStampFor(photoURL);if(look)photoURL=null;
  const twoTone=!!haloBand&&!!parseHalo(haloModel);
@@ -143,7 +144,7 @@ export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,fin
  if(stamp){
   const geometry=placement=>{const ring=stampGeometry(entry.shape,{segments:32,rings:5,placement});ring.translate(0,-entry.centre,0);ring.scale(.01,.01,.01);return ring;};
   // Storage's room (.75) is a little dimmer than the viewer's; a foil keeps the viewer's look.
-  const style=photoURL?null:look?.color?colorStyle(personalStampStyle()):personalStampStyle(),material=stampMaterial(style,{envMap:stage().env}),placement=look?look.placement:photoURL?null:catalogStampPlacement(d);
+  const own=personalStampStyle(stampChoice),style=photoURL?null:look?.color?colorStyle(own):own,material=stampMaterial(style,{envMap:stage().env}),placement=look?look.placement:photoURL?null:catalogStampPlacement(d);
   ink=new THREE.Mesh(geometry(null),material);group.add(ink);
   material.map=stampTexture(name||d?.catalogName||d?.name||'',colors.plate,{asset:look?look.asset:photoURL?null:catalogStampAsset(d),style,size:look?1024:512,onChange:texture=>{
    if(texture?.userData.stampAsset&&placement){ink.geometry.dispose();ink.geometry=geometry(placement);}onChange();

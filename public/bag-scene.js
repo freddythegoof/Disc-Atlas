@@ -8,6 +8,8 @@ const loadViewer=()=>import('./bag3d/viewer.mjs');
 // The bag accent is scoped to My Bag (display-palette.js), so it is read where the bag lives.
 const accent=node=>getComputedStyle(node||document.documentElement).getPropertyValue('--lime').trim()||null;
 const stampStyle=()=>window.DisplayPalette?.stampStyle?.()||null;
+// A copy's own stamp look (docs/stamp-look-extraction.md), over the setting.
+const stampStyleFor=choice=>window.DisplayPalette?.stampStyleFor?.(choice)||null;
 const DEFAULT_BAG='#343c49';
 // Each zoom button step (the viewer allows 1× to its maxZoom).
 const ZOOM_STEP=1.4;
@@ -150,7 +152,7 @@ export class BagScene {
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
     // The putter pocket state is independent: putters are initially out if pocketOpen is true.
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(this.root),stampStyle:stampStyle(),compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
+     animated:!reduced(),accentColor:accent(this.root),stampStyle:stampStyle(),stampStyleFor,compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
     // The hit layer and the list carry the content; the canvas itself is decorative.

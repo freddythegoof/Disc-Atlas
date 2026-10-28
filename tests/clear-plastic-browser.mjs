@@ -19,7 +19,7 @@ const h=await startHarness({port:Number(process.env.CLEAR_PORT||8873),state:'wor
 const {page,base,errors,context}=h;
 // Every stamp extraction, with the mode it ran in (section 7): extract() announces its `clear` flag on a channel the page
 // hears, whether it runs in the worker or inline.
-const SIGNATURE='export function extract(data,size,plate,{color=false,stored=false,clear=false}={}){';
+const SIGNATURE='export function extract(data,size,plate,{color=false,stored=false,clear=false,seeThrough=false}={}){';
 await context.route(/\/disc-stamp-worker\.mjs(\?.*)?$/,async route=>{
  const body=await (await route.fetch()).text();if(!body.includes(SIGNATURE))throw Error('extract() signature moved');
  await route.fulfill({contentType:'text/javascript',body:body.replace(SIGNATURE,SIGNATURE+"new BroadcastChannel('clear-test').postMessage({clear});")});

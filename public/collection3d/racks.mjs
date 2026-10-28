@@ -181,7 +181,7 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
    // A new disc slides in from the front of its slot.
    if(!r){r={id:e.id,lift:0,liftGoal:0,current:animate?[target[0],target[1]+.03,target[2]+.36]:[...target]};records.set(e.id,r);r.fresh=animate;}
    const moved=r.to&&(r.to.some((v,k)=>Math.abs(v-target[k])>1e-6)||r.entry?.key!==entry.key);
-   Object.assign(r,{entry,batch:e.batch,finish:e.finish,trueColor:e.trueColor||null,name:e.name,d:e.d,photoURL:e.photoURL,haloModel:e.haloModel||null,index:batch.ids.length,rack:place.rack,slot:place.slot,bayX:place.bayX,to:target,colors:discColors(entry,e.color,e.rimColor,e.haloBand)});
+   Object.assign(r,{entry,batch:e.batch,finish:e.finish,trueColor:e.trueColor||null,stamp:e.stamp||null,name:e.name,d:e.d,photoURL:e.photoURL,haloModel:e.haloModel||null,index:batch.ids.length,rack:place.rack,slot:place.slot,bayX:place.bayX,to:target,colors:discColors(entry,e.color,e.rimColor,e.haloBand)});
    if(r.fresh||(moved&&animate)){r.from=[...r.current];r.t0=now;r.fresh=false;}else if(!r.t0)r.current=[...target];
    batch.ids.push(e.id);seen.add(e.id);
    batch.plate.setColorAt(r.index,color.set(clearTint(r.finish,r.colors.plate,r.trueColor,{overmold:r.entry.overmold}).tint));if(batch.rim)batch.rim.setColorAt(r.index,color.set(r.colors.rim));
@@ -206,8 +206,8 @@ export async function mountRacks(host,{onPick=()=>{},onHover=()=>{},onCamera=()=
  const pulledTarget=r=>{const s=pulledSpot(r.to,{bayX:r.bayX});return s;};
  function restyle(p,r){
   // A recolour or a new mold while out: rebuild the proxy in place.
-  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL,stampStyleKey(),isClear(r.finish),r.trueColor]);if(p.key===key)return;
-  const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,finish:r.finish,trueColor:r.trueColor,onChange:()=>view.request()});
+  const key=JSON.stringify([r.entry.key,r.colors,r.haloModel,r.name,r.photoURL,stampStyleKey(),isClear(r.finish),r.trueColor,r.stamp]);if(p.key===key)return;
+  const next=discModel(r.d,{color:r.colors.plate,rimColor:r.colors.rim,haloBand:r.entry.band?r.colors.rim:null,haloModel:r.entry.band?r.haloModel:null,name:r.name,photoURL:r.photoURL,finish:r.finish,trueColor:r.trueColor,stampChoice:r.stamp,onChange:()=>view.request()});
   paintClear(next,pageColor(host));
   if(p.proxy){next.position.copy(p.proxy.position);next.quaternion.copy(p.proxy.quaternion);discRoot.remove(p.proxy);disposeObject(p.proxy);}
   p.proxy=next;p.key=key;discRoot.add(next);

@@ -38,7 +38,7 @@ function editorFixture({photoValue=async()=> 'processed-photo',upload=async()=>p
   editing:null,items:[],loading:false,active:false,plastics:{},rimCustomized:false,
   photoEditor:{changed:true,value:photoValue,reset(){},pendingAsset(){return null;},async keepAsset(){return null;}},
   colorHint:()=>({textContent:''}),colorBeforePhoto:null,photoColor:null,
-  mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),isHalo,finishChoice:()=>'opaque',
+  mold:()=>({}),validateDiscDetails:()=>({mold_id:'mold',notes:'Owner A notes'}),isHalo,finishChoice:()=>'opaque',stampChoice:()=>({stamp_ink:null,stamp_finish:null}),
   render(){counts.renders++;},status(){},loadBag(){counts.refreshes++;},name:()=> 'Disc',
   async fetch(url,options){
    calls.push({url,...options});

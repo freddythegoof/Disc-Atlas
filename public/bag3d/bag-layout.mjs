@@ -1,5 +1,6 @@
 import {bagRimColor} from '../disc3d/overmold.mjs';
 import {haloBand,haloModel} from '../disc3d/halo.mjs';
+import {stampChoiceOf} from '../bag-values.js';
 // Disc Atlas extension: places a bag's slots inside the GLB's pockets.
 // Units are the GLB's meters (Y up, +Z front). The disc mesh is 10 mm thick along
 // its local X axis and 202 mm across, so an unrotated disc stands edge-on to the front.
@@ -48,7 +49,7 @@ export function bagLayout({main = [], putter = [], goTo = []} = {}) {
   };
   const entry = (slot, pocket, order) => {
     const id = slotId(slot);
-    return {key: id === null ? `${pocket}-empty-${order}` : id, id, color: slotColor(slot), photoURL:slot?.item?.texture_key?'/api/bag/discs/'+encodeURIComponent(slot.item.id)+'/photo?v='+encodeURIComponent(slot.item.texture_key):null, rimColor:slot?.rimColor ?? bagRimColor(slot?.item), haloBand:slot?.haloBand ?? haloBand(slot?.item), haloModel:slot?.haloModel ?? haloModel(slot?.item), finish:slot?.finish ?? slot?.item?.finish ?? 'opaque', trueColor:slot?.trueColor ?? slot?.item?.photo_true_color ?? null, mold:slot?.mold ?? null, pocket, order, empty: id === null};
+    return {key: id === null ? `${pocket}-empty-${order}` : id, id, color: slotColor(slot), photoURL:slot?.item?.texture_key?'/api/bag/discs/'+encodeURIComponent(slot.item.id)+'/photo?v='+encodeURIComponent(slot.item.texture_key):null, rimColor:slot?.rimColor ?? bagRimColor(slot?.item), haloBand:slot?.haloBand ?? haloBand(slot?.item), haloModel:slot?.haloModel ?? haloModel(slot?.item), finish:slot?.finish ?? slot?.item?.finish ?? 'opaque', trueColor:slot?.trueColor ?? slot?.item?.photo_true_color ?? null, stamp:stampChoiceOf(slot?.item), mold:slot?.mold ?? null, pocket, order, empty: id === null};
   };
 
   const mains = take(main, MAIN.maxSlots, 'main');

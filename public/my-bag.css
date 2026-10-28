@@ -360,6 +360,10 @@ body[data-view="bag"] main {display:none!important}
 .bag-finish-field legend {padding:0;margin-bottom:8px}
 .bag-color-field input[type="color"] {width:100%;height:44px;min-height:44px;padding:4px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
 .bag-color-field {grid-column:1/-1}
+/* Per-disc stamp look (docs/stamp-look-extraction.md): Ink and Finish side by side, the sheet's own selects. */
+.bag-stamp-field {grid-column:1/-1;border:0;margin:0;padding:0;min-width:0}
+.bag-stamp-field legend {padding:0;margin-bottom:8px}
+.bag-stamp-row {display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .bag-pockets {margin:0!important}
 .bag-settings-total {display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
 .bag-settings-total output {color:var(--text)}

@@ -246,7 +246,7 @@ function brandColor(brand){const i=Math.max(0,[...selectedBrands].indexOf(brand)
 // their stamp appearance; every other disc keeps the official stamp (display customization).
 function viewerAppearance(d,extra={}){
  const own=window.BagApp?.detailAppearance?.(d)||{},personal=!!myColor(d)||Object.keys(own).length>0;
- return {color:discColor(d),...own,...extra,stampStyle:personal?window.DisplayPalette?.stampStyle?.()||null:null};
+ return {color:discColor(d),...own,...extra,stampStyle:personal?window.DisplayPalette?.stampStyleFor?.(own.stampChoice)||null:null};
 }
 function discColor(d){return myColor(d)||(selectedBrands.size>1?(selectedBrands.has(d.brand)?brandColor(d.brand):colors.unknown):colors[typeOf(d)]);}
 function renderContextTitle(){
