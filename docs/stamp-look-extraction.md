@@ -7,8 +7,8 @@ the One ink preview's colour (`disc-photo.mjs`, three lines). Step 0 found no co
 
 **Status (Oct 27).** Part A is built and proven locally. Part B is built, and each pinned disc was reproduced on its
 own photo first. The **Proxy** is letter-complete and the **Wraith** is ghost-free, on the same extraction settings. The
-**Berg** is partly restored: its last missing letters are at its stored photo's contrast floor, and that trade-off is
-Freddy's to rule on (§B.4). The letter fix changes extraction for **every** photo disc (flagged in §B.5). The ghost fix
+**Berg** is partly restored: its last missing letters are at its stored photo's contrast floor. Freddy ruled to keep
+the floor and re-make the Berg from its camera original after deploy (§B.4). The letter fix changes extraction for **every** photo disc (flagged in §B.5). The ghost fix
 is gated to see-through plastic.
 
 ## Part A: Freddy's ask
@@ -232,7 +232,10 @@ These are the Full color assets the page made (photo · main · branch):
 ![Berg small print before and after](assets/stamp-look-extraction/berg-small-print.jpg)
 ![Berg before and after](assets/stamp-look-extraction/berg-whole.jpg)
 
-**The trade-off (STOP, Freddy's ruling).** The Berg's last letters are at ΔE 6.7–8.4 in this stored photo. Lowering
+**Ruled (Freddy, Oct 27):** the floor stays at 8. After deploy he re-makes the Berg from its camera original ("Use a
+higher-resolution original instead"), option (b) below.
+
+**The trade-off, as it was put to him.** The Berg's last letters are at ΔE 6.7–8.4 in this stored photo. Lowering
 the weak seed floor from 8 to 6, which still respects each plate's measured noise, was tried in the lab. "PROACH" comes
 back only as **fragments** ("Ar·nrr", below), not letters. That floor would apply to every disc, so the branch keeps 8.
 
