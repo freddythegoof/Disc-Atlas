@@ -152,6 +152,9 @@
   });
   const swatchOf = (key, id) => catalog.classes.find(c => c.key === key)?.swatches.find(s => s.id === id);
   const accentOf = id => catalog.accents.find(a => a.id === id);
+  const inkOf = id => catalog.inks.find(i => i.id === id), finishOf = id => catalog.finishes.find(f => f.id === id);
+  // Today's stamp (Auto, Flat) is null, so every renderer runs its old path for it.
+  const styleOf = (ink, finish) => ink === 'auto' && finish === 'flat' ? null : {ink: inkOf(ink).hex, inkId: ink, finish: finishOf(finish)};
   const clone = value => JSON.parse(JSON.stringify(value));
 
   // Anything unknown (an old or edited value) falls back to the default for that one slot.
@@ -236,10 +239,10 @@
     setStamp: next => commit({...prefs, stamp: {...prefs.stamp,
       ...catalog.inks.some(i => i.id === next?.ink) && {ink: next.ink}, ...catalog.finishes.some(f => f.id === next?.finish) && {finish: next.finish}}}),
     // What a personal stamp wears: null for today's (Auto, Flat), else the ink (null for Auto) and the finish.
-    stampStyle: () => {
-      if (prefs.stamp.ink === 'auto' && prefs.stamp.finish === 'flat') return null;
-      return {ink: catalog.inks.find(i => i.id === prefs.stamp.ink).hex, inkId: prefs.stamp.ink, finish: catalog.finishes.find(f => f.id === prefs.stamp.finish)};
-    },
+    stampStyle: () => styleOf(prefs.stamp.ink, prefs.stamp.finish),
+    // One disc's stamp (docs/stamp-look-extraction.md): its own ink and finish, each null to follow the setting above,
+    // so a disc that never chose one wears exactly stampStyle().
+    stampStyleFor: choice => styleOf(inkOf(choice?.ink) ? choice.ink : prefs.stamp.ink, finishOf(choice?.finish) ? choice.finish : prefs.stamp.finish),
     reset: () => commit(DEFAULTS)
   };
 })();

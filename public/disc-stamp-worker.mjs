@@ -10,7 +10,9 @@ import {autoRegister,inkBounds} from './disc-register.mjs';
 // `stored`: the crop is the site's stored texture (the one-click path, docs/photo-stamp-one-click.md), not an original.
 // `clear`: the disc is clear plastic (docs/clear-plastic-discs.md): its stamp's shadow on the surface under it shows
 // through, and is taken out first (disc-stamp-clear.mjs), so only the stamp is read.
-export function extract(data,size,plate,{color=false,stored=false,clear=false}={}){
+// `seeThrough`: see-through plastic (docs/stamp-look-extraction.md), whose plate shows marks on its far side, like the pen
+// on the back of a Champion: those are found and left out of the stamp.
+export function extract(data,size,plate,{color=false,stored=false,clear=false,seeThrough=false}={}){
  // Clipping is read off the crop as the camera gave it (disc-stamp-delight.mjs, and the full-colour asset's glare),
  // so it is copied before the shadow pass changes anything.
  const raw=data.slice();
@@ -21,7 +23,7 @@ export function extract(data,size,plate,{color=false,stored=false,clear=false}={
  if(!measured)throw Error('This photo shows too little of the disc to read its stamp.');
  // v3.1: no camera light in the asset. The glare and shading the quadratic left are taken out, upstream of both looks.
  const light=delightStamp(data,raw,size,{plate,plateColor:measured,stored}),plateColor=light.plateColor;
- const {mask,...stamp}=extractPhotoStamp(data,size,{plate,plateColor,keepMask:color||clear,unknown:light.unreliable,lit:light.lit,strong:light.strong});
+ const {mask,...stamp}=extractPhotoStamp(data,size,{plate,plateColor,keepMask:color||clear,unknown:light.unreliable,lit:light.lit,strong:light.strong,seeThrough});
  const drop=p=>{stamp.alpha[p]=0;if(mask)mask[p]=0;if(stamp.layers)for(const layer of Object.values(stamp.layers))layer[p]=0;};
  // A clear disc's shoulder is its rim's own colour, never print in the plate's hue (disc-stamp-clear.mjs).
  if(clear){const off=shoulder(raw,size,plate,shadow.plate);for(let p=0;p<off.length;p++)if(off[p])drop(p);}
@@ -49,8 +51,8 @@ export function register(pixels,w,h,plate){
  // A candidate whose crop shows too little to read gives no answer, not a failure.
  return autoRegister(pixels,w,h,{plate,readInk:(crop,size)=>{try{const b=inkBounds(extract(crop,size,plate).alpha,size);return b&&{x:b.dx/(size/2),y:b.dy/(size/2)};}catch{return null;}}});
 }
-if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=async({data:{pixels,size,plate,color,stored,clear,register:fit}})=>{
+if(typeof WorkerGlobalScope!=='undefined'&&self instanceof WorkerGlobalScope)self.onmessage=async({data:{pixels,size,plate,color,stored,clear,seeThrough,register:fit}})=>{
  if(fit){try{self.postMessage({result:await register(new Uint8ClampedArray(pixels),fit.w,fit.h,plate)});}catch(error){self.postMessage({error:error.message});}return;}
- try{const result=extract(new Uint8ClampedArray(pixels),size,plate,{color,stored,clear});self.postMessage({result},[result.alpha.buffer,...result.layers?Object.values(result.layers).map(v=>v.buffer):[],...result.color?[result.color.rgba.buffer]:[]]);}
+ try{const result=extract(new Uint8ClampedArray(pixels),size,plate,{color,stored,clear,seeThrough});self.postMessage({result},[result.alpha.buffer,...result.layers?Object.values(result.layers).map(v=>v.buffer):[],...result.color?[result.color.rgba.buffer]:[]]);}
  catch(error){self.postMessage({error:error.message});}
 };

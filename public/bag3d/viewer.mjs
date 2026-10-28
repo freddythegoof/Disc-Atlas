@@ -90,6 +90,9 @@ export async function mountBag(container, {
   accentColor = null,
   // Display customization: the player's stamp appearance (DisplayPalette.stampStyle()); null is today's stamp.
   stampStyle = null,
+  // A copy's own stamp look (placement.stamp, docs/stamp-look-extraction.md) resolved to a style
+  // (DisplayPalette.stampStyleFor); without it every disc wears `stampStyle`.
+  stampStyleFor = null,
   compartmentDuration = 2.15,
   maxPixels = Infinity,
   ambientFps = 0,
@@ -602,7 +605,8 @@ export async function mountBag(container, {
     if(asset&&record.parts&&record.slideTo===1&&!record.ink){
       // The bag's room is dimmer than the viewer's (.55 against DETAIL.environment); a foil keeps the viewer's look.
       // A colour photo stamp keeps its own colours: its finish is a sheen (stamp.mjs colorStyle).
-      const style=look?.color?colorStyle(currentStampStyle):currentStampStyle;
+      const own=record.placement.stamp&&stampStyleFor?stampStyleFor(record.placement.stamp):currentStampStyle;
+      const style=look?.color?colorStyle(own):own;
       const parts=record.parts,m=stampMaterial(style,{envMap:environment.texture}),placement=look?look.placement:catalogStampPlacement(record.placement.mold);
       const geometry=stock=>{
         const g=stampGeometry(parts.shape,{placement:stock});

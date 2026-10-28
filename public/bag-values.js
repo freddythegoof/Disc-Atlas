@@ -27,12 +27,16 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  // Clear plastics (docs/clear-plastic-discs.md): the copy's finish. An edit that does not mention it keeps the saved one.
  const finish=value.finish===undefined?'opaque':value.finish;
  if(!FINISHES.includes(finish))throw new Error('Choose Opaque or Clear plastic.');
+ // Per-disc stamp look (docs/stamp-look-extraction.md): null follows the Appearance setting.
+ const stamp_ink=value.stamp_ink ?? null,stamp_finish=value.stamp_finish ?? null;
+ if(stamp_ink!==null && !STAMP_INKS.includes(stamp_ink))throw new Error('Choose a stamp ink from the palette.');
+ if(stamp_finish!==null && !STAMP_FINISHES.includes(stamp_finish))throw new Error('Choose a stamp finish from the palette.');
  const pocket=value.pocket,stability_bias=value.stability_bias===undefined?null:value.stability_bias;
  if(!['main','putter','goto'].includes(pocket))throw new Error('Choose Main compartment, Putter pocket or Go-to.');
  if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
  if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
  const memorial=validateLostDetails(value);
- return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,finish,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
+ return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,finish,stamp_ink,stamp_finish,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
 }
 export function validateLostDetails(data) {
  const status=data.status===undefined?'active':data.status;
@@ -90,6 +94,15 @@ export function validateBagSettings(data, catalog, saved = {}) {
 }
 // A bag disc's plastic finish: 'opaque' (every disc before clear plastics) or 'clear' (Champion, Z, Opto and the like).
 export const FINISHES=['opaque','clear'];
+// A bag disc's own stamp ink and finish: the Appearance sheet's curated ids (display-palette.js STAMP_INKS and
+// STAMP_FINISHES, which a test holds equal), checked again by migration 0016.
+export const STAMP_INKS=['auto','black','white','gold','silver','copper','red','blue','green','violet','pink'];
+export const STAMP_FINISHES=['flat','foil','rainbow','shatter','spin'];
+// See-through plastic (docs/stamp-look-extraction.md): a Clear copy, or Innova's Champion family (Champion, Proto Glow,
+// Luster, Metal Flake...), whose plate shows pen on its back through it. Its stamp is read without those marks.
+export const seeThroughPlastic=(plastic,finish)=>finish==='clear'||/\bchampion\b/i.test(plastic||'');
+// What a saved copy asks of its stamp, for DisplayPalette.stampStyleFor: null when it follows Appearance in both.
+export const stampChoiceOf=item=>item?.stamp_ink||item?.stamp_finish?{ink:item.stamp_ink||null,finish:item.stamp_finish||null}:null;
 export const validColor=color=>typeof color==='string'&&/^#[0-9a-f]{6}$/i.test(color);
 export function plasticColor(brand,plastic,catalog){return catalog.brands[brand]?.colors?.[plastic] || catalog.defaultColor || '#e6c668';}
 export function bagPalette(color){

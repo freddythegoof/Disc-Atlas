@@ -8,9 +8,13 @@ const lists=new WeakMap();
 // Observe only the current rows. Hidden/offscreen rows neither initialize WebGL nor render a disc.
 // Replacing a list cancels its old work; the atlas's byte-capped cache survives between lists.
 // `personal`: the player's own list (My Bag). Its stock stamps take the player's stamp ink. A thumbnail is a flat
-// image, so a foil finish is not imitated here: the ink colour only (display customization).
+// image, so a foil finish is not imitated here: the ink colour only (display customization). A row that carries its
+// copy's own stamp ink (data-stamp-ink, docs/stamp-look-extraction.md) wears that instead.
 export function observeThumbnails(root,lookup,{personal=false}={}){
- const style=personal?window.DisplayPalette?.stampStyle?.():null,ink2d=style?.ink?{...style,finish:{id:'flat'}}:null;
+ const ink2dOf=host=>{
+  const style=personal?window.DisplayPalette?.stampStyleFor?.(host.dataset.stampInk||host.dataset.stampFinish?{ink:host.dataset.stampInk||null,finish:host.dataset.stampFinish||null}:null):null;
+  return style?.ink?{...style,finish:{id:'flat'}}:null;
+ };
  let state=lists.get(root);
  if(state){state.observer.disconnect();window.removeEventListener('atlas-photo-ready',state.onPhoto);window.removeEventListener('atlas-theme-change',state.onTheme);cancelAnimationFrame(state.frame);state.pending.clear();for(const t of state.stamps.values())t.dispose();}
  state={pending:new Set(),visible:new Set(),stamps:new Map(),frame:0};lists.set(root,state);
@@ -32,7 +36,7 @@ export function observeThumbnails(root,lookup,{personal=false}={}){
     // A photo disc in its game-asset look (photo-stamps.mjs): the disc bare (atlas-art drops the photo) under its stamp.
     const look=photoStampFor(host.dataset.photoUrl),asset=look?look.asset:host.dataset.photoUrl?null:catalogStampAsset(d);
     let ink=state.stamps.get(host);
-    if(asset&&!ink){ink=stampTexture(d.catalogName||d.name,plate,{asset,style:ink2d,onChange:()=>{if(lists.get(root)===state&&state.visible.has(host)&&state.stamps.has(host)){state.pending.add(host);schedule();}}});state.stamps.set(host,ink);}
+    if(asset&&!ink){ink=stampTexture(d.catalogName||d.name,plate,{asset,style:ink2dOf(host),onChange:()=>{if(lists.get(root)===state&&state.visible.has(host)&&state.stamps.has(host)){state.pending.add(host);schedule();}}});state.stamps.set(host,ink);}
     if(entry){
      // Never reparent the cache's canvas: another row or the map can use the same image.
      const canvas=document.createElement('canvas');canvas.width=canvas.height=entry.px;

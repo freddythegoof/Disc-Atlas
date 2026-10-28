@@ -10,6 +10,10 @@
 //     only to plate-like pixels and refitted as the plate set tightens, so residual light and mottle drop out.
 //  2. Strong design: hysteresis (seeds above HI, grown through LO), then three cleanup rules: specks, scuffs (never
 //     above HI) and bands (a component hugging the plate's outer edge round more than BAND_ARC is plastic).
+//     A small mark is judged by the word it sits in (docs/stamp-look-extraction.md): small print's letters (a thin l, an
+//     i's dot, a U one hundredth of the disc tall) are each under the speck size, but they sit in a word, and a speck
+//     does not. On see-through plastic, a mark seen THROUGH the plate (pen on the back of a Champion) is not design: it
+//     wears the plate's own hue, darkened, with edges softened by the plastic and a fraction of the print's contrast.
 //  3. Weak design: foil mirrors the room, so where it happens to reflect a colour close to the plastic it sits only a
 //     few ΔE away. A weaker mark (seeds above HI2, grown through LO2) is kept only beside strong design (within
 //     NEAR of it): letters of one stamp sit together, a stray scratch or smudge does not.
@@ -21,7 +25,7 @@
 //     fills, fills closed over their halftone gaps, and solid elements: fills no line touches, dark elements no fill
 //     touches), so the stamp path can ink it either way round for the ink and plastic (stamp.mjs). `alpha` is then
 //     the dark-ink composite (lines full, fills at TINT), for coverage and reporting.
-const RING=12,STRANDED=300,LIT_AREA=2000,BRIDGES=8,BRIDGE_MIN=5,BRIDGE_REACH=160,LO=9,HI=18,LO2=4,HI2=8,MIN_AREA=24,BAND_ARC=.4,MERGE_DE=18,GUARD=6,GRID=32,NEAR=.035,TINT=.42,LAYERED=.55,SOFT=.5;
+const WORD=.008,WORD_AREA=3,CHAIN=3,GHOST_HUE=6,GHOST_SOFT=1.6,GHOST_FAINT=.5,GHOST_DARK=4,RING=12,STRANDED=300,LIT_AREA=2000,BRIDGES=8,BRIDGE_MIN=5,BRIDGE_REACH=160,LO=9,HI=18,LO2=4,HI2=8,MIN_AREA=24,BAND_ARC=.4,MERGE_DE=18,GUARD=6,GRID=32,NEAR=.035,TINT=.42,LAYERED=.55,SOFT=.5;
 
 const toLinear=new Float32Array(256);
 for(let i=0;i<256;i++){const c=i/255;toLinear[i]=c<=.04045?c/12.92:((c+.055)/1.055)**2.4;}
@@ -81,6 +85,48 @@ function distanceTo(mask,w,h=w){
  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const p=j*w+i;let v=D[p];if(i)v=Math.min(v,D[p-1]+1);if(j){v=Math.min(v,D[p-w]+1);if(i)v=Math.min(v,D[p-w-1]+s2);if(i<w-1)v=Math.min(v,D[p-w+1]+s2);}D[p]=v;}
  for(let j=h-1;j>=0;j--)for(let i=w-1;i>=0;i--){const p=j*w+i;let v=D[p];if(i<w-1)v=Math.min(v,D[p+1]+1);if(j<h-1){v=Math.min(v,D[p+w]+1);if(i<w-1)v=Math.min(v,D[p+w+1]+s2);if(i)v=Math.min(v,D[p+w-1]+s2);}D[p]=v;}
  return D;
+}
+// The area of the word each component of `list` sits in (docs/stamp-look-extraction.md): the print in `print` (a mask
+// holding every component), grouped where it lies within `gap` px of itself, faint letters and all.
+// With `from` (a distance map), also how close the word comes to what it measures: a word reaches the design when any
+// of its letters does.
+function wordAreas(list,print,size,gap,from=null){
+ const N=size*size,near=distanceTo(print,size),grown=new Uint8Array(N),group=new Int32Array(N).fill(-1);
+ for(let p=0;p<N;p++)grown[p]=near[p]<=gap/2?1:0;
+ const groups=components(grown,size),area=new Float64Array(groups.length),reach=new Float64Array(groups.length).fill(Infinity);
+ groups.forEach((pixels,g)=>{for(const p of pixels){group[p]=g;if(print[p]){area[g]++;if(from)reach[g]=Math.min(reach[g],from[p]);}}});
+ const areas=list.map(pixels=>{const g=group[pixels[0]];return g<0?0:area[g];});
+ if(from)areas.reach=list.map(pixels=>{const g=group[pixels[0]];return g<0?Infinity:reach[g];});
+ return areas;
+}
+// See-through plastic (docs/stamp-look-extraction.md): the components that are the far side of the plate seen through it,
+// pen on the back of an Innova Champion the known case. Measured on Freddy's Proto Glow Wraith: the penned weight peaks
+// at ΔE 21-27 where the print reaches 82-90, its edges are twice as soft (4.8 px against 2.3 at 1024), and its colour is
+// the plastic's own green darkened (hue 139, chroma 11, on a plate of hue 124, chroma 21), where the print is navy. A
+// component is a ghost only when all four hold, each against this disc's own print (the area-weighted median of the
+// design): darker than the plate; its colour on the line from grey to the plate's colour (within GHOST_HUE ΔE, at a
+// quarter to 1.25 of the plate's chroma); edges GHOST_SOFT times as soft or more; at most GHOST_FAINT of the contrast.
+function ghosts(list,d,lab,mask,P,size,k){
+ const N=size*size,rows=[];
+ for(const pixels of list){
+  const ds=pixels.map(p=>d[p]).sort((a,b)=>a-b),peak=ds[Math.floor(ds.length*.95)];
+  const widths=[];let L=0,a=0,b=0,n=0;
+  for(const p of pixels){
+   const i=p%size,j=(p-i)/size;if(!i||!j||i===size-1||j===size-1)continue;
+   // The edge's width where it crosses half the mark's own contrast, so faint and strong marks are measured alike.
+   if(Math.abs(d[p]-.5*peak)<=.15*peak){const g=Math.hypot(d[p+1]-d[p-1],d[p+size]-d[p-size])/2;if(g>0)widths.push(peak/g/k);}
+   if(d[p]>=.75*peak){L+=lab[3*p];a+=lab[3*p+1];b+=lab[3*p+2];n++;}
+  }
+  rows.push({pixels:pixels.length,peak,edge:median(widths),L:n?L/n:NaN,a:n?a/n:0,b:n?b/n:0});
+ }
+ // The disc's print: the area-weighted median contrast and edge width.
+ const weighted=key=>{const s=[...rows].sort((x,y)=>x[key]-y[key]),total=s.reduce((t,r)=>t+r.pixels,0);let acc=0;for(const r of s){acc+=r.pixels;if(acc>=total/2)return r[key];}return 0;};
+ const peak=weighted('peak'),edge=weighted('edge'),chroma2=P[1]*P[1]+P[2]*P[2];
+ return rows.map(r=>{
+  if(!(r.L<P[0]-GHOST_DARK)||!(r.peak<=GHOST_FAINT*peak)||!(r.edge>=GHOST_SOFT*edge)||chroma2<1)return false;
+  const t=Math.max(.25,Math.min(1.25,(r.a*P[1]+r.b*P[2])/chroma2));
+  return Math.hypot(r.a-t*P[1],r.b-t*P[2])<=GHOST_HUE;
+ });
 }
 // v3.1 (docs/photo-stamp-one-click.md): what print a hole (a glare core) holds, from the ring of read print around it.
 // For each connected hole: the labels of the known pixels within `ring` px of it (labelOf(p) ≥ 0; -1 is not print) are
@@ -155,7 +201,8 @@ function kmeans(points,k){
  * Returns {alpha (Uint8Array, size²), layered, coverage, inkReach, stats}, and with `keepMask` the final binary design
  * mask (`mask`), which the colour asset is drawn inside (disc-stamp-color.mjs).
  */
-export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false,unknown=null,lit=null,strong=null}){
+// `seeThrough`: the plastic is see-through (docs/stamp-look-extraction.md), so marks seen through it are found and dropped.
+export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMask=false,unknown=null,lit=null,strong=null,seeThrough=false}){
  const N=size*size,k=size/1024,lab=new Float32Array(N*3),inside=new Uint8Array(N),radius=new Float32Array(N);
  const reach=plate*size/2-GUARD*k,c=size/2;let unknowns=0;
  for(let p=0;p<N;p++){
@@ -185,10 +232,14 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  // 2. Strong design, and the three cleanup rules.
  const minArea=Math.max(4,Math.round(MIN_AREA*k*k)),stats={specks:0,scuffs:0,bands:[],reflections:[],weak:0,weakRejected:0,slivers:0};
  const edgeArc=pixels=>{const arcs=new Uint8Array(90);for(const p of pixels)if(radius[p]>reach-3*k){const i=p%size,j=(p-i)/size;arcs[Math.min(89,Math.floor((Math.atan2(j+.5-c,i+.5-c)+Math.PI)/(2*Math.PI)*90))]=1;}return arcs.reduce((a,v)=>a+v,0)/90;};
- const mask=hysteresis(d,inside,size,lo,hi),stages=debug?{d}:null;
- for(const pixels of components(mask,size)){
-  let strongest=0;for(const p of pixels)strongest=Math.max(strongest,d[p]);
-  let drop=pixels.length<minArea?'specks':strongest<hi?'scuffs':null;
+ const mask=hysteresis(d,inside,size,lo,hi),stages=debug?{d}:null,gap=Math.max(2,Math.round(WORD*size));
+ const marks=components(mask,size),strongestOf=marks.map(pixels=>{let s=0;for(const p of pixels)s=Math.max(s,d[p]);return s;});
+ // The print as it lies on the disc, faint letters too (the weak pass's levels): the words a small mark is judged by.
+ const print=hysteresis(d,inside,size,lo2,hi2),strongWords=wordAreas(marks,print,size,gap);
+ for(const [index,pixels] of marks.entries()){
+  const strongest=strongestOf[index];
+  // A mark under the speck size is a letter when the word it sits in is not itself a speck.
+  let drop=pixels.length<minArea&&strongWords[index]<WORD_AREA*minArea?'specks':strongest<hi?'scuffs':null;
   if(!drop&&edgeArc(pixels)>BAND_ARC){drop='band';let inner=Infinity;for(const p of pixels)inner=Math.min(inner,radius[p]);stats.bands.push({pixels:pixels.length,innerRadius:+(inner/(size/2)).toFixed(4)});}
   if(drop){if(drop!=='band')stats[drop]++;for(const p of pixels)mask[p]=0;}
  }
@@ -205,24 +256,46 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
   const others=distanceTo(mask,size);let closest=Infinity;for(const p of pixels)closest=Math.min(closest,others[p]);
   if(closest>NEAR*size)stats.reflections.push({pixels:pixels.length,soft:+(soft/pixels.length).toFixed(3)});else for(const p of pixels)mask[p]=1;
  }
+ // See-through plastic: what lies behind the plate goes before the weak pass, so nothing faint is accepted beside it.
+ // Nothing behind the plate comes back later: its pixels, and its soft fringe, leave the weak pass and the words.
+ const behind=new Uint8Array(N);
+ if(seeThrough){
+  const list=components(mask,size),ghost=ghosts(list,d,lab,mask,P,size,k);stats.ghosts=[];
+  list.forEach((pixels,i)=>{if(!ghost[i])return;stats.ghosts.push(pixels.length);for(const p of pixels){mask[p]=0;behind[p]=1;}});
+  if(stats.ghosts.length){const fringe=distanceTo(behind,size);for(let p=0;p<N;p++)if(fringe[p]<=near){behind[p]=1;print[p]=0;}}
+ }
  if(debug)stages.strong=mask.slice();
  // 3. Weak design, accepted only beside strong design.
  const fromStrong=distanceTo(mask,size),weakAllowed=new Uint8Array(N);
- for(let p=0;p<N;p++)weakAllowed[p]=inside[p]&&!mask[p]?1:0;
- const weak=hysteresis(d,weakAllowed,size,lo2,hi2);
- for(const pixels of components(weak,size)){
-  let closest=Infinity;for(const p of pixels)closest=Math.min(closest,fromStrong[p]);
-  if(pixels.length>=minArea&&closest<=NEAR*size&&edgeArc(pixels)<=BAND_ARC){stats.weak++;for(const p of pixels)mask[p]=1;}else stats.weakRejected++;
+ for(let p=0;p<N;p++)weakAllowed[p]=inside[p]&&!mask[p]&&!behind[p]?1:0;
+ const weak=hysteresis(d,weakAllowed,size,lo2,hi2),weakMarks=components(weak,size),taken=new Uint8Array(weakMarks.length);
+ // Beside the design, itself or through its word; and a mark beside one just taken is beside the design too, up to CHAIN
+ // steps from strong design (docs/stamp-look-extraction.md): a faint line of small print under a faint word still belongs.
+ let from=fromStrong;
+ for(let round=0;round<CHAIN;round++){
+  const words=wordAreas(weakMarks,print,size,gap,from);let took=false;
+  for(const [index,pixels] of weakMarks.entries()){
+   if(taken[index])continue;
+   let closest=words.reach[index];for(const p of pixels)closest=Math.min(closest,from[p]);
+   if((pixels.length>=minArea||words[index]>=WORD_AREA*minArea)&&closest<=NEAR*size&&edgeArc(pixels)<=BAND_ARC){taken[index]=1;took=true;stats.weak++;for(const p of pixels)mask[p]=1;}
+  }
+  if(!took)break;from=distanceTo(mask,size);
  }
+ for(const [index,pixels] of weakMarks.entries())if(!taken[index]){let closest=Infinity;for(const p of pixels)closest=Math.min(closest,from[p]);stats.weakRejected++;}
  // Edges sit at half the local contrast (half its strongest nearby ink), where a printed edge is, not at the low
  // threshold that let the region grow: counters and gaps between strokes stay open, and the soft halo the weak pass
  // grew around strong ink is trimmed back to the ink.
  if(debug)stages.grown=mask.slice();
+ // The accepted marks, before the trim, and their sizes: the trim cuts a halo back to the ink, it does not un-accept ink.
+ const grownSize=new Float32Array(N);for(const pixels of components(mask,size))for(const p of pixels)grownSize[p]=pixels.length;
  const peak=maxFilter(d,mask,size,Math.max(2,Math.round(3*k)));
  for(let p=0;p<N;p++)if(mask[p]&&d[p]<.5*peak[p])mask[p]=0;
  // What the trim leaves of a halo away from the ink (mid-gap between two letters) is a sliver too small or too faint
  // to have seeded anything: the speck and scuff rules again, at the weak seed level.
- for(const pixels of components(mask,size)){let strongest=0;for(const p of pixels)strongest=Math.max(strongest,d[p]);if(pixels.length<minArea||strongest<hi2){stats.slivers++;for(const p of pixels)mask[p]=0;}}
+ // A letter the trim left under the speck size stays when it was a full-size mark before the trim, or its word is not a
+ // speck (docs/stamp-look-extraction.md); a crumb under a quarter of the speck size never does.
+ {const parts=components(mask,size),top=parts.map(pixels=>{let s=0;for(const p of pixels)s=Math.max(s,d[p]);return s;}),kept=new Uint8Array(N);parts.forEach((pixels,i)=>{if(top[i]>=hi2)for(const p of pixels)kept[p]=1;});const words=wordAreas(parts,kept,size,gap);
+  parts.forEach((pixels,i)=>{if(top[i]<hi2||pixels.length<minArea&&words[i]<WORD_AREA*minArea&&!(grownSize[pixels[0]]>=minArea&&pixels.length>=minArea/4)){stats.slivers++;for(const p of pixels)mask[p]=0;}});}
  // v3.1: the unknown pixels (a glare core) are decided by the design around them. One is design when it is enclosed by
  // design: along most of BRIDGES lines through it (at least BRIDGE_MIN), the nearest pixels that were read on BOTH
  // sides are design. A core inside a printed area stays printed (no hole); one on bare plastic, or across a mark's edge,
@@ -275,7 +348,10 @@ export function extractPhotoStamp(data,size,{plate,plateColor,debug=false,keepMa
  let layered=false,enclosed=0,fillArea=0,edge=0;
  const fromLine=line?distanceTo(isLine,size):null,fromFill=line?distanceTo(isFill,size):null,touch=Math.max(2,1.5*k);
  if(line){
-  for(let p=0;p<N;p++){if(!isFill[p])continue;fillArea++;const i=p%size,j=(p-i)/size;
+  // Measured over full-size marks only: the small letters and fragments a word keeps (docs/stamp-look-extraction.md) are
+  // drawn, but they do not decide what kind of stamp this is.
+  const full=new Uint8Array(N);for(const pixels of components(mask,size))if(pixels.length>=minArea)for(const p of pixels)full[p]=1;
+  for(let p=0;p<N;p++){if(!isFill[p]||!full[p])continue;fillArea++;const i=p%size,j=(p-i)/size;
    if(i&&j&&i<size-1&&j<size-1&&isFill[p-1]&&isFill[p+1]&&isFill[p-size]&&isFill[p+size])continue;edge++;if(fromLine[p]<=touch)enclosed++;}
   layered=fillArea>.05*core.length/3&&enclosed/edge>LAYERED;
  }
