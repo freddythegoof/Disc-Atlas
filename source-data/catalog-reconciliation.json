@@ -4603,6 +4603,24 @@
       "sourceLabel": "Manufacturer numbers via Infinite Discs",
       "retailerSource": "https://infinitediscs.com/innova-aviar",
       "checkedAt": "2026-09-24"
+    },
+    {
+      "id": "5e3710c20fb9",
+      "approvalName": "A Model OS (Distortion)",
+      "brand": "Prodigy",
+      "catalogName": "Distortion",
+      "method": "unique PDGA model; parenthetical alias, translation or development code",
+      "currentCatalogEvidence": true,
+      "flightNumbers": {
+        "speed": 4.0,
+        "glide": 3.0,
+        "turn": 0.0,
+        "fade": 3.0
+      },
+      "source": "https://infinitediscs.com/prodigy-distortion",
+      "sourceLabel": "Manufacturer numbers via Infinite Discs",
+      "retailerSource": "https://infinitediscs.com/prodigy-distortion",
+      "checkedAt": "2026-11-05"
     }
   ],
   "ambiguous": [],
