@@ -12,7 +12,7 @@ export function coachContext(messages) {
  const terms = question.match(/[\p{L}\p{N}-]+/gu) || [];
  const ranked = catalog.discs.map(d => {
   const name = d.name.toLowerCase(), words = `${d.brand} ${d.name} ${d.category || ''}`.toLowerCase();
-  let score = name.length >= 3 && question.includes(name) ? 100 + name.length : 0;
+  let score = Math.max(0, ...[name, ...(d.aliases || []).map(a => a.toLowerCase())].filter(n => n.length >= 3 && question.includes(n)).map(n => 100 + n.length));
   score += terms.filter(t => t.length >= 4 && words.split(/[\s-]+/).includes(t)).length * 3;
   if (/beginner|straight|neutral/.test(question) && d.speed >= 2 && d.speed <= 7 && d.turn >= -2 && d.fade <= 2) score += 2;
   if (/overstable|wind|headwind/.test(question) && d.turn >= 0 && d.fade >= 3) score += 2;

@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
 import {createPublicWorker} from '../workers/public.mjs';
+import {coachContext} from '../workers/coach.mjs';
 
 function database() {
  const db = new DatabaseSync(':memory:');
@@ -98,6 +99,20 @@ test('invented catalog IDs are rejected, and provider errors still consume an at
 test('Workers AI JSON mode returns a parsed object; placeholders get verified names', async () => {
  const s = await setup({ai: () => ({response: {answer: 'Practice with [[7446eb39abe5]].', discIds: ['7446eb39abe5']}})});
  try {const r = await s.call(); assert.equal(r.status, 200); assert.match((await r.json()).answer, /Practice with Discraft Buzzz/);} finally {s.DB.close();}
+});
+test('a former name reaches its record through aliases, and only for that record', async () => {
+ const fd2 = '3d70ef38ff0e', ask = content => ({messages: [{role: 'user', content}]}), ids = content => coachContext(ask(content).messages).map(d => d.id);
+ const s = await setup({ai: () => ({response: {answer: `Try [[${fd2}]].`, discIds: [fd2]}})});
+ try {
+  for (const content of ['How does the FD1 fly?', 'how does the fd1 (pre-mid-2025) fly?']) {
+   const r = await s.call(ask(content)); assert.equal(r.status, 200);
+   const body = await r.json(); assert.deepEqual(body.discs.map(d => d.id), [fd2]); assert.match(body.answer, /Try Discmania FD2 \(new\)/);
+  }
+ } finally {s.DB.close();}
+ assert.equal(ids('How does the FD1 fly?')[0], fd2);
+ assert.ok(!ids('How does the FD1 fly?').includes('3bd98a3bc639'), 'The folded record is gone');
+ assert.equal(ids('How does the Discmania Instinct fly?')[0], '6d63e6972109');
+ assert.ok(!ids('How does the Discraft Buzzz fly?').includes(fd2));
 });
 test('daily usage belongs to the session user, not the browser or claimed headers', async () => {
  const s = await setup(); try {
