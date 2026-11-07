@@ -1,0 +1,17 @@
+/* "Don't see a disc?": the quiet link in the search empty states, and what the request sheet adds to .bag-sheet. */
+#empty button[hidden] {display:none}
+.disc-request-link {display:block;margin:0 0 16px 24px;padding:4px 0;color:var(--lime);font-size:14px}
+/* The Directory's empty message lines up with the column heading above it, as the link does. */
+#rows > .muted {margin-left:24px}
+#rows .disc-request-link:focus-visible,#emptyRequest:focus-visible {outline:2px solid var(--lime);outline-offset:2px}
+
+.disc-request-sheet form > .profile-field {margin-bottom:20px}
+.disc-request-sheet legend {padding:0}
+.disc-request-sheet label > span > small {color:var(--muted);font-size:11px;font-weight:400}
+.disc-request-flight {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.disc-request-sheet .bag-stability-field small:empty,.disc-request-error:empty {display:none}
+.disc-request-sheet small.disc-request-error {display:block;margin-top:8px;font-size:12px;line-height:1.5;color:var(--text)}
+.disc-request-sheet [aria-invalid="true"] {border-color:var(--text)}
+/* Off-screen rather than hidden: a form-filling bot still finds it. */
+.disc-request-trap {position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+#discRequestThanks {margin:8px 0 0;font-size:16px;line-height:1.5;outline:0}

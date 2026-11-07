@@ -2,18 +2,21 @@ import {createAuth} from './auth.mjs';
 import {createCoach} from './coach.mjs';
 import {createBag} from './bag.mjs';
 import {cleanupTextures} from './textures.mjs';
+import {cleanupDiscRequestThrottle, createDiscRequests} from './disc-requests.mjs';
 
 // Public accounts use Google-backed cookies; Sites identity headers remain untrusted.
 export function createPublicWorker(options) {
  const auth = createAuth(options);
  const coach = createCoach(auth, options);
  const bag = createBag(auth);
+ const discRequests = createDiscRequests(options);
  return {
-  async scheduled(_event,env,ctx){ctx.waitUntil(cleanupTextures(env));},
+  async scheduled(_event,env,ctx){ctx.waitUntil(cleanupTextures(env));ctx.waitUntil(cleanupDiscRequestThrottle(env));},
   async fetch(request, env = {}) {
     const path = new URL(request.url).pathname;
     if (path === '/api/bag' || path.startsWith('/api/bag/')) return bag.fetch(request, env);
     if (path === '/api/coach') return coach.fetch(request, env);
+    if (path === '/api/disc-requests') return discRequests.fetch(request, env);
     if (path === '/api/account' || path.startsWith('/auth/')) return auth.fetch(request, env);
     if (['/signin', '/profile', '/account-settings'].includes(path)) {
       if (!env.ASSETS) return new Response('Not found', {status: 404});

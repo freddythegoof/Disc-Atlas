@@ -95,7 +95,7 @@
   // docs/accent-follows-appearance.md), My Bag (with its docked My Map), the bag's own sheets and menus, and in the
   // Appearance sheet its preview and its Done button (nothing else in the sheet). The logo keeps its brand tokens
   // (brand/site.css); the atlas, directory and page keep the lime.
-  const ACCENT_SCOPE = ['body>header', '#myBagView', '#addDiscDialog', '#bagModelDialog', '#lostDiscDialog', '#removeDiscDialog', '#rackStyleMenu', '[data-accent-preview]',
+  const ACCENT_SCOPE = ['body>header', '#myBagView', '#addDiscDialog', '#bagModelDialog', '#lostDiscDialog', '#removeDiscDialog', '#discRequestDialog', '#rackStyleMenu', '[data-accent-preview]',
     '#appearanceDialog [data-appearance-close].primary'];
   // Stamp appearance, on the player's own discs in personal contexts only (bag, the viewer for an owned disc,
   // the personalized map, storage). Neutral and catalog surfaces keep the official presentation. Photo discs
