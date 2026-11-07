@@ -1,7 +1,7 @@
 # Graph Report - merge-fd-records  (2026-11-07)
 
 ## Corpus Check
-- 478 files · ~5,724,297 words
+- 478 files · ~5,724,447 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 315 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7b87e97d`
+- Built from commit: `a9be0b3f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
