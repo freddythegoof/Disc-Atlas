@@ -9,10 +9,12 @@ const serviceNotice = 'The alternate AI service is unavailable. Atlas Coach is u
 
 export function coachContext(messages) {
  const question = messages.filter(m => m.role === 'user').map(m => m.content).join(' ').toLowerCase();
- const terms = question.match(/[\p{L}\p{N}-]+/gu) || [];
+ const terms = question.match(/[\p{L}\p{N}-]+/gu) || [], spaced = ` ${terms.join(' ')} `;
  const ranked = catalog.discs.map(d => {
-  const name = d.name.toLowerCase(), words = `${d.brand} ${d.name} ${d.category || ''}`.toLowerCase();
+  const name = d.name.toLowerCase(), catalogName = (d.catalogName || '').toLowerCase(), words = `${d.brand} ${d.name} ${d.category || ''}`.toLowerCase();
   let score = Math.max(0, ...[name, ...(d.aliases || []).map(a => a.toLowerCase())].filter(n => n.length >= 3 && question.includes(n)).map(n => 100 + n.length));
+  // Whole words only: "approach" must not find the Roach, or "looking" the King.
+  if (catalogName.length >= 3 && spaced.includes(` ${catalogName} `)) score = Math.max(score, 100 + catalogName.length);
   score += terms.filter(t => t.length >= 4 && words.split(/[\s-]+/).includes(t)).length * 3;
   if (/beginner|straight|neutral/.test(question) && d.speed >= 2 && d.speed <= 7 && d.turn >= -2 && d.fade <= 2) score += 2;
   if (/overstable|wind|headwind/.test(question) && d.turn >= 0 && d.fade >= 3) score += 2;

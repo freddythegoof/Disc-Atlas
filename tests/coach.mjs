@@ -114,6 +114,17 @@ test('a former name reaches its record through aliases, and only for that record
  assert.equal(ids('How does the Discmania Instinct fly?')[0], '6d63e6972109');
  assert.ok(!ids('How does the Discraft Buzzz fly?').includes(fd2));
 });
+test('a catalog name finds its record as a whole word, not inside another word', () => {
+ const names = content => coachContext([{role: 'user', content}]).map(d => `${d.brand} ${d.name}`);
+ const merged = 'Discmania FD2 (new)', instinct = 'Discmania Instinct (150-175g)';
+ for (const disc of [merged, instinct]) assert.ok(names('How does the FD1 fly?').includes(disc), `FD1 finds ${disc}`);
+ assert.equal(names('How does the FD2 fly?')[0], merged);
+ assert.ok(names('Is the FD3 understable?').includes('Discmania FD3 (new)'));
+ assert.ok(names('Is the Roach a good putter?').includes('Discraft Roach (Ace Race 2015)'));
+ assert.ok(!names('How do I make my approach shots more consistent?').includes('Discraft Roach (Ace Race 2015)'));
+ assert.ok(!names('I am looking for an overstable driver').includes('Westside Discs King (Pohjolan Isäntä1)'));
+ assert.deepEqual(names('My forehand has a sharp hook at the end, why?'), []);
+});
 test('daily usage belongs to the session user, not the browser or claimed headers', async () => {
  const s = await setup(); try {
   await s.call();
