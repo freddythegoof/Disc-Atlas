@@ -22,6 +22,32 @@ function setup() {
 const item = {mold_id: '7446eb39abe5', plastic: 'ESP', wear: 10, weight_g: 180, notes: ''};
 async function fixture() {const s = setup(); await s.user('u1', 'x'.repeat(43)); await s.user('u2', 'y'.repeat(43)); return s;}
 
+test('a saved disc naming a folded approval resolves to the surviving record',async()=>{
+ const folded='3bd98a3bc639',surviving='3d70ef38ff0e';
+ assert.equal(catalog.meta.idAliases[folded],surviving);
+ assert.ok(!catalog.discs.some(d=>d.id===folded));
+ const s=await fixture();try{
+  const save=(id,mold)=>s.db.prepare("INSERT INTO bag_discs(id,user_id,mold_id,plastic,wear,weight_g,added_at) VALUES (?,?,?,?,?,?,?)").run(id,'u1',mold,'C-Line',10,175,'2026-01-01T00:00:00.000Z');
+  save('old-fd1',folded);const path='/api/bag/discs/old-fd1',stored=()=>s.db.prepare('SELECT mold_id FROM bag_discs WHERE id=?').get('old-fd1').mold_id;
+  // Reads never hand the app the folded ID, and they leave the saved row alone: no migration.
+  assert.equal((await (await s.call('/api/bag')).json()).discs[0].mold_id,surviving);
+  assert.equal((await (await s.call('/api/bag/discs')).json()).discs[0].mold_id,surviving);
+  assert.equal((await (await s.call(path)).json()).disc.mold_id,surviving);
+  assert.equal(stored(),folded);
+  // A partial edit validates against the surviving mold, where a dead reference would refuse it.
+  const moved=await s.call(path,'PATCH',{in_bag:false});
+  assert.equal(moved.status,200);assert.equal((await moved.json()).disc.mold_id,surviving);
+  // A tab opened before the merge still sends the folded ID: it saves, and the row heals.
+  const edited=await s.call(path,'PUT',{...item,mold_id:folded,plastic:'C-Line',notes:'Old stamp'});
+  assert.equal(edited.status,200);assert.equal((await edited.json()).disc.mold_id,surviving);
+  assert.equal(stored(),surviving);
+  const added=await s.call('/api/bag/discs','POST',{...item,mold_id:folded,plastic:'C-Line'});
+  assert.equal(added.status,201);assert.equal((await added.json()).disc.mold_id,surviving);
+  // The alias opens nothing else: an unknown ID is still refused.
+  assert.equal((await s.call('/api/bag/discs','POST',{...item,mold_id:'000000000000',plastic:'C-Line'})).status,400);
+ }finally{s.close();}
+});
+
 test('overmold plate and rim colors persist through edits, storage and fresh reads', async () => {
  const s=await fixture();try {
   const response=await s.call('/api/bag/discs','POST',{...item,mold_id:'761c90d342f5',plastic:'Neutron',color:'#0000FF',rim_color:'#000000'});

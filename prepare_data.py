@@ -18,12 +18,15 @@ verified_data=json.load(open(ROOT+'/source-data/verified-model-overrides.json'))
 verified_lookup={r['id']:r for r in verified_data['overrides']}
 reconciliation=json.load(open(ROOT+'/source-data/catalog-reconciliation.json'))
 reviewed_matches={d['id']:d for d in reconciliation['matches']}
+# Reviewed rulings combining one physical mold's approvals into one record.
+folded={m['folded']:m['surviving'] for m in json.load(open(ROOT+'/source-data/merged-records.json'))['merges']}
 out=[]
 os.makedirs(ROOT+'/public/photos',exist_ok=True)
 for r in registry:
  brand=alias.get(r['Manufacturer / Distributor'],r['Manufacturer / Distributor']);name=r['Disc Model'];k=(brandnorm(brand),norm(name));match=lookup.get(k)
  # Only literal normalized model+brand matches. Do not guess variant ratings.
  d={'id':hashlib.sha1((r['Manufacturer / Distributor']+'|'+name+'|'+r['Approved Date']).encode()).hexdigest()[:12],'name':name,'brand':brand,'manufacturer':r['Manufacturer / Distributor'],'date':r['Approved Date'],'approved':True,'url':urls.get((norm(r['Manufacturer / Distributor']),norm(name)),'https://www.pdga.com/technical-standards/equipment-certification/discs?title='+__import__('urllib.parse',fromlist=['quote']).quote(name)),'specs':{'Diameter':r['Diameter (cm)'],'Height':r['Height (cm)'],'Rim width':r['Rim Thickness (cm)'],'Rim depth':r['Rim Depth (cm)'],'Max weight':r['Max Weight (gr)']},'certification':r['Certification Number']}
+ if d['id'] in folded:continue
  if match:
   try:
    nums={a:float(match[a]) for a in ['speed','glide','turn','fade']}
@@ -39,7 +42,7 @@ for r in registry:
   d.update(verified['flightNumbers']);d['category']=verified['category'];d['flightSource']=verified['source'];d['flightSourceLabel']=verified['brand'];d['catalogName']=verified['catalogName']
   d['flightMatchNote']='Manufacturer model matched to this specific PDGA approval; historical approvals kept separate.'
   # Current names and rename explanations come from reviewed source records, never registry edits.
-  for key in ['catalogNote','aliases']:
+  for key in ['catalogNote','aliases','flightMatchNote']:
    if key in verified:d[key]=verified[key]
   if verified.get('adjustmentNote'):
    # Atlas shifted a published rating: say so instead of passing it off as the manufacturer's numbers.
@@ -59,7 +62,7 @@ placements={e['id']:e['placement'] for e in json.load(open(ROOT+'/source-data/st
 for d in out:
  if d['id'] in stamps:
   d['stampAsset']=stamps[d['id']];d['stampPlacement']=placements[d['id']]
-meta={'date':'September 24, 2026','catalogAuditDate':'September 24, 2026','registryCount':len(registry),'statusAsOf':status_data['checkedAt'],'retirementWindowMonths':24,'note':'All records from the PDGA approved-disc CSV export are included, including historical molds. Flight numbers are incomplete. Catalog imagery uses original generic illustrations. This is a dated snapshot, not a live feed.'}
+meta={'date':'September 24, 2026','catalogAuditDate':'September 24, 2026','registryCount':len(out),'statusAsOf':status_data['checkedAt'],'retirementWindowMonths':24,'note':'All records from the PDGA approved-disc CSV export are included, including historical molds. Flight numbers are incomplete. Catalog imagery uses original generic illustrations. This is a dated snapshot, not a live feed.','idAliases':folded}
 json.dump({'meta':meta,'discs':out},open(ROOT+'/public/data.json','w'),separators=(',',':'))
 print({'records':len(out),'rated':sum('speed'in x for x in out),'photos':sum('photo'in x for x in out),'brands':len(set(x['brand']for x in out))})
 missing=sorted(set(r['Manufacturer / Distributor']for r in registry if not any(norm(alias.get(r['Manufacturer / Distributor'],r['Manufacturer / Distributor']))==norm(x['brand'])for x in f)))

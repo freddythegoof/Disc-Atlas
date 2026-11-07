@@ -16,6 +16,7 @@
     "db:generate": "drizzle-kit generate",
     "test:accounts": "node --test tests/auth.mjs",
     "test:accounts:browser": "node tests/accounts-browser.mjs",
+    "test:merged-records": "python3 tests/merged_records_test.py && python3 tests/catalog-identity.py && node tests/merged-records-browser.mjs",
     "test:disc-request": "node --test tests/disc-requests.mjs && node tests/disc-request-browser.mjs",
     "test:coach": "node --test tests/coach.mjs",
     "test:coach:browser": "node tests/coach-browser.mjs",
