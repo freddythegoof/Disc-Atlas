@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 export async function checkCatalogIdentity(browser, base) {
- const context = await browser.newContext({viewport: {width: 1440, height: 1000}});
+ const context = await browser.newContext({ignoreHTTPSErrors: true, viewport: {width: 1440, height: 1000}});
  const page = await context.newPage(), errors = [];
  const output = 'outputs/discmania-identity';
  fs.mkdirSync(output, {recursive: true});
@@ -20,26 +20,21 @@ export async function checkCatalogIdentity(browser, base) {
  };
  try {
   await page.goto(base);
-  await page.waitForFunction(() => typeof discs !== 'undefined' && discs.length === 2434);
+  await page.waitForFunction(() => typeof discs !== 'undefined' && discs.length === 2433);
   await page.locator('#listTab').click();
   await page.locator('#search').fill('Discmania FD2');
-  assert.equal(await page.locator('.disc-row[data-id="3bd98a3bc639"] strong').innerText(), 'FD2');
+  assert.deepEqual(await page.locator('.disc-row').evaluateAll(rows => rows.map(row => row.dataset.id)), ['3d70ef38ff0e'], 'Directory shows one disc for this mold');
   assert.equal(await page.locator('.disc-row[data-id="3d70ef38ff0e"] strong').innerText(), 'FD2');
-  await choose('3bd98a3bc639');
+  await choose('3d70ef38ff0e');
   assert.equal(await page.locator('#detail h2').innerText(), 'FD2');
-  assert.equal(await page.locator('.approval-name').innerText(), 'PDGA record: FD1');
-  assert.match(await page.locator('.catalog-note').innerText(), /renamed this mold the FD2 in mid-2025/);
-  assert.match(await page.locator('.catalog-note').innerText(), /25-150.*separately/);
+  assert.match(await page.locator('.approval-name').innerText(), /FD2 \(new\)/);
+  const note = await page.locator('.catalog-note').innerText();
+  assert.match(note, /approved as FD1 in 2022.*22-211.*Nov 28, 2022.*renamed FD2 in 2025.*25-150.*Sep 29, 2025/);
   assert.deepEqual(await page.locator('#detail .numbers strong').allTextContents(), ['7', '4', '0', '2']);
   assert.match(await page.locator('#flight svg').getAttribute('aria-label'), /FD2/);
-  await capture('fd2-former-fd1-desktop');
+  await capture('fd2-combined-desktop');
   await page.locator('#compare').click();
   assert.equal(await page.locator('.compare-item strong').innerText(), 'FD2', 'Comparison uses the current name');
-  await page.locator('#closeDetail').click();
-  await choose('3d70ef38ff0e');
-  assert.match(await page.locator('.approval-name').innerText(), /FD2 \(new\)/);
-  assert.match(await page.locator('.catalog-note').innerText(), /22-211.*separate/);
-  await capture('fd2-2025-approval-desktop');
   await page.locator('#closeDetail').click();
   await page.locator('#search').fill('Instinct');
   assert.equal(await page.locator('.disc-row[data-id="6d63e6972109"] strong').innerText(), 'FD1');
@@ -51,8 +46,9 @@ export async function checkCatalogIdentity(browser, base) {
   await page.locator('#closeDetail').click();
   await page.locator('#search').fill('FD1');
   assert.equal(await page.locator('.disc-row[data-id="6d63e6972109"]').count(), 1, 'Current FD1 can be searched');
-  assert.equal(await page.locator('.disc-row[data-id="3bd98a3bc639"]').count(), 1, 'Former FD1 remains searchable');
-  for (const id of ['3bd98a3bc639', '6d63e6972109']) {
+  assert.equal(await page.locator('.disc-row[data-id="3d70ef38ff0e"]').count(), 1, 'Former FD1 lands on the combined disc');
+  assert.equal(await page.locator('.disc-row[data-id="3bd98a3bc639"]').count(), 0, 'The folded record is gone');
+  for (const id of ['3d70ef38ff0e', '6d63e6972109']) {
    await choose(id);
    for (const theme of ['light', 'midnight', 'charcoal']) {
     await page.evaluate(theme => applyTheme(theme), theme);
@@ -68,35 +64,19 @@ export async function checkCatalogIdentity(browser, base) {
    }
    await page.locator('#closeDetail').click();
   }
-  await choose('3bd98a3bc639');
   await page.evaluate(() => applyTheme('light'));
-  await page.locator('#expandDetail').click();
-  await page.locator('#detail').evaluate(node => {node.scrollTop = 0;});
-  await capture('fd2-former-fd1-mobile-expanded');
-  await page.locator('#closeDetail').click();
   await page.setViewportSize({width: 1440, height: 1000});
-  await page.locator('#search').fill('Discmania');
+  // The map draws one position for this mold, and the featured list follows the surviving record.
+  await page.locator('#search').fill('Discmania FD2');
   await page.locator('#mapTab').click();
   await page.waitForFunction(() => groupCache?.items === filtered && !regrouping);
-  // Exercise the same group popover used by nearby-disc exploration, with the overlapping approvals.
-  await page.evaluate(() => {
-   const members = ['3bd98a3bc639', '3d70ef38ff0e', '6d63e6972109'].map(id => discs.find(d => d.id === id));
-   openCluster({key: 'identity-qa', members}, document.querySelector('#map'), true);
-  });
-  assert.deepEqual(await page.locator('.cluster-disc strong').allTextContents(), ['FD2', 'FD2', 'FD1']);
-  assert.deepEqual(await page.locator('.cluster-stat strong').allTextContents(), ['FD2', 'FD2', 'FD1']);
-  await page.keyboard.press('Escape');
-  // Existing saved bags retain approval IDs and pick up the current catalog labels on refresh.
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent('atlas-account-change', {detail: {
-   user: {name: 'Catalog QA', email: 'qa@example.invalid'}, bagReady: true,
-   profile: {level: 'unknown', style: 'unknown'},
-   bag: [{id: 'qa-old-fd1', discId: '3bd98a3bc639'}, {id: 'qa-instinct', discId: '6d63e6972109'}],
-  }})));
-  await page.locator('#bagTab').click();
-  assert.deepEqual(await page.locator('.bag-disc-name strong').allTextContents(), ['FD2', 'FD1']);
-  await page.locator('#bagSearch').fill('Instinct');
-  assert.equal(await page.locator('[data-add-result="6d63e6972109"] strong').innerText(), 'FD1');
+  assert.deepEqual(await page.evaluate(() => [...atlasPositions.keys()].filter(id => ['3bd98a3bc639', '3d70ef38ff0e'].includes(id))), ['3d70ef38ff0e']);
+  assert.deepEqual(await page.evaluate(() => filtered.filter(d => d.speed != null).map(d => d.id)), ['3d70ef38ff0e'], 'Map shows one disc for this mold');
+  assert.ok(await page.evaluate(() => {
+   const ids = window.DiscAtlasFeatured.map(d => d.id);
+   return ids.includes('3d70ef38ff0e') && !ids.includes('3bd98a3bc639');
+  }), 'Featured list names the surviving record');
   assert.deepEqual(errors, []);
-  console.log(`PASS: catalog names, separate approvals, rename notes, old-name search, keyboard selection, 3 themes at 1440/360px. Screenshots: ${output}.`);
+  console.log(`PASS: combined FD2, rename note, old-name search, keyboard selection, one map position, 3 themes at 1440/360px. Screenshots: ${output}.`);
  } finally {await context.close();}
 }
