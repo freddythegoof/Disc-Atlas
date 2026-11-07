@@ -1,17 +1,17 @@
-# Graph Report - merge-fd-records  (2026-11-06)
+# Graph Report - merge-fd-records  (2026-11-07)
 
 ## Corpus Check
-- 478 files · ~5,724,165 words
+- 478 files · ~5,724,297 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 315 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
 
 ## Summary
-- 3294 nodes · 7129 edges · 186 communities (147 shown, 39 thin omitted)
+- 3294 nodes · 7131 edges · 187 communities (148 shown, 39 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 259 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `730ac3c7`
+- Built from commit: `7b87e97d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -182,6 +182,7 @@
 - drizzle-kit
 - engines
 - playwright
+- atlas-organic.mjs
 
 ## God Nodes (most connected - your core abstractions)
 1. `createDiscViewer()` - 66 edges
@@ -210,7 +211,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (186 total, 39 thin omitted)
+## Communities (187 total, 39 thin omitted)
 
 ### Community 0 - "app.js"
 Cohesion: 0.06
@@ -489,8 +490,8 @@ Cohesion: 0.18
 Nodes (10): CAMERAS, {chromium}, errors, failures, RENDERED(), server, settled(), show() (+2 more)
 
 ### Community 72 - "atlas-speed-band.mjs"
-Cohesion: 0.10
-Nodes (15): curate(), field(), footprint, groups(), prints(), runtime, base, CHROME (+7 more)
+Cohesion: 0.18
+Nodes (9): base, CHROME, off(), prints, rated, runtime, SIZES, STATES (+1 more)
 
 ### Community 73 - "photo-stamp-identity-browser.mjs"
 Cohesion: 0.11
@@ -799,6 +800,10 @@ Nodes (4): log(), results, sharp, shoot()
 ### Community 181 - "rackStyle"
 Cohesion: 0.50
 Nodes (3): rackStyle(), finishOf(), paint()
+
+### Community 186 - "atlas-organic.mjs"
+Cohesion: 0.24
+Nodes (6): curate(), field(), footprint, groups(), prints(), runtime
 
 ## Knowledge Gaps
 - **52 isolated node(s):** `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react`, `class-variance-authority`, `clsx` (+47 more)
