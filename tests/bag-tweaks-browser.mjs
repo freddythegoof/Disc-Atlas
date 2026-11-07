@@ -140,7 +140,7 @@ try {
   assert.ok(await lensMenu.isHidden(),`${name}: Directory has no open map menu`);
   assert.ok(await page.evaluate(()=>filtered.length>window.BagApp.mapColors().size && filtered.every(inCollection)),`${name}: Directory uses the catalog collection`);
   await page.locator('#search').fill('zzzz-no-matching-disc');
-  assert.equal((await page.locator('#rows').innerText()).trim(),'No discs match these filters.',`${name}: Directory empty state describes catalog filters`);
+  assert.equal((await page.locator('#rows > .muted').innerText()).trim(),'No discs match these filters.',`${name}: Directory empty state describes catalog filters`);
   await page.locator('#search').fill('');await shot(`directory-${name}`);
   await page.locator('#mapTab').click();
   assert.equal(await label(),'My Bag',`${name}: returning to the map preserves its lens`);
