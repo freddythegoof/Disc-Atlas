@@ -337,8 +337,8 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   const clear=isClear(props.finish);
   // The plastic's true colour (docs/clear-plastic-true-color.md): a clear copy's walls wear it, and its photo is retinted
   // toward it; an overmold's core keeps the plate colour.
-  const tint=clearTint(props.finish,color,props.photo_true_color,{overmold});
-  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id],clear,tint.tint]);
+  const opacity=props.opacity??null,tint=clearTint(props.finish,color,props.photo_true_color,{overmold,opacity});
+  const key=JSON.stringify([shape,props.mold,color,props.plastic,colors,band,halo,photoURL,asset,placement,style&&[style.inkId,style.finish.id],clear,tint.tint,clear?opacity:null]);
   if(props.hand&&props.hand!==state.hand)setHand(props.hand);
   // Keep override intent even when a newly chosen color equals the current theme default.
   if(key===state.key){state.props=props;return true;}
@@ -348,7 +348,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   photo?.userData.disposePhoto();if(photo)discGroup.remove(photo);photo=null;
   build(shape,props.mold,color,overmold,asset,placement,band,halo,style);
   bodyMaterial.color.set(color);Object.assign(bodyMaterial,plastic);bodyMaterial.needsUpdate=true;
-  if(clear){clearPlate.paint(tint.tint,plastic,{exponent:tint.exponent});if(band){clearBand.paint(band,plastic);clearHalo.paint(band,plastic);}repaintBackdrop();}
+  if(clear){clearPlate.paint(tint.wall,plastic,{exponent:tint.exponent,opacity});if(band){clearBand.paint(band,plastic,{opacity});clearHalo.paint(band,plastic,{opacity});}repaintBackdrop();}
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it. On a clear copy it ends at
   // its own plate edge, and takes the plastic's true colour when the copy has one (photo.mjs).
   if(photoURL){photo=photoSurface(shape,photoURL,{overmold,like:bodyMaterial,relief:true,clear,tint:tint.sampled?tint.tint:null,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}

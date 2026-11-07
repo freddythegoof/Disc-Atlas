@@ -1,5 +1,5 @@
 // Gallery selects the copy; the shared detail viewer owns geometry, materials and photos.
-import {bagClass,stampChoiceOf} from './bag-values.js';
+import {bagClass,stampChoiceOf,renderFinish} from './bag-values.js';
 import {rackOrder} from './collection3d/rack-layout.mjs';
 import {photoURL} from './disc-photo.mjs';
 import {haloBand,haloModel} from './disc3d/halo.mjs';
@@ -86,7 +86,7 @@ export class AllDiscsGallery{
     model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:title(d),
     manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
     color:item.color,colors:{plate:item.color,rim:item.rim_color||undefined},plastic:item.plastic||'premium',
-    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,photo_true_color:item.photo_true_color,haloBand:haloBand(item),haloModel:haloModel(item),finish:item.finish};
+    photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,photo_true_color:item.photo_true_color,haloBand:haloBand(item),haloModel:haloModel(item),finish:renderFinish(item),opacity:item.finish_opacity??null};
    // The game-asset look draws the disc's extracted stamp in the player's own ink and finish, as their stamps do
    // everywhere else; every other disc here keeps exactly what it showed before.
    const look=this.module.photoStampFor(props.photoURL);if(look)props.stampStyle=window.DisplayPalette?.stampStyleFor?.(stampChoiceOf(item))||null;

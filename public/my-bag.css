@@ -358,6 +358,16 @@ body[data-view="bag"] main {display:none!important}
 /* Clear plastics (docs/clear-plastic-discs.md): Opaque · Clear, pills like the photo's Look row (.bag-finish-row shares its rules). */
 .bag-finish-field {border:0;margin:0;padding:0;min-width:0;display:grid;gap:8px;align-content:start}
 .bag-finish-field legend {padding:0;margin-bottom:8px}
+/* The copy's opacity (docs/clear-opacity.md), on Clear only: a small live disc beside the slider, as Wear's slider reads. */
+.bag-opacity-field {display:grid;gap:6px;min-width:0}.bag-opacity-field[hidden]{display:none}
+.bag-opacity-head {display:flex;justify-content:space-between;gap:8px}
+#bagOpacityValue {font-size:13px;color:var(--text);font-weight:500}
+.bag-opacity-row {display:flex;align-items:center;gap:12px}
+#bagOpacityPreview {flex:none;width:48px;height:48px;position:relative}
+#bagOpacityPreview .disc-thumbnail {display:block;width:48px;height:48px;margin:0}
+.bag-opacity-slider {flex:1;min-width:0}
+#bagOpacity {width:100%;padding:0;accent-color:var(--lime);min-height:28px;border:0;cursor:pointer}
+#bagOpacityHint {display:block}#bagOpacityHint[hidden]{display:none}
 .bag-color-field input[type="color"] {width:100%;height:44px;min-height:44px;padding:4px;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
 .bag-color-field {grid-column:1/-1}
 /* Per-disc stamp look (docs/stamp-look-extraction.md): Ink and Finish side by side, the sheet's own selects. */

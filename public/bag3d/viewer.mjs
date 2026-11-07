@@ -548,8 +548,8 @@ export async function mountBag(container, {
     const base = () => detailMaterial(new THREE.Color()), colors = overmold ? overmoldColors(placement.color, { rim: placement.rimColor }) : null;
     const plate = clearPart(base), rim = band ? clearPart(halo ? () => paintHalo(base(), placement.haloModel) : base, { page: plate.page }) : null;
     // The plastic's true colour, when the copy has one (docs/clear-plastic-true-color.md).
-    const tint = clearTint(placement.finish, colors ? colors.plate : placement.color || '#e6c668', placement.trueColor, { overmold });
-    plate.paint(tint.tint, PLASTICS.premium, { exponent: tint.exponent }); rim?.paint(placement.haloBand, PLASTICS.premium);
+    const tint = clearTint(placement.finish, colors ? colors.plate : placement.color || '#e6c668', placement.trueColor, { overmold, opacity: placement.opacity });
+    plate.paint(tint.wall, PLASTICS.premium, { exponent: tint.exponent, opacity: placement.opacity }); rim?.paint(placement.haloBand, PLASTICS.premium, { opacity: placement.opacity });
     const rig = clearRig(mesh, { plate, band: rim, overmold }); rig.page(pageColor(container));
     return rig;
   };

@@ -19,7 +19,14 @@
 // read as the transmission of both walls square on: one wall lets through sqrt(colour), and a wall seen at an angle is
 // a longer path (transmission^(1/cos)). Everything else, the clear coat, roughness, environment and any shader hook
 // (a Halo band's wash), is the plate's own MeshPhysicalMaterial: a clear disc is lit as an opaque one is.
+//
+// Opacity (docs/clear-opacity.md): one clear copy's place between glass and opaque plastic, `finish_opacity` on the account,
+// 0 to 100 (FINISH_OPACITY.today, or NULL, is the look above). Below today's the plastic holds less dye: the walls' density,
+// its haze and its rim glow fall toward CLEAR_RANGE. Above it the plastic scatters what it used to pass: each wall lets less
+// of the background through while the diffuse light it had taken away comes back, no extra pass, until only the plastic
+// lit as an opaque disc remains. A copy at 100 is not drawn here at all (bag-values.js renderFinish).
 import * as THREE from 'three';
+import {FINISH_OPACITY} from '../bag-values.js';
 
 export const isClear=finish=>finish==='clear';
 // density: the exponent on the picked colour for one wall square on (.5: two walls make the picked colour).
@@ -30,53 +37,88 @@ export const isClear=finish=>finish==='clear';
 // still shows (a little haze; the shape reads in the dark). glow: light piped to the rim, as a share of the tint. minCos:
 // the most grazing path counted (keeps the edge finite).
 export const CLEAR={density:.5,trueDensity:.35,truePhoto:1,scatter:.12,glow:.35,minCos:.06};
+// The most transparent end, as shares of today's: density (what is left of the dye), haze (of `scatter`). Freddy's to move.
+// hides: the `solid` past which the plastic hides what lies under its top surface: the front wall writes depth, so its shine
+// draws only the nearest surface, not the inside of the far rim as well.
+export const CLEAR_RANGE={density:.14,haze:.4,hides:.2};
+// What an opacity asks of the plastic: `density` and `haze` as shares of today's, `solid` from 0 (today's and below) to 1.
+export function clearLook(opacity){
+ const today=FINISH_OPACITY.today,v=Number.isInteger(opacity)&&opacity>=0&&opacity<=100?opacity:today;
+ if(v===today)return {density:1,haze:1,solid:0};
+ if(v>today)return {density:1,haze:1,solid:(v-today)/(100-today)};
+ const t=v/today;return {density:CLEAR_RANGE.density+(1-CLEAR_RANGE.density)*t,haze:CLEAR_RANGE.haze+(1-CLEAR_RANGE.haze)*t,solid:0};
+}
 // The tint a clear part wears: the plastic's true colour when the copy has one (never on an overmold, whose photo shows
-// only its opaque rim piece), else the disc's colour. `exponent`: the per-wall exponent that goes with it.
-export function clearTint(finish,color,trueColor,{overmold=false}={}){
+// only its opaque rim piece), else the disc's colour. `exponent`: the per-wall exponent that goes with it. `wall`: the colour
+// the walls wear at this opacity: the tint, moving to the disc's own colour on the way to opaque (the opaque disc in that
+// colour); a copy's photo keeps the tint, whatever the opacity.
+export function clearTint(finish,color,trueColor,{overmold=false,opacity=null}={}){
  const sampled=isClear(finish)&&!overmold&&/^#[0-9a-f]{6}$/i.test(trueColor||'')?trueColor.toLowerCase():null;
- return sampled?{tint:sampled,exponent:CLEAR.trueDensity,sampled:true}:{tint:color,exponent:CLEAR.density,sampled:false};
+ if(!sampled)return {tint:color,wall:color,exponent:CLEAR.density,sampled:false};
+ const solid=clearLook(opacity).solid;
+ return {tint:sampled,wall:solid?'#'+new THREE.Color().set(sampled).lerp(new THREE.Color().set(color),solid).getHexString():sampled,exponent:CLEAR.trueDensity,sampled:true};
 }
 
 const num=v=>Number(v).toFixed(4);
-const defines=()=>`#define CLEAR_SCATTER ${num(CLEAR.scatter)}\n#define CLEAR_GLOW ${num(CLEAR.glow)}\n#define CLEAR_MIN_COS ${num(CLEAR.minCos)}\n`;
+const offUniforms=off=>off?'uniform vec4 clearLook;\nuniform float clearSolid;\n':'';
+const defines=off=>`${off?'#define CLEAR_OFF\n':''}#define CLEAR_SCATTER ${num(CLEAR.scatter)}\n#define CLEAR_GLOW ${num(CLEAR.glow)}\n#define CLEAR_MIN_COS ${num(CLEAR.minCos)}\n`;
 // The filter: written straight to the framebuffer (no tone mapping or encoding), which holds sRGB values, so the
-// transmission goes in as an sRGB-space factor (a power of 1/2.2 is close enough for a multiplier).
+// transmission goes in as an sRGB-space factor (a power of 1/2.2 is close enough for a multiplier). clearLook (clearPart):
+// x, what one wall passes of what it would; y, of both walls together; z, the share of diffuse light kept; w, the glow's share.
+// clearSolid: how far toward opaque, 0 at today's look and below. A part at today's look compiles without them (CLEAR_OFF
+// unset): its shader is the one every clear disc had before the slider, to the pixel.
 const FILTER=`
 {
  float clearCos=clamp(abs(dot(normal,normalize(vViewPosition))),CLEAR_MIN_COS,1.);
  vec3 clearT=pow(max(diffuseColor.rgb,vec3(1e-4)),vec3(clearDensity/clearCos));
  float clearF=.04+.96*pow(1.-clearCos,5.);
- gl_FragColor=vec4(pow(clearT*(1.-clearF),vec3(1./2.2)),1.);
+ #ifdef CLEAR_OFF
+  gl_FragColor=vec4(pow(clearT*(1.-clearF)*clearLook.x,vec3(1./2.2)),1.);
+ #else
+  gl_FragColor=vec4(pow(clearT*(1.-clearF),vec3(1./2.2)),1.);
+ #endif
  return;
 }
 `;
 // The shine is added to the framebuffer's sRGB values, but light adds in linear: so it adds what it would add to the
 // filtered page behind it (the page colour through both walls), the difference of the two encoded values. The estimate
 // is grey (its luminance), so where the real background differs from it (the walls seen edge on, a stamp seen from
-// below, the bag's fabric) a highlight is a little too bright or dim, never shifted in hue.
+// below, the bag's fabric) a highlight is a little too bright or dim, never shifted in hue. On the way to opaque the shine is no longer a
+// highlight but most of the disc, where a grey estimate would clip its strong channel, so the estimate turns to each channel.
+// Only the front wall takes the diffuse light back: scattering plastic hides its far wall, and hides it first.
 const SHINE=`
  float clearCos=clamp(abs(dot(geometryNormal,geometryViewDir)),CLEAR_MIN_COS,1.);
- vec3 clearBehind=vec3(dot(clearPage*pow(max(diffuseColor.rgb,vec3(1e-4)),vec3(clearDensity*(1.+1./clearCos))),vec3(.2126,.7152,.0722)));
- outgoingLight+=totalDiffuse*(CLEAR_SCATTER-1.)+diffuseColor.rgb*CLEAR_GLOW*pow(1.-clearCos,3.);
+ #ifdef CLEAR_OFF
+  vec3 clearThrough=clearPage*pow(max(diffuseColor.rgb,vec3(1e-4)),vec3(clearDensity*(1.+1./clearCos)));
+  vec3 clearBehind=mix(vec3(dot(clearThrough,vec3(.2126,.7152,.0722))),clearThrough,min(clearSolid*4.,1.))*clearLook.y;
+  #ifdef FLIP_SIDED
+   outgoingLight=(outgoingLight+totalDiffuse*(min(clearLook.z,CLEAR_SCATTER)-1.)+diffuseColor.rgb*CLEAR_GLOW*clearLook.w*pow(1.-clearCos,3.))*clearLook.x;
+  #else
+   outgoingLight+=totalDiffuse*(clearLook.z-1.)+diffuseColor.rgb*CLEAR_GLOW*clearLook.w*pow(1.-clearCos,3.);
+  #endif
+ #else
+  vec3 clearBehind=vec3(dot(clearPage*pow(max(diffuseColor.rgb,vec3(1e-4)),vec3(clearDensity*(1.+1./clearCos))),vec3(.2126,.7152,.0722)));
+  outgoingLight+=totalDiffuse*(CLEAR_SCATTER-1.)+diffuseColor.rgb*CLEAR_GLOW*pow(1.-clearCos,3.);
+ #endif
  gl_FragColor=vec4(max(outgoingLight,vec3(0.)),1.);
 `;
 const ADD=`
  gl_FragColor.rgb=max(sRGBTransferOETF(vec4(clearBehind+gl_FragColor.rgb,1.)).rgb-sRGBTransferOETF(vec4(clearBehind,1.)).rgb,vec3(0.));
 `;
 // One pass of one wall: `material` (patched in place) filters or shines on `side`.
-function pass(material,kind,side,page,density){
+function pass(material,kind,side,page,density,look,solid){
  const previous=material.onBeforeCompile,previousKey=material.customProgramCacheKey;
  Object.assign(material,{side,transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,
   blendSrc:kind==='filter'?THREE.ZeroFactor:THREE.OneFactor,blendDst:kind==='filter'?THREE.SrcColorFactor:THREE.OneFactor,
   blendSrcAlpha:THREE.ZeroFactor,blendDstAlpha:THREE.OneFactor,toneMapped:kind!=='filter'});
  material.onBeforeCompile=function(shader,renderer){
   previous.call(this,shader,renderer);
-  shader.uniforms.clearDensity=density;
-  if(kind==='filter'){shader.fragmentShader='uniform float clearDensity;\n'+shader.fragmentShader.replace('#include <emissivemap_fragment>',defines()+FILTER+'#include <emissivemap_fragment>');return;}
+  shader.uniforms.clearDensity=density;shader.uniforms.clearLook=look;shader.uniforms.clearSolid=solid;
+  if(kind==='filter'){shader.fragmentShader='uniform float clearDensity;\n'+offUniforms(look.off)+shader.fragmentShader.replace('#include <emissivemap_fragment>',defines(look.off)+FILTER+'#include <emissivemap_fragment>');return;}
   shader.uniforms.clearPage=page;
-  shader.fragmentShader='uniform vec3 clearPage;\nuniform float clearDensity;\n'+shader.fragmentShader.replace('#include <opaque_fragment>',defines()+SHINE).replace('#include <colorspace_fragment>',ADD);
+  shader.fragmentShader='uniform vec3 clearPage;\nuniform float clearDensity;\n'+offUniforms(look.off)+shader.fragmentShader.replace('#include <opaque_fragment>',defines(look.off)+SHINE).replace('#include <colorspace_fragment>',ADD);
  };
- material.customProgramCacheKey=function(){return previousKey.call(this)+'|clear-'+kind;};
+ material.customProgramCacheKey=function(){return previousKey.call(this)+'|clear-'+kind+(look.off?'|off':'');};
  material.userData.clear=kind;material.needsUpdate=true;
  return material;
 }
@@ -89,12 +131,14 @@ export const clearPage=()=>({value:new THREE.Color(1,1,1)});
 export function clearPart(base=()=>new THREE.MeshPhysicalMaterial(),{walls=2,page=clearPage()}={}){
  const sides=walls===2?[THREE.BackSide,THREE.FrontSide]:[THREE.FrontSide];
  // The exponent per wall drawn, shared by the part's passes; a rig drawing one wall of two raises it (clearRig walls).
- const density={value:CLEAR.density*(2/sides.length)};
- const list=sides.map(side=>({filter:pass(base(),'filter',side,null,density),shine:pass(base(),'shine',side,page,density)}));
- return {walls:list,page,density,exponent:CLEAR.density,drawn:sides.length,materials:list.flatMap(w=>[w.filter,w.shine]),
+ const density={value:CLEAR.density*(2/sides.length)},look={value:new THREE.Vector4(1,1,CLEAR.scatter,1),off:false},solid={value:0};
+ const list=sides.map(side=>({filter:pass(base(),'filter',side,null,density,look,solid),shine:pass(base(),'shine',side,page,density,look,solid)}));
+ return {walls:list,page,density,look,solid,exponent:CLEAR.density,drawn:sides.length,opacity:null,materials:list.flatMap(w=>[w.filter,w.shine]),
+  // The exponent and clearLook for the walls drawn and this opacity (the top of this file).
+  apply(){const {density:share,haze,solid}=clearLook(this.opacity);this.look.off=!!solid||share!==1;this.solid.value=solid;Object.assign(this.walls[this.walls.length-1].filter,{depthWrite:solid>CLEAR_RANGE.hides,polygonOffset:solid>CLEAR_RANGE.hides,polygonOffsetFactor:1,polygonOffsetUnits:1});this.density.value=this.exponent*(2/this.drawn)*share;this.look.value.set(Math.pow(1-solid,2/this.drawn),(1-solid)*(1-solid),CLEAR.scatter*haze+(1-CLEAR.scatter)*solid,share*(1-solid));},
   // The plastic: colour (the tint), the finish's roughness and clear coat, and the exponent per wall the colour is read
-  // with (`exponent`: CLEAR.density for a picked colour, CLEAR.trueDensity for the plastic's true colour).
-  paint(color,plastic={},{exponent=CLEAR.density}={}){this.exponent=exponent;this.density.value=exponent*(2/this.drawn);for(const m of this.materials){m.color.set(color);Object.assign(m,plastic);m.needsUpdate=true;}},
+  // with (`exponent`: CLEAR.density for a picked colour, CLEAR.trueDensity for the plastic's true colour), and its opacity.
+  paint(color,plastic={},{exponent=CLEAR.density,opacity=null}={}){this.exponent=exponent;this.opacity=opacity;this.apply();for(const m of this.materials){m.color.set(color);Object.assign(m,plastic);m.needsUpdate=true;}},
   dispose(){for(const m of this.materials)m.dispose();}};
 }
 // The backdrop pass: the page's colour, only where nothing is drawn yet.
@@ -146,7 +190,7 @@ export function clearRig(mesh,{plate,band=null,overmold=false}){
  hide();
  const rig={meshes,backdrop,materials:[...plate.materials,...band?.materials??[]],
   sync(){hide();for(const m of meshes)m.geometry=mesh.geometry;},
-  walls(n){meshes.forEach(m=>{if(/^clear-back-/.test(m.name))m.visible=n===2;});for(const part of [plate,band])if(part){part.drawn=n;part.density.value=part.exponent*(2/n);}},
+  walls(n){meshes.forEach(m=>{if(/^clear-back-/.test(m.name))m.visible=n===2;});for(const part of [plate,band])if(part){part.drawn=n;part.apply();}},
   page(color){backdrop.color.set(color);plate.page.value.copy(backdrop.color);if(band)band.page.value.copy(backdrop.color);},
   dispose(){for(const m of meshes)mesh.remove(m);plate.dispose();band?.dispose();backdrop.dispose();none.dispose();}};
  rig.walls(1);

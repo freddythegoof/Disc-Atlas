@@ -167,7 +167,7 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
  const colorsOf=(s,color,rim,band,model)=>s.overmold?overmoldColors(color,{rim:rim||(lightTheme()?undefined:'#ffffff')}):
   {plate:color,rim:band||'',...band&&parseHalo(model)&&{halo:model.toLowerCase()}};
  const keyOf=(d,lod,c,asset=null)=>d.id+'|'+lod+'|'+c.plate+'|'+c.rim+(c.halo?'|'+c.halo:'')+'|'+(d.photoURL||'')+
-  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'')+(isClear(d.finish)?'|clear:'+clearOf(d)+'|'+(d.trueColor||''):'');
+  (asset?'|stamp:'+asset+'|'+JSON.stringify(placementOf(d))+styleKey(d):'')+(isClear(d.finish)?'|clear:'+clearOf(d)+'|'+(d.trueColor||'')+(d.opacity==null?'':'|o:'+d.opacity):'');
  // A photo disc its owner switched to the game-asset look (photo-stamps.mjs) is drawn as a stamped disc: no photo,
  // its extracted stamp where stock art goes (markers from medium size up, as stock stamps are). A colour asset keeps its
  // own colours: its finish is a sheen (stamp.mjs colorStyle).
@@ -209,9 +209,9 @@ export async function createAtlasArt({dpr=Math.min(devicePixelRatio||1,2),maxByt
   const clear=isClear(d.finish);
   if(clear){
    // The plastic's true colour, when the copy has one (docs/clear-plastic-true-color.md).
-   const tint=clearTint(d.finish,c.plate,d.trueColor,{overmold:s.overmold});
-   clearPaper.color.set(clearOf(d));clearPlate.page.value.copy(clearPaper.color);clearPlate.paint(tint.tint,PLASTICS.premium,{exponent:tint.exponent});
-   const bandPart=c.halo?clearHalo:clearBand;if(split&&!s.overmold)bandPart.paint(c.rim,PLASTICS.premium);
+   const opacity=d.opacity??null,tint=clearTint(d.finish,c.plate,d.trueColor,{overmold:s.overmold,opacity});
+   clearPaper.color.set(clearOf(d));clearPlate.page.value.copy(clearPaper.color);clearPlate.paint(tint.wall,PLASTICS.premium,{exponent:tint.exponent,opacity});
+   const bandPart=c.halo?clearHalo:clearBand;if(split&&!s.overmold)bandPart.paint(c.rim,PLASTICS.premium,{opacity});
    mesh.material=split?[none,s.overmold?rimMaterial:none]:none;
    clearList.forEach((m,i)=>{m.geometry=mesh.geometry;if(i){const kind=(i-1)&1?'shine':'filter';m.material=split?[clearPlate.walls[0][kind],s.overmold?none:bandPart.walls[0][kind]]:clearPlate.walls[0][kind];}});
   }

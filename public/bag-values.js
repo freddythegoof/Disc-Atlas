@@ -27,6 +27,9 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  // Clear plastics (docs/clear-plastic-discs.md): the copy's finish. An edit that does not mention it keeps the saved one.
  const finish=value.finish===undefined?'opaque':value.finish;
  if(!FINISHES.includes(finish))throw new Error('Choose Opaque or Clear plastic.');
+ // Only a clear copy has an opacity. null is today's clear look; an opaque copy always stores null.
+ const finish_opacity=finish==='clear'?value.finish_opacity ?? null:null;
+ if(!validOpacity(finish_opacity))throw new Error('Choose an opacity from 0 to 100.');
  // Per-disc stamp look (docs/stamp-look-extraction.md): null follows the Appearance setting.
  const stamp_ink=value.stamp_ink ?? null,stamp_finish=value.stamp_finish ?? null;
  if(stamp_ink!==null && !STAMP_INKS.includes(stamp_ink))throw new Error('Choose a stamp ink from the palette.');
@@ -36,7 +39,7 @@ export function validateDiscDetails(data, disc, catalog, defaults = false) {
  if(stability_bias!==null && !['more_stable','less_stable'].includes(stability_bias))throw new Error('Choose More stable, Less stable, or no stability note.');
  if(value.sort_order!==undefined && (!Number.isSafeInteger(value.sort_order)||value.sort_order<0))throw new Error('Disc order must be a nonnegative whole number.');
  const memorial=validateLostDetails(value);
- return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,finish,stamp_ink,stamp_finish,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
+ return {mold_id: disc.id, plastic: value.plastic.trim(), wear: value.wear, weight_g: value.weight_g, notes: value.notes?.trim() || null,color:color.toLowerCase(),rim_color:rim_color?.toLowerCase() ?? null,finish,finish_opacity,stamp_ink,stamp_finish,in_bag:memorial.status==='lost'?false:in_bag,pocket,stability_bias,...memorial};
 }
 export function validateLostDetails(data) {
  const status=data.status===undefined?'active':data.status;
@@ -94,6 +97,13 @@ export function validateBagSettings(data, catalog, saved = {}) {
 }
 // A bag disc's plastic finish: 'opaque' (every disc before clear plastics) or 'clear' (Champion, Z, Opto and the like).
 export const FINISHES=['opaque','clear'];
+// How clear to opaque a clear copy is (docs/clear-opacity.md): 0 the most transparent drawn, 100 opaque. `today`: where the
+// clear look every copy had before the slider sits, and what a saved NULL draws (disc3d/clear.mjs clearLook).
+export const FINISH_OPACITY={today:30};
+export const validOpacity=value=>value===null||(Number.isInteger(value)&&value>=0&&value<=100);
+// The finish a copy is drawn in: at full opacity it is simply the opaque disc in its colour, everywhere. Its stored finish
+// stays clear, so its game asset (the stamp alone) and the sheet are unchanged.
+export const renderFinish=item=>item?.finish==='clear'&&item.finish_opacity===100?'opaque':item?.finish;
 // A bag disc's own stamp ink and finish: the Appearance sheet's curated ids (display-palette.js STAMP_INKS and
 // STAMP_FINISHES, which a test holds equal), checked again by migration 0016.
 export const STAMP_INKS=['auto','black','white','gold','silver','copper','red','blue','green','violet','pink'];

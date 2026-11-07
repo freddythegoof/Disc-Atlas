@@ -129,13 +129,14 @@ export const stampStyleKey=()=>{const s=personalStampStyle(),looks=photoLooksKey
 // A clear copy (`finish` 'clear', disc3d/clear.mjs) filters what is behind it: `walls` 2 (the pulled disc) shows its
 // underside through the top, 1 (small) the front wall only. Its page colour is set by paintClear().
 // `trueColor`: the plastic's true colour from the copy's photo (docs/clear-plastic-true-color.md), worn by a clear copy's
-// walls and its photo's plastic; the photo of a clear copy is cut at its own plate edge.
-export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,trueColor=null,walls=2,onChange=()=>{},stamp=true,stampChoice=null}={}){
+// walls and its photo's plastic; the photo of a clear copy is cut at its own plate edge. `opacity`: its finish_opacity
+// (docs/clear-opacity.md).
+export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,finish,opacity=null,trueColor=null,walls=2,onChange=()=>{},stamp=true,stampChoice=null}={}){
  // The game-asset look: the extracted stamp on the stamp mesh, and no photo.
  const look=photoStampFor(photoURL);if(look)photoURL=null;
  const twoTone=!!haloBand&&!!parseHalo(haloModel);
  const entry=discParts(d,undefined,!!haloBand,twoTone),colors=discColors(entry,color,rimColor,haloBand),group=new THREE.Group();
- const tint=clearTint(finish,colors.plate,trueColor,{overmold:entry.overmold});
+ const tint=clearTint(finish,colors.plate,trueColor,{overmold:entry.overmold,opacity});
  const plate=new THREE.Mesh(entry.plate,discMaterial(colors.plate));group.add(plate);
  const twoToned=material=>{if(entry.halo){const uniforms=haloUniforms();setHalo(uniforms,haloModel);patchHalo(material,uniforms);}return material;};
  let rim=null;
@@ -155,9 +156,9 @@ export function discModel(d,{color,rimColor,haloBand,haloModel,name,photoURL,fin
  group.userData.parts=entry;
  if(isClear(finish)){
   // The plate's passes, and a band's (an overmold's rim piece stays opaque); the print over both walls.
-  const platePart=clearPart(()=>discMaterial(),{walls});platePart.paint(tint.tint,{},{exponent:tint.exponent});
+  const platePart=clearPart(()=>discMaterial(),{walls});platePart.paint(tint.wall,{},{exponent:tint.exponent,opacity});
   const rigs=[clearRig(plate,{plate:platePart})];
-  if(rim&&!entry.overmold){const band=clearPart(()=>twoToned(discMaterial()),{walls,page:platePart.page});band.paint(colors.rim);rigs.push(clearRig(rim,{plate:band}));}
+  if(rim&&!entry.overmold){const band=clearPart(()=>twoToned(discMaterial()),{walls,page:platePart.page});band.paint(colors.rim,{},{opacity});rigs.push(clearRig(rim,{plate:band}));}
   for(const rig of rigs)rig.walls(walls);
   for(const o of group.children)if(o===ink||o.userData.disposePhoto)o.renderOrder=CLEAR_ORDER.printAbove;
   group.userData.clear=rigs;
