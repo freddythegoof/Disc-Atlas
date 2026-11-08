@@ -1,7 +1,7 @@
 # Clear finish: the opacity meter
 
-Branch `claude/clear-opacity`, off `origin/main` 730ac3c. Commits on the branch only: nothing pushed, merged or deployed.
-Migration 0018 is applied locally only.
+Branch `claude/clear-opacity`, off `origin/main` 730ac3c, with main (d97dc38, the FD1 and FD2 merge) merged in and the suites
+in section 8 re-run on the result. Landed on Freddy's go, Nov 8, 2026.
 
 **Freddy's ask, Oct 23, 2026:** clear is not one thing. Every manufacturer has a clear-ish plastic, and they sit at different
 opacities: near-glass, frosted, halfway to solid. So a clear copy gets a meter, on the disc's finish controls.
