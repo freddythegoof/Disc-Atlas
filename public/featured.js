@@ -104,7 +104,7 @@ window.DiscAtlasFeatured = [
   { id: '808ebf0c71d5', name: 'Monarch', brand: 'Innova' },
   { id: 'b1e0347018d7', name: 'Defender', brand: 'Dynamic Discs' },
   { id: 'bcf6b8c41051', name: 'Beast', brand: 'Innova' },
-  { id: '3bd98a3bc639', name: 'FD1', brand: 'Discmania' },
+  { id: '3d70ef38ff0e', name: 'FD2 (new)', brand: 'Discmania' },
   { id: '88a46cb35be1', name: 'P2 (new)', brand: 'Discmania' },
   { id: 'b2c132ff6485', name: 'FD3 (new)', brand: 'Discmania' },
   { id: '764a63ae0e4b', name: 'Toro', brand: 'Innova' },

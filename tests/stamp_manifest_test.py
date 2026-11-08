@@ -73,8 +73,12 @@ class StampManifestTests(unittest.TestCase):
         base=subprocess.check_output(['git','merge-base','main','HEAD'],cwd=ROOT,text=True).strip()
         before=json.loads(subprocess.check_output(['git','show',base+':public/data.json'],cwd=ROOT))
         after=json.loads((ROOT/'public/data.json').read_text())
-        self.assertEqual(before['meta'],after['meta'])
-        strip=lambda records:[{k:v for k,v in d.items() if k not in ('stampAsset','stampPlacement')} for d in records]
+        # A reviewed merge is the other way a record changes: source-data/merged-records.json drops one and enriches one.
+        merges=json.loads((ROOT/'source-data/merged-records.json').read_text())['merges']
+        folded,surviving={m['folded'] for m in merges},{m['surviving'] for m in merges}
+        meta=lambda value:{k:v for k,v in value.items() if k not in ('registryCount','idAliases')}
+        self.assertEqual(meta(before['meta']),meta(after['meta']))
+        strip=lambda records:[{k:v for k,v in d.items() if k not in ('stampAsset','stampPlacement')} for d in records if d['id'] not in folded|surviving]
         self.assertEqual(strip(before['discs']),strip(after['discs']))
 
     def test_invalid_or_unreviewed_placement_is_rejected(self):

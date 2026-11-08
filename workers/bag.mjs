@@ -7,6 +7,9 @@ import {stampsRoute,stampRoute} from './stamps.mjs';
 
 const json = (data, status = 200) => Response.json(data, {status, headers: {'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff'}});
 const byId = new Map(catalog.discs.map(d => [d.id, d]));
+// A saved disc may still name an approval a reviewed merge folded into another record (source-data/merged-records.json).
+const idAliases = new Map(Object.entries(catalog.meta.idAliases));
+const currentId = id => idAliases.get(id) ?? id;
 async function readBody(request,limit=4096) {
  if (!request.headers.get('Content-Type')?.startsWith('application/json')) throw new Error('Send JSON.');
  const reader = request.body?.getReader(); if (!reader) throw new Error('Send a bag update.');
@@ -35,7 +38,7 @@ export function createBag(auth) {
    if (!(root ? ['GET','PUT','PATCH'] : order?['PUT']:collection ? ['GET','POST'] : ['GET','PUT','PATCH','DELETE']).includes(method)) return json({error:'Method not allowed.'},405);
    if (method !== 'GET' && (request.headers.get('Origin') !== new URL(request.url).origin || request.headers.get('X-Atlas-CSRF') !== user.csrf_token)) return json({error:'Refresh the page and try again.'},403);
    const fields='id,mold_id,plastic,wear,weight_g,notes,color,rim_color,finish,finish_opacity,stamp_ink,stamp_finish,photo_rim_color,photo_halo,photo_true_color,texture_key,in_bag,pocket,stability_bias,sort_order,added_at,status,lostDate,lostCourse,lostHole,lostStory';
-   const physical=row=>row?{...row,in_bag:!!row.in_bag}:row;
+   const physical=row=>row?{...row,mold_id:currentId(row.mold_id),in_bag:!!row.in_bag}:row;
    const list = async () => (await env.DB.prepare(`SELECT ${fields} FROM bag_discs WHERE user_id=? ORDER BY added_at,id`).bind(user.id).all()).results.map(physical);
    const settings = async () => await env.DB.prepare('SELECT bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,rack_style,updated_at FROM bags WHERE user_id=?').bind(user.id).first() || {bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed',rack_style:null,updated_at:null};
    if (method === 'GET') {
@@ -79,7 +82,7 @@ export function createBag(auth) {
     if(!result.meta.changes)return json({error:'Saved disc not found.'},404);
     return json({disc:physical(await env.DB.prepare(`SELECT ${fields} FROM bag_discs WHERE user_id=? AND id=?`).bind(user.id,id).first())});
    }
-   let value; try {value = validateDiscDetails({...existing,...data},byId.get(data.mold_id),plastics,method === 'POST');} catch (error) {return json({error:error.message},400);}
+   let value; try {value = validateDiscDetails({...existing,...data},byId.get(currentId(data.mold_id)),plastics,method === 'POST');} catch (error) {return json({error:error.message},400);}
    const discId = id || crypto.randomUUID(), added_at = new Date().toISOString();
    if (single) {
     const result = await env.DB.prepare('UPDATE bag_discs SET mold_id=?,plastic=?,wear=?,weight_g=?,notes=?,color=?,rim_color=?,finish=?,finish_opacity=?,stamp_ink=?,stamp_finish=?,in_bag=?,pocket=?,stability_bias=?,status=?,lostDate=?,lostCourse=?,lostHole=?,lostStory=? WHERE user_id=? AND id=?').bind(value.mold_id,value.plastic,value.wear,value.weight_g,value.notes,value.color,value.rim_color,value.finish,value.finish_opacity,value.stamp_ink,value.stamp_finish,Number(value.in_bag),value.pocket,value.stability_bias,value.status,value.lostDate,value.lostCourse,value.lostHole,value.lostStory,user.id,discId).run();
