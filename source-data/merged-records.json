@@ -1,0 +1,11 @@
+{
+  "checkedAt": "2026-11-06",
+  "note": "Reviewed rulings folding one PDGA approval record into another record of the same physical mold. prepare_data.py skips each folded record and validate_data.py accounts for it here; the surviving record carries the combined history in its verified override. Saved bags keep working through meta.idAliases.",
+  "merges": [
+    {
+      "folded": "3bd98a3bc639",
+      "surviving": "3d70ef38ff0e",
+      "reason": "Discmania renamed this mold from FD1 to FD2 in mid-2025. PDGA approved it as FD1 in 2022 (22-211) and again as FD2 (new) in 2025 (25-150), both 7/4/0/2, so the Atlas showed one disc twice on the same map point. Freddy's ruling of Nov 6, 2026 combines them; this supersedes the earlier note keeping these two approvals separate."
+    }
+  ]
+}
