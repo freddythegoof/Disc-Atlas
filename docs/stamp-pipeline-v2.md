@@ -17,6 +17,11 @@ the Raptor's black print. v2 is not a candidate to ship as built. What it does p
 - **The pair gate holds on v2:** the Proxy is letter-complete and the Wraith ghost-free, on one set of settings (§4).
 - **The Raptor's true colour is not decided:** its backlit second shot does not exist yet (§5).
 
+**Build (same day, Freddy: "Build it").** The post-pass is in production code on branch `claude/stamp-blotch-veto`
+(§10): `public/disc-stamp-separate.mjs` and a veto in the stamp worker, with a regression test that fails without it.
+The unit set and 15 of the 16 photo and stamp browser suites pass; the 16th fails identically on main. It stops at an
+open PR: no merge, no deploy.
+
 **Follow-up (same day, Freddy: "Try the post-pass").** The narrower option is built and measured in §9. Today's
 extractor stays, and v2's separation only vetoes ink it does not support. On the Berg it removes the blotch: stray ink
 falls from 14k–340k px to 0–224 across all four stress inputs. The Destroyer's and Wraith's colour assets come out
@@ -394,3 +399,24 @@ main's extraction of the same crops):
 
 The spike's separation peaked near 230 MB at 2048. Reading it at 1024 instead was tried and rejected: it took 675 px of
 the Destroyer's and 304 of the Pixel's thin print (`work/stamp-pipeline-v2/post1024.json`).
+
+**Suites (Nov 14, this Mac):**
+
+- **Unit set** (`node --test` over `tests/*.mjs` minus browser, evidence, perf and harness modules): branch **367/372**,
+  main **364/369**. The same three fail on both, for environment only: `palette`, `prompt-4-stability-fixture` and
+  `redesign` (they need a server on :5173 or `outputs/`). The branch adds `stamp-blotch-veto` (4/4).
+- **Browser, the 16 photo and stamp suites:**
+  - **15 pass:** stamp-look, clear-plastic, clear-true-color, clear-opacity, photo-adder-rework, photo-stamp-one-click,
+    photo-stamp-sync, photo-stamp-color-assets, photo-stamp-assets, photo-stamp-identity, photo-stamp-level,
+    photo-stamp-stall (its shortened make limits hold with the extra read), halo-plastic, photo-gestures and
+    photo-source-chooser.
+  - **The three clear suites** first failed on setup ("Use a square processed photo up to 1024 pixels."). They read the
+    Raptor photo from an ignored `work/` path and fall back to a 1254 px fixture that upload refuses. With the photos
+    copied into `work/` (never committed), all three pass.
+  - **photo-editor-contract** fails at "This photo could not be compressed", and **fails identically on main**
+    (6fd064e, same run, same message). The Oct 20 record has its WebKit half failing the same way. Not this change.
+
+**Landing (Freddy's).** No migration. Deploy the Worker as usual (`build:workers` then `deploy:workers`). Nothing on
+the account changes until a disc's owner taps Make again. The Berg's acceptance stays his re-make from the camera
+original. What to look at on his discs: the Berg's top-right and edge (the blotch), the DD3's 3 o'clock (the sheen
+speckle), and the Proxy's spray dots below the sun (the one place the veto takes print, one dot about 3 px across).
