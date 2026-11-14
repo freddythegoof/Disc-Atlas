@@ -6,10 +6,13 @@
  // out the coach's real states and nothing else, and stays hidden once dismissed (this browser only, like Appearance).
  const HYZER_KEY = 'disc-atlas-hyzer', SLEEP_AFTER = 120000;
  let hyzer = null, loading = null, failed = false, asleep = false, speakingUntil = 0, sleepTimer = 0, speakTimer = 0;
+ // The disc whose add sheet a coach answer opened; he cheers only when that sheet saves it into the bag.
+ let addingFromCoach = null, cheeringUntil = 0, cheerTimer = 0;
  const hyzerHidden = () => document.documentElement.dataset.hyzer === 'hidden';
  function mood() {
   if (failed) return 'error';
   if (busy) return 'thinking';
+  if (Date.now() < cheeringUntil) return 'celebrating';
   if (Date.now() < speakingUntil) return 'speaking';
   if (asleep) return 'sleeping';
   return document.activeElement === $('#coachInput') ? 'listening' : 'idle';
@@ -25,7 +28,7 @@
    if (dialog.open && !hyzerHidden() && !hyzer) hyzer = mount($('#coachHyzer'), spec, {state: mood(), floor: 0.35, framing: 0.9});
   } catch { /* The coach works without its face. */ } finally {loading = null;}
  }
- function rest() {hyzer?.dispose(); hyzer = null; clearTimeout(sleepTimer); clearTimeout(speakTimer); failed = asleep = false; speakingUntil = 0;}
+ function rest() {hyzer?.dispose(); hyzer = null; clearTimeout(sleepTimer); clearTimeout(speakTimer); clearTimeout(cheerTimer); failed = asleep = false; speakingUntil = cheeringUntil = 0;}
  function hyzerLabels() {
   const hidden = hyzerHidden();
   $('#coachHyzerToggle').textContent = hidden ? 'Show Hyzer the Disc' : 'Hide Hyzer the Disc';
@@ -38,7 +41,7 @@
   hyzerLabels();
   if (show) {stir(); void wake();} else rest();
  }
- function reset() {epoch++; aborter?.abort(); aborter = null; busy = false; chat = []; remaining = null; $('#coachMessages').replaceChildren(); $('#coachInput').value = ''; $('#coachError').textContent = ''; $('#coachNotice').textContent = ''; $('#coachProvider').textContent = ''; failed = false; speakingUntil = 0; feel();}
+ function reset() {epoch++; aborter?.abort(); aborter = null; busy = false; chat = []; remaining = null; $('#coachMessages').replaceChildren(); $('#coachInput').value = ''; $('#coachError').textContent = ''; $('#coachNotice').textContent = ''; $('#coachProvider').textContent = ''; failed = false; speakingUntil = cheeringUntil = 0; addingFromCoach = null; feel();}
  function render() {
   const signedIn = !!account?.user;
   dialog.dataset.state = !account ? 'loading' : signedIn ? 'signed-in' : 'signed-out';
@@ -79,6 +82,18 @@
     const link = document.createElement('a'); link.href = url.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = `${disc.brand} ${disc.name} · rating source ↗`; node.append(link);
    } catch { /* No unverified source link. */ }
   }
+  // Each disc the coach names can go straight into the bag, through the same sheet the Directory's Add opens.
+  const adds = discs.filter(disc => disc?.id && disc.name);
+  if (adds.length && window.BagApp?.addMold) {
+   const row = document.createElement('div'); row.className = 'coach-adds';
+   for (const disc of adds) {
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'coach-add';
+    add.textContent = `Add ${disc.name} to bag`; add.title = `Add the ${disc.brand} ${disc.name} to your bag`;
+    add.addEventListener('click', () => {addingFromCoach = disc; void window.BagApp.addMold(disc.id, disc);});
+    row.append(add);
+   }
+   node.append(row);
+  }
   $('#coachMessages').append(node); $('#coachMessages').scrollTop = $('#coachMessages').scrollHeight;
  }
  async function open(event) {
@@ -100,6 +115,16 @@
  // Typing again after a failed question picks him out of the tree.
  $('#coachInput').addEventListener('input', () => {failed = false; stir();});
  $('#coachHyzerToggle').addEventListener('click', () => showHyzer(hyzerHidden()));
+ // A coach-named disc saved into the bag (not Storage, not Lost, not an edit) from the sheet its button opened.
+ window.addEventListener('atlas-disc-saved', event => {
+  const {disc, edited} = event.detail || {};
+  if (edited || !disc || disc.mold_id !== addingFromCoach?.id || !disc.in_bag || disc.status === 'lost') return;
+  $('#coachNotice').textContent = `${addingFromCoach.name} is in your bag.`; addingFromCoach = null;
+  // A real bag add is newer than any failed question, so it lifts him out of the tree.
+  failed = false; cheeringUntil = Date.now() + 3000; clearTimeout(cheerTimer); cheerTimer = setTimeout(feel, 3020); stir();
+ });
+ // The sheet closes after any save is announced, so a cancelled or finished sheet ends the coach's claim on it.
+ document.querySelector('#addDiscDialog')?.addEventListener('close', () => {addingFromCoach = null;});
  dialog.addEventListener('keydown', event => {
   if (event.key !== 'Tab') return;
   const focusable = [...dialog.querySelectorAll('button:not(:disabled), a[href], textarea:not(:disabled)')].filter(node => !node.closest('[hidden]') && node.getClientRects().length);

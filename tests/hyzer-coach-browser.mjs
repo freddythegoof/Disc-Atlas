@@ -6,14 +6,17 @@ import {createRequire} from 'node:module';
 const {chromium} = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 // Hyzer the Disc (Nov 14), the Atlas Coach's face. He acts out the coach's real states only: listening while the
 // question box has focus, thinking while a question is in flight, speaking for a length-scaled moment when the
-// whole answer lands, error when the question fails (until the next keystroke), sleeping after two quiet minutes,
-// idle otherwise. Celebrating has no real event yet, so it must never show. The launcher wears a still image, the
-// engine loads only when the panel opens and stops when it closes, dismissal is remembered in this browser, and
-// reduced motion holds him still. The backend is mocked: a question containing "fail" gets a 503.
+// whole answer lands, error when the question fails (until the next keystroke), celebrating when a disc the coach
+// named is saved into the bag from its Add to bag button, sleeping after two quiet minutes, idle otherwise. The
+// launcher wears a still image, the engine loads only when the panel opens and stops when it closes, dismissal is
+// remembered in this browser, and reduced motion holds him still. The backend is mocked: answers name the Destroyer
+// and the Wraith, a question containing "fail" gets a 503, and bag saves land in memory.
 const dir = 'outputs/hyzer-coach';
 fs.rmSync(dir, {recursive: true, force: true}); fs.mkdirSync(dir, {recursive: true});
 const types = {'.html': 'text/html; charset=utf-8', '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.png': 'image/png', '.webp': 'image/webp'};
 const answer = 'Try a stable fairway driver for that wooded hole: a controlled flat release keeps it on line, and the fade at the end is predictable. Field test: throw five at 80% power and note where each one finishes.';
+const discs = [{id: '3d60892b6812', brand: 'Innova', name: 'Destroyer', flightSource: 'https://www.innovadiscs.com/disc/destroyer/'}, {id: 'e70f48273d7f', brand: 'Innova', name: 'Wraith', flightSource: 'https://www.marshallstreetdiscgolf.com/?s=wraith&post_type=product'}];
+const bagItems = []; let bagSeq = 1;
 const json = (res, status, data) => {res.writeHead(status, {'Content-Type': 'application/json'}); res.end(JSON.stringify(data));};
 const server = http.createServer(async (req, res) => {
  const url = new URL(req.url, 'http://localhost');
@@ -23,7 +26,13 @@ const server = http.createServer(async (req, res) => {
   let body = ''; for await (const chunk of req) body += chunk;
   await new Promise(r => setTimeout(r, 900));
   if (/fail/.test(JSON.parse(body).messages.at(-1).content)) return json(res, 503, {error: 'The AI coach is temporarily unavailable. Please try again later.'});
-  return json(res, 200, {answer, discs: [], provider: 'workers-ai', remaining: 19});
+  return json(res, 200, {answer, discs, provider: 'workers-ai', remaining: 19});
+ }
+ if (url.pathname === '/api/bag' && req.method === 'GET') return json(res, 200, {bag: {bag_model: 'Custom bag', capacity: 20, main_capacity: 16, sort_mode: 'manual', rack_style: 'steel'}, discs: bagItems});
+ if (url.pathname === '/api/bag/discs' && req.method === 'POST') {
+  let body = ''; for await (const chunk of req) body += chunk;
+  const disc = {...JSON.parse(body), id: 'd' + bagSeq++, status: JSON.parse(body).status || 'active', position: bagItems.length}; bagItems.push(disc);
+  return json(res, 200, {disc});
  }
  if (url.pathname.startsWith('/api/')) return json(res, 503, {error: 'Frontend test: backend excluded'});
  const file = url.pathname === '/' ? 'web/index.html' : ['/bag-plastics.json', '/bag-models.json'].includes(url.pathname) ? 'source-data' + url.pathname : 'public' + url.pathname;
@@ -92,7 +101,31 @@ try {
  check('error on a failed question, held until the next keystroke');
  const seen = await p.evaluate(() => [...window.hyzerMoods]);
  assert.ok(!seen.some(s => /celebrating/.test(s)), 'never celebrates without a real event: ' + seen.join(', '));
- check('never celebrates (no real bag event yet): saw ' + seen.map(s => s.replace('Hyzer the Disc, ', '')).join(', '));
+ check('no celebrating from questions and answers: saw ' + seen.map(s => s.replace('Hyzer the Disc, ', '')).join(', '));
+
+ // Celebrating has one real event: a disc the coach named, saved into the bag from the sheet its button opened.
+ assert.deepEqual(await p.locator('.chat-message.assistant').first().locator('.coach-add').allInnerTexts(), ['Add Destroyer to bag', 'Add Wraith to bag']);
+ const sheet = p.locator('#addDiscDialog'), cheered = () => p.evaluate(() => window.hyzerMoods.has('Hyzer the Disc, celebrating'));
+ await p.getByRole('button', {name: 'Add Destroyer to bag', exact: true}).first().click(); await sheet.waitFor();
+ assert.ok(await p.evaluate(() => document.querySelector('#addDiscDialog').matches(':modal') && document.querySelector('#coachDialog').open), 'the add sheet opens over the coach');
+ assert.equal(await p.locator('#addDiscHeading').innerText(), 'Add Destroyer');
+ await p.keyboard.press('Escape'); await sheet.waitFor({state: 'hidden'}); await p.waitForTimeout(300);
+ await p.evaluate(() => window.dispatchEvent(new CustomEvent('atlas-disc-saved', {detail: {disc: {mold_id: '3d60892b6812', in_bag: true, status: 'active'}, edited: false}})));
+ await p.waitForTimeout(300); assert.equal(await cheered(), false, 'a cancelled sheet, then a save from elsewhere: no cheer');
+ await p.getByRole('button', {name: 'Add Wraith to bag', exact: true}).first().click(); await sheet.waitFor();
+ await p.locator('#bagDestination').selectOption('storage'); await p.locator('#saveDisc').click(); await sheet.waitFor({state: 'hidden'});
+ await p.waitForTimeout(400); assert.equal(await cheered(), false, 'saved to Storage: not bagged, no cheer');
+ assert.equal(bagItems.at(-1).in_bag, false, 'the Wraith went to Storage');
+ // A failed question leaves him in the tree; a real bag add is newer news and lifts him out.
+ await ask(p, 'Please fail now'); await waitMood(p, 'error', 3000);
+ await p.getByRole('button', {name: 'Add Destroyer to bag', exact: true}).first().click(); await sheet.waitFor();
+ await p.locator('#saveDisc').click(); await waitMood(p, 'celebrating', 3000); const cheer = Date.now();
+ assert.ok(bagItems.some(d => d.mold_id === '3d60892b6812' && d.in_bag), 'the Destroyer is in the bag');
+ assert.equal(await p.locator('#coachNotice').innerText(), 'Destroyer is in your bag.');
+ await p.waitForTimeout(600); await shot(p, 'celebrating');
+ await p.waitForFunction(() => !/celebrating/.test(document.querySelector('#coachHyzer canvas').getAttribute('aria-label')), null, {timeout: 5000});
+ const cheerFor = Date.now() - cheer; assert.ok(cheerFor > 2500 && cheerFor < 3800, `cheers about 3 s (${cheerFor} ms)`);
+ check('celebrating only when a coach-named disc is saved into the bag from its button (not on cancel, Storage, or a save from elsewhere), for 3 s, even straight after an error');
 
  // Closing the panel disposes him: the canvas goes and the engine does no more work.
  // (The dialog's close event fires a task after `open` turns false, so wait for the canvas itself.)
@@ -118,7 +151,8 @@ try {
  assert.equal(engineRequests.length, 0, 'a dismissed Hyzer never downloads the engine');
  await p.locator('#coachDialog').screenshot({path: `${dir}/dismissed-panel.png`});
  check('dismissed: remembered across reload, plain ✦ Atlas Coach launcher, no engine download');
- await p.locator('#coachHyzerToggle').click(); await waitMood(p, 'listening', 5000).catch(() => waitMood(p, 'idle', 1));
+ await p.locator('#coachHyzerToggle').click(); await p.locator('#coachHyzer canvas').waitFor();
+ assert.ok(['idle', 'listening'].includes(await mood(p)), 'back, at rest');
  await p.keyboard.press('Escape'); await p.reload(); await p.waitForTimeout(800);
  assert.ok(await p.locator('.coach-hyzer-still').isVisible(), 'shown again after reload');
  check('shown again with "Show Hyzer the Disc", and that is remembered too');

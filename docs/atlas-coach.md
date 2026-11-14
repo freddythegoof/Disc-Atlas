@@ -132,5 +132,6 @@ synthetic questions, provider replies and elapsed times.
 
 The coach has a face: Hyzer the Disc, a Wobnimo mascot that acts out the coach's real states
 (listening, thinking, speaking, error, sleeping) in the panel heading, with a still on the "Ask
-Hyzer" launcher. He loads only when the panel opens, and dismissal is remembered in the browser. See
+Hyzer" launcher. Each disc an answer names gets an "Add ‹disc› to bag" button that opens the usual
+add-disc sheet; saving it into the bag is what makes Hyzer celebrate. He loads only when the panel opens, and dismissal is remembered in the browser. See
 [hyzer-mascot.md](hyzer-mascot.md).

@@ -404,7 +404,10 @@ $('#addDiscForm').addEventListener('submit',async event=>{
    if(epoch!==generation)throw new DOMException('Account changed','AbortError');
    if(operation!==discEditSequence){void loadBag();return;}
   }
-  items=items.some(i=>i.id===result.disc.id)?items.map(i=>i.id===result.disc.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();$('#addDiscDialog').close();
+  items=items.some(i=>i.id===result.disc.id)?items.map(i=>i.id===result.disc.id?result.disc:i):[...items,result.disc];if(loading)void loadBag();render();
+  // Announced before the sheet closes, so whoever opened it (the coach, for Hyzer's cheer) knows what was saved and where.
+  window.dispatchEvent(new CustomEvent('atlas-disc-saved',{detail:{disc:result.disc,edited:!!edited}}));
+  $('#addDiscDialog').close();
   // An edited row is re-rendered, so explicitly restore keyboard focus to its new button.
   if(active && edited)$(`[data-bag-edit="${edited.id}"]`)?.focus({preventScroll:true});
   status((edited?'Disc updated.':result.disc.status==='lost'?`${name(mold(result.disc.mold_id))} has a headstone in Lost.`:result.disc.in_bag?'Disc added to your bag.':'Disc added to Storage.')+assetNote);
@@ -675,7 +678,7 @@ window.addEventListener('atlas-palette-change',()=>{
  const list=$('#myBagContents');if(list?.querySelector('[data-disc-thumbnail]'))window.DiscThumbnails.observe(list,mold,{personal:true});
  if(detailPanel.querySelector('.bag-detail-personal [data-disc-thumbnail]'))window.DiscThumbnails.observe(detailPanel,mold,{personal:true});
 });
-window.BagApp={add:openDisc,catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapStamps:()=>bagStampMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,mapFinishes:()=>bagFinishMap,mapTrueColors:()=>bagTrueColorMap,mapOpacities:()=>bagOpacityMap,
+window.BagApp={add:openDisc,addMold:(id,fallback)=>openDisc(mold(id)||fallback,null,'bag'),catalogReady:render,isMapActive:()=>false,detailExtras:bagDetailMarkup,detailAppearance,mapColors:()=>bagColorMap,mapRimColors:()=>bagRimColorMap,mapStamps:()=>bagStampMap,mapPhotos:()=>bagPhotoMap,mapHaloBands:()=>bagHaloMap,mapHaloModels:()=>bagHaloModelMap,mapFinishes:()=>bagFinishMap,mapTrueColors:()=>bagTrueColorMap,mapOpacities:()=>bagOpacityMap,
  // For tests: the Storage and Lost scenes' 3D viewers (null until their tab first shows).
  scenes:{get storage(){return storageScene.viewer||null;},get lost(){return lostScene.viewer||null;},get album(){return gallery.viewer||null;}}};
 showDemo();render();if(account?.user)void loadBag();if(new URLSearchParams(location.search).get('bag')==='1')activateBag();

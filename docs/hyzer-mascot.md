@@ -6,9 +6,8 @@ shown as "Hyzer the Disc" or "Ask Hyzer" in UI copy, while the technique stays l
 is a little flying disc with a face, idling at a hyzer angle. He is the coach's face, not a site-wide
 pet.
 
-**Status: Part 1 (the look) and Part 2 (the coach wiring) are built.** Celebrating is deliberately
-unwired until a real bag event exists (section 7). Committed on the branch only: no push, no PR, no
-deploy.
+**Status: Part 1 (the look) and Part 2 (the coach wiring) are built, with every mood on a real
+event.** Committed on the branch only: no push, no PR, no deploy.
 
 **Freddy's rulings (Nov 14):**
 
@@ -19,6 +18,9 @@ deploy.
 - **Real eyebrows**, replacing the dotted lime brow ("not a fan of these extra dots").
 - **Speaking: speak briefly.** The coach answers in one piece (no streaming), so Hyzer speaks for a
   short, length-scaled moment as the answer appears. Streaming was the other option.
+- **Celebrating: an Add to bag button.** Each disc the coach names gets an "Add ‹disc› to bag"
+  button. He celebrates when that button's sheet saves the disc into the bag. The other option was
+  matching any bag add against the discs the coach had cited.
 
 ## 1. The engine
 
@@ -53,7 +55,7 @@ Spec: `public/hyzer.mjs` (default export).
 - **Thinking.** The rim sits on its own bone and spins about the disc's axis while the face holds
   still. Two dark stamp dashes on the rim make the spin read.
 - **Celebrating.** He flattens out of the hyzer (the bank goes to 0) and the rim whirls. The
-  engine adds its own cheer hop and flip. This is built into the spec but not wired (section 7).
+  engine adds its own cheer hop and flip.
 - **Error: he hit a tree.** A dazed shiver. Two leaves hidden behind the plate swing half a turn
   and stick out past the rim, and a few leaves flutter loose on entering the state. The leaves exist
   only in `error`.
@@ -100,11 +102,24 @@ live (60px, 44px on short screens) beside the "Atlas Coach" title.
 | idle | the panel is open and nothing else applies |
 | thinking | a question is in flight |
 | speaking | the answer just landed: `clamp(answer length × 15 ms, 1.2 s, 4.5 s)`, about 3.1 s for a typical answer |
-| error | the question request failed (Worker error, network, limit). Held until the next keystroke in the question box or the next question. The allowance check and account changes don't trigger it. |
+| error | the question request failed (Worker error, network, limit). Held until the next keystroke in the question box, the next question, or a real bag add. The allowance check and account changes don't trigger it. |
 | sleeping | two minutes with no pointer, key or focus activity in the panel; any activity wakes him |
-| celebrating | **never, for now** (section 7) |
+| celebrating | for 3 s after a disc the coach named is saved **into the bag** from its "Add ‹disc› to bag" button (below). Not on a cancelled sheet, not when the sheet saves to Storage or Lost, not on an edit, not on any other add. |
 
 The engine's own touches stay on: he glances at the pointer and hops when clicked.
+
+**Add to bag.** Under each answer, every disc the coach names (up to three, from the response's
+`discs`) gets a button: "Add Destroyer to bag", whose title names the brand too.
+
+- **The sheet:** the button opens the same add-disc sheet as the Directory's Add (plastic, weight,
+  colour, photo, destination) over the coach, through a new `BagApp.addMold(id)` in
+  `public/my-bag.js`. Nothing about how a disc is saved changed.
+- **The signal:** `my-bag.js` now announces each successful save with an `atlas-disc-saved` window
+  event (`{disc, edited}`), fired before its sheet closes.
+- **The cheer:** the coach cheers only if that save is the disc its own button opened, is new, and
+  went into the bag. The notice line then reads "Destroyer is in your bag."
+- **The claim ends with the sheet:** the coach's claim on a sheet ends when the sheet closes, so a
+  later add of the same mold from the Directory doesn't count.
 
 **Dismissal.** "Hide Hyzer the Disc", a quiet button at the foot of the panel, removes him at once.
 It stores `disc-atlas-hyzer = hidden` in `localStorage`; this browser only, like Appearance.
@@ -120,7 +135,8 @@ over time and the engine stops ticking. The still is static anyway.
 ## 4. Tests
 
 `node tests/hyzer-coach-browser.mjs` serves the real page with a mocked account and coach (a question
-containing "fail" gets a 503). It runs 13 checks and writes captures to `outputs/hyzer-coach/`:
+containing "fail" gets a 503, answers name the Destroyer and the Wraith, and bag saves land in
+memory). It runs 14 checks and writes captures to `outputs/hyzer-coach/`:
 
 - **Closed.** The still and "Ask Hyzer" show, the engine is not downloaded, and the pill keeps
   its height.
@@ -129,7 +145,12 @@ containing "fail" gets a 503). It runs 13 checks and writes captures to `outputs
 - **Idle** when focus leaves the box; **thinking** while the question is in flight.
 - **Speaking** when the answer lands, for 3.1 s, then back to listening.
 - **Error** on a failed question, held until the next keystroke.
-- **Never celebrates.** Every state seen in the run is recorded, and celebrating is not among them.
+- **No cheer from the chat itself.** Every state seen during questions and answers is recorded, and
+  celebrating is not among them.
+- **Celebrating, only for a real bag add.** He does not cheer for a cancelled sheet followed by a
+  save of the same mold from elsewhere, or for a coach-named disc saved to Storage. He does cheer
+  for 3 s, with "Destroyer is in your bag.", when the Destroyer is saved into the bag from its
+  button, even straight after a failed question.
 - **Closed again.** The canvas is removed and the engine does 0 ticks in 1.5 s.
 - **Dismissal** is remembered across a reload, with the plain "✦ Atlas Coach" launcher and no
   engine download; showing him again is remembered too.
@@ -140,7 +161,8 @@ containing "fail" gets a 503). It runs 13 checks and writes captures to `outputs
 Existing suites run against the change:
 
 - **Pass:** `tests/coach-browser.mjs` (real Worker, local D1, OAuth, three themes, 1440 and 360
-  wide), `tests/disc3d-browser.mjs` and `tests/add-menu-dismiss-browser.mjs`.
+  wide), `tests/bag-browser.mjs` (real Worker and D1, every add surface, which covers the new
+  saved event in `my-bag.js`), `tests/disc3d-browser.mjs` and `tests/add-menu-dismiss-browser.mjs`.
 - **Pass, driven by hand:** `checkDirectory` from `tests/directory.mjs`. Nothing in the repo calls
   this helper; it includes "coach never covers scores".
 - **Updated:** `coach-browser.mjs` and `directory.mjs` found the launcher by its old accessible name,
@@ -199,16 +221,12 @@ excluded):
 
 ## 7. Open with Freddy
 
-1. **Celebrating has no real event yet.** The coach has no tools and cannot change a bag; its prompt
-   says so. Nothing connects a coach answer to a bag add. The options:
-   - An "Add to bag" action on the discs the coach cites.
-   - Celebrating when a bag add matches a disc the coach cited in this conversation.
-
-   Either is a real event; inventing one is not. Until then he never celebrates, and the test
-   enforces it.
-2. **Privacy page.** `public/privacy.html` lists what the app stores in the browser as the theme
+1. **Privacy page.** `public/privacy.html` lists what the app stores in the browser as the theme
    only. That list is already out of date (Appearance stores more), and it doesn't mention the new
    Hyzer preference. This is a legal page, so it was left for Freddy.
+2. **The Add to bag buttons are a new surface in the coach**, and they also show for someone who
+   has dismissed Hyzer: they are useful on their own. Bag adds from the coach go through the normal
+   sheet and API, so the bag's own limits and validation apply unchanged.
 
 ## Appendix: the Part 1 sheet
 
@@ -228,4 +246,5 @@ Captures from the coach itself:
 - [Dismissed launcher](assets/hyzer-mascot/coach-launcher-dismissed.png)
 - [Round launcher](assets/hyzer-mascot/coach-launcher-list.png)
 - [Thinking](assets/hyzer-mascot/coach-thinking.png)
+- [Celebrating](assets/hyzer-mascot/coach-celebrating.png)
 - [Error](assets/hyzer-mascot/coach-error.png)
