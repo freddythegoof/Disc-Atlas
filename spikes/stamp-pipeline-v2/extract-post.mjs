@@ -12,7 +12,16 @@ import {separate} from './separate.mjs';
 
 export const SUPPORT=1.5;
 // v2's print, grown by SUPPORT px at 1024 (a separable max filter): where today's ink may stand.
-export function support(raw,size,{plate,seeThrough=false,clear=false}){
+// READ: the size v2's separation reads at (env SUPPORT_READ; the crop is box-averaged down to it, the support taken back
+// up by nearest neighbour). 1024 needs a quarter of 2048's memory and time.
+const READ=+(globalThis.process?.env?.SUPPORT_READ||0);
+function half(rgba,size){const n=size/2,out=new Uint8ClampedArray(n*n*4);
+ for(let j=0;j<n;j++)for(let i=0;i<n;i++)for(let c=0;c<4;c++){const p=((2*j)*size+2*i)*4+c;out[(j*n+i)*4+c]=(rgba[p]+rgba[p+4]+rgba[p+size*4]+rgba[p+size*4+4]+2)>>2;}
+ return out;}
+export function support(raw,size,opts){
+ if(READ&&READ<size){const lo=support(half(raw,size),size/2,opts),n=size/2,out=new Uint8Array(size*size);
+  for(let p=0;p<out.length;p++){const i=p%size,j=(p-i)/size;out[p]=lo[(j>>1)*n+(i>>1)];}return out;}
+ const {plate,seeThrough=false,clear=false}=opts;
  let read=raw;if(clear){read=raw.slice();unshadow(read,size,{plate});}
  const {alpha}=separate(read,size,{plate,seeThrough}),r=Math.max(1,Math.round(SUPPORT*size/1024)),N=size*size,row=new Uint8Array(N),out=new Uint8Array(N);
  for(let j=0;j<size;j++){let last=-1e9;for(let i=0;i<size;i++){if(alpha[j*size+i])last=i;row[j*size+i]=i-last<=r;}last=1e9;for(let i=size-1;i>=0;i--){if(alpha[j*size+i])last=i;if(last-i<=r)row[j*size+i]=1;}}
