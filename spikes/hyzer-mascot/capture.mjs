@@ -1,4 +1,4 @@
-// Captures the Hyzer character sheet at 2x for the write-up: red Take A, the three reds, then reduced motion.
+// Captures the Hyzer character sheet at 2x for the write-up: Hyzer in both themes, then with reduced motion.
 // Serve the checkout root first (python3 -m http.server 8871 --bind 127.0.0.1), then: node spikes/hyzer-mascot/capture.mjs
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
@@ -13,9 +13,8 @@ try {
   const errors = []; page.on('pageerror', e => errors.push(e.message)); page.on('console', m => m.type() === 'error' && errors.push(m.text()));
   await page.goto(url); await page.waitForTimeout(2500);
   if (errors.length) throw Error('Sheet errors: ' + errors.join('; '));
-  if (reducedMotion === 'reduce') {await page.locator('section[data-colorway="red"]').screenshot({path: `${out}/sheet-reduced-motion-red.png`}); await page.close(); continue;}
-  await page.locator('section[data-colorway="red"]').screenshot({path: `${out}/sheet-red.png`});
-  await page.locator('section.ways').screenshot({path: `${out}/sheet-red-three-ways.png`});
+  if (reducedMotion === 'reduce') {await page.locator('section[data-colorway="red"]').screenshot({path: `${out}/sheet-reduced-motion.png`}); await page.close(); continue;}
+  await page.locator('section[data-colorway="red"]').screenshot({path: `${out}/sheet.png`});
   await page.close();
  }
 } finally {await browser.close();}

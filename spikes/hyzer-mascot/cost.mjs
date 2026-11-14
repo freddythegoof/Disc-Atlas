@@ -4,12 +4,12 @@ import {createRequire} from 'node:module';
 const {chromium} = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const b = await chromium.launch({headless: true, args: ['--enable-gpu', '--use-angle=metal']});
 const base = 'http://127.0.0.1:8871/spikes/hyzer-mascot/';
-for (const [take, state] of [['red','idle'],['red','thinking'],['red','celebrating'],['allRed','idle']]) {
+for (const state of ['idle', 'thinking', 'celebrating', 'error']) {
   const p = await b.newPage({viewport: {width: 200, height: 200}, deviceScaleFactor: 2});
-  await p.goto(`${base}one.html?take=${take}&state=${state}`); await p.waitForTimeout(1500);
+  await p.goto(`${base}one.html?state=${state}`); await p.waitForTimeout(1500);
   await p.evaluate(() => { window.cost.length = 0; }); await p.waitForTimeout(5000);
   const r = await p.evaluate(() => { const c = [...window.cost].sort((a,b)=>a-b); return {frames: c.length, mean: c.reduce((a,b)=>a+b,0)/c.length, p95: c[Math.floor(c.length*.95)]}; });
-  console.log(take, state, `frames/5s=${r.frames} tick mean=${r.mean.toFixed(3)}ms p95=${r.p95.toFixed(3)}ms`);
+  console.log(state, `frames/5s=${r.frames} tick mean=${r.mean.toFixed(3)}ms p95=${r.p95.toFixed(3)}ms`);
   await p.close();
 }
 // Reduced motion: does the sheet hold still? Two shots 1.5s apart, byte-compared.

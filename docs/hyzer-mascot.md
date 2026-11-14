@@ -12,7 +12,9 @@ pet.
 **Freddy's rulings (Nov 14):**
 
 - **Take A**, cool and a little cocky. Take B (cute and friendly) is retired; it is in commit 31b7b89.
-- **Red**, replacing the lime rim from the original brief.
+- **Red**, replacing the lime rim from the original brief. Of three readings of red (a red rim on
+  the obsidian logo plate, the same with a lime face, an all-red disc), he chose the **all-red
+  disc**. The comparison is in commit f74b6e5.
 - **Real eyebrows**, replacing the dotted lime brow ("not a fan of these extra dots").
 
 ## 1. The engine
@@ -33,15 +35,15 @@ tarball and read before anything ran. It has no install scripts.
 
 ## 2. The character
 
-Spec: `spikes/hyzer-mascot/hyzer.mjs`. Its default export is the chosen Hyzer;
-`hyzer(colorway)` builds the comparison reds.
+Spec: `spikes/hyzer-mascot/hyzer.mjs` (default export).
 
-- **Body.** A red rim (`#c81e2c`, run a touch richer than it should look because the studio light
-  lifts it) around an obsidian flight plate (`#232831`, from the brand mark). The disc is tipped back
-  like the logo so it reads as a disc, then banked on its own bone at a 24° hyzer angle.
+- **Body.** A one-colour red disc, as most real discs are: rim `#c81e2c` and a flight plate a shade
+  deeper (`#a8161f`), both run a touch richer than they should look because the studio light lifts
+  them. The disc is tipped back like the logo so it reads as a disc, then banked on its own bone at
+  a 24° hyzer angle.
 - **Plate finish.** The plate is satin. A glossy dome mirrored the studio and washed out the face;
   a matte probe proved it was the reflection.
-- **Face.** Amber eyes. Two solid red eyebrows, half sunk into the plate: one flat, the right one
+- **Face.** Dark eyes. Two solid dark eyebrows, half sunk into the plate: one flat, the right one
   raised and kicked up at the end (the cocky tell). A smirk set off-centre. Snappy glances that
   hold, and small hops.
 - **Thinking.** The rim sits on its own bone and spins about the disc's axis while the face holds
@@ -52,22 +54,18 @@ Spec: `spikes/hyzer-mascot/hyzer.mjs`. Its default export is the chosen Hyzer;
   and stick out past the rim, and a few leaves flutter loose on entering the state. The leaves exist
   only in `error`.
 - **Sleeping** tips back, face up. **Listening** tips forward, toward you.
-- **Checks.** `wobnimo check` reports 0 errors and 0 warnings for every colourway. The one note is
+- **Checks.** `wobnimo check` reports 0 errors and 0 warnings. The one note is
   the leaves being hidden at rest, which is intended.
 
-"Red" has more than one reading on this body, so the sheet compares three (`COLORWAYS`):
-
-| Colourway | Rim | Plate | Eyebrows and eyes | Read |
-| --- | --- | --- | --- | --- |
-| **Red rim** (built as the default) | red | obsidian | red eyebrows, amber eyes | the strongest face at 32px; keeps the logo plate |
-| Red rim, lime face | red | obsidian | lime eyebrows and eyes | keeps the brand lime, but reads as Christmas |
-| All-red disc | red | red | dark eyebrows and eyes | truest to a real one-colour disc; the face loses contrast at 32px |
+At 64px the face reads clearly. At 32px he reads mostly as a red disc with a hint of a face,
+because dark features on red plastic carry less contrast than they did on the dark plate. That was
+the known cost of the all-red pick.
 
 ### The one-sentence description (for reproducibility)
 
 The Wobnimo custom route takes one sentence. This is the sentence the spec now matches:
 
-> A cocky little flying disc with a face, a red rim around an obsidian flight plate, eyebrows with one raised and a smirk, idling tilted at a hyzer angle, who spins his rim while he thinks, flattens out and cheers when a disc gets bagged, and hits a tree and ends up with leaves stuck to him when something fails.
+> A cocky little all-red flying disc with a face, eyebrows with one raised and a smirk, idling tilted at a hyzer angle, who spins his rim while he thinks, flattens out and cheers when a disc gets bagged, and hits a tree and ends up with leaves stuck to him when something fails.
 
 The spec was written by hand from that sentence, following Wobnimo's own mascot skill
 (`skill/SKILL.md` in the package), then iterated with `check` and `preview` until clean. It was not
@@ -82,8 +80,7 @@ The sheet shows:
 
 - the coach corner in Paper and Dusk, using tokens copied from `public/cosmic.css`;
 - the seven moods Part 2 would use (idle, listening, thinking, speaking, celebrating, error,
-  sleeping), each at medium and small size;
-- the three reds side by side.
+  sleeping), each at medium and small size.
 
 Sizes on the sheet:
 
@@ -93,15 +90,12 @@ Sizes on the sheet:
 
 Captures at 2x come from `node spikes/hyzer-mascot/capture.mjs`:
 
-- [Red Take A sheet](assets/hyzer-mascot/sheet-red.png)
-- [Red, three ways](assets/hyzer-mascot/sheet-red-three-ways.png)
-- [Red Take A with reduced motion](assets/hyzer-mascot/sheet-reduced-motion-red.png)
-- Wobnimo's own contact sheets (four views, all ten states, 56px avatar):
-  [red rim](assets/hyzer-mascot/wobnimo-preview-red.png),
-  [red rim, lime face](assets/hyzer-mascot/wobnimo-preview-red-lime.png),
-  [all-red](assets/hyzer-mascot/wobnimo-preview-all-red.png)
+- [The sheet](assets/hyzer-mascot/sheet.png)
+- [The sheet with reduced motion](assets/hyzer-mascot/sheet-reduced-motion.png)
+- [Wobnimo's own contact sheet](assets/hyzer-mascot/wobnimo-preview.png) (four views, all ten
+  states, 56px avatar)
 
-The captures are single moments of live animation. For example, Paper's "celebrating" is caught
+The captures are single moments of live animation. For example, Dusk's "celebrating" is caught
 mid-flip, edge on. The live sheet shows the whole loop.
 
 **Why the launcher is a still.** The launcher sits on the atlas page whether or not the coach is
@@ -115,9 +109,9 @@ Script: `spikes/hyzer-mascot/cost.mjs` (uses `one.html`).
 | What | Measured |
 | --- | --- |
 | Engine, gzipped | 25,386 B (71,634 B raw) |
-| Spec, gzipped | about 1.3 KB as data |
-| One live 64px Hyzer | main-thread `tick` 0.23 to 0.28 ms mean, 0.40 ms p95, at 60 fps (idle, thinking, celebrating; all-red idle the same) |
-| Reduced motion | the sheet's 42 live mascots settle, then 0 ticks in 2 s; screenshots 1.5 s apart are byte-identical (fully static Hyzer) |
+| Spec, gzipped | 1,244 B as data |
+| One live 64px Hyzer | main-thread `tick` 0.22 to 0.25 ms mean, 0.40 ms p95, at 60 fps (idle, thinking, celebrating, error) |
+| Reduced motion | the sheet's 30 live mascots settle, then 0 ticks in 2 s; screenshots 1.5 s apart are byte-identical (fully static Hyzer) |
 | After `dispose()` | 0 ticks in 2 s; the shared rAF loop stops when the last mascot leaves |
 
 What these numbers don't cover yet:
