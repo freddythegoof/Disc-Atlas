@@ -47,3 +47,9 @@ test('the support covers the print and not the mottling',async()=>{
  let held=0,n=0;for(let y=480;y<640;y+=4)for(let x=1300;x<1600;x+=4){n++;held+=support[y*SIZE+x];}
  assert.ok(held<n*.2,`mottling supported at ${held} of ${n} samples`);
 });
+
+test('nothing to read, no veto: a plain disc and a crop with no plate give no support',async()=>{
+ const plain=new Uint8ClampedArray(512*512*4);for(let p=0;p<plain.length;p+=4)plain.set([177,176,178,255],p);
+ assert.equal(printSupport(plain,512,{plate:.8}),null,'no print');
+ assert.equal(printSupport(new Uint8ClampedArray(512*512*4),512,{plate:.8}),null,'no plate');
+});

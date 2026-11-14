@@ -19,7 +19,8 @@ the Raptor's black print. v2 is not a candidate to ship as built. What it does p
 
 **Follow-up (same day, Freddy: "Try the post-pass").** The narrower option is built and measured in §9. Today's
 extractor stays, and v2's separation only vetoes ink it does not support. On the Berg it removes the blotch: stray ink
-falls from 14k–340k px to 0–224 across all four stress inputs. The Destroyer and Wraith come out **byte-identical**.
+falls from 14k–340k px to 0–224 across all four stress inputs. The Destroyer's and Wraith's colour assets come out
+**byte-identical**; their one-ink alpha differs only in faint edge bytes (§9, corrected).
 The DD3 loses its sheen speckle. No letter anywhere is removed. It adds no letters either, so the Berg's stored photo
 still reads 8/13.
 
@@ -296,14 +297,22 @@ photo, both from the bag.
 |---|---|---|---|---|---|---|
 | Berg original, WebKit input | 176,263 | 15,456 | 1,150 | – | – | the lower-left rim fragments (October's #50 regression); a stray V between two rays; slivers beside a ray and under the arc |
 | Berg original, Node crop | 258,914 | 96,156 | 3,154 | – | 0.47 (2.6%) | **the blotch and top arc**; the blob over the first 1; a speck above the B; a sliver inside the B |
-| Berg stored | 163,062 | 0 | 0 | 36 (all under half) | 0.01 | nothing |
-| Proxy | 123,844 | 4 | 4 | 51 | 0.00 | 4 px |
-| Wraith | 245,886 | 0 | 0 | **0** | **0 (byte-identical)** | nothing |
+| Berg stored | 163,062 | 0 | 0 | 57 (all under half) | 0.03 | nothing |
+| Proxy | 123,844 | 4 | 4 | 145 | 0.03 | **one printed spray dot below the sun** (about 3 px across) |
+| Wraith | 245,886 | 0 | 0 | 3 (max 3/255) | **0 (colour byte-identical)** | nothing |
 | Raptor (live photo) | 316,824 | 2,111 (+1,636 added by the clear clean finish's re-decision) | 870 | – | 2.26 (13%) | fragments; the black text and signature **stay** |
 | DD3, control | 948,902 | 3,079 | 0 | 9,505 | 0.96 (4.2%) | **the sheen speckle at 3 o'clock** (1,198 px of it in the box §6 measured) |
-| Destroyer, control | 149,350 | 0 | 0 | **0** | **0 (byte-identical)** | nothing |
-| Pixel | 152,652 | 164 | 8 | 399 | 0.18 (0.8%) | specks beside the cube graphic |
+| Destroyer, control | 149,350 | 0 | 0 | 80 (max 51/255, the swoosh's feather) | **0 (colour byte-identical)** | nothing over half |
+| Pixel | 152,652 | 164 | 8 | 530 | 0.12 | specks beside the cube graphic |
 | Raptor (earlier photo) | 264,106 | 562 (+390 added) | 95 | – | 1.38 (8%) | fragments |
+
+**Correction (same day).** This table's first version called the Wraith and Destroyer byte-identical. That check ran
+at the earlier 3 px margin; at 1.5 px the veto also zeroes a few faint anti-aliased bytes on their edges. The rows
+above are re-measured through the production build (§10), which matches this post-pass pixel for pixel. The colour
+assets of both are byte-identical; the one-ink alpha differs by 3 bytes (Wraith, at most 3/255) and 80 bytes (Destroyer,
+at most 51/255, the swoosh's feathered edge), none of it visible (`sheets/feather-destroyer.png`). On the Proxy the 4
+px are one printed spray dot below the sun, about 3 px across: the only print the veto takes in the set
+(`sheets/feather-proxy.png`).
 
 **The colour shifts** come from the colour pass, not the veto. It clusters its inks over the whole mask, so a mask with
 a few thousand fewer pixels re-assigns some shards. On the DD3 they are scattered single shards in the holographic art.
@@ -339,3 +348,49 @@ for one more pass of v2's separation at 2048.
 **global** change: every photo disc made or re-made after deploy, existing assets untouched until Make again. That
 needs the bag-wide identity check and the browser suites that PR #50 ran. No migration. The Berg's acceptance would
 still be his camera-original re-make.
+
+## 10. The build: the veto in production (branch `claude/stamp-blotch-veto`)
+
+Freddy, Nov 14: "Build it", as its own PR, stopping at an open PR. The branch is cut from the spike branch, so this PR
+carries the spike's lab code and write-up beside the build.
+
+**What changed (production):**
+
+- `public/disc-stamp-separate.mjs` (new): `printSupport(rgba, size, {plate, seeThrough})` is v2's separation, support
+  only. It returns 1 where print is, or within `GROW` = 2.5 px at 1024 of a kept mark. That is the spike's coverage ring
+  plus its 1.5 px margin, as one reach. It does not compute the coverage alpha, which the veto never used. It holds Lab
+  only until ΔE is computed, samples the plastic field on demand, and rounds Lab to single precision as the lab
+  measured it.
+- `public/disc-stamp-worker.mjs` `extract()`:
+  - the support is read first, on the crop as given (a clear disc's after its shadow pass, before de-lighting), so its
+    working memory is free before the other passes allocate theirs;
+  - ink outside the support is dropped from the alpha, the mask and the layers, right after the stamp is found;
+  - `register()`'s ink reads pass `{veto:false}`, read from `arguments[3]` so the signature line the browser suites
+    patch is unchanged. The aligner's fit is exactly as before.
+- Nothing else: no migration, no sheet or renderer change. Existing assets change only when their owner taps Make again.
+
+**Tested:** `tests/stamp-blotch-veto.mjs` uses drawn discs only: near-neutral glow plastic, a patch of lighter fractal
+mottling, and a gold print.
+
+- Today's extractor reads 12,279 px of the mottling as ink.
+- With the veto, under half is left (the test's bound), and the print is byte-for-byte untouched.
+- A clean disc is byte-identical, alpha and colour, with the veto on or off.
+- **With the veto line removed, the first test fails** ("12279 of 12279 px left").
+
+**Identity through the production worker** (`spikes/stamp-pipeline-v2/identity.mjs`, every photo disc available, against
+main's extraction of the same crops):
+
+| Disc | Removed (alpha over half) | Matches the §9 post-pass | Support read | Peak memory of the read |
+|---|---|---|---|---|
+| Berg original, WebKit / Node | 15,456 / 96,156 | yes / yes | 1.7 / 1.8 s | 92 / 102 MB |
+| Berg stored | 0 | yes | 1.7 s | 85 MB |
+| Proxy | 4 (the spray dot) | yes | 1.6 s | 84 MB |
+| Wraith | 0 | yes | 1.4 s | 79 MB |
+| Raptor (live) | 2,111 (+1,636 by the clean finish) | yes | 1.4 s | 93 MB |
+| DD3 | 3,079 (the sheen) | yes | 1.1 s | 108 MB |
+| Destroyer | 0 | yes | 1.4 s | 86 MB |
+| Pixel | 164 | yes | 1.7 s | 91 MB |
+| Raptor (earlier) | 565 | 60 px apart | 1.4 s | 84 MB |
+
+The spike's separation peaked near 230 MB at 2048. Reading it at 1024 instead was tried and rejected: it took 675 px of
+the Destroyer's and 304 of the Pixel's thin print (`work/stamp-pipeline-v2/post1024.json`).

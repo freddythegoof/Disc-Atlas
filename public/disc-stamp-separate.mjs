@@ -21,7 +21,8 @@ const lin=(l,a,b)=>{const fy=(l+16)/116,fx=fy+a/500,fz=fy-b/200,inv=t=>t>6/29?t*
  const X=.95047*inv(fx),Y=inv(fy),Z=1.08883*inv(fz);return [3.2406*X-1.5372*Y-.4986*Z,-.9689*X+1.8758*Y+.0415*Z,.0557*X-.204*Y+1.057*Z];};
 
 // `rgba`: the crop as the extractor gets it, before any pass changes it (on a clear disc, with its stamp's shadow taken
-// out). Returns the print support: 1 where print is, or within GROW of it.
+// out). Returns the print support: 1 where print is, or within GROW of it; null when there is nothing to read (no
+// plastic to measure, or no print), and the extractor's ink then stands as it is.
 export function printSupport(rgba,size,{plate=.8,seeThrough=false}={}){
  const T=SEPARATE,N=size*size,k=size/1024,c=size/2,reach=plate*c-T.MARGIN*k;
  let lab=new Float32Array(3*N);const inside=new Uint8Array(N);
@@ -65,6 +66,8 @@ export function printSupport(rgba,size,{plate=.8,seeThrough=false}={}){
  for(let p=0;p<N;p++)if(inside[p]){const f=field(p);dE[p]=dist(p,f[0],f[1],f[2]);}
  lab=null;
  const sample=[];for(let p=0;p<N;p+=5)if(inside[p]&&dE[p]<T.NEAR)sample.push(dE[p]);sample.sort((x,y)=>x-y);
+ // No plastic to measure (a crop that shows too little plate): no read, and the extractor stands alone.
+ if(sample.length<64)return null;
  const m=sample[sample.length>>1],mad=sample.map(v=>Math.abs(v-m)).sort((x,y)=>x-y)[sample.length>>1],sigma=1.4826*mad;
  const lo=Math.max(T.LO_MIN,m+T.LO_SIGMA*sigma),hi=Math.max(T.HI_MIN,m+T.HI_SIGMA*sigma,1.6*lo);
  // 3. Marks.
@@ -115,6 +118,8 @@ export function printSupport(rgba,size,{plate=.8,seeThrough=false}={}){
  for(let round=0;round<3;round++){const kept=marks.filter(x=>x.keep);let added=0;
   for(const mk of marks)if(!mk.keep&&!mk.plastic&&mk.seeds>=2&&mk.area<=T.WEAK_AREA*k*k&&kept.some(x=>near(mk,x))){mk.keep=true;added++;}
   if(!added)break;}
+ // No print found at all: no read either. A veto with nothing to keep would blank the stamp.
+ if(!marks.some(x=>x.keep))return null;
  // The support: kept marks, grown by GROW (a square reach, rows then columns).
  const reachPx=Math.max(1,Math.round(T.GROW*k)),row=new Uint8Array(N),out=new Uint8Array(N);
  for(let j=0;j<size;j++){let last=-1e9;for(let i=0;i<size;i++){const p=j*size+i;if(label[p]>=0&&marks[label[p]].keep)last=i;row[p]=i-last<=reachPx;}
