@@ -2,8 +2,8 @@
 <script type="module">
 // One live Hyzer at the panel-heading size, for the frame-cost measurement in capture-cost.mjs.
 import {mount, Mascot} from './vendor/wobnimo-0.2.0.js';
-import {hyzerCool, hyzerCute} from './hyzer.mjs';
-const take = new URLSearchParams(location.search).get('take') === 'cute' ? hyzerCute : hyzerCool;
+import {hyzer} from './hyzer.mjs';
+const take = hyzer(new URLSearchParams(location.search).get('take') || 'red');
 const tick = Mascot.prototype.tick; window.cost = [];
 Mascot.prototype.tick = function (...a) {const t = performance.now(); tick.apply(this, a); window.cost.push(performance.now() - t);};
 window.mascot = mount(document.getElementById('h'), take, {state: new URLSearchParams(location.search).get('state') || 'idle', floor: 0.35, framing: 0.9});

@@ -3,11 +3,17 @@
 Branch `claude/hyzer-mascot`, off `origin/main` at 792f22b (Nov 14, 2026). Freddy's ask (Nov 2): give
 Disc Atlas a living, Wobnimo-style mascot. Decided before this build: the name is **Hyzer**, always
 shown as "Hyzer the Disc" or "Ask Hyzer" in UI copy, while the technique stays lowercase "hyzer". He
-is a little flying disc with a face, a lime brand rim, idling at a hyzer angle. He is the coach's
-face, not a site-wide pet.
+is a little flying disc with a face, idling at a hyzer angle. He is the coach's face, not a site-wide
+pet.
 
-**Status: Part 1 (the character sheet) is done and stopped here for Freddy's pick.** Nothing is
-wired into the coach. No file under `public/` or `web/` changed.
+**Status: Part 1 (the character sheet) is done.** Nothing is wired into the coach. No file under
+`public/` or `web/` changed. Part 2 waits on the questions in section 6.
+
+**Freddy's rulings (Nov 14):**
+
+- **Take A**, cool and a little cocky. Take B (cute and friendly) is retired; it is in commit 31b7b89.
+- **Red**, replacing the lime rim from the original brief.
+- **Real eyebrows**, replacing the dotted lime brow ("not a fan of these extra dots").
 
 ## 1. The engine
 
@@ -19,6 +25,7 @@ tarball and read before anything ran. It has no install scripts.
 - Vendored for the spike: `spikes/hyzer-mascot/vendor/wobnimo-0.2.0.js` is the package's
   `dist/index.js`, unmodified (SHA-256 `b5284b26…e9ff8e9`), with its licence beside it. It is
   self-contained: no imports and no network calls.
+- Kept out of the code graph via `.graphifyignore`.
 - Not added to `package.json`. Part 2 would vendor the same file under `public/`, as three.js is
   vendored today. The site serves plain scripts, with no bundler.
 - Its CLI (`check`, `preview`) was run from the unpacked tarball. It drives the repo's Playwright
@@ -26,14 +33,17 @@ tarball and read before anything ran. It has no install scripts.
 
 ## 2. The character
 
-Spec: `spikes/hyzer-mascot/hyzer.mjs`. One body with two personality takes; `cool.mjs` and
-`cute.mjs` are the CLI's default-export entry points.
+Spec: `spikes/hyzer-mascot/hyzer.mjs`. Its default export is the chosen Hyzer;
+`hyzer(colorway)` builds the comparison reds.
 
-- **Body.** A lime rim (`#b2f060`, a touch richer than `#bdfc75` because the studio light lifts it)
-  around an obsidian flight plate (`#232831`, from the brand mark). The disc is tipped back like the
-  logo so it reads as a disc, then banked on its own bone at a hyzer angle.
+- **Body.** A red rim (`#c81e2c`, run a touch richer than it should look because the studio light
+  lifts it) around an obsidian flight plate (`#232831`, from the brand mark). The disc is tipped back
+  like the logo so it reads as a disc, then banked on its own bone at a 24° hyzer angle.
 - **Plate finish.** The plate is satin. A glossy dome mirrored the studio and washed out the face;
   a matte probe proved it was the reflection.
+- **Face.** Amber eyes. Two solid red eyebrows, half sunk into the plate: one flat, the right one
+  raised and kicked up at the end (the cocky tell). A smirk set off-centre. Snappy glances that
+  hold, and small hops.
 - **Thinking.** The rim sits on its own bone and spins about the disc's axis while the face holds
   still. Two dark stamp dashes on the rim make the spin read.
 - **Celebrating.** He flattens out of the hyzer (the bank goes to 0) and the rim whirls. The
@@ -42,27 +52,22 @@ Spec: `spikes/hyzer-mascot/hyzer.mjs`. One body with two personality takes; `coo
   and stick out past the rim, and a few leaves flutter loose on entering the state. The leaves exist
   only in `error`.
 - **Sleeping** tips back, face up. **Listening** tips forward, toward you.
-- **Checks.** `wobnimo check` reports 0 errors and 0 warnings for both takes. The one note is the
-  leaves being hidden at rest, which is intended.
+- **Checks.** `wobnimo check` reports 0 errors and 0 warnings for every colourway. The one note is
+  the leaves being hidden at rest, which is intended.
 
-| | Take A: cool, a little cocky | Take B: cute and friendly |
-| --- | --- | --- |
-| Resting hyzer | 0.42 rad (24°) | 0.30 rad (17°) |
-| Face | smaller eyes, one raised lime brow, a smirk set off-centre | big eyes, blush, a centred smile |
-| Temperament | snappy; glances snap and hold (`snapLook` 0.6); small hops | eased glances, bouncy hops, more squash |
+"Red" has more than one reading on this body, so the sheet compares three (`COLORWAYS`):
 
-Personality is Freddy's call, so both takes are built and neither is chosen.
+| Colourway | Rim | Plate | Eyebrows and eyes | Read |
+| --- | --- | --- | --- | --- |
+| **Red rim** (built as the default) | red | obsidian | red eyebrows, amber eyes | the strongest face at 32px; keeps the logo plate |
+| Red rim, lime face | red | obsidian | lime eyebrows and eyes | keeps the brand lime, but reads as Christmas |
+| All-red disc | red | red | dark eyebrows and eyes | truest to a real one-colour disc; the face loses contrast at 32px |
 
 ### The one-sentence description (for reproducibility)
 
-The Wobnimo custom route takes one sentence. This is the sentence the spec was designed from:
+The Wobnimo custom route takes one sentence. This is the sentence the spec now matches:
 
-> A little flying disc with a face, a lime rim in the Disc Atlas brand colour (#bdfc75) around an obsidian flight plate, idling tilted at a hyzer angle, who spins his rim while he thinks, flattens out and cheers when a disc gets bagged, and hits a tree and ends up with leaves stuck to him when something fails.
-
-Each take appends a clause:
-
-- Take A: "…, cool and a little cocky."
-- Take B: "…, cute and friendly."
+> A cocky little flying disc with a face, a red rim around an obsidian flight plate, eyebrows with one raised and a smirk, idling tilted at a hyzer angle, who spins his rim while he thinks, flattens out and cheers when a disc gets bagged, and hits a tree and ends up with leaves stuck to him when something fails.
 
 The spec was written by hand from that sentence, following Wobnimo's own mascot skill
 (`skill/SKILL.md` in the package), then iterated with `check` and `preview` until clean. It was not
@@ -73,11 +78,12 @@ generated by `npx wobnimo new`.
 Open `spikes/hyzer-mascot/sheet.html` over a local server from the checkout root (for example,
 `python3 -m http.server 8871 --bind 127.0.0.1`).
 
-For each take, the sheet shows:
+The sheet shows:
 
 - the coach corner in Paper and Dusk, using tokens copied from `public/cosmic.css`;
 - the seven moods Part 2 would use (idle, listening, thinking, speaking, celebrating, error,
-  sleeping), each at medium and small size.
+  sleeping), each at medium and small size;
+- the three reds side by side.
 
 Sizes on the sheet:
 
@@ -87,15 +93,16 @@ Sizes on the sheet:
 
 Captures at 2x come from `node spikes/hyzer-mascot/capture.mjs`:
 
-- [Take A sheet](assets/hyzer-mascot/sheet-cool.png)
-- [Take B sheet](assets/hyzer-mascot/sheet-cute.png)
-- [Take A with reduced motion](assets/hyzer-mascot/sheet-reduced-motion-cool.png)
+- [Red Take A sheet](assets/hyzer-mascot/sheet-red.png)
+- [Red, three ways](assets/hyzer-mascot/sheet-red-three-ways.png)
+- [Red Take A with reduced motion](assets/hyzer-mascot/sheet-reduced-motion-red.png)
 - Wobnimo's own contact sheets (four views, all ten states, 56px avatar):
-  [Take A](assets/hyzer-mascot/wobnimo-preview-cool.png),
-  [Take B](assets/hyzer-mascot/wobnimo-preview-cute.png)
+  [red rim](assets/hyzer-mascot/wobnimo-preview-red.png),
+  [red rim, lime face](assets/hyzer-mascot/wobnimo-preview-red-lime.png),
+  [all-red](assets/hyzer-mascot/wobnimo-preview-all-red.png)
 
-The captures are single moments of live animation. For example, Take A's Dusk "celebrating" is
-caught mid-flip, edge on. The live sheet shows the whole loop.
+The captures are single moments of live animation. For example, Paper's "celebrating" is caught
+mid-flip, edge on. The live sheet shows the whole loop.
 
 **Why the launcher is a still.** The launcher sits on the atlas page whether or not the coach is
 open. A live mascot there would cost frames all the time, which breaks the budget. So the launcher
@@ -108,9 +115,9 @@ Script: `spikes/hyzer-mascot/cost.mjs` (uses `one.html`).
 | What | Measured |
 | --- | --- |
 | Engine, gzipped | 25,386 B (71,634 B raw) |
-| Spec, gzipped | about 1.2 KB per take as data; the spike file with both takes is 2,397 B |
-| One live 64px Hyzer | main-thread `tick` 0.25 ms mean, 0.40 ms p95, at 60 fps (idle, thinking and celebrating within 0.03 ms of each other) |
-| Reduced motion | the sheet's 60 live mascots settle, then 0 ticks in 2 s; screenshots 1.5 s apart are byte-identical (fully static Hyzer) |
+| Spec, gzipped | about 1.3 KB as data |
+| One live 64px Hyzer | main-thread `tick` 0.23 to 0.28 ms mean, 0.40 ms p95, at 60 fps (idle, thinking, celebrating; all-red idle the same) |
+| Reduced motion | the sheet's 42 live mascots settle, then 0 ticks in 2 s; screenshots 1.5 s apart are byte-identical (fully static Hyzer) |
 | After `dispose()` | 0 ticks in 2 s; the shared rAF loop stops when the last mascot leaves |
 
 What these numbers don't cover yet:
@@ -125,9 +132,9 @@ What these numbers don't cover yet:
 
 `grep -rnoi "hyzer"` over `public/`, `web/` and the spike's `sheet.html`:
 
-- **The sheet is clean.** The character appears only as "Hyzer the Disc" and "Ask Hyzer" in copy
-  (the other capitalized hits are prose about the character). The technique is lowercase: "Steeper
-  hyzer (24°)", "Gentler hyzer (17°)".
+- **The sheet's UI mock is clean.** The character appears only as "Hyzer the Disc" and "Ask Hyzer".
+  The technique is lowercase: "Steeper hyzer (24°)". The other capitalized hits are the sheet's own
+  prose about him and CSS comments, not UI copy.
 - **Shipped UI already breaks the fence.** `public/disc3d/viewer.mjs:105` labels the 3D viewer's
   tilt slider with a bare, capitalized technique: `Anhyzer … Hyzer`. Once the character exists, that
   label can read as him. Part 2 should lowercase it (for example, "anhyzer … hyzer"). It is not

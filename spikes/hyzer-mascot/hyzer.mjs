@@ -1,37 +1,45 @@
 // Hyzer the Disc: the Atlas Coach's face, as a Wobnimo character spec (plain data, no animation code).
-// One body, two personality takes for Freddy's Part 1 pick: `cool` (a little cocky) and `cute` (friendly).
+// Freddy picked Take A (cool, a little cocky) and asked for him in red (Nov 14, 2026).
 //
 // Construction: the disc lies in its bone's xy plane with the flight plate facing +z (the camera), tipped
 // back like the brand mark so the plate reads as a disc, then banked at a hyzer angle on the `bank` bone.
-// The lime rim sits on its own bone so it can spin about the disc's axis (thinking) while the face holds still.
+// The rim sits on its own bone so it can spin about the disc's axis (thinking) while the face holds still.
 // Two leaves hide behind the plate and swing out past the rim only in `error` (he hit a tree).
 
 const PLATE_R = 0.33, RIM_R = 0.42, RIM_HALF = 0.055;
 // A point on the flight plate's dome (an ellipsoid at z 0.03, depth 0.07), for paints and the mouth.
 const onPlate = (x, y) => [x, y, 0.03 + 0.07 * Math.sqrt(Math.max(0, 1 - (x * x + y * y) / (PLATE_R * PLATE_R)))];
 
-function hyzer(take) {
-  const cool = take === 'cool';
-  const bankAngle = cool ? 0.42 : 0.3;          // the resting hyzer angle, radians (logo is 22°, about 0.38)
-  const eye = cool ? 0.085 : 0.1;
-  const eyeY = cool ? 0.06 : 0.04, eyeX = cool ? 0.13 : 0.14;
+// Ways to read "red" on this body. Colours run a touch richer than they should look: studio light lifts them.
+export const COLORWAYS = {
+  // red rim around the brand mark's obsidian plate, red eyebrows and warm eyes
+  red: { label: 'Red rim', rim: '#c81e2c', dash: '#4a070d', plate: '#232831', brow: '#e8323e', iris: '#d98a2b', mouth: '#ffd9cf' },
+  // the same red rim, keeping the brand lime in the eyebrows and eyes
+  redLime: { label: 'Red rim, lime face', rim: '#c81e2c', dash: '#4a070d', plate: '#232831', brow: '#bdfc75', iris: '#7fc23a', mouth: '#d8f7b0' },
+  // one-colour red disc, as most real discs are: the face sits on red plastic
+  allRed: { label: 'All-red disc', rim: '#c81e2c', dash: '#4a070d', plate: '#a8161f', brow: '#2a0a0d', iris: '#3a2418', mouth: '#2a0a0d' },
+};
+
+export function hyzer(colorway = 'red') {
+  const c = COLORWAYS[colorway];
+  const bankAngle = 0.42;                       // the resting hyzer angle, radians (24°; the logo is 22°)
+  const eye = 0.085, eyeY = 0.06, eyeX = 0.13;
+  const sunk = (x, y) => { const p = onPlate(x, y); p[2] -= 0.006; return p; };
+  const brow = (x1, y1, x2, y2) => ({ bone: 'disc', shape: 'capsule', from: sunk(x1, y1), to: sunk(x2, y2), radius: 0.019, material: 'brow' });
   return {
-    id: cool ? 'hyzer-cool' : 'hyzer-cute',
+    id: colorway === 'red' ? 'hyzer' : `hyzer-${colorway.toLowerCase()}`,
     name: 'Hyzer the Disc',
-    tagline: cool
-      ? 'A cocky little flying disc with a lime rim, idling at a hyzer angle'
-      : 'A friendly little flying disc with a lime rim, idling at a hyzer angle',
-    accent: '#bdfc75',
+    tagline: 'A cocky little red flying disc, idling at a hyzer angle',
+    accent: c.rim,
     frame: { target: 0.45, radius: 0.6 },
     bound: { y: 0.45, radius: 0.62 },
-    motion: cool
-      ? { float: 0.16, hop: 0.1, squash: 0.85, snap: 1.2, look: 1.1, snapLook: 0.6, talkSquash: 0.4 }
-      : { float: 0.16, hop: 0.2, squash: 1.25, snap: 0.9, look: 0.9, snapLook: 0, talkSquash: 0.8 },
+    motion: { float: 0.16, hop: 0.1, squash: 0.85, snap: 1.2, look: 1.1, snapLook: 0.6, talkSquash: 0.4 },
     materials: {
-      // glossy disc plastic in the brand lime; a touch richer than #bdfc75 because studio light lifts it
-      rim: { color: '#b2f060', f0: 0.06, spec: 1.4, shininess: 140, rim: 0.5, gloss: 0.8 },
-      // the obsidian flight plate of the brand mark, satin: a glossy dome reflects the studio and washes out the face
-      plate: { color: '#232831', f0: 0, spec: 0.5, shininess: 160, rim: 0.2, gloss: 0 },
+      // glossy disc plastic
+      rim: { color: c.rim, f0: 0.06, spec: 1.4, shininess: 140, rim: 0.5, gloss: 0.8 },
+      // the flight plate, satin: a glossy dome reflects the studio and washes out the face
+      plate: { color: c.plate, f0: 0, spec: 0.5, shininess: 160, rim: 0.2, gloss: 0 },
+      brow: { color: c.brow, f0: 0.02, spec: 0.4, shininess: 60, rim: 0.3 },
       leaf: { color: '#3fa34d', f0: 0.04, spec: 0.7, shininess: 50, rim: 0.6, sss: 0.25, sssColor: '#b8f0a0' },
     },
     bones: [
@@ -49,21 +57,19 @@ function hyzer(take) {
       { bone: 'disc', shape: 'ellipsoid', at: [0, 0, 0.03], radii: [PLATE_R, PLATE_R, 0.07], blend: 0.02, material: 'plate' },
       { bone: 'leafL', shape: 'ellipsoid', at: [0, 0.12, 0], radii: [0.06, 0.13, 0.014], material: 'leaf' },
       { bone: 'leafR', shape: 'ellipsoid', at: [0, 0.09, 0], radii: [0.045, 0.1, 0.014], material: 'leaf' },
+      // eyebrows, half sunk into the plate: a flat one, and one raised and kicked up at the end, the cocky tell
+      brow(-eyeX - 0.05, eyeY + 0.12, -eyeX + 0.05, eyeY + 0.11),
+      brow(eyeX - 0.05, eyeY + 0.135, eyeX + 0.055, eyeY + 0.165),
     ],
     paints: [
       // two stamp dashes on the rim so a spin reads
-      { bone: 'rim', on: ['rim'], kind: 'sphere', at: [0, RIM_R - 0.045, RIM_HALF], radius: 0.035, color: '#3c5a1a', soft: 0.3 },
-      { bone: 'rim', on: ['rim'], kind: 'sphere', at: [0, -(RIM_R - 0.045), RIM_HALF], radius: 0.035, color: '#3c5a1a', soft: 0.3 },
-      ...(cool
-        // one raised lime brow over his left eye: the cocky tell
-        ? [0, 1, 2, 3, 4].map(i => ({ bone: 'disc', on: ['plate'], kind: 'sphere', at: onPlate(eyeX - 0.06 + i * 0.03, eyeY + 0.11 + i * 0.012), radius: 0.02, color: '#bdfc75', soft: 0.15 }))
-        // soft blush under the eyes
-        : [-1, 1].map(s => ({ bone: 'disc', on: ['plate'], kind: 'sphere', at: onPlate(s * 0.2, -0.06), radius: 0.05, color: '#ff8f8f', soft: 0.6, opacity: 0.6 }))),
+      { bone: 'rim', on: ['rim'], kind: 'sphere', at: [0, RIM_R - 0.045, RIM_HALF], radius: 0.035, color: c.dash, soft: 0.3 },
+      { bone: 'rim', on: ['rim'], kind: 'sphere', at: [0, -(RIM_R - 0.045), RIM_HALF], radius: 0.035, color: c.dash, soft: 0.3 },
     ],
     eyes: { kind: 'ball', bone: 'disc', at: [[-eyeX, eyeY, 0.05], [eyeX, eyeY, 0.05]], radius: eye,
-      iris: cool ? '#7fc23a' : '#5a9a22', irisSize: cool ? 0.72 : 0.86, pupilSize: cool ? 0.45 : 0.6, lid: 'plate' },
-    face: { kind: 'mouth', bone: 'disc', on: ['plate'], at: onPlate(cool ? 0.035 : 0, -0.11), width: cool ? 0.055 : 0.07,
-      color: '#d8f7b0', tongue: '#ff7d8a' },
+      iris: c.iris, irisSize: 0.72, pupilSize: 0.45, lid: 'plate' },
+    // the smirk, set off-centre
+    face: { kind: 'mouth', bone: 'disc', on: ['plate'], at: onPlate(0.035, -0.11), width: 0.055, color: c.mouth, tongue: '#ff7d8a' },
     anchors: {
       top: { bone: 'disc', at: [0.18, 0.44, 0] },
       mouth: { bone: 'disc', at: [0, -0.1, 0.12] },
@@ -93,5 +99,4 @@ function hyzer(take) {
   };
 }
 
-export const hyzerCool = hyzer('cool');
-export const hyzerCute = hyzer('cute');
+export default hyzer();

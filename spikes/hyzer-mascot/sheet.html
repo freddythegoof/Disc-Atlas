@@ -33,7 +33,7 @@ h1{font:500 30px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.8px;margin:0 0 
 .panel-head h3{font:500 25px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.8px;margin:4px 0 0}
 .panel-head .x{margin-left:auto;align-self:flex-start;color:var(--muted);font-size:22px;line-height:1}
 .panel .status{font-size:12px;color:var(--muted);margin:10px 0 0}
-.moods{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px 6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 6px 8px}
+.moods{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px 6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 6px 8px}
 .mood{display:flex;flex-direction:column;align-items:center;gap:4px}
 .mood .pair{display:flex;align-items:flex-end;gap:4px;height:64px}
 .mood b{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.4px}
@@ -45,16 +45,16 @@ h1{font:500 30px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.8px;margin:0 0 
 </head>
 <body>
 <h1>Hyzer the Disc · character sheet</h1>
-<p class="lede">Part 1 of the mascot brief: the look only, nothing wired. Each block shows the coach corner at real CSS sizes, in Paper and Dusk, then the seven moods the coach would use at <strong>medium (64px, live in the panel heading)</strong> and <strong>small (32px)</strong>. The launcher shows a <strong>28px still frame</strong>, not a live mascot, so the atlas pays no frame cost while the coach is closed. Pick a take.</p>
+<p class="lede">Freddy picked Take A (cool, a little cocky) and asked for him in red. Below, the coach corner at real CSS sizes in Paper and Dusk, then the seven moods the coach would use at <strong>medium (64px, live in the panel heading)</strong> and <strong>small (32px)</strong>. The launcher shows a <strong>28px still frame</strong>, not a live mascot, so the atlas pays no frame cost while the coach is closed.</p>
 
-<section class="take" data-take="cool">
- <h2>Take A · cool, a little cocky</h2>
- <p>Steeper hyzer (24°), smaller eyes, one raised lime brow, a smirk set off-centre. Snappy, bird-like glances that hold; small hops.</p>
+<section class="take" data-colorway="red">
+ <h2>Take A in red</h2>
+ <p>Red rim around the brand mark's obsidian plate, amber eyes, red eyebrows with the right one raised, a smirk set off-centre. Steeper hyzer (24°); snappy glances that hold; small hops.</p>
  <div class="themes"></div>
 </section>
-<section class="take" data-take="cute">
- <h2>Take B · cute and friendly</h2>
- <p>Gentler hyzer (17°), big eyes, blush, a centred smile. Eased glances, bouncy hops, more squash.</p>
+<section class="take ways">
+ <h2>Red, three ways</h2>
+ <p>The same Hyzer at 64px and 32px, idle. Left to right: the red rim above; a red rim keeping the brand lime in his face; an all-red disc, as most real discs are.</p>
  <div class="themes"></div>
 </section>
 <p class="note">Live mascots: Wobnimo 0.2.0 (MIT), one shared WebGL2 context. Hover a medium Hyzer and he follows the pointer; click him for the poke reaction. With reduced motion turned on, every Hyzer holds a still pose.</p>
@@ -75,32 +75,46 @@ h1{font:500 30px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.8px;margin:0 0 
 
 <script type="module">
 import {mount, snapshot} from './vendor/wobnimo-0.2.0.js';
-import {hyzerCool, hyzerCute} from './hyzer.mjs';
+import {hyzer, COLORWAYS} from './hyzer.mjs';
 
-const specs = {cool: hyzerCool, cute: hyzerCute};
 const moods = ['idle', 'listening', 'thinking', 'speaking', 'celebrating', 'error', 'sleeping'];
 const themes = [['paper', 'PAPER'], ['dusk', 'DUSK']];
 let seed = 0;
 // framing under 1 crops the room Wobnimo leaves for hops and the floor, so the disc fills the corner
 const live = (el, spec, state, small) => mount(el, spec, {state, seed: (seed++ % 17) / 17, floor: small ? 0 : 0.35, framing: small ? 0.78 : 0.9, interactive: !small});
+const themed = (theme, label) => {
+ const node = document.createElement('div'); node.className = 'theme ' + theme;
+ node.innerHTML = `<div class="theme-name">${label}</div>`; return node;
+};
 
-for (const section of document.querySelectorAll('.take')) {
- const spec = specs[section.dataset.take];
- for (const [theme, label] of themes) {
-  const node = document.getElementById('themeTpl').content.firstElementChild.cloneNode(true);
-  node.classList.add(theme); node.querySelector('.theme-name').textContent = label;
-  for (const mood of moods) {
-   const cell = document.createElement('div'); cell.className = 'mood';
-   cell.innerHTML = `<div class="pair"><div class="live m"></div><div class="live s"></div></div><b>${mood}</b>`;
-   live(cell.querySelector('.m'), spec, mood, false);
-   live(cell.querySelector('.s'), spec, mood, true);
-   node.querySelector('.moods').append(cell);
-  }
-  live(node.querySelector('.panel-head .live'), spec, 'idle', false);
-  section.querySelector('.themes').append(node);
-  // The launcher's still: drawn once, as a pre-rendered image would be in the app.
-  snapshot(spec, {state: 'idle', size: 28, pixelRatio: 2, floor: 0, seed: 0.3}).then(canvas => {node.querySelector('.launch img').src = canvas.toDataURL('image/png');});
+const spec = hyzer('red'), section = document.querySelector('[data-colorway="red"]');
+for (const [theme, label] of themes) {
+ const node = document.getElementById('themeTpl').content.firstElementChild.cloneNode(true);
+ node.classList.add(theme); node.querySelector('.theme-name').textContent = label;
+ for (const mood of moods) {
+  const cell = document.createElement('div'); cell.className = 'mood';
+  cell.innerHTML = `<div class="pair"><div class="live m"></div><div class="live s"></div></div><b>${mood}</b>`;
+  live(cell.querySelector('.m'), spec, mood, false);
+  live(cell.querySelector('.s'), spec, mood, true);
+  node.querySelector('.moods').append(cell);
  }
+ live(node.querySelector('.panel-head .live'), spec, 'idle', false);
+ section.querySelector('.themes').append(node);
+ // The launcher's still: drawn once, as a pre-rendered image would be in the app.
+ snapshot(spec, {state: 'idle', size: 28, pixelRatio: 2, floor: 0, seed: 0.3}).then(canvas => {node.querySelector('.launch img').src = canvas.toDataURL('image/png');});
+}
+
+for (const [theme, label] of themes) {
+ const node = themed(theme, label), row = document.createElement('div'); row.className = 'moods';
+ for (const [way, {label: name}] of Object.entries(COLORWAYS)) {
+  const cell = document.createElement('div'); cell.className = 'mood';
+  cell.innerHTML = `<div class="pair"><div class="live m"></div><div class="live s"></div></div><b>${name}</b>`;
+  const variant = hyzer(way);
+  live(cell.querySelector('.m'), variant, 'idle', false);
+  live(cell.querySelector('.s'), variant, 'idle', true);
+  row.append(cell);
+ }
+ node.append(row); document.querySelector('.ways .themes').append(node);
 }
 </script>
 </body>

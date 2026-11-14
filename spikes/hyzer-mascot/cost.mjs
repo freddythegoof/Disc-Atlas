@@ -4,7 +4,7 @@ import {createRequire} from 'node:module';
 const {chromium} = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const b = await chromium.launch({headless: true, args: ['--enable-gpu', '--use-angle=metal']});
 const base = 'http://127.0.0.1:8871/spikes/hyzer-mascot/';
-for (const [take, state] of [['cool','idle'],['cool','thinking'],['cool','celebrating'],['cute','idle']]) {
+for (const [take, state] of [['red','idle'],['red','thinking'],['red','celebrating'],['allRed','idle']]) {
   const p = await b.newPage({viewport: {width: 200, height: 200}, deviceScaleFactor: 2});
   await p.goto(`${base}one.html?take=${take}&state=${state}`); await p.waitForTimeout(1500);
   await p.evaluate(() => { window.cost.length = 0; }); await p.waitForTimeout(5000);
@@ -16,8 +16,9 @@ for (const [take, state] of [['cool','idle'],['cool','thinking'],['cool','celebr
 const p = await b.newPage({viewport: {width: 1440, height: 1000}, reducedMotion: 'reduce'});
 await p.goto(base + 'sheet.html'); await p.waitForTimeout(2500);
 const a = await p.screenshot(); await p.waitForTimeout(1500); const c = await p.screenshot();
+const mounted = await p.evaluate(() => document.querySelectorAll('.live canvas').length);
 const ticks = await p.evaluate(async () => { const {Mascot} = await import('./vendor/wobnimo-0.2.0.js'); let n = 0; const tick = Mascot.prototype.tick; Mascot.prototype.tick = function (...x) { n++; return tick.apply(this, x); }; await new Promise(r => setTimeout(r, 2000)); return n; });
-console.log('reduced motion: identical screenshots =', a.equals(c), '| mascot ticks in 2s across the sheet's 60 settled live mascots =', ticks);
+console.log('reduced motion: identical screenshots =', a.equals(c), '| mascot ticks in 2s across', mounted, 'settled live mascots =', ticks);
 // Coach closed: a page that has loaded the engine but mounted nothing schedules no frames.
 const q = await b.newPage(); await q.goto(base + 'one.html'); await q.waitForTimeout(1000);
 await q.evaluate(() => window.mascot.dispose()); await q.waitForTimeout(500);

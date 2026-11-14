@@ -1,4 +1,4 @@
-// Captures the Hyzer character sheet at 2x for the write-up: each take's block, then the sheet with reduced motion.
+// Captures the Hyzer character sheet at 2x for the write-up: red Take A, the three reds, then reduced motion.
 // Serve the checkout root first (python3 -m http.server 8871 --bind 127.0.0.1), then: node spikes/hyzer-mascot/capture.mjs
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
@@ -13,8 +13,9 @@ try {
   const errors = []; page.on('pageerror', e => errors.push(e.message)); page.on('console', m => m.type() === 'error' && errors.push(m.text()));
   await page.goto(url); await page.waitForTimeout(2500);
   if (errors.length) throw Error('Sheet errors: ' + errors.join('; '));
-  if (reducedMotion === 'reduce') {await page.locator('section[data-take="cool"]').screenshot({path: `${out}/sheet-reduced-motion-cool.png`}); await page.close(); continue;}
-  for (const take of ['cool', 'cute']) await page.locator(`section[data-take="${take}"]`).screenshot({path: `${out}/sheet-${take}.png`});
+  if (reducedMotion === 'reduce') {await page.locator('section[data-colorway="red"]').screenshot({path: `${out}/sheet-reduced-motion-red.png`}); await page.close(); continue;}
+  await page.locator('section[data-colorway="red"]').screenshot({path: `${out}/sheet-red.png`});
+  await page.locator('section.ways').screenshot({path: `${out}/sheet-red-three-ways.png`});
   await page.close();
  }
 } finally {await browser.close();}
