@@ -17,6 +17,12 @@ the Raptor's black print. v2 is not a candidate to ship as built. What it does p
 - **The pair gate holds on v2:** the Proxy is letter-complete and the Wraith ghost-free, on one set of settings (§4).
 - **The Raptor's true colour is not decided:** its backlit second shot does not exist yet (§5).
 
+**Follow-up (same day, Freddy: "Try the post-pass").** The narrower option is built and measured in §9. Today's
+extractor stays, and v2's separation only vetoes ink it does not support. On the Berg it removes the blotch: stray ink
+falls from 14k–340k px to 0–224 across all four stress inputs. The Destroyer and Wraith come out **byte-identical**.
+The DD3 loses its sheen speckle. No letter anywhere is removed. It adds no letters either, so the Berg's stored photo
+still reads 8/13.
+
 ## 0. Inputs, and what was missing
 
 **Real photos, all local and ignored** (`work/stamp-pipeline-v2/input/`, never committed):
@@ -61,6 +67,7 @@ to SAM, Photoroom or any other service.
 | 4 colour | `v2.mjs` | Production's colour pass, **unchanged**, run on v2's mask with the pre-softening crop (`softenGlare:false`). On a clear disc, production's clear passes (`unshadow`, `shoulder`, the clean finish) run around v2's separation |
 | 5 supervisor | `supervise.mjs` | Sonnet 5.5 JSON verdict, Haiku 5.5 capture QA. Never touches asset pixels |
 | 6 two-shot | `twoshot.mjs` | Foil from an angled pair; opacity from a backlit pair. `--self-test` |
+| post-pass (§9) | `extract-post.mjs`, `post.mjs`, `colourdiff.mjs` | Today's extractor plus v2's veto, and what it changes |
 | eval | `baseline.mjs`, `stability.mjs`, `native-prod.mjs`, `summary.mjs`, `zoom.mjs`, `view.mjs`, `sheet.mjs`, `review.sh` | Today's extraction (main's `extract()`, unchanged) on the same photos, and every measure below |
 
 **`separate.mjs`, the separation:**
@@ -265,3 +272,70 @@ Decisions that are his:
 - **The Berg:** still his camera-original re-make after any landing. Nothing here claims it is fixed.
 
 No migration was needed or written.
+
+## 9. The post-pass: today's extractor plus v2's veto
+
+**What it is** (`spikes/stamp-pipeline-v2/extract-post.mjs`). It is a copy of `disc-stamp-worker.mjs` `extract()` with
+one step inserted after the stamp is found. Before that step:
+
+- v2's separation reads the same 2048 crop: the raw one, or the unshadowed one on a clear disc.
+- Its print is grown by `SUPPORT` = 1.5 px at 1024.
+
+Then today's ink outside that support is dropped from the alpha, the mask and the layers, before the colour pass and
+the clear passes. It **only removes**, so today's edges, layers, letters and colour pass are untouched wherever v2 sees
+print.
+
+- **Fidelity:** with the veto off, the copy matches production **byte for byte** (alpha and colour) on all ten runs.
+- **Margin:** 3 px left a sliver of the blotch on the Berg's first "1". At 1.5 px it goes, and nothing printed is
+  shaved (`sheets/post-berg-node-print.png`, `post-berg-removed-print.png`).
+
+**Every photo disc available, alpha over half at 2048.** The pinned seven, plus the Pixel and the Raptor's earlier
+photo, both from the bag.
+
+| Disc | Today's ink px | Removed | Within 0.62 R | Alpha bytes changed | Colour on shared ink, mean ΔE (share > 5) | What went |
+|---|---|---|---|---|---|---|
+| Berg original, WebKit input | 176,263 | 15,456 | 1,150 | – | – | the lower-left rim fragments (October's #50 regression); a stray V between two rays; slivers beside a ray and under the arc |
+| Berg original, Node crop | 258,914 | 96,156 | 3,154 | – | 0.47 (2.6%) | **the blotch and top arc**; the blob over the first 1; a speck above the B; a sliver inside the B |
+| Berg stored | 163,062 | 0 | 0 | 36 (all under half) | 0.01 | nothing |
+| Proxy | 123,844 | 4 | 4 | 51 | 0.00 | 4 px |
+| Wraith | 245,886 | 0 | 0 | **0** | **0 (byte-identical)** | nothing |
+| Raptor (live photo) | 316,824 | 2,111 (+1,636 added by the clear clean finish's re-decision) | 870 | – | 2.26 (13%) | fragments; the black text and signature **stay** |
+| DD3, control | 948,902 | 3,079 | 0 | 9,505 | 0.96 (4.2%) | **the sheen speckle at 3 o'clock** (1,198 px of it in the box §6 measured) |
+| Destroyer, control | 149,350 | 0 | 0 | **0** | **0 (byte-identical)** | nothing |
+| Pixel | 152,652 | 164 | 8 | 399 | 0.18 (0.8%) | specks beside the cube graphic |
+| Raptor (earlier photo) | 264,106 | 562 (+390 added) | 95 | – | 1.38 (8%) | fragments |
+
+**The colour shifts** come from the colour pass, not the veto. It clusters its inks over the whole mask, so a mask with
+a few thousand fewer pixels re-assigns some shards. On the DD3 they are scattered single shards in the holographic art.
+On the Raptor they fall along the red foil's edges. Neither is visible side by side (`post-dd3-colour.png`,
+`post-raptor-colour.png`, white = unchanged, red = ΔE 15+). They are real, measured changes, so the DD3 control is
+**not byte-identical**: it is measurably better on the sheen and shuffled within its foil. That is Freddy's call.
+
+**The blotch, the same four Berg inputs as §2:**
+
+| | IoU Node vs WebKit | stray px: WebKit | Node | WebKit ×1.3 | Node ×1.3 |
+|---|---|---|---|---|---|
+| today | 0.572 | 14,327 | 93,002 | 339,551 | 99,524 |
+| **post-pass** | **0.958** | **21** | **0** | **224** | **0** |
+
+At 1.3× contrast, Freddy's live pattern loses its top arc and its 3 o'clock blob entirely
+(`sheets/post-berg-contrast13.png`). **What remains is patches touching the underside of "Berg" and the small print.**
+v2's own separation grows those into the letters at that contrast, so the veto supports them. Extra ink inside the
+print area under the stress drops from 34,221 to 12,119 px, part of which is letter edges thickening with contrast. So
+the post-pass **removes the blotch pattern's detached parts, not the patches joined to the print**.
+
+**What it does not do:**
+
+- **Letters:** it never adds, so the Berg's stored photo still reads 8/13 letters and 4/7 flight glyphs. The camera
+  original already reads 13/13 today.
+- **Colour:** the Berg's gold foil is still black in the colour asset.
+- **Clear true colour:** untouched.
+
+**Cost:** $0, no model call. **Time:** +0.7 to +3.5 s per make on this Mac (today 6.3–12.1 s; post-pass 7.8–15.6 s),
+for one more pass of v2's separation at 2048.
+
+**If Freddy wants it in production**, it would be a separate build: the veto inside `disc-stamp-worker.mjs` `extract()`,
+`separate.mjs` moved under `public/`, and a test that fails without it (the Berg Node crop's stray count). It is a
+**global** change: every photo disc made or re-made after deploy, existing assets untouched until Make again. That
+needs the bag-wide identity check and the browser suites that PR #50 ran. No migration. The Berg's acceptance would
+still be his camera-original re-make.

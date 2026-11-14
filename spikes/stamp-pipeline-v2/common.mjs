@@ -22,6 +22,11 @@ export const PINNED={
  dd3:{file:'dd3.jpg',path:'original',options:{scale:.94,aspect:1,perspective:0,angle:0,rotate:0,...framing.dd3.framing},plate:.8081516587677724,plastic:'S-Line',control:true},
  destroyer:{file:'destroyer.jpg',path:'original',options:{scale:.94,aspect:1,perspective:0,angle:0,rotate:0,...framing.destroyer.framing},plate:.8164928909952607,plastic:'Star',control:true},
 };
+// Further photo discs from the bag, for the post-pass's wider check (not part of the brief's pinned set).
+export const EXTRA={
+ pixel:{file:'pixel-stored.webp',path:'stored',plate:.9056603773584906,plastic:'Electron'},
+ 'raptor-0cef':{file:'raptor-0cef6b2f.webp',path:'stored',plate:.8500320187793428,plastic:'Z',clear:true,seeThrough:true},
+};
 
 // The photo as the browser decodes it: EXIF orientation applied, sRGB 8-bit RGBA.
 export async function load(file){

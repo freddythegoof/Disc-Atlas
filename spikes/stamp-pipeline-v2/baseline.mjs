@@ -1,11 +1,11 @@
 // Today's production extraction on each pinned photo: production's crop (STAMP_SIZE through a ≤4096 working copy) and
 // main's worker extract(), unchanged. Writes runs/<disc>/prod-{input,alpha,color}.raw.gz + prod.json.
 import {mkdirSync,writeFileSync} from 'node:fs';
-import {PINNED,RUNS,workingCopy,options,crop,saveRaw,readRaw,exists} from './common.mjs';
+import {PINNED,EXTRA,RUNS,workingCopy,options,crop,saveRaw,readRaw,exists} from './common.mjs';
 import {extract} from '../../public/disc-stamp-worker.mjs';
 
 const SIZE=2048,only=process.argv.slice(2);
-for(const [name,disc] of Object.entries(PINNED)){
+for(const [name,disc] of Object.entries({...PINNED,...EXTRA})){
  if(only.length&&!only.includes(name))continue;
  const dir=RUNS+name+'/';mkdirSync(dir,{recursive:true});
  const t0=performance.now(),img=await workingCopy(disc.file,2*SIZE),opts=options(disc,img);
