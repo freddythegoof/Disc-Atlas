@@ -17,7 +17,7 @@ const p = await b.newPage({viewport: {width: 1440, height: 1000}, reducedMotion:
 await p.goto(base + 'sheet.html'); await p.waitForTimeout(2500);
 const a = await p.screenshot(); await p.waitForTimeout(1500); const c = await p.screenshot();
 const mounted = await p.evaluate(() => document.querySelectorAll('.live canvas').length);
-const ticks = await p.evaluate(async () => { const {Mascot} = await import('./vendor/wobnimo-0.2.0.js'); let n = 0; const tick = Mascot.prototype.tick; Mascot.prototype.tick = function (...x) { n++; return tick.apply(this, x); }; await new Promise(r => setTimeout(r, 2000)); return n; });
+const ticks = await p.evaluate(async () => { const {Mascot} = await import('../../public/vendor/wobnimo/wobnimo-0.2.0.js'); let n = 0; const tick = Mascot.prototype.tick; Mascot.prototype.tick = function (...x) { n++; return tick.apply(this, x); }; await new Promise(r => setTimeout(r, 2000)); return n; });
 console.log('reduced motion: identical screenshots =', a.equals(c), '| mascot ticks in 2s across', mounted, 'settled live mascots =', ticks);
 // Coach closed: a page that has loaded the engine but mounted nothing schedules no frames.
 const q = await b.newPage(); await q.goto(base + 'one.html'); await q.waitForTimeout(1000);
