@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hyzer the Disc — character sheet</title>
+<style>
+@font-face{font-family:'DM Sans';font-weight:400;src:url(../../public/fonts/font-0.ttf) format('truetype')}
+@font-face{font-family:'DM Sans';font-weight:500;src:url(../../public/fonts/font-1.ttf) format('truetype')}
+@font-face{font-family:'DM Sans';font-weight:600;src:url(../../public/fonts/font-2.ttf) format('truetype')}
+@font-face{font-family:'Space Grotesk';font-weight:500;src:url(../../public/fonts/font-5.ttf) format('truetype')}
+/* Paper and Dusk tokens, copied from public/cosmic.css. */
+.paper{--bg:#f6f2ea;--panel:#fffdf8;--surface:#efe9de;--line:#e3dccd;--muted:#76695a;--text:#2b2520;--lime:#395fba;--shadow:#3a2a1418}
+.dusk{--bg:#14110f;--panel:#1c1815;--surface:#26211d;--line:#3a322b;--muted:#b3a597;--text:#f3ece4;--lime:#d9c3a5;--shadow:#0007}
+*{box-sizing:border-box}
+body{margin:0;background:#e9e4da;color:#2b2520;font:14px/1.5 'DM Sans',sans-serif;padding:28px 24px 48px}
+h1{font:500 30px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.8px;margin:0 0 6px}
+.lede{max-width:760px;color:#5d5246;margin:0 0 28px}
+.take{margin:0 0 36px}
+.take>h2{font:500 22px 'Space Grotesk',sans-serif;letter-spacing:-.5px;margin:0 0 4px}
+.take>p{margin:0 0 14px;color:#5d5246;max-width:760px}
+.themes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.theme{background:var(--bg);color:var(--text);border-radius:16px;padding:18px;border:1px solid #0001}
+.theme-name{font-size:10px;letter-spacing:1.5px;font-weight:600;color:var(--muted);margin-bottom:12px}
+.corner{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px}
+/* The launcher, as cosmic.css draws it, with Hyzer's still in place of the ✦ glyph. */
+.launch{display:inline-flex;align-items:center;gap:7px;border-radius:12px;background:var(--panel);color:var(--text);border:1px solid var(--line);font-size:12px;padding:5px 12px 5px 6px;font-weight:500;box-shadow:0 6px 20px var(--shadow);white-space:nowrap;margin-top:10px}
+.launch img{width:28px;height:28px;display:block}
+/* The coach panel's heading, as coach.css draws it, with Hyzer live beside the title. */
+.panel{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px 12px}
+.panel-head{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.panel-head .eyebrow{font-size:10px;letter-spacing:1.5px;color:var(--muted)}
+.panel-head h3{font:500 25px/1.2 'Space Grotesk',sans-serif;letter-spacing:-.8px;margin:4px 0 0}
+.panel-head .x{margin-left:auto;align-self:flex-start;color:var(--muted);font-size:22px;line-height:1}
+.panel .status{font-size:12px;color:var(--muted);margin:10px 0 0}
+.moods{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px 6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 6px 8px}
+.mood{display:flex;flex-direction:column;align-items:center;gap:4px}
+.mood .pair{display:flex;align-items:flex-end;gap:4px;height:64px}
+.mood b{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.4px}
+.live{flex:none}
+.m{width:64px;height:64px}.s{width:32px;height:32px}
+.note{font-size:12px;color:#5d5246;max-width:880px;margin-top:8px}
+@media(max-width:900px){.themes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Hyzer the Disc · character sheet</h1>
+<p class="lede">Part 1 of the mascot brief: the look only, nothing wired. Each block shows the coach corner at real CSS sizes, in Paper and Dusk, then the seven moods the coach would use at <strong>medium (64px, live in the panel heading)</strong> and <strong>small (32px)</strong>. The launcher shows a <strong>28px still frame</strong>, not a live mascot, so the atlas pays no frame cost while the coach is closed. Pick a take.</p>
+
+<section class="take" data-take="cool">
+ <h2>Take A · cool, a little cocky</h2>
+ <p>Steeper hyzer (24°), smaller eyes, one raised lime brow, a smirk set off-centre. Snappy, bird-like glances that hold; small hops.</p>
+ <div class="themes"></div>
+</section>
+<section class="take" data-take="cute">
+ <h2>Take B · cute and friendly</h2>
+ <p>Gentler hyzer (17°), big eyes, blush, a centred smile. Eased glances, bouncy hops, more squash.</p>
+ <div class="themes"></div>
+</section>
+<p class="note">Live mascots: Wobnimo 0.2.0 (MIT), one shared WebGL2 context. Hover a medium Hyzer and he follows the pointer; click him for the poke reaction. With reduced motion turned on, every Hyzer holds a still pose.</p>
+
+<template id="themeTpl">
+ <div class="theme">
+  <div class="theme-name"></div>
+  <div class="corner">
+   <span class="launch"><img alt=""><span>Ask Hyzer</span></span>
+   <div class="panel">
+    <div class="panel-head"><div class="live m" data-state="idle"></div><div><div class="eyebrow">YOUR DISC-GOLF ASSISTANT</div><h3>Atlas Coach</h3></div><span class="x">&times;</span></div>
+    <p class="status">18 of 20 messages left today</p>
+   </div>
+  </div>
+  <div class="moods"></div>
+ </div>
+</template>
+
+<script type="module">
+import {mount, snapshot} from './vendor/wobnimo-0.2.0.js';
+import {hyzerCool, hyzerCute} from './hyzer.mjs';
+
+const specs = {cool: hyzerCool, cute: hyzerCute};
+const moods = ['idle', 'listening', 'thinking', 'speaking', 'celebrating', 'error', 'sleeping'];
+const themes = [['paper', 'PAPER'], ['dusk', 'DUSK']];
+let seed = 0;
+// framing under 1 crops the room Wobnimo leaves for hops and the floor, so the disc fills the corner
+const live = (el, spec, state, small) => mount(el, spec, {state, seed: (seed++ % 17) / 17, floor: small ? 0 : 0.35, framing: small ? 0.78 : 0.9, interactive: !small});
+
+for (const section of document.querySelectorAll('.take')) {
+ const spec = specs[section.dataset.take];
+ for (const [theme, label] of themes) {
+  const node = document.getElementById('themeTpl').content.firstElementChild.cloneNode(true);
+  node.classList.add(theme); node.querySelector('.theme-name').textContent = label;
+  for (const mood of moods) {
+   const cell = document.createElement('div'); cell.className = 'mood';
+   cell.innerHTML = `<div class="pair"><div class="live m"></div><div class="live s"></div></div><b>${mood}</b>`;
+   live(cell.querySelector('.m'), spec, mood, false);
+   live(cell.querySelector('.s'), spec, mood, true);
+   node.querySelector('.moods').append(cell);
+  }
+  live(node.querySelector('.panel-head .live'), spec, 'idle', false);
+  section.querySelector('.themes').append(node);
+  // The launcher's still: drawn once, as a pre-rendered image would be in the app.
+  snapshot(spec, {state: 'idle', size: 28, pixelRatio: 2, floor: 0, seed: 0.3}).then(canvas => {node.querySelector('.launch img').src = canvas.toDataURL('image/png');});
+ }
+}
+</script>
+</body>
+</html>

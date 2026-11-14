@@ -24,6 +24,7 @@ work/
 /vendor/
 /public/vendor/
 /public/bag3d/vendor/
+/spikes/hyzer-mascot/vendor/
 # Assistant-local state is not product source.
 .codex/
 .agents/
