@@ -1,0 +1,52 @@
+{
+ "note": "Reviewed verdicts for tools/near_miss_report.py. MATCH rows have a verified-model-overrides.json entry.",
+ "verdicts": [
+  {
+   "id": "18691b078374",
+   "catalogName": "Grace",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Royal line, same mold; Latitude 64 page prints 11/6/-1/2, equal to the catalog.",
+   "source": "https://latitude64.com/collections/grace"
+  },
+  {
+   "id": "109c875c605c",
+   "catalogName": "Rive",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Royal line, same mold; Latitude 64 page prints 13/5/0/3.5, equal to the catalog.",
+   "source": "https://latitude64.com/collections/rive"
+  },
+  {
+   "id": "0b63e09958f1",
+   "catalogName": "Trust",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Royal line, same mold; Latitude 64 page prints 5/5/0/2, equal to the catalog.",
+   "source": "https://latitude64.com/collections/trust"
+  },
+  {
+   "id": "3fa853db3d0c",
+   "catalogName": "Faith",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Royal line, same mold; Latitude 64 page prints 2/3/0/1, equal to the catalog.",
+   "source": "https://latitude64.com/collections/faith"
+  },
+  {
+   "id": "408b99350b10",
+   "catalogName": "Hope",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Royal line, same mold; Latitude 64 page prints 2/3/0/1, equal to the catalog.",
+   "source": "https://latitude64.com/collections/hope"
+  },
+  {
+   "id": "109c875c605c",
+   "catalogName": "River",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "River is a different mold (Control Driver 7/7/-1/1); only prefix overlap with Rive."
+  }
+ ]
+}

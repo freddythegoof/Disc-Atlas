@@ -2139,6 +2139,106 @@
         "source": "https://latitude64.com/collections/glory",
         "note": "Latitude 64 lists the Glory as a Fairway Driver, but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly."
       }
+    },
+    {
+      "id": "18691b078374",
+      "brand": "Latitude 64",
+      "approvalName": "Grace (Royal Prototype)",
+      "catalogName": "Grace",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 6,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Hybrid Driver",
+      "source": "https://latitude64.com/collections/grace",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/grace",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). Grace page describes it as combining a fairway driver with a high speed driver; category follows the catalog (Hybrid Driver)."
+      }
+    },
+    {
+      "id": "109c875c605c",
+      "brand": "Latitude 64",
+      "approvalName": "Rive (Royal Prototype)",
+      "catalogName": "Rive",
+      "flightNumbers": {
+        "speed": 13,
+        "glide": 5,
+        "turn": 0,
+        "fade": 3.5
+      },
+      "category": "Distance Driver",
+      "source": "https://latitude64.com/collections/rive",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/rive",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "0b63e09958f1",
+      "brand": "Latitude 64",
+      "approvalName": "Trust (Royal Prototype)",
+      "catalogName": "Trust",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 5,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Midrange",
+      "source": "https://latitude64.com/collections/trust",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/trust",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "3fa853db3d0c",
+      "brand": "Latitude 64",
+      "approvalName": "Faith (Royal Prototype)",
+      "catalogName": "Faith",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://latitude64.com/collections/faith",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/faith",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "408b99350b10",
+      "brand": "Latitude 64",
+      "approvalName": "Hope (Royal Prototype)",
+      "catalogName": "Hope",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://latitude64.com/collections/hope",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/hope",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
     }
   ]
 }
