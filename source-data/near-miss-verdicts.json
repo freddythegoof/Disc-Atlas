@@ -7,7 +7,9 @@
    "tier": "A",
    "verdict": "MATCH",
    "reason": "Royal line, same mold; Latitude 64 page prints 11/6/-1/2, equal to the catalog.",
-   "source": "https://latitude64.com/collections/grace"
+   "source": "https://latitude64.com/collections/grace",
+   "brand": "Latitude 64",
+   "registryName": "Grace (Royal Prototype)"
   },
   {
    "id": "109c875c605c",
@@ -15,7 +17,9 @@
    "tier": "A",
    "verdict": "MATCH",
    "reason": "Royal line, same mold; Latitude 64 page prints 13/5/0/3.5, equal to the catalog.",
-   "source": "https://latitude64.com/collections/rive"
+   "source": "https://latitude64.com/collections/rive",
+   "brand": "Latitude 64",
+   "registryName": "Rive (Royal Prototype)"
   },
   {
    "id": "0b63e09958f1",
@@ -23,7 +27,9 @@
    "tier": "A",
    "verdict": "MATCH",
    "reason": "Royal line, same mold; Latitude 64 page prints 5/5/0/2, equal to the catalog.",
-   "source": "https://latitude64.com/collections/trust"
+   "source": "https://latitude64.com/collections/trust",
+   "brand": "Latitude 64",
+   "registryName": "Trust (Royal Prototype)"
   },
   {
    "id": "3fa853db3d0c",
@@ -31,7 +37,9 @@
    "tier": "A",
    "verdict": "MATCH",
    "reason": "Royal line, same mold; Latitude 64 page prints 2/3/0/1, equal to the catalog.",
-   "source": "https://latitude64.com/collections/faith"
+   "source": "https://latitude64.com/collections/faith",
+   "brand": "Latitude 64",
+   "registryName": "Faith (Royal Prototype)"
   },
   {
    "id": "408b99350b10",
@@ -39,14 +47,1956 @@
    "tier": "A",
    "verdict": "MATCH",
    "reason": "Royal line, same mold; Latitude 64 page prints 2/3/0/1, equal to the catalog.",
-   "source": "https://latitude64.com/collections/hope"
+   "source": "https://latitude64.com/collections/hope",
+   "brand": "Latitude 64",
+   "registryName": "Hope (Royal Prototype)"
   },
   {
    "id": "109c875c605c",
    "catalogName": "River",
    "tier": "B",
    "verdict": "NOT A MATCH",
-   "reason": "River is a different mold (Control Driver 7/7/-1/1); only prefix overlap with Rive."
+   "reason": "River is a different mold (Control Driver 7/7/-1/1); only prefix overlap with Rive.",
+   "brand": "Latitude 64",
+   "registryName": "Rive (Royal Prototype)"
+  },
+  {
+   "id": "cf5ef5e04bb6",
+   "brand": "Clash Discs",
+   "registryName": "Cookie (Tone variant)",
+   "catalogName": "Cookie",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Clash \"Tone variant\" is separately certified and can fly differently from the base mold."
+  },
+  {
+   "id": "62d958f94141",
+   "brand": "Clash Discs",
+   "registryName": "Guava (Tone variant)",
+   "catalogName": "Guava",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Clash \"Tone variant\" is separately certified and can fly differently from the base mold."
+  },
+  {
+   "id": "c1153b0ae8fe",
+   "brand": "Clash Discs",
+   "registryName": "Lotus (Tone variant)",
+   "catalogName": "Lotus",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Clash \"Tone variant\" is separately certified and can fly differently from the base mold."
+  },
+  {
+   "id": "3f63b140c099",
+   "brand": "Clash Discs",
+   "registryName": "Lotus (retooled)",
+   "catalogName": "Lotus",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Retool of the Lotus; flight not certified identical."
+  },
+  {
+   "id": "d626dcbdfcc6",
+   "brand": "Clash Discs",
+   "registryName": "Popcorn (Tone variant)",
+   "catalogName": "Popcorn",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Clash \"Tone variant\" is separately certified and can fly differently from the base mold."
+  },
+  {
+   "id": "209bba00cd5e",
+   "brand": "Clash Discs",
+   "registryName": "Salt (Tone variant)",
+   "catalogName": "Salt",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Clash \"Tone variant\" is separately certified and can fly differently from the base mold."
+  },
+  {
+   "id": "06aa01a88452",
+   "brand": "Clash Discs",
+   "registryName": "Soda (Tone variant)",
+   "catalogName": "Soda",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Clash \"Tone variant\" is separately certified and can fly differently from the base mold."
+  },
+  {
+   "id": "7e8a13314c4c",
+   "brand": "DGA",
+   "registryName": "Aftershock (D-Line)",
+   "catalogName": "Aftershock",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "5fb0c96c2a03",
+   "brand": "DGA",
+   "registryName": "Hurricane (Proline)",
+   "catalogName": "Hurricane",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "6ad618aeb2c2",
+   "brand": "DGA",
+   "registryName": "Hurricane (SP Line)",
+   "catalogName": "Hurricane",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "258e52f97368",
+   "brand": "DGA",
+   "registryName": "Tsunami (D-Line)",
+   "catalogName": "Tsunami",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "07ce3ab62b09",
+   "brand": "DGA",
+   "registryName": "Undertow (ProLine)",
+   "catalogName": "Undertow",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "568668d4df0a",
+   "brand": "DGA",
+   "registryName": "Undertow (SP-line)",
+   "catalogName": "Undertow",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "3ce1778ffdef",
+   "brand": "Daredevil Discs",
+   "registryName": "Hellbender (Beluga variant)",
+   "catalogName": "Hellbender",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Daredevil animal-edition variant, separately certified; not assumed to fly like the base Hellbender."
+  },
+  {
+   "id": "4c8d238db787",
+   "brand": "Daredevil Discs",
+   "registryName": "Hellbender (Killer Whale variant)",
+   "catalogName": "Hellbender",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Daredevil animal-edition variant, separately certified; not assumed to fly like the base Hellbender."
+  },
+  {
+   "id": "7a9dcd348c78",
+   "brand": "Daredevil Discs",
+   "registryName": "Hellbender (Memphré variant)",
+   "catalogName": "Hellbender",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Daredevil animal-edition variant, separately certified; not assumed to fly like the base Hellbender."
+  },
+  {
+   "id": "362c616c2f76",
+   "brand": "Daredevil Discs",
+   "registryName": "Hellbender (Razorback variant)",
+   "catalogName": "Hellbender",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Daredevil animal-edition variant, separately certified; not assumed to fly like the base Hellbender."
+  },
+  {
+   "id": "d7142b8fcd21",
+   "brand": "Daredevil Discs",
+   "registryName": "Hellbender (Salamander variant)",
+   "catalogName": "Hellbender",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Daredevil animal-edition variant, separately certified; not assumed to fly like the base Hellbender."
+  },
+  {
+   "id": "051b0cca2c18",
+   "brand": "Discmania",
+   "registryName": "DD (Hysteria, Distance Driver)",
+   "catalogName": "DD",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (DD (new)); historical approvals stay separate."
+  },
+  {
+   "id": "d9f162ed490c",
+   "brand": "Discmania",
+   "registryName": "DD2 (Frenzy, Distance Driver)",
+   "catalogName": "DD2",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (DD2 (2025), DD2 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "796c436880c7",
+   "brand": "Discmania",
+   "registryName": "DD2 (new)",
+   "catalogName": "DD2",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling DD2 (2025), DD2 (Frenzy, Distance Driver)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "f12a6f9df317",
+   "brand": "Discmania",
+   "registryName": "DD3 (Cloud Breaker, Distance Driver)",
+   "catalogName": "DD3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (DD3 (new), DD3 (retest)); historical approvals stay separate."
+  },
+  {
+   "id": "b9b5e08b1d0c",
+   "brand": "Discmania",
+   "registryName": "DD3 (retest)",
+   "catalogName": "DD3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling DD3 (new), DD3 (Cloud Breaker, Distance Driver)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "a24159011893",
+   "brand": "Discmania",
+   "registryName": "FD (Jackal, Fairway Driver)",
+   "catalogName": "FD",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (FD (new)); historical approvals stay separate."
+  },
+  {
+   "id": "c425de9c348b",
+   "brand": "Discmania",
+   "registryName": "FD3 (Fairway Driver)",
+   "catalogName": "FD3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (FD3 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "3b21df03b2fa",
+   "brand": "Discmania",
+   "registryName": "MD (Midrange Driver)",
+   "catalogName": "MD",
+   "tier": "A",
+   "verdict": "UNSURE",
+   "reason": "Gloss-only name but no manufacturer number verification possible for this older approval."
+  },
+  {
+   "id": "efaa6e38ae21",
+   "brand": "Discmania",
+   "registryName": "MD1 (Midrange Driver)",
+   "catalogName": "MD1",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Discmania C-Line/S-Line MD1 pages print 5/6/0/0, equal to the catalog. Gloss \"(Midrange Driver)\" is descriptive; no newer MD1 approval exists.",
+   "source": "https://discmania.net/products/c-line-md1"
+  },
+  {
+   "id": "68756fb757c1",
+   "brand": "Discmania",
+   "registryName": "MD3 (Midrange Driver)",
+   "catalogName": "MD3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (MD3 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "ff1efafdf9e9",
+   "brand": "Discmania",
+   "registryName": "MD4 (Midrange Driver)",
+   "catalogName": "MD4",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (MD4 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "ab170873ca7d",
+   "brand": "Discmania",
+   "registryName": "MD5 (Midrange Driver)",
+   "catalogName": "MD5",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (MD5 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "3c48df420bd3",
+   "brand": "Discmania",
+   "registryName": "P1 (Maniac, Putt & Approach)",
+   "catalogName": "P1",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (P1 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "582ff30c07a0",
+   "brand": "Discmania",
+   "registryName": "P1x (Beaded Putter)",
+   "catalogName": "P1X",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (P1x (new)); historical approvals stay separate."
+  },
+  {
+   "id": "e409972fbc0f",
+   "brand": "Discmania",
+   "registryName": "P2 (Psycho, Pro Putter)",
+   "catalogName": "P2",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (P2 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "28012d9b5d2e",
+   "brand": "Discmania",
+   "registryName": "P3x (Putt & Approach)",
+   "catalogName": "P3X",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (P3x (new)); historical approvals stay separate."
+  },
+  {
+   "id": "546396b4bce2",
+   "brand": "Discmania",
+   "registryName": "PD (Freak, Power Driver)",
+   "catalogName": "PD",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (PD (new)); historical approvals stay separate."
+  },
+  {
+   "id": "5a499458e972",
+   "brand": "Discmania",
+   "registryName": "PD2 (Chaos, Power Driver)",
+   "catalogName": "PD2",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (PD2 (new)); historical approvals stay separate."
+  },
+  {
+   "id": "696335fff440",
+   "brand": "Discmania",
+   "registryName": "TD (Rush, Turn Driver)",
+   "catalogName": "TD",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Original approval superseded by a separately rated \"(new)\" record (TD (new)); historical approvals stay separate."
+  },
+  {
+   "id": "260b88c77166",
+   "brand": "Dynamic Discs",
+   "registryName": "Sergeant (retest)",
+   "catalogName": "Sergeant",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Sergeant). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "5909bf2fc9d4",
+   "brand": "Elevation Disc Golf",
+   "registryName": "Nimbus (retooled)",
+   "catalogName": "Nimbus",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Nimbus). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "cb76c7bf70b6",
+   "brand": "Gateway",
+   "registryName": "Assassin (retool 2)",
+   "catalogName": "Assassin",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Assassin (retooled), Assassin). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "1da9bfaa3eb5",
+   "brand": "Gateway",
+   "registryName": "Assassin (retooled)",
+   "catalogName": "Assassin",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Assassin (retool 2), Assassin). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "3b0a333a229d",
+   "brand": "Gateway",
+   "registryName": "Aura (retooled)",
+   "catalogName": "Aura",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Aura). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "f5933b2fca4b",
+   "brand": "Gateway",
+   "registryName": "Chief (retooled)",
+   "catalogName": "Chief",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Chief). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "34d2de57f26d",
+   "brand": "Gateway",
+   "registryName": "Mystic (retooled)",
+   "catalogName": "Mystic",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Mystic). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "386e48f0def0",
+   "brand": "Gateway",
+   "registryName": "Slayer (retooled)",
+   "catalogName": "Slayer",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Slayer). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "63915631ad16",
+   "brand": "Gateway",
+   "registryName": "Voodoo (revised)",
+   "catalogName": "Voodoo",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Voodoo). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "d14b7ade9552",
+   "brand": "Gateway",
+   "registryName": "Wizard (revised)",
+   "catalogName": "Wizard",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Wizard). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "ed27d4eb2bc3",
+   "brand": "Hooligan Discs",
+   "registryName": "Thread (new)",
+   "catalogName": "Thread",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Thread). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "2be02868885c",
+   "brand": "Hooligan Discs",
+   "registryName": "Vibe (new)",
+   "catalogName": "Vibe",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Vibe). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "527ad5acf069",
+   "brand": "Hooligan Discs",
+   "registryName": "Yeet (new)",
+   "catalogName": "Yeet",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Yeet). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "8f304f7b326e",
+   "brand": "Innova",
+   "registryName": "Alien (new)",
+   "catalogName": "Alien",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Alien). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "29e5e2dd7f28",
+   "brand": "Innova",
+   "registryName": "Birdie (retooled)",
+   "catalogName": "Birdie",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Birdie). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "81d3219a7429",
+   "brand": "Innova",
+   "registryName": "Cheetah (retooled)",
+   "catalogName": "Cheetah",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Cheetah). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "f492945b1ff0",
+   "brand": "Innova",
+   "registryName": "Eagle (old)",
+   "catalogName": "Eagle",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Eagle (new)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "e951533cc0a8",
+   "brand": "Innova",
+   "registryName": "Jay (New)",
+   "catalogName": "Jay",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Jay). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "fb0bfbe4e5ab",
+   "brand": "Innova",
+   "registryName": "Lynx (new) (renamed from IT - Innova Tech)",
+   "catalogName": "Lynx",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Lynx). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "c20b8b963226",
+   "brand": "Innova",
+   "registryName": "Rat (New)",
+   "catalogName": "Rat",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Rat). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "da66f12d01ba",
+   "brand": "Innova",
+   "registryName": "Wombat 3 (New)",
+   "catalogName": "Wombat3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Wombat3). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "b5a3d7a91b51",
+   "brand": "Kastaplast",
+   "registryName": "Rask (new)",
+   "catalogName": "Rask",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Rask (old)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "eaffc6113188",
+   "brand": "Kastaplast",
+   "registryName": "Rask (old)",
+   "catalogName": "Rask",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Rask (new)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "f7e9fb1a8c9b",
+   "brand": "Latitude 64",
+   "registryName": "Sinus (New)",
+   "catalogName": "Sinus",
+   "tier": "A",
+   "verdict": "MATCH",
+   "reason": "Latitude 64 Sinus page prints 2/2/0/2 for \"the current version\", equal to the catalog. \"(New)\" is the 2024 redesign sold today; the 2006 Sinus AP/SP approvals stay separate.",
+   "source": "https://latitude64.com/collections/sinus"
+  },
+  {
+   "id": "e23e0a9257a8",
+   "brand": "Legacy",
+   "registryName": "Outlaw (retooled)",
+   "catalogName": "Outlaw",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Outlaw). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "43ae372f87f7",
+   "brand": "Mint Discs",
+   "registryName": "Phoenix (old)",
+   "catalogName": "Phoenix",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Phoenix). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "e75ebcf8f81b",
+   "brand": "Prodigy",
+   "registryName": "(New) F3",
+   "catalogName": "F3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling F3). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "31e398ec8b03",
+   "brand": "Prodigy",
+   "registryName": "D1 (New)",
+   "catalogName": "D1",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling D1). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "895e42a52aae",
+   "brand": "Prodigy",
+   "registryName": "D2 (New)",
+   "catalogName": "D2",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling D2). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "20080b135815",
+   "brand": "Prodigy",
+   "registryName": "D3 (New)",
+   "catalogName": "D3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling D3). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "f763153429c0",
+   "brand": "Prodigy",
+   "registryName": "H2 V2 (retooled H2)",
+   "catalogName": "H2 (V2)",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified. Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "c9034bb6ddda",
+   "brand": "Prodigy",
+   "registryName": "H3 V2 (retooled H3)",
+   "catalogName": "H3 (V2)",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified. Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "b73bd09be697",
+   "brand": "Prodigy",
+   "registryName": "M3 (new) ",
+   "catalogName": "M3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling M3 (originally M2)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "bab4473ed958",
+   "brand": "Prodigy",
+   "registryName": "M3 (originally M2)",
+   "catalogName": "M3",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling M3 (new) ). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "b0c8f887f3fb",
+   "brand": "Prodigy",
+   "registryName": "M5 (New)",
+   "catalogName": "M5",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling M5). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "9e009612bd8a",
+   "brand": "RPM",
+   "registryName": "Kea (MR2)",
+   "catalogName": "Kea",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Kea (MR2) (retooled)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "ce100639ad9b",
+   "brand": "RPM",
+   "registryName": "Kea (MR2) (retooled)",
+   "catalogName": "Kea",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Kea (MR2)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "fd7b14e31beb",
+   "brand": "RPM",
+   "registryName": "Kiwi (DGD1, former Raptor)",
+   "catalogName": "Kiwi",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Kiwi (DGD1, retooled)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "fb4207ebabb0",
+   "brand": "RPM",
+   "registryName": "Kiwi (DGD1, retooled)",
+   "catalogName": "Kiwi",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Kiwi (DGD1, former Raptor)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "18184ef381db",
+   "brand": "RPM",
+   "registryName": "Kotare (DGD3)",
+   "catalogName": "Kotare",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Kotare (DGD3, retooled)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "377ead5a6642",
+   "brand": "RPM",
+   "registryName": "Kotare (DGD3, retooled)",
+   "catalogName": "Kotare",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Kotare (DGD3)). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "1f18f8b3e4ca",
+   "brand": "Streamline",
+   "registryName": "Boost (Prototype)",
+   "catalogName": "Boost",
+   "tier": "A",
+   "verdict": "NOT A MATCH",
+   "reason": "Version/retool/prototype marker; separately certified (sibling Boost). Not assumed to fly like the catalog entry."
+  },
+  {
+   "id": "e757fa912226",
+   "brand": "ABC Discs",
+   "registryName": "Money",
+   "catalogName": "Money Putter",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "9c2432da5842",
+   "brand": "Above Ground Level",
+   "registryName": "Locust x (variant)",
+   "catalogName": "Locust",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Explicit variant of Locust; separately certified."
+  },
+  {
+   "id": "c9c1286e42d8",
+   "brand": "DGA",
+   "registryName": "Steady - Beadless (BL)",
+   "catalogName": "Steady",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "362c616c2f76",
+   "brand": "Daredevil Discs",
+   "registryName": "Hellbender (Razorback variant)",
+   "catalogName": "Hellbender (Razorback)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Daredevil animal-edition variant, separately certified; not assumed to fly like the base Hellbender."
+  },
+  {
+   "id": "3707370834d8",
+   "brand": "Discraft",
+   "registryName": "Cyclone 2",
+   "catalogName": "Cyclone",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "0aca83e2c0ae",
+   "brand": "Discraft",
+   "registryName": "Rattler Putter",
+   "catalogName": "Rattler",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "17be4e748b7a",
+   "brand": "Discraft",
+   "registryName": "Venom",
+   "catalogName": "Venom (Old Version - OOP)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "17be4e748b7a",
+   "brand": "Discraft",
+   "registryName": "Venom",
+   "catalogName": "Venom (Retooled)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Catalog splits Venom into Old (OOP) and Retooled versions with different numbers (10/4/0/4 vs 13/5/0/3); which one the 2005 approval is cannot be settled."
+  },
+  {
+   "id": "8b507b3cabd4",
+   "brand": "Discraft",
+   "registryName": "Zone GT (Ringer Top)",
+   "catalogName": "Zone",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Zone GT (Ringer Top) is a different disc from Zone / Ringer."
+  },
+  {
+   "id": "d1309481df88",
+   "brand": "EV-7",
+   "registryName": "Agera-1",
+   "catalogName": "Agera",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "857c414444b5",
+   "brand": "EV-7",
+   "registryName": "Penrose OG Firm",
+   "catalogName": "Penrose",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "OG Firm is a plastic-feel variant approval; not assumed equal to Penrose."
+  },
+  {
+   "id": "b7b69b2ee002",
+   "brand": "Gateway",
+   "registryName": "Apache",
+   "catalogName": "Apache (OOP)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "b7b69b2ee002",
+   "brand": "Gateway",
+   "registryName": "Apache",
+   "catalogName": "Apache (retooled)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "8bcf0e63caba",
+   "brand": "Gateway",
+   "registryName": "Blade V2 (variant)",
+   "catalogName": "Blade",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "78b05776af67",
+   "brand": "Gateway",
+   "registryName": "Diablo DT",
+   "catalogName": "Diablo",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "5bc4a98c2731",
+   "brand": "Gateway",
+   "registryName": "Element X",
+   "catalogName": "Element",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Element X is its own mold, not the Element."
+  },
+  {
+   "id": "0bef56b33af8",
+   "brand": "Gateway",
+   "registryName": "Journey - LS",
+   "catalogName": "Journey",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "ea1a0c5db284",
+   "brand": "Gateway",
+   "registryName": "Odyssey Control Driver",
+   "catalogName": "Odyssey",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "747d1e0318f5",
+   "brand": "Gateway",
+   "registryName": "Speed Demon DT",
+   "catalogName": "Speed Demon",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "d61bcc610f6d",
+   "brand": "Gateway",
+   "registryName": "Speed Demon GT (variant)",
+   "catalogName": "Speed Demon",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "5b0850aeea5f",
+   "brand": "Gateway",
+   "registryName": "Warlock GE (variant)",
+   "catalogName": "Warlock",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "846dcca8eeab",
+   "brand": "Innova",
+   "registryName": "Cobra Classic",
+   "catalogName": "Cobra",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "ad7179c20681",
+   "brand": "Innova",
+   "registryName": "Firebird L (FL)",
+   "catalogName": "Firebird",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Own mold (L-series) with its own flight character, not the parent's."
+  },
+  {
+   "id": "372cda79b788",
+   "brand": "Innova",
+   "registryName": "Racer 2",
+   "catalogName": "Racer",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "4d0d212b70d4",
+   "brand": "Innova",
+   "registryName": "TeeBird L (TL)",
+   "catalogName": "Teebird",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Own mold (L-series) with its own flight character, not the parent's."
+  },
+  {
+   "id": "650dc5afeada",
+   "brand": "Kastaplast",
+   "registryName": "Kaxe",
+   "catalogName": "Kaxe (Old - OOP)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "650dc5afeada",
+   "brand": "Kastaplast",
+   "registryName": "Kaxe",
+   "catalogName": "Kaxe (Retooled)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Catalog splits Kaxe into Old/Retooled/Z versions with different numbers; which one the 2014 approval is cannot be settled."
+  },
+  {
+   "id": "650dc5afeada",
+   "brand": "Kastaplast",
+   "registryName": "Kaxe",
+   "catalogName": "Kaxe Z (OOP)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "554ee964a4d7",
+   "brand": "Latitude 64",
+   "registryName": "Sinus AP",
+   "catalogName": "Sinus",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Own 2006 Sinus-family approval (AP), separately certified from the current Sinus."
+  },
+  {
+   "id": "2536075cd757",
+   "brand": "Latitude 64",
+   "registryName": "Sinus SP",
+   "catalogName": "Sinus",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Own 2006 Sinus-family approval (SP), separately certified from the current Sinus."
+  },
+  {
+   "id": "940b098b2973",
+   "brand": "Lone Star Discs",
+   "registryName": "Guadalupe AKA Guad",
+   "catalogName": "Guadalupe",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "186c5bc53336",
+   "brand": "Lone Star Discs",
+   "registryName": "Penny Putter ",
+   "catalogName": "Penny Putter (Premium)",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "186c5bc53336",
+   "brand": "Lone Star Discs",
+   "registryName": "Penny Putter ",
+   "catalogName": "Penny Putter (Victor)",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "200053aefa9c",
+   "brand": "Millennium",
+   "registryName": "Omega SuperSoft Putter Big Bead",
+   "catalogName": "Omega",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "af40fef92aca",
+   "brand": "Millennium",
+   "registryName": "Polaris LF",
+   "catalogName": "Polaris LF (OOP)",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "bd2ca6ad1864",
+   "brand": "Millennium",
+   "registryName": "Tank - Panzer",
+   "catalogName": "Tank",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Panzer is a different Tank-family mold."
+  },
+  {
+   "id": "643e77d9605c",
+   "brand": "Prodigy",
+   "registryName": "D Model US+",
+   "catalogName": "D Model US",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "1d2a778e50e5",
+   "brand": "Prodigy",
+   "registryName": "D Model US++",
+   "catalogName": "D Model US",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "964edab5f0c7",
+   "brand": "Prodigy",
+   "registryName": "F Model OS+",
+   "catalogName": "F Model OS",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "b35e7afe59e2",
+   "brand": "Prodigy",
+   "registryName": "P Model US+",
+   "catalogName": "P Model US",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "bdf705cebcd2",
+   "brand": "Westside Discs",
+   "registryName": "Boatman VIP Air (VIP Air Tuonelan Lautturi1)",
+   "catalogName": "Boatman",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "0654dd519033",
+   "brand": "Westside Discs",
+   "registryName": "Giant VIP Air (VIP Air Vipunen1)",
+   "catalogName": "Giant",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "8e484842f4aa",
+   "brand": "Westside Discs",
+   "registryName": "King VIP Air (VIP Air Pohjolan Isäntä1)",
+   "catalogName": "King",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "f818f42f630a",
+   "brand": "Westside Discs",
+   "registryName": "Northman VIP Air (VIP Air Pohjan Poika1)",
+   "catalogName": "Northman",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "c520d081d041",
+   "brand": "Westside Discs",
+   "registryName": "Stag VIP Air (VIP Air Hiiden Hirvi1)",
+   "catalogName": "Stag",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "1f792d07cfdb",
+   "brand": "Westside Discs",
+   "registryName": "Sword VIP Air (VIP Air Kalevan Miekka1)",
+   "catalogName": "Sword",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "707bedd03657",
+   "brand": "Westside Discs",
+   "registryName": "Tursas VIP Air (VIP Air Tursas1)",
+   "catalogName": "Tursas",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "ebb5c4e86fb4",
+   "brand": "Westside Discs",
+   "registryName": "Underworld VIP Air (VIP Air Manala1)",
+   "catalogName": "Underworld",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "a5827ab40cef",
+   "brand": "Westside Discs",
+   "registryName": "Warship VIP Air (VIP Air Pursi1)",
+   "catalogName": "Warship",
+   "tier": "B",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "b71a7ef77d68",
+   "brand": "Wild Discs",
+   "registryName": "Addax V2",
+   "catalogName": "Addax",
+   "tier": "B",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "eb15d71451e0",
+   "brand": "Axiom",
+   "registryName": "Simon Line Balance (Prototype)",
+   "catalogName": "Balance",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "6b740b01bcc2",
+   "brand": "Axiom",
+   "registryName": "Simon Line Balance (Prototype_2)",
+   "catalogName": "Balance",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "ec016c59c726",
+   "brand": "Axiom",
+   "registryName": "Simon Line Balance (Prototype_3)",
+   "catalogName": "Balance",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "2184fe176ad8",
+   "brand": "DGA",
+   "registryName": "Blunt \"Blowfly\"",
+   "catalogName": "Blowfly",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "16339899c2c7",
+   "brand": "DGA",
+   "registryName": "Proline Breaker",
+   "catalogName": "Breaker",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "f2d26892f97d",
+   "brand": "DGA",
+   "registryName": "Sparkle Aftershock",
+   "catalogName": "Aftershock",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "72810065db51",
+   "brand": "DGA",
+   "registryName": "Sparkle Reef",
+   "catalogName": "Reef",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "c9c1286e42d8",
+   "brand": "DGA",
+   "registryName": "Steady - Beadless (BL)",
+   "catalogName": "Steady BL",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "17ff7e2b4418",
+   "brand": "Discmania",
+   "registryName": "Razor Claw Tactic",
+   "catalogName": "Tactic",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "4a4f4d44d01d",
+   "brand": "Discraft",
+   "registryName": "The Hawk",
+   "catalogName": "Hawk",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "b7921a3f533f",
+   "brand": "Discraft",
+   "registryName": "Z-Nuke (retooled)",
+   "catalogName": "Nuke",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "8b507b3cabd4",
+   "brand": "Discraft",
+   "registryName": "Zone GT (Ringer Top)",
+   "catalogName": "Ringer",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Zone GT (Ringer Top) is a different disc from Zone / Ringer."
+  },
+  {
+   "id": "8b507b3cabd4",
+   "brand": "Discraft",
+   "registryName": "Zone GT (Ringer Top)",
+   "catalogName": "Ringer GT",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Zone GT (Ringer Top) is a different disc from Zone / Ringer."
+  },
+  {
+   "id": "c48ce2feacf8",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme EMAC Judge",
+   "catalogName": "EMAC Judge",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "c48ce2feacf8",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme EMAC Judge",
+   "catalogName": "Judge",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "86bc3de2c1b9",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme Escape",
+   "catalogName": "Escape",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "b2f3ac87da31",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme Fugitive",
+   "catalogName": "Fugitive",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "b2f3ac87da31",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme Fugitive",
+   "catalogName": "Fugitive (Supreme)",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "ec344f76af62",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme Judge",
+   "catalogName": "Judge",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "30b3cb8522d2",
+   "brand": "Dynamic Discs",
+   "registryName": "Supreme Raider",
+   "catalogName": "Raider",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Plastic-line approval certified separately from the plain mold; manufacturer numbers by plastic not confirmable in this pass."
+  },
+  {
+   "id": "753be0821409",
+   "brand": "Gateway",
+   "registryName": "844 Sabre",
+   "catalogName": "Sabre",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "747d1e0318f5",
+   "brand": "Gateway",
+   "registryName": "Speed Demon DT",
+   "catalogName": "Demon",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "d61bcc610f6d",
+   "brand": "Gateway",
+   "registryName": "Speed Demon GT (variant)",
+   "catalogName": "Demon",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "0b42a9e3af9e",
+   "brand": "Innova",
+   "registryName": "Aviar XD",
+   "catalogName": "XD",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Aviar XD is a different mold from the catalog XD."
+  },
+  {
+   "id": "79e0dd204a28",
+   "brand": "Innova",
+   "registryName": "Aviar XD (retooled)",
+   "catalogName": "XD",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "e54bb8938c6a",
+   "brand": "Innova",
+   "registryName": "CE Aero",
+   "catalogName": "Aero",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Champion Edition-era historical approval, separately certified; plain catalog numbers are for the modern mold."
+  },
+  {
+   "id": "72e4e6bfd426",
+   "brand": "Innova",
+   "registryName": "CE Eagle",
+   "catalogName": "Eagle",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Champion Edition-era historical approval, separately certified; plain catalog numbers are for the modern mold."
+  },
+  {
+   "id": "f4fdcd04a7b8",
+   "brand": "Innova",
+   "registryName": "CE FireBird",
+   "catalogName": "Firebird",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Champion Edition-era historical approval, separately certified; plain catalog numbers are for the modern mold."
+  },
+  {
+   "id": "faba990fe93c",
+   "brand": "Innova",
+   "registryName": "CE Leopard",
+   "catalogName": "Leopard",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Champion Edition-era historical approval, separately certified; plain catalog numbers are for the modern mold."
+  },
+  {
+   "id": "777b2ff5cc44",
+   "brand": "Innova",
+   "registryName": "CE TeeBird",
+   "catalogName": "Teebird",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Champion Edition-era historical approval, separately certified; plain catalog numbers are for the modern mold."
+  },
+  {
+   "id": "3f9cd29727c1",
+   "brand": "Innova",
+   "registryName": "CE Valkyrie",
+   "catalogName": "Valkyrie",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Champion Edition-era historical approval, separately certified; plain catalog numbers are for the modern mold."
+  },
+  {
+   "id": "ad7179c20681",
+   "brand": "Innova",
+   "registryName": "Firebird L (FL)",
+   "catalogName": "FL",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Own mold (L-series) with its own flight character, not the parent's."
+  },
+  {
+   "id": "fb0bfbe4e5ab",
+   "brand": "Innova",
+   "registryName": "Lynx (new) (renamed from IT - Innova Tech)",
+   "catalogName": "IT",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Catalog IT is the old Innova Tech; the rename is a new version."
+  },
+  {
+   "id": "a2b31d99c43e",
+   "brand": "Innova",
+   "registryName": "Super Nova",
+   "catalogName": "Nova",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Super Nova is a different mold from Nova."
+  },
+  {
+   "id": "4d0d212b70d4",
+   "brand": "Innova",
+   "registryName": "TeeBird L (TL)",
+   "catalogName": "TL",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Own mold (L-series) with its own flight character, not the parent's."
+  },
+  {
+   "id": "112a0415093f",
+   "brand": "Latitude 64",
+   "registryName": "Skill (renamed from SPZ 2 (Midrange, Pirate))",
+   "catalogName": "Pirate",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "4fbb6d1c8cd5",
+   "brand": "Lone Star Discs",
+   "registryName": "Ranger",
+   "catalogName": "Texas Ranger",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "a27d433eb06a",
+   "brand": "Lone Star Discs",
+   "registryName": "The Dillard Midrange Md-1 (Middy)",
+   "catalogName": "Middy",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "d70fba20c96f",
+   "brand": "Lone Star Discs",
+   "registryName": "The Harpoon",
+   "catalogName": "Harpoon",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "0798f7bab4e2",
+   "brand": "Lone Star Discs",
+   "registryName": "The Mockingbird (Ka Kaw)",
+   "catalogName": "Mockingbird",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "9281fa670e42",
+   "brand": "Lone Star Discs",
+   "registryName": "The Rig",
+   "catalogName": "Rig",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "da13787062a6",
+   "brand": "Lone Star Discs",
+   "registryName": "The Tex",
+   "catalogName": "Tex",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Name decoration only (\"The ...\") but Lone Star publishes no machine-readable numbers; could not verify from the manufacturer."
+  },
+  {
+   "id": "200053aefa9c",
+   "brand": "Millennium",
+   "registryName": "Omega SuperSoft Putter Big Bead",
+   "catalogName": "Omega Big Bead",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "a3cab5b6a882",
+   "brand": "Millennium",
+   "registryName": "QMS",
+   "catalogName": "Aurora/QMS",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "75c8bee0c169",
+   "brand": "Prodigy",
+   "registryName": "D Model Distance Driver S",
+   "catalogName": "D Model S",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "51b2d1abba0d",
+   "brand": "Prodigy",
+   "registryName": "D1 Signature (Reverb)",
+   "catalogName": "D1",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "51b2d1abba0d",
+   "brand": "Prodigy",
+   "registryName": "D1 Signature (Reverb)",
+   "catalogName": "Reverb",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "c2dd5522cb62",
+   "brand": "Prodigy",
+   "registryName": "D1 V2 (retooled D1)",
+   "catalogName": "D1",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "3ca932149e2e",
+   "brand": "Prodigy",
+   "registryName": "D2 V2 (retooled D2)",
+   "catalogName": "D2",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "0e56ebbdd163",
+   "brand": "Prodigy",
+   "registryName": "D3 V2 (retooled D3)",
+   "catalogName": "D3",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "2cdd232d02f7",
+   "brand": "Prodigy",
+   "registryName": "D6 Max",
+   "catalogName": "D6",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "05e28b3c7f15",
+   "brand": "Prodigy",
+   "registryName": "D6 V2 (retooled D6)",
+   "catalogName": "D6",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "15260b57c60f",
+   "brand": "Prodigy",
+   "registryName": "F Model Fairway Driver S",
+   "catalogName": "F Model S",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "7a113ae8f64e",
+   "brand": "Prodigy",
+   "registryName": "H1",
+   "catalogName": "H1 (V2)",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "b4731a3a0a51",
+   "brand": "Prodigy",
+   "registryName": "H2",
+   "catalogName": "H2 (V2)",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "51ef6f7b75f1",
+   "brand": "Prodigy",
+   "registryName": "H3",
+   "catalogName": "H3 (V2)",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "1b540cf6adca",
+   "brand": "Prodigy",
+   "registryName": "H4",
+   "catalogName": "H4 (V2)",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "bab4473ed958",
+   "brand": "Prodigy",
+   "registryName": "M3 (originally M2)",
+   "catalogName": "M2",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Origin/rename note on a 2013 approval; catalog M2 and M3 differ."
+  },
+  {
+   "id": "4e3d2b482ea2",
+   "brand": "Prodigy",
+   "registryName": "New M1",
+   "catalogName": "M1",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "\"New\" version marker; separately certified."
+  },
+  {
+   "id": "2c0da162c0e0",
+   "brand": "Prodigy",
+   "registryName": "P Model Putter OS",
+   "catalogName": "P Model OS",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Different mold, variant or retool of the catalog entry (names differ by a model suffix, not decoration)."
+  },
+  {
+   "id": "59720195fa2f",
+   "brand": "Prodigy",
+   "registryName": "Prodigy NERF Driver",
+   "catalogName": "NERF Driver",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Foam NERF product line, not the plain-named catalog molds."
+  },
+  {
+   "id": "137edb42e23a",
+   "brand": "Prodigy",
+   "registryName": "Prodigy NERF Midrange",
+   "catalogName": "NERF Midrange",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Foam NERF product line, not the plain-named catalog molds."
+  },
+  {
+   "id": "6d28ab2d422f",
+   "brand": "Prodigy",
+   "registryName": "Prodigy NERF Putter",
+   "catalogName": "NERF Putter",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Foam NERF product line, not the plain-named catalog molds."
+  },
+  {
+   "id": "ff15cbf6129d",
+   "brand": "Prodigy",
+   "registryName": "Prodigy NERF Ultimate",
+   "catalogName": "NERF Ultimate",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Foam NERF product line, not the plain-named catalog molds."
+  },
+  {
+   "id": "1881a594f8f8",
+   "brand": "Prodigy",
+   "registryName": "Rook (renamed from P Model US)",
+   "catalogName": "P Model US",
+   "tier": "C",
+   "verdict": "UNSURE",
+   "reason": "Evidence split or not checkable from the manufacturer in this pass; left unrated for Freddy."
+  },
+  {
+   "id": "904a55fc2170",
+   "brand": "Westside Discs",
+   "registryName": "The Adder",
+   "catalogName": "Adder",
+   "tier": "C",
+   "verdict": "MATCH",
+   "reason": "Westside Adder page prints 13/5/0/4, equal to the catalog. \"The\" is decoration; no plain Adder approval exists.",
+   "source": "https://westsidediscs.com/products/vip-adder"
+  },
+  {
+   "id": "4f84ad2ee031",
+   "brand": "Yikun",
+   "registryName": "Chain Beast (朱厌, Zhu Yan)",
+   "catalogName": "Yan",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "30d7620c0c12",
+   "brand": "Yikun",
+   "registryName": "Cloudfang (狡, Jiao)",
+   "catalogName": "Jiao",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "db1d296c824c",
+   "brand": "Yikun",
+   "registryName": "Flamewaker (哪吒, Né Zhā)",
+   "catalogName": "Ne Zha",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "6a23e53b691b",
+   "brand": "Yikun",
+   "registryName": "Horn Fang (当康, Dang Kang)",
+   "catalogName": "Kang",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "e27263322b36",
+   "brand": "Yikun",
+   "registryName": "Lifetree (扶桑, Fú Sāng)",
+   "catalogName": "Fu",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "872d8e932db9",
+   "brand": "Yikun",
+   "registryName": "Lord Archer (后裔, Hoú Yì)",
+   "catalogName": "Hou Yi",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "872d8e932db9",
+   "brand": "Yikun",
+   "registryName": "Lord Archer (后裔, Hoú Yì)",
+   "catalogName": "Yi",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "2b5a46f04142",
+   "brand": "Yikun",
+   "registryName": "Myst (陵鱼, Ling Yu)",
+   "catalogName": "Ling",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "1de597fb0622",
+   "brand": "Yikun",
+   "registryName": "Riftbeast (狰, Zheng)",
+   "catalogName": "Zheng",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "dd2f5117a691",
+   "brand": "Yikun",
+   "registryName": "Serpentine (伏羲, Fú Xī)",
+   "catalogName": "Fu",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "dd2f5117a691",
+   "brand": "Yikun",
+   "registryName": "Serpentine (伏羲, Fú Xī)",
+   "catalogName": "Fu Xi",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "48b0c3182c38",
+   "brand": "Yikun",
+   "registryName": "Shadowlight (射弓, Shè Gōng)",
+   "catalogName": "She Gong",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "e2b727b683b0",
+   "brand": "Yikun",
+   "registryName": "Sky Dragon (应龙, Ying Long)",
+   "catalogName": "Long",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "6cf6cb090656",
+   "brand": "Yikun",
+   "registryName": "Sky Hound (天狗, Gou)",
+   "catalogName": "Gou",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "a2c13256d922",
+   "brand": "Yikun",
+   "registryName": "Sky Mender (大鹗, Da'e)",
+   "catalogName": "Da'E",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "0c827e283167",
+   "brand": "Yikun",
+   "registryName": "Sun Chariot (刑天, Xing Tian)",
+   "catalogName": "Xing",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "7ccf761469f4",
+   "brand": "Yikun",
+   "registryName": "Sunpiercer (比翼鸟, Bi Yi Niao)",
+   "catalogName": "Bi",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "7ccf761469f4",
+   "brand": "Yikun",
+   "registryName": "Sunpiercer (比翼鸟, Bi Yi Niao)",
+   "catalogName": "Yi",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "b5b66af1cf30",
+   "brand": "Yikun",
+   "registryName": "Tortoise (旋龟, Gui)",
+   "catalogName": "Gui",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
+  },
+  {
+   "id": "3a9951e126b9",
+   "brand": "Yikun",
+   "registryName": "Warborne (祝融, Zhu Rong)",
+   "catalogName": "Rong",
+   "tier": "C",
+   "verdict": "NOT A MATCH",
+   "reason": "Chinese-name gloss; the short catalog name is a different token fragment, not a variant."
   }
  ]
 }
