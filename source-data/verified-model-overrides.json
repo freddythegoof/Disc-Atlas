@@ -2119,6 +2119,26 @@
           "reason": "Owner-approved Batch 21 correction, October 5, 2026. Evidence: docs/stability-review-queue.md, Batch 21, Aura (id 68af32f30a4a), researched October 5, 2026. Manufacturer-follow policy: follow the current manufacturer page by default when nothing contradicts the approved correction. Gateway Aura collection prints 12/6/-1.5/2. Infinite and Rocket retain older 12/6/-2/1; Infinite has zero ratings and no community text was found. There is no independent corroboration. Owner explicitly approves turn -2 to -1.5 and the review-gated fade 1 to 2; speed and glide remain unchanged. Confidence 0.55. No plastic-specific numbers were averaged."
         }
       ]
+    },
+    {
+      "id": "44cf5c166ee4",
+      "brand": "Latitude 64",
+      "approvalName": "Glory (Royal Prototype)",
+      "catalogName": "Glory",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 5,
+        "turn": 0,
+        "fade": 3
+      },
+      "category": "Fairway Driver",
+      "source": "https://latitude64.com/collections/glory",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/glory",
+        "note": "Latitude 64 lists the Glory as a Fairway Driver, but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly."
+      }
     }
   ]
 }
