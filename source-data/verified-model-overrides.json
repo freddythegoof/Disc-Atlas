@@ -2139,6 +2139,166 @@
         "source": "https://latitude64.com/collections/glory",
         "note": "Latitude 64 lists the Glory as a Fairway Driver, but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly."
       }
+    },
+    {
+      "id": "18691b078374",
+      "brand": "Latitude 64",
+      "approvalName": "Grace (Royal Prototype)",
+      "catalogName": "Grace",
+      "flightNumbers": {
+        "speed": 11,
+        "glide": 6,
+        "turn": -1,
+        "fade": 2
+      },
+      "category": "Hybrid Driver",
+      "source": "https://latitude64.com/collections/grace",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/grace",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). Grace page describes it as combining a fairway driver with a high speed driver; category follows the catalog (Hybrid Driver)."
+      }
+    },
+    {
+      "id": "109c875c605c",
+      "brand": "Latitude 64",
+      "approvalName": "Rive (Royal Prototype)",
+      "catalogName": "Rive",
+      "flightNumbers": {
+        "speed": 13,
+        "glide": 5,
+        "turn": 0,
+        "fade": 3.5
+      },
+      "category": "Distance Driver",
+      "source": "https://latitude64.com/collections/rive",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/rive",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "0b63e09958f1",
+      "brand": "Latitude 64",
+      "approvalName": "Trust (Royal Prototype)",
+      "catalogName": "Trust",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 5,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Midrange",
+      "source": "https://latitude64.com/collections/trust",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/trust",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "3fa853db3d0c",
+      "brand": "Latitude 64",
+      "approvalName": "Faith (Royal Prototype)",
+      "catalogName": "Faith",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://latitude64.com/collections/faith",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/faith",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "408b99350b10",
+      "brand": "Latitude 64",
+      "approvalName": "Hope (Royal Prototype)",
+      "catalogName": "Hope",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 3,
+        "turn": 0,
+        "fade": 1
+      },
+      "category": "Putter",
+      "source": "https://latitude64.com/collections/hope",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/hope",
+        "note": "Latitude 64 lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 1). "
+      }
+    },
+    {
+      "id": "efaa6e38ae21",
+      "brand": "Discmania",
+      "approvalName": "MD1 (Midrange Driver)",
+      "catalogName": "MD1",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 6,
+        "turn": 0,
+        "fade": 0
+      },
+      "category": "Midrange",
+      "source": "https://discmania.net/products/c-line-md1",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://discmania.net/products/c-line-md1",
+        "note": "Manufacturer lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 2). Discmania C-Line/S-Line MD1 pages print 5/6/0/0, equal to the catalog. Gloss \"(Midrange Driver)\" is descriptive; no newer MD1 approval exists."
+      }
+    },
+    {
+      "id": "f7e9fb1a8c9b",
+      "brand": "Latitude 64",
+      "approvalName": "Sinus (New)",
+      "catalogName": "Sinus",
+      "flightNumbers": {
+        "speed": 2,
+        "glide": 2,
+        "turn": 0,
+        "fade": 2
+      },
+      "category": "Putter",
+      "source": "https://latitude64.com/collections/sinus",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://latitude64.com/collections/sinus",
+        "note": "Manufacturer lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 2). Latitude 64 Sinus page prints 2/2/0/2 for \"the current version\", equal to the catalog. \"(New)\" is the 2024 redesign sold today; the 2006 Sinus AP/SP approvals stay separate."
+      }
+    },
+    {
+      "id": "904a55fc2170",
+      "brand": "Westside Discs",
+      "approvalName": "The Adder",
+      "catalogName": "Adder",
+      "flightNumbers": {
+        "speed": 13,
+        "glide": 5,
+        "turn": 0,
+        "fade": 4
+      },
+      "category": "Distance Driver",
+      "source": "https://westsidediscs.com/products/vip-adder",
+      "checkedAt": "2026-11-17",
+      "production": {
+        "status": "unknown",
+        "source": "https://westsidediscs.com/products/vip-adder",
+        "note": "Manufacturer lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 2). Westside Adder page prints 13/5/0/4, equal to the catalog. \"The\" is decoration; no plain Adder approval exists."
+      }
     }
   ]
 }
