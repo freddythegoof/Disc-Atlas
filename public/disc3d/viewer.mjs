@@ -297,18 +297,20 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
  function build(shape,mold,color,overmold,asset,placement,band=null,halo=null,style=null){
   // The lathe and the overmold split are shared with the atlas's discs (mesh.mjs). A Halo band splits at the
   // same seam; its cross-section is still drawn as one piece.
-  const {geometry,seamRadius,profile}=discGeometry(shape,{segments:radial,overmold:overmold||!!band,halo:!!halo});
+  // A thumbtrack mold's stamp and photo are spun from the same lathe (mesh.mjs topLayerGeometry).
+  const lathe=state.lathe={segments:radial,overmold:overmold||!!band};
+  const {geometry,seamRadius,profile}=discGeometry(shape,{...lathe,halo:!!halo});
   state.seamRadius=seamRadius;state.shape=shape;state.profile=overmold?profile:{...profile,rim:null,seamRadius:null};state.profileWidth=0;
   applyMaterials(overmold,band,halo);
   geometry.computeBoundingBox();const box=geometry.boundingBox;
   body.geometry.dispose();body.geometry=geometry;for(const mesh of clearList)mesh.geometry=geometry;
   // The stamp rides the top surface, inside the shoulder (stamp.mjs).
-  stamp.geometry.dispose();stamp.geometry=stampGeometry(shape);
+  stamp.geometry.dispose();stamp.geometry=stampGeometry(shape,{lathe});
   const finish=style?.finish?.id||'flat';
   if(finish!==stampFinish){stampMaterial.map?.dispose();stampMaterial.map=null;stampMaterial.dispose();stampMaterial=makeStampMaterial(style);stamp.material=stampMaterial;stampFinish=finish;}
   // A photo stamp spans most of the disc in fine line work: the viewer draws it at its full 2048 (stamp.mjs).
   stampMaterial.map?.dispose();stampMaterial.map=stampTexture(mold,color,{asset,style,size:PHOTO_STAMP.test(asset||'')?2048:512,onChange:texture=>{
-   if(texture?.userData.stampAsset&&placement){stamp.geometry.dispose();stamp.geometry=stampGeometry(shape,{placement});}
+   if(texture?.userData.stampAsset&&placement){stamp.geometry.dispose();stamp.geometry=stampGeometry(shape,{placement,lathe});}
    request();
   }});stampMaterial.needsUpdate=true;
   // Centre the disc on the orbit target.
@@ -351,7 +353,7 @@ export function createDiscViewer({segments,onExpand,hint,onClay}={}){
   if(clear){clearPlate.paint(tint.wall,plastic,{exponent:tint.exponent,opacity});if(band){clearBand.paint(band,plastic,{opacity});clearHalo.paint(band,plastic,{opacity});}repaintBackdrop();}
   // The photo wears the plate's own plastic, so the scene shades it like the disc around it. On a clear copy it ends at
   // its own plate edge, and takes the plastic's true colour when the copy has one (photo.mjs).
-  if(photoURL){photo=photoSurface(shape,photoURL,{overmold,like:bodyMaterial,relief:true,clear,tint:tint.sampled?tint.tint:null,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
+  if(photoURL){photo=photoSurface(shape,photoURL,{overmold,lathe:state.lathe,like:bodyMaterial,relief:true,clear,tint:tint.sampled?tint.tint:null,onChange:()=>{applyMaterials();request();}});discGroup.add(photo);}
   if(overmold||band){rimMaterial.color.set(overmold?colors.rim:band);Object.assign(rimMaterial,plastic);rimMaterial.needsUpdate=true;}
   if(halo){setHalo(haloRim,halo);haloRimMaterial.color.set(band);Object.assign(haloRimMaterial,plastic);haloRimMaterial.needsUpdate=true;}
   // A new disc starts face up in the 3/4 view; a recolour of the same disc keeps the reader's view.

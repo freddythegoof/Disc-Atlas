@@ -62,6 +62,13 @@ placements={e['id']:e['placement'] for e in json.load(open(ROOT+'/source-data/st
 for d in out:
  if d['id'] in stamps:
   d['stampAsset']=stamps[d['id']];d['stampPlacement']=placements[d['id']]
+# Reviewed thumbtrack tags: one kind per verified mold, keyed to its approval record.
+thumbtracks=json.load(open(ROOT+'/source-data/thumbtracks.json'));by_id={d['id']:d for d in out}
+for t in thumbtracks['discs']:
+ d=by_id[t['id']]
+ assert d['brand']==t['brand'] and d['name']==t['name'] and t['kind'] in thumbtracks['kinds'], 'Thumbtrack tag no longer matches its approval record'
+ d['thumbtrack']=t['kind']
+ if 'position' in t:d['thumbtrackPosition']=t['position']
 meta={'date':'September 24, 2026','catalogAuditDate':'September 24, 2026','registryCount':len(out),'statusAsOf':status_data['checkedAt'],'retirementWindowMonths':24,'note':'All records from the PDGA approved-disc CSV export are included, including historical molds. Flight numbers are incomplete. Catalog imagery uses original generic illustrations. This is a dated snapshot, not a live feed.','idAliases':folded}
 json.dump({'meta':meta,'discs':out},open(ROOT+'/public/data.json','w'),separators=(',',':'))
 print({'records':len(out),'rated':sum('speed'in x for x in out),'photos':sum('photo'in x for x in out),'brands':len(set(x['brand']for x in out))})

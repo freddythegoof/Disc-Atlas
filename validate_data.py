@@ -32,6 +32,13 @@ for m in merges:
  for r in (registry[m['folded']],registry[m['surviving']]):
   assert r['Certification Number'] in survivor.get('catalogNote','') and r['Approved Date'] in survivor['catalogNote'],'Surviving record lost an approval from its history'
  assert registry[m['folded']]['Disc Model'] in survivor.get('aliases',[]),'Folded name no longer searches to the surviving record'
+thumbtracks=json.load(open(root+'/source-data/thumbtracks.json'))
+tagged={t['id']:t['kind'] for t in thumbtracks['discs']}
+assert len(tagged)==len(thumbtracks['discs']),'Duplicate thumbtrack tag'
+assert set(thumbtracks['kinds'])=={'raised','puddle','groove','thumbtack'},'Thumbtrack kinds changed'
+assert {d['id']:d['thumbtrack'] for d in data if 'thumbtrack' in d}==tagged,'Thumbtrack tags disagree with the reviewed list'
+assert {d['id']:d['thumbtrackPosition'] for d in data if 'thumbtrackPosition' in d}=={t['id']:t['position'] for t in thumbtracks['discs'] if 'position' in t},'Thumbtrack positions disagree with the reviewed list'
+assert all(t.get('position') in (None,'shoulder') and (t['kind']=='groove' or 'position' not in t) for t in thumbtracks['discs']),'Unknown thumbtrack position'
 manifest=json.load(open(root+'/source-data/photo-manifest.json'))
 stamps=validate_stamp_fields(json.load(open(root+'/source-data/stamp-manifest.json')),data,root+'/public')
 print(f'Validated {len(stamps)} Discraft stock stamp assets and their rights records.')

@@ -43,7 +43,7 @@
   if(nextHand)hand=nextHand;
   const stage=panel?.querySelector('[data-disc3d] .disc3d-stage');
   if(!stage||!hasModel(d))return;
-  const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,finish:finish||'opaque',opacity:opacity??null,photoURL,texture_key,photo_rim_color,photo_true_color:photo_true_color||null,haloBand:haloBand||null,haloModel:haloModel||null,model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
+  const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,finish:finish||'opaque',opacity:opacity??null,photoURL,texture_key,photo_rim_color,photo_true_color:photo_true_color||null,haloBand:haloBand||null,haloModel:haloModel||null,model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},thumbtrack:d.thumbtrack?{kind:d.thumbtrack,position:d.thumbtrackPosition||null}:null,mold:d.catalogName||d.name,color:resolveColor(color),plastic:plastic||'premium',hand,
    manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
    colors:colors?{rim:colors.rim&&resolveColor(colors.rim),plate:colors.plate&&resolveColor(colors.plate)}:undefined,stampStyle:stampStyle||null};
   if(photoURL)panel.querySelector('.illustration-caption').textContent='Your photo · projected onto a representative 3D shape';

@@ -3,7 +3,7 @@ import {bagClass,stampChoiceOf,renderFinish} from './bag-values.js';
 import {rackOrder} from './collection3d/rack-layout.mjs';
 import {photoURL} from './disc-photo.mjs';
 import {haloBand,haloModel} from './disc3d/halo.mjs';
-import {shapeForDisc} from './disc3d/shape.mjs';
+import {shapeForDisc,thumbtrackOf} from './disc3d/shape.mjs';
 const title=d=>d?.catalogName||d?.name||'Catalog mold unavailable';
 const CLASSES={distance:'Distance driver',fairway:'Fairway driver',mid:'Midrange',putter:'Putter',unknown:'Unclassified'};
 const EMPTY={all:'discs',distance:'drivers',fairway:'fairways',mid:'midranges',putter:'putters'};
@@ -83,7 +83,7 @@ export class AllDiscsGallery{
    this.viewer??=this.module.createDiscViewer({onClay:on=>{this.clay=on;}});
    const v=this.viewer;
    const props={brand:d.brand,stampAsset:d.stampAsset,stampPlacement:d.stampPlacement,
-    model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},mold:title(d),
+    model:d.model3d||null,specs:d.specs||null,flight:{speed:d.speed,turn:d.turn,fade:d.fade},thumbtrack:thumbtrackOf(d),mold:title(d),
     manufacturer:d.manufacturer,record:d.name,overmold:typeof d.overmold==='boolean'?d.overmold:undefined,
     color:item.color,colors:{plate:item.color,rim:item.rim_color||undefined},plastic:item.plastic||'premium',
     photoURL:photoURL(item),texture_key:item.texture_key,photo_rim_color:item.photo_rim_color,photo_true_color:item.photo_true_color,haloBand:haloBand(item),haloModel:haloModel(item),finish:renderFinish(item),opacity:item.finish_opacity??null};

@@ -90,19 +90,45 @@ export function shapeFromMeasurements(specs,flight){
 
 // The shape the viewer draws, and where it came from: explicit params (`model`, d.model3d) first, then the
 // mold's PDGA dimensions, then the Phase 1 generic shape from flight numbers. Null when none applies.
-export function shapeForDisc({model,specs,flight}={}){
- if(model)return {shape:normalizeShape(model),source:'model'};
+// `thumbtrack` ({kind, position}, thumbtrackOf) adds the mold's grip feature to whichever shape applies.
+export function shapeForDisc({model,specs,flight,thumbtrack}={}){
+ const add=shape=>thumbtrack?normalizeShape({...shape,thumbtrack}):shape;
+ if(model)return {shape:normalizeShape({...model,thumbtrack}),source:'model'};
  const measured=shapeFromMeasurements(specs,flight);
- if(measured)return {shape:measured,source:'pdga'};
+ if(measured)return {shape:add(measured),source:'pdga'};
  const generic=shapeFromFlight(flight);
- return generic?{shape:generic,source:'flight'}:null;
+ return generic?{shape:add(generic),source:'flight'}:null;
 }
 
+// Thumbtracks (source-data/thumbtracks.json): a grip feature molded into the top, drawn by kind from HuckTwin's
+// photo study of Nov 25, 2026. Real ones are a millimetre or a few; these sit at that scale, raised only as far as
+// it takes to read at the viewer's zoom (the puddle's dish and the thumbtack's bulge sit at the generous end).
+// Freddy's feel check on the renders sets the amounts. Centimetres, like the rest of the profile.
+//  raised: a broad, low plateau from `inner`·Rs out to the shoulder, which it blends into; the dome gives up as
+//   much as keeps the top at the mold's measured height, which flattens the profile (a Berg's is dead flat).
+//  puddle: the whole plate dished below the rim's top edge, `depth` at the centre; the rim, at the measured
+//   height, is the highest point, and the plate's underside sinks with it.
+//  groove: a narrow channel `depth` deep and 2·`halfWidth` across, centred at `at`·Rs, or for position
+//   'shoulder' (the Sled) rolled into the shoulder, its outer wall running into it.
+//  thumbtack: a bulge `height` tall on one arc of the shoulder, about a thumb wide (`arc` cm either side of its
+//   centre at `angle`), not a ring. Not round the axis, so the lathe can't spin it: mesh.mjs lifts the vertices.
+export const THUMBTRACK=Object.freeze({
+ raised:Object.freeze({height:.16,inner:.62,blend:.5}),
+ puddle:Object.freeze({depth:.4}),
+ groove:Object.freeze({depth:.15,halfWidth:.3,edge:.12,at:.68}),
+ thumbtack:Object.freeze({height:.22,halfWidth:.6,arc:1.6,angle:-Math.PI/4}),
+});
+// The shape's thumbtrack from a catalog record (data.json `thumbtrack`, `thumbtrackPosition`), or null.
+export const thumbtrackOf=d=>THUMBTRACK[d?.thumbtrack]?{kind:d.thumbtrack,position:d.thumbtrackPosition||null}:null;
+
 // Fill in defaults and keep every parameter inside a range that still makes a valid, hollow disc.
+// A thumbtrack of a known kind is kept; every other shape keeps exactly the keys it always had.
 export function normalizeShape(params={}){
  const p={...DEFAULTS,...params};
  const R=clamp(+p.diameter||DEFAULTS.diameter,15,30)/2;
+ const tt=THUMBTRACK[p.thumbtrack?.kind]?{kind:p.thumbtrack.kind,position:p.thumbtrack.kind==='groove'&&p.thumbtrack.position==='shoulder'?'shoulder':null}:null;
  return {
+  ...(tt?{thumbtrack:tt}:{}),
   diameter:R*2,
   rimWidth:clamp(+p.rimWidth,.6,R*.35),
   rimDepth:clamp(+p.rimDepth,.6,2.4),
@@ -131,16 +157,59 @@ export function shapeFrame(params){
  // Drivers carry a flat top out over a long wing; putters round over from closer to the rim.
  const Rs=Ri+w*lerp(.25,.12,p.sharpness);
  const footW=w*lerp(.45,.18,p.sharpness);
- return {p,R,w,Ri,Rs,Hs,Rf:Ri+footW,plh:p.partingLine*Hs};
+ return {p,R,w,Ri,Rs,Hs,Rf:Ri+footW,plh:p.partingLine*Hs,tt:p.thumbtrack?trackFrame(p,Rs):null};
+}
+
+// Where a shape's thumbtrack sits: the radii its relief spans, [from, to], and what each kind needs.
+function trackFrame(p,Rs){
+ const kind=p.thumbtrack.kind,k=THUMBTRACK[kind];
+ // The top peaks at the centre or at the plateau's inner edge: the dome is lowered until the edge is no taller.
+ // A dome shallower than the track caps it (a little relief stays on the flattest), so nothing stands taller than measured.
+ if(kind==='raised'){const inner=k.inner*Rs,height=Math.min(k.height,Math.max(p.domeHeight,.06));
+  const dome=Math.min(p.domeHeight,Math.max(0,(p.domeHeight-height)/domeCurve(k.inner,p.sharpness)));
+  return {kind,...k,height,innerR:inner,dome,span:[inner-k.blend,inner]};}
+ if(kind==='puddle')return {kind,...k,span:[Rs*.55,Rs]};
+ if(kind==='groove'){const centre=p.thumbtrack.position==='shoulder'?Rs-k.halfWidth-.04:k.at*Rs;return {kind,...k,centre,span:[centre-k.halfWidth,centre+k.halfWidth]};}
+ const centre=Rs-.1;return {kind,...k,centre,span:[centre-k.halfWidth,Math.min(Rs,centre+k.halfWidth)]};
 }
 
 // The dome: g(0) = 1 at the centre, g(1) = 0 at the shoulder. Putters fall away steadily (1 - u²);
 // drivers stay flat near the rim and dome through the middle (a raised cosine).
 const domeCurve=(u,sharpness)=>{u=clamp(u,0,1);return lerp(1-u*u,(1+Math.cos(Math.PI*u))/2,sharpness);};
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 
+// The top surface at radius r, centre to shoulder (past the shoulder it holds the shoulder's height).
 export function topHeight(params,r){
  const f=shapeFrame(params);
- return f.Hs+f.p.domeHeight*domeCurve(Math.abs(r)/f.Rs,f.p.sharpness);
+ return f.tt?f.Hs+trackTop(f,Math.abs(r)):f.Hs+f.p.domeHeight*domeCurve(Math.abs(r)/f.Rs,f.p.sharpness);
+}
+// The top above the shoulder height Hs, with the shape's thumbtrack.
+function trackTop(f,r){
+ const {p,Rs,tt}=f,u=Math.min(r/Rs,1),dome=p.domeHeight*domeCurve(u,p.sharpness);
+ if(tt.kind==='raised')return tt.dome*domeCurve(u,p.sharpness)+tt.height*smooth(tt.innerR-tt.blend,tt.innerR,r);
+ // A bowl: flat at the centre, steepening out to the rim's lip, concave throughout.
+ if(tt.kind==='puddle')return p.domeHeight-tt.depth*(1-u**4);
+ if(tt.kind==='groove')return dome-tt.depth*smooth(tt.halfWidth,tt.halfWidth-tt.edge,Math.abs(r-tt.centre));
+ return dome;
+}
+// The top surface as a function of (x, z), the thumbtack included, with the shape's frame worked out once:
+// what a stamp or photo laid on the disc samples per vertex. Without a thumbtrack it is topHeight exactly.
+export function surfaceSampler(params){
+ const f=shapeFrame(params),{p,Hs,Rs}=f;
+ const height=f.tt?r=>Hs+trackTop(f,r):r=>Hs+p.domeHeight*domeCurve(r/Rs,p.sharpness);
+ if(f.tt?.kind!=='thumbtack')return (x,z)=>height(Math.hypot(x,z));
+ const lift=liftOf(f);return (x,z)=>height(Math.hypot(x,z))+lift(x,z);
+}
+// The thumbtack's bulge as a function of (x, z), or null on every other disc.
+export const thumbtackLifter=params=>params.thumbtrack?.kind==='thumbtack'?liftOf(shapeFrame(params)):null;
+// 0 off the bulge; on it, a smooth bell across the shoulder and along the arc, so the lifted surface has no edge.
+const bell=t=>(1+Math.cos(Math.PI*t))/2;
+function liftOf({tt}){
+ return (x,z)=>{
+  const r=Math.hypot(x,z),across=Math.abs(r-tt.centre)/tt.halfWidth;if(across>=1)return 0;
+  let d=Math.atan2(z,x)-tt.angle;d=Math.abs(Math.atan2(Math.sin(d),Math.cos(d)))*r;
+  const along=d/tt.arc;return along>=1?0:tt.height*bell(across)*bell(along);
+ };
 }
 
 // The closed cross-section as [{x: radius, y: height}], axis to axis. `detail` scales the sampling
@@ -162,7 +231,9 @@ export function overmoldProfile(params,opts){
 function traceProfile(params,{detail=1}={}){
  const f=shapeFrame(params),{p,R,Ri,Rs,Hs,Rf,plh}=f,s=p.sharpness;
  const n=k=>Math.max(2,Math.round(k*detail));
- const under=r=>p.rimDepth+p.domeHeight*.85*domeCurve(r/Rs,s);
+ const base=r=>p.rimDepth+(f.tt?.kind==='raised'?f.tt.dome:p.domeHeight)*.85*domeCurve(r/Rs,s);
+ // A puddle's plate sinks as a whole: its underside drops wherever the top falls below the domed top it replaces.
+ const under=f.tt?.kind==='puddle'?r=>base(r)-Math.max(0,Hs+p.domeHeight*domeCurve(r/Rs,s)-topHeight(p,r)):base;
  const fillet=Math.min(.22,p.rimDepth*.18),footR=Math.min(.22,(Rf-Ri)*.6,p.rimDepth*.2);
  const wallTop=Ri-.06;  // the inner wall leans in slightly toward the plate
  const pts=[];
@@ -188,13 +259,22 @@ function traceProfile(params,{detail=1}={}){
  // 5. A sharp nose is a crease: repeat the point so the lathe gives each side its own normal.
  if(s>=.35)pts.push({...N});
  // 6. Shoulder, nose up to where the dome begins. A blunt nose leaves vertically; a sharp one leans in.
- const S={x:Rs,y:Hs},sh=R-Rs;
- const c3=mix({x:R,y:plh+(Hs-plh)*.55},{x:R-sh*.22,y:plh+(Hs-plh)*.62},s);
- const c4=mix({x:Rs+sh*.6,y:Hs},{x:Rs+sh*.5,y:Hs},s);
+ //    A thumbtrack can move where it ends: a raised track lifts it, a puddle's rim lip stands at the full height.
+ const Ht=f.tt?topHeight(p,Rs):Hs;
+ const S={x:Rs,y:Ht},sh=R-Rs;
+ const c3=mix({x:R,y:plh+(Ht-plh)*.55},{x:R-sh*.22,y:plh+(Ht-plh)*.62},s);
+ const c4=mix({x:Rs+sh*.6,y:Ht},{x:Rs+sh*.5,y:Ht},s);
  pts.push(...cubic(N,c3,c4,S,n(14)));
- // 7. The top, shoulder back to the axis.
+ // 7. The top, shoulder back to the axis. A thumbtrack's relief takes extra samples across its span.
  const topSteps=n(16),topIndex=pts.length-1;
- for(let i=1;i<=topSteps;i++){const r=Rs*(1-i/topSteps);pts.push({x:r,y:topHeight(p,r)});}
+ if(!f.tt)for(let i=1;i<=topSteps;i++){const r=Rs*(1-i/topSteps);pts.push({x:r,y:topHeight(p,r)});}
+ else{
+  const radii=[];for(let i=1;i<=topSteps;i++)radii.push(Rs*(1-i/topSteps));
+  const [a,b]=f.tt.span,extra=Math.max(2,Math.ceil((b-a)/((f.tt.kind==='puddle'?.4:.05)/detail)));
+  for(let i=0;i<=extra;i++){const r=a+(b-a)*i/extra;if(r>0&&r<Rs)radii.push(r);}
+  radii.sort((x,y)=>y-x);
+  for(const r of radii.filter((r,i)=>!i||radii[i-1]-r>1e-6))pts.push({x:r,y:topHeight(p,r)});
+ }
  return {pts,wallTop:wallTopIndex,top:topIndex};
 }
 
