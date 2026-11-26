@@ -100,7 +100,7 @@ Suggested follow-up if you want a firmer community layer: someone with Reddit/DG
 
 ## Wraith — Innova (id e70f48273d7f)
 
-- **Atlas now:** 11/5/-1/3. **Proposed turn/fade:** none. Matches. This also keeps the Destroyer override's logic intact: Innova publishes 12/5/-1/3 vs Wraith 11/5/-1/3 and calls the Destroyer a faster Wraith with more stability, so the Wraith is the lower anchor and should not move without a deliberate re-look at the Destroyer.
+- **Atlas now:** 11/5/-1/3. **Proposed turn/fade:** none. Matches. This also keeps the Destroyer override's logic intact: Innova publishes 12/5/-1/3 vs Wraith 11/5/-1/3 and calls the Destroyer a faster Wraith with more stability, so the Wraith is the lower anchor and should not move without a deliberate re-look at the Destroyer. **Update, Nov 22, 2026:** the Destroyer override was reverted by owner decision to factory 12/5/-1/3 (no Atlas adjustment), so the Wraith and Destroyer now share turn/fade and the Destroyer is only faster.
 - **Manufacturer:** Innova 11/5/-1/3; copy: "long stable Distance Driver … excellent downwind driver that also performs predictably into the wind." No contradiction.
 - **Retailer:** Infinite label "Overstable" but reviewer numbers 11/5/-1.1/2.9 (455 reviews) — the label is looser than the numbers; the numbers match. Marshall Street "Overstable". Disc Golf Center (snippet): Champion and Star most overstable; DX and Pro beat in faster.
 - **Community:** Inside the Circle (Broden, intermediate, 400 ft backhand in Champion): DX/Pro plastic turned over frequently; Champion hard to turn over even into a headwind. DGCR threads (snippet only): Wraith acts overstable for arms under roughly 325–350 ft; Star/Champion more overstable than DX/Pro/GStar. These are skill and plastic effects, not mold-level contradictions.
@@ -195,7 +195,7 @@ Suggested follow-up if you want a firmer community layer: someone with Reddit/DG
 
 - Brand mapping for these molds in Atlas: Envy and Hex are Axiom, Berg is Kastaplast, the rest as named.
 - `infinite-manufacturer-ratings.json` only carries the Aviar among these ten; the others come from `flights.json` (Marshall Street / DiscIt).
-- The Wraith link to the Destroyer override is worth remembering: any later Wraith change should trigger a re-check of the Destroyer's Atlas adjustment.
+- The Wraith link to the Destroyer override is worth remembering: any later Wraith change should trigger a re-check of the Destroyer's Atlas adjustment. (Moot since Nov 22, 2026: the Destroyer's adjustment was reverted by owner decision.)
 
 ---
 

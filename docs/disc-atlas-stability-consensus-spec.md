@@ -12,7 +12,7 @@ Every flight chart on the internet plots manufacturer flight numbers. Nobody sho
 
 ## 3. Existing pieces (read before building)
 
-- `source-data/verified-model-overrides.json` — per-disc override entries with provenance. The Destroyer entry (12/5/-1/3 → 12/5/-0.5/3.5, sourced from Innova's own "faster Wraith with a little more high and low speed stability" copy) is the reference example.
+- `source-data/verified-model-overrides.json` — per-disc override entries with provenance. The Destroyer entry (12/5/-1/3 → 12/5/-0.5/3.5, sourced from Innova's own "faster Wraith with a little more high and low speed stability" copy) is the reference example. **Reverted by owner decision, Nov 22, 2026:** the Destroyer is back at Innova's factory 12/5/-1/3 with no Atlas adjustment; the other `atlas_adjusted` entries are unchanged.
 - `prepare_data.py` → `public/data.json` (generated; never hand-edit). On Windows, `set PYTHONUTF8=1` before running or it crashes on a cp1252 decode.
 - `public/app.js` — already has a provenance display for `atlas_adjusted` entries; extend this pattern, don't invent a new one.
 - Skills in `.claude/skills`: `disc-atlas-data-pipeline`, `disc-atlas-stability`.
