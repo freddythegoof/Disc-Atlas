@@ -1,17 +1,17 @@
-# Graph Report - thumbtrack-relief-smoothing  (2026-11-26)
+# Graph Report - Disc-Atlas  (2026-11-26)
 
 ## Corpus Check
-- 507 files · ~5,757,596 words
+- 507 files · ~5,757,843 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 315 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
+- Unclassified: 314 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
 
 ## Summary
-- 3482 nodes · 7608 edges · 196 communities (159 shown, 37 thin omitted)
+- 3483 nodes · 7608 edges · 197 communities (159 shown, 38 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 267 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a4d7b92a`
+- Built from commit: `96f3b861`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -219,7 +219,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (196 total, 37 thin omitted)
+## Communities (197 total, 38 thin omitted)
 
 ### Community 0 - "app.js"
 Cohesion: 0.06
@@ -727,7 +727,7 @@ Nodes (6): checks, {chromium}, errors, only, server, types
 
 ### Community 155 - "display-harness.mjs"
 Cohesion: 0.10
-Nodes (11): scene, photo, photo, log(), photo, results, BAG, openDevice() (+3 more)
+Nodes (11): scene, photo, photoSource, log(), photo, results, BAG, openDevice() (+3 more)
 
 ### Community 156 - "bag-demo-browser.mjs"
 Cohesion: 0.20
@@ -859,8 +859,8 @@ Nodes (3): fallbackWebP(), encodeWebP(), loadEncoder()
 
 ## Knowledge Gaps
 - **52 isolated node(s):** `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react`, `class-variance-authority`, `clsx` (+47 more)
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 1479 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 1480 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **38 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -874,8 +874,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `app.js` be split into smaller, more focused modules?**
   _Cohesion score 0.05636114911080711 - nodes in this community are weakly interconnected._
 - **Why does `jose` connect `tests/auth.mjs` to `package.json`, `workers/auth.mjs`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+  _High betweenness centrality (0.061) - this node is a cross-community bridge._
 - **Should `Bag scene` be split into smaller, more focused modules?**
   _Cohesion score 0.11328671328671329 - nodes in this community are weakly interconnected._
 - **Why does `scripts` connect `scripts` to `package.json`?**
-  _High betweenness centrality (0.033) - this node is a cross-community bridge._
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
