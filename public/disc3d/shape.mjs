@@ -104,12 +104,17 @@ export function shapeForDisc({model,specs,flight,thumbtrack}={}){
 // photo study of Nov 25, 2026. Real ones are a millimetre or a few; these sit at that scale, raised only as far as
 // it takes to read at the viewer's zoom (the puddle's dish and the thumbtack's bulge sit at the generous end).
 // Freddy's feel check on the renders sets the amounts. Centimetres, like the rest of the profile.
-//  raised: the Berg's flat top. The whole flight plate rises to the measured height, one level plane from the
-//   axis to the shoulder, which rounds it off; the cavity beneath keeps the mold's own dome, so the plate thickens
-//   toward the rim (the track is solid plastic). Freddy's feel check (Nov 26, 2026), against his Berg: a raised
-//   ring on a sunken, domed plate reads as a dished putter, not a flat-topped puck. Position 'rim' (the Blast's
-//   subtle track over a slightly recessed plate, the Hammer's inner-rim track) keeps a ring instead: a low plateau
-//   `height` tall from `inner`·Rs out to the shoulder, the dome giving up as much as keeps the measured height.
+//  raised: the Berg's thumbtrack, a ring standing proud of a shallow dish. The ring runs `ring` cm in from the
+//   shoulder at the measured height, level with the rim's crest; inside it the flight plate sits `step` lower, a
+//   flat floor that rises to the ring over a `wall` cm smooth slope, so nothing stands taller than measured. The
+//   cavity keeps the mold's own dome: Kastaplast's track is prominent on top and not noticeable underneath, so the
+//   plate is thinner under the dish. No source gives the step in millimetres; 1.6 mm is the depth at which the ring
+//   reads as the feature ("prominent", "a lowered flight plate") while the profile stays near-flat. Freddy's feel
+//   checks (Nov 26, 2026), against his Berg: a ring on a deeply dished, domed plate read as a dished putter; one flat
+//   plane erased the step that is the feature; the real top is "like a puddle top", the plate below the ring.
+//   Position 'rim' (the Blast's subtle track over a slightly recessed plate, the Hammer's inner-rim track) keeps
+//   its ring on the dome: a low plateau `height` tall from `inner`·Rs out to the shoulder, the dome giving up as
+//   much as keeps the measured height.
 //  puddle: the whole plate dished below the rim's top edge, `depth` at the centre; the rim, at the measured
 //   height, is the highest point, and the plate's underside sinks with it.
 //  groove: a narrow channel `depth` deep and 2·`halfWidth` across, centred at `at`·Rs, or for position
@@ -117,7 +122,7 @@ export function shapeForDisc({model,specs,flight,thumbtrack}={}){
 //  thumbtack: a bulge `height` tall on one arc of the shoulder, about a thumb wide (`arc` cm either side of its
 //   centre at `angle`), not a ring. Not round the axis, so the lathe can't spin it: mesh.mjs lifts the vertices.
 export const THUMBTRACK=Object.freeze({
- raised:Object.freeze({height:.16,inner:.62,blend:.5}),
+ raised:Object.freeze({height:.16,inner:.62,blend:.5,step:.16,ring:.8,wall:1.2}),
  puddle:Object.freeze({depth:.4}),
  groove:Object.freeze({depth:.15,halfWidth:.3,edge:.12,at:.68}),
  thumbtack:Object.freeze({height:.22,halfWidth:.6,arc:1.6,angle:-Math.PI/4}),
@@ -171,8 +176,9 @@ function trackFrame(p,Rs){
  const kind=p.thumbtrack.kind,k=THUMBTRACK[kind];
  // The top peaks at the centre or at the plateau's inner edge: the dome is lowered until the edge is no taller.
  // A dome shallower than the track caps it (a little relief stays on the flattest), so nothing stands taller than measured.
- // A flat top stands at the measured height everywhere: no relief to sample, so its span is empty.
- if(kind==='raised'&&p.thumbtrack.position!=='rim')return {kind,flat:true,dome:p.domeHeight,span:[Rs,Rs]};
+ // The Berg's ring stands at the measured height; the dish inside it is sampled across its wall.
+ if(kind==='raised'&&p.thumbtrack.position!=='rim'){const ringIn=Rs-k.ring,floor=ringIn-k.wall;
+  return {kind,dish:true,dome:p.domeHeight,step:k.step,ringIn,floor,span:[floor,ringIn]};}
  if(kind==='raised'){const inner=k.inner*Rs,height=Math.min(k.height,Math.max(p.domeHeight,.06));
   const dome=Math.min(p.domeHeight,Math.max(0,(p.domeHeight-height)/domeCurve(k.inner,p.sharpness)));
   return {kind,...k,height,innerR:inner,dome,span:[inner-k.blend,inner]};}
@@ -194,7 +200,7 @@ export function topHeight(params,r){
 // The top above the shoulder height Hs, with the shape's thumbtrack.
 function trackTop(f,r){
  const {p,Rs,tt}=f,u=Math.min(r/Rs,1),dome=p.domeHeight*domeCurve(u,p.sharpness);
- if(tt.flat)return p.domeHeight;
+ if(tt.dish)return p.domeHeight-tt.step*(1-smooth(tt.floor,tt.ringIn,r));
  if(tt.kind==='raised')return tt.dome*domeCurve(u,p.sharpness)+tt.height*smooth(tt.innerR-tt.blend,tt.innerR,r);
  // A bowl: flat at the centre, steepening out to the rim's lip, concave throughout.
  if(tt.kind==='puddle')return p.domeHeight-tt.depth*(1-u**4);
