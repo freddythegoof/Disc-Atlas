@@ -104,8 +104,12 @@ export function shapeForDisc({model,specs,flight,thumbtrack}={}){
 // photo study of Nov 25, 2026. Real ones are a millimetre or a few; these sit at that scale, raised only as far as
 // it takes to read at the viewer's zoom (the puddle's dish and the thumbtack's bulge sit at the generous end).
 // Freddy's feel check on the renders sets the amounts. Centimetres, like the rest of the profile.
-//  raised: a broad, low plateau from `inner`·Rs out to the shoulder, which it blends into; the dome gives up as
-//   much as keeps the top at the mold's measured height, which flattens the profile (a Berg's is dead flat).
+//  raised: the Berg's flat top. The whole flight plate rises to the measured height, one level plane from the
+//   axis to the shoulder, which rounds it off; the cavity beneath keeps the mold's own dome, so the plate thickens
+//   toward the rim (the track is solid plastic). Freddy's feel check (Nov 26, 2026), against his Berg: a raised
+//   ring on a sunken, domed plate reads as a dished putter, not a flat-topped puck. Position 'rim' (the Blast's
+//   subtle track over a slightly recessed plate, the Hammer's inner-rim track) keeps a ring instead: a low plateau
+//   `height` tall from `inner`·Rs out to the shoulder, the dome giving up as much as keeps the measured height.
 //  puddle: the whole plate dished below the rim's top edge, `depth` at the centre; the rim, at the measured
 //   height, is the highest point, and the plate's underside sinks with it.
 //  groove: a narrow channel `depth` deep and 2·`halfWidth` across, centred at `at`·Rs, or for position
@@ -118,6 +122,8 @@ export const THUMBTRACK=Object.freeze({
  groove:Object.freeze({depth:.15,halfWidth:.3,edge:.12,at:.68}),
  thumbtack:Object.freeze({height:.22,halfWidth:.6,arc:1.6,angle:-Math.PI/4}),
 });
+// Where a kind's track can sit other than its default: a groove at the shoulder, a raised track as a ring at the rim.
+export const THUMBTRACK_POSITIONS=Object.freeze({groove:Object.freeze(['shoulder']),raised:Object.freeze(['rim'])});
 // The shape's thumbtrack from a catalog record (data.json `thumbtrack`, `thumbtrackPosition`), or null.
 export const thumbtrackOf=d=>THUMBTRACK[d?.thumbtrack]?{kind:d.thumbtrack,position:d.thumbtrackPosition||null}:null;
 
@@ -126,7 +132,7 @@ export const thumbtrackOf=d=>THUMBTRACK[d?.thumbtrack]?{kind:d.thumbtrack,positi
 export function normalizeShape(params={}){
  const p={...DEFAULTS,...params};
  const R=clamp(+p.diameter||DEFAULTS.diameter,15,30)/2;
- const tt=THUMBTRACK[p.thumbtrack?.kind]?{kind:p.thumbtrack.kind,position:p.thumbtrack.kind==='groove'&&p.thumbtrack.position==='shoulder'?'shoulder':null}:null;
+ const kind=p.thumbtrack?.kind,tt=THUMBTRACK[kind]?{kind,position:THUMBTRACK_POSITIONS[kind]?.includes(p.thumbtrack.position)?p.thumbtrack.position:null}:null;
  return {
   ...(tt?{thumbtrack:tt}:{}),
   diameter:R*2,
@@ -165,6 +171,8 @@ function trackFrame(p,Rs){
  const kind=p.thumbtrack.kind,k=THUMBTRACK[kind];
  // The top peaks at the centre or at the plateau's inner edge: the dome is lowered until the edge is no taller.
  // A dome shallower than the track caps it (a little relief stays on the flattest), so nothing stands taller than measured.
+ // A flat top stands at the measured height everywhere: no relief to sample, so its span is empty.
+ if(kind==='raised'&&p.thumbtrack.position!=='rim')return {kind,flat:true,dome:p.domeHeight,span:[Rs,Rs]};
  if(kind==='raised'){const inner=k.inner*Rs,height=Math.min(k.height,Math.max(p.domeHeight,.06));
   const dome=Math.min(p.domeHeight,Math.max(0,(p.domeHeight-height)/domeCurve(k.inner,p.sharpness)));
   return {kind,...k,height,innerR:inner,dome,span:[inner-k.blend,inner]};}
@@ -186,6 +194,7 @@ export function topHeight(params,r){
 // The top above the shoulder height Hs, with the shape's thumbtrack.
 function trackTop(f,r){
  const {p,Rs,tt}=f,u=Math.min(r/Rs,1),dome=p.domeHeight*domeCurve(u,p.sharpness);
+ if(tt.flat)return p.domeHeight;
  if(tt.kind==='raised')return tt.dome*domeCurve(u,p.sharpness)+tt.height*smooth(tt.innerR-tt.blend,tt.innerR,r);
  // A bowl: flat at the centre, steepening out to the rim's lip, concave throughout.
  if(tt.kind==='puddle')return p.domeHeight-tt.depth*(1-u**4);

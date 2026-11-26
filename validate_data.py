@@ -38,7 +38,7 @@ assert len(tagged)==len(thumbtracks['discs']),'Duplicate thumbtrack tag'
 assert set(thumbtracks['kinds'])=={'raised','puddle','groove','thumbtack'},'Thumbtrack kinds changed'
 assert {d['id']:d['thumbtrack'] for d in data if 'thumbtrack' in d}==tagged,'Thumbtrack tags disagree with the reviewed list'
 assert {d['id']:d['thumbtrackPosition'] for d in data if 'thumbtrackPosition' in d}=={t['id']:t['position'] for t in thumbtracks['discs'] if 'position' in t},'Thumbtrack positions disagree with the reviewed list'
-assert all(t.get('position') in (None,'shoulder') and (t['kind']=='groove' or 'position' not in t) for t in thumbtracks['discs']),'Unknown thumbtrack position'
+assert all(t.get('position') in {'groove':(None,'shoulder'),'raised':(None,'rim')}.get(t['kind'],(None,)) for t in thumbtracks['discs']),'Unknown thumbtrack position'
 manifest=json.load(open(root+'/source-data/photo-manifest.json'))
 stamps=validate_stamp_fields(json.load(open(root+'/source-data/stamp-manifest.json')),data,root+'/public')
 print(f'Validated {len(stamps)} Discraft stock stamp assets and their rights records.')
