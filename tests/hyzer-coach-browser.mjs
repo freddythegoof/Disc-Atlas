@@ -11,7 +11,9 @@ const {chromium} = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE 
 // launcher wears a still image, the engine loads only when the panel opens and stops when it closes, dismissal is
 // remembered in this browser, and reduced motion holds him still. The backend is mocked: answers name the Destroyer
 // and the Wraith, a question containing "fail" gets a 503, and bag saves land in memory.
-const dir = 'outputs/hyzer-coach';
+// HYZER_THEME=paper|dusk|... runs the same checks in that theme, with its captures in their own folder.
+const theme = process.env.HYZER_THEME || '';
+const dir = 'outputs/hyzer-coach' + (theme ? '-' + theme : '');
 fs.rmSync(dir, {recursive: true, force: true}); fs.mkdirSync(dir, {recursive: true});
 const types = {'.html': 'text/html; charset=utf-8', '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.png': 'image/png', '.webp': 'image/webp'};
 const answer = 'Try a stable fairway driver for that wooded hole: a controlled flat release keeps it on line, and the fade at the end is predictable. Field test: throw five at 80% power and note where each one finishes.';
@@ -47,6 +49,7 @@ const check = label => {checks.push(label); console.log('ok -', label);};
 const engineRequests = [];
 async function page(options = {}) {
  const p = await browser.newPage({viewport: {width: 1440, height: 900}, deviceScaleFactor: 2, ...options});
+ if (theme) await p.addInitScript(t => {try {localStorage.setItem('disc-atlas-theme', t);} catch { /* Storage may be disabled. */ }}, theme);
  p.on('pageerror', e => errors.push(e.message));
  p.on('console', m => {if (m.type() === 'error' && !/503|Failed to load resource/.test(m.text())) errors.push(m.text());});
  p.on('request', r => {if (/\/vendor\/wobnimo\/|\/hyzer\.mjs/.test(r.url())) engineRequests.push(r.url());});
