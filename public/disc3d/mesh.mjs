@@ -45,6 +45,23 @@ function liftThumbtack(geometry,shape){
  }
 }
 
+// A stamp or photo on a thumbtrack mold is the body's own top, raised by `offset`: the lathe's top profile, from
+// `radius` in to the axis, spun with the body's `segments`, `detail` and `overmold` (and lifted by its thumbtack), so
+// every vertex and triangle lies on one of the body's. An evenly spaced ring bridged the relief's breakpoints and sank
+// under the plate at its walls. UVs are Cartesian x/z across a diameter of 2·`span`, the ring's own mapping.
+export function topLayerGeometry(shape,radius,{segments=80,detail=1,overmold=false,offset=0,span=radius}={}){
+ const {points}=lathePoints(shape,{detail,overmold}),{Rs}=shapeFrame(shape);
+ // The top runs from the shoulder (Rs) to the axis, the profile's last points, radii falling.
+ let i=points.length-1;while(i>0&&points[i-1].x>=points[i].x&&points[i-1].x<=Rs+1e-9)i--;
+ const top=points.slice(i),k=top.findIndex(p=>p.x<=radius+1e-9);
+ const edge=k>0&&top[k].x<radius-1e-9?[{x:radius,y:top[k-1].y+(top[k].y-top[k-1].y)*(radius-top[k-1].x)/(top[k].x-top[k-1].x)}]:[];
+ const geometry=new THREE.LatheGeometry([...edge,...top.slice(k)].map(p=>new THREE.Vector2(p.x,p.y)),segments);
+ if(shape.thumbtrack?.kind==='thumbtack')liftThumbtack(geometry,shape);
+ const pos=geometry.attributes.position,uv=geometry.attributes.uv;
+ for(let j=0;j<pos.count;j++){pos.setY(j,pos.getY(j)+offset);uv.setXY(j,.5+pos.getX(j)/(2*span),.5-pos.getZ(j)/(2*span));}
+ return geometry;
+}
+
 // `segments` around the axis; `detail` scales the profile's sampling (shape.mjs, 1 is about 70 points).
 // Returns the geometry, the profile it was spun from and, for an overmold, the seam radius.
 // `halo` (a Halo v2 band, with the split): each vertex also carries `haloCoord` (halo-shader.mjs).

@@ -2,6 +2,7 @@
 // the same ink and dome-following mesh still apply. No catalog-wide loading occurs here.
 import * as THREE from 'three';
 import {shapeFrame,surfaceSampler} from './shape.mjs';
+import {topLayerGeometry} from './mesh.mjs';
 import {DETAIL} from './quality.mjs';
 import {PHOTO_STAMP,isColorStamp,photoStampBlob} from './photo-stamps.mjs';
 
@@ -88,13 +89,15 @@ export function stampTexture(name,color,{asset=null,onChange=()=>{},style=null,s
  return texture;
 }
 
-// The stamp rides the top surface, inside the shoulder, on a ring mesh fine enough to follow the dome (and,
-// on a thumbtrack mold, finer, to follow its relief). Centimetres, in the profile's own frame (y = 0 at the
-// foot), like the lathe. The mapping is the ring's own; only the heights follow the surface.
-export function stampGeometry(shape,{segments=48,rings=shape.thumbtrack?24:8,placement=null}={}){
+// The stamp rides the top surface, inside the shoulder, on a ring mesh fine enough to follow the dome.
+// Centimetres, in the profile's own frame (y = 0 at the foot), like the lathe. The mapping is the ring's own;
+// only the heights follow the surface. On a thumbtrack mold it is the body's own top instead (mesh.mjs
+// topLayerGeometry, `lathe`: the body's discGeometry options), with the same mapping, so it lies on the relief.
+export function stampGeometry(shape,{segments=48,rings=8,placement=null,lathe={}}={}){
  const {Rs,R}=shapeFrame(shape);
  // Only decoded official art opts in. Generated/loading/failed stamps keep the legacy radius.
  const stampR=placement?R*placement.diameterFraction/placement.assetInkFraction:Math.min(Rs*.78,6.2);
+ if(shape.thumbtrack)return topLayerGeometry(shape,stampR,{...lathe,offset:.012});
  const ring=new THREE.RingGeometry(.001,stampR,segments,rings);ring.rotateX(-Math.PI/2);
  const pos=ring.attributes.position,top=surfaceSampler(shape);
  for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,top(x,z)+.012);}

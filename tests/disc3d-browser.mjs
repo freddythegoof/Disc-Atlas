@@ -347,6 +347,21 @@ try{
   await shot(page,'single-buzzz-34','#detail .disc3d-viewport');
   check('Streamline Drift, Innova Destroyer and Discraft Buzzz stay one material');
 
+  // Thumbtracks (shape.mjs THUMBTRACK): the stamp on a thumbtrack mold is the body's own top raised 0.12 mm (mesh.mjs
+  // topLayerGeometry), so no relief wall can cut through it. Every stamp vertex but its edge ring is a body vertex.
+  for(const name of ['Banger-GT','Berg','Pig']){
+   await show(page,name);
+   const r=await page.evaluate(()=>{
+    const {body,stamp}=Disc3D.viewer.debug,b=body.geometry.attributes.position,s=stamp.geometry.attributes.position,key=(p,i)=>p.getX(i).toFixed(4)+','+p.getZ(i).toFixed(4),top=new Map();
+    for(let i=0;i<b.count;i++)top.set(key(b,i),Math.max(top.get(key(b,i))??-Infinity,b.getY(i)));
+    let off=0,worst=Infinity;for(let i=0;i<s.count;i++){const y=top.get(key(s,i));if(y===undefined)off++;else worst=Math.min(worst,s.getY(i)-y);}
+    return {off,worst,ring:Disc3D.viewer.state.lathe.segments+1};
+   });
+   assert.ok(r.off<=r.ring,`${name}: ${r.off} stamp vertices off the body's lattice`);
+   assert.ok(Math.abs(r.worst-.012)<1e-4,`${name}: the stamp stands ${r.worst} cm over the body`);
+  }
+  check('a stamp on a thumbtrack (Banger-GT, Berg, Pig) lies on the body’s own top, 0.12 mm proud everywhere');
+
   // The colour API: optional rim/plate colours through Disc3D.sync, defaults when absent.
   {
    await show(page,'Envy');

@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import {shapeFrame,surfaceSampler} from './shape.mjs';
+import {topLayerGeometry} from './mesh.mjs';
 import {CLEAR} from './clear.mjs';
 // The whole photo maps to the disc's diameter, while only the top flight plate receives it.
-// UVs are Cartesian x/z, independent of the lathe's angular UV seam. On a thumbtrack mold the ring is finer,
-// so the photo lies on the relief rather than bridging it; its UVs are the same x/z mapping.
-export function photoGeometry(shape,{overmold=false,segments=64,rings=shape.thumbtrack?48:16}={}){
+// UVs are Cartesian x/z, independent of the lathe's angular UV seam. On a thumbtrack mold the photo is the body's
+// own top (mesh.mjs topLayerGeometry, `lathe`: the body's discGeometry options), so it lies on the relief.
+export function photoGeometry(shape,{overmold=false,segments=64,rings=16,lathe={}}={}){
  const {R,Rs,Ri}=shapeFrame(shape),radius=overmold?Ri:Rs;
+ if(shape.thumbtrack)return topLayerGeometry(shape,radius,{...lathe,offset:.003,span:R});
  const g=new THREE.RingGeometry(.001,radius,segments,rings);g.rotateX(-Math.PI/2);
  const p=g.attributes.position,uv=g.attributes.uv,top=surfaceSampler(shape);
  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);p.setY(i,top(x,z)+.003);uv.setXY(i,.5+x/(2*R),.5-z/(2*R));}
@@ -85,12 +87,12 @@ export function acquirePhoto(url,size=1024,{relief=false,clear=false,tint=null}=
 // exactly as it lights the plastic around it: highlights and falloff come from the model, not the photo.
 // The copy is always drawn, even where the plate itself is hidden (a clear disc's, disc3d/clear.mjs).
 // `clear` and `tint` (acquirePhoto): a clear disc's photo, cut at its plate edge and, with its true colour, retinted.
-export function photoSurface(shape,url,{overmold=false,onChange=()=>{},plastic={},like=null,relief=false,size=1024,clear=false,tint=null}={}){
+export function photoSurface(shape,url,{overmold=false,lathe={},onChange=()=>{},plastic={},like=null,relief=false,size=1024,clear=false,tint=null}={}){
  const material=like?like.clone():new THREE.MeshPhysicalMaterial(plastic);
  if(like){material.onBeforeCompile=like.onBeforeCompile;material.customProgramCacheKey=like.customProgramCacheKey;}
  for(const slot of ['map','normalMap','bumpMap','roughnessMap','metalnessMap','aoMap','alphaMap','emissiveMap','lightMap'])if(slot in material)material[slot]=null;
  material.color.set(0xffffff);material.emissive?.set(0x000000);Object.assign(material,{transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,visible:true});
- const mesh=new THREE.Mesh(photoGeometry(shape,{overmold}),material);mesh.visible=false;let disposed=false;
+ const mesh=new THREE.Mesh(photoGeometry(shape,{overmold,lathe}),material);mesh.visible=false;let disposed=false;
  const handle=acquirePhoto(url,size,{relief,clear,tint});
  handle.ready.then(({map,relief:height})=>{if(disposed)return;material.map=map;if(height){material.bumpMap=height;material.bumpScale=RELIEF;}material.needsUpdate=true;mesh.userData.photoReady=true;mesh.visible=true;onChange(mesh);},()=>{if(!disposed){mesh.userData.photoFailed=true;onChange(mesh);}});
  const hide=()=>{mesh.visible=false;mesh.userData.photoReady=false;onChange(mesh);};window.addEventListener('atlas-photo-clear',hide);
