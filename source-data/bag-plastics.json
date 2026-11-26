@@ -5,6 +5,7 @@
       "options": [
         "Star",
         "Champion",
+        "Proto Glow Champion",
         "GStar",
         "Pro",
         "DX",
@@ -21,6 +22,7 @@
       "colors": {
         "Star": "#e6c668",
         "Champion": "#70b7cd",
+        "Proto Glow Champion": "#a7c68c",
         "GStar": "#b99bdd",
         "Pro": "#e49376",
         "DX": "#a7c68c",
@@ -150,6 +152,7 @@
     "Discmania": {
       "options": [
         "S-Line",
+        "Q-Line",
         "C-Line",
         "D-Line",
         "P-Line",
@@ -163,6 +166,7 @@
       "reference": "S-Line",
       "colors": {
         "S-Line": "#e6c668",
+        "Q-Line": "#79b3a8",
         "C-Line": "#70b7cd",
         "D-Line": "#b99bdd",
         "P-Line": "#e49376",
@@ -323,6 +327,7 @@
       "options": [
         "ProLine",
         "SP Line",
+        "Granite",
         "D-Line",
         "Flex"
       ],
@@ -330,6 +335,7 @@
       "colors": {
         "ProLine": "#e6c668",
         "SP Line": "#70b7cd",
+        "Granite": "#e2d8c1",
         "D-Line": "#b99bdd",
         "Flex": "#e49376"
       }
