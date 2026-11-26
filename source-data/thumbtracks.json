@@ -1,6 +1,6 @@
 {
   "checkedAt": "2026-11-25",
-  "note": "Reviewed thumbtrack tags: a molded grip feature on the top of the disc. Freddy named the Berg, Berg X, Sled, Stasis and Range and flagged the Banger's version as different; HuckTwin's study of Nov 25, 2026 (retailer and manufacturer sources plus product photos, read in profile and angled light) verified this list. prepare_data.py copies kind onto each record as thumbtrack; validate_data.py checks the set. Ruled out for now: Innova Groove (a channel across a driver's plate), Yikun Claws (grip texture), Innova Rhyno / Rhyno X (unsourced), Kastaplast Rask (a rim bump, not a thumbtrack).",
+  "note": "Reviewed thumbtrack tags: a molded grip feature on the top of the disc. Freddy named the Berg, Berg X, Sled, Stasis and Range and flagged the Banger's version as different; HuckTwin's study of Nov 25, 2026 (retailer and manufacturer sources plus product photos, read in profile and angled light) verified this list. prepare_data.py copies kind onto each record as thumbtrack, and a position (groove only: shoulder, the Sled) as thumbtrackPosition for the 3D model; validate_data.py checks the set. Ruled out for now: Innova Groove (a channel across a driver's plate), Yikun Claws (grip texture), Innova Rhyno / Rhyno X (unsourced), Kastaplast Rask (a rim bump, not a thumbtrack).",
   "kinds": {
     "raised": "A raised track or pad molded into the top.",
     "puddle": "The flight plate is dished below the rim; the sunken plate is the thumb seat.",
@@ -21,7 +21,7 @@
     {"id": "e9974b90612a", "brand": "MVP", "name": "Stasis", "kind": "puddle"},
     {"id": "ff0b51fdb61e", "brand": "Discraft", "name": "Banger-GT", "kind": "groove", "note": "The original Groove Top: a narrow concentric channel roughly mid-plate; the profile shows the step down into it."},
     {"id": "4a6dfb045c65", "brand": "Discraft", "name": "Zone GT (Banger Top)", "kind": "groove"},
-    {"id": "caaec70f020f", "brand": "Discraft", "name": "Sled (DIS-0126-P)", "kind": "groove", "note": "Same recessed channel as the Banger's, rolled into the top shoulder instead of mid-plate."},
+    {"id": "caaec70f020f", "brand": "Discraft", "name": "Sled (DIS-0126-P)", "kind": "groove", "position": "shoulder", "note": "Same recessed channel as the Banger's, rolled into the top shoulder instead of mid-plate."},
     {"id": "5e60dd1ba225", "brand": "Innova", "name": "Pig", "kind": "thumbtack"},
     {"id": "9b7d6228abf7", "brand": "Discraft", "name": "Ringer GT", "kind": "thumbtack"},
     {"id": "2c335a75e0b6", "brand": "Dynamic Discs", "name": "Slammer", "kind": "thumbtack"},

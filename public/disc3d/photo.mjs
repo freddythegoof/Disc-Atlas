@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import {shapeFrame,topHeight} from './shape.mjs';
+import {shapeFrame,surfaceSampler} from './shape.mjs';
 import {CLEAR} from './clear.mjs';
 // The whole photo maps to the disc's diameter, while only the top flight plate receives it.
-// UVs are Cartesian x/z, independent of the lathe's angular UV seam.
-export function photoGeometry(shape,{overmold=false,segments=64,rings=16}={}){
+// UVs are Cartesian x/z, independent of the lathe's angular UV seam. On a thumbtrack mold the ring is finer,
+// so the photo lies on the relief rather than bridging it; its UVs are the same x/z mapping.
+export function photoGeometry(shape,{overmold=false,segments=64,rings=shape.thumbtrack?48:16}={}){
  const {R,Rs,Ri}=shapeFrame(shape),radius=overmold?Ri:Rs;
  const g=new THREE.RingGeometry(.001,radius,segments,rings);g.rotateX(-Math.PI/2);
- const p=g.attributes.position,uv=g.attributes.uv;
- for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);p.setY(i,topHeight(shape,Math.hypot(x,z))+.003);uv.setXY(i,.5+x/(2*R),.5-z/(2*R));}
+ const p=g.attributes.position,uv=g.attributes.uv,top=surfaceSampler(shape);
+ for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);p.setY(i,top(x,z)+.003);uv.setXY(i,.5+x/(2*R),.5-z/(2*R));}
  g.computeVertexNormals();return g;
 }
 const cache=new Map();let epoch=0;
