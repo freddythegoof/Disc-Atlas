@@ -1,7 +1,8 @@
 // Thumbtracks in the procedural 3D disc (public/disc3d/shape.mjs THUMBTRACK): each of the 19 tagged molds
 // gets its kind's top-surface relief from the same generator, and every other shape is untouched. The relief
-// is checked against HuckTwin's photo study (Nov 25, 2026): a raised plateau into the shoulder, a puddle whose
-// rim is the highest point, a groove mid-plate or at the shoulder, and a thumbtack on one arc only.
+// is checked against HuckTwin's photo study (Nov 25, 2026) and Freddy's feel check against his Berg (Nov 26): a raised
+// track is the Berg's flat top (a ring at the rim on the Blast and Hammer), a puddle's rim is the highest point, a
+// groove sits mid-plate or at the shoulder, and a thumbtack is on one arc only.
 // Run: node --test tests/disc3d-thumbtrack.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,10 +16,10 @@ const shapes=d=>({plain:shapeForDisc({specs:d.specs,flight:d}).shape,shape:shape
 // Height above the shoulder along the top, centre to shoulder.
 const relief=(shape,n=400)=>{const {Rs,Hs}=shapeFrame(shape);return Array.from({length:n+1},(_,i)=>{const r=Rs*i/n;return {r,h:topHeight(shape,r)-Hs};});};
 
-test('19 tagged records, each of a known kind; only the Sled carries a position',()=>{
+test('19 tagged records, each of a known kind; the Sled, Blast and Hammer carry a position',()=>{
  assert.equal(tagged.length,19);
  for(const d of tagged)assert.ok(THUMBTRACK[d.thumbtrack],d.name);
- assert.deepEqual(discs.filter(d=>d.thumbtrackPosition).map(d=>[d.name,d.thumbtrack,d.thumbtrackPosition]),[['Sled (DIS-0126-P)','groove','shoulder']]);
+ assert.deepEqual(discs.filter(d=>d.thumbtrackPosition).map(d=>[d.name,d.thumbtrack,d.thumbtrackPosition]).sort(),[['Blast','raised','rim'],['Hammer (Chui, 战锤)','raised','rim'],['Sled (DIS-0126-P)','groove','shoulder']]);
 });
 
 test('without a thumbtrack the shape, profile and surface are exactly what they were',()=>{
@@ -40,14 +41,28 @@ test('every tagged mold still stands at its measured height, with a solid plate'
  }
 });
 
-test('raised: a broad plateau that runs into the shoulder (Berg)',()=>{
- const {plain,shape}=shapes(byName('Berg')),{Rs,Hs}=shapeFrame(shape),k=THUMBTRACK.raised;
- assert.ok(topHeight(shape,Rs)-Hs>=k.height-1e-9,'the shoulder is lifted by the track');
- // The dome gives back a little of its height to keep the measured height, so the plateau stands most of h proud.
- const lift=relief(shape).map(({r,h},i)=>h-relief(plain)[i].h);
- const raisedFrom=relief(shape)[lift.findIndex(v=>v>k.height*.75)].r;
- assert.ok(raisedFrom<Rs*.65,`the plateau covers much of the plate (from ${(raisedFrom/Rs).toFixed(2)}·Rs)`);
- assert.ok(lift.every((v,i)=>relief(shape)[i].r<Rs*.65||v>k.height*.75),'and holds its height out to the shoulder');
+test('raised: one level plane from the axis to the shoulder at the measured height, no dish (Berg and its class)',()=>{
+ const flat=tagged.filter(d=>d.thumbtrack==='raised'&&!d.thumbtrackPosition);
+ assert.deepEqual(flat.map(d=>d.name).sort(),['Armadillo','Berg','Berg X','Copperhead','Devilhawk','Ghoul','Warspear']);
+ for(const d of flat){
+  const {plain,shape}=shapes(d),{Rs}=shapeFrame(shape),peak=profileStats(plain).height;
+  assert.ok(relief(shape).every(p=>Math.abs(topHeight(shape,p.r)-peak)<1e-9),d.name+': the top is level at '+peak.toFixed(3)+' cm');
+  // The profile's top run, shoulder to axis, lies on that plane; the shoulder rounds it off outside Rs.
+  const pts=discProfile(shape),top=pts.slice(pts.findLastIndex(p=>p.x>=Rs-1e-9));
+  assert.ok(top.length>2&&top.every(p=>Math.abs(p.y-peak)<1e-9),d.name+': the lathe draws it level');
+ }
+});
+
+test('raised at the rim: a plateau ring proud of the plate, into the shoulder (Blast, Hammer)',()=>{
+ for(const name of ['Blast','Hammer (Chui, 战锤)']){
+  const {plain,shape}=shapes(byName(name)),{Rs,Hs,tt}=shapeFrame(shape),pts=relief(shape);
+  assert.ok(!tt.flat&&topHeight(shape,Rs)-Hs>=tt.height-1e-9,name+': the shoulder is lifted by the track');
+  // The ring's inner edge is the top, at the measured height; the plate inside it sits lower (recessed).
+  const peak=Math.max(...pts.map(p=>p.h));
+  assert.ok(Math.abs(peak+Hs-profileStats(plain).height)<1e-9,name+': no taller than measured');
+  assert.ok(Math.abs(pts.find(p=>p.h===peak).r-tt.innerR)<Rs/100,name+': the peak is the ring');
+  assert.ok(topHeight(shape,0)<peak+Hs-.05,name+': the plate sits below the ring');
+ }
 });
 
 test('puddle: the rim is the highest point and the plate is dished below it (Range, Stasis)',()=>{
