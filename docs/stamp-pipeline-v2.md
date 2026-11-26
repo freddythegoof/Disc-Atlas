@@ -22,6 +22,13 @@ the Raptor's black print. v2 is not a candidate to ship as built. What it does p
 The unit set and 15 of the 16 photo and stamp browser suites pass; the 16th fails identically on main. It stops at an
 open PR: no merge, no deploy.
 
+**Build v2 (Nov 26, task bslhk2, branch `claude/stamp-pipeline-v2-build` off main 5597801). The extractor STOPPED again
+at the control fence, after two strikes; the retake prompts are built (§11).** The full v2 extractor still regresses the
+controls, and the second approach tried (today's extractor plus v2's segmentation adding only the marks today misses
+whole) adds a 509 px clump and specks to the Destroyer without bringing back the Berg's PRO. So no extractor change ships.
+What ships is the capture gate's retake prompts in the product, re-fitted for the crop a make reads, with no change to
+any asset. The PR #55 veto stays exactly as it is.
+
 **Follow-up (same day, Freddy: "Try the post-pass").** The narrower option is built and measured in §9. Today's
 extractor stays, and v2's separation only vetoes ink it does not support. On the Berg it removes the blotch: stray ink
 falls from 14k–340k px to 0–224 across all four stress inputs. The Destroyer's and Wraith's colour assets come out
@@ -420,3 +427,123 @@ the Destroyer's and 304 of the Pixel's thin print (`work/stamp-pipeline-v2/post1
 the account changes until a disc's owner taps Make again. The Berg's acceptance stays his re-make from the camera
 original. What to look at on his discs: the Berg's top-right and edge (the blotch), the DD3's 3 o'clock (the sheen
 speckle), and the Proxy's spray dots below the sun (the one place the veto takes print, one dot about 3 px across).
+
+## 11. Build v2 (Nov 26): the extractor stops at the fence; the retake prompts ship
+
+Task bslhk2 (Maximus, from Freddy's roadmap: SAM-class segmentation, warp at native resolution, ink-only cleanup). The
+branch is `claude/stamp-pipeline-v2-build`, cut from `origin/main` **5597801** (PR #65). Freddy's Nov 26 rules: no paid
+services and no photo off the machine; no two-shot or clear true colour in this PR; the retake prompts shown in the
+product. Seat: Claude Code, on the Mac.
+
+### The extractor: two strikes, nothing wired
+
+**Today's production on this tip.** `baseline.mjs` was re-run through main 5597801's worker, with the veto on, on every
+photo disc available. It reproduces §9–10: the Berg's Node and WebKit crops agree at alpha IoU **0.958**, and the
+blotch's detached parts are gone (`sheets/blotch-berg-*-topright.png`). The Nov 14 runs are kept in `runs-nov14/`.
+
+**Strike 1 (Nov 14): full v2 as the stamp** (§6). The DD3 sheen comes out 11.5× larger, the Destroyer gets halos and
+holes, and the Raptor loses its black print. Nothing since has changed those numbers: v2's code is the same, and so are
+the photos.
+
+**Strike 2 (this build): today's extractor plus v2's whole-new marks** (`additions.mjs`). This was the narrowest
+segmentation-first design left. Today's strokes, layers, colour and veto stay. A v2 mark (alpha over half, read at the
+photo's own resolution) is added only when at least 80% of it lies over 3 px (at 1024) from today's ink, so it is print
+today missed whole, not today's stroke with v2's heavier edge. The Destroyer's halos, the DD3's sheen and the Raptor's
+clean finish never reach it: they all sit on today's ink. What it adds, alpha over half at 2048:
+
+| Disc | Today's ink px | Marks added | px added | Largest | What they are |
+|---|---|---|---|---|---|
+| Berg original | 162,758 | 159 | 953 | 102 | specks |
+| Berg stored | 163,062 | 83 | 2,612 | 292 | **the three slashes and the O**; specks |
+| Proxy | 123,840 | 28 | 573 | 118 | specks |
+| Wraith | 245,886 | 85 | 1,686 | 166 | specks and blobs off the print |
+| DD3 (control) | 945,823 | 104 | 951 | 103 | specks |
+| Destroyer (control) | 149,350 | 21 | 813 | **509** | **a clump between DES and T**, specks |
+
+The Berg's stored photo gains its flight slashes and the O. It does not gain **PRO**: v2 reads APPPOAL as one mark that
+touches today's AP, so it counts as today's stroke. It also gains a stray bar at the right edge
+(`sheets/hyb-berg-stored-small.png`). The Destroyer control gains a 509 px clump. That is bigger than the slashes
+(106–167 px), so no area floor could keep the slashes and drop the clump (`sheets/hyb-destroyer-top.png`). By the
+spike's fence that is a control regression. By the two-strikes rule it is the second miss on the same problem.
+**No extractor change is wired.**
+
+**SAM and native resolution.** SAM-class segmentation is not run here or anywhere in the pipeline. Every hosted SAM is
+a paid cloud service that would take the photo off the machine, which Freddy's Nov 26 rule forbids. A local SAM is a
+model download of hundreds of MB that has to run on the phone. The disc is still localised by production's own rim
+fit (`disc-register.mjs`), the stand-in §0 documents. Native resolution still makes today's extractor worse (§2:
+296,371 stray px at 3778). v2 at native costs 6.5 s and about 3.4 times the 230 MB it peaked at 2048 (§10) for the separation on
+the Berg, plus 16 s of colour pass in Node (§6). That is too much for a phone with no gain the controls allow.
+
+**The veto (PR #55) stays as it is**, the only production change from this line of work. Nothing measured here makes it
+unnecessary. Without it, the blotch returns (§9: 14k–340k stray px).
+
+### The retake prompts, in the product
+
+The spike's capture gate (`qa.mjs`) runs on the device in `public/disc-photo-qa.mjs`. Its prompts are word for word
+(`tests/photo-qa.mjs` checks them against the spike's). Two things changed, both measured:
+
+- **Where it reads.** It reads the same 2048 crop the make reads (`photoStampAsset`), before extraction. For a camera
+  original it also reads the disc's diameter in the photo's own pixels (resolution and fill). A stored texture is never
+  read for those: its size is the site's, not the camera's.
+- **Sharpness**, on its second measure. The spike's Laplacian variance failed the sharp Destroyer (§6). The first
+  replacement, the edge-normalised |Laplacian| over gradient the spike logged beside it, fitted cleanly on the nine
+  real photos (0.475–0.975, blurred 0.305 or less). It then read the photo suites' clean drawn photos as soft
+  (0.21–0.41): it rewards a camera's noise and sharpening halos, not focus. That was strike one on this measure. The check
+  now measures **edge width**: across each of the strongest edges (the top 2%, at least 200), the width of the
+  gradient at half its peak, in px at 1024; the gate takes the median. `qa-calibrate.mjs` blurred each disc (Gaussian,
+  sigma 1–5 px at 2048), brightened ×1.8 and darkened ×0.15:
+  - real photos read **1.69–2.13 px**. The widest are stored 1024 textures: the Raptor 2.13, the Pixel 2.09;
+  - the suites' clean drawn photos read 1.43–2.01;
+  - blurred by sigma 1 (half a pixel at 1024), 1.90–2.33. This is a slight softness the extraction reads through, and
+    it passes on purpose;
+  - blurred by sigma 2 (about 1 px at 1024) or more, every disc reads **2.59 px or more**;
+  - brightening or darkening moves the width by at most 0.28 px, and no lit copy fails on it;
+  - the threshold is **2.45 px**.
+
+  Exposure, glare, resolution and fill keep the spike's thresholds. Every real photo passes them, and the brightened
+  copies fail clipped and glare, as they should. The ×0.15 darkening crushes only the darkest plastics. Those read 0.018–0.086 crushed
+  against the 0.05 threshold, so the darker discs among them are prompted.
+
+**A prompt never stops a make.** The asset is made and saved as before. The prompts, worst first, follow the make's own
+status line, and an asset that could not be made carries them too ("No stamp showed up …" then how to retake). Resolution
+and fill both say "move closer", so they give one prompt, and resolution counts only when the disc also does not fill
+the photo: a disc filling a low-resolution photo (the stall suite's 1600 px original) cannot be helped by a step closer. The gate adds 78–106 ms per make in Node on this Mac (four photos) and sends nothing
+anywhere.
+
+**Screenshots** (synthetic photos only, made at run time by `tests/photo-retake-browser.mjs`). They are in
+`docs/assets/stamp-pipeline-v2/retake-*`, in the default theme, Paper and Dusk, on desktop Chromium and phone WebKit:
+a new soft photo, Game asset in one click from a saved soft photo, and a small disc read as an original.
+
+**Berg sheets** (Freddy's photos, so in ignored `work/stamp-pipeline-v2/sheets/` only, never committed or sent):
+`berg-original-sheet.jpg` and `berg-stored-sheet.jpg` show today's production asset beside v2's on the same photo.
+`blotch-berg-original-topright.png` and `blotch-berg-stored-topright.png` are the blotch region, top-right and edge.
+Today's asset is the production one; nothing here changes it. **The Berg's acceptance stays Freddy's camera-original
+re-make.**
+
+**Tested (Nov 26, this Mac; `pnpm` is not on its PATH, so package scripts ran through `npm run`, which runs the same
+script lines):**
+
+- `node --test tests/photo-qa.mjs` 6/6 (new) and `node --test tests/stamp-blotch-veto.mjs` 4/4 (the veto, unchanged).
+- `npm run test:clear-stamp` passes. `npm run test:photo-stamp-sync` passes: its unit set, the sync suite, and the stall
+  suite on WebKit and Chromium.
+- `node tests/photo-retake-browser.mjs` passes, on desktop Chromium and, with `PHOTO_STAMP_ENGINE=webkit`, on phone WebKit.
+- These pass: the stamp-look, clear-opacity and halo-plastic unit sets, and the browser suites stamp-look,
+  clear-plastic, clear-true-color, clear-opacity, photo-adder-rework, photo-stamp-one-click, photo-stamp-color-assets,
+  photo-stamp-assets, photo-stamp-identity, photo-stamp-level, halo-plastic, photo-gestures and photo-source-chooser.
+- **photo-editor-contract fails identically on main 5597801** ("This photo could not be compressed"), as on Nov 14.
+- Seen on main too, and environment only:
+  - clear-true-color and clear-opacity fail on both trees until the Raptor photo is copied into the ignored `work/`.
+    With it, both pass on both.
+  - photo-stamp-assets timed out at the 3D bag's stamp layer once on each tree, then passed.
+  - photo-adder-rework's rim fit hit its 60 s limit once under load, then passed.
+- What the gate changed along the way: the sync suite's clean drawn photo read as soft on the first sharpness measure,
+  so that measure was replaced (above). The stall suite's 1600 px original was asked to move closer, so resolution now
+  defers to fill (above).
+
+### For Freddy
+
+- **The prompts' feel:** wording, placement and whether a soft-photo prompt after a successful make reads right
+  (`docs/assets/stamp-pipeline-v2/`). Should a failing photo stop the make instead? It does not today.
+- **The extractor:** v2 stays off by the fence. To go further, the controls' regressions have to be fixed first, or
+  the fence relaxed by Freddy for a named control. A local, on-device segmentation model is the other route, and it is
+  a separate build with its own size and speed budget.

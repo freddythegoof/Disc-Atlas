@@ -5,6 +5,7 @@ import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
 import {photoLook,setPhotoLook,savePhotoStamp} from './disc3d/photo-stamps.mjs';
 import {registration,throughH,CENTRE_CAP,STRETCH_CAP} from './disc-register.mjs';
+import {photoGate,photoDiameter} from './disc-photo-qa.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
@@ -245,9 +246,17 @@ function fitDisc(image,plate){
 // v3.1 (docs/photo-stamp-one-click.md): `stored`: `image` is the disc's stored texture (already de-lit once, at upload),
 // read with the level framing, not a camera original.
 // `clear`: the disc is clear plastic (docs/clear-plastic-discs.md): the stamp's shadow, seen through it, is taken out.
+// The capture gate (disc-photo-qa.mjs, docs/stamp-pipeline-v2.md §11) reads the same crop first: `retake` holds its
+// prompts, on the result, or on the error when the asset could not be made. They never stop a make.
 export async function photoStampAsset(image,options={},{plate=.8,color=false,stored=false,clear=false,seeThrough=clear,colorBytes=COLOR_STAMP_BYTES,stage=()=>{}}={}){
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
+ // A stored texture's size says nothing of the camera's: only an original is read for resolution and fill.
+ const retake=photoGate(pixels,size,{plate,original:stored?null:{diameter:photoDiameter(options,image.width,image.height),shortSide:Math.min(image.width,image.height)}}).prompts;
+ try{return await stampAsset(pixels,size,{plate,color,stored,clear,seeThrough,colorBytes,stage,retake});}
+ catch(error){if(error&&typeof error==='object')error.retake=retake;throw error;}
+}
+async function stampAsset(pixels,size,{plate,color,stored,clear,seeThrough,colorBytes,stage,retake}){
  stage('extract');
  const result=await extractStamp(pixels,size,plate,color,stored,clear,seeThrough),a=result.alpha,c=size/2;stage('ink');
  // The asset is the smallest centred square holding all of the design: no texture spent on bare plate.
@@ -277,7 +286,7 @@ export async function photoStampAsset(image,options={},{plate=.8,color=false,sto
  // The stock placement rule (stamp.mjs): the texture spans side/size of the disc's diameter.
  const ink=Math.max(x1-x0+1,y1-y0+1);
  // `color` is null when the colour asset could not be kept within its budget: the one-ink asset stands alone.
- return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,
+ return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,retake,
   ...result.color&&{color:(stage('color'),await colorStampBlob(result.color.rgba,size,colorBytes))}};
 }
 // The colour asset: the smallest centred square holding all of it, as WebP (lossy colour, its alpha kept exact), which
@@ -640,6 +649,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  const pickOriginal=look=>{if(owned&&!busy&&!makingNow){making=look;makingClear=clear();makingSeeThrough=seeThrough();q('.bag-photo-asset-file').click();}};
  // The make's last words on the true colour. On a clear copy a photo that gives none says so (the finish hint promises
  // the make matches it), as does a colour read but not saved.
+ // The capture gate's retake prompts (disc-photo-qa.mjs), after a make's own words: how a retake would read better.
+ const retakeLine=retake=>retake?.length?' '+retake.join(' '):'';
  const trueColorLine=(job,matched,kept,refused)=>kept?' The plastic’s true colour matched from your photo.'
   :matched?' The plastic’s true colour could not be saved: make it again to retry.'
   :job.trueColor&&job.clear&&refused?' The plastic’s true colour could not be read from the rim in this photo'+(refused==='shallow'?': a photo on a light surface gives it.':'.'):'';
@@ -663,8 +674,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
     const r=await within(fetch('/api/bag/discs/'+encodeURIComponent(target.id)+'/photo',{method:'PATCH',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount?.current?.csrfToken||''},body:JSON.stringify({photo_true_color:matched,texture_key:target.key})}).catch(()=>null),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
     if(r?.ok){kept=true;onTrueColor(target.id,target.key,matched);}
    }
-   status((look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.')+trueColorLine(job,matched,kept,refused));
-  }catch(e){status(e?.message?.startsWith('Choose')?'Your saved photo could not open. Try again.':e?.message||'The game asset could not be made. Try again.');}
+   status((look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.')+trueColorLine(job,matched,kept,refused)+retakeLine(asset.retake));
+  }catch(e){status((e?.message?.startsWith('Choose')?'Your saved photo could not open. Try again.':e?.message||'The game asset could not be made. Try again.')+retakeLine(e?.retake));}
   finally{if(makingNow===job)makingNow=null;renderSheet();}
  };
  q('.bag-photo-look').addEventListener('change',e=>{
@@ -711,8 +722,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
     const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:makingClear,seeThrough:makingSeeThrough,stage:step}),look=making;if(id!==serial)return;
     step('save');
     await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');if(id!==serial)return;
-    closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.';renderSheet();
-   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e?.message||'The game asset could not be made. Try again.';}}
+    closeAligner();q('.bag-photo-status').textContent=(look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.')+retakeLine(asset.retake);renderSheet();
+   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=(e?.message||'The game asset could not be made. Try again.')+retakeLine(e?.retake);}}
    return;
   }
   try{
@@ -742,8 +753,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));status('Making the game asset: '+MAKE_STEPS.extract);
     asset.result=await photoStampAsset(job.bitmap,job.options,{plate,color:true,clear:asset.clear,seeThrough:asset.seeThrough,stage:name=>status('Making the game asset: '+MAKE_STEPS[name])});
     asset.state='made';if(!asset.result.color&&asset.look==='color')asset.look='asset';
-    status(asset.result.color?'Game asset made. It’s saved with the photo when you save this disc.':'Game asset made in one ink: this stamp is too detailed to keep in full color. It’s saved with the photo when you save this disc.');
-   }catch(e){asset.state='failed';asset.error=e?.message||'The game asset could not be made.';asset.look='photo';status(asset.error+' The photo still saves; choose Game asset after saving to try again.');}
+    status((asset.result.color?'Game asset made. It’s saved with the photo when you save this disc.':'Game asset made in one ink: this stamp is too detailed to keep in full color. It’s saved with the photo when you save this disc.')+retakeLine(asset.result.retake));
+   }catch(e){asset.state='failed';asset.error=e?.message||'The game asset could not be made.';asset.look='photo';status(asset.error+' The photo still saves; choose Game asset after saving to try again.'+retakeLine(e?.retake));}
    if(used===job&&job.asset===asset)renderSheet();
    return asset;
   })();
