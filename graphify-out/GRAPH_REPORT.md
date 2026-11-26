@@ -1,7 +1,7 @@
 # Graph Report - thumbtrack-raised-relief  (2026-11-26)
 
 ## Corpus Check
-- 507 files · ~5,757,334 words
+- 507 files · ~5,757,458 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 315 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fe877d39`
+- Built from commit: `e2a8cb77`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
