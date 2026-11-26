@@ -4,16 +4,18 @@
 // pulled from them, and in the bag list's thumbnails; and it is see-through in fact: the same pixels of a clear copy
 // change with the page behind them (light against Midnight), an opaque copy's do not.
 // Photos are the player's and are never committed: the Raptor's own photo is used when it sits in the ignored
-// work/clear-plastic-discs/input/, else the committed stamped-disc fixture. Shots go to the ignored
-// work/clear-plastic-discs/evidence/suite/.
+// work/clear-plastic-discs/input/, else the committed stamped-disc fixture. That fixture is 1254 px. The photo
+// route only stores a square processed WebP up to 1024, which is what the sheet's preparePhoto writes, so the
+// fallback is run through preparePhoto before it is stored. A photo already in work/ is sent as it was stored.
+// Shots go to the ignored work/clear-plastic-discs/evidence/suite/.
 //   node tests/clear-plastic-browser.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {startHarness} from './display-harness.mjs';
 
-const OUT='work/clear-plastic-discs/evidence/suite',RAPTOR='work/clear-plastic-discs/input/raptor-0cef6b2f.webp';
+const OUT='work/clear-plastic-discs/evidence/suite',RAPTOR='work/clear-plastic-discs/input/raptor-0cef6b2f.webp',FIXTURE='tests/fixtures/stamped-disc.webp';
 fs.mkdirSync(OUT,{recursive:true});
-const photo=fs.readFileSync(fs.existsSync(RAPTOR)?RAPTOR:'tests/fixtures/stamped-disc.webp');
+const photoFile=fs.existsSync(RAPTOR)?RAPTOR:FIXTURE,photoSource=fs.readFileSync(photoFile);
 const check=label=>console.log('ok -',label);
 const h=await startHarness({port:Number(process.env.CLEAR_PORT||8873),state:'work/clear-plastic-discs/d1'});
 const {page,base,errors,context}=h;
@@ -24,10 +26,36 @@ await context.route(/\/disc-stamp-worker\.mjs(\?.*)?$/,async route=>{
  const body=await (await route.fetch()).text();if(!body.includes(SIGNATURE))throw Error('extract() signature moved');
  await route.fulfill({contentType:'text/javascript',body:body.replace(SIGNATURE,SIGNATURE+"new BroadcastChannel('clear-test').postMessage({clear});")});
 });
-await context.addInitScript(()=>{window.__makes=[];new BroadcastChannel('clear-test').onmessage=e=>window.__makes.push(e.data);});
+await context.addInitScript(()=>{
+ window.__makes=[];new BroadcastChannel('clear-test').onmessage=e=>window.__makes.push(e.data);
+ // A machine with no GPU (this headless Chromium) is SwiftShader. That build now fails
+ // getContext when failIfMajorPerformanceCaveat is set, so the thumbnail atlas never starts, and
+ // My Bag's auto quality skips a pulled disc's second clear wall. The suite checks both. On
+ // software WebGL only, retry the context and report a GPU so those paths run. A real GPU is
+ // returned unchanged.
+ const SOFTWARE=/swiftshader|llvmpipe|softpipe|software|basic render/i,UNMASKED_VENDOR=0x9245,UNMASKED_RENDERER=0x9246;
+ const getContext=HTMLCanvasElement.prototype.getContext;
+ HTMLCanvasElement.prototype.getContext=function(type,attrs){
+  const gl=getContext.call(this,type,attrs);
+  if(gl||!attrs?.failIfMajorPerformanceCaveat)return gl;
+  return getContext.call(this,type,{...attrs,failIfMajorPerformanceCaveat:false});
+ };
+ const hide=proto=>{const orig=proto.getParameter;proto.getParameter=function(p){const value=orig.call(this,p);return (p===UNMASKED_VENDOR||p===UNMASKED_RENDERER)&&SOFTWARE.test(String(value))?'ANGLE (Test GPU)':value;};};
+ if(typeof WebGLRenderingContext!=='undefined')hide(WebGLRenderingContext.prototype);
+ if(typeof WebGL2RenderingContext!=='undefined')hide(WebGL2RenderingContext.prototype);
+});
 const wait=ms=>page.waitForTimeout(ms);
 try{
  await h.signIn();
+ // The fixture is larger than the route allows. preparePhoto is the sheet's own crop and WebP encode.
+ const photo=photoFile===FIXTURE?Buffer.from(await page.evaluate(async bytes=>{
+  const {preparePhoto}=await import('/disc-photo.mjs');
+  const bitmap=await createImageBitmap(new Blob([new Uint8Array(bytes)],{type:'image/webp'}));
+  const {blob}=await preparePhoto(bitmap,{});
+  bitmap.close();
+  if(!blob)throw Error('the fixture did not encode');
+  return [...new Uint8Array(await blob.arrayBuffer())];
+ },[...photoSource])):photoSource;
  // The Raptor (clear, in Storage, with its photo), a clear Buzzz in the bag, and two opaque controls.
  await h.seedBag([
   {mold_id:'35a861477cf9',plastic:'Z',wear:10,weight_g:174,color:'#0984a8',finish:'clear',in_bag:false,notes:'raptor'},
