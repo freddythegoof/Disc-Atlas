@@ -41,18 +41,25 @@ test('every tagged mold still stands at its measured height, with a solid plate'
  }
 });
 
-test('raised: a ring level with the rim round a shallow, flat-floored dish; the cavity untouched (Berg and its class)',()=>{
+test('raised: a ring level with the rim rolling smoothly into a flat-floored dish; the cavity untouched (Berg and its class)',()=>{
  const dish=tagged.filter(d=>d.thumbtrack==='raised'&&!d.thumbtrackPosition),k=THUMBTRACK.raised;
  assert.deepEqual(dish.map(d=>d.name).sort(),['Armadillo','Berg','Berg X','Copperhead','Devilhawk','Ghoul','Warspear']);
  for(const d of dish){
   const {plain,shape}=shapes(d),{Rs,tt}=shapeFrame(shape),peak=profileStats(plain).height,pts=relief(shape);
-  assert.ok(tt.dish&&Math.abs(tt.ringIn-(Rs-k.ring))<1e-9,d.name);
+  // The roll is centred where the photo-matched wall was (its midpoint .85 cm in from the shoulder), `roll` wide.
+  assert.ok(tt.dish&&Math.abs((tt.ringIn+tt.floor)/2-(Rs-k.at))<1e-9&&Math.abs(tt.ringIn-tt.floor-k.roll)<1e-9,d.name);
   assert.equal(tt.step,Math.min(k.step,shapeFrame(plain).p.domeHeight),d.name+': the dish is as deep as its dome allows');
   // The ring, from its inner edge out to the shoulder, stands at the measured height.
   for(let r=tt.ringIn;r<=Rs;r+=.05)assert.ok(Math.abs(topHeight(shape,r)-peak)<1e-9,d.name+': the ring is level at '+peak.toFixed(3)+' cm');
   // The floor sits `step` lower, flat from the axis to the foot of the wall; no dome anywhere.
   for(let r=0;r<=tt.floor;r+=.05)assert.ok(Math.abs(topHeight(shape,r)-(peak-tt.step))<1e-9,d.name+': the floor is flat');
   for(let i=1;i<pts.length;i++)assert.ok(pts[i].h>=pts[i-1].h-1e-12,d.name+': the top only climbs toward the ring');
+  // Round, not rigid (Freddy, Nov 26): no slope steeper than 25°, and the lathe's top run, shoulder to axis, turns
+  // by under 6° between neighbouring segments, so the crest, the fall and the blend into the floor have no corner.
+  const fine=relief(shape,4000);
+  for(let i=1;i<fine.length;i++)assert.ok((fine[i].h-fine[i-1].h)/(fine[i].r-fine[i-1].r)<=Math.tan(25*Math.PI/180),d.name+': no steeper than 25°');
+  const prof=discProfile(shape),run=prof.slice(prof.findLastIndex(q=>q.x>=Rs-1e-9)),dir=(a,b)=>Math.atan2(b.y-a.y,b.x-a.x);
+  for(let i=2;i<run.length;i++){const t=dir(run[i-1],run[i])-dir(run[i-2],run[i-1]),turn=Math.abs(Math.atan2(Math.sin(t),Math.cos(t)))*180/Math.PI;assert.ok(turn<6,`${d.name}: a ${turn.toFixed(1)}° corner at r = ${run[i-1].x.toFixed(2)} cm`);}
   // Underneath, the cavity is the plain mold's wherever that leaves a full plate; under the dish its ceiling only
   // flattens (never below the rim depth), so the plate keeps its thickness and the track stays off the underside.
   const a=discProfile(shape),b=discProfile(plain),{p}=shapeFrame(shape);

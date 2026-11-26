@@ -104,16 +104,19 @@ export function shapeForDisc({model,specs,flight,thumbtrack}={}){
 // photo study of Nov 25, 2026. Real ones are a millimetre or a few; these sit at that scale, raised only as far as
 // it takes to read at the viewer's zoom (the puddle's dish and the thumbtack's bulge sit at the generous end).
 // Freddy's feel check on the renders sets the amounts. Centimetres, like the rest of the profile.
-//  raised: the Berg's thumbtrack, a ring standing proud of a shallow dish. The ring runs `ring` cm in from the
-//   shoulder at the measured height, level with the rim's crest; inside it the flight plate sits `step` lower, a
-//   flat floor that rises to the ring over a `wall` cm slope, so nothing stands taller than measured. Measured from
-//   Freddy's photos of his Berg (Nov 26, 2026): the step is about 1.3 cm in from the edge and crisp, and edge-on the
-//   far wall stands about 3 mm over the plate, which PDGA's 1.4 cm rim depth under a 2.0 cm height also leaves room
-//   for. A mold with a shallower dome gets a shallower dish (the step is capped at its dome), so the floor never sits
-//   below the plain shoulder. Underneath, the cavity keeps the mold's dome wherever that leaves `plate` of plastic and
-//   flattens its ceiling under the dish where it would not, never below the rim depth: the track stays off the
-//   underside (Kastaplast: prominent on top, not noticeable at the bottom). Freddy's feel checks, against his Berg: a ring on a deeply dished, domed plate read
-//   as a dished putter; one flat plane erased the step that is the feature; the real top is "like a puddle top".
+//  raised: the Berg's thumbtrack, a ring standing proud of a shallow dish. The ring stands at the measured height,
+//   level with the rim's crest; inside it the flight plate sits `step` lower on a flat floor. Between them the top
+//   rolls down in one smooth S, `roll` cm wide and centred `at` cm in from the shoulder: a rounded crest, a gentle
+//   fall and a concave blend into the floor, with no corner anywhere, so nothing stands taller than measured. Measured
+//   from Freddy's photos of his Berg (Nov 26, 2026): the step is about 1.3 cm in from the edge, and edge-on the far
+//   wall stands about 3 mm over the plate, which PDGA's 1.4 cm rim depth under a 2.0 cm height also leaves room for.
+//   Freddy's feel check on that build: the right height, but "too steep and rigid ... its supposed to be round", so
+//   the 5 mm wall became the wider roll about the same centre. A mold with a shallower dome gets a shallower dish (the
+//   step is capped at its dome), so the floor never sits below the plain shoulder. Underneath, the cavity keeps the
+//   mold's dome wherever that leaves `plate` of plastic and flattens its ceiling under the dish where it would not,
+//   never below the rim depth: the track stays off the underside (Kastaplast: prominent on top, not noticeable at the
+//   bottom). Earlier feel checks: a ring on a deeply dished, domed plate read as a dished putter; one flat plane
+//   erased the step that is the feature; the real top is "like a puddle top".
 //   Position 'rim' (the Blast's subtle track over a slightly recessed plate, the Hammer's inner-rim track) keeps
 //   its ring on the dome: a low plateau `height` tall from `inner`·Rs out to the shoulder, the dome giving up as
 //   much as keeps the measured height.
@@ -124,7 +127,7 @@ export function shapeForDisc({model,specs,flight,thumbtrack}={}){
 //  thumbtack: a bulge `height` tall on one arc of the shoulder, about a thumb wide (`arc` cm either side of its
 //   centre at `angle`), not a ring. Not round the axis, so the lathe can't spin it: mesh.mjs lifts the vertices.
 export const THUMBTRACK=Object.freeze({
- raised:Object.freeze({height:.16,inner:.62,blend:.5,step:.3,ring:.6,wall:.5}),
+ raised:Object.freeze({height:.16,inner:.62,blend:.5,step:.3,at:.85,roll:1.2}),
  puddle:Object.freeze({depth:.4}),
  groove:Object.freeze({depth:.15,halfWidth:.3,edge:.12,at:.68}),
  thumbtack:Object.freeze({height:.22,halfWidth:.6,arc:1.6,angle:-Math.PI/4}),
@@ -178,8 +181,8 @@ function trackFrame(p,Rs){
  const kind=p.thumbtrack.kind,k=THUMBTRACK[kind];
  // The top peaks at the centre or at the plateau's inner edge: the dome is lowered until the edge is no taller.
  // A dome shallower than the track caps it (a little relief stays on the flattest), so nothing stands taller than measured.
- // The Berg's ring stands at the measured height; the dish inside it is sampled across its wall.
- if(kind==='raised'&&p.thumbtrack.position!=='rim'){const ringIn=Rs-k.ring,floor=ringIn-k.wall;
+ // The Berg's ring stands at the measured height; the dish inside it is sampled across its roll.
+ if(kind==='raised'&&p.thumbtrack.position!=='rim'){const ringIn=Math.min(Rs,Rs-k.at+k.roll/2),floor=Rs-k.at-k.roll/2;
   return {kind,dish:true,dome:p.domeHeight,step:Math.min(k.step,p.domeHeight),ringIn,floor,span:[floor,ringIn]};}
  if(kind==='raised'){const inner=k.inner*Rs,height=Math.min(k.height,Math.max(p.domeHeight,.06));
   const dome=Math.min(p.domeHeight,Math.max(0,(p.domeHeight-height)/domeCurve(k.inner,p.sharpness)));
