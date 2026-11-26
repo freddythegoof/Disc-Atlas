@@ -47,15 +47,21 @@ test('raised: a ring level with the rim round a shallow, flat-floored dish; the 
  for(const d of dish){
   const {plain,shape}=shapes(d),{Rs,tt}=shapeFrame(shape),peak=profileStats(plain).height,pts=relief(shape);
   assert.ok(tt.dish&&Math.abs(tt.ringIn-(Rs-k.ring))<1e-9,d.name);
+  assert.equal(tt.step,Math.min(k.step,shapeFrame(plain).p.domeHeight),d.name+': the dish is as deep as its dome allows');
   // The ring, from its inner edge out to the shoulder, stands at the measured height.
   for(let r=tt.ringIn;r<=Rs;r+=.05)assert.ok(Math.abs(topHeight(shape,r)-peak)<1e-9,d.name+': the ring is level at '+peak.toFixed(3)+' cm');
   // The floor sits `step` lower, flat from the axis to the foot of the wall; no dome anywhere.
-  for(let r=0;r<=tt.floor;r+=.05)assert.ok(Math.abs(topHeight(shape,r)-(peak-k.step))<1e-9,d.name+': the floor is flat');
+  for(let r=0;r<=tt.floor;r+=.05)assert.ok(Math.abs(topHeight(shape,r)-(peak-tt.step))<1e-9,d.name+': the floor is flat');
   for(let i=1;i<pts.length;i++)assert.ok(pts[i].h>=pts[i-1].h-1e-12,d.name+': the top only climbs toward the ring');
-  // Underneath, nothing changes: the cavity is the plain mold's, so the plate is thinner under the dish, still solid.
-  const a=discProfile(shape),b=discProfile(plain);
-  for(let i=0;i<=12;i++)assert.deepEqual(a[i],b[i],d.name+': the underside is the plain one');
-  assert.ok(a.slice(0,13).every(q=>topHeight(shape,q.x)-q.y>.08),d.name+': the plate under the dish is over 0.8 mm thick');
+  // Underneath, the cavity is the plain mold's wherever that leaves a full plate; under the dish its ceiling only
+  // flattens (never below the rim depth), so the plate keeps its thickness and the track stays off the underside.
+  const a=discProfile(shape),b=discProfile(plain),{p}=shapeFrame(shape);
+  for(let i=0;i<=12;i++){
+   assert.equal(a[i].x,b[i].x);assert.ok(a[i].y<=b[i].y+1e-12,d.name+': the ceiling never rises');
+   assert.ok(topHeight(shape,a[i].x)-a[i].y>=p.plate-1e-9,d.name+': the plate keeps its thickness');
+   if(topHeight(plain,b[i].x)-b[i].y-tt.step>=p.plate)assert.equal(a[i].y,b[i].y,d.name+': the cavity is the plain one where the plate allows');
+   assert.ok(a[i].y>=p.rimDepth-1e-9,d.name+': the ceiling stays at or above the rim depth');
+  }
  }
 });
 
