@@ -82,6 +82,8 @@ try {
  await waitMood(p, 'listening');
  assert.ok(engineRequests.some(u => u.endsWith('/hyzer.mjs')), 'engine loads when the panel opens');
  await p.evaluate(() => {window.hyzerMoods = new Set(); new MutationObserver(() => window.hyzerMoods.add(document.querySelector('#coachHyzer canvas')?.getAttribute('aria-label'))).observe(document.querySelector('#coachHyzer'), {attributes: true, subtree: true, attributeFilter: ['aria-label']});});
+ // His lines, in the order he says them: the open line is already up, the rest are recorded as they change.
+ await p.evaluate(() => {const line = document.querySelector('#coachHyzerLine'); window.hyzerLines = [line.textContent]; new MutationObserver(() => window.hyzerLines.push(line.textContent)).observe(line, {childList: true, characterData: true, subtree: true});});
  assert.ok(await p.evaluate(() => {const c = document.querySelector('#coachHyzer canvas'); return c && c.closest('#coachDialog') && document.querySelectorAll('.coach-hyzer canvas').length === 1;}), 'Hyzer lives only in the coach panel');
  await p.waitForTimeout(1200); await shot(p, 'listening');
  check('open: live in the panel heading, listening while the question box has focus');
@@ -127,6 +129,20 @@ try {
  const cheerFor = Date.now() - cheer; assert.ok(cheerFor > 2500 && cheerFor < 3800, `cheers about 3 s (${cheerFor} ms)`);
  check('celebrating only when a coach-named disc is saved into the bag from its button (not on cancel, Storage, or a save from elsewhere), for 3 s, even straight after an error');
 
+ // His voice: one fixed line per coach event, in his line under the title and never in the coach's answers.
+ assert.deepEqual(await p.evaluate(() => window.hyzerLines), [
+  'Hyzer. I know every disc on this map.', 'On it. Reading the flight numbers.', 'There you go.',
+  'Easy one. Give me a second.', 'Clipped a tree. Ask me again.',
+  'Checking the whole atlas for you.', 'Branch got me. One more try.', 'Good pick. Your bag just got better.'
+ ], 'a line only at open, ask, answer, error and a real bag add');
+ assert.equal(await p.locator('#coachHyzerLine').getAttribute('aria-hidden'), 'true', 'decorative: screen readers get the coach status instead');
+ assert.equal(await p.locator('.chat-message.assistant').first().locator('p, div').first().innerText().then(t => t.includes('Hyzer')), false, 'the coach answer carries none of his lines');
+ const before = await mood(p); await p.locator('#coachHyzer').click();
+ assert.equal(await p.locator('#coachHyzerLine').innerText(), 'Easy, I’m flying here.', 'a tap gets an aside');
+ await p.waitForTimeout(300); assert.equal(await mood(p), before, `a tap moves no mood (${before})`);
+ await p.locator('#clearChat').click(); assert.equal(await p.locator('#coachHyzerLine').innerText(), 'Go on, ask me something hard.', 'Clear chat greets again');
+ check('voice: a fixed line set at open, ask, answer, error and bag add; a tap gets an aside; none of it in the coach answers');
+
  // Closing the panel disposes him: the canvas goes and the engine does no more work.
  // (The dialog's close event fires a task after `open` turns false, so wait for the canvas itself.)
  await p.keyboard.press('Escape'); await p.waitForFunction(() => !document.querySelector('#coachDialog').open && !document.querySelector('#coachHyzer canvas'), null, {timeout: 2000});
@@ -149,6 +165,7 @@ try {
  await p.locator('#coachButton').click(); await p.waitForTimeout(1200);
  assert.equal(await p.locator('#coachHyzer canvas').count(), 0, 'stays hidden in the panel');
  assert.equal(engineRequests.length, 0, 'a dismissed Hyzer never downloads the engine');
+ assert.equal(await p.locator('#coachHyzerLine').isVisible(), false, 'a dismissed Hyzer says nothing');
  await p.locator('#coachDialog').screenshot({path: `${dir}/dismissed-panel.png`});
  check('dismissed: remembered across reload, plain ✦ Atlas Coach launcher, no engine download');
  await p.locator('#coachHyzerToggle').click(); await p.locator('#coachHyzer canvas').waitFor();

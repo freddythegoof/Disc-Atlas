@@ -18,6 +18,21 @@
   return document.activeElement === $('#coachInput') ? 'listening' : 'idle';
  }
  const feel = () => hyzer?.setState(mood());
+ // His own voice: one line under the title, cool and a little cocky (Freddy's pick, Nov 25). A fixed set, rotated, changed
+ // only by the same coach events that move his mood. It never carries disc advice; the coach's answers stay as they are.
+ const LINES = {
+  open: ['Hyzer. I know every disc on this map.', 'Go on, ask me something hard.', 'Back again? Smart move.'],
+  thinking: ['On it. Reading the flight numbers.', 'Easy one. Give me a second.', 'Checking the whole atlas for you.'],
+  answered: ['There you go.', 'Told you I’d know.', 'Clean read. What’s next?'],
+  cheer: ['Good pick. Your bag just got better.', 'In the bag. Nice.'],
+  error: ['Clipped a tree. Ask me again.', 'Branch got me. One more try.'],
+  poke: ['Easy, I’m flying here.', 'Yes, the angle is on purpose.', 'Spin me all you like. I always come back.']
+ };
+ const said = {};
+ function say(moment) {
+  const lines = LINES[moment], i = said[moment] = ((said[moment] ?? -1) + 1) % lines.length;
+  $('#coachHyzerLine').textContent = lines[i];
+ }
  // Any activity in the panel wakes him; two quiet minutes put him to sleep instead of moving forever.
  function stir() {asleep = false; clearTimeout(sleepTimer); if (dialog.open) sleepTimer = setTimeout(() => {asleep = true; feel();}, SLEEP_AFTER); feel();}
  async function wake() {
@@ -99,6 +114,7 @@
  async function open(event) {
   opener = event?.currentTarget || $('#coachButton');
   if (!dialog.open) dialog.showModal(); $('#coachButton').setAttribute('aria-expanded', 'true');
+  if (!$('#coachMessages').childElementCount) say('open');
   render(); stir(); void wake();
   try {await window.AtlasAccount.refresh();} catch {$('#coachError').textContent = 'Your account could not be checked. Close the coach and try again.';}
   if (account?.user) await allowance();
@@ -115,13 +131,15 @@
  // Typing again after a failed question picks him out of the tree.
  $('#coachInput').addEventListener('input', () => {failed = false; stir();});
  $('#coachHyzerToggle').addEventListener('click', () => showHyzer(hyzerHidden()));
+ // A tap on him gets an aside, nothing more: his mood stays with the coach.
+ $('#coachHyzer').addEventListener('click', () => say('poke'));
  // A coach-named disc saved into the bag (not Storage, not Lost, not an edit) from the sheet its button opened.
  window.addEventListener('atlas-disc-saved', event => {
   const {disc, edited} = event.detail || {};
   if (edited || !disc || disc.mold_id !== addingFromCoach?.id || !disc.in_bag || disc.status === 'lost') return;
   $('#coachNotice').textContent = `${addingFromCoach.name} is in your bag.`; addingFromCoach = null;
   // A real bag add is newer than any failed question, so it lifts him out of the tree.
-  failed = false; cheeringUntil = Date.now() + 3000; clearTimeout(cheerTimer); cheerTimer = setTimeout(feel, 3020); stir();
+  say('cheer'); failed = false; cheeringUntil = Date.now() + 3000; clearTimeout(cheerTimer); cheerTimer = setTimeout(feel, 3020); stir();
  });
  // The sheet closes after any save is announced, so a cancelled or finished sheet ends the coach's claim on it.
  document.querySelector('#addDiscDialog')?.addEventListener('close', () => {addingFromCoach = null;});
@@ -139,25 +157,25 @@
   event.preventDefault(); if (busy || $('#coachInput').disabled) return;
   const input = $('#coachInput'), question = input.value.trim(); if (!question) return;
   const generation = epoch, next = [...chat.slice(-10), {role: 'user', content: question}];
-  busy = true; failed = false; speakingUntil = 0; aborter = new AbortController(); render(); stir(); $('#coachError').textContent = '';
+  busy = true; failed = false; speakingUntil = 0; aborter = new AbortController(); render(); stir(); say('thinking'); $('#coachError').textContent = '';
   const draft = appendDraft(question);
   try {
    const result = await api('POST', {messages: next}, aborter.signal); if (generation !== epoch) return;
    chat = [...next, {role: 'assistant', content: result.answer.slice(0, 2000)}]; input.value = '';
-   append('assistant', result.answer, result.discs);
+   append('assistant', result.answer, result.discs); say('answered');
    // The answer arrives whole (no streaming), so he speaks for a moment scaled to its length.
    speakingUntil = Date.now() + Math.min(4500, Math.max(1200, result.answer.length * 15));
    clearTimeout(speakTimer); speakTimer = setTimeout(feel, speakingUntil - Date.now() + 20);
    $('#coachProvider').textContent = result.provider === 'openai' ? 'Alternate AI service' : 'Standard AI service';
    $('#coachNotice').textContent = result.notice || '';
   } catch (error) {
-   if (generation === epoch) {draft.remove(); $('#coachError').textContent = error.message; failed = true;}
+   if (generation === epoch) {draft.remove(); $('#coachError').textContent = error.message; failed = true; say('error');}
   } finally {
    if (generation === epoch) {busy = false; aborter = null; render(); if (dialog.open && !input.disabled) input.focus(); stir();}
   }
  });
  function appendDraft(text) {append('user', text); return $('#coachMessages').lastElementChild;}
- $('#clearChat').addEventListener('click', () => {chat = []; $('#coachMessages').replaceChildren(); $('#coachError').textContent = ''; $('#coachInput').value = ''; $('#coachInput').focus();});
+ $('#clearChat').addEventListener('click', () => {chat = []; $('#coachMessages').replaceChildren(); $('#coachError').textContent = ''; $('#coachInput').value = ''; say('open'); $('#coachInput').focus();});
  window.addEventListener('atlas-account-change', event => {
   const data = event.detail;
   if (account?.csrfToken !== data.csrfToken || !!account?.user !== !!data.user) reset();

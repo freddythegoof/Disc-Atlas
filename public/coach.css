@@ -36,6 +36,8 @@
 /* Hyzer the Disc: live beside the title while the panel is open, a still on the launcher. Dismissed, both give way to the ✦ and the plain label. */
 .coach-hyzer{width:60px;height:60px;flex:none;margin:-6px -6px -8px -8px}
 .coach-title{flex:1;min-width:0}
+.coach-hyzer-line{margin:4px 0 0;font-size:12px;line-height:1.35;color:var(--muted);font-style:italic;min-height:1.35em}
+:root[data-hyzer="hidden"] .coach-hyzer-line{display:none}
 .coach-hyzer-still{display:block;width:26px;height:26px;margin:-6px 0 -6px -5px}
 .coach-launch:has(.coach-hyzer-still){display:inline-flex;align-items:center;gap:5px}
 :root:not([data-hyzer="hidden"]) .coach-launch .coach-glyph,:root:not([data-hyzer="hidden"]) .coach-launch .coach-label-plain{display:none}

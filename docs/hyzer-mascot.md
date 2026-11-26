@@ -121,6 +121,24 @@ The engine's own touches stay on: he glances at the pointer and hops when clicke
 - **The claim ends with the sheet:** the coach's claim on a sheet ends when the sheet closes, so a
   later add of the same mold from the Directory doesn't count.
 
+**His voice (Hyzer Part 2, Nov 26, 2026).** Freddy picked "cool and a little cocky" (Nov 25). The
+voice lives in one short line under the panel title (`#coachHyzerLine`, `aria-hidden`; screen readers get
+the coach status instead), never in the coach's answers: the question, prompt, matching, data and
+answer rendering are untouched. The set is fixed text in `public/coach.js` (`LINES`), rotated in order,
+with no generated text and no model calls. A line changes only at a coach event:
+
+| Moment | Event | Lines |
+| --- | --- | --- |
+| open | the panel opens on an empty chat, or Clear chat | Hyzer. I know every disc on this map. / Go on, ask me something hard. / Back again? Smart move. |
+| thinking | a question is sent | On it. Reading the flight numbers. / Easy one. Give me a second. / Checking the whole atlas for you. |
+| answered | the answer lands | There you go. / Told you I’d know. / Clean read. What’s next? |
+| error | the question fails | Clipped a tree. Ask me again. / Branch got me. One more try. |
+| cheer | a coach-named disc is saved into the bag | Good pick. Your bag just got better. / In the bag. Nice. |
+| poke | a tap on Hyzer (moves no mood) | Easy, I’m flying here. / Yes, the angle is on purpose. / Spin me all you like. I always come back. |
+
+Timers never change the line: sleeping, the end of speaking and the end of the cheer keep the last line.
+A dismissed Hyzer shows no line.
+
 **Dismissal.** "Hide Hyzer the Disc", a quiet button at the foot of the panel, removes him at once.
 It stores `disc-atlas-hyzer = hidden` in `localStorage`; this browser only, like Appearance.
 
