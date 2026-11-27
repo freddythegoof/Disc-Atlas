@@ -508,7 +508,9 @@ The spike's capture gate (`qa.mjs`) runs on the device in `public/disc-photo-qa.
 status line, and an asset that could not be made carries them too ("No stamp showed up …" then how to retake). Resolution
 and fill both say "move closer", so they give one prompt, and resolution counts only when the disc also does not fill
 the photo: a disc filling a low-resolution photo (the stall suite's 1600 px original) cannot be helped by a step closer. The gate adds 78–106 ms per make in Node on this Mac (four photos) and sends nothing
-anywhere.
+anywhere. The analysis itself is best-effort: if it fails (a phone refusing the glare check's 16 MiB scratch array,
+say), the make goes on into extraction with no prompts (`tests/photo-retake-advisory-browser.mjs` injects that failure
+on all three Make paths).
 
 **Screenshots** (synthetic photos only, made at run time by `tests/photo-retake-browser.mjs`). They are in
 `docs/assets/stamp-pipeline-v2/retake-*`, in the default theme, Paper and Dusk, on desktop Chromium and phone WebKit:
@@ -527,6 +529,11 @@ script lines):**
 - `npm run test:clear-stamp` passes. `npm run test:photo-stamp-sync` passes: its unit set, the sync suite, and the stall
   suite on WebKit and Chromium.
 - `node tests/photo-retake-browser.mjs` passes, on desktop Chromium and, with `PHOTO_STAMP_ENGINE=webkit`, on phone WebKit.
+- Review fixes (Nov 26): `node tests/photo-retake-advisory-browser.mjs` passes on Chromium and WebKit and fails on
+  7d9fda2. photo-stamp-assets timed out at its pulled-bag-disc check about half the time on main too: a stamp look set
+  while the 3D bag was still mounting never reached it (`bag-scene.js` read it before `mountBag` and its listener had no
+  viewer yet). The bag now takes the current look once mounted; with the bag model delayed 6 s the check fails every run
+  on main and passes every run here.
 - These pass: the stamp-look, clear-opacity and halo-plastic unit sets, and the browser suites stamp-look,
   clear-plastic, clear-true-color, clear-opacity, photo-adder-rework, photo-stamp-one-click, photo-stamp-color-assets,
   photo-stamp-assets, photo-stamp-identity, photo-stamp-level, halo-plastic, photo-gestures and photo-source-chooser.

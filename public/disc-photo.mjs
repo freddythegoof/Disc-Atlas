@@ -252,7 +252,11 @@ export async function photoStampAsset(image,options={},{plate=.8,color=false,sto
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
  // A stored texture's size says nothing of the camera's: only an original is read for resolution and fill.
- const retake=photoGate(pixels,size,{plate,original:stored?null:{diameter:photoDiameter(options,image.width,image.height),shortSide:Math.min(image.width,image.height)}}).prompts;
+ // The gate is advisory: when its analysis fails (a scratch array the device will not allocate, say) the make goes on
+ // into extraction with no prompts.
+ let retake=[];
+ try{retake=photoGate(pixels,size,{plate,original:stored?null:{diameter:photoDiameter(options,image.width,image.height),shortSide:Math.min(image.width,image.height)}}).prompts;}
+ catch{/* No prompts: the make itself is unchanged. */}
  try{return await stampAsset(pixels,size,{plate,color,stored,clear,seeThrough,colorBytes,stage,retake});}
  catch(error){if(error&&typeof error==='object')error.retake=retake;throw error;}
 }

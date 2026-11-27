@@ -151,10 +151,15 @@ export class BagScene {
    try{
     const {mountBag,depthOrder}=await loadViewer();this.depthOrder=depthOrder;
     // The putter pocket state is independent: putters are initially out if pocketOpen is true.
+    const style=stampStyle(),color=accent(this.root);
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
-     animated:!reduced(),accentColor:accent(this.root),stampStyle:stampStyle(),stampStyleFor,compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
+     animated:!reduced(),accentColor:color,stampStyle:style,stampStyleFor,compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
      ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
     this.viewer=viewer;
+    // A stamp look or theme chosen while the bag was mounting reached no viewer (the listeners above): the bag takes it now,
+    // or it wears the look it was mounted with until the next change.
+    if(JSON.stringify(stampStyle())!==JSON.stringify(style))viewer.setStampStyle?.(stampStyle());
+    if(accent(this.root)!==color)viewer.setAccentColor(accent(this.root));
     // The hit layer and the list carry the content; the canvas itself is decorative.
     this.stage.querySelector('canvas').setAttribute('aria-hidden','true');
     // Exposed for QA scripts that verify the rendered state matches the saved bag.
