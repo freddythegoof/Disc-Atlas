@@ -1,17 +1,17 @@
 # Graph Report - hyzer-part-2  (2026-11-26)
 
 ## Corpus Check
-- 514 files · ~5,826,821 words
+- 514 files · ~5,827,085 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 315 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
 
 ## Summary
-- 3531 nodes · 7684 edges · 194 communities (156 shown, 38 thin omitted)
+- 3532 nodes · 7684 edges · 195 communities (156 shown, 39 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 275 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cbc08475`
+- Built from commit: `7aa0f6ff`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -215,7 +215,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (194 total, 38 thin omitted)
+## Communities (195 total, 39 thin omitted)
 
 ### Community 0 - "app.js"
 Cohesion: 0.09
@@ -723,7 +723,7 @@ Nodes (6): checks, {chromium}, errors, only, server, types
 
 ### Community 155 - "display-harness.mjs"
 Cohesion: 0.05
-Nodes (29): scene, photo, photo, log(), photo, results, directoryLink, form (+21 more)
+Nodes (29): scene, photo, photoSource, log(), photo, results, directoryLink, form (+21 more)
 
 ### Community 156 - "tests/auth.mjs"
 Cohesion: 0.20
@@ -843,8 +843,8 @@ Nodes (3): fallbackWebP(), encodeWebP(), loadEncoder()
 
 ## Knowledge Gaps
 - **52 isolated node(s):** `@base-ui/react`, `@hookform/resolvers`, `@shadcn/react`, `class-variance-authority`, `clsx` (+47 more)
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 1505 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **38 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 1506 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **39 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

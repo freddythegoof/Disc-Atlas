@@ -39,7 +39,18 @@ export async function openDevice(base,{viewport={width:1440,height:1000},colorSc
  // A real GPU, as tests/gallery-fixes-browser.mjs asks for it: without one the atlas keeps its 2D orbs (atlas-art
  // refuses SwiftShader). D3D11 is Windows-only; elsewhere --enable-gpu reaches ANGLE on Metal or GL.
  const gpuArgs=process.env.BAG3D_CHROMIUM_ARGS?.split(' ').filter(Boolean)||(process.platform==='win32'?['--use-angle=d3d11','--enable-gpu']:['--enable-gpu']);
- const browser=engine==='chromium'?await playwright.chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs}):await playwright[engine].launch({headless:true});
+ const launch=()=>engine==='chromium'?playwright.chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH,args:gpuArgs}):playwright[engine].launch({headless:true});
+ let browser;
+ try{browser=await launch();}
+ catch(error){
+  // `pnpm install` does not download browsers (playwright has no install script, and pnpm would not run one).
+  // A fresh checkout otherwise dies here, before any assertion. Install Chromium once and retry. A caller who
+  // points PLAYWRIGHT_EXECUTABLE_PATH or PLAYWRIGHT_MODULE at their own browser keeps that choice.
+  if(engine!=='chromium'||process.env.PLAYWRIGHT_EXECUTABLE_PATH||process.env.PLAYWRIGHT_MODULE||!/Executable doesn't exist/.test(String(error?.message)))throw error;
+  const pkg=createRequire(import.meta.url).resolve('playwright/package.json');
+  execFileSync(process.execPath,[pkg.slice(0,-'package.json'.length)+'cli.js','install','chromium'],{stdio:'inherit',windowsHide:true});
+  browser=await launch();
+ }
  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport,colorScheme,deviceScaleFactor,...extra});
  await context.route(/^https:\/\/accounts\.google\.com\//,async route=>{
   const u=new URL(route.request().url()),code=Buffer.from(JSON.stringify({nonce:u.searchParams.get('nonce'),challenge:u.searchParams.get('code_challenge')})).toString('base64');
