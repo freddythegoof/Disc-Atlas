@@ -1,6 +1,9 @@
-import json,csv,re,hashlib,os,unicodedata
+import argparse,json,csv,re,hashlib,os,unicodedata
 from stamp_manifest import validate_stamp_manifest
 ROOT=os.path.dirname(__file__)
+parser=argparse.ArgumentParser(description='Regenerate the Disc Atlas catalog.')
+parser.add_argument('--output', default=ROOT+'/public/data.json', help='Write the generated catalog to this path.')
+args=parser.parse_args()
 def norm(s):return re.sub('[^a-z0-9]','',unicodedata.normalize('NFKD',s.replace('+',' plus ')).encode('ascii','ignore').decode().lower())
 alias={'Innova Champion Discs':'Innova','MVP Disc Sports':'MVP','Axiom Discs':'Axiom','Disc Golf Association':'DGA','Gateway Disc Sports':'Gateway','Latitude 64':'Latitude 64','Westside Golf Discs':'Westside','Prodigy Disc':'Prodigy','Lightning Discs':'Lightning','Millennium Golf Discs':'Millennium','Lone Star Disc':'Lone Star','Kastaplast':'Kastaplast','RPM Discs/Disc Golf Aotearoa':'RPM','Streamline Discs':'Streamline','Mint Discs':'Mint','Thought Space Athletics':'Thought Space Athletics'}
 alias.update({'Axiom Discs':'Axiom','Westside Golf Discs':'Westside Discs','Lone Star Disc':'Lone Star Discs','Mint Discs':'Mint Discs','Yikun Discs':'Yikun','Legacy Discs':'Legacy','Viking Discs':'Viking','Storm Disc Golf':'Storm','Crosslap Disc Golf Parks':'Crosslap','AquaFlight Discs':'AquaFlight','Bernoulli':'Bernoulli Disc Golf','Birdie Disc Golf Supply':'Birdie','Finish Line Discs':'Finish Line'})
@@ -42,7 +45,7 @@ for r in registry:
   d.update(verified['flightNumbers']);d['category']=verified['category'];d['flightSource']=verified['source'];d['flightSourceLabel']=verified.get('sourceLabel',verified['brand']);d['catalogName']=verified['catalogName']
   d['flightMatchNote']='Manufacturer model matched to this specific PDGA approval; historical approvals kept separate.'
   # Current names and rename explanations come from reviewed source records, never registry edits.
-  for key in ['catalogNote','aliases','flightMatchNote']:
+  for key in ['catalogNote','aliases','flightMatchNote','confidenceLabel']:
    if key in verified:d[key]=verified[key]
   if verified.get('adjustmentNote'):
    # Atlas shifted a published rating: say so instead of passing it off as the manufacturer's numbers.
@@ -70,7 +73,8 @@ for t in thumbtracks['discs']:
  d['thumbtrack']=t['kind']
  if 'position' in t:d['thumbtrackPosition']=t['position']
 meta={'date':'September 24, 2026','catalogAuditDate':'September 24, 2026','registryCount':len(out),'statusAsOf':status_data['checkedAt'],'retirementWindowMonths':24,'note':'All records from the PDGA approved-disc CSV export are included, including historical molds. Flight numbers are incomplete. Catalog imagery uses original generic illustrations. This is a dated snapshot, not a live feed.','idAliases':folded}
-json.dump({'meta':meta,'discs':out},open(ROOT+'/public/data.json','w'),separators=(',',':'))
+with open(args.output,'w') as output:
+ json.dump({'meta':meta,'discs':out},output,separators=(',',':'))
 print({'records':len(out),'rated':sum('speed'in x for x in out),'photos':sum('photo'in x for x in out),'brands':len(set(x['brand']for x in out))})
 missing=sorted(set(r['Manufacturer / Distributor']for r in registry if not any(norm(alias.get(r['Manufacturer / Distributor'],r['Manufacturer / Distributor']))==norm(x['brand'])for x in f)))
 print('Unmatched manufacturers',missing[:30])
