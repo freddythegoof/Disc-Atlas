@@ -110,7 +110,7 @@ export async function checkDirectory(browser,base){
   }
   await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>{reset();document.activeElement.blur();scrollTo(0,0);});
   await capture('coach-clear-index');
-  await page.getByRole('button',{name:'Atlas Coach',exact:true}).click();
+  await page.getByRole('button',{name:'Ask Hyzer, the Atlas Coach',exact:true}).click();
   assert.ok(await page.locator('#coachDialog').isVisible());
   assert.ok(await page.evaluate(()=>{
    const picks=window.DiscAtlasFeatured;
