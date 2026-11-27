@@ -501,20 +501,24 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   list.replaceChildren(...(retake||[]).map(words=>{const li=document.createElement('li');li.innerHTML=RETAKE_MARK;li.append(words);return li;}));
   list.dataset.for=list.childElementCount?text:'';list.hidden=!list.childElementCount;
   const retakePhoto=list.nextElementSibling?.matches('.bag-photo-retake-photo')?list.nextElementSibling:null;if(retakePhoto)retakePhoto.hidden=list.hidden;
-  if(!list.hidden)requestAnimationFrame(()=>{const last=retakePhoto||list;if(last.getClientRects().length)last.scrollIntoView({block:'nearest',behavior:'smooth'});});
+  // Retake photo keeps clear of the sheet's bottom edge (its scroll-margin); once the smooth scroll settles, a sheet that
+  // grew under it (a second prompt's line, the look row) still leaves it whole, or it snaps there.
+  if(!list.hidden)requestAnimationFrame(()=>{const last=retakePhoto||list;if(!last.getClientRects().length)return;last.scrollIntoView({block:'nearest',behavior:'smooth'});
+   setTimeout(()=>{if(!last.getClientRects().length)return;const r=last.getBoundingClientRect(),box=(last.closest('dialog')||document.documentElement).getBoundingClientRect(),margin=parseFloat(getComputedStyle(last).scrollMarginBottom)||0;
+    if(r.bottom+margin>Math.min(innerHeight,box.bottom)+1||r.top<Math.max(0,box.top))last.scrollIntoView({block:'nearest'});},600);});
  };
  for(const status of [q('.bag-photo-status'),dq('.photo-aligner-status')])new MutationObserver(()=>{if(status.nextElementSibling.dataset.for!==status.textContent&&!status.nextElementSibling.hidden)say(status,status.textContent);}).observe(status,{childList:true,characterData:true,subtree:true});
- // Retake photo is Replace photo, beside the prompts that ask for it.
- q('.bag-photo-retake-photo').onclick=()=>choose.click();
  file.dataset.photoInput='default';sources.id='photoSources-'+(++sourceChooserId);
- const closeSources=(focus=false)=>{if(sources.matches(':popover-open'))sources.hidePopover();choose.setAttribute('aria-expanded','false');if(focus)choose.focus({preventScroll:true});};
+ // The source menu sits under the button that opened it: Replace photo, or Retake photo beside the prompts.
+ let sourceAnchor=choose;
+ const closeSources=(focus=false)=>{if(sources.matches(':popover-open'))sources.hidePopover();sourceAnchor.setAttribute('aria-expanded','false');if(focus)sourceAnchor.focus({preventScroll:true});};
  const placeSources=()=>{
   if(!sources.matches(':popover-open'))return;
-  const r=choose.getBoundingClientRect(),width=sources.offsetWidth,height=sources.offsetHeight,w=document.documentElement.clientWidth,h=document.documentElement.clientHeight,below=r.bottom+height+14<=h;
+  const r=sourceAnchor.getBoundingClientRect(),width=sources.offsetWidth,height=sources.offsetHeight,w=document.documentElement.clientWidth,h=document.documentElement.clientHeight,below=r.bottom+height+14<=h;
   sources.style.left=Math.max(8,Math.min(r.left,w-width-8))+'px';sources.style.top=(below?r.bottom+6:Math.max(8,r.top-height-6))+'px';
   sources.style.setProperty('--menu-origin',below?'top left':'bottom left');
  };
- sources.addEventListener('toggle',e=>{choose.setAttribute('aria-expanded',String(e.newState==='open'));});
+ sources.addEventListener('toggle',e=>{sourceAnchor.setAttribute('aria-expanded',String(e.newState==='open'));});
  (root.closest('dialog')||document).addEventListener('keydown',e=>{
   if(e.key==='Escape'&&sources.matches(':popover-open')){e.preventDefault();e.stopPropagation();closeSources(true);}
  },true);
@@ -632,11 +636,15 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  dialog.addEventListener('close',()=>{if(draft){serial++;busy=false;releaseDraft();}});
  new ResizeObserver(()=>{if(draft){reanchor();paint();}}).observe(frame);
 
- choose.onclick=e=>{
+ const openSources=(e,anchor)=>{
   e.preventDefault();if(!matchMedia('(pointer:coarse)').matches){file.click();return;}
-  choose.popoverTargetElement=sources;window.AtlasDropdown?.close(false);sources.togglePopover();placeSources();
+  if(anchor!==sourceAnchor)closeSources();sourceAnchor=anchor;
+  anchor.popoverTargetElement=sources;window.AtlasDropdown?.close(false);sources.togglePopover();placeSources();
   if(sources.matches(':popover-open'))sources.querySelector('button').focus({preventScroll:true});
  };
+ choose.onclick=e=>openSources(e,choose);
+ // Retake photo is Replace photo, beside the prompts that ask for it.
+ q('.bag-photo-retake-photo').onclick=e=>openSources(e,e.currentTarget);
  sources.onclick=e=>{
   const source=e.target.closest('[data-photo-source]');
   if(source){closeSources(true);q('[data-photo-input="'+source.dataset.photoSource+'"]').click();}

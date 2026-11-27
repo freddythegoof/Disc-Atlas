@@ -1,7 +1,7 @@
 # Graph Report - stamp-pipeline-v2-build  (2026-11-26)
 
 ## Corpus Check
-- 520 files · ~5,955,487 words
+- 520 files · ~5,979,866 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 315 file(s) not represented in the graph (top: .log 239, .gz 23, .css 17)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `42e0291b`
+- Built from commit: `0088f368`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

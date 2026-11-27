@@ -3,6 +3,8 @@
 // line with a warning mark, scrolled into view (the feel check, Nov 26: at 1280 × 800 they sat below the fold). In the
 // real app on the local signed-in harness, with drawn synthetic photos made at run time (never a player's photo):
 //   a new photo, soft      · Use photo makes the asset in the sheet; the blurry-photo prompt under it, Retake photo beside;
+//   two prompts or more    · Retake photo still whole in the sheet; it opens the source menu under itself (touch) or the
+//                            file picker (desktop);
 //   a new photo, sharp     · the same make, no prompt: the status exactly as before, the list and Retake photo hidden;
 //   Look → Photo           · the make's words give way to what shows, and the prompts clear with them;
 //   one click, soft        · Game asset from the saved soft photo: made and saved, the prompt under it;
@@ -23,14 +25,15 @@ const sharp=createRequire(import.meta.url)('sharp');
 // a missed focus does, `k` draws it that share of the size (a third: a disc far from the camera; 0.6: one with pixels
 // enough that still leaves the frame empty).
 const DIR='work/photo-retake/synthetic';fs.mkdirSync(DIR,{recursive:true});
-const photo=async(file,{blur=0,k=1}={})=>{
+const photo=async(file,{blur=0,k=1,reflection=false}={})=>{
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="3000" height="3000"><rect width="3000" height="3000" fill="#3a3530"/><g transform="translate(1500 1500) scale(${k})"><circle r="1410" fill="#5c9daa"/>`+
   `<circle r="640" fill="none" stroke="#1d2026" stroke-width="30"/><text y="60" font-family="Helvetica" font-size="300" font-weight="bold" text-anchor="middle" fill="#1d2026">DRIVER</text>`+
-  Array.from({length:16},(_,i)=>`<rect x="${-480+i*60}" y="240" width="16" height="70" fill="#1d2026"/>`).join('')+`</g></svg>`;
+  Array.from({length:16},(_,i)=>`<rect x="${-480+i*60}" y="240" width="16" height="70" fill="#1d2026"/>`).join('')+
+  (reflection?`<ellipse cx="-300" cy="-420" rx="320" ry="170" fill="#ffffff"/>`:'')+`</g></svg>`;
  let img=sharp(Buffer.from(svg));if(blur)img=sharp(await img.png().toBuffer()).blur(blur);
  await img.jpeg({quality:92}).toFile(file);return file;
 };
-const soft=await photo(DIR+'/soft.jpg',{blur:14}),crisp=await photo(DIR+'/sharp.jpg'),far=await photo(DIR+'/small.jpg',{k:1/3}),loose=await photo(DIR+'/loose.jpg',{k:.6});
+const soft=await photo(DIR+'/soft.jpg',{blur:14}),crisp=await photo(DIR+'/sharp.jpg'),far=await photo(DIR+'/small.jpg',{k:1/3}),loose=await photo(DIR+'/loose.jpg',{k:.6}),glared=await photo(DIR+'/soft-reflection.jpg',{blur:14,reflection:true});
 
 const engine=process.env.PHOTO_STAMP_ENGINE||'chromium',phone=engine==='webkit';
 const SHOTS='docs/assets/stamp-pipeline-v2';fs.mkdirSync(SHOTS,{recursive:true});
@@ -39,12 +42,13 @@ const h=await startHarness({port:Number(process.env.PHOTO_STAMP_PORT||8897),stat
 const {page,base,errors}=h;
 const log=(...a)=>console.log(new Date().toISOString().slice(11,19),...a);
 const status=()=>page.locator('#addDiscDialog .bag-photo-status').textContent();
-// The prompts on show: each line's words, with whether the list is in the window once its scroll settles.
+// The prompts on show: each line's words, with whether the list and Retake photo are in the sheet's visible area (the
+// window, inside the sheet's own bounds, with Retake photo clear of its rounded bottom edge) once its scroll settles.
 const prompts=async()=>{
  await page.waitForTimeout(700);
  return page.evaluate(()=>{const list=document.querySelector('#addDiscDialog .photo-retake'),r=list.getBoundingClientRect();
   return {lines:list.hidden?[]:[...list.children].map(li=>li.textContent),marks:list.querySelectorAll('li > svg.photo-retake-mark').length,role:list.getAttribute('role'),
-   inView:!list.hidden&&r.top>=0&&Math.max(r.bottom,document.querySelector('#addDiscDialog .bag-photo-retake-photo').getBoundingClientRect().bottom)<=innerHeight,retake:!document.querySelector('#addDiscDialog .bag-photo-retake-photo').hidden};});
+   inView:(()=>{const box=document.querySelector('#addDiscDialog').getBoundingClientRect();return !list.hidden&&r.top>=Math.max(0,box.top)&&Math.max(r.bottom,document.querySelector('#addDiscDialog .bag-photo-retake-photo').getBoundingClientRect().bottom)+12<=Math.min(innerHeight,box.bottom);})(),retake:!document.querySelector('#addDiscDialog .bag-photo-retake-photo').hidden};});
 };
 const done=()=>page.waitForFunction(()=>/^(?!Making the game asset)\S/.test(document.querySelector('#addDiscDialog .bag-photo-status')?.textContent||''),null,{timeout:180000});
 // The sheet's photo section, with the status line, in the default theme, then on Paper and Dusk.
@@ -80,6 +84,31 @@ try{
  assert.equal(seen.marks,1);assert.equal(seen.role,'status');assert.ok(seen.inView,'scrolled into view');assert.ok(seen.retake,'Retake photo beside it');
  await page.screenshot({path:`${SHOTS}/retake-new-photo-soft-${phone?'phone':'desktop'}-viewport.png`});
  await shoot('retake-new-photo-soft');
+
+ log('new photo, soft, with a reflection');
+ // Two prompts or more, blurry and washed out (the feel recheck, Nov 26: at 390 × 844 the second line pushed Retake photo off the sheet).
+ await usePhoto(glared);
+ seen=await prompts();
+ assert.ok(seen.lines.length>=2,seen.lines.join(' | '));assert.ok(seen.lines.includes(RETAKE.sharpness));assert.ok(seen.inView,'Retake photo in view under two prompts');
+ await page.screenshot({path:`${SHOTS}/retake-two-prompts-${phone?'phone':'desktop'}-viewport.png`});
+
+ log('Retake photo opens the source');
+ // Touch: the source menu sits at Retake photo, under it or above it as the room allows (it was anchored under Replace photo, over the preview and the Look
+ // row). Desktop: the file picker, as Replace photo does.
+ if(phone){
+  await page.locator('#addDiscDialog .bag-photo-retake-photo').tap();
+  await page.waitForFunction(()=>document.querySelector('#addDiscDialog .bag-photo-source-menu')?.matches(':popover-open'));await page.waitForTimeout(250);
+  const at=await page.evaluate(()=>{const m=document.querySelector('#addDiscDialog .bag-photo-source-menu').getBoundingClientRect(),b=document.querySelector('#addDiscDialog .bag-photo-retake-photo'),r=b.getBoundingClientRect(),choose=document.querySelector('#addDiscDialog .bag-photo-choose').getBoundingClientRect();
+   return {menuTop:m.top,menuBottom:m.bottom,top:r.top,bottom:r.bottom,chooseBottom:choose.bottom,expanded:b.getAttribute('aria-expanded')};});
+  assert.ok(Math.abs(at.menuTop-(at.bottom+6))<2||Math.abs(at.menuBottom-(at.top-6))<2,'the menu at Retake photo: '+JSON.stringify(at));
+  assert.ok(at.menuTop>at.chooseBottom,'not under Replace photo: '+JSON.stringify(at));assert.equal(at.expanded,'true');
+  await page.screenshot({path:`${SHOTS}/retake-source-menu-phone-viewport.png`});
+  await page.locator('#addDiscDialog [data-photo-source-cancel]').tap();
+  await page.waitForFunction(()=>!document.querySelector('#addDiscDialog .bag-photo-source-menu').matches(':popover-open'));
+ }else{
+  const picker=page.waitForEvent('filechooser',{timeout:5000});await page.locator('#addDiscDialog .bag-photo-retake-photo').click();await picker;
+  assert.ok(!(await page.evaluate(()=>document.querySelector('#addDiscDialog .bag-photo-source-menu').matches(':popover-open'))),'no menu on desktop');
+ }
 
  log('new photo, sharp');
  await usePhoto(crisp);
