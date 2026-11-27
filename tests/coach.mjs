@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
 import {createPublicWorker} from '../workers/public.mjs';
-import {coachContext} from '../workers/coach.mjs';
+import {coachContext, coachLookup} from '../workers/coach.mjs';
 
 function database() {
  const db = new DatabaseSync(':memory:');
@@ -124,6 +124,48 @@ test('a catalog name finds its record as a whole word, not inside another word',
  assert.ok(!names('How do I make my approach shots more consistent?').includes('Discraft Roach (Ace Race 2015)'));
  assert.ok(!names('I am looking for an overstable driver').includes('Westside Discs King (Pohjolan Isäntä1)'));
  assert.deepEqual(names('My forehand has a sharp hook at the end, why?'), []);
+});
+test('compare my stal to a firebird: both records reach the model, named, and the answer never says not found', async () => {
+ const stal = '464d3241aa7c', firebird = 'ba675aed468a', ask = content => ({messages: [{role: 'user', content}]});
+ for (const content of ['compare my stal to a firebird', 'compare my Stål to a FireBird']) {
+  assert.deepEqual(coachContext(ask(content).messages).slice(0, 2).map(d => d.id), [stal, firebird], content);
+  assert.deepEqual(coachLookup(ask(content).messages).mentions.map(m => [m.id, m.kind]), [[stal, 'exact'], [firebird, 'exact']]);
+ }
+ const s = await setup({ai: () => ({response: {answer: `[[${stal}]] fades a touch less than [[${firebird}]].`, discIds: [stal, firebird]}})});
+ try {
+  const body = await (await s.call(ask('compare my stal to a firebird'))).json(), prompt = s.calls[0].input.messages[0].content;
+  assert.match(prompt, new RegExp(`"stal" = \\[\\[${stal}\\]\\]; "firebird" = \\[\\[${firebird}\\]\\]`));
+  assert.match(prompt, /never say it is missing or not found/);
+  assert.deepEqual(body.discs.map(d => d.id), [stal, firebird]);
+  assert.match(body.answer, /^Kastaplast Stål fades a touch less than Innova Firebird\./);
+  assert.doesNotMatch(body.answer, /not found|does not establish/i);
+ } finally {s.DB.close();}
+});
+test('a one-letter typo resolves in code and the coach says how it read it', async () => {
+ const firebird = 'ba675aed468a', s = await setup({ai: () => ({response: {answer: `Try [[${firebird}]].`, discIds: [firebird]}})});
+ try {
+  const body = await (await s.call({messages: [{role: 'user', content: 'compare my stal to a firbird'}]})).json();
+  assert.match(s.calls[0].input.messages[0].content, /"firbird" = \[\[ba675aed468a\]\]/);
+  assert.match(body.answer, /Read “firbird” as the Innova Firebird\./);
+ } finally {s.DB.close();}
+});
+test('a name two brands share picks the best and asks which, in the coach\'s words', async () => {
+ const s = await setup({ai: input => {const id = input.messages[0].content.match(/"Vortex" = \[\[(\w+)\]\]/)[1]; return {response: {answer: `[[${id}]] is a slow, stable midrange.`, discIds: [id]}};}});
+ try {
+  const body = await (await s.call({messages: [{role: 'user', content: 'How does the Vortex fly?'}]})).json();
+  assert.match(s.calls[0].input.messages[0].content, /best guess; could also be/);
+  assert.match(body.answer, /^DGA Vortex is a slow, stable midrange\./);
+  assert.match(body.answer, /“Vortex” fits more than one mold, so I went with the DGA Vortex\. Meant the Discraft Vortex\? Name it and I’ll switch\./);
+  assert.doesNotMatch(body.answer, /Hyzer|not found/);
+  const branded = coachLookup([{role: 'user', content: 'How does the Discraft Vortex fly?'}]);
+  assert.deepEqual(branded.mentions.map(m => [branded.records.find(d => d.id === m.id).brand, m.alternates.length]), [['Discraft', 0]]);
+ } finally {s.DB.close();}
+});
+test('a disc named in an earlier question stays in context; only the latest question gets notes', () => {
+ const messages = [{role: 'user', content: 'compare my stal to a firbird'}, {role: 'assistant', content: 'Sure.'}, {role: 'user', content: 'which is better into wind?'}];
+ const {records, mentions} = coachLookup(messages);
+ assert.deepEqual(records.slice(0, 2).map(d => d.name).sort(), ['Firebird', 'Stål']);
+ assert.deepEqual(mentions, []);
 });
 test('daily usage belongs to the session user, not the browser or claimed headers', async () => {
  const s = await setup(); try {

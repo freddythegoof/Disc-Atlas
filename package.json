@@ -18,7 +18,7 @@
     "test:accounts:browser": "node tests/accounts-browser.mjs",
     "test:merged-records": "python3 tests/merged_records_test.py && python3 tests/catalog-identity.py && node tests/merged-records-browser.mjs",
     "test:disc-request": "node --test tests/disc-requests.mjs && node tests/disc-request-browser.mjs",
-    "test:coach": "node --test tests/coach.mjs",
+    "test:coach": "node --test tests/coach.mjs tests/disc-names.mjs",
     "test:coach:browser": "node tests/coach-browser.mjs",
     "test:bag": "node --test tests/bag.mjs tests/bag-values.mjs tests/bag-3d-layout.mjs tests/bag-pulled-sizing.mjs tests/bag-demo.mjs tests/collection-layout.mjs",
     "test:bag:pulled-sizing": "node tests/bag-pulled-sizing-browser.mjs",
