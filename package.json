@@ -67,6 +67,7 @@
     "test:clear-opacity": "node --test tests/clear-opacity.mjs && node tests/clear-opacity-browser.mjs",
     "test:true-color": "node --test tests/photo-true-color.mjs && node tests/clear-true-color-browser.mjs",
     "test:photo-level": "node tests/photo-stamp-level-browser.mjs",
+    "test:photo-retake": "node --test tests/photo-qa.mjs && node tests/photo-retake-browser.mjs && node tests/photo-retake-advisory-browser.mjs",
     "test:photo-stamp-sync": "node --test tests/photo-stamp-sync.mjs && node tests/photo-stamp-sync-browser.mjs && node tests/photo-stamp-stall-browser.mjs && PHOTO_STAMP_ENGINE=chromium node tests/photo-stamp-stall-browser.mjs",
     "test:photo-edge": "node tests/non-overmold-photo-edge-browser.mjs",
     "test:photo-edge:atlas": "node tests/non-overmold-photo-edge-atlas-browser.mjs",

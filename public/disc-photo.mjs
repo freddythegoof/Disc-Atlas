@@ -5,6 +5,7 @@ import {shapeForDisc,shapeFrame} from './disc3d/shape.mjs';
 import {isOvermold} from './disc3d/overmold.mjs';
 import {photoLook,setPhotoLook,savePhotoStamp} from './disc3d/photo-stamps.mjs';
 import {registration,throughH,CENTRE_CAP,STRETCH_CAP} from './disc-register.mjs';
+import {photoGate,photoDiameter} from './disc-photo-qa.mjs';
 export const PHOTO_BYTES=512*1024,PHOTO_SIZE=1024;
 export const photoURL=item=>item?.texture_key?'/api/bag/discs/'+encodeURIComponent(item.id)+'/photo?v='+encodeURIComponent(item.texture_key):null;
 // Inverse projective crop. Aspect repairs mild ellipse foreshortening; perspective adjusts near/far scale.
@@ -245,9 +246,21 @@ function fitDisc(image,plate){
 // v3.1 (docs/photo-stamp-one-click.md): `stored`: `image` is the disc's stored texture (already de-lit once, at upload),
 // read with the level framing, not a camera original.
 // `clear`: the disc is clear plastic (docs/clear-plastic-discs.md): the stamp's shadow, seen through it, is taken out.
+// The capture gate (disc-photo-qa.mjs, docs/stamp-pipeline-v2.md §11) reads the same crop first: `retake` holds its
+// prompts, on the result, or on the error when the asset could not be made. They never stop a make.
 export async function photoStampAsset(image,options={},{plate=.8,color=false,stored=false,clear=false,seeThrough=clear,colorBytes=COLOR_STAMP_BYTES,stage=()=>{}}={}){
  const size=STAMP_SIZE,canvas=photoCanvas(image,options,size,2*STAMP_SIZE);
  const pixels=canvas.getContext('2d').getImageData(0,0,size,size).data;canvas.width=canvas.height=0;
+ // A stored texture's size says nothing of the camera's: only an original is read for resolution and fill.
+ // The gate is advisory: when its analysis fails (a scratch array the device will not allocate, say) the make goes on
+ // into extraction with no prompts.
+ let retake=[];
+ try{retake=photoGate(pixels,size,{plate,original:stored?null:{diameter:photoDiameter(options,image.width,image.height),shortSide:Math.min(image.width,image.height)}}).prompts;}
+ catch{/* No prompts: the make itself is unchanged. */}
+ try{return await stampAsset(pixels,size,{plate,color,stored,clear,seeThrough,colorBytes,stage,retake});}
+ catch(error){if(error&&typeof error==='object')error.retake=retake;throw error;}
+}
+async function stampAsset(pixels,size,{plate,color,stored,clear,seeThrough,colorBytes,stage,retake}){
  stage('extract');
  const result=await extractStamp(pixels,size,plate,color,stored,clear,seeThrough),a=result.alpha,c=size/2;stage('ink');
  // The asset is the smallest centred square holding all of the design: no texture spent on bare plate.
@@ -277,7 +290,7 @@ export async function photoStampAsset(image,options={},{plate=.8,color=false,sto
  // The stock placement rule (stamp.mjs): the texture spans side/size of the disc's diameter.
  const ink=Math.max(x1-x0+1,y1-y0+1);
  // `color` is null when the colour asset could not be kept within its budget: the one-ink asset stands alone.
- return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,
+ return {blob,placement:{diameterFraction:ink/size,assetInkFraction:ink/side},layered:result.layered,plateColor:result.plateColor,coverage:result.coverage,stats:result.stats,retake,
   ...result.color&&{color:(stage('color'),await colorStampBlob(result.color.rgba,size,colorBytes))}};
 }
 // The colour asset: the smallest centred square holding all of it, as WebP (lossy colour, its alpha kept exact), which
@@ -426,6 +439,8 @@ let lookGroupId=0;
 // The step a game asset is being made at, after "Making the game asset: " (MAKE_LIMITS).
 // v3.1: 'open' fetches the disc's own photo, which one click makes the asset from.
 const MAKE_STEPS={open:'opening your photo…',extract:'finding the stamp…',ink:'drawing it in one ink…',color:'drawing it in full color…',save:'saving to your account…'};
+// The warning mark a retake prompt leads with: a triangle with an exclamation point.
+const RETAKE_MARK='<svg class="photo-retake-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.8 2.8 19.6h18.4z"/><path d="M12 10v4.6M12 17.2v.1"/></svg>';
 // Full colour is the game asset's default style (docs/spin-color-default.md): Game asset lands on it, and One ink is the
 // alternate style beside it. A look already saved is never changed by the default.
 // A new photo's game asset is made in the sheet (docs/photo-adder-rework.md) and saved with the photo.
@@ -470,23 +485,40 @@ export async function keepSnapshotAsset(snapshot,{remake,save}){
 // `stampInk`: the hex the disc's stamp ink resolves to (its own, or the Appearance setting), null for Auto
 // (docs/stamp-look-extraction.md); the One ink preview wears it.
 export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>false,onTrueColor=()=>{},seeThrough=clear,stampInk=()=>window.DisplayPalette?.stampStyle?.()?.ink||null}={}){
- root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>'+LOOK('photoLook-'+(++lookGroupId))+'<p class="bag-photo-status" role="status"></p>';
+ root.innerHTML='<span class="bag-photo-label">Photo<small>Your disc’s own stamp on its 3D model. Only you can see it.</small></span><div class="bag-photo-row"><span class="bag-photo-thumb" hidden><img alt="Your disc photo"></span><div class="bag-photo-actions"><button type="button" class="bag-photo-choose"><svg class="bag-photo-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.7l1.3-1.9A1.5 1.5 0 0 1 10.7 3.5h2.6a1.5 1.5 0 0 1 1.2.6L15.8 6h1.7A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span>Add photo</span></button><button type="button" class="bag-photo-adjust" hidden>Adjust</button><button type="button" class="bag-photo-level" hidden>Level stamp</button><button type="button" class="bag-photo-remove" hidden>Remove photo</button></div></div><input class="bag-photo-file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden>'+LOOK('photoLook-'+(++lookGroupId))+'<p class="bag-photo-status" role="status"></p><ul class="photo-retake" role="status" hidden></ul><button type="button" class="bag-photo-retake-photo" hidden>Retake photo</button>';
  // Non-camera accept values are presentation hints; the OS may merge library/files into one sheet.
  root.insertAdjacentHTML('beforeend','<div class="rack-style-menu bag-photo-source-menu" popover="auto" role="group" aria-label="Photo source"><button type="button" data-photo-source="camera">Camera</button><button type="button" data-photo-source="library">Photo Library</button><button type="button" data-photo-source="files">Files</button><button type="button" data-photo-source-cancel>Cancel</button></div><input class="bag-photo-source-file" data-photo-input="camera" type="file" accept="image/*" capture="environment" hidden><input class="bag-photo-source-file" data-photo-input="library" type="file" accept="image/*" hidden><input class="bag-photo-source-file" data-photo-input="files" type="file" hidden>');
  const dialog=document.createElement('dialog');dialog.className='photo-aligner';dialog.setAttribute('aria-labelledby','photoAlignerTitle');
- dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div>'+LEVEL+'<p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><button type="button" class="photo-aligner-manual" hidden>Frame it by hand instead</button><details class="photo-aligner-adjust"><summary>'+(window.DropdownIndicator?.indicator('lg')||'')+'Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
+ dialog.innerHTML='<div class="disc3d-dialog-panel"><div class="disc3d-dialog-head"><div><div class="disc3d-dialog-eyebrow">YOUR DISC PHOTO</div><h2 id="photoAlignerTitle">Center the disc</h2></div><button type="button" class="close" data-aligner-cancel aria-label="Cancel photo">×</button></div><div class="photo-aligner-body"><div class="photo-aligner-stage"><div class="photo-aligner-frame"><canvas class="photo-aligner-view" tabindex="0" aria-label="Photo alignment. Drag, or use the arrow keys, to center the disc; plus and minus resize."></canvas><canvas class="photo-aligner-guides" aria-hidden="true"></canvas></div></div>'+LEVEL+'<p class="photo-aligner-tip">Drag until the disc’s edge sits on the outer ring and its center on the crosshair.</p><button type="button" class="photo-aligner-manual" hidden>Frame it by hand instead</button><details class="photo-aligner-adjust"><summary>'+(window.DropdownIndicator?.indicator('lg')||'')+'Adjust photo</summary><div class="photo-aligner-sliders">'+SLIDERS+'</div></details><p class="photo-aligner-status" role="status"></p><ul class="photo-retake" role="status" hidden></ul><div class="photo-aligner-actions"><button type="button" class="pill-button" data-aligner-cancel>Cancel</button><button type="button" class="pill-button primary" data-aligner-confirm>Use photo</button></div></div></div>';
  document.body.append(dialog);
  const q=s=>root.querySelector(s),dq=s=>dialog.querySelector(s),file=q('.bag-photo-file'),view=dq('.photo-aligner-view'),guides=dq('.photo-aligner-guides'),frame=dq('.photo-aligner-frame'),stage=dq('.photo-aligner-stage');
  const choose=q('.bag-photo-choose'),sources=q('.bag-photo-source-menu');
+ // The capture gate's retake prompts (disc-photo-qa.mjs): how a retake would read better, in their own list under a
+ // make's words, one per line with a warning mark, scrolled into view when they show (the sheet's status sits below the
+ // fold on a laptop). They belong to the words they came with: any later status clears them.
+ const say=(status,text,retake=[])=>{
+  status.textContent=text;const list=status.nextElementSibling;
+  list.replaceChildren(...(retake||[]).map(words=>{const li=document.createElement('li');li.innerHTML=RETAKE_MARK;li.append(words);return li;}));
+  list.dataset.for=list.childElementCount?text:'';list.hidden=!list.childElementCount;
+  const retakePhoto=list.nextElementSibling?.matches('.bag-photo-retake-photo')?list.nextElementSibling:null;if(retakePhoto)retakePhoto.hidden=list.hidden;
+  // Retake photo keeps clear of the sheet's bottom edge (its scroll-margin); once the smooth scroll settles, a sheet that
+  // grew under it (a second prompt's line, the look row) still leaves it whole, or it snaps there.
+  if(!list.hidden)requestAnimationFrame(()=>{const last=retakePhoto||list;if(!last.getClientRects().length)return;last.scrollIntoView({block:'nearest',behavior:'smooth'});
+   setTimeout(()=>{if(!last.getClientRects().length)return;const r=last.getBoundingClientRect(),box=(last.closest('dialog')||document.documentElement).getBoundingClientRect(),margin=parseFloat(getComputedStyle(last).scrollMarginBottom)||0;
+    if(r.bottom+margin>Math.min(innerHeight,box.bottom)+1||r.top<Math.max(0,box.top))last.scrollIntoView({block:'nearest'});},600);});
+ };
+ for(const status of [q('.bag-photo-status'),dq('.photo-aligner-status')])new MutationObserver(()=>{if(status.nextElementSibling.dataset.for!==status.textContent&&!status.nextElementSibling.hidden)say(status,status.textContent);}).observe(status,{childList:true,characterData:true,subtree:true});
  file.dataset.photoInput='default';sources.id='photoSources-'+(++sourceChooserId);
- const closeSources=(focus=false)=>{if(sources.matches(':popover-open'))sources.hidePopover();choose.setAttribute('aria-expanded','false');if(focus)choose.focus({preventScroll:true});};
+ // The source menu sits under the button that opened it: Replace photo, or Retake photo beside the prompts.
+ let sourceAnchor=choose;
+ const closeSources=(focus=false)=>{if(sources.matches(':popover-open'))sources.hidePopover();sourceAnchor.setAttribute('aria-expanded','false');if(focus)sourceAnchor.focus({preventScroll:true});};
  const placeSources=()=>{
   if(!sources.matches(':popover-open'))return;
-  const r=choose.getBoundingClientRect(),width=sources.offsetWidth,height=sources.offsetHeight,w=document.documentElement.clientWidth,h=document.documentElement.clientHeight,below=r.bottom+height+14<=h;
+  const r=sourceAnchor.getBoundingClientRect(),width=sources.offsetWidth,height=sources.offsetHeight,w=document.documentElement.clientWidth,h=document.documentElement.clientHeight,below=r.bottom+height+14<=h;
   sources.style.left=Math.max(8,Math.min(r.left,w-width-8))+'px';sources.style.top=(below?r.bottom+6:Math.max(8,r.top-height-6))+'px';
   sources.style.setProperty('--menu-origin',below?'top left':'bottom left');
  };
- sources.addEventListener('toggle',e=>{choose.setAttribute('aria-expanded',String(e.newState==='open'));});
+ sources.addEventListener('toggle',e=>{sourceAnchor.setAttribute('aria-expanded',String(e.newState==='open'));});
  (root.closest('dialog')||document).addEventListener('keydown',e=>{
   if(e.key==='Escape'&&sources.matches(':popover-open')){e.preventDefault();e.stopPropagation();closeSources(true);}
  },true);
@@ -604,11 +636,15 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  dialog.addEventListener('close',()=>{if(draft){serial++;busy=false;releaseDraft();}});
  new ResizeObserver(()=>{if(draft){reanchor();paint();}}).observe(frame);
 
- choose.onclick=e=>{
+ const openSources=(e,anchor)=>{
   e.preventDefault();if(!matchMedia('(pointer:coarse)').matches){file.click();return;}
-  choose.popoverTargetElement=sources;window.AtlasDropdown?.close(false);sources.togglePopover();placeSources();
+  if(anchor!==sourceAnchor)closeSources();sourceAnchor=anchor;
+  anchor.popoverTargetElement=sources;window.AtlasDropdown?.close(false);sources.togglePopover();placeSources();
   if(sources.matches(':popover-open'))sources.querySelector('button').focus({preventScroll:true});
  };
+ choose.onclick=e=>openSources(e,choose);
+ // Retake photo is Replace photo, beside the prompts that ask for it.
+ q('.bag-photo-retake-photo').onclick=e=>openSources(e,e.currentTarget);
  sources.onclick=e=>{
   const source=e.target.closest('[data-photo-source]');
   if(source){closeSources(true);q('[data-photo-input="'+source.dataset.photoSource+'"]').click();}
@@ -647,7 +683,7 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
   if(!owned||!current||busy||makingNow)return;
   // The plastic's true colour is read from the same decoded photo on a one-piece mold that is not a Halo copy
   // (docs/clear-plastic-true-color.md): a disc on Clear wears it from this click on; a disc on Opaque keeps it for later.
-  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear(),seeThrough:seeThrough(),trueColor:!rimInner&&!halo()},status=text=>{if(owned?.id===target.id&&owned?.key===target.key)q('.bag-photo-status').textContent=text;};
+  const target=owned,url=current,job=makingNow={target,look,plate,clear:clear(),seeThrough:seeThrough(),trueColor:!rimInner&&!halo()},status=(text,retake)=>{if(owned?.id===target.id&&owned?.key===target.key)say(q('.bag-photo-status'),text,retake);};
   const step=name=>status('Making the game asset: '+MAKE_STEPS[name]);
   renderSheet();step('open');
   try{
@@ -663,8 +699,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
     const r=await within(fetch('/api/bag/discs/'+encodeURIComponent(target.id)+'/photo',{method:'PATCH',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount?.current?.csrfToken||''},body:JSON.stringify({photo_true_color:matched,texture_key:target.key})}).catch(()=>null),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');
     if(r?.ok){kept=true;onTrueColor(target.id,target.key,matched);}
    }
-   status((look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.')+trueColorLine(job,matched,kept,refused));
-  }catch(e){status(e?.message?.startsWith('Choose')?'Your saved photo could not open. Try again.':e?.message||'The game asset could not be made. Try again.');}
+   status((look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.')+trueColorLine(job,matched,kept,refused),asset.retake);
+  }catch(e){status((e?.message?.startsWith('Choose')?'Your saved photo could not open. Try again.':e?.message||'The game asset could not be made. Try again.'),e?.retake);}
   finally{if(makingNow===job)makingNow=null;renderSheet();}
  };
  q('.bag-photo-look').addEventListener('change',e=>{
@@ -674,6 +710,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
    const a=used.asset,noColor=a.state==='made'&&!a.result.color;
    a.look=e.target.value==='photo'?'photo':e.target.value==='asset'||noColor&&e.target.value!=='photo'?'asset':'color';
    if(e.target.value==='color'&&noColor)q('.bag-photo-status').textContent='This stamp is too detailed to keep in full color, so it’s in one ink.';
+   // The make's words name the asset; on Photo they would read as if it were showing.
+   else if(a.state==='made')q('.bag-photo-status').textContent=a.look==='photo'?'Showing the photo. The game asset is kept: choose Game asset to show it.':'Showing the game asset. It’s saved with the photo when you save this disc.';
    renderSheet();return;
   }
   if(!owned)return;
@@ -711,8 +749,8 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
     const asset=await photoStampAsset(bitmap,options,{plate,color:true,clear:makingClear,seeThrough:makingSeeThrough,stage:step}),look=making;if(id!==serial)return;
     step('save');
     await within(savePhotoStamp(target.id,target.key,{...asset,look}),MAKE_LIMITS.save,'Saving to your account took too long. Check your connection and try again.');if(id!==serial)return;
-    closeAligner();q('.bag-photo-status').textContent=look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.';renderSheet();
-   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;dq('.photo-aligner-status').textContent=e?.message||'The game asset could not be made. Try again.';}}
+    closeAligner();say(q('.bag-photo-status'),look==='color'?(asset.color?'Full-color asset made. Saved to your account.':'Game asset made in one ink. This stamp is too detailed to keep in full color.'):'Game asset made. Saved to your account.',asset.retake);renderSheet();
+   }catch(e){if(id===serial){busy=false;dq('[data-aligner-confirm]').disabled=false;say(dq('.photo-aligner-status'),e?.message||'The game asset could not be made. Try again.',e?.retake);}}
    return;
   }
   try{
@@ -736,14 +774,14 @@ export function createPhotoEditor(root,{onColor=()=>{},clear=()=>false,halo=()=>
  const makePending=(job,look=job.asset?.look||'color',isClear=clear(),isSeeThrough=seeThrough())=>{
   look||='color';
   const asset={look,clear:isClear,seeThrough:isSeeThrough,state:'making',result:null,error:null};job.asset=asset;
-  const status=text=>{if(used===job&&job.asset===asset)q('.bag-photo-status').textContent=text;};
+  const status=(text,retake)=>{if(used===job&&job.asset===asset)say(q('.bag-photo-status'),text,retake);};
   asset.promise=(async()=>{
    try{
     await new Promise(r=>requestAnimationFrame(()=>setTimeout(r)));status('Making the game asset: '+MAKE_STEPS.extract);
     asset.result=await photoStampAsset(job.bitmap,job.options,{plate,color:true,clear:asset.clear,seeThrough:asset.seeThrough,stage:name=>status('Making the game asset: '+MAKE_STEPS[name])});
     asset.state='made';if(!asset.result.color&&asset.look==='color')asset.look='asset';
-    status(asset.result.color?'Game asset made. It’s saved with the photo when you save this disc.':'Game asset made in one ink: this stamp is too detailed to keep in full color. It’s saved with the photo when you save this disc.');
-   }catch(e){asset.state='failed';asset.error=e?.message||'The game asset could not be made.';asset.look='photo';status(asset.error+' The photo still saves; choose Game asset after saving to try again.');}
+    status((asset.result.color?'Game asset made. It’s saved with the photo when you save this disc.':'Game asset made in one ink: this stamp is too detailed to keep in full color. It’s saved with the photo when you save this disc.'),asset.result.retake);
+   }catch(e){asset.state='failed';asset.error=e?.message||'The game asset could not be made.';asset.look='photo';status(asset.error+' The photo still saves; choose Game asset after saving to try again.',e?.retake);}
    if(used===job&&job.asset===asset)renderSheet();
    return asset;
   })();
