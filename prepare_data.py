@@ -39,7 +39,7 @@ for r in registry:
  verified=verified_lookup.get(d['id'])
  if verified:
   assert verified['brand']==brand and verified['approvalName']==name, 'Reviewed approval mapping has changed'
-  d.update(verified['flightNumbers']);d['category']=verified['category'];d['flightSource']=verified['source'];d['flightSourceLabel']=verified['brand'];d['catalogName']=verified['catalogName']
+  d.update(verified['flightNumbers']);d['category']=verified['category'];d['flightSource']=verified['source'];d['flightSourceLabel']=verified.get('sourceLabel',verified['brand']);d['catalogName']=verified['catalogName']
   d['flightMatchNote']='Manufacturer model matched to this specific PDGA approval; historical approvals kept separate.'
   # Current names and rename explanations come from reviewed source records, never registry edits.
   for key in ['catalogNote','aliases','flightMatchNote']:

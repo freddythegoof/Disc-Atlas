@@ -1,5 +1,5 @@
 {
-  "method": "Reviewed manufacturer model to specific PDGA approval matches. Never remove version suffixes globally or transfer current status to older approvals.",
+  "method": "Reviewed flight-rating sources matched to specific PDGA approvals. Never remove version suffixes globally or transfer current status to older approvals.",
   "overrides": [
     {
       "id": "a5ca585ab070",
@@ -2291,6 +2291,69 @@
         "source": "https://westsidediscs.com/products/vip-adder",
         "note": "Manufacturer lists this mold but the page does not state stock or continuing production; production status stays unverified. Approval-version match reviewed explicitly (near-miss sweep, Batch 2). Westside Adder page prints 13/5/0/4, equal to the catalog. \"The\" is decoration; no plain Adder approval exists."
       }
+    },
+    {
+      "id": "aef764af2fa0",
+      "brand": "Wham-O, Inc.",
+      "approvalName": "Fairway Driver (new)",
+      "catalogName": "Fairway Driver (new)",
+      "flightNumbers": {
+        "speed": 6,
+        "glide": 5,
+        "turn": -2,
+        "fade": 1
+      },
+      "category": "Fairway Driver",
+      "source": "https://www.discdb.info/?Manufacturer=Wham-O&f=true",
+      "sourceLabel": "DiscDB community database",
+      "sourceType": "community database",
+      "confidenceLabel": "Low",
+      "catalogNote": "Low confidence. DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
+      "flightMatchNote": "DiscDB lists this as Fairway driver (new), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-110.",
+      "checkedAt": "2026-11-26",
+      "production": {}
+    },
+    {
+      "id": "768baa6f4d9e",
+      "brand": "Wham-O, Inc.",
+      "approvalName": "Mid-Range",
+      "catalogName": "Mid-Range",
+      "flightNumbers": {
+        "speed": 4,
+        "glide": 5,
+        "turn": -1,
+        "fade": 0
+      },
+      "category": "Midrange",
+      "source": "https://www.discdb.info/?Manufacturer=Wham-O&f=true",
+      "sourceLabel": "DiscDB community database",
+      "sourceType": "community database",
+      "confidenceLabel": "Low",
+      "catalogNote": "Low confidence. DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
+      "flightMatchNote": "DiscDB lists this as Mid-Range (New), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-111.",
+      "checkedAt": "2026-11-26",
+      "production": {}
+    },
+    {
+      "id": "5d9475db1103",
+      "brand": "Wham-O, Inc.",
+      "approvalName": "Putter",
+      "catalogName": "Putter",
+      "flightNumbers": {
+        "speed": 3,
+        "glide": 3,
+        "turn": -3,
+        "fade": 0
+      },
+      "category": "Putter",
+      "source": "https://www.discdb.info/?Manufacturer=Wham-O&f=true",
+      "sourceLabel": "DiscDB community database",
+      "sourceType": "community database",
+      "confidenceLabel": "Low",
+      "catalogNote": "Low confidence. DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
+      "flightMatchNote": "DiscDB lists this as Putter (new), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-112.",
+      "checkedAt": "2026-11-26",
+      "production": {}
     }
   ]
 }
