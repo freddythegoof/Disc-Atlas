@@ -35,7 +35,7 @@ try {
   await route.fulfill({contentType: 'text/html', body: `<a href="${callback.href.replaceAll('&', '&amp;')}">Continue as Atlas Player</a>`});
  });
  const capture = async name => {await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(200); await page.screenshot({path: `${dir}/${name}.png`});};
- const open = async () => {if (!await page.locator('#coachDialog').isVisible()) await page.getByRole('button', {name: 'Atlas Coach', exact: true}).click(); await page.getByRole('dialog', {name: 'Atlas Coach', exact: true}).waitFor();};
+ const open = async () => {if (!await page.locator('#coachDialog').isVisible()) await page.getByRole('button', {name: 'Ask Hyzer, the Atlas Coach', exact: true}).click(); await page.getByRole('dialog', {name: 'Atlas Coach', exact: true}).waitFor();};
  const close = async () => {
   await page.locator('#coachClose').click();
   await page.waitForFunction(() => !document.querySelector('#coachDialog').open && document.activeElement === document.querySelector('#coachButton') && document.querySelector('#coachButton').getAttribute('aria-expanded') === 'false');

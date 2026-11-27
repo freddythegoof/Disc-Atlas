@@ -1,0 +1,268 @@
+# Hyzer the Disc: the Atlas Coach's mascot
+
+Branch `claude/hyzer-mascot`, off `origin/main` at 792f22b (Nov 14, 2026). Freddy's ask (Nov 2): give
+Disc Atlas a living, Wobnimo-style mascot. Decided before this build: the name is **Hyzer**, always
+shown as "Hyzer the Disc" or "Ask Hyzer" in UI copy, while the technique stays lowercase "hyzer". He
+is a little flying disc with a face, idling at a hyzer angle. He is the coach's face, not a site-wide
+pet.
+
+**Status: Part 1 (the look) and Part 2 (the coach wiring) are built, with every mood on a real
+event.** Committed on the branch only: no push, no PR, no deploy.
+
+**Freddy's rulings (Nov 14):**
+
+- **Take A**, cool and a little cocky. Take B (cute and friendly) is retired; it is in commit 31b7b89.
+- **Red**, replacing the lime rim from the original brief. Of three readings of red (a red rim on
+  the obsidian logo plate, the same with a lime face, an all-red disc), he chose the **all-red
+  disc**. The comparison is in commit f74b6e5.
+- **Real eyebrows**, replacing the dotted lime brow ("not a fan of these extra dots").
+- **Speaking: speak briefly.** The coach answers in one piece (no streaming), so Hyzer speaks for a
+  short, length-scaled moment as the answer appears. Streaming was the other option.
+- **Celebrating: an Add to bag button.** Each disc the coach names gets an "Add ‹disc› to bag"
+  button. He celebrates when that button's sheet saves the disc into the bag. The other option was
+  matching any bag add against the discs the coach had cited.
+
+## 1. The engine
+
+[Wobnimo](https://github.com/Pouryaak/wobnimo) 0.2.0 (npm `wobnimo`, MIT, Pourya Akhbari, published
+Oct 24, 2026). It renders one shared WebGL2 context per page, with signed-distance-field characters
+described as plain data (a `CharacterSpec`), and has no dependencies. The package was downloaded as a
+tarball and read before anything ran. It has no install scripts.
+
+- **Vendored** at `public/vendor/wobnimo/wobnimo-0.2.0.js`: the package's `dist/index.js`,
+  unmodified (SHA-256 `b5284b26…e9ff8e9`). The licence sits beside it, with provenance in
+  `public/vendor/WOBNIMO.md`, following the GSAP precedent.
+- **Self-contained:** no imports and no network calls. Only the engine ships, without the 20
+  built-in characters, the web component or the React wrapper.
+- **Not in `package.json`.** The site serves plain scripts, with no bundler. It is kept out of the
+  code graph by the existing `/public/vendor/` rule in `.graphifyignore`.
+- **Tooling:** its CLI (`check`, `preview`) was run from the unpacked tarball. It drives the repo's
+  Playwright Chromium headlessly.
+
+## 2. The character
+
+Spec: `public/hyzer.mjs` (default export).
+
+- **Body.** A one-colour red disc, as most real discs are: rim `#c81e2c` and a flight plate a shade
+  deeper (`#a8161f`), both run a touch richer than they should look because the studio light lifts
+  them. The disc is tipped back like the logo so it reads as a disc, then banked on its own bone at
+  a 24° hyzer angle.
+- **Plate finish.** The plate is satin. A glossy dome mirrored the studio and washed out the face;
+  a matte probe proved it was the reflection.
+- **Face.** Dark eyes. Two solid dark eyebrows, half sunk into the plate: one flat, the right one
+  raised and kicked up at the end (the cocky tell). A smirk set off-centre. Snappy glances that
+  hold, and small hops.
+- **Thinking.** The rim sits on its own bone and spins about the disc's axis while the face holds
+  still. Two dark stamp dashes on the rim make the spin read.
+- **Celebrating.** He flattens out of the hyzer (the bank goes to 0) and the rim whirls. The
+  engine adds its own cheer hop and flip.
+- **Error: he hit a tree.** A dazed shiver. Two leaves hidden behind the plate swing half a turn
+  and stick out past the rim, and a few leaves flutter loose on entering the state. The leaves exist
+  only in `error`.
+- **Sleeping** tips back, face up. **Listening** tips forward, toward you.
+- **Checks.** `wobnimo check` reports 0 errors and 0 warnings. The one note is the leaves being
+  hidden at rest, which is intended.
+
+At 64px the face reads clearly. At 32px he reads mostly as a red disc with a hint of a face,
+because dark features on red plastic carry less contrast than they did on the dark plate. That was
+the known cost of the all-red pick.
+
+### The one-sentence description (for reproducibility)
+
+The Wobnimo custom route takes one sentence. This is the sentence the spec matches:
+
+> A cocky little all-red flying disc with a face, eyebrows with one raised and a smirk, idling tilted at a hyzer angle, who spins his rim while he thinks, flattens out and cheers when a disc gets bagged, and hits a tree and ends up with leaves stuck to him when something fails.
+
+The spec was written by hand from that sentence, following Wobnimo's own mascot skill
+(`skill/SKILL.md` in the package), then iterated with `check` and `preview` until clean. It was not
+generated by `npx wobnimo new`.
+
+## 3. In the coach
+
+**Launcher.** The coach launcher reads "Ask Hyzer". Its accessible name is "Ask Hyzer, the Atlas
+Coach", and it wears `public/hyzer-still.png`, a 64×64 still (26px on the pill, 32px in the round
+44px launcher of the list and bag views).
+
+- The still is a pre-rendered image, regenerated with `node spikes/hyzer-mascot/still.mjs`. So
+  while the coach is closed, the atlas never downloads the engine and pays no frame cost.
+- The launcher keeps its pill height.
+
+**Panel.** When the panel opens, `public/coach.js` imports the engine and spec, then mounts Hyzer
+live (60px, 44px on short screens) beside the "Atlas Coach" title.
+
+- When the panel closes, he is disposed: the canvas goes, and the engine's frame loop and pointer
+  listener stop.
+- He lives only inside the coach panel. The atlas, the Directory and the bag get nothing.
+
+**Moods: real coach states only.**
+
+| Mood | When |
+| --- | --- |
+| listening | the question box has focus (the panel focuses it on open) |
+| idle | the panel is open and nothing else applies |
+| thinking | a question is in flight |
+| speaking | the answer just landed: `clamp(answer length × 15 ms, 1.2 s, 4.5 s)`, about 3.1 s for a typical answer |
+| error | the question request failed (Worker error, network, limit). Held until the next keystroke in the question box, the next question, or a real bag add. The allowance check and account changes don't trigger it. |
+| sleeping | two minutes with no pointer, key or focus activity in the panel; any activity wakes him |
+| celebrating | for 3 s after a disc the coach named is saved **into the bag** from its "Add ‹disc› to bag" button (below). Not on a cancelled sheet, not when the sheet saves to Storage or Lost, not on an edit, not on any other add. |
+
+The engine's own touches stay on: he glances at the pointer and hops when clicked.
+
+**Add to bag.** Under each answer, every disc the coach names (up to three, from the response's
+`discs`) gets a button: "Add Destroyer to bag", whose title names the brand too.
+
+- **The sheet:** the button opens the same add-disc sheet as the Directory's Add (plastic, weight,
+  colour, photo, destination) over the coach, through a new `BagApp.addMold(id)` in
+  `public/my-bag.js`. Nothing about how a disc is saved changed.
+- **The signal:** `my-bag.js` now announces each successful save with an `atlas-disc-saved` window
+  event (`{disc, edited}`), fired before its sheet closes.
+- **The cheer:** the coach cheers only if that save is the disc its own button opened, is new, and
+  went into the bag. The notice line then reads "Destroyer is in your bag."
+- **The claim ends with the sheet:** the coach's claim on a sheet ends when the sheet closes, so a
+  later add of the same mold from the Directory doesn't count.
+
+**His voice (Hyzer Part 2, Nov 26, 2026).** Freddy picked "cool and a little cocky" (Nov 25). The
+voice lives in one short line under the panel title (`#coachHyzerLine`, `aria-hidden`; screen readers get
+the coach status instead), never in the coach's answers: the question, prompt, matching, data and
+answer rendering are untouched. The set is fixed text in `public/coach.js` (`LINES`), rotated in order,
+with no generated text and no model calls. A line changes only at a coach event:
+
+| Moment | Event | Lines |
+| --- | --- | --- |
+| open | the panel opens on an empty chat, or Clear chat | Hyzer. I know every disc on this map. / Go on, ask me something hard. / Back again? Smart move. |
+| thinking | a question is sent | On it. Reading the flight numbers. / Easy one. Give me a second. / Checking the whole atlas for you. |
+| answered | the answer lands | There you go. / Told you I’d know. / Clean read. What’s next? |
+| error | the question fails | Clipped a tree. Ask me again. / Branch got me. One more try. |
+| cheer | a coach-named disc is saved into the bag | Good pick. Your bag just got better. / In the bag. Nice. |
+| poke | a tap on Hyzer (moves no mood) | Easy, I’m flying here. / Yes, the angle is on purpose. / Spin me all you like. I always come back. |
+
+Timers never change the line: sleeping, the end of speaking and the end of the cheer keep the last line.
+A dismissed Hyzer shows no line.
+
+**Dismissal.** "Hide Hyzer the Disc", a quiet button at the foot of the panel, removes him at once.
+It stores `disc-atlas-hyzer = hidden` in `localStorage`; this browser only, like Appearance.
+
+- An inline script in `web/index.html` applies the setting before first paint, so the launcher
+  goes straight back to "✦ Atlas Coach" with no flash.
+- A dismissed Hyzer never downloads the engine.
+- "Show Hyzer the Disc" brings him back, and that is remembered too.
+
+**Reduced motion.** The engine holds the state's pose. Once he settles, Hyzer is pixel-identical
+over time and the engine stops ticking. The still is static anyway.
+
+## 4. Tests
+
+`node tests/hyzer-coach-browser.mjs` serves the real page with a mocked account and coach (a question
+containing "fail" gets a 503, answers name the Destroyer and the Wraith, and bag saves land in
+memory). It runs 14 checks and writes captures to `outputs/hyzer-coach/`:
+
+- **Closed.** The still and "Ask Hyzer" show, the engine is not downloaded, and the pill keeps
+  its height.
+- **Open.** He is live in the panel heading and nowhere else, and listens while the question box
+  has focus.
+- **Idle** when focus leaves the box; **thinking** while the question is in flight.
+- **Speaking** when the answer lands, for 3.1 s, then back to listening.
+- **Error** on a failed question, held until the next keystroke.
+- **No cheer from the chat itself.** Every state seen during questions and answers is recorded, and
+  celebrating is not among them.
+- **Celebrating, only for a real bag add.** He does not cheer for a cancelled sheet followed by a
+  save of the same mold from elsewhere, or for a coach-named disc saved to Storage. He does cheer
+  for 3 s, with "Destroyer is in your bag.", when the Destroyer is saved into the bag from its
+  button, even straight after a failed question.
+- **Closed again.** The canvas is removed and the engine does 0 ticks in 1.5 s.
+- **Dismissal** is remembered across a reload, with the plain "✦ Atlas Coach" launcher and no
+  engine download; showing him again is remembered too.
+- **Sleeping** after two quiet minutes on Playwright's fake clock, and woken by activity.
+- **Reduced motion:** fully static, with 0 ticks.
+- **The round launcher** (list and bag views) holds the 32px still centred in its 44px circle.
+
+Existing suites run against the change:
+
+- **Pass:** `tests/coach-browser.mjs` (real Worker, local D1, OAuth, three themes, 1440 and 360
+  wide), `tests/bag-browser.mjs` (real Worker and D1, every add surface, which covers the new
+  saved event in `my-bag.js`), `tests/disc3d-browser.mjs` and `tests/add-menu-dismiss-browser.mjs`.
+- **Pass, driven by hand:** `checkDirectory` from `tests/directory.mjs`. Nothing in the repo calls
+  this helper; it includes "coach never covers scores".
+- **Updated:** `coach-browser.mjs` and `directory.mjs` found the launcher by its old accessible name,
+  "Atlas Coach". They now use "Ask Hyzer, the Atlas Coach".
+- **Lint:** `eslint` on the changed files reports 0 errors. Its 3 warnings are in untouched lines of
+  `viewer.mjs`.
+
+The spike's live sheet (`spikes/hyzer-mascot/sheet.html`) and `serve.mjs` remain for trying him by
+hand. Run `node spikes/hyzer-mascot/serve.mjs`, then open http://127.0.0.1:8872.
+
+## 5. Cost (measured Nov 14, 2026 on the Mac: headless Playwright Chromium, Metal ANGLE, DPR 2)
+
+Scripts:
+
+- `spikes/hyzer-mascot/coach-cost.mjs`: the real panel on `serve.mjs`, three fresh pages.
+- `spikes/hyzer-mascot/cost.mjs`: the spike page.
+- `tests/hyzer-coach-browser.mjs`: the zero-cost checks.
+
+| What | Measured |
+| --- | --- |
+| Atlas with the coach closed | **0 engine bytes, 0 frames.** The engine and spec are not requested until the panel opens. The launcher adds one 5,932 B PNG. |
+| Engine, on first open | 71,634 B raw, 25,470 B gzip -9 |
+| Spec, on first open | 5,757 B raw, 2,354 B gzip -9 (comments included; 1,244 B as data) |
+| Opening the panel | canvas mounted 54–64 ms after the click, first frame by 71–82 ms; **no long tasks** (none over 50 ms), so the shader compile causes no visible hitch |
+| Live in the open panel | main-thread `tick` 0.19–0.20 ms mean, 0.40 ms p95, at 60 fps |
+| Reduced motion | settles, then 0 ticks; pixel-identical over time |
+| After the panel closes | 0 ticks; canvas, frame loop and pointer listener gone |
+| A dismissed Hyzer | the engine is never requested |
+
+Caveats:
+
+- These are local numbers: no network latency, and the server doesn't compress, so gzip is
+  computed separately.
+- GPU time per frame was not measured. The live mascot is a 60px canvas (120 device pixels at 2x)
+  and runs only while the panel is open.
+
+## 6. Copy fence (grep, Nov 14)
+
+`grep -rnoE "[Hh]yzer"` over `web/index.html` and `public/` (`.html`, `.js`, `.mjs`, `.css`; vendor
+excluded):
+
+- **Character, capitalized, only as:**
+  - "Ask Hyzer" (launcher label and title)
+  - "Ask Hyzer, the Atlas Coach" (launcher accessible name)
+  - "Hide Hyzer the Disc" / "Show Hyzer the Disc"
+  - "Hyzer the Disc, ‹mood›" (the engine's canvas label, inside an `aria-hidden` container)
+
+  No bare "Hyzer" label ships.
+- **Technique, lowercase everywhere.** The 3D viewer's tilt slider ends were the one break: they
+  read `Anhyzer … Hyzer`. They are now `anhyzer … hyzer` (`public/disc3d/viewer.mjs:105`). Its
+  readout was already lowercase ("20° hyzer"). The other matches are lowercase technique words in
+  `bag-demo.js`, `bag-engine.js`, `disc3d.css` and `retailer-products.js`, plus code identifiers and
+  comments.
+- **Not copy.** `public/data.json` has Lightning's "#1 Hyzer" and "#2 Hyzer". These are mold names,
+  which the catalog keeps as printed.
+
+## 7. Open with Freddy
+
+1. **Privacy page.** `public/privacy.html` lists what the app stores in the browser as the theme
+   only. That list is already out of date (Appearance stores more), and it doesn't mention the new
+   Hyzer preference. This is a legal page, so it was left for Freddy.
+2. **The Add to bag buttons are a new surface in the coach**, and they also show for someone who
+   has dismissed Hyzer: they are useful on their own. Bag adds from the coach go through the normal
+   sheet and API, so the bag's own limits and validation apply unchanged.
+
+## Appendix: the Part 1 sheet
+
+`spikes/hyzer-mascot/sheet.html` shows the coach corner in Paper and Dusk, with the seven moods at
+64px and 32px. Serve the checkout root (`python3 -m http.server 8871 --bind 127.0.0.1`) to open it.
+
+Captures at 2x come from `node spikes/hyzer-mascot/capture.mjs`:
+
+- [The sheet](assets/hyzer-mascot/sheet.png)
+- [The sheet with reduced motion](assets/hyzer-mascot/sheet-reduced-motion.png)
+- [Wobnimo's own contact sheet](assets/hyzer-mascot/wobnimo-preview.png) (four views, all ten
+  states, 56px avatar)
+
+Captures from the coach itself:
+
+- [Launcher](assets/hyzer-mascot/coach-launcher.png)
+- [Dismissed launcher](assets/hyzer-mascot/coach-launcher-dismissed.png)
+- [Round launcher](assets/hyzer-mascot/coach-launcher-list.png)
+- [Thinking](assets/hyzer-mascot/coach-thinking.png)
+- [Celebrating](assets/hyzer-mascot/coach-celebrating.png)
+- [Error](assets/hyzer-mascot/coach-error.png)
