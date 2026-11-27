@@ -98,6 +98,30 @@ and placeholders are rejected. The server inserts exact catalog names and
 ratings and returns source links. The browser uses `textContent` for provider
 text and accepts only HTTPS source links. Model advice is still probabilistic.
 
+### Disc names (Nov 26, 2026)
+
+The server decides which molds a question names, in code, before either provider
+sees it (`workers/disc-names.mjs`; no extra model call, no paid service). Names
+fold with NFKD, lowercase, spelled-out stroke letters (ø→o, æ→ae, ß→ss, ł→l) and
+no combining marks, and compare as runs of letters and digits, so "stal" is the
+Stål, "firebird" and "fire bird" are the Firebird, and "roc3" is the Roc 3. A typo
+of up to one edit (names of 4–7 letters) or two (8 and up) still matches, never
+on the first letter, a name under four letters, or an everyday or disc-golf word,
+and only for a rated mold unless the brand is named too. A real English word
+("time", "lost", "page") is never a typo for a mold ("Tide", "Lots", "Pace")
+unless that mold's brand is named or only a repeated letter differs ("buzz" for
+the Buzzz), and a typo never changes a number ("roc4" is not the Roc 3). The word
+list is `workers/english-words.mjs`, generated from the system dictionary by
+`scripts/build-english-words.mjs`; rerun it when the catalog gains molds. Naming the brand adds 30
+points, so "Discraft Vortex" beats the DGA Vortex. Matched molds lead the records,
+and the prompt lists them as matched and tells the model never to call them
+missing. When a name fits more than one mold, the best one is used and the coach
+adds one fixed line asking which was meant; a typo gets a line saying how it was
+read. Those lines are server text in the answer, never model text and never the
+word Hyzer. `app/api/coach/route.ts` uses the same matcher. The Directory's search
+box (`public/app.js`) is separate code and already ignores accents; it does not
+fold ø or æ.
+
 Only conversation history and catalog context are sent. Names/emails, saved bag,
 profile and photos are excluded. Chat stays in page memory and clears when
 identity/session changes or the player signs out. Provider retention can apply
@@ -106,7 +130,7 @@ despite OpenAI's `store:false`. The privacy notice reflects this flow.
 ## Verification
 
 ```powershell
-node --test --test-isolation=none tests/coach.mjs tests/auth.mjs
+node --test --test-isolation=none tests/coach.mjs tests/disc-names.mjs tests/auth.mjs
 node tests/coach-browser.mjs
 node tests/coach-browser.mjs --live
 ```
