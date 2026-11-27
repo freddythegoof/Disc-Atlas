@@ -12,8 +12,10 @@ def norm(s):return re.sub('[^a-z0-9]','',unicodedata.normalize('NFKD',s.replace(
 def toks(s):return frozenset(re.findall('[a-z0-9]+',unicodedata.normalize('NFKD',s.replace('+',' plus ')).encode('ascii','ignore').decode().lower()))
 def load_alias():
  src=open(ROOT+'/prepare_data.py').read()
+ # prepare_data.py's fourth line used to be def norm. argparse now occupies that line, so take the norm definition and alias assignments by content.
+ lines=[l for l in src.split('\n') if l.startswith('def norm') or l.startswith('alias')]
  ns={}
- exec('import re,unicodedata\n'+src.split('\n')[3]+'\n'+'\n'.join(l for l in src.split('\n') if l.startswith('alias')),ns)
+ exec('import re,unicodedata\n'+'\n'.join(lines),ns)
  return ns['alias']
 def candidates():
  alias=load_alias();bn=lambda b:norm(alias.get(b,b))
