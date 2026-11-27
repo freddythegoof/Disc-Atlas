@@ -527,7 +527,7 @@ function draw(){
  // An organic rest offset is the disc's own small toss, not a displacement worth a line.
  for(const g of mapClusters){if(!organicAtlas()&&!g.satellite&&g.members.includes(selected)&&Math.hypot(g.x-g.actualX,g.y-g.actualY)>13){ctx.strokeStyle=themePalette.grid;ctx.beginPath();ctx.moveTo(g.actualX,g.actualY);ctx.lineTo(g.x,g.y);ctx.stroke();}}
  updateSatelliteLabelSuppression();
- renderMarkers();drawSatelliteLeaders();drawCompareHighlights();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');setMapText($('#emptyReset'),'Clear filters');
+ renderMarkers();drawSatelliteLeaders();drawCompareHighlights();setMapText($('#zoomLabel'),'Zoom '+zoom.toFixed(1)+'×');$('#empty').hidden=filtered.some(d=>d.speed!=null);setMapText($('#empty').firstChild,'No discs match these filters.');if(!$('#empty').hidden)setMapText($('#emptyReset'),collectionHides(true)?'Show everything':'Clear filters');
  setMapText($('#mapSummary'),`${mapClusters.length} flight ${mapClusters.length===1?'group':'groups'} · ${filtered.filter(d=>d.speed!=null).length} discs`);
  // Discs still waiting for their 3D render get another frame's budget.
  if(atlasArt&&mapClusters.length){artFirst=false;artDrawn=true;}
