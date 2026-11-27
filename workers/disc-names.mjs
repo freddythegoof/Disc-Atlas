@@ -6,7 +6,11 @@
 // matter: "stal" = "Stål", "firebird" = "FireBird", "fire bird" = "Firebird", "fd-2" = "FD2".
 // Typos: optimal-string-alignment distance ≤ 1 for names of 4–7 letters, ≤ 2 from 8 letters, never
 // for shorter names, common words or the first letter; a typo only reaches a rated mold unless the
-// player also named the brand. A brand named alongside a mold scores that brand's discs higher.
+// player also named the brand. A real English word ("time", "lost", "page") is never a typo for a
+// mold ("Tide", "Lots", "Pace") unless that mold's brand is named or only a repeated letter differs
+// ("buzz" for the Buzzz), and a typo never changes a number ("roc4" is not the Roc 3). A brand
+// named alongside a mold scores that brand's discs higher.
+import ENGLISH from './english-words.mjs';
 
 const LETTERS = {ø: 'o', æ: 'ae', œ: 'oe', ß: 'ss', ł: 'l', đ: 'd', ð: 'd', þ: 'th', ı: 'i', ŋ: 'n', ħ: 'h', ŧ: 't', ĸ: 'k', ſ: 's'};
 export function fold(text) {
@@ -52,11 +56,14 @@ shot shots line lines hook hooks sharp end ends start field round course hole ho
 straight long short far close left right low high hard soft heavy light weight grams gram new old beat beaten seasoned
 power arm form release angle nose spin snap grip reach drive drives drop drops roll rolls roller rollers skip skips flat
 tunnel upshot flex touch control accuracy consistent consistency fast slow step steps stand standstill run spike spikes grenade
-thumber tomahawk scoober overhand`.split(/\s+/));
+thumber tomahawk scoober overhand range ranges lot lots`.split(/\s+/));
 const GENERIC_BRAND = new Set(['disc', 'discs', 'golf', 'discgolf', 'frisbeegolf', 'dg', 'co', 'company', 'inc', 'llc', 'ltd', 'ou', 'oy', 'ab', 'applied', 'technologies', 'sports', 'the']);
 const MAX_WINDOW = 5;
 // "flips", "fading", "rolled": an everyday word in another form is still an everyday word.
 const common = word => COMMON.has(word) || COMMON.has(word.replace(/(?:es|s|ed|ing)$/, '')) || COMMON.has(word.replace(/s$/, ''));
+const english = word => /^\p{L}+$/u.test(word) && [word, word.replace(/(?:es|s|ed|d|ing|er|y)$/, ''), word.replace(/ing$/, 'e')].some(w => ENGLISH.has(w));
+const runs = word => word.replace(/(.)\1+/g, '$1');
+const digits = word => word.replace(/\D+/g, ' ').trim();
 
 const compactOf = tokens => tokens.map(t => t.t ?? t).join('');
 
@@ -93,7 +100,7 @@ export function createDiscMatcher(discs) {
   const allowance = typoAllowance(word.length), found = new Map();
   if (!allowance) return found;
   for (let length = word.length - allowance; length <= word.length + allowance; length++) for (const [key, rated] of near.get(word[0] + length) || []) {
-   if (!(rated || anyBrand)) continue;
+   if (!(rated || anyBrand) || digits(key) !== digits(word)) continue;
    const distance = editDistance(word, key, allowance);
    if (distance > 0 && distance <= Math.min(allowance, typoAllowance(key.length))) found.set(key, distance);
   }
@@ -124,9 +131,10 @@ export function createDiscMatcher(discs) {
    if (span.some((t, k) => covered.has(i + k) || common(t.t) || /^\d+$/.test(t.t))) continue;
    const word = compactOf(span);
    if (!typos.has(word)) typos.set(word, typoKeys(word, brandsNamed.size > 0));
+   const isWord = english(word);
    // Every name within reach of these words joins one reading, so a close second can make it ambiguous.
    const entries = [...typos.get(word)].flatMap(([key, distance]) => exact.get(key)
-    .filter(e => e.tokens <= 2 && (meta.get(e.disc).rated || brandsNamed.has(e.disc.brand)))
+    .filter(e => e.tokens <= 2 && (meta.get(e.disc).rated || brandsNamed.has(e.disc.brand)) && (!isWord || brandsNamed.has(e.disc.brand) || key.length > word.length && runs(key) === runs(word)))
     .map(e => ({...e, score: 70 + Math.min(key.length, 20) - 12 * distance + e.weight})));
    if (entries.length) hits.push({start: i, end: i + n, kind: 'typo', entries});
   }

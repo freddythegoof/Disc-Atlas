@@ -56,3 +56,62 @@ test('every rated mold is reached by its brand and name', () => {
  const missed = catalog.discs.filter(d => d.speed != null).filter(d => !matcher.match(`how does the ${d.brand} ${d.name} fly`).mentions.some(m => m.disc === d || m.alternates.includes(d)));
  assert.deepEqual(missed.map(d => `${d.brand} ${d.name}`), []);
 });
+// QA on PR #71 found everyday questions read as molds ("best time of day" as the Westside Tide).
+const NO_DISC = [
+ 'What is the best time of day to practice putting?',
+ 'Can you check my form if I describe it?',
+ 'Should I stay with my mid-range or move up to a fairway?',
+ 'I lost my disc in the pond, any tips for finding it?',
+ 'How should I warm up before a round?',
+ 'What kind of grip is best for a forehand?',
+ 'Is stock plastic better than premium for beginners?',
+ 'How do I throw in open fields with lots of wind?',
+ 'What page of the rules covers out of bounds?',
+ 'How do I play a mandatory gate on a tight hole?',
+ 'Why does my drive stall out and drop early?',
+ 'My old discs feel stale, should I replace them?',
+ 'What stat matters most for a new player?',
+ 'How do I throw over a rock wall?',
+ 'Is a heavier disc better in the wind?',
+ 'How far should a beginner throw after a year?',
+ 'What does a high glide rating mean?',
+ 'How do I stop rounding my backhand?',
+ 'What is a good weekly practice routine?',
+ 'How many discs should I carry in my bag?',
+ 'Should I learn a roller shot?',
+ 'How do I read a fairway before I throw?',
+ 'What is the difference between a stable and an overstable disc?',
+ 'How do I get more snap in my throw?',
+ 'When should I throw a hyzer instead of a flat release?',
+ 'How do I keep my nose angle down?',
+ 'What should I do when my putts keep missing left?',
+ 'How do I aim on an uphill hole?',
+ 'Is it worth buying a practice basket?',
+ 'How do I throw farther without hurting my shoulder?',
+ 'What are good drills for footwork?',
+ 'How do I play in the rain without slipping?',
+ 'What weight should a kid throw?',
+ 'How do I pick a disc for a tailwind?',
+ 'My throws keep turning over, why?',
+ 'What is a good score for a first round?',
+ 'How long does it take to break in a new disc?',
+ 'Should I walk or run up on my drive?',
+ 'How do I keep score in a doubles round?',
+ 'What does the turn number tell me about a disc?'];
+test('a disc-golf question that names no disc reaches no mold, not even as a typo', () => {
+ for (const ask of NO_DISC) {
+  const {mentions, scores} = matcher.match(ask);
+  assert.deepEqual(mentions.map(m => `${m.text} as ${m.disc.brand} ${m.disc.name}`), [], ask);
+  assert.deepEqual([...scores].filter(([, score]) => score >= 50).map(([d]) => d.name), [], `${ask} sends no matched records`);
+ }
+});
+test('an English word is never a typo for a mold unless its brand is named or only a repeated letter differs', () => {
+ for (const word of ['time', 'check', 'stay', 'lost', 'warm', 'kind', 'stock', 'open', 'page', 'gate', 'stall', 'stale', 'stat', 'rock'])
+  assert.deepEqual(discs(`how does the ${word} fly`), [], word);
+ assert.deepEqual(discs('is the buzz good'), ['Discraft Buzzz']);
+ assert.deepEqual(discs('how does the Westside time fly'), ['Westside Discs Tide'], 'Its brand makes the word a typo again');
+ assert.deepEqual(discs('my stal vs stall'), ['Kastaplast Stål']);
+});
+test('a typo never changes a number', () => {
+ assert.deepEqual(discs('compare roc4 and roc3'), ['Innova Roc 3']);
+});

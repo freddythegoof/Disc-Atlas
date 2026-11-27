@@ -107,7 +107,12 @@ no combining marks, and compare as runs of letters and digits, so "stal" is the
 Stål, "firebird" and "fire bird" are the Firebird, and "roc3" is the Roc 3. A typo
 of up to one edit (names of 4–7 letters) or two (8 and up) still matches, never
 on the first letter, a name under four letters, or an everyday or disc-golf word,
-and only for a rated mold unless the brand is named too. Naming the brand adds 30
+and only for a rated mold unless the brand is named too. A real English word
+("time", "lost", "page") is never a typo for a mold ("Tide", "Lots", "Pace")
+unless that mold's brand is named or only a repeated letter differs ("buzz" for
+the Buzzz), and a typo never changes a number ("roc4" is not the Roc 3). The word
+list is `workers/english-words.mjs`, generated from the system dictionary by
+`scripts/build-english-words.mjs`; rerun it when the catalog gains molds. Naming the brand adds 30
 points, so "Discraft Vortex" beats the DGA Vortex. Matched molds lead the records,
 and the prompt lists them as matched and tells the model never to call them
 missing. When a name fits more than one mold, the best one is used and the coach
