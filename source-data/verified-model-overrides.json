@@ -2308,7 +2308,7 @@
       "sourceLabel": "DiscDB community database",
       "sourceType": "community database",
       "confidenceLabel": "Low",
-      "catalogNote": "Low confidence. DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
+      "catalogNote": "DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
       "flightMatchNote": "DiscDB lists this as Fairway driver (new), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-110.",
       "checkedAt": "2026-11-26",
       "production": {}
@@ -2329,7 +2329,7 @@
       "sourceLabel": "DiscDB community database",
       "sourceType": "community database",
       "confidenceLabel": "Low",
-      "catalogNote": "Low confidence. DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
+      "catalogNote": "DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
       "flightMatchNote": "DiscDB lists this as Mid-Range (New), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-111.",
       "checkedAt": "2026-11-26",
       "production": {}
@@ -2350,7 +2350,7 @@
       "sourceLabel": "DiscDB community database",
       "sourceType": "community database",
       "confidenceLabel": "Low",
-      "catalogNote": "Low confidence. DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
+      "catalogNote": "DiscDB lists these community flight ratings as preliminary and does not identify their original source.",
       "flightMatchNote": "DiscDB lists this as Putter (new), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-112.",
       "checkedAt": "2026-11-26",
       "production": {}

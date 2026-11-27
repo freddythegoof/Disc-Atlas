@@ -2,10 +2,19 @@
 import importlib.util
 import json
 from pathlib import Path
-import unittest
 import subprocess
+import sys
+import tempfile
+import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+OVERRIDES = 'source-data/verified-model-overrides.json'
+STAMP_FIELDS = {'stampAsset', 'stampPlacement'}
+RATING_FIELDS = {
+    'speed', 'glide', 'turn', 'fade', 'category', 'flightSource', 'flightSourceLabel',
+    'catalogName', 'catalogNote', 'aliases', 'flightMatchNote', 'confidenceLabel',
+    'ratingBasis', 'flightNote', 'manufacturerNumbers', 'retailerSource',
+}
 
 class StampManifestTests(unittest.TestCase):
     @classmethod
@@ -70,16 +79,87 @@ class StampManifestTests(unittest.TestCase):
             self.module.validate_stamp_fields(self.entries,records,ROOT/'public')
 
     def test_catalog_changes_only_by_reviewed_stamp_fields(self):
-        base=subprocess.check_output(['git','merge-base','main','HEAD'],cwd=ROOT,text=True).strip()
+        remote = subprocess.run(['git', 'merge-base', 'origin/main', 'HEAD'], cwd=ROOT, capture_output=True, text=True)
+        base = remote.stdout.strip() if remote.returncode == 0 else subprocess.check_output(
+            ['git', 'merge-base', 'main', 'HEAD'], cwd=ROOT, text=True).strip()
         before=json.loads(subprocess.check_output(['git','show',base+':public/data.json'],cwd=ROOT))
         after=json.loads((ROOT/'public/data.json').read_text())
-        # A reviewed merge is the other way a record changes: source-data/merged-records.json drops one and enriches one.
+        old_overrides = json.loads(subprocess.check_output(['git', 'show', f'{base}:{OVERRIDES}'], cwd=ROOT))['overrides']
+        overrides = json.loads((ROOT / OVERRIDES).read_text())['overrides']
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'data.json'
+            subprocess.run([sys.executable, str(ROOT / 'prepare_data.py'), '--output', str(output)],
+                           cwd=ROOT, check=True, capture_output=True)
+            rebuilt = json.loads(output.read_text())['discs']
+        # Reviewed merges can drop one record and enrich another.
         merges=json.loads((ROOT/'source-data/merged-records.json').read_text())['merges']
         folded,surviving={m['folded'] for m in merges},{m['surviving'] for m in merges}
         meta=lambda value:{k:v for k,v in value.items() if k not in ('registryCount','idAliases')}
         self.assertEqual(meta(before['meta']),meta(after['meta']))
-        strip=lambda records:[{k:v for k,v in d.items() if k not in ('stampAsset','stampPlacement')} for d in records if d['id'] not in folded|surviving]
-        self.assertEqual(strip(before['discs']),strip(after['discs']))
+        self.assert_reviewed_catalog_changes(
+            before['discs'], after['discs'], rebuilt, old_overrides, overrides, folded | surviving)
+
+    def assert_reviewed_catalog_changes(self, before, after, rebuilt, old_overrides=(), overrides=(), merged=()):
+        # Keep the approval record intact. Only fields owned by an override may follow
+        # the regenerated catalog. Include the old overrides so removals can restore defaults.
+        active_overrides = {override['id'] for override in overrides}
+        reviewed = {}
+        for override in (*old_overrides, *overrides):
+            reviewed.setdefault(override['id'], {'checkedAt'}).update(override['production'])
+        generated = {record['id']: record for record in rebuilt}
+        previous = [record for record in before if record['id'] not in merged]
+        current = [record for record in after if record['id'] not in merged]
+        self.assertEqual([record['id'] for record in previous], [record['id'] for record in current])
+        for old, new in zip(previous, current):
+            expected = {key: value for key, value in old.items() if key not in STAMP_FIELDS}
+            actual = {key: value for key, value in new.items() if key not in STAMP_FIELDS}
+            record_id = old['id']
+            if record_id in reviewed:
+                regenerated = generated[record_id]
+                for key in RATING_FIELDS:
+                    if key in regenerated:
+                        expected[key] = regenerated[key]
+                    else:
+                        expected.pop(key, None)
+                production_keys = reviewed[record_id]
+                if record_id not in active_overrides:
+                    # A removed override can expose the reviewed retailer-catalog fallback.
+                    production_keys = production_keys | {'status', 'source', 'note'}
+                expected['production'] = {
+                    **{key: value for key, value in old['production'].items() if key not in production_keys},
+                    **{key: value for key, value in regenerated['production'].items() if key in production_keys},
+                }
+            self.assertEqual(expected, actual, f'Unexpected catalog change for {record_id}')
+
+    def test_reviewed_rating_can_add_flight_numbers_and_confidence(self):
+        old = {'id': 'rated', 'name': 'Mold', 'production': {'status': 'unknown', 'checkedAt': '2026-09-23'}}
+        new = {**old, 'speed': 6, 'glide': 5, 'turn': -2, 'fade': 1, 'confidenceLabel': 'Low',
+               'production': {**old['production'], 'checkedAt': '2026-11-26'}}
+        self.assert_reviewed_catalog_changes([old], [new], [new], overrides=[{'id': 'rated', 'production': {}}])
+
+    def test_removed_override_can_restore_the_generated_rating(self):
+        fallback = {'id': 'rated', 'name': 'Mold', 'speed': 5,
+                    'retailerSource': 'https://example.com/mold',
+                    'production': {'status': 'catalog_listed'}}
+        reviewed = {'id': 'rated', 'name': 'Mold', 'speed': 6, 'confidenceLabel': 'Low',
+                    'production': {'status': 'unknown'}}
+        self.assert_reviewed_catalog_changes(
+            [reviewed], [fallback], [fallback], old_overrides=[{'id': 'rated', 'production': {}}])
+
+    def test_rating_override_does_not_exempt_unreviewed_catalog_edits(self):
+        old = {'id': 'rated', 'name': 'Mold', 'speed': 5, 'production': {'status': 'unknown'}}
+        generated = {**old, 'speed': 6}
+        override = {'id': 'rated', 'production': {}}
+        cases = [
+            (generated, []),
+            ({**generated, 'speed': 7}, [override]),
+            ({**generated, 'name': 'Other mold'}, [override]),
+            ({**generated, 'production': {'status': 'active'}}, [override]),
+        ]
+        for changed, overrides in cases:
+            with self.subTest(changed=changed, overrides=overrides):
+                with self.assertRaisesRegex(AssertionError, 'Unexpected catalog change for rated'):
+                    self.assert_reviewed_catalog_changes([old], [changed], [generated], overrides=overrides)
 
     def test_invalid_or_unreviewed_placement_is_rejected(self):
         for placement in [None,{},dict(diameterFraction=0,assetInkFraction=.9),dict(diameterFraction=float('nan'),assetInkFraction=.9),dict(diameterFraction=True,assetInkFraction=.9),dict(diameterFraction=.95,assetInkFraction=.8)]:
