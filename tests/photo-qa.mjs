@@ -48,11 +48,23 @@ test('a small disc in a camera original asks to move closer, once',async()=>{
  assert.deepEqual(photoGate(await disc(),SIZE,{plate:PLATE}).prompts,[]);
 });
 
-test('the prompts are the spike gate’s words, unchanged',async()=>{
- const {gate}=await import('../spikes/stamp-pipeline-v2/qa.mjs');
- const spike=gate({disc:new Uint8ClampedArray(64*64*4),size:64,diameter:1,shortSide:100,plate:PLATE,original:true});
- const words=Object.fromEntries(spike.checks.filter(c=>c.retake).map(c=>[c.check,c.retake]));
- assert.deepEqual(RETAKE,words);
+test('a large disc that leaves the frame empty is told to fill it, not that it is small',async()=>{
+ // 2000 px across is resolution enough; over a 4032 px short side it fills under half the frame.
+ const r=photoGate(await disc(),SIZE,{plate:PLATE,original:{diameter:2000,shortSide:4032}});
+ assert.deepEqual(r.prompts,[RETAKE.fill]);
+ assert.ok(!r.prompts.includes(RETAKE.resolution));
+});
+
+test('the prompts are the feel check’s words (Nov 26)',()=>{
+ assert.deepEqual(RETAKE,{
+  sharpness:'The photo looks blurry. Hold steady and retake it.',
+  clipped:'Part of the disc is washed out. Move out of direct light or turn off the flash, then retake.',
+  crushed:'Part of the disc is too dark to read. Retake it in more even light.',
+  glare:'A reflection is covering the stamp. Tilt the disc slightly until it moves off, then retake.',
+  resolution:'The disc is small in this photo. Move closer so it fills the frame, then retake.',
+  fill:'Fill the frame with the disc: move closer or crop tighter.',
+ });
+ for(const words of Object.values(RETAKE))assert.ok(!/circle guide|tap .*focus/i.test(words),words);
  assert.equal(GATE.DIAMETER,1600);
 });
 

@@ -58,6 +58,7 @@ try{
  assert.equal(await failures(),before+1,'the analysis ran and failed');
  assert.equal(await status(),MADE,'the make went on: the asset made, with no prompt');
  assert.ok(!(await status()).includes(RETAKE.sharpness));
+ assert.ok(await page.locator('#addDiscDialog .photo-retake').evaluate(n=>n.hidden&&!n.children.length),'no prompt list either');
 
  log('one click');
  await keepPhotoLook(page);await page.locator('#saveDisc').click();

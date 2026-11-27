@@ -479,8 +479,9 @@ unnecessary. Without it, the blotch returns (§9: 14k–340k stray px).
 
 ### The retake prompts, in the product
 
-The spike's capture gate (`qa.mjs`) runs on the device in `public/disc-photo-qa.mjs`. Its prompts are word for word
-(`tests/photo-qa.mjs` checks them against the spike's). Two things changed, both measured:
+The spike's capture gate (`qa.mjs`) runs on the device in `public/disc-photo-qa.mjs`. Its prompts now carry the feel
+check's words (Nov 26, see "Feel-check fixes" below; `tests/photo-qa.mjs` checks them). Two things changed in how it
+reads, both measured:
 
 - **Where it reads.** It reads the same 2048 crop the make reads (`photoStampAsset`), before extraction. For a camera
   original it also reads the disc's diameter in the photo's own pixels (resolution and fill). A stored texture is never
@@ -504,17 +505,29 @@ The spike's capture gate (`qa.mjs`) runs on the device in `public/disc-photo-qa.
   copies fail clipped and glare, as they should. The ×0.15 darkening crushes only the darkest plastics. Those read 0.018–0.086 crushed
   against the 0.05 threshold, so the darker discs among them are prompted.
 
-**A prompt never stops a make.** The asset is made and saved as before. The prompts, worst first, follow the make's own
-status line, and an asset that could not be made carries them too ("No stamp showed up …" then how to retake). Resolution
-and fill both say "move closer", so they give one prompt, and resolution counts only when the disc also does not fill
-the photo: a disc filling a low-resolution photo (the stall suite's 1600 px original) cannot be helped by a step closer. The gate adds 78–106 ms per make in Node on this Mac (four photos) and sends nothing
+**A prompt never stops a make.** The asset is made and saved as before. The prompts, worst first, sit under the make's own
+status line, and an asset that could not be made carries them too ("No stamp showed up …" then how to retake). A disc
+too few pixels across gets the small prompt alone; a disc with pixels enough that still leaves the frame empty gets the
+fill prompt. Resolution counts only when the disc also does not fill the photo: a disc filling a low-resolution photo (the stall suite's 1600 px original) cannot be helped by a step closer. The gate adds 78–106 ms per make in Node on this Mac (four photos) and sends nothing
 anywhere. The analysis itself is best-effort: if it fails (a phone refusing the glare check's 16 MiB scratch array,
 say), the make goes on into extraction with no prompts (`tests/photo-retake-advisory-browser.mjs` injects that failure
 on all three Make paths).
 
+**Feel-check fixes (Nov 26, Product & UX at 1280 × 800 and 390 × 844).** The prompts ran on after the make's words in the
+same line and style, and read as fine print; on a laptop they sat below the sheet's fold.
+- They are their own list (`ul.photo-retake`, role `status`) right under the make's line: one prompt per line, a warning
+  triangle, amber text mixed 60% toward the theme's text colour (about 5.8–8.1:1 on the panels of the default, Paper,
+  Dusk and dark themes, by the WCAG formula). They belong to the words they came with: any later status clears them.
+- When they show, the sheet scrolls them, and the Retake photo button beside them (it is Replace photo), into view.
+- Wording: blurry, washed out, too dark, reflection, small, fill (`RETAKE` in `disc-photo-qa.mjs`). None mentions the
+  circle guide or tapping to focus, neither of which is on screen then. `RETAKE.fill` was dead code (fill failures said
+  "small"); it is now its own line.
+- Switching a new photo's Look to Photo replaces "Game asset made" with "Showing the photo."; the prompts clear with it.
+
 **Screenshots** (synthetic photos only, made at run time by `tests/photo-retake-browser.mjs`). They are in
-`docs/assets/stamp-pipeline-v2/retake-*`, in the default theme, Paper and Dusk, on desktop Chromium and phone WebKit:
-a new soft photo, Game asset in one click from a saved soft photo, and a small disc read as an original.
+`docs/assets/stamp-pipeline-v2/retake-*`, in the default theme, Paper and Dusk, on desktop Chromium (1280 × 800) and
+phone WebKit: a new soft photo, Game asset in one click from a saved soft photo, a small disc and an unfilled one read as
+originals. The `-viewport` shots are the whole window the moment a prompt shows.
 
 **Berg sheets** (Freddy's photos, so in ignored `work/stamp-pipeline-v2/sheets/` only, never committed or sent):
 `berg-original-sheet.jpg` and `berg-stored-sheet.jpg` show today's production asset beside v2's on the same photo.

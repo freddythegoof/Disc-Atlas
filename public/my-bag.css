@@ -604,6 +604,13 @@ body[data-view="bag"] main {display:none!important}
 .bag-photo-thumb{flex:none;width:56px;height:56px;border-radius:50%;overflow:hidden;background:var(--surface);box-shadow:0 0 0 1px var(--line)}
 .bag-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .bag-photo-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.bag-photo-status:empty{display:none}
+/* The capture gate's retake prompts (docs/stamp-pipeline-v2.md §11): their own lines under the make's words, a warning
+   mark and amber text. The amber is mixed toward the theme's text so it holds contrast on light and dark panels alike. */
+.photo-retake{--retake:color-mix(in srgb,#c27a00 60%,var(--text));display:grid;gap:6px;margin:6px 0 0;padding:0;list-style:none;color:var(--retake);font-size:13px;font-weight:600;line-height:1.45}
+.photo-retake[hidden]{display:none}.photo-retake li{display:flex;gap:7px;align-items:flex-start}
+.photo-retake-mark{flex:none;width:16px;height:16px;margin-top:1px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.photo-aligner .photo-retake{justify-self:center;text-align:left;font-size:12px}
+.bag-photo-retake-photo{justify-self:start;margin-top:8px}.bag-photo-retake-photo[hidden]{display:none}
 /* Photo stamps (docs/photo-stamp-assets.md): the saved photo's look, Photo or Game asset, as a segmented pair in the
    sheet's chip family, and the action that reads a game asset from the original. */
 .bag-photo-look{display:grid;gap:8px;margin-top:14px}.bag-photo-look[hidden]{display:none}

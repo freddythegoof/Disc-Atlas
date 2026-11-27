@@ -1,6 +1,7 @@
 // The capture gate (docs/stamp-pipeline-v2.md §11): a photo's retake prompts, read from the same 2048 crop a game asset
 // is made from. Pure JS, on the device: no photo leaves it. Ported from the spike's gate (spikes/stamp-pipeline-v2/qa.mjs),
-// its prompts word for word; its thresholds re-fitted for this crop (spikes/stamp-pipeline-v2/qa-calibrate.mjs).
+// its thresholds re-fitted for this crop (spikes/stamp-pipeline-v2/qa-calibrate.mjs). The prompts are the feel check's
+// words (Nov 26): nothing about a circle guide or tapping to focus, neither of which is on screen when they show.
 // A prompt never stops a make: the asset is made as before, and the prompts say how a retake would read better.
 //   sharpness: how wide the print's edges are: across each of the strongest edges, the width of the gradient at half its
 //              peak, in px at 1024 across the disc; the median over them. Blur widens every edge whatever the print's
@@ -15,12 +16,12 @@ import {photoPoint} from './disc-photo.mjs';
 
 export const GATE={EDGE:2.45,CLIPPED:.02,CRUSHED:.05,GLARE:.004,DIAMETER:1600,FILL:.6};
 export const RETAKE={
- sharpness:'The photo is soft. Hold still, tap the disc to focus, and take it again.',
- clipped:'Part of the disc is washed out. Move out of direct light or turn the flash off.',
- crushed:'Part of the disc is too dark to read. Find more even light.',
- glare:'A bright reflection sits on the disc. Tilt the disc or yourself a little until it moves off the stamp.',
- resolution:'The disc is small in this photo. Move closer so it fills the circle guide.',
- fill:'Fill the circle guide with the disc: move closer.',
+ sharpness:'The photo looks blurry. Hold steady and retake it.',
+ clipped:'Part of the disc is washed out. Move out of direct light or turn off the flash, then retake.',
+ crushed:'Part of the disc is too dark to read. Retake it in more even light.',
+ glare:'A reflection is covering the stamp. Tilt the disc slightly until it moves off, then retake.',
+ resolution:'The disc is small in this photo. Move closer so it fills the frame, then retake.',
+ fill:'Fill the frame with the disc: move closer or crop tighter.',
 };
 const luma=(r,g,b)=>.2126*r+.7152*g+.0722*b;
 // Luma at 1024 across the disc, box-averaged from the crop (`size` a multiple of 1024, or point-sampled otherwise).
@@ -92,7 +93,9 @@ export function photoGate(disc,size,{plate=.8,original=null}={}){
  }
  for(const c of checks)c.pass=c.miss===0;
  const failed=checks.filter(c=>!c.pass).sort((a,b)=>b.miss-a.miss);
- // Resolution and fill say the same thing (move closer): one prompt for both.
- const prompts=[...new Set(failed.map(c=>c.check==='fill'?'resolution':c.check))].map(k=>RETAKE[k]);
+ // A disc too few pixels across is small whatever its framing: that prompt alone. A disc with pixels enough that still
+ // leaves much of the frame empty (or off-centre) is told to fill it.
+ const small=failed.some(c=>c.check==='resolution');
+ const prompts=failed.filter(c=>!(small&&c.check==='fill')).map(c=>RETAKE[c.check]);
  return {pass:!failed.length,checks,prompts};
 }
