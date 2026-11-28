@@ -67,7 +67,7 @@ try {
  // Seed a realistic bag through the API: Grip BX3 (18 main + 4 putter + 1 extra).
  const seeded=await page.evaluate(async()=>{
   const headers={'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken},rows=[];
-  const bag=await fetch('/api/bag',{method:'PUT',headers,body:JSON.stringify({bag_model:'Grip BX3',bag_color:'#343c49'})});if(!bag.ok)throw Error(await bag.text());
+  const bag=await fetch('/api/bag',{method:'PUT',headers,body:JSON.stringify({bag_model:'Grip BX3',bag_color:'#436752'})});if(!bag.ok)throw Error(await bag.text());
   for(const disc of [
    {mold_id:'3d60892b6812',plastic:'Champion',wear:9,weight_g:172,color:'#70b7cd',pocket:'goto',notes:'Tee shot on 1'},
    {mold_id:'3d60892b6812',plastic:'Star',wear:4,weight_g:170,color:'#ed7868',stability_bias:'less_stable'},
@@ -125,15 +125,23 @@ try {
  await page.locator(`[data-bag-move="${stored.id}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');await inSync('stored disc bagged');
  await page.locator('#bagListPicker [data-bag-list="bag"]').click();
  await page.locator(`[data-bag-move="${stored.id}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');await inSync('disc stored');
- // Bag color and capacities via Bag settings.
- await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('__custom');await page.locator('#customBagName').fill('Tournament pack');
- await page.locator('#bagMainCapacity').fill('14');await page.locator('#bagPutterCapacity').fill('3');await page.locator('[data-bag-color="#436752"]').click();
+ // The builder updates the 3D fabric and resizes the main compartment.
+ assert.equal(await viewer(v=>v.bagColor),'#436752','Legacy fabric stays active until the first builder save');
+ await page.getByRole('button',{name:'Customize',exact:true}).click();
+ await page.locator('#customBagName').fill('Tournament pack');
+ await page.locator('#bagCapacity').fill('17');
+ const builder=page.locator('#bagModelDialog');
+ await builder.getByLabel('Body',{exact:true}).fill('#286454');
+ await builder.getByLabel('Secondary panel',{exact:true}).fill('#d8a958');
+ await builder.getByLabel('Trim & details',{exact:true}).fill('#e6e6dc');
  await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- assert.equal(await viewer(v=>v.bagColor),'#436752');assert.equal(await page.locator('#bagScene').getAttribute('data-bag-color'),'#436752');
- const resized=await viewer(v=>v.getBagLayoutState());assert.equal(resized.filter(d=>d.pocket==='main').length,14);assert.equal(resized.filter(d=>d.pocket==='putter').length,3);
+ assert.equal(await viewer(v=>v.bagColor),'#286454');assert.equal(await page.locator('#bagScene').getAttribute('data-bag-color'),'#286454');
+ const resized=await viewer(v=>v.getBagLayoutState());assert.equal(resized.filter(d=>d.pocket==='main').length,13);assert.equal(resized.filter(d=>d.pocket==='putter').length,4);
+ const {main_capacity,putter_capacity,extra_capacity}=(await data()).bag;
+ assert.deepEqual([main_capacity,putter_capacity,extra_capacity],[12,4,1]);
  await inSync('capacity change');
  assert.deepEqual(reloads,[],'No navigation or reload during live updates');
- check('Live sync without reloads: inline pocket moves, two go-to copies, go-to clear/assign, disc color, Storage round trip, bag color and capacities');
+ check('Live sync without reloads: pockets, go-to, disc color, Storage round trip, builder fabric and resized capacity with preserved pockets');
 
  // 4. Open/close, keyboard and pointer behavior.
  const mainDisc=page.locator(`[data-physical-disc="${driver.id}"]`),topDisc=page.locator(`[data-physical-disc="${goto.id}"]`);
@@ -213,7 +221,6 @@ try {
  check(`Phone profile (4× CPU, DPR 2.625): idle p95 ${perf.phone.idle.p95} ms, close+open p95 ${perf.phone.closeOpen.p95} ms, lift sweep p95 ${perf.phone.liftSweep.p95} ms; longest task while loading ${perf.phone.maxLoadTask} ms`);
 
  // 7. Screenshots: 3D bag with discs, go-to assigned, open/closed, lifted; all themes, desktop and 360px.
- await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('Grip BX3');await page.locator('[data-bag-color="#343c49"]').click();await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
  const scene=page.locator('#bagScene');
  for(const theme of themes)for(const width of widths){
   await page.setViewportSize({width,height:width===360?800:1000});await setTheme(theme);await page.reload();await phase('open');
@@ -230,7 +237,7 @@ try {
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
  }
  await page.setViewportSize({width:1440,height:1000});await setTheme('light');await page.reload();await phase('open');
- await page.locator('#editBagModel').click();await page.locator('[data-bag-color="#436752"]').click();await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ assert.equal(await viewer(v=>v.bagColor),'#286454','Builder fabric reloads with the bag');
  await scene.scrollIntoViewIfNeeded();await shot('custom-color',1440,'light',{locator:scene});
  await page.locator('#bagScene').getByRole('button',{name:'Zoom in'}).click();await page.waitForTimeout(350);await scene.scrollIntoViewIfNeeded();await shot('zoomed',1440,'light',{locator:scene});
  await page.locator('#bagScene').getByRole('button',{name:/^Reset zoom/}).click();await page.waitForTimeout(350);

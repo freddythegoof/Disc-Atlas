@@ -1,4 +1,4 @@
-import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,validateBagSettings,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket,BAG_COLORS,DEFAULT_BAG_COLOR,rackStyle,stampChoiceOf,renderFinish,FINISH_OPACITY,seeThroughPlastic} from './bag-values.js';
+import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,plasticColor,bagComparator,bagPocketCapacities,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket,BAG_BUILDER_CAPACITY,BAG_COLORWAY,DEFAULT_BAG_SETTINGS,rackStyle,stampChoiceOf,renderFinish,FINISH_OPACITY,seeThroughPlastic} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
@@ -10,9 +10,48 @@ import {rackOrder} from './collection3d/rack-layout.mjs';
 import {AllDiscsGallery} from './all-discs-gallery.js';
 
 const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let account = window.AtlasAccount?.current || null, settings = {bag_model:'Custom bag',capacity:20}, items = [], active = false;
-let plastics, models, editing = null, removing = null, losing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
+let account = window.AtlasAccount?.current || null, settings = DEFAULT_BAG_SETTINGS, items = [], active = false;
+let plastics, editing = null, removing = null, losing = null, generation = 0, loading = false, loadError = '', opener = null, readSequence = 0;
+const bagColorRoles={bag_body_color:'--bag-body',bag_secondary_color:'--bag-secondary',bag_trim_color:'--bag-trim'};
+const bagColorInputs=$('.bag-builder-colors').querySelectorAll('input[type="color"]');
+const slotInput=$('#bagCapacity');
+const bagNameInput=$('#customBagName');
+const slotWarning=$('#bagBuilderSlotWarning');
+slotInput.min=BAG_BUILDER_CAPACITY.min;
+function updateBagSlots(){
+ const capacity=slotInput.valueAsNumber;
+ slotInput.setCustomValidity(capacity>BAG_BUILDER_CAPACITY.max && capacity!==settings.capacity
+  ?`Choose up to ${BAG_BUILDER_CAPACITY.max} slots, or keep your saved capacity.`:'');
+ const notes=[];
+ if(slotInput.validity.valid){
+  const count=items.filter(item=>item.in_bag!==false).length;
+  if(capacity<count)notes.push(`Your bag already carries ${count} discs. They’ll stay in the bag when you save.`);
+  const pockets=bagPocketCapacities(capacity,settings);
+  if(pockets.putter_capacity!==settings.putter_capacity || pockets.extra_capacity!==settings.extra_capacity){
+   notes.push(`This size leaves ${pockets.putter_capacity} putter and ${pockets.extra_capacity} extra slots.`);
+  }
+ }
+ slotWarning.textContent=notes.join(' ');
+}
+slotInput.addEventListener('input',updateBagSlots);
+function validateBagName(){
+ const name=bagNameInput.value.trim();
+ bagNameInput.setCustomValidity(name?'':'Enter a bag name.');
+ return name;
+}
+bagNameInput.addEventListener('input',validateBagName);
+function hasBagConfiguration(){
+ return !!settings.bag_body_color || ['bag_model','capacity','main_capacity','putter_capacity','extra_capacity','bag_color']
+  .some(field=>settings[field]!==DEFAULT_BAG_SETTINGS[field]);
+}
+function paintBagIllustration(illustration,colors){
+ for(const [field,property] of Object.entries(bagColorRoles)){
+  illustration.style.setProperty(property,colors[field] ?? BAG_COLORWAY[field]);
+ }
+}
+const selectedBagColors=()=>Object.fromEntries([...bagColorInputs].map(input=>[input.name,input.value]));
 let discEditSequence=0;
+let savingBag=false;
 let colorCustomized=false,rimCustomized=false,ordering=false,dragging=null,mapOpen=false,myMapKey='';
 // The section above (Bag, My Map, Storage, Gallery or Lost) and the list below (Bag, Storage or Lost).
 let bagView='bag',listView='bag',removeOrigin=null;
@@ -101,7 +140,10 @@ $('#bagStampField').addEventListener('change',()=>photoEditor.restyle());
 $('#addDiscDialog').addEventListener('close',()=>{discEditSequence++;photoEditor.reset(null);colorBeforePhoto=photoColor=null;colorHint().textContent='Your disc, your color.';});
 const pendingPockets=new Map();
 const pendingFound=new Set();
-const catalogs = Promise.all(['/bag-plastics.json','/bag-models.json'].map(async path => {const r = await fetch(path);if (!r.ok) throw Error('Bag choices could not load. Please try again.');return r.json();})).then(([p,m])=>{plastics=p;models=m;});
+const catalogs=fetch('/bag-plastics.json').then(async response=>{
+ if(!response.ok)throw Error('Bag choices could not load. Please try again.');
+ plastics=await response.json();
+});
 // Fetch failures are surfaced when opening a sheet, without an unhandled rejection.
 catalogs.catch(()=>{});
 const mold = id => discs.find(d=>d.id===id);
@@ -194,7 +236,8 @@ function sync(data) {
  account = data;
  if(changed) {
   window.dispatchEvent(new Event('atlas-photo-reset'));photoEditor.reset(null);
-  generation++;mapOpen=false;bagView='bag';listView='bag';scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings={bag_model:'Custom bag',capacity:20};loadError='';loading=false;editing=null;removing=null;losing=null;ordering=false;dragging=null;pendingPockets.clear();pendingFound.clear();
+  generation++;mapOpen=false;bagView='bag';listView='bag';scene.reset();if(detailPanel.parentNode!==detailHome){closeDetail(false);undockDetail();}items=[];settings=DEFAULT_BAG_SETTINGS;loadError='';loading=false;editing=null;removing=null;losing=null;ordering=false;dragging=null;pendingPockets.clear();pendingFound.clear();
+  savingBag=false;
   window.AtlasDropdown.close(false);
   for(const id of ['addDiscDialog','bagModelDialog','removeDiscDialog','lostDiscDialog']) if($('#'+id).open)$('#'+id).close();
   status('');
@@ -219,7 +262,10 @@ function render() {
  // Until the account check answers, the teaser holds the place; signed out, the demo bag shows.
  $('#myBagTeaser').hidden=shown;$('#myBagDemo').hidden=!demo;renderHeader(demo);
  $('#myBagTeaserStatus').textContent='Checking your account…';
- $('#myBagTools').hidden=!shown || bagView==='storage' || bagView==='gallery' || bagView==='lost';$('#editBagModel').hidden=demo;$('#myBagContents').hidden=!shown || loading || !!loadError;
+ $('#myBagTools').hidden=!shown || bagView==='storage' || bagView==='gallery' || bagView==='lost';
+ $('#editBagModel').hidden=demo || bagView!=='bag';
+ $('#bagIllustration').toggleAttribute('hidden',bagView!=='bag');
+ $('#myBagContents').hidden=!shown || loading || !!loadError;
  $('#myBagLoadState').hidden=!signedIn || (!loading && !loadError);
  $('#myBagLoadMessage').textContent=loading?'Loading your bag…':loadError;$('#retryMyBag').hidden=!loadError;
  $('#addBagDisc').hidden=!signedIn;
@@ -245,10 +291,12 @@ function render() {
  const breakdown=`${settings.main_capacity ?? settings.capacity} main + ${settings.putter_capacity ?? 0} putter${settings.extra_capacity?' + '+settings.extra_capacity+' extra':''}`;
  $('#bagSlotMeter').title=breakdown;$('#bagPocketBreakdown').textContent=breakdown;
  $('#bagModelName').textContent=settings.bag_model;
+ $('#editBagModel').textContent=hasBagConfiguration()?'Customize':'Create bag';
+ paintBagIllustration($('#bagIllustration'),settings);
  $('#bagSlotProgress').max=settings.capacity;$('#bagSlotProgress').value=Math.min(count,settings.capacity);
  $('#bagCapacityNotice').hidden=count<settings.capacity;
  $('#bagCapacityNotice').textContent=count===settings.capacity?'Your bag is full. You can still add a disc.':'A little over capacity. Move a spare to Storage, or keep carrying it.';
- $('#editBagModel').disabled=loading || !!loadError || ordering;
+ $('#editBagModel').disabled=loading || !!loadError || ordering || savingBag;
  if(!shown || loading || loadError){$('#myBagContents').replaceChildren();return;}
  scene.update(items,settings);if(active && bagView==='bag')void scene.reveal();refreshBagDetail();
  const groups=[['distance','Distance drivers'],['fairway','Fairway drivers'],['mid','Midranges'],['putter','Putters'],['unknown','Unclassified discs']];
@@ -472,42 +520,25 @@ const endDrag=event=>{
  if(event.type==='pointerup' && drag.moved && drag.target)void reorderDisc(drag.id,drag.target,`[data-bag-drag="${drag.id}"]`);
 };
 for(const event of ['pointerup','pointercancel','lostpointercapture'])$('#myBagContents').addEventListener(event,endDrag);
-function pocketTotal(){const choice=models.models.find(m=>m.name===$('#bagModel').value),extra=choice?.presetSplit?choice.extra_capacity||0:0;const total=Number($('#bagMainCapacity').value)+Number($('#bagPutterCapacity').value)+extra;$('#bagCapacity').value=total;$('#bagCapacityLabel').textContent=total+' discs'+(extra?' · includes '+extra+' extra slots':'');}
-function modelFields() {
- const choice=models.models.find(m=>m.name===$('#bagModel').value),custom=$('#bagModel').value==='__custom';
- $('#customBagField').hidden=!custom;$('#customBagName').required=custom;
- const fixed=!!choice?.presetSplit;
- $('#bagMainCapacity').readOnly=fixed;$('#bagPutterCapacity').readOnly=fixed;
- if(fixed){$('#bagMainCapacity').value=choice.main_capacity;$('#bagPutterCapacity').value=choice.putter_capacity;}
- else if(choice?.capacity && choice.name!==settings.bag_model){$('#bagMainCapacity').value=choice.capacity;$('#bagPutterCapacity').value=0;}
- $('#bagCapacityHint').textContent=fixed?choice.note:choice?.capacity?`Advertised total: ${choice.capacity} discs. Enter the main and putter slots for your bag.`:'Enter the main and putter slots for your bag.';pocketTotal();
-}
-$('#editBagModel').addEventListener('click',async()=>{
- const epoch=generation;
- try{await catalogs;if(epoch!==generation || !account?.user)return;
-  $('#bagModel').innerHTML=models.models.map(m=>`<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('')+'<option value="__custom">Custom bag…</option>';
-  $('#bagModel').value=models.models.some(m=>m.name===settings.bag_model)?settings.bag_model:'__custom';$('#customBagName').value=settings.bag_model;
-  $('#bagMainCapacity').value=settings.main_capacity ?? settings.capacity;$('#bagPutterCapacity').value=settings.putter_capacity ?? 0;renderBagPalette(settings.bag_color || DEFAULT_BAG_COLOR);$('#bagModelStatus').textContent='';$('#saveBagModel').disabled=false;modelFields();show($('#bagModelDialog'));
- }catch(error){status(error.message);}
+$('#editBagModel').addEventListener('click',()=>{
+ if(!account?.user || loading || loadError || savingBag)return;
+ const customize=hasBagConfiguration();
+ $('#bagModelHeading').textContent=customize?'Customize your bag':'Create your bag';
+ $('#saveBagModel').textContent=customize?'Save bag':'Create bag';
+ bagNameInput.value=settings.bag_model;
+ validateBagName();
+ slotInput.max=Math.max(settings.capacity,BAG_BUILDER_CAPACITY.max);
+ slotInput.setCustomValidity('');
+ slotInput.value=settings.capacity;
+ updateBagSlots();
+ for(const input of bagColorInputs)input.value=settings[input.name] ?? BAG_COLORWAY[input.name];
+ paintBagIllustration($('#bagIllustrationPreview'),selectedBagColors());
+ $('#bagModelStatus').textContent='';
+ $('#saveBagModel').disabled=false;
+ show($('#bagModelDialog'));
 });
-$('#bagModel').addEventListener('change',modelFields);
-// Bag color: a palette of fabrics that always look right on the 3D bag. A color saved before the
-// palette shows first, as Your current color, until another is picked.
-function renderBagPalette(current){
- const saved=String(current).toLowerCase(),known=BAG_COLORS.some(([hex])=>hex===saved);
- const choices=[...(known?[]:[[saved,'Your current color']]),...BAG_COLORS];
- $('[data-bag-palette]').innerHTML=choices.map(([hex,label])=>`<button type="button" role="radio" aria-checked="false" tabindex="-1" data-bag-color="${esc(hex)}" aria-label="${esc(label)}" title="${esc(label)}" style="--swatch:${esc(hex)}"></button>`).join('');
- pickBagColor(saved);
-}
-function pickBagColor(hex){
- $('#bagFabricColor').value=hex;
- for(const b of $('[data-bag-palette]').children){const on=b.dataset.bagColor===hex;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;if(on)$('#bagFabricName').textContent=b.getAttribute('aria-label');}
-}
-$('[data-bag-palette]').addEventListener('click',event=>{const b=event.target.closest('[data-bag-color]');if(b)pickBagColor(b.dataset.bagColor);});
-$('[data-bag-palette]').addEventListener('keydown',event=>{
- const step={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[event.key];if(!step)return;event.preventDefault();
- const options=[...$('[data-bag-palette]').children],next=options[(options.indexOf(document.activeElement)+step+options.length)%options.length];
- pickBagColor(next.dataset.bagColor);next.focus();
+$('.bag-builder-colors').addEventListener('input',()=>{
+ paintBagIllustration($('#bagIllustrationPreview'),selectedBagColors());
 });
 // Edit rack: the finish saves straight away; the racks repaint first and roll back if the save fails.
 async function chooseRackStyle(key){
@@ -516,12 +547,37 @@ async function chooseRackStyle(key){
  try{const data=await api('','PATCH',{rack_style:next});if(epoch!==generation)return;settings=data.bag;render();status(`Racks now ${rackStyle(next).label.toLowerCase()}.`);}
  catch(error){if(error.name==='AbortError' || epoch!==generation)return;settings={...settings,rack_style:before};render();status(error.message);}
 }
-$('#bagMainCapacity').addEventListener('input',pocketTotal);$('#bagPutterCapacity').addEventListener('input',pocketTotal);
 $('#bagModelForm').addEventListener('submit',async event=>{
- event.preventDefault();const epoch=generation,button=$('#saveBagModel');button.disabled=true;$('#bagModelStatus').textContent='Saving…';
- try{const value=validateBagSettings({bag_model:$('#bagModel').value==='__custom'?$('#customBagName').value:$('#bagModel').value,capacity:Number($('#bagCapacity').value),main_capacity:Number($('#bagMainCapacity').value),putter_capacity:Number($('#bagPutterCapacity').value),bag_color:$('#bagFabricColor').value,sort_mode:settings.sort_mode || 'speed',rack_style:settings.rack_style},models,settings);const data=await api('','PUT',value);settings=data.bag;render();$('#bagModelDialog').close();status('Bag updated.');}
- catch(error){if(error.name!=='AbortError')$('#bagModelStatus').textContent=error.message;}
- finally{if(epoch===generation)button.disabled=false;}
+ event.preventDefault();
+ const bag_model=validateBagName();
+ if(!bagNameInput.reportValidity())return;
+ const epoch=generation,button=$('#saveBagModel');
+ if(savingBag)return;
+ savingBag=true;
+ button.disabled=true;
+ $('#editBagModel').disabled=true;
+ $('#bagModelStatus').textContent='Saving…';
+ try{
+  const data=await api('','PUT',{
+   bag_model,capacity:slotInput.valueAsNumber,...selectedBagColors(),
+  });
+  settings=data.bag;
+  savingBag=false;
+  render();
+  $('#bagModelDialog').close();
+  status('Bag saved.');
+ }catch(error){
+  if(error.name!=='AbortError'){
+   if($('#bagModelDialog').open)$('#bagModelStatus').textContent=error.message;
+   else status(error.message);
+  }
+ }finally{
+  if(epoch===generation){
+   savingBag=false;
+   button.disabled=false;
+   $('#editBagModel').disabled=loading || !!loadError || ordering;
+  }
+ }
 });
 $('#myBagContents').addEventListener('click',event=>{
  if(ordering)return;

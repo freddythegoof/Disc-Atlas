@@ -28,6 +28,13 @@ try {
  });
  const theme=async value=>{await page.getByRole('button',{name:'Site menu',exact:true}).click();await page.getByRole('menuitemradio',{name:value[0].toUpperCase()+value.slice(1),exact:true}).click();await page.keyboard.press('Escape');};
  const capture=async name=>{await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(150);await page.screenshot({path:`${dir}/${name}.png`,fullPage:!/^sheet-|^add-/.test(name)});};
+ const builder=page.locator('#bagModelDialog');
+ const builderCapture=async(name)=>{
+  await page.evaluate(()=>document.fonts.ready);
+  await page.screenshot({path:`${dir}/bag-builder-${name}.png`,animations:'disabled'});
+ };
+ const paint=async(label,color)=>builder.getByLabel(label,{exact:true}).fill(color);
+ const illustrationColors=selector=>page.locator(selector).evaluate(svg=>['--bag-body','--bag-secondary','--bag-trim'].map(role=>svg.style.getPropertyValue(role)));
  await page.goto(base+'/?bag=1');await page.waitForFunction(()=>window.AtlasAccount?.current);
  await page.getByRole('heading',{name:'My Bag',exact:true}).waitFor();
  // Signed out shows the read-only demo bag (tests/bag-demo-browser.mjs covers it in depth).
@@ -41,6 +48,9 @@ try {
  await page.goto(redirect.headers().location);await page.getByRole('link',{name:'Continue as Atlas Player'}).click();
  await page.waitForFunction(()=>window.AtlasAccount?.current?.user);
  await page.locator('#myBagEmpty').waitFor();assert.equal(new URL(page.url()).searchParams.get('bag'),'1');
+ assert.equal(await page.locator('#bagSlotMeter').innerText(),'0 / 20');
+ assert.equal(await page.locator('#editBagModel').innerText(),'Create bag');
+ assert.deepEqual(await illustrationColors('#bagIllustration'),['#343c49','#637083','#a3a9b1']);
  await page.locator('#emptyBagDirectory').click();await page.locator('#rows .directory-add').first().click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();
  await page.locator('#addDiscDialog').waitFor();
  assert.equal(await page.locator('#bagPlastic').inputValue(),'Star');assert.equal(await page.locator('#bagWear').inputValue(),'10');assert.equal(await page.locator('#bagWeight').inputValue(),'175');
@@ -49,8 +59,32 @@ try {
  await page.locator('#compare').click();await page.locator('#closeDetail').click();await page.locator('#detail').waitFor({state:'hidden'});await page.locator('#compareBar [data-add-menu]').click();await page.locator('#addDestinationMenu').getByRole('menuitem',{name:'Bag',exact:true}).click();await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  await page.locator('#bagTab').click();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===3);
  assert.match(await page.locator('#bagSlotMeter').innerText(),/3 \/ 20/);
- await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('__custom');await page.locator('#customBagName').fill('Weekend sling');await page.locator('#bagMainCapacity').fill('2');await page.locator('#bagPutterCapacity').fill('0');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- assert.match(await page.locator('#bagSlotMeter').innerText(),/3 \/ 2/);assert.ok(await page.locator('#bagCapacityNotice').isVisible());
+ await theme('light');await page.setViewportSize({width:1440,height:1000});
+ await page.getByRole('button',{name:'Create bag',exact:true}).click();await builder.waitFor();
+ assert.equal(await builder.getByRole('combobox').count(),0,'Bag creation has no presets');
+ assert.equal(await builder.getByLabel('Disc slots').inputValue(),'20');
+ const bagName=builder.getByLabel('Bag name');
+ await bagName.fill('   ');
+ assert.equal(await bagName.evaluate(input=>input.validity.customError),true,'Whitespace-only names are invalid in the browser');
+ await bagName.fill('  Weekend sling  ');
+ assert.equal(await bagName.evaluate(input=>input.validity.valid),true);
+ await builder.getByLabel('Disc slots').fill('24');
+ await paint('Body','#286454');await paint('Secondary panel','#d8a958');await paint('Trim & details','#e6e6dc');
+ const colors=['#286454','#d8a958','#e6e6dc'];
+ assert.deepEqual(await illustrationColors('#bagIllustrationPreview'),colors);
+ await builderCapture('create-desktop');
+ await page.setViewportSize({width:360,height:800});await builderCapture('create-phone');
+ const bounds=await builder.boundingBox();
+ assert.ok(bounds.x>=0 && bounds.x+bounds.width<=360,'Builder fits the phone viewport');
+ await page.setViewportSize({width:1440,height:1000});
+ await builder.getByLabel('Disc slots').fill('2');
+ const warning=builder.locator('#bagBuilderSlotWarning');
+ assert.match(await warning.innerText(),/already carries 3 discs/);
+ assert.match(await warning.innerText(),/1 putter and 0 extra slots/);
+ await builder.getByRole('button',{name:'Create bag',exact:true}).click();await builder.waitFor({state:'hidden'});
+ assert.equal(await page.locator('#bagSlotMeter').innerText(),'3 / 2');
+ assert.equal(await page.locator('#bagSlotProgress').getAttribute('max'),'2');
+ assert.ok(await page.locator('#bagCapacityNotice').isVisible());
  await page.locator('[data-bag-edit]').first().click();await page.locator('#bagPlastic').selectOption('__other');await page.locator('#bagPlasticOther').fill('My blend');await page.locator('#bagWear').fill('1');await page.locator('#bagWeight').fill('150');await page.locator('#bagNotes').fill('Water disc');await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  assert.match(await page.locator('#myBagContents').innerText(),/My blend.*Beat/s);
  await page.locator('[data-bag-remove]').first().click();await page.locator('#removeDiscDialog').waitFor();await page.keyboard.press('Escape');assert.equal(await page.locator('[data-bag-edit]').count(),3);
@@ -60,7 +94,30 @@ try {
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('[data-bag-edit]').length===5);
  assert.equal(await page.locator('#bagLineup .my-bag-disc').count(),5);
  assert.deepEqual(await page.locator('#bagLineup .my-bag-disc-name').allTextContents(),['Destroyer','Destroyer','Crave','Buzzz','Envy']);
- await page.locator('#editBagModel').click();await page.locator('#bagModel').selectOption('Dynamic Discs Commander');assert.equal(await page.locator('#bagCapacity').inputValue(),'24');await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ assert.equal(await page.locator('#bagModelName').innerText(),'Weekend sling');
+ assert.equal(await page.locator('#bagSlotMeter').innerText(),'5 / 2');
+ assert.deepEqual(await illustrationColors('#bagIllustration'),colors);
+ await page.getByRole('button',{name:'Customize',exact:true}).click();
+ assert.equal(await builder.getByLabel('Bag name').inputValue(),'Weekend sling');
+ assert.equal(await builder.getByLabel('Disc slots').inputValue(),'2');
+ assert.deepEqual(await illustrationColors('#bagIllustrationPreview'),colors);
+ await builder.getByLabel('Disc slots').fill('24');
+ await builder.getByRole('button',{name:'Save bag',exact:true}).click();await builder.waitFor({state:'hidden'});
+ assert.equal(await page.locator('#bagSlotMeter').innerText(),'5 / 24');
+ assert.equal(await page.locator('#bagPocketBreakdown').innerText(),'23 main + 1 putter');
+ assert.ok(await page.locator('#bagCapacityNotice').isHidden());
+ await page.reload();
+ await page.waitForFunction(()=>{
+  const {engine,phase}=document.querySelector('#bagScene').dataset;
+  return document.querySelector('#bagSlotMeter').textContent==='5 / 24' && (phase==='open' || engine==='error');
+ });
+ for(const [size,width,height] of [['desktop',1440,1000],['phone',360,800]]){
+  await page.setViewportSize({width,height});await page.evaluate(()=>window.scrollTo(0,0));
+  await builderCapture(`bag-${size}`);
+ }
+ await page.locator('#myBagViews [data-bag-view="map"]').click();
+ assert.ok(await page.locator('#bagIllustration').isHidden(),'The bag illustration stays off My Map');
+ await page.locator('#myBagViews [data-bag-view="bag"]').click();
  for (const name of ['light','midnight','charcoal']) for (const width of [1440,360]) {
   await page.setViewportSize({width,height:width===360?800:1000});await theme(name);await capture(`bag-${width}-${name}`);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -90,6 +147,6 @@ try {
  await page.reload();await beganSignedOut;await page.evaluate(()=>window.AtlasAccount.signOut());await page.locator('#myBagDemo').waitFor();assert.ok(await page.evaluate(()=>{const ids=[...document.querySelectorAll('#myBagContents [data-disc-id]')].map(n=>n.dataset.discId);return ids.length===20&&ids.every(id=>id.startsWith('demo-'));}),'Signed out shows only the demo bag');
  const late=page.waitForResponse(base+'/api/bag');releaseSignedOut();await late;await page.waitForTimeout(50);assert.equal(await page.locator('[data-bag-edit]').count(),0);assert.ok(await page.evaluate(()=>{const ids=[...document.querySelectorAll('#myBagContents [data-disc-id]')].map(n=>n.dataset.discId);return ids.length===20&&ids.every(id=>id.startsWith('demo-'));}),'Signed out shows only the demo bag');
  assert.deepEqual(errors,[]);fs.writeFileSync(`${dir}/qa.json`,JSON.stringify({passed:true,themes:['light','midnight','charcoal'],widths:[1440,360],errors},null,2));
- console.log('PASS: local Wrangler/D1, signed Google fixture, all add surfaces, copies, custom + curated capacity, edit/remove confirmation, auth gating, focus containment/restoration, 3 themes at desktop/360px. Screenshots: '+dir);
+ console.log('PASS: local Wrangler/D1, signed Google fixture, all add surfaces, copies, builder defaults and persistence, slot capacity, edit/remove confirmation, auth gating, focus containment/restoration, 3 themes at desktop/360px. Screenshots: '+dir);
 } catch(error) {if(page){await page.screenshot({path:`${dir}/failure.png`,fullPage:true});console.log(await page.evaluate(()=>({url:location.href,detail:document.querySelector('#detail')?.outerHTML.slice(0,1800),bag:document.querySelector('#myBagView')?.hidden})));}throw error;}
 finally {if(browser)await browser.close();server.kill();}

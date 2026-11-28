@@ -105,7 +105,7 @@ try {
  });
  check('Filters drawer: collection, stability and manufacturer picker, every theme and width');
 
- // 5. My Bag: the sort select and each disc's pocket select; the bag and disc sheets.
+ // 5. My Bag: the sort select, each disc's pocket select, and the disc sheet.
  await everyTheme(async(width,theme)=>{
   await view('bag');await page.waitForFunction(()=>document.querySelectorAll('select[data-bag-pocket]').length===3);
   await shoot(`bag-sort-${width}-${theme}`,['.bag-sort-bar']);
@@ -113,11 +113,8 @@ try {
   await page.locator('[data-bag-edit]').first().click();await page.locator('#addDiscDialog').waitFor();
   await shoot(`disc-sheet-${width}-${theme}`,['#addDiscDialog .profile-field:has(select)']);
   await page.locator('#addDiscDialog button.close[data-bag-close]').click();await page.waitForTimeout(200);
-  await page.locator('#editBagModel').click();await page.locator('#bagModelDialog').waitFor();
-  await shoot(`bag-model-sheet-${width}-${theme}`,['#bagModelDialog .profile-field:has(select)']);
-  await page.locator('#bagModelDialog button.close[data-bag-close]').click();await page.waitForTimeout(200);
  });
- check('My Bag: sort select, pocket selects, disc and bag sheets, every theme and width');
+ check('My Bag: sort select, pocket selects, and disc sheet, every theme and width');
 
  // 6. The info pages' theme picker.
  await page.goto(base+'/about.html');

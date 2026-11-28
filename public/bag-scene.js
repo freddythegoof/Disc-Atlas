@@ -1,4 +1,4 @@
-import {bagSlots,wearLabel,stabilityBiasLabel,pocketLabel} from './bag-values.js';
+import {bagSlots,wearLabel,stabilityBiasLabel,pocketLabel,DEFAULT_BAG_COLOR} from './bag-values.js';
 import {photoLooksKey} from './disc3d/photo-stamps.mjs';
 
 export const BAG_SPRING='cubic-bezier(.2,1.35,.35,1)';
@@ -10,7 +10,6 @@ const accent=node=>getComputedStyle(node||document.documentElement).getPropertyV
 const stampStyle=()=>window.DisplayPalette?.stampStyle?.()||null;
 // A copy's own stamp look (docs/stamp-look-extraction.md), over the setting.
 const stampStyleFor=choice=>window.DisplayPalette?.stampStyleFor?.(choice)||null;
-const DEFAULT_BAG='#343c49';
 // Each zoom button step (the viewer allows 1× to its maxZoom).
 const ZOOM_STEP=1.4;
 const POCKET={main:'main',putter:'putter',goTo:'goto'};
@@ -154,7 +153,7 @@ export class BagScene {
     const style=stampStyle(),color=accent(this.root);
     const viewer=await mountBag(this.stage,{background:'transparent',interaction:'turntable',turn:false,view:'page',contactShadow:true,
      animated:!reduced(),accentColor:color,stampStyle:style,stampStyleFor,compartmentDuration:.75,maxPixels:2.4e6,ambientFps:30,quality:'auto',toneMapping:'neutral',puttersOut:this.pocketOpen,dragSurface:this.canvas,
-     ...(this.data?{layout:this.slots(this.data).layout,bagColor:this.bagColor(this.data.settings)}:{})});
+     ...(this.data?{layout:this.slots(this.data).layout,...this.bagAppearance(this.data.settings)}:{})});
     this.viewer=viewer;
     // A stamp look or theme chosen while the bag was mounting reached no viewer (the listeners above): the bag takes it now,
     // or it wears the look it was mounted with until the next change.
@@ -198,11 +197,17 @@ export class BagScene {
   for(const pocket of ['main','putter','goto'])for(const slot of slots[pocket])if(slot.item)slot.mold=this.lookup(slot.item.mold_id);
   return {slots,layout:{main:slots.main,putter:slots.putter,goTo:slots.goto}};
  }
- bagColor(settings){const color=settings.bag_color || DEFAULT_BAG;return color===DEFAULT_BAG?null:color;}
+ bagAppearance(settings){
+  const {bag_color=DEFAULT_BAG_COLOR,bag_body_color,bag_secondary_color,bag_trim_color}=settings;
+  return {
+   bagColor:bag_color===DEFAULT_BAG_COLOR?null:bag_color,
+   bagColorway:{body:bag_body_color,secondary:bag_secondary_color,trim:bag_trim_color},
+  };
+ }
  draw(){
   this.clearLift();const {items,settings}=this.data,{slots,layout}=this.slots(this.data);this.items=items;
-  // The default charcoal keeps the model's original tonal fabric.
-  this.viewer.setBagColor(this.bagColor(settings));this.root.dataset.bagColor=this.viewer.bagColor;
+  const {bagColor,bagColorway}=this.bagAppearance(settings);
+  this.viewer.setBagColor(bagColor,bagColorway);this.root.dataset.bagColor=this.viewer.bagColor;
   this.viewer.setBagLayout(layout);
   const clipped=this.viewer.clipped,extra=slots.overflow.length+clipped.main+clipped.putter+clipped.goTo;
   this.root.querySelector('[data-bag-overflow]').textContent=extra?`${extra} more ${extra===1?'disc':'discs'} listed below · beyond the illustrated slots`:'';
