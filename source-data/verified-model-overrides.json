@@ -2354,6 +2354,48 @@
       "flightMatchNote": "DiscDB lists this as Putter (new), Touchline 2017, approved October 8, 2017. Matched to PDGA certification 17-112.",
       "checkedAt": "2026-11-26",
       "production": {}
+    },
+    {
+      "id": "b0c8f887f3fb",
+      "brand": "Prodigy",
+      "approvalName": "M5 (New)",
+      "catalogName": "M5",
+      "flightMatchNote": "Manufacturer model matched to this specific PDGA approval (24-84, Apr 22, 2024). Prodigy's current M5 page says it replaces the original 2014 version (14-02); that approval stays separate and keeps its own 5/5/-3/1.",
+      "flightNumbers": {
+        "speed": 5,
+        "glide": 5,
+        "turn": -2,
+        "fade": 0.5
+      },
+      "category": "Midrange",
+      "source": "https://prodigydisc.com/products/prodigy-m5-400-plastic",
+      "checkedAt": "2026-11-26",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://prodigydisc.com/products/prodigy-m5-400-plastic",
+        "note": "Listed in the manufacturer current product catalog (400 and 500 plastic pages). Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
+    },
+    {
+      "id": "fb0bfbe4e5ab",
+      "brand": "Innova",
+      "approvalName": "Lynx (new) (renamed from IT - Innova Tech)",
+      "catalogName": "Lynx",
+      "flightMatchNote": "Manufacturer model matched to this specific PDGA approval (21-83, Aug 2, 2021; formerly the IT). Innova's Lynx page shows that approval date and the same 21.2 cm diameter and 1.8 cm rim width. The original 1990 Lynx (90-02) stays separate and keeps its own 7/6/-2/1.",
+      "flightNumbers": {
+        "speed": 7,
+        "glide": 6,
+        "turn": -3,
+        "fade": 1
+      },
+      "category": "Control Driver",
+      "source": "https://www.innovadiscs.com/disc/lynx/",
+      "checkedAt": "2026-11-26",
+      "production": {
+        "status": "catalog_listed",
+        "source": "https://www.innovadiscs.com/disc/lynx/",
+        "note": "Listed in the manufacturer current disc catalog (Proto Glow DX and Glow Champion). Innova announced the IT-to-Lynx rename on February 18, 2026. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
+      }
     }
   ]
 }

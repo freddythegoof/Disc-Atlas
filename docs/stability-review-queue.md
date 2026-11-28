@@ -5353,7 +5353,7 @@ Scope: the 24 rows in the "Flagged discs" table of `docs/manufacturer-diff.md` (
 
 - **Atlas now:** 5/5/-3/1 (PDGA 14-02, Jan 6, 2014: the **original** M5). **Flag:** Prodigy's current M5 400 page prints 5/5/-2/0.5. **Rejected:** that page is a different approval.
 - **Why:** the page says "an understable midrange replacing the original version created in 2014 … flies like a seasoned M4." The Atlas already lists that replacement separately as **M5 (New), 24-84, Apr 22, 2024 (id b0c8f887f3fb), currently unrated.** The Infinite raters agree: 2014-2020 ratings sit at about -3/1, 2025-2026 ones at -1.5 to -2/0.5-0.75. The 2014 disc keeps -3/1.
-- **Follow-up outside this brief:** the unrated **M5 (New)** can take 5/5/-2/0.5 once you want it rated (Prodigy's current page, Infinite and the recent raters agree). Not written here.
+- **Follow-up resolved (2026-11-26):** **M5 (New)** (id b0c8f887f3fb, 24-84) is rated 5/5/-2/0.5 from Prodigy's current M5 page. The 2014 approval (id e905af456041) stays 5/5/-3/1.
 - sources:
   - {name: Prodigy M5 400 Plastic page ("replaces the original version created in 2014"; 5/5/-2/0.5), url: https://prodigydisc.com/products/prodigy-m5-400-plastic, type: manufacturer, weight: 1.0}
   - {name: Infinite Discs M5 (mfr 5/5/-2/0.5; 23 ratings; 2014-2020 raters about -3/1, 2025-2026 raters -1.5 to -2), url: https://infinitediscs.com/prodigy-m5, type: retailer, weight: 0.5}
@@ -5363,7 +5363,7 @@ Scope: the 24 rows in the "Flagged discs" table of `docs/manufacturer-diff.md` (
 
 - **Atlas now:** 7/6/-2/1 (PDGA 90-02, Jun 21, 1990: the **original** Lynx). **Flag:** Innova's Lynx page prints 7/6/-3/1. **Rejected:** that page is a different approval.
 - **Why:** the page says "the Lynx is the new name for the IT … the Lynx name was also used on a now out-of-production mold, and it's back on a disc designed for today's game," date of approval **08/02/2021**. The Atlas lists that disc separately as **Lynx (new) (renamed from IT), 21-83, Aug 2, 2021 (id fb0bfbe4e5ab), currently unrated.** I found no Infinite page at the expected slug. The 1990 Lynx keeps its number.
-- **Follow-up outside this brief:** the unrated **Lynx (new)** can take 7/6/-3/1 from Innova's page badges; check the DX and Champion stamps against the Star baseline first.
+- **Follow-up resolved (2026-11-26):** **Lynx (new)** (id fb0bfbe4e5ab, 21-83) is rated 7/6/-3/1 from Innova's Lynx page. Innova's February 18 and March 11, 2026 posts confirm the turn change from -2 to -3. The 1990 Lynx (id 7bac98262a87) stays 7/6/-2/1.
 - sources:
   - {name: Innova Lynx page (7/6/-3/1; "new name for the IT", approved 08/02/2021), url: https://www.innovadiscs.com/disc/lynx/, type: manufacturer, weight: 1.0}
 - **confidence (that the flag is a version mismatch):** 0.9
@@ -5395,4 +5395,4 @@ Scope: the 24 rows in the "Flagged discs" table of `docs/manufacturer-diff.md` (
 - The manufacturer page numbers, read as raw page text: Gateway (Aura, Hybrid, Apex - Diamond), Divergent (integers; see the archive note), Lone Star (page titles), Mint (eight product pages via the product feed and pages), Discraft Archer (the page prints speed 7, stability -0.5), Streamline, MVP, Alfa, Axiom, Discmania, Dynamic, Innova (badges 7/6/-3/1).
 - The DGCR quotes (Pilot, Nomad, Apex, Centurion) are from direct thread fetches, not summaries, but have not had a second reader.
 
-**Process notes:** DGCR forum search works with a session token (fetch `/search/`, post `_xfToken`); Bing was unusable for this. Mint's `products.json` lists every Idol product and its printed ratings. **Unrated Atlas records worth rating next:** M5 (New) 24-84 and Lynx (new) 21-83, found while vetting M5 and Lynx. **Not attempted or not found:** Reddit, YouTube, Disc Golf Center, Disc Golf Reviewer; Aura, Cosmic, DD4, Idol, Supreme Trespass, Wyrm, Artemis and Bearkat have no readable community text at all.
+**Process notes:** DGCR forum search works with a session token (fetch `/search/`, post `_xfToken`); Bing was unusable for this. Mint's `products.json` lists every Idol product and its printed ratings. **Rated since this note (2026-11-26):** M5 (New) 24-84 is 5/5/-2/0.5 and Lynx (new) 21-83 is 7/6/-3/1, both from the manufacturer pages named in the follow-ups above. **Not attempted or not found:** Reddit, YouTube, Disc Golf Center, Disc Golf Reviewer; Aura, Cosmic, DD4, Idol, Supreme Trespass, Wyrm, Artemis and Bearkat have no readable community text at all.
