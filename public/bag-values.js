@@ -61,6 +61,16 @@ export function validateLostDetails(data) {
 // the 3D scenes. The server holds the same lists: a colour or finish off them is refused. A bag colour
 // saved before the palette (a free pick) is kept until the player chooses another.
 export const DEFAULT_BAG_COLOR='#343c49';
+// The bag scene can show 48 main slots, and the builder reserves up to four for putters.
+export const BAG_BUILDER_CAPACITY={min:1,max:52};
+export const DEFAULT_BAG_SETTINGS={
+ bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,
+ bag_color:DEFAULT_BAG_COLOR,sort_mode:'speed',rack_style:null,updated_at:null,
+ bag_body_color:null,bag_secondary_color:null,bag_trim_color:null,
+};
+export const BAG_COLORWAY={
+ bag_body_color:DEFAULT_BAG_COLOR,bag_secondary_color:'#637083',bag_trim_color:'#a3a9b1',
+};
 export const BAG_COLORS=[
  ['#343c49','Charcoal'],['#1f2228','Black'],['#23324a','Navy'],['#3d5a80','Slate blue'],['#436752','Forest'],
  ['#5a5f3c','Olive'],['#7a4a33','Rust'],['#6b3341','Burgundy'],['#7d8288','Stone'],['#a8987a','Sand'],
@@ -76,24 +86,48 @@ export const RACK_STYLES=[
  {key:'ivory',label:'Ivory & walnut',frame:'#cfc8ba',trim:'#7a5236'},
 ];
 export const rackStyle=key=>RACK_STYLES.find(style=>style.key===(key||'auto'))||RACK_STYLES[0];
-export function validateBagSettings(data, catalog, saved = {}) {
+function validateBagName(data) {
  if (typeof data.bag_model !== 'string' || !data.bag_model.trim() || data.bag_model.trim().length > 80) throw new Error('Enter a bag name (up to 80 characters).');
- const bag_model = data.bag_model.trim(), model = catalog.models.find(m => m.name === bag_model);
+ return data.bag_model.trim();
+}
+function validateBagCapacity(capacity) {
+ if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) throw new Error('Capacity must be a whole number from 1 to 500.');
+ return capacity;
+}
+export function validateBagBuilder(data,saved) {
+ const bag_model=validateBagName(data),capacity=validateBagCapacity(data.capacity);
+ const keepPockets=capacity===saved.capacity;
+ if(!keepPockets && capacity>BAG_BUILDER_CAPACITY.max)throw new Error(`Choose up to ${BAG_BUILDER_CAPACITY.max} slots, or keep your saved capacity.`);
+ const colors={};
+ for(const field of Object.keys(BAG_COLORWAY)){
+  if(!validColor(data[field]))throw new Error('Choose a six-digit hex color for each part of the bag.');
+  colors[field]=data[field].toLowerCase();
+ }
+ // A rename or recolor preserves the existing split, including any extra slots on legacy bags.
+ const putter_capacity=keepPockets?saved.putter_capacity:Math.min(DEFAULT_BAG_SETTINGS.putter_capacity,Math.floor(capacity/5));
+ const extra_capacity=keepPockets?saved.extra_capacity:0;
+ const main_capacity=capacity-putter_capacity-extra_capacity;
+ return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,...colors};
+}
+export function validateBagPreferences(data){
+ const rack_style=data.rack_style==null || data.rack_style==='auto'?null:data.rack_style;
+ if(rack_style!==null && !RACK_STYLES.some(style=>style.key===rack_style))throw new Error('Choose a rack finish from the palette.');
+ const sort_mode=data.sort_mode===undefined?'speed':data.sort_mode;
+ if(!['speed','stability','custom'].includes(sort_mode))throw new Error('Choose Speed, Stability or Custom order.');
+ return {sort_mode,rack_style};
+}
+export function validateBagSettings(data, catalog, saved = {}) {
+ const bag_model=validateBagName(data),model=catalog.models.find(m => m.name === bag_model);
  const fixed=model?.presetSplit;
  const main_capacity=fixed?model.main_capacity:(data.main_capacity ?? data.capacity);
  const putter_capacity=fixed?model.putter_capacity:(data.putter_capacity ?? 0);
  const extra_capacity=fixed?(model.extra_capacity ?? 0):0;
  if([main_capacity,putter_capacity,extra_capacity].some(n=>!Number.isInteger(n)||n<0||n>500))throw new Error('Pocket capacities must be whole numbers from 0 to 500.');
- const capacity=main_capacity+putter_capacity+extra_capacity;
- if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) throw new Error('Capacity must be a whole number from 1 to 500.');
+ const capacity=validateBagCapacity(main_capacity+putter_capacity+extra_capacity);
  if(!fixed && data.capacity!==undefined && data.capacity!==capacity)throw new Error('Total capacity must match your pocket capacities.');
  const bag_color=data.bag_color===undefined?DEFAULT_BAG_COLOR:data.bag_color;if(!validColor(bag_color))throw new Error('Choose a six-digit hex bag color.');
  if(!BAG_COLORS.some(([hex])=>hex===bag_color.toLowerCase()) && bag_color.toLowerCase()!==String(saved.bag_color||'').toLowerCase())throw new Error('Choose a bag color from the palette.');
- const rack_style=data.rack_style==null || data.rack_style==='auto'?null:data.rack_style;
- if(rack_style!==null && !RACK_STYLES.some(style=>style.key===rack_style))throw new Error('Choose a rack finish from the palette.');
- const sort_mode=data.sort_mode===undefined?'speed':data.sort_mode;
- if(!['speed','stability','custom'].includes(sort_mode))throw new Error('Choose Speed, Stability or Custom order.');
- return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase(),sort_mode,rack_style};
+ return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color:bag_color.toLowerCase(),...validateBagPreferences(data)};
 }
 // A bag disc's plastic finish: 'opaque' (every disc before clear plastics) or 'clear' (Champion, Z, Opto and the like).
 export const FINISHES=['opaque','clear'];

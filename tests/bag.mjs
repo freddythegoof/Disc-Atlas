@@ -320,6 +320,52 @@ test('default details come from mold references and sane max weights; curated se
  } finally {s.close();}
 });
 
+test('bag builder saves slot capacity and all three colors per user',async()=>{
+ const s=await fixture();
+ const builder={
+  bag_model:'Dynamic Discs Commander',capacity:9,
+  bag_body_color:'#286454',bag_secondary_color:'#D8A958',bag_trim_color:'#E6E6DC',
+ };
+ try {
+  const current=async()=>(await (await s.call()).json()).bag;
+  const before=await current();
+  assert.equal(before.capacity,20);
+  assert.equal(before.bag_body_color,null);
+  const legacy=await s.call('/api/bag','PUT',{bag_model:'Grip BX3',bag_color:'#436752'});
+  assert.equal(legacy.status,200);
+  const recolor=await s.call('/api/bag','PUT',{...builder,bag_model:'Weekend sling',capacity:23});
+  assert.equal(recolor.status,200);
+  const preserved=(await recolor.json()).bag;
+  assert.deepEqual([preserved.main_capacity,preserved.putter_capacity,preserved.extra_capacity],[18,4,1]);
+  assert.equal(preserved.bag_color,'#436752');
+  assert.equal((await s.call('/api/bag','PATCH',{sort_mode:'stability'})).status,200);
+  assert.equal((await current()).extra_capacity,1);
+  const update=await s.call('/api/bag','PUT',builder);
+  assert.equal(update.status,200);
+  const bag=(await update.json()).bag;
+  assert.deepEqual(await current(),bag);
+  assert.deepEqual([bag.capacity,bag.main_capacity,bag.putter_capacity,bag.extra_capacity],[9,8,1,0]);
+  assert.deepEqual([bag.bag_body_color,bag.bag_secondary_color,bag.bag_trim_color],['#286454','#d8a958','#e6e6dc']);
+  await Promise.all([
+   s.call('/api/bag','PATCH',{rack_style:'brass'}).then(r=>assert.equal(r.status,200)),
+   s.call('/api/bag','PATCH',{sort_mode:'custom'}).then(r=>assert.equal(r.status,200)),
+  ]);
+  const updated=await current();
+  assert.deepEqual({...updated,updated_at:bag.updated_at},{...bag,rack_style:'brass',sort_mode:'custom'});
+  for(const change of [{capacity:0},{capacity:53},{capacity:2.5},{bag_secondary_color:null},{bag_trim_color:'#f0a'}]){
+   assert.equal((await s.call('/api/bag','PUT',{...builder,...change})).status,400);
+  }
+  assert.deepEqual(await current(),updated,'Invalid updates leave the saved colors and capacity alone');
+  const other=(await (await s.call('/api/bag','GET',undefined,{cookie:'y'.repeat(43)})).json()).bag;
+  assert.deepEqual(other,before);
+  assert.equal((await s.call('/api/bag','PUT',{bag_model:'Large legacy bag',capacity:97})).status,200);
+  assert.equal((await s.call('/api/bag','PUT',{...builder,capacity:97})).status,200,'An existing capacity outside the builder range can still be recolored');
+  assert.equal((await current()).capacity,97);
+  assert.equal((await s.call('/api/bag','PUT',{...builder,capacity:52})).status,200);
+  assert.equal((await current()).main_capacity,48);
+ }finally{s.close();}
+});
+
 test('v1.1 colors, pocket totals and storage persist without changing another account', async () => {
  const s=await fixture();try {
   const created=await s.call('/api/bag/discs','POST',{...item,color:'#AB34EF'});

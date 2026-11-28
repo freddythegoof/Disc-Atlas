@@ -41,7 +41,7 @@ try{
  await page.locator('#bagDiscColor').fill('#ed7868');await page.locator('#bagPlastic').selectOption('DX');assert.equal(await page.locator('#bagDiscColor').inputValue(),'#ed7868','custom color survives plastic change');
  await page.locator('#saveDisc').click();await page.locator('#addDiscDialog').waitFor({state:'hidden'});
  await page.evaluate(async()=>{const headers={'Content-Type':'application/json','X-Atlas-CSRF':window.AtlasAccount.current.csrfToken};
-  const bag=await fetch('/api/bag',{method:'PUT',headers,body:JSON.stringify({bag_model:'Grip BX3',bag_color:'#343c49'})});if(!bag.ok)throw Error(await bag.text());
+  const bag=await fetch('/api/bag',{method:'PUT',headers,body:JSON.stringify({bag_model:'Grip BX3',bag_color:'#436752'})});if(!bag.ok)throw Error(await bag.text());
   for(const disc of [
    {mold_id:'3d60892b6812',plastic:'Champion',wear:5,weight_g:170,color:'#70b7cd',notes:'Forehand only'},
    {mold_id:'35dae588c670',plastic:'Neutron',wear:7,weight_g:175,color:'#a7c68c'},
@@ -61,13 +61,14 @@ try{
  await showList('storage');const stored=page.locator('#bagStorage [data-bag-move]').first(),storedId=await stored.getAttribute('data-bag-move');await stored.click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='7 / 23');
  assert.ok(await page.locator('#bagStorageEmpty').isVisible());assert.ok(await page.locator('[data-bag-move]').filter({hasText:'Store'}).count());
  await showList('bag');await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
- await page.locator('#editBagModel').click();await page.locator('[data-bag-color="#436752"]').click();await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- // The fabric material itself carries the saved color (read back from the live 3D scene).
+ // The existing fabric reads its saved color from the live 3D scene.
  const bagColor=()=>page.locator('[data-bag-canvas]').evaluate(n=>({color:n.bagViewer.bagColor,custom:n.bagViewer.customBagColor}));
  assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
  await page.reload();await phase('open');assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
- await page.locator('#editBagModel').click();await page.locator('[data-bag-color="#343c49"]').click();await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- assert.equal((await bagColor()).custom,null,'Default charcoal restores the model fabric');assert.notEqual((await bagColor()).color,'#436752');
+ await page.getByRole('button',{name:'Customize',exact:true}).click();
+ await page.locator('#bagModelDialog').getByLabel('Body',{exact:true}).fill('#286454');
+ await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
+ assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'},'Builder colors leave the legacy 3D fabric intact');
  await page.waitForFunction(()=>document.activeElement===document.querySelector('#editBagModel'));
  const discId=await page.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc');
  const disc=page.locator(`[data-physical-disc="${discId}"]`);

@@ -1,7 +1,7 @@
 import catalog from '../public/data.json' with {type: 'json'};
 import plastics from '../source-data/bag-plastics.json' with {type: 'json'};
 import models from '../source-data/bag-models.json' with {type: 'json'};
-import {validateDiscDetails, validateBagSettings} from '../public/bag-values.js';
+import {BAG_COLORWAY, DEFAULT_BAG_SETTINGS, validateBagBuilder, validateBagPreferences, validateDiscDetails, validateBagSettings} from '../public/bag-values.js';
 import {photoRoute,cleanupTextures} from './textures.mjs';
 import {stampsRoute,stampRoute} from './stamps.mjs';
 
@@ -10,6 +10,9 @@ const byId = new Map(catalog.discs.map(d => [d.id, d]));
 // A saved disc may still name an approval a reviewed merge folded into another record (source-data/merged-records.json).
 const idAliases = new Map(Object.entries(catalog.meta.idAliases));
 const currentId = id => idAliases.get(id) ?? id;
+const colorFields=Object.keys(BAG_COLORWAY);
+const structureFields=['bag_model','capacity','main_capacity','putter_capacity','extra_capacity'];
+const settingFields=[...structureFields,'bag_color','sort_mode','rack_style',...colorFields,'updated_at'];
 async function readBody(request,limit=4096) {
  if (!request.headers.get('Content-Type')?.startsWith('application/json')) throw new Error('Send JSON.');
  const reader = request.body?.getReader(); if (!reader) throw new Error('Send a bag update.');
@@ -40,7 +43,7 @@ export function createBag(auth) {
    const fields='id,mold_id,plastic,wear,weight_g,notes,color,rim_color,finish,finish_opacity,stamp_ink,stamp_finish,photo_rim_color,photo_halo,photo_true_color,texture_key,in_bag,pocket,stability_bias,sort_order,added_at,status,lostDate,lostCourse,lostHole,lostStory';
    const physical=row=>row?{...row,mold_id:currentId(row.mold_id),in_bag:!!row.in_bag}:row;
    const list = async () => (await env.DB.prepare(`SELECT ${fields} FROM bag_discs WHERE user_id=? ORDER BY added_at,id`).bind(user.id).all()).results.map(physical);
-   const settings = async () => await env.DB.prepare('SELECT bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,rack_style,updated_at FROM bags WHERE user_id=?').bind(user.id).first() || {bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,bag_color:'#343c49',sort_mode:'speed',rack_style:null,updated_at:null};
+   const settings=async()=>await env.DB.prepare(`SELECT ${settingFields.join(',')} FROM bags WHERE user_id=?`).bind(user.id).first() || DEFAULT_BAG_SETTINGS;
    if (method === 'GET') {
     if (root) return json({bag:await settings(),discs:await list()});
     if (collection) return json({discs:await list()});
@@ -60,8 +63,27 @@ export function createBag(auth) {
     const saved=await settings();
     // PATCH changes one thing at a time: the sort order, or the racks' finish.
     if(method==='PATCH' && (Object.keys(data).length!==1||!(['speed','stability','custom'].includes(data.sort_mode)||'rack_style' in data)))return json({error:'Choose Speed, Stability or Custom order, or a rack finish.'},400);
-    let bag; try {bag = validateBagSettings(method==='PATCH'?{...saved,...data}:{...data,bag_color:data.bag_color===undefined?saved.bag_color:data.bag_color,sort_mode:data.sort_mode===undefined?saved.sort_mode:data.sort_mode,rack_style:data.rack_style===undefined?saved.rack_style:data.rack_style},models,saved);} catch (error) {return json({error:error.message},400);}
-    await env.DB.prepare('INSERT INTO bags(user_id,bag_model,capacity,main_capacity,putter_capacity,extra_capacity,bag_color,sort_mode,rack_style,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET bag_model=excluded.bag_model,capacity=excluded.capacity,main_capacity=excluded.main_capacity,putter_capacity=excluded.putter_capacity,extra_capacity=excluded.extra_capacity,bag_color=excluded.bag_color,sort_mode=excluded.sort_mode,rack_style=excluded.rack_style,updated_at=excluded.updated_at').bind(user.id,bag.bag_model,bag.capacity,bag.main_capacity,bag.putter_capacity,bag.extra_capacity,bag.bag_color,bag.sort_mode,bag.rack_style,new Date().toISOString()).run();
+    let changes,fields;
+    try {
+     if(method==='PATCH'){
+      changes=validateBagPreferences({...saved,...data});
+      fields=['rack_style' in data?'rack_style':'sort_mode'];
+     }else if(colorFields.some(field=>field in data)){
+      changes=validateBagBuilder(data,saved);
+      fields=[...structureFields,...colorFields];
+     }else{
+      const preferences=['bag_color','sort_mode','rack_style'];
+      const fallback=Object.fromEntries(preferences.map(field=>[field,saved[field]]));
+      changes=validateBagSettings({...fallback,...data},models,saved);
+      fields=[...structureFields,...preferences.filter(field=>field in data)];
+     }
+    }catch(error){return json({error:error.message},400);}
+    // Write only the fields this request owns so overlapping appearance and sort saves can coexist.
+    const bag={...saved,...changes,updated_at:new Date().toISOString()};
+    const updates=[...fields,'updated_at'].map(field=>`${field}=excluded.${field}`);
+    const placeholders=Array(settingFields.length+1).fill('?').join(',');
+    await env.DB.prepare(`INSERT INTO bags(user_id,${settingFields.join(',')}) VALUES (${placeholders})
+     ON CONFLICT(user_id) DO UPDATE SET ${updates.join(',')}`).bind(user.id,...settingFields.map(field=>bag[field])).run();
     return json({bag:await settings()});
    }
    if (method === 'DELETE') {

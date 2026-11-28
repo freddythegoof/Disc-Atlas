@@ -17,8 +17,12 @@ body[data-view="bag"] main {display:none!important}
 .my-bag-demo p {margin:4px 0 0;max-width:560px;font-size:13px;line-height:1.6;color:var(--muted)}
 .my-bag-demo .pill-button {flex:none;white-space:nowrap}
 .empty-bag-mark {display:grid;place-items:center;width:64px;height:64px;border-radius:50%;margin:0 auto 20px;font-size:28px;background:var(--accent-soft);color:var(--lime)}
-.my-bag-meter {display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 0}
-.my-bag-meter>div {display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;min-width:0}
+.my-bag-meter {display:flex;align-items:center;gap:18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0}
+.my-bag-meter>div {display:flex;flex:1;flex-wrap:wrap;align-items:baseline;gap:10px 18px;min-width:0}
+.bag-illustration-defs {position:absolute;pointer-events:none}
+.bag-illustration {display:block;flex:none;width:95px;height:auto}
+.bag-illustration[hidden] {display:none}
+#editBagModel {min-height:44px;flex:none}
 #bagSlotMeter {font:500 30px/1 'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-1px}
 #bagModelName {font-size:14px;color:var(--muted);overflow-wrap:anywhere}
 #bagSlotProgress {display:block;width:150px;max-width:100%;height:4px;border:0;appearance:none;background:var(--line);border-radius:4px;overflow:hidden;accent-color:var(--lime)}
@@ -122,10 +126,6 @@ body[data-view="bag"] main {display:none!important}
 .bag-memorial-empty>span {font-size:13px;line-height:1.7}
 #lostDiscForm .lost-course-field,.bag-lost-fields .lost-course-field {grid-column:1/-1}
 /* Adding a disc straight to Lost: its memorial fields join the sheet. */
-/* Bag color: a palette of fabric swatches (radio buttons), never a free picker. */
-.bag-palette-field {border:0;margin:0 0 20px;padding:0;min-width:0;font-size:14px}
-.bag-palette-field legend {margin-bottom:10px}
-.bag-palette-field small {display:block;margin-top:8px;font-size:12px;color:var(--muted)}
 .color-palette {display:flex;flex-wrap:wrap;gap:10px}
 .color-palette button {width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:var(--swatch);box-shadow:inset 0 0 0 1px #ffffff26,0 0 0 1px var(--line);cursor:pointer}
 .color-palette button[aria-checked="true"] {box-shadow:inset 0 0 0 1px #ffffff26,0 0 0 2px var(--panel),0 0 0 4px var(--lime)}
@@ -161,6 +161,13 @@ body[data-view="bag"] main {display:none!important}
 .bag-sheet .sheet-actions button {min-height:44px}
 #bagModelForm {display:grid;gap:20px}
 #bagModelForm .sheet-actions {margin:0}
+.bag-builder-fields {display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,25%);gap:14px}
+.bag-builder-colorway {display:grid;grid-template-columns:minmax(78px,36%) minmax(0,1fr);align-items:center;gap:16px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.bag-builder-colorway .bag-illustration {width:100%;max-width:144px;justify-self:center}
+.bag-builder-colors {display:grid;gap:4px;min-width:0;padding:0;margin:0;border:0}
+.bag-builder-colors legend {padding:0;margin-bottom:6px;font-size:14px;font-weight:600}
+.bag-builder-colors label {display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:13px;line-height:1.25}
+.bag-builder-colors input[type="color"] {flex:none;width:44px;height:44px;padding:4px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer}
 .compare-item .compare-bag-add {position:static;width:100%;min-height:44px;font-size:12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:var(--accent-soft);color:var(--text)}
 .detail .bag-add.primary {margin:14px 0;font-size:14px}
 :is(#myBagView,.bag-sheet,.directory-row,.compare-item) :is(button,input,select,textarea,a):focus-visible {outline:2px solid var(--lime);outline-offset:4px}
@@ -374,10 +381,6 @@ body[data-view="bag"] main {display:none!important}
 .bag-stamp-field {grid-column:1/-1;border:0;margin:0;padding:0;min-width:0}
 .bag-stamp-field legend {padding:0;margin-bottom:8px}
 .bag-stamp-row {display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.bag-pockets {margin:0!important}
-.bag-settings-total {display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
-.bag-settings-total output {color:var(--text)}
-#bagCapacityHint {font-size:11px;color:var(--muted);line-height:1.7}
 @media(prefers-reduced-motion:reduce){.bag-lift-info {transition:none}}
 @media(max-width:700px) {
  .header-actions #accountButton {max-width:72px}
@@ -390,8 +393,9 @@ body[data-view="bag"] main {display:none!important}
  .my-bag-heading p {font-size:13px;max-width:230px}
  .my-bag-demo {flex-direction:column;align-items:stretch;padding:14px 16px}
  .my-bag-demo .pill-button {white-space:normal;text-align:center;font-size:13px}
- .my-bag-meter {align-items:flex-start;gap:10px;padding:20px 0}
- .my-bag-meter>div {max-width:200px;gap:10px}
+ .my-bag-meter {gap:10px;padding:12px 0}
+ .my-bag-meter>div {gap:7px}
+ .my-bag-meter .bag-illustration {width:72px}
  #bagModelName {font-size:12px;width:100%}
  #editBagModel {font-size:12px;white-space:nowrap}
  #bagSlotProgress {width:100%}
