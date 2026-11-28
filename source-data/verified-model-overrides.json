@@ -2396,6 +2396,50 @@
         "source": "https://www.innovadiscs.com/disc/lynx/",
         "note": "Listed in the manufacturer current disc catalog (Proto Glow DX and Glow Champion). Innova announced the IT-to-Lynx rename on February 18, 2026. Approval-version match reviewed explicitly; listing does not guarantee stock or continuing production."
       }
+    },
+    {
+      "id": "e905af456041",
+      "brand": "Prodigy",
+      "approvalName": "M5",
+      "catalogName": "M5 (2014)",
+      "flightMatchNote": "Display name only. This Jan 6, 2014 approval (14-02) keeps the DiscIt / Marshall Street catalog match 5/5/-3/1. The 2024 M5 (24-84) is a separate record.",
+      "flightNumbers": {
+        "speed": 5.0,
+        "glide": 5.0,
+        "turn": -3.0,
+        "fade": 1.0
+      },
+      "category": "Midrange",
+      "source": "",
+      "sourceLabel": "DiscIt / Marshall Street",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      }
+    },
+    {
+      "id": "7bac98262a87",
+      "brand": "Innova",
+      "approvalName": "Lynx",
+      "catalogName": "Lynx (1990)",
+      "flightMatchNote": "Display name only. This Jun 21, 1990 approval (90-02) keeps the DiscIt / Marshall Street catalog match 7/6/-2/1. The 2021 Lynx (21-83) is a separate record.",
+      "flightNumbers": {
+        "speed": 7.0,
+        "glide": 6.0,
+        "turn": -2.0,
+        "fade": 1.0
+      },
+      "category": "Control Driver",
+      "source": "",
+      "sourceLabel": "DiscIt / Marshall Street",
+      "checkedAt": "2026-09-23",
+      "production": {
+        "status": "catalog_listed",
+        "source": "",
+        "note": "Listed in the retrieved DiscIt / Marshall Street flight catalog. This does not independently verify ongoing production."
+      }
     }
   ]
 }
