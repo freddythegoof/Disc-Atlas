@@ -63,7 +63,11 @@ try {
  await page.getByRole('button',{name:'Create bag',exact:true}).click();await builder.waitFor();
  assert.equal(await builder.getByRole('combobox').count(),0,'Bag creation has no presets');
  assert.equal(await builder.getByLabel('Disc slots').inputValue(),'20');
- await builder.getByLabel('Bag name').fill('Weekend sling');
+ const bagName=builder.getByLabel('Bag name');
+ await bagName.fill('   ');
+ assert.equal(await bagName.evaluate(input=>input.validity.customError),true,'Whitespace-only names are invalid in the browser');
+ await bagName.fill('  Weekend sling  ');
+ assert.equal(await bagName.evaluate(input=>input.validity.valid),true);
  await builder.getByLabel('Disc slots').fill('24');
  await paint('Body','#286454');await paint('Secondary panel','#d8a958');await paint('Trim & details','#e6e6dc');
  const colors=['#286454','#d8a958','#e6e6dc'];
@@ -74,6 +78,9 @@ try {
  assert.ok(bounds.x>=0 && bounds.x+bounds.width<=360,'Builder fits the phone viewport');
  await page.setViewportSize({width:1440,height:1000});
  await builder.getByLabel('Disc slots').fill('2');
+ const warning=builder.locator('#bagBuilderSlotWarning');
+ assert.match(await warning.innerText(),/already carries 3 discs/);
+ assert.match(await warning.innerText(),/1 putter and 0 extra slots/);
  await builder.getByRole('button',{name:'Create bag',exact:true}).click();await builder.waitFor({state:'hidden'});
  assert.equal(await page.locator('#bagSlotMeter').innerText(),'3 / 2');
  assert.equal(await page.locator('#bagSlotProgress').getAttribute('max'),'2');
@@ -97,6 +104,7 @@ try {
  await builder.getByLabel('Disc slots').fill('24');
  await builder.getByRole('button',{name:'Save bag',exact:true}).click();await builder.waitFor({state:'hidden'});
  assert.equal(await page.locator('#bagSlotMeter').innerText(),'5 / 24');
+ assert.equal(await page.locator('#bagPocketBreakdown').innerText(),'23 main + 1 putter');
  assert.ok(await page.locator('#bagCapacityNotice').isHidden());
  await page.reload();
  await page.waitForFunction(()=>{

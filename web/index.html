@@ -45,7 +45,9 @@
  <form id="bagModelForm">
   <div class="bag-builder-fields">
    <label class="profile-field">Bag name<input id="customBagName" maxlength="80" required></label>
-   <label class="profile-field">Disc slots<input id="bagCapacity" type="number" step="1" inputmode="numeric" required></label>
+   <label class="profile-field">Disc slots<input id="bagCapacity" type="number" step="1" inputmode="numeric" aria-describedby="bagBuilderSlotHint bagBuilderSlotWarning" required></label>
+   <small id="bagBuilderSlotHint">Typical sizes · Pocket 5–8, backpack 15–25, cart 25+</small>
+   <p id="bagBuilderSlotWarning" role="status"></p>
   </div>
   <div class="bag-builder-colorway">
    <svg id="bagIllustrationPreview" class="bag-illustration" viewBox="0 0 120 108" aria-hidden="true" focusable="false"><use href="#bagIllustrationShape"/></svg>

@@ -1,4 +1,4 @@
-import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,plasticColor,bagComparator,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket,BAG_BUILDER_CAPACITY,BAG_COLORWAY,DEFAULT_BAG_SETTINGS,rackStyle,stampChoiceOf,renderFinish,FINISH_OPACITY,seeThroughPlastic} from './bag-values.js';
+import {plasticOptions,defaultDiscDetails,wearLabel,bagClass,validateDiscDetails,validateLostDetails,plasticColor,bagComparator,bagPocketCapacities,stabilityBiasLabel,pocketLabel,POCKETS,defaultPocket,BAG_BUILDER_CAPACITY,BAG_COLORWAY,DEFAULT_BAG_SETTINGS,rackStyle,stampChoiceOf,renderFinish,FINISH_OPACITY,seeThroughPlastic} from './bag-values.js';
 import {BagScene} from './bag-scene.js';
 import {moldShifts,personalPositions} from './personal-lens.js';
 import {DEMO_BAG,DEMO_DISCS} from './bag-demo.js';
@@ -15,12 +15,31 @@ let plastics, editing = null, removing = null, losing = null, generation = 0, lo
 const bagColorRoles={bag_body_color:'--bag-body',bag_secondary_color:'--bag-secondary',bag_trim_color:'--bag-trim'};
 const bagColorInputs=$('.bag-builder-colors').querySelectorAll('input[type="color"]');
 const slotInput=$('#bagCapacity');
+const bagNameInput=$('#customBagName');
+const slotWarning=$('#bagBuilderSlotWarning');
 slotInput.min=BAG_BUILDER_CAPACITY.min;
-slotInput.addEventListener('input',()=>{
+function updateBagSlots(){
  const capacity=slotInput.valueAsNumber;
  slotInput.setCustomValidity(capacity>BAG_BUILDER_CAPACITY.max && capacity!==settings.capacity
   ?`Choose up to ${BAG_BUILDER_CAPACITY.max} slots, or keep your saved capacity.`:'');
-});
+ const notes=[];
+ if(slotInput.validity.valid){
+  const count=items.filter(item=>item.in_bag!==false).length;
+  if(capacity<count)notes.push(`Your bag already carries ${count} discs. They’ll stay in the bag when you save.`);
+  const pockets=bagPocketCapacities(capacity,settings);
+  if(pockets.putter_capacity!==settings.putter_capacity || pockets.extra_capacity!==settings.extra_capacity){
+   notes.push(`This size leaves ${pockets.putter_capacity} putter and ${pockets.extra_capacity} extra slots.`);
+  }
+ }
+ slotWarning.textContent=notes.join(' ');
+}
+slotInput.addEventListener('input',updateBagSlots);
+function validateBagName(){
+ const name=bagNameInput.value.trim();
+ bagNameInput.setCustomValidity(name?'':'Enter a bag name.');
+ return name;
+}
+bagNameInput.addEventListener('input',validateBagName);
 function hasBagConfiguration(){
  return !!settings.bag_body_color || ['bag_model','capacity','main_capacity','putter_capacity','extra_capacity','bag_color']
   .some(field=>settings[field]!==DEFAULT_BAG_SETTINGS[field]);
@@ -506,10 +525,12 @@ $('#editBagModel').addEventListener('click',()=>{
  const customize=hasBagConfiguration();
  $('#bagModelHeading').textContent=customize?'Customize your bag':'Create your bag';
  $('#saveBagModel').textContent=customize?'Save bag':'Create bag';
- $('#customBagName').value=settings.bag_model;
+ bagNameInput.value=settings.bag_model;
+ validateBagName();
  slotInput.max=Math.max(settings.capacity,BAG_BUILDER_CAPACITY.max);
  slotInput.setCustomValidity('');
  slotInput.value=settings.capacity;
+ updateBagSlots();
  for(const input of bagColorInputs)input.value=settings[input.name] ?? BAG_COLORWAY[input.name];
  paintBagIllustration($('#bagIllustrationPreview'),selectedBagColors());
  $('#bagModelStatus').textContent='';
@@ -528,6 +549,8 @@ async function chooseRackStyle(key){
 }
 $('#bagModelForm').addEventListener('submit',async event=>{
  event.preventDefault();
+ const bag_model=validateBagName();
+ if(!bagNameInput.reportValidity())return;
  const epoch=generation,button=$('#saveBagModel');
  if(savingBag)return;
  savingBag=true;
@@ -536,7 +559,7 @@ $('#bagModelForm').addEventListener('submit',async event=>{
  $('#bagModelStatus').textContent='Saving…';
  try{
   const data=await api('','PUT',{
-   bag_model:$('#customBagName').value,capacity:slotInput.valueAsNumber,...selectedBagColors(),
+   bag_model,capacity:slotInput.valueAsNumber,...selectedBagColors(),
   });
   settings=data.bag;
   savingBag=false;

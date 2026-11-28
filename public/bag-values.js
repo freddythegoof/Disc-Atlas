@@ -61,7 +61,7 @@ export function validateLostDetails(data) {
 // the 3D scenes. The server holds the same lists: a colour or finish off them is refused. A bag colour
 // saved before the palette (a free pick) is kept until the player chooses another.
 export const DEFAULT_BAG_COLOR='#343c49';
-// The bag scene can show 48 main slots, and the builder reserves up to four for putters.
+// The bag scene can show 48 main slots, and the default split has four putter slots.
 export const BAG_BUILDER_CAPACITY={min:1,max:52};
 export const DEFAULT_BAG_SETTINGS={
  bag_model:'Custom bag',capacity:20,main_capacity:16,putter_capacity:4,extra_capacity:0,
@@ -94,20 +94,23 @@ function validateBagCapacity(capacity) {
  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) throw new Error('Capacity must be a whole number from 1 to 500.');
  return capacity;
 }
+export function bagPocketCapacities(capacity,saved){
+ // The main compartment absorbs a resize. Keep a main slot if the bag already had one,
+ // then keep the putter pocket ahead of extra slots when downsizing forces a clamp.
+ const available=capacity-Math.min(saved.main_capacity,1);
+ const putter_capacity=Math.min(saved.putter_capacity,available);
+ const extra_capacity=Math.min(saved.extra_capacity,available-putter_capacity);
+ return {main_capacity:capacity-putter_capacity-extra_capacity,putter_capacity,extra_capacity};
+}
 export function validateBagBuilder(data,saved) {
  const bag_model=validateBagName(data),capacity=validateBagCapacity(data.capacity);
- const keepPockets=capacity===saved.capacity;
- if(!keepPockets && capacity>BAG_BUILDER_CAPACITY.max)throw new Error(`Choose up to ${BAG_BUILDER_CAPACITY.max} slots, or keep your saved capacity.`);
+ if(capacity!==saved.capacity && capacity>BAG_BUILDER_CAPACITY.max)throw new Error(`Choose up to ${BAG_BUILDER_CAPACITY.max} slots, or keep your saved capacity.`);
  const colors={};
  for(const field of Object.keys(BAG_COLORWAY)){
   if(!validColor(data[field]))throw new Error('Choose a six-digit hex color for each part of the bag.');
   colors[field]=data[field].toLowerCase();
  }
- // A rename or recolor preserves the existing split, including any extra slots on legacy bags.
- const putter_capacity=keepPockets?saved.putter_capacity:Math.min(DEFAULT_BAG_SETTINGS.putter_capacity,Math.floor(capacity/5));
- const extra_capacity=keepPockets?saved.extra_capacity:0;
- const main_capacity=capacity-putter_capacity-extra_capacity;
- return {bag_model,capacity,main_capacity,putter_capacity,extra_capacity,...colors};
+ return {bag_model,capacity,...bagPocketCapacities(capacity,saved),...colors};
 }
 export function validateBagPreferences(data){
  const rack_style=data.rack_style==null || data.rack_style==='auto'?null:data.rack_style;

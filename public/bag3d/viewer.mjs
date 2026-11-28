@@ -26,8 +26,15 @@ const VIEWS = {
   // putter slid up out of the top pocket.
   page: { position: [.20, .20, 1.33], target: [0, .075, 0] },
 };
-// Fabric recolors with the bag color; zipper tape, teeth and hardware stay fixed.
-const FABRIC = ['Charcoal woven shell', 'Graphite pocket panels', 'Soft black piping', 'Back padding and webbing', 'Tonal seam thread'];
+// Fabric follows the builder's regions. Zipper tape, teeth and hardware keep their GLB finish.
+const SHELL = 'Charcoal woven shell';
+const FABRIC = {
+  [SHELL]: 'body',
+  'Graphite pocket panels': 'secondary',
+  'Soft black piping': 'trim',
+  'Back padding and webbing': 'body',
+  'Tonal seam thread': 'trim',
+};
 // The site's spring, cubic-bezier(.2,1.35,.35,1), solved for progress at time t.
 const spring = t => { let lo = 0, hi = 1, u = t; const b = (p, a, c) => 3 * (1 - p) * (1 - p) * p * a + 3 * (1 - p) * p * p * c + p * p * p; for (let i = 0; i < 16; i++) { u = (lo + hi) / 2; if (b(u, .2, .35) < t) lo = u; else hi = u; } return b(u, 1.35, 1); };
 const easeOut = t => 1 - (1 - t) ** 3;
@@ -87,6 +94,7 @@ export async function mountBag(container, {
   contactShadow = null,
   layout = null,
   bagColor = null,
+  bagColorway = {},
   accentColor = null,
   // Display customization: the player's stamp appearance (DisplayPalette.stampStyle()); null is today's stamp.
   stampStyle = null,
@@ -463,7 +471,7 @@ export async function mountBag(container, {
       for (const material of object.isMesh ? [object.material].flat() : []) {
         if (seen.has(material)) continue;
         seen.add(material);
-        if (FABRIC.includes(material.name)) fabric.push({ material, original: material.color.clone() });
+        if (Object.hasOwn(FABRIC, material.name)) fabric.push({ material, original: material.color.clone() });
         if (material.name === 'GoTo highlight') accentMaterials.push(material);
       }
     });
@@ -478,21 +486,18 @@ export async function mountBag(container, {
     throw error;
   }
 
-  const shell = fabric.find(entry => entry.material.name === FABRIC[0]);
-  // Fabric parts keep their tonal relationship to the shell (lighter panels, darker piping).
+  const shell = fabric.find(entry => entry.material.name === SHELL);
+  // Missing swatches use the legacy tonal fabric, or the original GLB colors for default charcoal.
   const luminance = color => .2126 * color.r + .7152 * color.g + .0722 * color.b;
-  const setBagColor = value => {
-    if (value === null || value === undefined) {
-      for (const entry of fabric) entry.material.color.copy(entry.original);
-      appliedBagColor = null;
-    } else {
-      const base = new THREE.Color(value);
-      for (const entry of fabric) {
-        const ratio = luminance(entry.original) / luminance(shell.original);
-        entry.material.color.copy(base).multiplyScalar(ratio);
-      }
-      appliedBagColor = '#' + base.getHexString();
+  const setBagColor = (value, colorway = {}) => {
+    const legacy = value == null ? null : new THREE.Color(value);
+    for (const {material, original} of fabric) {
+      const swatch = colorway[FABRIC[material.name]];
+      if (swatch != null) material.color.set(swatch);
+      else if (legacy) material.color.copy(legacy).multiplyScalar(luminance(original) / luminance(shell.original));
+      else material.color.copy(original);
     }
+    appliedBagColor = colorway.body != null || legacy ? '#' + shell.material.color.getHexString() : null;
     invalidate();
   };
   // A new stamp style drops the drawn stamps; the next look (syncLook) draws them again in it.
@@ -1382,7 +1387,7 @@ export async function mountBag(container, {
   };
 
   if (layout) setBagLayout(layout);
-  if (bagColor) setBagColor(bagColor);
+  setBagColor(bagColor, bagColorway);
   setAccentColor(accentColor);
   await yieldToMain();
   // Compile every program up front, in parallel where the browser supports it, so the
@@ -1552,6 +1557,7 @@ export async function mountBag(container, {
     // Read back from the shell material, so callers can verify what is actually rendered.
     get bagColor() { return '#' + shell.material.color.getHexString(); },
     get customBagColor() { return appliedBagColor; },
+    get bagFabricColors() { return Object.fromEntries(fabric.map(({material})=>[material.name, '#' + material.color.getHexString()])); },
     setAccentColor,
     setStampStyle,
     get stampFinish() { return currentStampStyle?.finish?.id || 'flat'; },

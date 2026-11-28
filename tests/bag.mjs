@@ -344,7 +344,7 @@ test('bag builder saves slot capacity and all three colors per user',async()=>{
   assert.equal(update.status,200);
   const bag=(await update.json()).bag;
   assert.deepEqual(await current(),bag);
-  assert.deepEqual([bag.capacity,bag.main_capacity,bag.putter_capacity,bag.extra_capacity],[9,8,1,0]);
+  assert.deepEqual([bag.capacity,bag.main_capacity,bag.putter_capacity,bag.extra_capacity],[9,4,4,1]);
   assert.deepEqual([bag.bag_body_color,bag.bag_secondary_color,bag.bag_trim_color],['#286454','#d8a958','#e6e6dc']);
   await Promise.all([
    s.call('/api/bag','PATCH',{rack_style:'brass'}).then(r=>assert.equal(r.status,200)),
@@ -358,11 +358,17 @@ test('bag builder saves slot capacity and all three colors per user',async()=>{
   assert.deepEqual(await current(),updated,'Invalid updates leave the saved colors and capacity alone');
   const other=(await (await s.call('/api/bag','GET',undefined,{cookie:'y'.repeat(43)})).json()).bag;
   assert.deepEqual(other,before);
+  for(const [capacity,expected] of [[24,[19,4,1]],[5,[1,4,0]],[3,[1,2,0]],[10,[8,2,0]]]){
+   const response=await s.call('/api/bag','PUT',{...builder,capacity});
+   assert.equal(response.status,200);
+   const saved=await current();
+   assert.deepEqual([saved.main_capacity,saved.putter_capacity,saved.extra_capacity],expected);
+  }
   assert.equal((await s.call('/api/bag','PUT',{bag_model:'Large legacy bag',capacity:97})).status,200);
   assert.equal((await s.call('/api/bag','PUT',{...builder,capacity:97})).status,200,'An existing capacity outside the builder range can still be recolored');
   assert.equal((await current()).capacity,97);
   assert.equal((await s.call('/api/bag','PUT',{...builder,capacity:52})).status,200);
-  assert.equal((await current()).main_capacity,48);
+  assert.equal((await current()).main_capacity,52,'A main-only legacy bag stays main-only when resized');
  }finally{s.close();}
 });
 

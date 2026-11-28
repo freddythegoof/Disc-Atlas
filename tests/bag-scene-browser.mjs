@@ -63,13 +63,21 @@ try{
  await showList('bag');await page.locator(`[data-bag-move="${storedId}"]`).click();await page.waitForFunction(()=>document.querySelector('#bagSlotMeter').textContent==='6 / 23');
  // The existing fabric reads its saved color from the live 3D scene.
  const bagColor=()=>page.locator('[data-bag-canvas]').evaluate(n=>({color:n.bagViewer.bagColor,custom:n.bagViewer.customBagColor}));
+ const fabric=()=>page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.bagFabricColors);
  assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
  await page.reload();await phase('open');assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'});
+ const legacyFabric=await fabric();
+ await page.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.setBagColor('#436752',{secondary:'#d8a958'}));
+ assert.deepEqual(await fabric(),{...legacyFabric,'Graphite pocket panels':'#d8a958'},'A missing swatch keeps its legacy fabric');
  await page.getByRole('button',{name:'Customize',exact:true}).click();
- await page.locator('#bagModelDialog').getByLabel('Body',{exact:true}).fill('#286454');
+ const builder=page.locator('#bagModelDialog');
+ await builder.getByLabel('Body',{exact:true}).fill('#286454');
+ await builder.getByLabel('Secondary panel',{exact:true}).fill('#d8a958');
+ await builder.getByLabel('Trim & details',{exact:true}).fill('#e6e6dc');
  await page.locator('#saveBagModel').click();await page.locator('#bagModelDialog').waitFor({state:'hidden'});
- assert.deepEqual(await bagColor(),{color:'#436752',custom:'#436752'},'Builder colors leave the legacy 3D fabric intact');
  await page.waitForFunction(()=>document.activeElement===document.querySelector('#editBagModel'));
+ const savedFabric={'Charcoal woven shell':'#286454','Graphite pocket panels':'#d8a958','Soft black piping':'#e6e6dc','Back padding and webbing':'#286454','Tonal seam thread':'#e6e6dc'};
+ assert.deepEqual(await fabric(),savedFabric);
  const discId=await page.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc');
  const disc=page.locator(`[data-physical-disc="${discId}"]`);
  await disc.focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.dataset.slotOrder),'1');await page.keyboard.press('Shift+Tab');assert.ok(await disc.evaluate(n=>n===document.activeElement));await page.keyboard.press('Escape');
@@ -117,6 +125,7 @@ try{
  // A real touch context: a tap slides the disc out; tapping its label opens its details.
  const touch=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:360,height:800},isMobile:true,hasTouch:true,storageState:await context.storageState()});
  const mobile=await touch.newPage();await mobile.goto(base+'/?bag=1');await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.phase==='open');
+ assert.deepEqual(await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.bagFabricColors),savedFabric,'All regions load from the saved bag in a fresh context');
  const touchId=await mobile.locator('[data-pocket="main"] [data-physical-disc]').first().getAttribute('data-physical-disc'),touchDisc=mobile.locator(`[data-physical-disc="${touchId}"]`);await touchDisc.tap();await mobile.waitForFunction(()=>document.querySelector('#bagScene').dataset.staging==='still' && document.querySelector('#bagScene').dataset.out);assert.deepEqual(await mobile.locator('[data-bag-canvas]').evaluate(n=>n.bagViewer.outDiscs),[touchId],'The first tap slides the disc out');await mobile.waitForTimeout(250);assert.equal(await mobile.locator('#detail').isVisible(),false,'The tap opens no details (Oct 7)');await mobile.locator(`[data-out-name="${touchId}"][data-shown]`).tap();await mobile.locator('.bag-disc-popup:not([hidden])').tap();await mobile.locator('#detail').waitFor();assert.ok(await mobile.locator('#myBagView').isVisible(),'Tapping its name, then the popup, opens its details on My Bag');await touch.close();
  await page.evaluate(()=>window.AtlasAccount.signOut());await page.waitForFunction(()=>!window.AtlasAccount.current.user);await page.locator('#myBagDemo').waitFor();await page.waitForFunction(()=>{const ids=[...document.querySelectorAll('[data-physical-disc]')].map(n=>n.dataset.physicalDisc);return ids.length===18&&ids.every(id=>id.startsWith('demo-'));});assert.equal(await page.locator('[data-bag-edit]').count(),0,'Signed out, the scene shows only the demo bag');assert.equal(await page.locator('#accountButton').innerText(),'Sign in');
  assert.deepEqual(errors,[]);fs.writeFileSync(dir+'/qa.json',JSON.stringify({passed:true,themes,widths,metrics,cadence,errors},null,2));
